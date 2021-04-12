@@ -20,7 +20,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "3b:ec:3f:f1:0d:1a:a9:2c:a6:6f:03:cb:46:37:11:50"
+            - "7d:8b:b0:21:72:1d:36:cf:47:20:7b:a4:f2:b0:d0:fe"
       - get_dependencies
       - run: ./scripts/release/release.sh
   "docker-go116 build":

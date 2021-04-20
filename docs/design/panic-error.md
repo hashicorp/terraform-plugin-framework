@@ -123,7 +123,10 @@ provider.
 
 While it's easy to assert that provider developers should just check the error,
 the API should be designed such that it's hard to use incorrectly, and
-incorrect usage should be loud and yield noticeable feedback.
+incorrect usage should be loud and yield noticeable feedback. Linters can help
+with this, and we can encourage their use, but we should try to design APIs
+that don't lean too much on external tooling we can't assume provider
+developers will have or use.
 
 Panics are more conspicuous than errors, as they cannot be accidentally
 ignored. They default to being noticeable.

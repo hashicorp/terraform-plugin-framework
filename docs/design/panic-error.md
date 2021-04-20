@@ -215,7 +215,7 @@ with the `Type` specified. In the vast majority of circumstances, `v` will be
 of a type known at compile time, and therefore panics will show up if the code
 is executed even once in testing. But there are edge cases in which an API may
 return a value with an interface type, in which case, the type of `v` may not
-be known at compile time. In those edge cases, providers can call
+be known at compile time. In those edge cases, providers should call
 `tftypes.ValidateValue` before calling `tftypes.NewValue`, secure in the
 knowledge that if no error was returned from `tftypes.ValidateValue` they are
 safe from panics.

@@ -157,6 +157,20 @@ tend to only convey the information available at the level of abstraction that
 prompted them. This suggests that panics lower in the abstraction should be
 considered more expensive, as they convey less context to the developer.
 
+## Interruptability
+
+Related to the ability to recontextualise is the consideration around halting.
+While there are [tools][panicwrap] for preventing panics from halting
+execution, and `recover` will stop a panic from halting execution, it's still
+worth considering that panics generally do not give the program any time to
+clean up or resolve the in-progress work it is doing, which can lead to file
+corruption or things being left in an undesirable state. It's worth noting that
+Terraform protects itself, as a rule of thumb, against provider panics, but
+this doesn't help in certain contexts--like the acceptance testing
+framework--and is not a pleasant or easy to understand failure mode for end
+users. This suggests that contexts that are performing operations with effects
+outside the program itself would benefit from fewer opportunities to panic.
+
 ## Nature of the Exception
 
 There seem to be two broad categories of exceptions that a provider can run
@@ -212,6 +226,9 @@ func NewValue(t Type, v interface{}) Value
 func ValidateValue(t Type, v interface{}) error
 ```
 
+(Names here are indicative, and not recommendations for a naming pattern. Names
+should be context-specific.)
+
 `NewValue` decided to use panic given the API benefits it conveyed, based on
 the knowledge that panics _only_ happen when the type of `v` is incompatible
 with the `Type` specified. In the vast majority of circumstances, `v` will be
@@ -232,3 +249,4 @@ safe from panics.
 [tftypes-validatevalue]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#ValidateValue
 [resourcedata-set]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#ResourceData.Set
 [apparentlymart]: https://github.com/apparentlymart
+[panicwrap]: https://github.com/mitchellh/panicwrap

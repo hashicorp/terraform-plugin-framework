@@ -2,10 +2,10 @@
 
 Historically, the provider has always tried to use providers, data sources, and
 resources that are scoped to the RPC server; you can see this in the SDKv2
-[`ProviderFunc`][SDKv2-ProviderFunc] type, which is used to instantiate a
+[`ProviderFunc`][sdkv2-provider-func] type, which is used to instantiate a
 provider when the server starts up. But you can also see it in the practice of
-[using a function][SDKv2-ResourceFuncCall] to [register resource
-schemas][SDKv2-ResourceSchema], even though there's no enforced requirement
+[using a function][sdkv2-resource-func-call] to [register resource
+schemas][sdkv2-resource-schema], even though there's no enforced requirement
 that providers do this. This keeps the variables representing providers, data
 sources, and resources scoped to the gRPC server, which is very helpful when
 running multiple servers at the same time, as in the acceptance test drivers.
@@ -155,7 +155,7 @@ would return an interface) or by the framework.
 
 ### Documentation
 
-[SDKv2-ProviderFunc][https://github.com/hashicorp/terraform-plugin-sdk/blob/893e7238350e1980eb2cce3303689ba59ae47490/plugin/serve.go#L28]
-[SDKv2-ResourceFuncCall][https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/provider.go#L33]
-[SDKv2-ResourceSchema][https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/resource_scaffolding.go#L10-L29]
+[sdkv2-provider-func][https://github.com/hashicorp/terraform-plugin-sdk/blob/893e7238350e1980eb2cce3303689ba59ae47490/plugin/serve.go#L28]
+[sdkv2-resource-func-call][https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/provider.go#L33]
+[sdkv2-resource-schema][https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/resource_scaffolding.go#L10-L29]
 [structs-interfaces][https://github.com/hashicorp/terraform-plugin-framework/blob/main/docs/design/structs-interfaces.md]

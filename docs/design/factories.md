@@ -129,7 +129,7 @@ providers define:
 
 ```go
 type ResourceFactory interface {
-  NewFactory() Resource
+  NewResource() Resource
 }
 ```
 
@@ -142,7 +142,7 @@ type Provider struct {
 }
 ```
 
-This works whether the type is defined by the provider (the `NewFactory()`
+This works whether the type is defined by the provider (the `NewResource()`
 method would return an interface) or by the framework.
 
 ### Separating types and values

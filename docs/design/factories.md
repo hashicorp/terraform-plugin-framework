@@ -1,7 +1,7 @@
 # Instantiating New Provider-Controlled Types
 
-Historically, the provider has always tried to use providers, data sources, and
-resources that are scoped to the RPC server; you can see this in the SDKv2
+Historically, the framework has always tried to use providers, data sources,
+and resources that are scoped to the RPC server; you can see this in the SDKv2
 [`ProviderFunc`][sdkv2-provider-func] type, which is used to instantiate a
 provider when the server starts up. But you can also see it in the practice of
 [using a function][sdkv2-resource-func-call] to [register resource

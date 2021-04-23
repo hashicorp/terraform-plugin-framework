@@ -147,9 +147,15 @@ method would return an interface) or by the framework.
 
 ### Separating types and values
 
+The SDK currently conflates two separate ideas: the type of a resource--i.e.,
+the shape a resource takes, the general idea of a resource--and the value of a
+resource--e.g. a specific instance of that resource, a single resource
+definition in state.
+
 Rather than conflating types and values, we can separate them out into two
-different Go implementations. A type is a factory that contains information
-common to values, values are specific instances of a type:
+different Go implementations. The type can then serve as a factory that
+contains information common to values, and values can surface the
+implementations that are used for specific instances of a type:
 
 ```go
 type ResourceType interface {

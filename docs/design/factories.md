@@ -144,7 +144,7 @@ type Provider struct {
 }
 ```
 
-This works whether the type is defined by the provider (the `NewResource()`
+This works whether the `Resource` type is defined by the provider (the `NewResource()`
 method would return an interface) or by the framework.
 
 ### Separating types and values

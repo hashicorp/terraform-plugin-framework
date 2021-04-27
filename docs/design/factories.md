@@ -24,11 +24,11 @@ benefits and trade-offs.
 
 ## Options
 
-### Anonymous functions
+### Anonymous function types
 
 Wherever we need instances of provider, resource, and data source types from
-provider developers, we can ask for them as the results of anonymous functions.
-For example:
+provider developers, we can ask for them as the results of anonymous function
+types.  For example:
 
 ```go
 type Provider struct {
@@ -41,9 +41,10 @@ which lets the framework call the function to instantiate a new instance of the
 type. This works whether the type is defined by the provider (the function
 would return an interface) or by the framework.
 
-### Named functions
+### Named function types
 
-Similarly to anonymous functions, we can ask for functions with a named type:
+Similarly to anonymous function types, we can ask for functions with a named
+function type:
 
 ```go
 type ResourceFactory func() framework.Resource
@@ -192,9 +193,9 @@ change at runtime. It's hard to imagine a scenario where modifying the schema,
 validation, or CRUD implementations while the server is running is a good idea,
 and we should consider that scenario out of scope for this design.
 
-Anonymous and named functions, factory types, and separating types and values
-may give the impression that this is possible or supported, by changing what is
-returned by the function based on some runtime considerations.
+Anonymous and named function types, factory types, and separating types and
+values may give the impression that this is possible or supported, by changing
+what is returned by the function based on some runtime considerations.
 
 Reflection and manual copying do not give the impression that this is possible
 or supported, as the creation of new values is abstracted from the provider
@@ -202,13 +203,13 @@ developer and they may not even know it's happening.
 
 ### Type system gymnastics
 
-Anonymous and named functions require the user to specify a function that
+Anonymous and named function types require the user to specify a function that
 returns a resource, with a usually-hardcoded implementation inside the
 function. The user may not understand the purpose of the function, and may
 consider it extra verbosity. Additionally, depending on how it is used (as a
 value in a map, etc.) the provider developer _may_ need to cast their function
-implementation to the correct type if we use named functions, which is verbose
-and annoying.
+implementation to the correct type if we use named function types, which is
+verbose and annoying.
 
 Reflection and manual copying require no extra type gymnastics other than the
 minimal viable work of defining the resource, which can then be used as a
@@ -226,9 +227,9 @@ resource at runtime.
 
 ### Reliability
 
-Anonymous and named functions, factory types, and separating types and values
-are all straightforward implementations, lean heavily on the Go compiler, and
-are relatively reliable as implementation patterns.
+Anonymous and named function types, factory types, and separating types and
+values are all straightforward implementations, lean heavily on the Go
+compiler, and are relatively reliable as implementation patterns.
 
 Reflection circumvents the Go compiler and has a lot of sharp corner cases to
 it, which we may or may not have enough experience to predict, and is
@@ -242,16 +243,16 @@ to update the copying implementation every time the struct changes.
 
 ### Type safety
 
-Anonymous and named functions, factory types, manually copying, and separating
-types and values are all type-safe implementations, working within the Go
-compiler and its type system.
+Anonymous and named function types, factory types, manually copying, and
+separating types and values are all type-safe implementations, working within
+the Go compiler and its type system.
 
 Reflection circumvents the Go compiler and its type system, and is not a
 type-safe implementation.
 
 ### Documentation
 
-Named functions, factory types, and separating types and values all share
+Named function types, factory types, and separating types and values all share
 documentation properties. They can have the purpose of the function defined
 explicitly and clearly (positive) but that definition is likely to be at a
 distance in the documentation from the types that use it (negative).
@@ -262,18 +263,18 @@ off of except where they're used, which is repetitive (negative); but also
 there's not much purpose for that documentation (positive)--assuming the
 implementation works correctly.
 
-Anonymous functions likewise have nowhere to hang documentation off of besides
-where they're used, which is repetitive (negative).
+Anonymous function types likewise have nowhere to hang documentation off of
+besides where they're used, which is repetitive (negative).
 
 ### Automation
 
 For automation and code-analysis purposes, factory types and separating types
 and values are the most friendly, as their intent is explicit and checked by
-the compiler. Named functions are the next-most automatable, as the intent of
-where the function is used is explicit, but the definition of the function
+the compiler. Named function types are the next-most automatable, as the intent
+of where the function is used is explicit, but the definition of the function
 itself does not have any intent associated with it. Reflection, manual copying,
-and anonymous functions can only have their intent inferred by the name of the
-property they're set on, which is the hardest to build automation around.
+and anonymous function types can only have their intent inferred by the name of
+the property they're set on, which is the hardest to build automation around.
 
 [sdkv2-provider-func]: https://github.com/hashicorp/terraform-plugin-sdk/blob/893e7238350e1980eb2cce3303689ba59ae47490/plugin/serve.go#L28
 [sdkv2-resource-func-call]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/provider.go#L33

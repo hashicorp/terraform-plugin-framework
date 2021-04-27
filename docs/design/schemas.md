@@ -10,6 +10,8 @@ In `helper/schema`, `Resource` is a struct type with a field `Schema`, whose typ
 
 In the new framework, `framework.Resource` may be a struct type or interface: see the [Structs and Interfaces](./structs-interfaces.md) design doc. 
 
+### If `framework.Resource` is a struct
+
 Since the schema is defined by the provider code but must be accessible from the framework code, this means that if `framework.Resource` is a struct, the schema can either be a field (`framework.Resource.Schema`), or a method (`framework.Resource.GetSchema()`), i.e. we could have
 ```go
 type Resource struct {
@@ -24,12 +26,45 @@ type Resource struct {
 }
 ```
 
-If `framework.Resource` is an interface, the only option is a method (`framework.Resource.GetSchema()`), since the actual resource struct will be a provider-defined type:
+### If `framework.Resource` is an interface
+
+If `framework.Resource` is an interface, the most straightforward option is to include a `GetSchema()` method which the provider code must implement, since the actual resource struct will be a provider-defined type:
 ```go
 type Resource interface {
   GetSchema(ctx context.Context) (*tfprotov6.Schema, []*tfprotov6.Diagnostic)
 }
 ```
+
+Another option is to define a `framework.Schema` type which providers can embed in their resource structs. For example, we could have the following framework code:
+```go
+type Resource interface {
+  GetSchema(ctx context.Context) (*tfprotov6.Schema, []*tfprotov6.Diagnostic)
+  // other Resource methods
+}
+
+type Schema map[string]*tfprotov6.Schema
+
+func (s Schema) GetSchema(_ context.Context) (*tfprotov6.Schema, []*tfprotov6.Diagnostic) {
+  // implement a conversion function here that converts from s to *tfprotov6.Schema
+}
+```
+
+Then in the provider code:
+
+```go
+type myResource struct {
+  framework.Schema
+}
+
+func NewMyResource() framework.Resource {
+  return myResource{
+    "foo": *tfprotov6.Schema{},
+    "bar": *tfprotov6.Schema{},
+  }
+}
+```
+
+Here, provider developers still have the option of implementing `myResource.GetSchema()`, so `myResource` fulfils the `framework.Resource` interface. If instead of `Schema.GetSchema()` the framework defines `Schema.getSchema()`, an unexported method, the provider is forced to use the struct implementation.
 
 ### Field on struct `framework.Resource.Schema`
 
@@ -111,9 +146,9 @@ var schema = &tfprotov5.Schema{
 }
 ```
 
-### `framework.Schema`
+### Illustrative example: `framework.Schema`
 
-Like `helper/schema`, the framework could wrap the `tfprotov6.Schema` types with helpers to reduce verbosity. A minimally verbose option could look something like:
+Like `helper/schema`, the framework could wrap the `tfprotov6.Schema` types with helpers to reduce verbosity. This section illustrates how such a `framework.Schema` type might be used in provider code: the exact implementation itself is outside the scope of this design document. A minimally verbose option could look something like:
 
 ```go
 var schema = map[string]*framework.Schema{
@@ -167,7 +202,7 @@ The work being done here by the `framework.Schema` type, from the provider devel
 
 Apart from reducing verbosity, this approach has a number of benefits. Users will not have to import `tftypes` or `tfprotov6` packages, removing the burden of having to understand why the terraform-plugin-go module exists separately from the framework. The framework schema types are more discoverable, being documented inside the framework code for framework users, not in plugin-go.
 
-#### Tradeoffs: compatibility
+#### Tradeoff: compatibility
 
 The API of the framework schema package for defining resource schemas (i.e. the functionality shown in the examples above) should not have to change unless there is a change in the Terraform protocol concerning schemas.
 
@@ -178,3 +213,9 @@ Firstly, consider what happens if a backwards-compatible change is made in the T
 Secondly, consider what happens if a backwards-incompatible change is made in the Terraform protocol. In this case, a new Terraform protocol major version would be needed anyway, so the compatibility status of `framework.Schema` is no worse than `tfprotov5.schema`. 
 
 Note that in the case of Terraform protocol v5 and v6, despite a major version increase, the functional change made is backwards-compatible with respect to the schema, so `tfprotov6.Schema` is a backwards-compatible extension of `tfprotov5.Schema`. Wrapping these types in a `framework.Schema` type hides this complexity from users and saves them the work of updating their use of `tfprotovN.Schema` if something similar happens in the future. 
+
+#### Tradeoff: helpfulness
+
+The new framework should guide users toward the proper use of block and attribute types. For example, it should be obvious to users when they can use `Optional`, `Computed`, and `Sensitive` when using block, collection, and structural Terraform types. This is an infamous difficulty which `helper/schema` does not help users to navigate.
+
+Like other implementation details of any `framework.Schema` type, the way the framework structures its types, or perhaps throws errors when an invalid combination of attributes and flags is attempted, is out of scope for this document - however, there may need to be some tradeoff here between brevity and helpfulness.

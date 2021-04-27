@@ -113,7 +113,7 @@ we can use this in a helper, to do something like:
 
 ```go
 type Provider struct {
-	Resources map[string]Resource
+  Resources map[string]Resource
 }
 ```
 

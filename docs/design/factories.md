@@ -26,7 +26,7 @@ benefits and trade-offs.
 
 ### Anonymous functions
 
-Wherever we need these types from provider developers, we can ask for them as
+Wherever we need instances of provider, resource, and data source types from provider developers, we can ask for them as
 the results of anonymous functions. For example:
 
 ```go

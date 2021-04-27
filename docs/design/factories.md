@@ -94,11 +94,11 @@ populate them:
 
 ```go
 resource := framework.Resource{
-	Schema: map[string]*Schema{},
-	Create: createFunc,
-	Read: readFunc,
-	Update: updateFunc,
-	Delete: deleteFunc,
+  Schema: map[string]*Schema{},
+  Create: createFunc,
+  Read: readFunc,
+  Update: updateFunc,
+  Delete: deleteFunc,
 }
 
 newResource := framework.Resource{}

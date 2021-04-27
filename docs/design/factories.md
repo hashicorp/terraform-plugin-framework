@@ -53,7 +53,7 @@ type Provider struct {
 ```
 
 This also asks for a function that returns a `framework.Resource`, but gives
-the function signature a name. This works whether the type is defined by the
+the function signature a name. This works whether the resource type is defined by the
 provider (the function would return an interface) or by the framework.
 
 ### Reflection

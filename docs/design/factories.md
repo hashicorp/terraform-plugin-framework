@@ -125,7 +125,7 @@ provider would need to use reflection to achieve this outcome.
 ### Factory types
 
 Instead of using functions, the framework can define an interface for a factory that
-providers define:
+can be implemented by a provider-defined type:
 
 ```go
 type ResourceFactory interface {

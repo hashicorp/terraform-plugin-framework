@@ -134,7 +134,7 @@ type ResourceFactory interface {
 ```
 
 Which can then be used instead of the type the factory will return when asking
-users for resources, data sources, and providers:
+consumers for resources, data sources, and providers:
 
 ```go
 type Provider struct {

@@ -42,7 +42,7 @@ would return an interface) or by the framework.
 
 ### Named functions
 
-Similarly to anonymous functions, we can ask for named functions:
+Similarly to anonymous functions, we can ask for functions with a named type:
 
 ```go
 type ResourceFactory func() framework.Resource

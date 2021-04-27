@@ -124,7 +124,7 @@ provider would need to use reflection to achieve this outcome.
 
 ### Factory types
 
-Instead of using functions, we can have an interface for a factory type that
+Instead of using functions, the framework can define an interface for a factory that
 providers define:
 
 ```go

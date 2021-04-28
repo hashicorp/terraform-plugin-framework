@@ -209,7 +209,7 @@ providers to want to have available to all RPC calls for every instance of
 their resources. This state usually is _used_ by RPC calls, not _created_ by
 it. An example of this we see a lot in the wild is a mutex that constrains the
 number of requests that can be made in parallel, to not provoke API rate
-limiting. Currently, the only way to keep this state is to register it at as
+limiting. Currently, the only way to keep this state is to register it as
 global mutable state. This is problematic in testing scenarios, as all provider
 servers will need to share that same state; it's not just one server's resource
 instances, it's all the resource instances for all the servers created by any

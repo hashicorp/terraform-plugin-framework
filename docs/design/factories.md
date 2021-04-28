@@ -223,7 +223,7 @@ Go types:
 ```go
 type ResourceType interface {
   GetSchema() *tfprotov5.Schema
-  NewResource() Resource
+  NewResource(p framework.Provider) Resource
 }
 
 type Resource interface {

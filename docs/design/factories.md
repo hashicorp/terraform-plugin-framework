@@ -147,25 +147,26 @@ type Provider struct {
 This works whether the `Resource` type is defined by the provider (the
 `NewResource()` method would return an interface) or by the framework.
 
-### Separating types and values
+### Separating resource types and resource instances
 
-The SDK currently conflates two separate ideas: the type of a resource--i.e.,
-the shape a resource takes, the general idea of a resource--and the value of a
-resource--e.g. a specific instance of that resource, a single resource
-definition in state.
+The SDK currently conflates two separate ideas: the type of a resource--like
+"random_pet", the resource's name and schema, not the Go type--and a specific
+instance of that resource type--like "random_pet.my_resource", a set of
+concrete values filled into the resource type, a single state entry.
 
-Rather than conflating types and values, we can separate them out into two
-different Go implementations. The type can then serve as a factory that
-contains information common to values, and values can surface the
-implementations that are used for specific instances of a type:
+Rather than conflating resource types and instances, we can separate them out
+into two different Go implementations. The resource type can then serve as a
+factory that contains information common to all instances, and instances can
+surface the implementations that are used to operate only on instances of a
+resource type:
 
 ```go
 type ResourceType interface {
   GetSchema() *tfprotov5.Schema
-  NewValue() ResourceValue
+  NewValue() Resource
 }
 
-type ResourceValue interface {
+type Resource interface {
   Create(ctx context.Context, *CreateResourceRequest, *CreateResourceResponse)
   Read(ctx context.Context, *ReadResourceRequest, *ReadResourceResponse)
   Update(ctx context.Context, *UpdateResourceRequest, *UpdateResourceResponse)
@@ -173,7 +174,8 @@ type ResourceValue interface {
 }
 ```
 
-We can then use types to instantiate new values at runtime:
+We can then use resource types to instantiate new resource instances at
+runtime:
 
 ```go
 type Provider struct {
@@ -182,7 +184,8 @@ type Provider struct {
 ```
 
 This works whether the type is defined by the provider (the `NewValue()` method
-would return an interface) or by the framework.
+would return an interface type instead of a struct that the framework defined)
+or by the framework (the `NewValue()` method would return a struct type).
 
 ## Trade-offs
 
@@ -193,9 +196,10 @@ change at runtime. It's hard to imagine a scenario where modifying the schema,
 validation, or CRUD implementations while the server is running is a good idea,
 and we should consider that scenario out of scope for this design.
 
-Anonymous and named function types, factory types, and separating types and
-values may give the impression that this is possible or supported, by changing
-what is returned by the function based on some runtime considerations.
+Anonymous and named function types, factory types, and separating resource
+types and instances may give the impression that this is possible or supported,
+by changing what is returned by the function based on some runtime
+considerations.
 
 Reflection and manual copying do not give the impression that this is possible
 or supported, as the creation of new values is abstracted from the provider
@@ -219,17 +223,19 @@ Factory types require the provider developer to define an entire type, likely
 with no state of its own, just to implement a method on it, just to return a
 static resource definition.
 
-Separating types and values requires the provider developer to define an entire
-type, just like factory types, but it perhaps _feels_ less like type system
-gymnastics as it also bundles in the schema information with the factory,
-providing some separation between the type of resource and an instance of the
-resource at runtime.
+Separating resource types and instances requires the provider developer to
+define an entire type, just like factory types, but it perhaps _feels_ less
+like type system gymnastics as it also bundles in the schema information with
+the factory, providing some separation between the type of resource and an
+instance of the resource at runtime; it feels less like we're doing type
+gymnastics and more like we're faithfully surfacing a distinction Terraform
+makes.
 
 ### Reliability
 
-Anonymous and named function types, factory types, and separating types and
-values are all straightforward implementations, lean heavily on the Go
-compiler, and are relatively reliable as implementation patterns.
+Anonymous and named function types, factory types, and separating resource
+types and instances are all straightforward implementations, lean heavily on
+the Go compiler, and are relatively reliable as implementation patterns.
 
 Reflection circumvents the Go compiler and has a lot of sharp corner cases to
 it, which we may or may not have enough experience to predict, and is
@@ -244,18 +250,19 @@ to update the copying implementation every time the struct changes.
 ### Type safety
 
 Anonymous and named function types, factory types, manually copying, and
-separating types and values are all type-safe implementations, working within
-the Go compiler and its type system.
+separating resource types and instances are all type-safe implementations,
+working within the Go compiler and its type system.
 
 Reflection circumvents the Go compiler and its type system, and is not a
 type-safe implementation.
 
 ### Documentation
 
-Named function types, factory types, and separating types and values all share
-documentation properties. They can have the purpose of the function defined
-explicitly and clearly (positive) but that definition is likely to be at a
-distance in the documentation from the types that use it (negative).
+Named function types, factory types, and separating resource types and
+instances all share documentation properties. They can have the purpose of the
+function defined explicitly and clearly (positive) but that definition is
+likely to be at a distance in the documentation from the types that use it
+(negative).
 
 Manually copying and reflection have no special types or outward indication
 that the process is happening, meaning there's nowhere to hang documentation
@@ -268,13 +275,14 @@ besides where they're used, which is repetitive (negative).
 
 ### Automation
 
-For automation and code-analysis purposes, factory types and separating types
-and values are the most friendly, as their intent is explicit and checked by
-the compiler. Named function types are the next-most automatable, as the intent
-of where the function is used is explicit, but the definition of the function
-itself does not have any intent associated with it. Reflection, manual copying,
-and anonymous function types can only have their intent inferred by the name of
-the property they're set on, which is the hardest to build automation around.
+For automation and code-analysis purposes, factory types and separating
+resource types and instances are the most friendly, as their intent is explicit
+and checked by the compiler. Named function types are the next-most
+automatable, as the intent of where the function is used is explicit, but the
+definition of the function itself does not have any intent associated with it.
+Reflection, manual copying, and anonymous function types can only have their
+intent inferred by the name of the property they're set on, which is the
+hardest to build automation around.
 
 [sdkv2-provider-func]: https://github.com/hashicorp/terraform-plugin-sdk/blob/893e7238350e1980eb2cce3303689ba59ae47490/plugin/serve.go#L28
 [sdkv2-resource-func-call]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/provider.go#L33

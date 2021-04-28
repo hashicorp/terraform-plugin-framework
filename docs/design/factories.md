@@ -21,7 +21,9 @@ are dependent on whether the types in question are [framework-controlled or
 provider-controlled][structs-interfaces].
 
 This document is meant to catalogue our available options and explore their
-benefits and trade-offs.
+benefits and trade-offs. It, like all these design documents, is meant to
+explore only its specific scope; orthogonal issues are handled in separate
+design documents.
 
 **Note**: there are many code samples below. Code samples are meant to be
 illustrative of patterns; the specific types of arguments and return values,

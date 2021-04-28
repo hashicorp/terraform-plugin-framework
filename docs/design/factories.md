@@ -284,6 +284,17 @@ Reflection, manual copying, and anonymous function types can only have their
 intent inferred by the name of the property they're set on, which is the
 hardest to build automation around.
 
+### Schema Access
+
+Anonymous functions, named functions, factory types, reflection, and manually
+copying all let the provider developer access the resource's schema inside the
+CRUD functions of that resource, by just calling the method.
+
+If resource types and resource instances are separated into two Go types,
+however, this avenue will no longer be available, and we'll either need to
+surface the resource type or its schema in the CRUD functions somehow, or
+decide that provider developers don't need access to it.
+
 [sdkv2-provider-func]: https://github.com/hashicorp/terraform-plugin-sdk/blob/893e7238350e1980eb2cce3303689ba59ae47490/plugin/serve.go#L28
 [sdkv2-resource-func-call]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/provider.go#L33
 [sdkv2-resource-schema]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/resource_scaffolding.go#L10-L29

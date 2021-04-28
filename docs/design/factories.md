@@ -32,6 +32,7 @@ provider developers, we can ask for them as the results of anonymous function
 types.  For example:
 
 ```go
+// in the framework
 type Provider struct {
   Resources map[string]func() framework.Resource
 }
@@ -48,6 +49,7 @@ Similarly to anonymous function types, we can ask for functions with a named
 function type:
 
 ```go
+// in the framework
 type ResourceFactory func() framework.Resource
 
 type Provider struct {
@@ -66,6 +68,7 @@ package to create new instances of the type:
 
 
 ```go
+// in the provider
 resource := computeInstanceResource{}
 
 typ := reflect.TypeOf(resource)
@@ -78,6 +81,7 @@ newResource := reflect.New(typ)
 We can use this in a helper, to do something like:
 
 ```go
+// in the framework
 type Provider struct {
   Resources map[string]Resource
 }
@@ -96,6 +100,7 @@ its own instances of that type, and would be able to copy over the data used to
 populate them:
 
 ```go
+// in the provider
 resource := framework.Resource{
   Schema: map[string]*Schema{},
   Create: createFunc,
@@ -103,7 +108,10 @@ resource := framework.Resource{
   Update: updateFunc,
   Delete: deleteFunc,
 }
+```
 
+```go
+// in the framework
 newResource := framework.Resource{}
 newResource.Schema = resource.Schema
 newResource.Create = resource.Create
@@ -115,6 +123,7 @@ newResource.Delete = resource.Delete
 we can use this in a helper, to do something like:
 
 ```go
+// in the framework
 type Provider struct {
   Resources map[string]Resource
 }
@@ -131,6 +140,7 @@ Instead of using functions, the framework can define an interface for a factory
 that can be implemented by a provider-defined type:
 
 ```go
+// in the framework
 type ResourceFactory interface {
   NewResource() Resource
 }
@@ -140,6 +150,7 @@ Which can then be used instead of the type the factory will return when asking
 consumers for resources, data sources, and providers:
 
 ```go
+// in the framework
 type Provider struct {
   Resources map[string]ResourceFactory
 }
@@ -174,6 +185,7 @@ resources, this may lead providers to try and store information generated
 during RPC calls in their `framework.Resource` implementation:
 
 ```go
+// in the provider
 type myResource struct {
   readResult tftypes.Value
 }
@@ -221,6 +233,7 @@ type. We could define the resource type and the resource instance as separate
 Go types:
 
 ```go
+// in the framework
 type ResourceType interface {
   GetSchema() *tfprotov5.Schema
   NewResource(p framework.Provider) Resource
@@ -238,6 +251,7 @@ This allows provider developers to define their resource types and thread
 through the state shared by all instances of the resource:
 
 ```go
+// in the provider
 type myResourceType struct {
   reqMutex sync.Mutex
 }
@@ -283,6 +297,7 @@ And provider developers can instantiate the state they need the resource
 instances to share:
 
 ```go
+// in the provider
 func NewProvider() *framework.Provider{
   return &framework.Provider{
     Resources: map[string]framework.ResourceType{

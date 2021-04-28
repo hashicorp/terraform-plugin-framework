@@ -261,8 +261,11 @@ type myResource struct {
 }
 
 func (m *myResource) Create(ctx, req, resp) {
+  // this ensures that only one Create call can happen at a time
   reqMutex.Lock()
   defer reqMutex.Unlock()
+
+  // make API call
 }
 ```
 

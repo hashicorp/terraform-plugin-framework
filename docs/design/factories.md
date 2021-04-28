@@ -23,6 +23,13 @@ provider-controlled][structs-interfaces].
 This document is meant to catalogue our available options and explore their
 benefits and trade-offs.
 
+**Note**: there are many code samples below. Code samples are meant to be
+illustrative of patterns; the specific types of arguments and return values,
+the names of things, etc. aren't meant to be part of the proposal. The purpose
+of the code is just to illustrate the pattern, not to suggest a final
+implementation that will be used. Code will be PRed, and these and other
+concerns that don't impact the pattern can be resolved at that time.
+
 ## Options
 
 ### Anonymous function types

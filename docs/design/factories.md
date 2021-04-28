@@ -198,7 +198,11 @@ func (m *myResource) Create(ctx context.Context, req framework.CreateResourceReq
 This code could _sometimes_ work if we're not careful about always generating a
 new `myResource` for each RPC call we handle. But if the inner workings of the
 SDK or Terraform's graph change in any way, it's likely to break this code,
-which may not be obvious to provider developers.
+which may not be obvious to provider developers. We can mitigate this by
+requiring provider developers to register a function with the provider, not a
+value, and always calling the function to get a fresh value at the beginning of
+every RPC call, though provider developers may not understand that we're doing
+that.
 
 Second, there exists a certain kind of state that it's very reasonable for
 providers to want to have available to all RPC calls for every instance of

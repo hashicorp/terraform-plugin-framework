@@ -43,7 +43,7 @@ types.  For example:
 ```go
 // in the framework
 type Provider struct {
-  Resources map[string]func() framework.Resource
+  Resources map[string]func() Resource
 }
 ```
 
@@ -59,7 +59,7 @@ function type:
 
 ```go
 // in the framework
-type ResourceFactory func() framework.Resource
+type ResourceFactory func() Resource
 
 type Provider struct {
   Resources map[string]ResourceFactory
@@ -245,7 +245,7 @@ Go types:
 // in the framework
 type ResourceType interface {
   GetSchema() *tfprotov5.Schema
-  NewResource(p framework.Provider) Resource
+  NewResource(p Provider) Resource
 }
 
 type Resource interface {
@@ -283,7 +283,7 @@ type myResource struct {
   client *Client
 }
 
-func (m *myResource) Create(ctx, req, resp) {
+func (m *myResource) Create(ctx context.Context, req framework.CreateResourceRequest, resp framework.CreateResourceResponse) {
   // this ensures that only one Create call can happen at a time
   m.reqMutex.Lock()
   defer m.reqMutex.Unlock()

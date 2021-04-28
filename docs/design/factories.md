@@ -5,10 +5,11 @@ and resources that are scoped to the RPC server; you can see this in the SDKv2
 [`ProviderFunc`][sdkv2-provider-func] type, which is used to instantiate a
 provider when the server starts up. But you can also see it in the practice of
 [using a function][sdkv2-resource-func-call] to [register resource
-schemas][sdkv2-resource-schema], even though there's no enforced requirement
-that providers do this. This keeps the variables representing providers, data
-sources, and resources scoped to the gRPC server, which is very helpful when
-running multiple servers at the same time, as in the acceptance test drivers.
+schemas][sdkv2-resource-schema-usage], even though there's no enforced
+requirement that providers do this. This keeps the variables representing
+providers, data sources, and resources scoped to the gRPC server, which is very
+helpful when running multiple servers at the same time, as in the acceptance
+test drivers.
 
 There are two main goals when instantiating new instances of a type: to provide
 isolation from other instances of that type that may be running (otherwise, a
@@ -149,21 +150,76 @@ This works whether the `Resource` type is defined by the provider (the
 
 ### Separating resource types and resource instances
 
-The SDK currently conflates two separate ideas: the type of a resource--like
-"random_pet", the resource's name and schema, not the Go type--and a specific
-instance of that resource type--like "random_pet.my_resource", a set of
-concrete values filled into the resource type, a single state entry.
+Resources are currently treated as a single logical concept: they have a
+schema, and they have CRUD functions, and the same type is used to implement
+both of these.
 
-Rather than conflating resource types and instances, we can separate them out
-into two different Go implementations. The resource type can then serve as a
-factory that contains information common to all instances, and instances can
-surface the implementations that are used to operate only on instances of a
-resource type:
+There are, however, two underlying concepts that are surfaced as "resources"
+right now: resource types and resource instances.
+
+Resource types are the resource in abstract form. `random_pet` is a resource
+type. It has a schema, but no config, state, or plan. It doesn't show up in a
+practitioner's configuration files at all. It has no lifecycle.
+
+Resource instances are the resource in concrete form. `random_pet.my_pet` is a
+resource instance. It has a schema, but also has a config, state, and plan. It
+shows up in the pracitioner's configuration files. It has a lifecycle.
+
+At the moment, both of these concepts are surfaced as a single `Resource` type.
+This leads to two problems:
+
+First, `helper/schema` uses [a single instance][sdkv2-resource-registration] of
+the `Resource` type for all RPC calls. _If_ we use a provider-defined type for
+resources, this may lead providers to try and store information generated
+during RPC calls in their `framework.Resource` implementation:
+
+```go
+type myResource struct {
+  readResult tftypes.Value
+}
+
+func (m *myResource) Read(ctx context.Context, req framework.ReadResourceRequest, resp framework.ReadResourceResponse) {
+  // fetch state from the API here
+  // this next line assumes the state from the API is "hello, world"
+  // this is unlikely, but sufficient to illustrate the point
+  m.readResult = tftypes.NewValue(tftypes.String, "hello, world")
+}
+
+func (m *myResource) Create(ctx context.Context, req framework.CreateResourceRequest, resp framework.CreateResourceResponse) {
+  var readResult string
+  err := m.readResult.As(&readResult)
+  if err != nil {
+    panic(err)
+  }
+  // make an API call here using readResult
+}
+```
+
+This code could _sometimes_ work if we're not careful about always generating a
+new `myResource` for each RPC call we handle. But if the inner workings of the
+SDK or Terraform's graph change in any way, it's likely to break this code,
+which may not be obvious to provider developers.
+
+Second, there exists a certain kind of state that it's very reasonable for
+providers to want to have available to all RPC calls for every instance of
+their resources. This state usually is _used_ by RPC calls, not _created_ by
+it. An example of this we see a lot in the wild is a mutex that constrains the
+number of requests that can be made in parallel, to not provoke API rate
+limiting. Currently, the only way to keep this state is to register it at as
+global mutable state. This is problematic in testing scenarios, as all provider
+servers will need to share that same state; it's not just one server's resource
+instances, it's all the resource instances for all the servers created by any
+concurrently-running tests.
+
+We have the option of surfacing this distinction explicitly, allowing providers
+to store this state that should be shared among all instances of a resource
+type. We could define the resource type and the resource instance as separate
+Go types:
 
 ```go
 type ResourceType interface {
   GetSchema() *tfprotov5.Schema
-  NewValue() Resource
+  NewResource() Resource
 }
 
 type Resource interface {
@@ -174,18 +230,68 @@ type Resource interface {
 }
 ```
 
+This allows provider developers to define their resource types and thread
+through the state shared by all instances of the resource:
+
+```go
+type myResourceType struct {
+  reqMutex sync.Mutex
+}
+
+func (m *myResourceType) NewResource(p framework.Provider) framework.Resource{
+  return &myResource{
+    reqMutex: &m.reqMutex,
+    client: p.(*Client),
+  }
+}
+
+func (m *myResourceType) GetSchema() *tfprotov5.Schema {
+  return &tfprotov5.Schema{
+    // hard-code schema here
+  }
+}
+
+type myResource struct {
+  reqMutex sync.Mutex
+  client *Client
+}
+
+func (m *myResource) Create(ctx, req, resp) {
+  reqMutex.Lock()
+  defer reqMutex.Unlock()
+}
+```
+
 We can then use resource types to instantiate new resource instances at
 runtime:
 
 ```go
+// in the framework
 type Provider struct {
   Resources map[string]ResourceType
 }
 ```
 
-This works whether the type is defined by the provider (the `NewValue()` method
-would return an interface type instead of a struct that the framework defined)
-or by the framework (the `NewValue()` method would return a struct type).
+And provider developers can instantiate the state they need the resource
+instances to share:
+
+```go
+func NewProvider() *framework.Provider{
+  return &framework.Provider{
+    Resources: map[string]framework.ResourceType{
+      "my_resource": myResourceType{
+        reqMutex: sync.Mutex{},
+      },
+    },
+  }
+}
+```
+
+This largely requires the `Resource` type to be defined by the provider, as
+there's no place to thread the resource-global state through on a
+framework-defined `Resource` type. In theory, you could still separate the two
+concepts with a framework-defined `Resource` type, but most if not all of the
+benefit is lost.
 
 ## Trade-offs
 
@@ -297,5 +403,6 @@ decide that provider developers don't need access to it.
 
 [sdkv2-provider-func]: https://github.com/hashicorp/terraform-plugin-sdk/blob/893e7238350e1980eb2cce3303689ba59ae47490/plugin/serve.go#L28
 [sdkv2-resource-func-call]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/provider.go#L33
-[sdkv2-resource-schema]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/resource_scaffolding.go#L10-L29
+[sdkv2-resource-schema-usage]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/resource_scaffolding.go#L10-L29
+[sdkv2-resource-registration]: https://github.com/hashicorp/terraform-plugin-sdk/blob/e512e3737c6c64e51a1bca47aab84f9a90042cc8/helper/schema/provider.go#L63
 [structs-interfaces]: https://github.com/hashicorp/terraform-plugin-framework/blob/main/docs/design/structs-interfaces.md

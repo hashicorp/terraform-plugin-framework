@@ -302,3 +302,34 @@ type ResourceWithContext interface {
 	Destroy(context.Context) []*tfprotov5.Diagnostic
 }
 ```
+
+## Recommendations
+
+We're recommending that interfaces be used for resources, data sources, and
+providers. We feel that interfaces provide clearer boundaries for the SDK's
+behavior and offer a better communication method for making explicit its
+expectations. We also believe that interfaces allow more provider code to be
+strongly-typed and benefit from compiler assistance.
+
+There is some concern that interfaces allow providers too much freedom to store
+inappropriate runtime state on their types, given the flexibility of defining
+their own types. This is a thing we've run into in `helper/schema`, and a very
+real danger, and something we should keep an eye on mitigating as we implement.
+A clear and obvious tool, though not by any means a complete solution, is
+documenting what is expected and appropriate, and what is unexpected and
+unsupported in the GoDoc comments for the places where users have the ability
+to create issues for themselves.
+
+We feel that structs are the most obvious entrypoint, and offer the best
+first-five-minutes experience to provider developers, because they're filling
+in blanks instead of defining their own types. However, we feel that interfaces
+offer the best first-hour experience to provider developers, because of the
+increased prevalence for needing to assert types when using structs. We also
+feel that interfaces allow provider developers to impose more structure on the
+codebase they're developing, as they're able to use their own types, which
+makes ongoing maintenance of providers easier.
+
+We feel like interfaces will encourage unit testability of code, both the
+framework's code and the provider's, as they make it more difficult for the
+framework to build up types that provider developers can not construct
+themselves.

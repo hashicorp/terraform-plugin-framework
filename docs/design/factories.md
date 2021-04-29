@@ -439,7 +439,8 @@ strongly recommending against them. They're not idiomatic and they hide too
 much of what's happening.
 
 Named functions and anonymous functions are mostly useful on structs, and we're
-shying away from that pattern, so we're recommending against them.
+[shying away from that pattern][structs-interfaces-recommendation], so we're
+recommending against them.
 
 Factory types and separating resource types and resources instances are the
 real contenders here, and there are some trade-offs to them. Separating types
@@ -467,3 +468,4 @@ implementation work and understand the user experience more viscerally.
 [sdkv2-resource-schema-usage]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/resource_scaffolding.go#L10-L29
 [sdkv2-resource-registration]: https://github.com/hashicorp/terraform-plugin-sdk/blob/e512e3737c6c64e51a1bca47aab84f9a90042cc8/helper/schema/provider.go#L63
 [structs-interfaces]: https://github.com/hashicorp/terraform-plugin-framework/blob/main/docs/design/structs-interfaces.md
+[structs-interfaces-recommendation]: https://github.com/hashicorp/terraform-plugin-framework/blob/main/docs/design/structs-interfaces.md#recommendations

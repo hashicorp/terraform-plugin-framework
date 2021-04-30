@@ -171,4 +171,18 @@ This defaults to the safest option, and lets the provider decide to use the
 less-safe (global mutable state) option. But that negates some of the benefits
 of approachability for new developers.
 
+## Recommendations
+
+We went back and forth on this a lot, because we really, really like the user
+experience of the `RegisterResource` function, but its reliance on global
+mutable state is really scary. We felt that the `RegisterResource` experience
+would most benefit large providers with lots of concurrent contributions
+happening. In the end, we decided the global mutable state was too risky, and
+to stick wtih listing resources in a single map. However, we noted that
+providers could implement their own version of `RegisterResource` on top of
+that, or we could even offer a helper for it in the framework. This left us
+with the ability to help the providers that would benefit most from it and were
+okay with the global mutable state, while letting providers that weren't
+comfortable with the global mutable state avoid it.
+
 [structs-interfaces]: https://github.com/hashicorp/terraform-plugin-framework/blob/main/docs/design/structs-interfaces.md

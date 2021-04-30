@@ -219,3 +219,11 @@ Note that in the case of Terraform protocol v5 and v6, despite a major version i
 The new framework should guide users toward the proper use of block and attribute types. For example, it should be obvious to users when they can use `Optional`, `Computed`, and `Sensitive` when using block, collection, and structural Terraform types. This is an infamous difficulty which `helper/schema` does not help users to navigate.
 
 Like other implementation details of any `framework.Schema` type, the way the framework structures its types, or perhaps throws errors when an invalid combination of attributes and flags is attempted, is out of scope for this document - however, there may need to be some tradeoff here between brevity and helpfulness.
+
+## Recommendations
+
+We have decided to ask users to implement a `GetSchema` method, on the theory
+that we can always provide an embed or helper type for that behavior in the
+future. We have also decided we would like to wrap the terraform-plugin-go in a
+framework-specific type, to provide us with opportunities to abstract some of
+the protocol verbosity away.

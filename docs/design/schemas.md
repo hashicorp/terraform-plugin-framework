@@ -224,6 +224,6 @@ Like other implementation details of any `framework.Schema` type, the way the fr
 
 We have decided to ask users to implement a `GetSchema` method, on the theory
 that we can always provide an embed or helper type for that behavior in the
-future. We have also decided we would like to wrap the terraform-plugin-go in a
+future. We have also decided we would like to wrap the terraform-plugin-go `Schema` type in a
 framework-specific type, to provide us with opportunities to abstract some of
 the protocol verbosity away.

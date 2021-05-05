@@ -327,7 +327,9 @@ offer the best first-hour experience to provider developers, because of the
 increased prevalence for needing to assert types when using structs. We also
 feel that interfaces allow provider developers to impose more structure on the
 codebase they're developing, as they're able to use their own types, which
-makes ongoing maintenance of providers easier.
+makes ongoing maintenance of providers easier. We're hoping that scaffolding
+and other tooling can help improve the first-five-minutes experience in the
+future.
 
 We feel like interfaces will encourage unit testability of code, both the
 framework's code and the provider's, as they make it more difficult for the

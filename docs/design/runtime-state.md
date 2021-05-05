@@ -159,3 +159,19 @@ This approach has the clear advantage, over Option 1, that the provider API clie
 On the other hand, depending on how `Provider` is surfaced to resources, this approach may require providers or the framework to use mutexes to write concurrency-safe code. For example, in order to prevent concurrent access of `provider.Client`, the framework could create an `RWMutex`, locking it before `ConfigureProvider` and unlocking it afterwards, and read-locking/unlocking it before/after every CRUD call. Handling these mutexes in the framework is no great disadvantage, but requiring provider developers to do so would be a significant increase in complexity.
 
 As shown in Option 1, framework-owned runtime data such as `TerraformVersion` could be stored on a `framework.RuntimeData` struct, which is available to the provider code either as a CRUD function parameter or a field on `provider.Provider`, which embeds `framework.RuntimeData`. Corresponding tradeoffs apply. 
+
+## Recommendations
+
+After investigating this issue, we decided that the framework-owned data is,
+usually, used for User-Agent generation, which tends to be configured as part
+of the client instantiation, which usually happens in ConfigureProvider.
+Because of this, it's somewhat rare that this information is even needed in the
+CRUD functions at all. This means that the need to pipe this state through
+outside the ConfigureProvider RPC is relatively rare, and probably doesn't need
+a first-class solution in the framework. To that end, we're going with option
+2, without a `framework.RuntimeData` type. Essentially, we're going to ignore
+`TerraformVersion` outside the ConfigureProvider RPC, and provider developers
+that want to hoist it into their CRUD functions can do so by explicitly
+including it in their provider-defined type, with their API client and other
+information. This minimizes complexity for most developers, while allowing
+developers that need that information in their CRUD functions a path forward.

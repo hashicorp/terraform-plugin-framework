@@ -432,8 +432,40 @@ however, this avenue will no longer be available, and we'll either need to
 surface the resource type or its schema in the CRUD functions somehow, or
 decide that provider developers don't need access to it.
 
+## Recommendations
+
+We believe the reflection and manually copying options are dangerous and are
+strongly recommending against them. They're not idiomatic and they hide too
+much of what's happening.
+
+Named functions and anonymous functions are mostly useful on structs, and we're
+[shying away from that pattern][structs-interfaces-recommendation], so we're
+recommending against them.
+
+Factory types and separating resource types and resources instances are the
+real contenders here, and there are some trade-offs to them. Separating types
+and instances is better from a separation of concerns perspective, but does
+feel like a heavier, more complex solution. The question of whether that's
+_necessary_ complexity or not is an open one. Factory types are simpler, and
+hide some of that complexity, but are otherwise rather similar. Arguably, the
+difference between them is semantic and conceptual; they are, in code,
+basically the same, with the only difference being what we call them and where
+the `GetSchema` method lives.
+
+There's also some uncertainty about whether we'll be adding functionality that
+operates across all instances of a resource type in the future. If so, resource
+types and resource instances being separated makes more sense.
+
+We are recommending the use of separating resource types and resource
+instances, under the assumption that we will be able to construct a helper that
+allows most provider developers to ignore this complexity. If it turns out that
+we can't, we may want to examine switching to factory types at that point. This
+is a relatively close call, and is open to modification as we do more
+implementation work and understand the user experience more viscerally.
+
 [sdkv2-provider-func]: https://github.com/hashicorp/terraform-plugin-sdk/blob/893e7238350e1980eb2cce3303689ba59ae47490/plugin/serve.go#L28
 [sdkv2-resource-func-call]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/provider.go#L33
 [sdkv2-resource-schema-usage]: https://github.com/hashicorp/terraform-provider-scaffolding/blob/243ba4948171e3902003f678c7c43ec3fafcdc20/internal/provider/resource_scaffolding.go#L10-L29
 [sdkv2-resource-registration]: https://github.com/hashicorp/terraform-plugin-sdk/blob/e512e3737c6c64e51a1bca47aab84f9a90042cc8/helper/schema/provider.go#L63
 [structs-interfaces]: https://github.com/hashicorp/terraform-plugin-framework/blob/main/docs/design/structs-interfaces.md
+[structs-interfaces-recommendation]: https://github.com/hashicorp/terraform-plugin-framework/blob/main/docs/design/structs-interfaces.md#recommendations

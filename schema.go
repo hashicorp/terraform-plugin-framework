@@ -7,6 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+const (
+	NestingModeSingle NestingMode = 0
+	NestingModeList   NestingMode = 1
+	NestingModeSet    NestingMode = 2
+	NestingModeMap    NestingMode = 3
+)
+
 // Schema is used to define the shape of practitioner-provider information,
 // like resources, data sources, and providers. Think of it as a type
 // definition, but for Terraform.
@@ -40,10 +47,14 @@ type Attribute struct {
 	//
 	// If Attributes is set, Type cannot be.
 	//
-	// TODO: support different nesting modes
 	// TODO: do we need MaxItems/MinItems? Can we just make those weird
 	// validation helpers?
 	Attributes map[string]Attribute
+
+	// AttributesNestingMode controls the various ways these sub-groups of
+	// attributes can behave. It can only be used with Attributes, and must
+	// not be set if Type is set.
+	AttributesNestingMode NestingMode
 
 	// Description is used in various tooling, like the documentation
 	// generator and the language server, to give practitioners more
@@ -119,6 +130,9 @@ type AttributeType interface {
 
 // StringKind represents a kind of string formatting.
 type StringKind uint8
+
+// NestingMode represents a specific way a group of attributes can be nested.
+type NestingMode uint8
 
 // AttributeValue defines an interface for describing data associated with an
 // attribute. AttributeValues allow provider developers to specify data in a

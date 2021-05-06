@@ -127,7 +127,7 @@ type StringKind uint8
 type AttributeValue interface {
 	// ToTerraformValue returns the data contained in the AttributeValue as
 	// a Go type that tftypes.NewValue will accept.
-	ToTerraformValue() (interface{}, error)
+	ToTerraformValue(context.Context) (interface{}, error)
 
 	// Equal must return true if the AttributeValue is considered
 	// semantically equal to the AttributeValue passed as an argument.

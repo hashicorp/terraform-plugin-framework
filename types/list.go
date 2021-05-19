@@ -3,13 +3,13 @@ package types
 import (
 	"context"
 
-	tf "github.com/hashicorp/terraform-plugin-framework"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type ListType struct {
-	ElemType tf.AttributeType
+	ElemType attr.Type
 }
 
 // TerraformType returns the tftypes.Type that should be used to
@@ -36,14 +36,14 @@ func (l ListType) Validate(_ context.Context, _ tftypes.Value) []*tfprotov6.Diag
 // Description returns a practitioner-friendly explanation of the type
 // and the constraints of the data it accepts and returns. It will be
 // combined with the Description associated with the Attribute.
-func (l ListType) Description(_ context.Context, _ tf.StringKind) string {
+func (l ListType) Description(_ context.Context) string {
 	return ""
 }
 
 // ValueFromTerraform returns an AttributeValue given a tftypes.Value.
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
-func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tf.AttributeValue, error) {
+func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
 		return List{
 			Unknown: true,
@@ -59,7 +59,7 @@ func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tf.
 	if err != nil {
 		return nil, err
 	}
-	elems := make([]tf.AttributeValue, 0, len(val))
+	elems := make([]attr.Value, 0, len(val))
 	for _, elem := range val {
 		av, err := l.ElemType.ValueFromTerraform(ctx, elem)
 		if err != nil {
@@ -76,7 +76,7 @@ func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tf.
 type List struct {
 	Unknown  bool
 	Null     bool
-	Elems    []tf.AttributeValue
+	Elems    []attr.Value
 	ElemType tftypes.Type
 }
 
@@ -106,7 +106,7 @@ func (l List) ToTerraformValue(ctx context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (l List) Equal(o tf.AttributeValue) bool {
+func (l List) Equal(o attr.Value) bool {
 	other, ok := o.(List)
 	if !ok {
 		return false

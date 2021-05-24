@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func stringValueFromTerraform(_ context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
-	var val String
+func boolValueFromTerraform(_ context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
+	var val Bool
 	if !in.IsKnown() {
 		val.Unknown = true
 		return val, nil
@@ -21,8 +21,8 @@ func stringValueFromTerraform(_ context.Context, in tftypes.Value) (tfsdk.Attrib
 	return val, err
 }
 
-// String represents a UTF-8 string value.
-type String struct {
+// Bool represents a boolean value.
+type Bool struct {
 	// Unknown will be true if the value is not yet known.
 	Unknown bool
 
@@ -32,27 +32,27 @@ type String struct {
 
 	// Value contains the set value, as long as Unknown and Null are both
 	// false.
-	Value string
+	Value bool
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a Go type that tftypes.NewValue will accept.
-func (s String) ToTerraformValue(_ context.Context) (interface{}, error) {
-	if s.Null {
+func (b Bool) ToTerraformValue(_ context.Context) (interface{}, error) {
+	if b.Null {
 		return nil, nil
 	}
-	if s.Unknown {
+	if b.Unknown {
 		return tftypes.UnknownValue, nil
 	}
-	return s.Value, nil
+	return b.Value, nil
 }
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (s String) Equal(other tfsdk.AttributeValue) bool {
-	o, ok := other.(String)
+func (b Bool) Equal(other tfsdk.AttributeValue) bool {
+	o, ok := other.(Bool)
 	if !ok {
 		return false
 	}
-	return s.Value == o.Value
+	return b.Value == o.Value
 }

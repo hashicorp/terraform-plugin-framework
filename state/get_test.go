@@ -1,23 +1,24 @@
-package tf
+package tfsdk
 
 import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestStateAs(t *testing.T) {
-	schema := Schema{
-		Attributes: map[string]Attribute{
+	schema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
 			"foo": {
-				Type:     types.StringType{},
+				Type:     types.StringType,
 				Required: true,
 			},
 			"bar": {
 				Type: types.ListType{
-					ElemType: types.StringType{},
+					ElemType: types.StringType,
 				},
 				Required: true,
 			},

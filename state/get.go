@@ -1,4 +1,4 @@
-package tf
+package tfsdk
 
 import (
 	"context"
@@ -8,20 +8,15 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var attributeValueReflectType = reflect.TypeOf(new(attr.Value)).Elem()
 
-type MyType struct {
-	Foo types.String `tfsdk:"foo"`
-	Bar types.List   `tfsdk:"bar"`
-}
-
 type State struct {
 	Raw    tftypes.Value
-	Schema Schema
+	Schema schema.Schema
 }
 
 func isValidFieldName(name string) bool {

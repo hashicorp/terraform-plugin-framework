@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 
-	tfsdk "github.com/hashicorp/terraform-plugin-framework"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -34,10 +34,10 @@ func (c CreateResourceResponse) WithError(title string, err error) {
 
 type State struct{}
 
-func (s State) Set(ctx context.Context, val tfsdk.AttributeValue) error {
+func (s State) Set(ctx context.Context, val attr.Value) error {
 	return nil
 }
 
-func (s State) SetAttribute(ctx context.Context, attr *tftypes.AttributePath, value tfsdk.AttributeValue) error {
+func (s State) SetAttribute(ctx context.Context, attr *tftypes.AttributePath, value attr.Value) error {
 	return nil
 }

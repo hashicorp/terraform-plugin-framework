@@ -1,6 +1,6 @@
 package schema
 
-import tfsdk "github.com/hashicorp/terraform-plugin-framework"
+import "github.com/hashicorp/terraform-plugin-framework/attr"
 
 // Attribute defines the constraints and behaviors of a single field in a
 // schema. Attributes are the fields that show up in Terraform state files and
@@ -10,7 +10,7 @@ type Attribute struct {
 	// want to use one of the types in the types package.
 	//
 	// If Type is set, Attributes cannot be.
-	Type tfsdk.AttributeType
+	Type attr.Type
 
 	// Attributes can have their own, nested attributes. This nested map of
 	// attributes behaves exactly like the map of attributes on the Schema

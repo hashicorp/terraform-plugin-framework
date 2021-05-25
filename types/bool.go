@@ -3,11 +3,11 @@ package types
 import (
 	"context"
 
-	tfsdk "github.com/hashicorp/terraform-plugin-framework"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func boolValueFromTerraform(_ context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
+func boolValueFromTerraform(_ context.Context, in tftypes.Value) (attr.Value, error) {
 	var val Bool
 	if !in.IsKnown() {
 		val.Unknown = true
@@ -49,7 +49,7 @@ func (b Bool) ToTerraformValue(_ context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (b Bool) Equal(other tfsdk.AttributeValue) bool {
+func (b Bool) Equal(other attr.Value) bool {
 	o, ok := other.(Bool)
 	if !ok {
 		return false

@@ -4,11 +4,11 @@ import (
 	"context"
 	"math/big"
 
-	tfsdk "github.com/hashicorp/terraform-plugin-framework"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func numberValueFromTerraform(_ context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
+func numberValueFromTerraform(_ context.Context, in tftypes.Value) (attr.Value, error) {
 	var val Number
 	if !in.IsKnown() {
 		val.Unknown = true
@@ -51,7 +51,7 @@ func (s Number) ToTerraformValue(_ context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (s Number) Equal(other tfsdk.AttributeValue) bool {
+func (s Number) Equal(other attr.Value) bool {
 	o, ok := other.(Number)
 	if !ok {
 		return false

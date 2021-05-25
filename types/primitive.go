@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	tfsdk "github.com/hashicorp/terraform-plugin-framework"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -42,7 +42,7 @@ func (p primitive) TerraformType(_ context.Context) tftypes.Type {
 // ValueFromTerraform returns an AttributeValue given a tftypes.Value.
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
-func (p primitive) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
+func (p primitive) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	switch p {
 	case StringType:
 		return stringValueFromTerraform(ctx, in)

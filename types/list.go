@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	tfsdk "github.com/hashicorp/terraform-plugin-framework"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -11,7 +11,7 @@ import (
 // be of the same type, which the provider must specify as the ElemType
 // property.
 type ListType struct {
-	ElemType tfsdk.AttributeType
+	ElemType attr.Type
 }
 
 // TerraformType returns the tftypes.Type that should be used to
@@ -28,7 +28,7 @@ func (l ListType) TerraformType(ctx context.Context) tftypes.Type {
 // ValueFromTerraform returns an AttributeValue given a tftypes.Value.
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
-func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
+func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
 		return List{
 			Unknown: true,
@@ -44,7 +44,7 @@ func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tfs
 	if err != nil {
 		return nil, err
 	}
-	elems := make([]tfsdk.AttributeValue, 0, len(val))
+	elems := make([]attr.Value, 0, len(val))
 	for _, elem := range val {
 		av, err := l.ElemType.ValueFromTerraform(ctx, elem)
 		if err != nil {
@@ -75,7 +75,7 @@ type List struct {
 	Null bool
 
 	// Elems are the elements in the list.
-	Elems []tfsdk.AttributeValue
+	Elems []attr.Value
 
 	// ElemType is the tftypes.Type of the elements in the list. All
 	// elements in the list must be of this type.
@@ -108,7 +108,7 @@ func (l List) ToTerraformValue(ctx context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (l List) Equal(o tfsdk.AttributeValue) bool {
+func (l List) Equal(o attr.Value) bool {
 	other, ok := o.(List)
 	if !ok {
 		return false

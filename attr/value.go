@@ -6,11 +6,11 @@ import "context"
 // Values allow provider developers to specify data in a convenient format, and
 // have it transparently be converted to formats Terraform understands.
 type Value interface {
-	// ToTerraformValue returns the data contained in the Value as a Go
-	// type that tftypes.NewValue will accept.
+	// ToTerraformValue returns the data contained in the Value as
+	// a Go type that tftypes.NewValue will accept.
 	ToTerraformValue(context.Context) (interface{}, error)
 
-	// Equal must return true if the Value is considered semantically equal
-	// to the Value passed as an argument.
+	// Equal must return true if the Value is considered
+	// semantically equal to the Value passed as an argument.
 	Equal(Value) bool
 }

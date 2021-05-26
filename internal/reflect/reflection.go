@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"reflect"
 
-	tfsdk "github.com/hashicorp/terraform-plugin-framework"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -22,7 +22,7 @@ import (
 // will be called for each struct field. Slices will have Into called for each
 // element.
 func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Options, path *tftypes.AttributePath) error {
-	if _, ok := target.(tfsdk.AttributeValue); ok {
+	if _, ok := target.(attr.Value); ok {
 		// TODO: use builtin assignment through the interface
 		return path.NewError(errors.New(("not implemented yet")))
 	}

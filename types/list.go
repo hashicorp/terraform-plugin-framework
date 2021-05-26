@@ -2,8 +2,11 @@ package types
 
 import (
 	"context"
+	"fmt"
 
 	tfsdk "github.com/hashicorp/terraform-plugin-framework"
+	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -80,6 +83,28 @@ type List struct {
 	// ElemType is the tftypes.Type of the elements in the list. All
 	// elements in the list must be of this type.
 	ElemType tftypes.Type
+}
+
+// ElementsAs populates `target` with the elements of the List, throwing an
+// error if the elements cannot be stored in `target`.
+func (l List) ElementsAs(ctx context.Context, target interface{}) error {
+	// we need a tftypes.Value for this List to be able to use it with our
+	// reflection code
+	values := make([]tftypes.Value, 0, len(l.Elems))
+	for pos, elem := range l.Elems {
+		val, err := elem.ToTerraformValue(ctx)
+		if err != nil {
+			return fmt.Errorf("error getting Terraform value for element %d: %w", pos, err)
+		}
+		err = tftypes.ValidateValue(l.ElemType, val)
+		if err != nil {
+			return fmt.Errorf("error using created Terraform value for element %d: %w", pos, err)
+		}
+		values = append(values, tftypes.NewValue(l.ElemType, val))
+	}
+	return reflect.Into(ctx, tftypes.NewValue(tftypes.List{
+		ElementType: l.ElemType,
+	}, values), target, tftypes.NewAttributePath())
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as

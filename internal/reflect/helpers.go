@@ -3,6 +3,7 @@ package reflect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
@@ -78,4 +79,46 @@ func getStructTags(ctx context.Context, in interface{}, path *tftypes.AttributeP
 func isValidFieldName(name string) bool {
 	re := regexp.MustCompile("^[a-z][a-z0-9_]*$")
 	return re.MatchString(name)
+}
+
+func canBeNil(target reflect.Value, pointerCount int) bool {
+	switch target.Kind() {
+	case reflect.Ptr:
+		// if this is the first pointer we've encountered, it can't be
+		// set to nil, but something it points to could
+		if pointerCount < 1 {
+			return canBeNil(target.Elem(), pointerCount+1)
+		}
+		// if this is the second pointer we've encountered, it can
+		// definitely be set to nil
+		return true
+	case reflect.Slice, reflect.Map:
+		// maps and slices can only be set to nil if they're under a
+		// pointer
+		return pointerCount > 0
+	case reflect.Interface:
+		// interfaces can be set to nil if they're under a pointer,
+		// otherwise something they're wrapping may be able to be
+		if pointerCount > 0 {
+			return true
+		}
+		return canBeNil(target.Elem(), pointerCount+1)
+	default:
+		// nothing else can be set to nil
+		return false
+	}
+}
+
+func setToZeroValue(target reflect.Value) error {
+	// we need to be able to set target
+	if !reflect.ValueOf(target).CanSet() {
+		return fmt.Errorf("can't set %T", target)
+	}
+
+	// we need a new, empty value using target's type
+	val := reflect.Zero(reflect.TypeOf(target))
+
+	// set the empty value
+	reflect.ValueOf(target).Set(val)
+	return nil
 }

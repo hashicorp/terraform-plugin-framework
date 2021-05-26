@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func reflectSlice(ctx context.Context, val tftypes.Value, target interface{}, path *tftypes.AttributePath) error {
+func reflectSlice(ctx context.Context, val tftypes.Value, target interface{}, opts Options, path *tftypes.AttributePath) error {
 	reflectValue := trueReflectValue(target)
 
 	// this only works with slices, so check that out first
@@ -45,7 +45,7 @@ func reflectSlice(ctx context.Context, val tftypes.Value, target interface{}, pa
 		path := path.WithElementKeyInt(int64(pos))
 
 		// reflect the value into our new target
-		err := Into(ctx, value, targetValue, path)
+		err := Into(ctx, value, targetValue, opts, path)
 		if err != nil {
 			return err
 		}

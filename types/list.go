@@ -87,7 +87,7 @@ type List struct {
 
 // ElementsAs populates `target` with the elements of the List, throwing an
 // error if the elements cannot be stored in `target`.
-func (l List) ElementsAs(ctx context.Context, target interface{}) error {
+func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) error {
 	// we need a tftypes.Value for this List to be able to use it with our
 	// reflection code
 	values := make([]tftypes.Value, 0, len(l.Elems))
@@ -104,7 +104,10 @@ func (l List) ElementsAs(ctx context.Context, target interface{}) error {
 	}
 	return reflect.Into(ctx, tftypes.NewValue(tftypes.List{
 		ElementType: l.ElemType,
-	}, values), target, tftypes.NewAttributePath())
+	}, values), target, reflect.Options{
+		UnhandledNullAsEmpty:    allowUnhandled,
+		UnhandledUnknownAsEmpty: allowUnhandled,
+	}, tftypes.NewAttributePath())
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as

@@ -7,8 +7,11 @@ import (
 )
 
 func reflectPrimitive(ctx context.Context, val tftypes.Value, target interface{}, path *tftypes.AttributePath) error {
-	realValue := trueReflectValue(target).Addr()
-	err := val.As(&realValue)
+	realValue := trueReflectValue(target)
+	if !realValue.CanAddr() {
+		return path.NewErrorf("can't obtain address of %T", target)
+	}
+	err := val.As(realValue.Addr())
 	if err != nil {
 		return path.NewError(err)
 	}

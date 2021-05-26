@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func reflectObjectIntoStruct(ctx context.Context, object tftypes.Value, target interface{}, path *tftypes.AttributePath) error {
+func reflectObjectIntoStruct(ctx context.Context, object tftypes.Value, target interface{}, opts Options, path *tftypes.AttributePath) error {
 	// this only works with object values, so make sure that constraint is
 	// met
 	if !object.Type().Is(tftypes.Object{}) {
@@ -59,7 +59,7 @@ func reflectObjectIntoStruct(ctx context.Context, object tftypes.Value, target i
 	structValue := trueReflectValue(target)
 	for field, structFieldPos := range targetFields {
 		structField := structValue.Field(structFieldPos)
-		err := Into(ctx, objectFields[field], structField, path.WithAttributeName(field))
+		err := Into(ctx, objectFields[field], structField, opts, path.WithAttributeName(field))
 		if err != nil {
 			return err
 		}

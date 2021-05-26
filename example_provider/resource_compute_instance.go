@@ -43,7 +43,7 @@ func (r resourceComputeInstanceType) GetSchema() schema.Schema {
 	}
 }
 
-// This would actually be `NewResource(p schemaProvider) schemaResource` but we
+// This would actually be `NewResource(p tfsdk.Provider) tfsdk.Resource` but we
 // don't have those types yet, so... placeholders. Gross.
 func (r resourceComputeInstanceType) NewResource(p Provider) Resource {
 	return resourceComputeInstance{
@@ -84,15 +84,15 @@ func (r resourceComputeInstance) Create(ctx context.Context, req CreateResourceR
 		// we don't want to get these as a types.Object, we want them
 		// as a resourceComputeInstanceDisksValues. So let's get them
 		// as that.
-		path := tftypes.NewAttributePath().WithAttributeName("disks")
-		apiReq["disks"] = make([]map[string]interface{}, 0, len(values.Disks.Elems))
-		for pos := range values.Disks.Elems {
-			var disk resourceComputeInstanceDisksValues
-			err := req.Plan.GetAttribute(ctx, path.WithElementKeyInt(int64(pos)), &disk)
-			if err != nil {
-				resp.WithError("Error parsing disk from plan", err)
-				return
-			}
+		var disks []resourceComputeInstanceDisksValues
+		err := values.Disks.ElementsAs(&disks)
+		if err != nil {
+			resp.WithError("Error parsing disks from plan", err)
+			return
+		}
+		for _, disk := range disks {
+			// ignore how gross this is, it's because we don't have
+			// a real API client
 			apiReq["disks"] = append(apiReq["disks"].([]map[string]interface{}), map[string]interface{}{
 				"id":                   disk.ID,
 				"delete_with_instance": disk.DeleteWithInstance,
@@ -111,20 +111,22 @@ func (r resourceComputeInstance) Create(ctx context.Context, req CreateResourceR
 	}
 	if values.Disks.Unknown {
 		// if our disks were unknown, we should set them from the response
-		for diskNo := range values.Disks.Elems {
-			path := tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(int64(diskNo))
-			// this next line is gross, but wouldn't be if this were real, because API clients are a thing
-			disk := apiResp["disks"].([]map[string]interface{})[diskNo]
-			err = resp.State.SetAttribute(ctx, path.WithAttributeName("id"), types.String{Value: disk["id"].(string)})
-			if err != nil {
-				resp.WithError("Error setting disk ID in response", err)
-				return
-			}
-			err = resp.State.SetAttribute(ctx, path.WithAttributeName("delete_with_instance"), types.Bool{Value: disk["delete_with_instance"].(bool)})
-			if err != nil {
-				resp.WithError("Error setting disk DeleteWithInstance in response", err)
-				return
-			}
+		var disks []resourceComputeInstanceDisksValues
+		for _, disk := range apiResp["disks"].([]map[string]interface{}) {
+			disks = append(disks, resourceComputeInstanceDisksValues{
+				ID:                 types.String{Value: disk["id"].(string)},
+				DeleteWithInstance: types.Bool{Value: disk["delete_with_instance"].(bool)},
+			})
+		}
+		diskVals, err := types.ListOf(disks)
+		if err != nil {
+			resp.WithError("Error converting disks into list", err)
+			return
+		}
+		err = resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("disks"), diskVals)
+		if err != nil {
+			resp.WithError("Error setting disks in state", err)
+			return
 		}
 	} else {
 		// otherwise, we should set them from what was in the config

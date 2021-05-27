@@ -3,14 +3,14 @@ package types
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
+	tfsdk "github.com/hashicorp/terraform-plugin-framework"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // ObjectType is an AttributeType representing a object
 type ObjectType struct {
-	AttributeTypes map[string]attr.Type
+	AttributeTypes map[string]tfsdk.AttributeType
 }
 
 // TerraformType returns the tftypes.Type that should be used to
@@ -31,7 +31,7 @@ func (l ObjectType) TerraformType(ctx context.Context) tftypes.Type {
 // ValueFromTerraform returns an AttributeValue given a tftypes.Value.
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
-func (l ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+func (l ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
 	if !in.IsKnown() {
 		return Object{
 			Unknown: true,
@@ -42,7 +42,7 @@ func (l ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 			Null: true,
 		}, nil
 	}
-	var attributes map[string]attr.Value
+	var attributes map[string]tfsdk.AttributeValue
 
 	val := map[string]tftypes.Value{}
 	err := in.As(&val)
@@ -84,7 +84,7 @@ type Object struct {
 	// explicitly set to null.
 	Null bool
 
-	Attributes map[string]attr.Value
+	Attributes map[string]tfsdk.AttributeValue
 
 	AttributeTypes map[string]tftypes.Type
 }
@@ -116,7 +116,7 @@ func (l Object) ToTerraformValue(ctx context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (l Object) Equal(o attr.Value) bool {
+func (l Object) Equal(o tfsdk.AttributeValue) bool {
 	other, ok := o.(Object)
 	if !ok {
 		return false

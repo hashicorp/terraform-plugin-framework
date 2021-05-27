@@ -42,7 +42,7 @@ func (l ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (t
 			Null: true,
 		}, nil
 	}
-	var attributes map[string]tfsdk.AttributeValue
+	attributes := map[string]tfsdk.AttributeValue{}
 
 	val := map[string]tftypes.Value{}
 	err := in.As(&val)
@@ -58,7 +58,7 @@ func (l ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (t
 		attributes[k] = a
 	}
 
-	var attributeTypes map[string]tftypes.Type
+	attributeTypes := map[string]tftypes.Type{}
 	for k, v := range l.AttributeTypes {
 		attributeTypes[k] = v.TerraformType(ctx)
 	}

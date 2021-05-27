@@ -17,7 +17,7 @@ func TestReflectPrimitive_string(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
-	if expected := ": can't obtain address of string"; expected != err.Error() {
+	if expected := ": can't set string"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }

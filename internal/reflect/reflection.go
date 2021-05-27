@@ -116,6 +116,9 @@ func into(ctx context.Context, val tftypes.Value, target reflect.Value, opts Opt
 		return reflectNumber(ctx, val, target, opts, path)
 	case reflect.Slice:
 		return reflectSlice(ctx, val, target, opts, path)
+	case reflect.Map:
+		// TODO: handle reflect.Map
+		return path.NewErrorf("reflecting into maps is not implemented yet.")
 	default:
 		return path.NewErrorf("don't know how to reflect %s into %s", val.Type(), target.Type())
 	}

@@ -120,8 +120,112 @@ func TestReflectObjectIntoStruct_primitives(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
+	if s.A != "hello" {
+		t.Errorf("Expected s.A to be %q, was %q", "hello", s.A)
+	}
+	if s.B.Cmp(big.NewFloat(123)) != 0 {
+		t.Errorf("Expected s.B to be %v, was %v", big.NewFloat(123), s.B)
+	}
+	if s.C != true {
+		t.Errorf("Expected s.C to be %v, was %v", true, s.C)
+	}
 }
 
 func TestReflectObjectIntoStruct_complex(t *testing.T) {
 	t.Parallel()
+
+	var s struct {
+		Slice          []string `tfsdk:"slice"`
+		SliceOfStructs []struct {
+			A string `tfsdk:"a"`
+			B int    `tfsdk:"b"`
+		} `tfsdk:"slice_of_structs"`
+		Struct struct {
+			A     bool      `tfsdk:"a"`
+			Slice []float64 `tfsdk:"slice"`
+		} `tfsdk:"struct"`
+		// TODO: add map
+		// TODO: add tfsdk.AttributeValue
+		// TODO: add setUnknownAble
+		// TODO: add setNullable
+		// TODO: add tftypes.ValueConverter
+	}
+	err := reflectObjectIntoStruct(context.Background(), tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"slice": tftypes.List{
+				ElementType: tftypes.String,
+			},
+			"slice_of_structs": tftypes.List{
+				ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"a": tftypes.String,
+						"b": tftypes.Number,
+					},
+				},
+			},
+			"struct": tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.Bool,
+					"slice": tftypes.List{
+						ElementType: tftypes.Number,
+					},
+				},
+			},
+		},
+	}, map[string]tftypes.Value{
+		"slice": tftypes.NewValue(tftypes.List{
+			ElementType: tftypes.String,
+		}, []tftypes.Value{
+			tftypes.NewValue(tftypes.String, "red"),
+			tftypes.NewValue(tftypes.String, "blue"),
+			tftypes.NewValue(tftypes.String, "green"),
+		}),
+		"slice_of_structs": tftypes.NewValue(tftypes.List{
+			ElementType: tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+					"b": tftypes.Number,
+				},
+			},
+		}, []tftypes.Value{
+			tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+					"b": tftypes.Number,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello, world"),
+				"b": tftypes.NewValue(tftypes.Number, 123),
+			}),
+			tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+					"b": tftypes.Number,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "goodnight, moon"),
+				"b": tftypes.NewValue(tftypes.Number, 456),
+			}),
+		}),
+		"struct": tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"a": tftypes.Bool,
+				"slice": tftypes.List{
+					ElementType: tftypes.Number,
+				},
+			},
+		}, map[string]tftypes.Value{
+			"a": tftypes.NewValue(tftypes.Bool, true),
+			"slice": tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.Number,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.Number, 123),
+				tftypes.NewValue(tftypes.Number, 456),
+				tftypes.NewValue(tftypes.Number, 789),
+			}),
+		}),
+	}), reflect.ValueOf(&s), Options{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
 }

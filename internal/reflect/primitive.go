@@ -9,12 +9,24 @@ import (
 
 func reflectPrimitive(ctx context.Context, val tftypes.Value, target reflect.Value, path *tftypes.AttributePath) error {
 	realValue := trueReflectValue(target)
-	if !realValue.CanAddr() {
-		return path.NewErrorf("can't obtain address of %s", target.Type())
+	if !realValue.CanSet() {
+		return path.NewErrorf("can't set %s", target.Type())
 	}
-	err := val.As(realValue.Addr().Interface())
-	if err != nil {
-		return path.NewError(err)
+	switch realValue.Kind() {
+	case reflect.Bool:
+		var b bool
+		err := val.As(&b)
+		if err != nil {
+			return path.NewError(err)
+		}
+		realValue.SetBool(b)
+	case reflect.String:
+		var s string
+		err := val.As(&s)
+		if err != nil {
+			return path.NewError(err)
+		}
+		realValue.SetString(s)
 	}
 	return nil
 }

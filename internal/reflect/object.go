@@ -3,7 +3,6 @@ package reflect
 import (
 	"context"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
@@ -61,7 +60,6 @@ func reflectObjectIntoStruct(ctx context.Context, object tftypes.Value, target r
 	structValue := trueReflectValue(target)
 	for field, structFieldPos := range targetFields {
 		structField := structValue.Field(structFieldPos)
-		log.Println("reflecting", objectFields[field], "into", structField.Type())
 		err := into(ctx, objectFields[field], structField, opts, path.WithAttributeName(field))
 		if err != nil {
 			return err

@@ -39,19 +39,19 @@ func reflectSlice(ctx context.Context, val tftypes.Value, target reflect.Value, 
 	// type for them, and add it to our new slice
 	for pos, value := range values {
 		// create a new Go value of the type that can go in the slice
-		targetValue := reflect.New(elemType)
+		targetValue := reflect.Zero(elemType)
+
+		// add the new target to our slice
+		sliced = reflect.Append(sliced, targetValue)
 
 		// update our path so we can have nice errors
 		path := path.WithElementKeyInt(int64(pos))
 
 		// reflect the value into our new target
-		err := into(ctx, value, targetValue, opts, path)
+		err := into(ctx, value, sliced.Index(sliced.Len()-1), opts, path)
 		if err != nil {
 			return err
 		}
-
-		// add the new target to our slice
-		sliced = reflect.Append(sliced, targetValue)
 	}
 
 	// update the target to be our slice

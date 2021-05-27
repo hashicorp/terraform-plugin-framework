@@ -69,6 +69,12 @@ func (l ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 	}, nil
 }
 
+func (l ObjectType) WithAttributeTypes(attrTypes map[string]attr.Type) attr.ObjectType {
+	ret := l
+	ret.AttributeTypes = attrTypes
+	return ret
+}
+
 // Object represents an object
 type Object struct {
 	// Unknown will be set to true if the entire object is an unknown value.

@@ -24,6 +24,18 @@ type Type interface {
 	ValueFromTerraform(context.Context, tftypes.Value) (Value, error)
 }
 
+// could also call this TypeWithAttributeTypes
+// ObjectType extends the Type interface to include a method returning a copy
+// of the type with its "attribute types" filled in. Attribute types are
+// part of the definition of an object type.
+type ObjectType interface {
+	Type
+
+	// WithAttributeTypes returns a new copy of the type with its
+	// attribute types set.
+	WithAttributeTypes(map[string]Type) ObjectType
+}
+
 // TypeWithValidate extends the Type interface to include a
 // Validate method, used to bundle consistent validation logic with the
 // Type.

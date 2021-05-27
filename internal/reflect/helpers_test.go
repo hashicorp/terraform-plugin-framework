@@ -98,7 +98,7 @@ func TestGetStructTags_success(t *testing.T) {
 
 	type testStruct struct {
 		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
-		unexported          string
+		unexported          string //nolint:structcheck,unused
 		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 		ExportedAndExcluded string `tfsdk:"-"`
 	}

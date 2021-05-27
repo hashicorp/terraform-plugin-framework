@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -32,4 +31,15 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 	default:
 		return target, path.NewErrorf("unrecognized type %s (this should never happen)", target.Kind())
 	}
+}
+
+func reflectOutOfString(ctx context.Context, val string, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	tfStr := tftypes.NewValue(tftypes.String, val)
+
+	str, err := opts.Strings.ValueFromTerraform(ctx, tfStr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return str, opts.Strings, nil
 }

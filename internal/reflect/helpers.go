@@ -81,28 +81,12 @@ func isValidFieldName(name string) bool {
 	return re.MatchString(name)
 }
 
-func canBeNil(target reflect.Value, pointerCount int) bool {
+// canBeNil returns true if `target`'s type can hold a nil value
+func canBeNil(target reflect.Value) bool {
 	switch target.Kind() {
-	case reflect.Ptr:
-		// if this is the first pointer we've encountered, it can't be
-		// set to nil, but something it points to could
-		if pointerCount < 1 {
-			return canBeNil(target.Elem(), pointerCount+1)
-		}
-		// if this is the second pointer we've encountered, it can
-		// definitely be set to nil
+	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface:
+		// these types can all hold nils
 		return true
-	case reflect.Slice, reflect.Map:
-		// maps and slices can only be set to nil if they're under a
-		// pointer
-		return pointerCount > 0
-	case reflect.Interface:
-		// interfaces can be set to nil if they're under a pointer,
-		// otherwise something they're wrapping may be able to be
-		if pointerCount > 0 {
-			return true
-		}
-		return canBeNil(target.Elem(), pointerCount+1)
 	default:
 		// nothing else can be set to nil
 		return false
@@ -111,14 +95,24 @@ func canBeNil(target reflect.Value, pointerCount int) bool {
 
 func setToZeroValue(target reflect.Value) error {
 	// we need to be able to set target
-	if !reflect.ValueOf(target).CanSet() {
-		return fmt.Errorf("can't set %T", target)
+	if !target.CanSet() {
+		// if it's a pointer or interface type, we may not be able to
+		// set it, but we could set whatever it's wrapping, so let's
+		// try that...
+		if target.Kind() == reflect.Ptr || target.Kind() == reflect.Interface {
+			target = target.Elem()
+		}
+
+		// okay if we still can't set it, we're done
+		if !target.CanSet() {
+			return fmt.Errorf("can't set %T", target.Interface())
+		}
 	}
 
 	// we need a new, empty value using target's type
-	val := reflect.Zero(reflect.TypeOf(target))
+	val := reflect.Zero(target.Type())
 
 	// set the empty value
-	reflect.ValueOf(target).Set(val)
+	target.Set(val)
 	return nil
 }

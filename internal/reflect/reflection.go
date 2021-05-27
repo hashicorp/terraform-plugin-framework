@@ -69,10 +69,13 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 	}
 
 	if val.IsNull() {
-		if canBeNil(reflect.ValueOf(target), 0) || opts.UnhandledNullAsEmpty {
-			// if this can be nil, the zero value is nil
-			// otherwise, if we want unhandled nulls to be empty
-			// values, the zero value is the empty value
+		if reflect.ValueOf(target).CanSet() && (canBeNil(reflect.ValueOf(target)) || opts.UnhandledNullAsEmpty) {
+			err := setToZeroValue(reflect.ValueOf(target))
+			if err != nil {
+				return path.NewError(err)
+			}
+			return nil
+		} else if opts.UnhandledNullAsEmpty {
 			err := setToZeroValue(reflect.ValueOf(target))
 			if err != nil {
 				return path.NewError(err)

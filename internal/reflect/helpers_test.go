@@ -16,28 +16,28 @@ func TestTrueReflectValue(t *testing.T) {
 	var stru struct{}
 
 	// test that when nothing needs unwrapped, we get the right answer
-	if got := trueReflectValue(stru).Kind(); got != reflect.Struct {
+	if got := trueReflectValue(reflect.ValueOf(stru)).Kind(); got != reflect.Struct {
 		t.Errorf("Expected %s, got %s", reflect.Struct, got)
 	}
 
 	// test that we can unwrap pointers
-	if got := trueReflectValue(&stru).Kind(); got != reflect.Struct {
+	if got := trueReflectValue(reflect.ValueOf(&stru)).Kind(); got != reflect.Struct {
 		t.Errorf("Expected %s, got %s", reflect.Struct, got)
 	}
 
 	// test that we can unwrap interfaces
 	iface = stru
-	if got := trueReflectValue(iface).Kind(); got != reflect.Struct {
+	if got := trueReflectValue(reflect.ValueOf(iface)).Kind(); got != reflect.Struct {
 		t.Errorf("Expected %s, got %s", reflect.Struct, got)
 	}
 
 	// test that we can unwrap pointers inside interfaces, and pointers to
 	// interfaces with pointers inside them
 	iface = &stru
-	if got := trueReflectValue(iface).Kind(); got != reflect.Struct {
+	if got := trueReflectValue(reflect.ValueOf(iface)).Kind(); got != reflect.Struct {
 		t.Errorf("Expected %s, got %s", reflect.Struct, got)
 	}
-	if got := trueReflectValue(&iface).Kind(); got != reflect.Struct {
+	if got := trueReflectValue(reflect.ValueOf(&iface)).Kind(); got != reflect.Struct {
 		t.Errorf("Expected %s, got %s", reflect.Struct, got)
 	}
 
@@ -45,10 +45,10 @@ func TestTrueReflectValue(t *testing.T) {
 	// interfaces, and pointers to interfaces inside pointers to
 	// interfaces.
 	otherIface = &iface
-	if got := trueReflectValue(otherIface).Kind(); got != reflect.Struct {
+	if got := trueReflectValue(reflect.ValueOf(otherIface)).Kind(); got != reflect.Struct {
 		t.Errorf("Expected %s, got %s", reflect.Struct, got)
 	}
-	if got := trueReflectValue(&otherIface).Kind(); got != reflect.Struct {
+	if got := trueReflectValue(reflect.ValueOf(&otherIface)).Kind(); got != reflect.Struct {
 		t.Errorf("Expected %s, got %s", reflect.Struct, got)
 	}
 }
@@ -103,7 +103,7 @@ func TestGetStructTags_success(t *testing.T) {
 		ExportedAndExcluded string `tfsdk:"-"`
 	}
 
-	res, err := getStructTags(context.Background(), testStruct{}, tftypes.NewAttributePath())
+	res, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -120,7 +120,7 @@ func TestGetStructTags_untagged(t *testing.T) {
 	type testStruct struct {
 		ExportedAndUntagged string
 	}
-	_, err := getStructTags(context.Background(), testStruct{}, tftypes.NewAttributePath())
+	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got nil")
 	}
@@ -135,7 +135,7 @@ func TestGetStructTags_invalidTag(t *testing.T) {
 	type testStruct struct {
 		InvalidTag string `tfsdk:"invalidTag"`
 	}
-	_, err := getStructTags(context.Background(), testStruct{}, tftypes.NewAttributePath())
+	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), tftypes.NewAttributePath())
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
@@ -151,7 +151,7 @@ func TestGetStructTags_duplicateTag(t *testing.T) {
 		Field1 string `tfsdk:"my_field"`
 		Field2 string `tfsdk:"my_field"`
 	}
-	_, err := getStructTags(context.Background(), testStruct{}, tftypes.NewAttributePath())
+	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), tftypes.NewAttributePath())
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
@@ -165,7 +165,7 @@ func TestGetStructTags_notAStruct(t *testing.T) {
 	t.Parallel()
 	var testStruct string
 
-	_, err := getStructTags(context.Background(), testStruct, tftypes.NewAttributePath())
+	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct), tftypes.NewAttributePath())
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}

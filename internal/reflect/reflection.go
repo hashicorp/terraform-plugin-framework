@@ -21,12 +21,17 @@ import (
 // in the tftypes.Value must have a corresponding property in the struct. Into
 // will be called for each struct field. Slices will have Into called for each
 // element.
-func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Options, path *tftypes.AttributePath) error {
-	if _, ok := target.(tfsdk.AttributeValue); ok {
+func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Options) error {
+	return into(ctx, val, reflect.ValueOf(target), opts, tftypes.NewAttributePath())
+}
+
+func into(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) error {
+	targetValue := trueReflectValue(target)
+	if _, ok := targetValue.Interface().(tfsdk.AttributeValue); ok {
 		// TODO: use builtin assignment through the interface
 		return path.NewError(errors.New(("not implemented yet")))
 	}
-	if v, ok := target.(setUnknownable); ok {
+	if v, ok := target.Interface().(setUnknownable); ok {
 		err := v.SetUnknown(!val.IsKnown())
 		if err != nil {
 			return path.NewError(err)
@@ -35,7 +40,7 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 			return nil
 		}
 	}
-	if v, ok := target.(setNullable); ok {
+	if v, ok := target.Interface().(setNullable); ok {
 		err := v.SetNull(val.IsNull())
 		if err != nil {
 			return path.NewError(err)
@@ -44,7 +49,7 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 			return nil
 		}
 	}
-	if vc, ok := target.(tftypes.ValueConverter); ok {
+	if vc, ok := target.Interface().(tftypes.ValueConverter); ok {
 		err := vc.FromTerraform5Value(val)
 		if err != nil {
 			return path.NewError(err)
@@ -62,21 +67,21 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 			return path.NewError(errors.New("unhandled unknown value"))
 		}
 		// we want to set unhandled unknowns to the empty value
-		err := setToZeroValue(reflect.ValueOf(target))
+		err := setToZeroValue(targetValue)
 		if err != nil {
 			return path.NewError(err)
 		}
 	}
 
 	if val.IsNull() {
-		if reflect.ValueOf(target).CanSet() && (canBeNil(reflect.ValueOf(target)) || opts.UnhandledNullAsEmpty) {
-			err := setToZeroValue(reflect.ValueOf(target))
+		if targetValue.CanSet() && (canBeNil(targetValue) || opts.UnhandledNullAsEmpty) {
+			err := setToZeroValue(targetValue)
 			if err != nil {
 				return path.NewError(err)
 			}
 			return nil
 		} else if opts.UnhandledNullAsEmpty {
-			err := setToZeroValue(reflect.ValueOf(target))
+			err := setToZeroValue(targetValue)
 			if err != nil {
 				return path.NewError(err)
 			}
@@ -84,12 +89,12 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 		}
 		return path.NewError(errors.New("unhandled null value"))
 	}
-	kind := trueReflectValue(target).Type().Kind()
-	if _, ok := trueReflectValue(target).Interface().(big.Float); ok {
+	kind := targetValue.Kind()
+	if _, ok := targetValue.Interface().(*big.Float); ok {
 		// cheat, pretend *big.Float is a float64 so it gets reflected
 		// as a number
 		kind = reflect.Float64
-	} else if _, ok := trueReflectValue(target).Interface().(big.Int); ok {
+	} else if _, ok := targetValue.Interface().(*big.Int); ok {
 		// cheat, pretend *big.Int is an int64 so it gets reflected as
 		// a number
 		kind = reflect.Int64
@@ -97,14 +102,21 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 	switch kind {
 	case reflect.Struct:
 		return reflectObjectIntoStruct(ctx, val, target, opts, path)
-	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16,
-		reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8,
-		reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float64,
-		reflect.String:
+	case reflect.Bool, reflect.String:
 		return reflectPrimitive(ctx, val, target, path)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
+		reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16,
+		reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
+		// numbers are the wooooorst and need their own special handling
+		// because we can't just hand them off to tftypes and also
+		// because we can't just make people use *big.Floats, because a
+		// nil *big.Float will crash everything if we don't handle it
+		// as a special case, so let's just special case numbers and
+		// let people use the types they want
+		return reflectNumber(ctx, val, target, opts, path)
 	case reflect.Slice:
 		return reflectSlice(ctx, val, target, opts, path)
 	default:
-		return path.NewErrorf("don't know how to reflect %s into %T", val.Type(), target)
+		return path.NewErrorf("don't know how to reflect %s into %s", val.Type(), target.Type())
 	}
 }

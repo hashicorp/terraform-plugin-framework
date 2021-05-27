@@ -107,7 +107,7 @@ func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled
 	}, values), target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,
-	}, tftypes.NewAttributePath())
+	})
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as

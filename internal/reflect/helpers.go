@@ -14,11 +14,14 @@ import (
 // trueReflectValue returns the reflect.Value for `in` after derefencing all
 // the pointers and unwrapping all the interfaces. It's the concrete value
 // beneath it all.
-func trueReflectValue(in interface{}) reflect.Value {
-	val := reflect.ValueOf(in)
+func trueReflectValue(val reflect.Value) reflect.Value {
 	kind := val.Type().Kind()
 	for kind == reflect.Interface || kind == reflect.Ptr {
-		val = val.Elem()
+		innerVal := val.Elem()
+		if !innerVal.IsValid() {
+			break
+		}
+		val = innerVal
 		kind = val.Type().Kind()
 	}
 	return val
@@ -42,11 +45,11 @@ func commaSeparatedString(in []string) string {
 
 // getStructTags returns a map of Terraform field names to their position in
 // the tags of the struct `in`. `in` must be a struct.
-func getStructTags(ctx context.Context, in interface{}, path *tftypes.AttributePath) (map[string]int, error) {
+func getStructTags(ctx context.Context, in reflect.Value, path *tftypes.AttributePath) (map[string]int, error) {
 	tags := map[string]int{}
 	typ := trueReflectValue(in).Type()
 	if typ.Kind() != reflect.Struct {
-		return nil, path.NewErrorf("can't get struct tags of %T, is not a struct", in)
+		return nil, path.NewErrorf("can't get struct tags of %s, is not a struct", in.Type())
 	}
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
@@ -105,7 +108,7 @@ func setToZeroValue(target reflect.Value) error {
 
 		// okay if we still can't set it, we're done
 		if !target.CanSet() {
-			return fmt.Errorf("can't set %T", target.Interface())
+			return fmt.Errorf("can't set %s", target.Type())
 		}
 	}
 

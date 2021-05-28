@@ -13,7 +13,7 @@ func TestReflectObjectIntoStruct_notAnObject(t *testing.T) {
 	t.Parallel()
 
 	var s struct{}
-	err := reflectObjectIntoStruct(context.Background(), tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(&s), Options{}, tftypes.NewAttributePath())
+	_, err := reflectStructFromObject(context.Background(), tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
@@ -26,17 +26,17 @@ func TestReflectObjectIntoStruct_notAStruct(t *testing.T) {
 	t.Parallel()
 
 	var s string
-	err := reflectObjectIntoStruct(context.Background(), tftypes.NewValue(tftypes.Object{
+	_, err := reflectStructFromObject(context.Background(), tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"a": tftypes.String,
 		},
 	}, map[string]tftypes.Value{
 		"a": tftypes.NewValue(tftypes.String, "hello"),
-	}), reflect.ValueOf(&s), Options{}, tftypes.NewAttributePath())
+	}), reflect.ValueOf(s), Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
-	if expected := `error retrieving field names from struct tags: : can't get struct tags of *string, is not a struct`; expected != err.Error() {
+	if expected := `: expected a struct type, got string`; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -47,9 +47,9 @@ func TestReflectObjectIntoStruct_objectMissingFields(t *testing.T) {
 	var s struct {
 		A string `tfsdk:"a"`
 	}
-	err := reflectObjectIntoStruct(context.Background(), tftypes.NewValue(tftypes.Object{
+	_, err := reflectStructFromObject(context.Background(), tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{},
-	}, map[string]tftypes.Value{}), reflect.ValueOf(&s), Options{}, tftypes.NewAttributePath())
+	}, map[string]tftypes.Value{}), reflect.ValueOf(s), Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
@@ -62,13 +62,13 @@ func TestReflectObjectIntoStruct_structMissingProperties(t *testing.T) {
 	t.Parallel()
 
 	var s struct{}
-	err := reflectObjectIntoStruct(context.Background(), tftypes.NewValue(tftypes.Object{
+	_, err := reflectStructFromObject(context.Background(), tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"a": tftypes.String,
 		},
 	}, map[string]tftypes.Value{
 		"a": tftypes.NewValue(tftypes.String, "hello"),
-	}), reflect.ValueOf(&s), Options{}, tftypes.NewAttributePath())
+	}), reflect.ValueOf(s), Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
@@ -83,13 +83,13 @@ func TestReflectObjectIntoStruct_objectMissingFieldsAndStructMissingProperties(t
 	var s struct {
 		A string `tfsdk:"a"`
 	}
-	err := reflectObjectIntoStruct(context.Background(), tftypes.NewValue(tftypes.Object{
+	_, err := reflectStructFromObject(context.Background(), tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"b": tftypes.String,
 		},
 	}, map[string]tftypes.Value{
 		"b": tftypes.NewValue(tftypes.String, "hello"),
-	}), reflect.ValueOf(&s), Options{}, tftypes.NewAttributePath())
+	}), reflect.ValueOf(s), Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
@@ -106,7 +106,7 @@ func TestReflectObjectIntoStruct_primitives(t *testing.T) {
 		B *big.Float `tfsdk:"b"`
 		C bool       `tfsdk:"c"`
 	}
-	err := reflectObjectIntoStruct(context.Background(), tftypes.NewValue(tftypes.Object{
+	result, err := reflectStructFromObject(context.Background(), tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"a": tftypes.String,
 			"b": tftypes.Number,
@@ -116,10 +116,11 @@ func TestReflectObjectIntoStruct_primitives(t *testing.T) {
 		"a": tftypes.NewValue(tftypes.String, "hello"),
 		"b": tftypes.NewValue(tftypes.Number, 123),
 		"c": tftypes.NewValue(tftypes.Bool, true),
-	}), reflect.ValueOf(&s), Options{}, tftypes.NewAttributePath())
+	}), reflect.ValueOf(s), Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
+	reflect.ValueOf(&s).Elem().Set(result)
 	if s.A != "hello" {
 		t.Errorf("Expected s.A to be %q, was %q", "hello", s.A)
 	}
@@ -150,7 +151,7 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 		// TODO: add setNullable
 		// TODO: add tftypes.ValueConverter
 	}
-	err := reflectObjectIntoStruct(context.Background(), tftypes.NewValue(tftypes.Object{
+	result, err := reflectStructFromObject(context.Background(), tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"slice": tftypes.List{
 				ElementType: tftypes.String,
@@ -224,7 +225,8 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 				tftypes.NewValue(tftypes.Number, 789),
 			}),
 		}),
-	}), reflect.ValueOf(&s), Options{}, tftypes.NewAttributePath())
+	}), reflect.ValueOf(s), Options{}, tftypes.NewAttributePath())
+	reflect.ValueOf(&s).Elem().Set(result)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}

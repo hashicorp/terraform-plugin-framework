@@ -9,25 +9,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func reflectObjectIntoStruct(ctx context.Context, object tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) error {
+func reflectStructFromObject(ctx context.Context, object tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	// this only works with object values, so make sure that constraint is
 	// met
+	if target.Kind() != reflect.Struct {
+		return target, path.NewErrorf("expected a struct type, got %s", target.Type())
+	}
 	if !object.Type().Is(tftypes.Object{}) {
-		return path.NewErrorf("can't reflect %s into a struct, must be an object", object.Type().String())
+		return target, path.NewErrorf("can't reflect %s into a struct, must be an object", object.Type().String())
 	}
 
 	// collect a map of fields that are in the object passed in
 	var objectFields map[string]tftypes.Value
 	err := object.As(&objectFields)
 	if err != nil {
-		return path.NewErrorf("unexpected error converting object: %w", err)
+		return target, path.NewErrorf("unexpected error converting object: %w", err)
 	}
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
 	targetFields, err := getStructTags(ctx, target, path)
 	if err != nil {
-		return fmt.Errorf("error retrieving field names from struct tags: %w", err)
+		return target, fmt.Errorf("error retrieving field names from struct tags: %w", err)
 	}
 
 	// we require an exact, 1:1 match of these fields to avoid typos
@@ -52,18 +55,19 @@ func reflectObjectIntoStruct(ctx context.Context, object tftypes.Value, target r
 		if len(targetMissing) > 0 {
 			missing = append(missing, fmt.Sprintf("Object defines fields not found in struct: %s.", commaSeparatedString(targetMissing)))
 		}
-		return path.NewErrorf("mismatch between struct and object: %s", strings.Join(missing, " "))
+		return target, path.NewErrorf("mismatch between struct and object: %s", strings.Join(missing, " "))
 	}
 
 	// now that we know they match perfectly, fill the struct with the
 	// values in the object
-	structValue := trueReflectValue(target)
+	result := reflect.New(target.Type()).Elem()
 	for field, structFieldPos := range targetFields {
-		structField := structValue.Field(structFieldPos)
-		err := into(ctx, objectFields[field], structField, opts, path.WithAttributeName(field))
+		structField := result.Field(structFieldPos)
+		fieldVal, err := buildReflectValue(ctx, objectFields[field], structField, opts, path.WithAttributeName(field))
 		if err != nil {
-			return err
+			return target, err
 		}
+		structField.Set(fieldVal)
 	}
-	return nil
+	return result, nil
 }

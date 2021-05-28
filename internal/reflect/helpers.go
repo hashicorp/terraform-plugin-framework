@@ -3,7 +3,6 @@ package reflect
 import (
 	"context"
 	"errors"
-	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
@@ -94,28 +93,4 @@ func canBeNil(target reflect.Value) bool {
 		// nothing else can be set to nil
 		return false
 	}
-}
-
-func setToZeroValue(target reflect.Value) error {
-	// we need to be able to set target
-	if !target.CanSet() {
-		// if it's a pointer or interface type, we may not be able to
-		// set it, but we could set whatever it's wrapping, so let's
-		// try that...
-		if target.Kind() == reflect.Ptr || target.Kind() == reflect.Interface {
-			target = target.Elem()
-		}
-
-		// okay if we still can't set it, we're done
-		if !target.CanSet() {
-			return fmt.Errorf("can't set %s", target.Type())
-		}
-	}
-
-	// we need a new, empty value using target's type
-	val := reflect.Zero(target.Type())
-
-	// set the empty value
-	target.Set(val)
-	return nil
 }

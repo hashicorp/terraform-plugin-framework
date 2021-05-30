@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	tfsdk "github.com/hashicorp/terraform-plugin-framework"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -132,10 +134,74 @@ func TestReflectObjectIntoStruct_primitives(t *testing.T) {
 	}
 }
 
+type unknownableString struct {
+	String  string
+	Unknown bool
+}
+
+func (u *unknownableString) SetUnknown(_ context.Context, unknown bool) error {
+	u.Unknown = unknown
+	return nil
+}
+
+type nullableString struct {
+	String string
+	Null   bool
+}
+
+func (n *nullableString) SetNull(_ context.Context, null bool) error {
+	n.Null = null
+	return nil
+}
+
+type attributeValue struct {
+	Value   string
+	Null    bool
+	Unknown bool
+}
+
+func (a *attributeValue) ToTerraformValue(_ context.Context) (interface{}, error) {
+	var val interface{}
+	if a.Null {
+		val = nil
+	}
+	if a.Value != "" {
+		val = a.Value
+	}
+	if a.Unknown {
+		val = tftypes.UnknownValue
+	}
+	return val, nil
+}
+
+func (a *attributeValue) SetTerraformValue(_ context.Context, val tftypes.Value) error {
+	a.Value = ""
+	a.Null = false
+	a.Unknown = false
+	if val.IsNull() {
+		a.Null = true
+		return nil
+	}
+	if !val.IsKnown() {
+		a.Unknown = true
+		return nil
+	}
+	err := val.As(&a.Value)
+	return err
+}
+
+func (a *attributeValue) Equal(o tfsdk.AttributeValue) bool {
+	other, ok := o.(*attributeValue)
+	if !ok {
+		return false
+	}
+	return a.Value == other.Value && a.Null == other.Null && a.Unknown == other.Unknown
+}
+
 func TestReflectObjectIntoStruct_complex(t *testing.T) {
 	t.Parallel()
 
-	var s struct {
+	type myStruct struct {
 		Slice          []string `tfsdk:"slice"`
 		SliceOfStructs []struct {
 			A string `tfsdk:"a"`
@@ -145,12 +211,14 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 			A     bool      `tfsdk:"a"`
 			Slice []float64 `tfsdk:"slice"`
 		} `tfsdk:"struct"`
-		// TODO: add map
-		// TODO: add tfsdk.AttributeValue
-		// TODO: add setUnknownAble
-		// TODO: add setNullable
+		Map            map[string][]string `tfsdk:"map"`
+		Pointer        *string             `tfsdk:"pointer"`
+		Unknownable    *unknownableString  `tfsdk:"unknownable"`
+		Nullable       *nullableString     `tfsdk:"nullable"`
+		AttributeValue *attributeValue     `tfsdk:"attribute_value"`
 		// TODO: add tftypes.ValueConverter
 	}
+	var s myStruct
 	result, err := reflectStructFromObject(context.Background(), tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"slice": tftypes.List{
@@ -172,6 +240,15 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 					},
 				},
 			},
+			"map": tftypes.Map{
+				AttributeType: tftypes.List{
+					ElementType: tftypes.String,
+				},
+			},
+			"pointer":         tftypes.String,
+			"unknownable":     tftypes.String,
+			"nullable":        tftypes.String,
+			"attribute_value": tftypes.String,
 		},
 	}, map[string]tftypes.Value{
 		"slice": tftypes.NewValue(tftypes.List{
@@ -225,9 +302,73 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 				tftypes.NewValue(tftypes.Number, 789),
 			}),
 		}),
+		"map": tftypes.NewValue(tftypes.Map{
+			AttributeType: tftypes.List{
+				ElementType: tftypes.String,
+			},
+		}, map[string]tftypes.Value{
+			"colors": tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "red"),
+				tftypes.NewValue(tftypes.String, "orange"),
+				tftypes.NewValue(tftypes.String, "yellow"),
+			}),
+			"fruits": tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "apple"),
+				tftypes.NewValue(tftypes.String, "banana"),
+			}),
+		}),
+		"pointer":         tftypes.NewValue(tftypes.String, "pointed"),
+		"unknownable":     tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"nullable":        tftypes.NewValue(tftypes.String, nil),
+		"attribute_value": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 	}), reflect.ValueOf(s), Options{}, tftypes.NewAttributePath())
 	reflect.ValueOf(&s).Elem().Set(result)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
+	}
+	str := "pointed"
+	expected := myStruct{
+		Slice: []string{"red", "blue", "green"},
+		SliceOfStructs: []struct {
+			A string `tfsdk:"a"`
+			B int    `tfsdk:"b"`
+		}{
+			{
+				A: "hello, world",
+				B: 123,
+			},
+			{
+				A: "goodnight, moon",
+				B: 456,
+			},
+		},
+		Struct: struct {
+			A     bool      `tfsdk:"a"`
+			Slice []float64 `tfsdk:"slice"`
+		}{
+			A:     true,
+			Slice: []float64{123, 456, 789},
+		},
+		Map: map[string][]string{
+			"colors": {"red", "orange", "yellow"},
+			"fruits": {"apple", "banana"},
+		},
+		Pointer: &str,
+		Unknownable: &unknownableString{
+			Unknown: true,
+		},
+		Nullable: &nullableString{
+			Null: true,
+		},
+		AttributeValue: &attributeValue{
+			Unknown: true,
+		},
+	}
+	if diff := cmp.Diff(s, expected); diff != "" {
+		t.Errorf("Didn't get expected value. Diff (+ is expected, - is result): %s", diff)
 	}
 }

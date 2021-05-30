@@ -22,6 +22,10 @@ type AttributeType interface {
 	// This is meant to convert the tftypes.Value into a more convenient Go
 	// type for the provider to consume the data with.
 	ValueFromTerraform(context.Context, tftypes.Value) (AttributeValue, error)
+
+	// Equal must return true if the AttributeType is considered
+	// semantically equal to the AttributeType passed as an argument.
+	Equal(AttributeType) bool
 }
 
 // AttributeTypeWithValidate extends the AttributeType interface to include a
@@ -71,6 +75,10 @@ type AttributeValue interface {
 	// ToTerraformValue returns the data contained in the AttributeValue as
 	// a Go type that tftypes.NewAttributeValue will accept.
 	ToTerraformValue(context.Context) (interface{}, error)
+
+	// SetTerraformValue updates the data in AttributeValue to match the
+	// passed tftypes.Value
+	SetTerraformValue(context.Context, tftypes.Value) error
 
 	// Equal must return true if the AttributeValue is considered
 	// semantically equal to the AttributeValue passed as an argument.

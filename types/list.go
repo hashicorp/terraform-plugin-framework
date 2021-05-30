@@ -32,33 +32,19 @@ func (l ListType) TerraformType(ctx context.Context) tftypes.Type {
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
 func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
-	if !in.IsKnown() {
-		return List{
-			Unknown: true,
-		}, nil
+	list := &List{
+		ElemType: l.ElemType,
 	}
-	if in.IsNull() {
-		return List{
-			Null: true,
-		}, nil
+	err := list.SetTerraformValue(ctx, in)
+	return list, err
+}
+
+func (l ListType) Equal(o tfsdk.AttributeType) bool {
+	other, ok := o.(ListType)
+	if !ok {
+		return false
 	}
-	val := []tftypes.Value{}
-	err := in.As(&val)
-	if err != nil {
-		return nil, err
-	}
-	elems := make([]tfsdk.AttributeValue, 0, len(val))
-	for _, elem := range val {
-		av, err := l.ElemType.ValueFromTerraform(ctx, elem)
-		if err != nil {
-			return nil, err
-		}
-		elems = append(elems, av)
-	}
-	return List{
-		Elems:    elems,
-		ElemType: l.TerraformType(ctx),
-	}, nil
+	return l.ElemType.Equal(other.ElemType)
 }
 
 // List represents a list of AttributeValues, all of the same type, indicated
@@ -82,7 +68,7 @@ type List struct {
 
 	// ElemType is the tftypes.Type of the elements in the list. All
 	// elements in the list must be of this type.
-	ElemType tftypes.Type
+	ElemType tfsdk.AttributeType
 }
 
 // ElementsAs populates `target` with the elements of the List, throwing an
@@ -96,14 +82,14 @@ func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled
 		if err != nil {
 			return fmt.Errorf("error getting Terraform value for element %d: %w", pos, err)
 		}
-		err = tftypes.ValidateValue(l.ElemType, val)
+		err = tftypes.ValidateValue(l.ElemType.TerraformType(ctx), val)
 		if err != nil {
 			return fmt.Errorf("error using created Terraform value for element %d: %w", pos, err)
 		}
-		values = append(values, tftypes.NewValue(l.ElemType, val))
+		values = append(values, tftypes.NewValue(l.ElemType.TerraformType(ctx), val))
 	}
 	return reflect.Into(ctx, tftypes.NewValue(tftypes.List{
-		ElementType: l.ElemType,
+		ElementType: l.ElemType.TerraformType(ctx),
 	}, values), target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,
@@ -125,19 +111,19 @@ func (l List) ToTerraformValue(ctx context.Context) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = tftypes.ValidateValue(l.ElemType, val)
+		err = tftypes.ValidateValue(l.ElemType.TerraformType(ctx), val)
 		if err != nil {
 			return nil, err
 		}
-		vals = append(vals, tftypes.NewValue(l.ElemType, val))
+		vals = append(vals, tftypes.NewValue(l.ElemType.TerraformType(ctx), val))
 	}
 	return vals, nil
 }
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (l List) Equal(o tfsdk.AttributeValue) bool {
-	other, ok := o.(List)
+func (l *List) Equal(o tfsdk.AttributeValue) bool {
+	other, ok := o.(*List)
 	if !ok {
 		return false
 	}
@@ -147,7 +133,7 @@ func (l List) Equal(o tfsdk.AttributeValue) bool {
 	if l.Null != other.Null {
 		return false
 	}
-	if !l.ElemType.Is(other.ElemType) {
+	if !l.ElemType.Equal(other.ElemType) {
 		return false
 	}
 	if len(l.Elems) != len(other.Elems) {
@@ -160,4 +146,39 @@ func (l List) Equal(o tfsdk.AttributeValue) bool {
 		}
 	}
 	return true
+}
+
+func (l *List) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
+	l.Unknown = false
+	l.Null = false
+	l.Elems = nil
+	if !in.Type().Is(tftypes.List{}) {
+		return fmt.Errorf("can't use %s as value of List, can only use tftypes.List values", in.String())
+	}
+	if !in.Type().Is(tftypes.List{ElementType: l.ElemType.TerraformType(ctx)}) {
+		return fmt.Errorf("can't use %s as value of List with ElementType %T, can only use %s values", in.String(), l.ElemType, l.ElemType.TerraformType(ctx).String())
+	}
+	if !in.IsKnown() {
+		l.Unknown = true
+		return nil
+	}
+	if in.IsNull() {
+		l.Null = true
+		return nil
+	}
+	val := []tftypes.Value{}
+	err := in.As(&val)
+	if err != nil {
+		return err
+	}
+	elems := make([]tfsdk.AttributeValue, 0, len(val))
+	for _, elem := range val {
+		av, err := l.ElemType.ValueFromTerraform(ctx, elem)
+		if err != nil {
+			return err
+		}
+		elems = append(elems, av)
+	}
+	l.Elems = elems
+	return nil
 }

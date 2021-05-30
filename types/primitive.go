@@ -54,3 +54,11 @@ func (p primitive) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tf
 		panic(fmt.Sprintf("unknown primitive %d", p))
 	}
 }
+
+func (p primitive) Equal(o tfsdk.AttributeType) bool {
+	other, ok := o.(primitive)
+	if !ok {
+		return false
+	}
+	return p == other
+}

@@ -7,17 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func boolValueFromTerraform(_ context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
-	var val Bool
-	if !in.IsKnown() {
-		val.Unknown = true
-		return val, nil
-	}
-	if in.IsNull() {
-		val.Null = true
-		return val, nil
-	}
-	err := in.As(&val.Value)
+func boolValueFromTerraform(ctx context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
+	val := new(Bool)
+	err := val.SetTerraformValue(ctx, in)
 	return val, err
 }
 
@@ -37,7 +29,7 @@ type Bool struct {
 
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a Go type that tftypes.NewValue will accept.
-func (b Bool) ToTerraformValue(_ context.Context) (interface{}, error) {
+func (b *Bool) ToTerraformValue(_ context.Context) (interface{}, error) {
 	if b.Null {
 		return nil, nil
 	}
@@ -49,10 +41,26 @@ func (b Bool) ToTerraformValue(_ context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (b Bool) Equal(other tfsdk.AttributeValue) bool {
-	o, ok := other.(Bool)
+func (b *Bool) Equal(other tfsdk.AttributeValue) bool {
+	o, ok := other.(*Bool)
 	if !ok {
 		return false
 	}
 	return b.Value == o.Value
+}
+
+func (b *Bool) SetTerraformValue(ctx context.Context, val tftypes.Value) error {
+	if val.IsNull() {
+		b.Unknown = false
+		b.Value = false
+		b.Null = true
+		return nil
+	}
+	if !val.IsKnown() {
+		b.Unknown = true
+		b.Value = false
+		b.Null = false
+		return nil
+	}
+	return val.As(&b.Value)
 }

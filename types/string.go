@@ -7,18 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func stringValueFromTerraform(_ context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
-	var val String
-	if !in.IsKnown() {
-		val.Unknown = true
-		return val, nil
-	}
-	if in.IsNull() {
-		val.Null = true
-		return val, nil
-	}
-	err := in.As(&val.Value)
-	return val, err
+func stringValueFromTerraform(ctx context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
+	s := new(String)
+	err := s.SetTerraformValue(ctx, in)
+	return s, err
 }
 
 // String represents a UTF-8 string value.
@@ -37,7 +29,7 @@ type String struct {
 
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a Go type that tftypes.NewValue will accept.
-func (s String) ToTerraformValue(_ context.Context) (interface{}, error) {
+func (s *String) ToTerraformValue(_ context.Context) (interface{}, error) {
 	if s.Null {
 		return nil, nil
 	}
@@ -49,10 +41,26 @@ func (s String) ToTerraformValue(_ context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (s String) Equal(other tfsdk.AttributeValue) bool {
-	o, ok := other.(String)
+func (s *String) Equal(other tfsdk.AttributeValue) bool {
+	o, ok := other.(*String)
 	if !ok {
 		return false
 	}
 	return s.Value == o.Value
+}
+
+func (s *String) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
+	s.Unknown = false
+	s.Null = false
+	s.Value = ""
+	if !in.IsKnown() {
+		s.Unknown = true
+		return nil
+	}
+	if in.IsNull() {
+		s.Null = true
+		return nil
+	}
+	err := in.As(&s.Value)
+	return err
 }

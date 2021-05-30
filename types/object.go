@@ -18,9 +18,9 @@ type ObjectType struct {
 // accepted and what kind of data can be set in state. The framework
 // will use this to translate the AttributeType to something Terraform
 // can understand.
-func (l ObjectType) TerraformType(ctx context.Context) tftypes.Type {
+func (o ObjectType) TerraformType(ctx context.Context) tftypes.Type {
 	var attributeTypes map[string]tftypes.Type
-	for k, v := range l.AttributeTypes {
+	for k, v := range o.AttributeTypes {
 		attributeTypes[k] = v.TerraformType(ctx)
 	}
 	return tftypes.Object{
@@ -31,42 +31,12 @@ func (l ObjectType) TerraformType(ctx context.Context) tftypes.Type {
 // ValueFromTerraform returns an AttributeValue given a tftypes.Value.
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
-func (l ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
-	if !in.IsKnown() {
-		return Object{
-			Unknown: true,
-		}, nil
+func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tfsdk.AttributeValue, error) {
+	object := &Object{
+		AttributeTypes: o.AttributeTypes,
 	}
-	if in.IsNull() {
-		return Object{
-			Null: true,
-		}, nil
-	}
-	attributes := map[string]tfsdk.AttributeValue{}
-
-	val := map[string]tftypes.Value{}
-	err := in.As(&val)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range val {
-		a, err := l.AttributeTypes[k].ValueFromTerraform(ctx, v)
-		if err != nil {
-			return nil, err
-		}
-		attributes[k] = a
-	}
-
-	attributeTypes := map[string]tftypes.Type{}
-	for k, v := range l.AttributeTypes {
-		attributeTypes[k] = v.TerraformType(ctx)
-	}
-
-	return Object{
-		Attributes:     attributes,
-		AttributeTypes: attributeTypes,
-	}, nil
+	err := object.SetTerraformValue(ctx, in)
+	return object, err
 }
 
 // Object represents an object
@@ -86,68 +56,102 @@ type Object struct {
 
 	Attributes map[string]tfsdk.AttributeValue
 
-	AttributeTypes map[string]tftypes.Type
+	AttributeTypes map[string]tfsdk.AttributeType
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a Go type that tftypes.NewValue will accept.
-func (l Object) ToTerraformValue(ctx context.Context) (interface{}, error) {
-	if l.Unknown {
+func (o *Object) ToTerraformValue(ctx context.Context) (interface{}, error) {
+	if o.Unknown {
 		return tftypes.UnknownValue, nil
 	}
-	if l.Null {
+	if o.Null {
 		return nil, nil
 	}
 	var vals map[string]tftypes.Value
 
-	for k, v := range l.Attributes {
+	for k, v := range o.Attributes {
 		val, err := v.ToTerraformValue(ctx)
 		if err != nil {
 			return nil, err
 		}
-		err = tftypes.ValidateValue(l.AttributeTypes[k], val)
+		err = tftypes.ValidateValue(o.AttributeTypes[k].TerraformType(ctx), val)
 		if err != nil {
 			return nil, err
 		}
-		vals[k] = tftypes.NewValue(l.AttributeTypes[k], val)
+		vals[k] = tftypes.NewValue(o.AttributeTypes[k].TerraformType(ctx), val)
 	}
 	return vals, nil
 }
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (l Object) Equal(o tfsdk.AttributeValue) bool {
-	other, ok := o.(Object)
+func (o *Object) Equal(c tfsdk.AttributeValue) bool {
+	other, ok := c.(*Object)
 	if !ok {
 		return false
 	}
-	if l.Unknown != other.Unknown {
+	if o.Unknown != other.Unknown {
 		return false
 	}
-	if l.Null != other.Null {
+	if o.Null != other.Null {
 		return false
 	}
-	// TODO this properly
-	for k, v := range l.AttributeTypes {
-		if !v.Is(other.AttributeTypes[k]) {
+	if len(o.AttributeTypes) != len(other.AttributeTypes) {
+		return false
+	}
+	for k, v := range o.AttributeTypes {
+		attr, ok := other.AttributeTypes[k]
+		if !ok {
+			return false
+		}
+		if !v.Equal(attr) {
 			return false
 		}
 	}
-	for k, v := range other.AttributeTypes {
-		if !v.Is(l.AttributeTypes[k]) {
+	if len(o.Attributes) != len(other.Attributes) {
+		return false
+	}
+	for k, v := range o.Attributes {
+		attr, ok := other.Attributes[k]
+		if !ok {
 			return false
 		}
-	}
-	for k, v := range l.Attributes {
-		if !v.Equal(other.Attributes[k]) {
-			return false
-		}
-	}
-	for k, v := range other.Attributes {
-		if !v.Equal(l.Attributes[k]) {
+		if !v.Equal(attr) {
 			return false
 		}
 	}
 
 	return true
+}
+
+func (o *Object) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
+	o.Unknown = false
+	o.Null = false
+	o.Attributes = nil
+	if !in.IsKnown() {
+		o.Unknown = true
+		return nil
+	}
+	if in.IsNull() {
+		o.Null = true
+		return nil
+	}
+	attributes := map[string]tfsdk.AttributeValue{}
+
+	val := map[string]tftypes.Value{}
+	err := in.As(&val)
+	if err != nil {
+		return err
+	}
+
+	for k, v := range val {
+		a, err := o.AttributeTypes[k].ValueFromTerraform(ctx, v)
+		if err != nil {
+			return err
+		}
+		attributes[k] = a
+	}
+	o.Attributes = attributes
+	return nil
 }

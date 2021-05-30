@@ -27,7 +27,7 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 	if v.Kind() != reflect.Ptr {
 		return fmt.Errorf("target must be a pointer, got %T, which is a %s", target, v.Kind())
 	}
-	result, err := buildReflectValue(ctx, val, v, opts, tftypes.NewAttributePath())
+	result, err := buildReflectValue(ctx, val, v.Elem(), opts, tftypes.NewAttributePath())
 	if err != nil {
 		return err
 	}
@@ -36,34 +36,34 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 }
 
 func buildReflectValue(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
-	if _, ok := target.Interface().(tfsdk.AttributeValue); ok {
-		// TODO: use builtin assignment through the interface
-		return target, path.NewError(errors.New(("not implemented yet")))
+	if !target.IsValid() {
+		return target, path.NewErrorf("invalid target")
 	}
-	if v, ok := target.Interface().(setUnknownable); ok {
-		err := v.SetUnknown(!val.IsKnown())
+	if target.Type().Implements(reflect.TypeOf((*tfsdk.AttributeValue)(nil)).Elem()) {
+		return reflectAttributeValue(ctx, val, target, opts, path)
+	}
+	if target.Type().Implements(reflect.TypeOf((*setUnknownable)(nil)).Elem()) {
+		res, err := reflectUnknownable(ctx, val, target, opts, path)
 		if err != nil {
-			return target, path.NewError(err)
+			return target, err
 		}
+		target = res
 		if !val.IsKnown() {
 			return target, nil
 		}
 	}
-	if v, ok := target.Interface().(setNullable); ok {
-		err := v.SetNull(val.IsNull())
+	if target.Type().Implements(reflect.TypeOf((*setNullable)(nil)).Elem()) {
+		res, err := reflectNullable(ctx, val, target, opts, path)
 		if err != nil {
-			return target, path.NewError(err)
+			return target, err
 		}
+		target = res
 		if val.IsNull() {
 			return target, nil
 		}
 	}
-	if vc, ok := target.Interface().(tftypes.ValueConverter); ok {
-		err := vc.FromTerraform5Value(val)
-		if err != nil {
-			return target, path.NewError(err)
-		}
-		return target, nil
+	if target.Type().Implements(reflect.TypeOf((*tftypes.ValueConverter)(nil)).Elem()) {
+		return reflectValueConverter(ctx, val, target, opts, path)
 	}
 	if !val.IsKnown() {
 		// we already handled unknown the only ways we can
@@ -85,17 +85,12 @@ func buildReflectValue(ctx context.Context, val tftypes.Value, target reflect.Va
 		}
 		return target, path.NewError(errors.New("unhandled null value"))
 	}
-	kind := target.Kind()
-	if _, ok := target.Interface().(*big.Float); ok {
-		// cheat, pretend *big.Float is a float64 so it gets reflected
-		// as a number
-		kind = reflect.Float64
-	} else if _, ok := target.Interface().(*big.Int); ok {
-		// cheat, pretend *big.Int is an int64 so it gets reflected as
-		// a number
-		kind = reflect.Int64
+	// *big.Float and *big.Int are technically pointers, but we want them
+	// handled as numbers
+	if target.Type() == reflect.TypeOf(big.NewFloat(0)) || target.Type() == reflect.TypeOf(big.NewInt(0)) {
+		return reflectNumber(ctx, val, target, opts, path)
 	}
-	switch kind {
+	switch target.Kind() {
 	case reflect.Struct:
 		return reflectStructFromObject(ctx, val, target, opts, path)
 	case reflect.Bool, reflect.String:
@@ -115,11 +110,7 @@ func buildReflectValue(ctx context.Context, val tftypes.Value, target reflect.Va
 	case reflect.Map:
 		return reflectMap(ctx, val, target, opts, path)
 	case reflect.Ptr:
-		// TODO: handle pointers
-		return target, path.NewErrorf("not implemented yet")
-	case reflect.Interface:
-		// TODO: handle interfaces
-		return target, path.NewErrorf("not implemented yet")
+		return reflectPointer(ctx, val, target, opts, path)
 	default:
 		return target, path.NewErrorf("don't know how to reflect %s into %s", val.Type(), target.Type())
 	}

@@ -36,7 +36,7 @@ func pointerSafeZeroValue(ctx context.Context, target reflect.Value) reflect.Val
 	var pointers int
 	for pointer.Kind() == reflect.Ptr {
 		pointer = pointer.Elem()
-		pointers += 1
+		pointers++
 	}
 	receiver := reflect.Zero(pointer)
 	for i := 0; i < pointers; i++ {

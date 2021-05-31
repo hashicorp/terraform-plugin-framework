@@ -198,6 +198,44 @@ func (a *attributeValue) Equal(o tfsdk.AttributeValue) bool {
 	return a.Value == other.Value && a.Null == other.Null && a.Unknown == other.Unknown
 }
 
+type valueConverter struct {
+	value   string
+	unknown bool
+	null    bool
+}
+
+func (v *valueConverter) FromTerraform5Value(in tftypes.Value) error {
+	v.value = ""
+	v.unknown = false
+	v.null = false
+	if !in.IsKnown() {
+		v.unknown = true
+	}
+	if in.IsNull() {
+		v.null = true
+	}
+	return in.As(&v.value)
+}
+
+func (v *valueConverter) Equal(o *valueConverter) bool {
+	if v == nil && o == nil {
+		return true
+	}
+	if v == nil {
+		return false
+	}
+	if o == nil {
+		return false
+	}
+	if v.unknown != o.unknown {
+		return false
+	}
+	if v.null != o.null {
+		return false
+	}
+	return v.value == o.value
+}
+
 func TestReflectObjectIntoStruct_complex(t *testing.T) {
 	t.Parallel()
 
@@ -216,7 +254,9 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 		Unknownable    *unknownableString  `tfsdk:"unknownable"`
 		Nullable       *nullableString     `tfsdk:"nullable"`
 		AttributeValue *attributeValue     `tfsdk:"attribute_value"`
-		// TODO: add tftypes.ValueConverter
+		ValueConverter *valueConverter     `tfsdk:"value_converter"`
+		// TODO: add unhandled null
+		// TODO: add unhandled unknown
 	}
 	var s myStruct
 	result, err := reflectStructFromObject(context.Background(), tftypes.NewValue(tftypes.Object{
@@ -249,6 +289,7 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 			"unknownable":     tftypes.String,
 			"nullable":        tftypes.String,
 			"attribute_value": tftypes.String,
+			"value_converter": tftypes.String,
 		},
 	}, map[string]tftypes.Value{
 		"slice": tftypes.NewValue(tftypes.List{
@@ -325,6 +366,7 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 		"unknownable":     tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 		"nullable":        tftypes.NewValue(tftypes.String, nil),
 		"attribute_value": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"value_converter": tftypes.NewValue(tftypes.String, nil),
 	}), reflect.ValueOf(s), Options{}, tftypes.NewAttributePath())
 	reflect.ValueOf(&s).Elem().Set(result)
 	if err != nil {
@@ -366,6 +408,9 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 		},
 		AttributeValue: &attributeValue{
 			Unknown: true,
+		},
+		ValueConverter: &valueConverter{
+			null: true,
 		},
 	}
 	if diff := cmp.Diff(s, expected); diff != "" {

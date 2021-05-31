@@ -49,6 +49,7 @@ func (b *Bool) Equal(other tfsdk.AttributeValue) bool {
 	return b.Value == o.Value
 }
 
+// SetTerraformValue updates the Bool to match the contents of `val`.
 func (b *Bool) SetTerraformValue(ctx context.Context, val tftypes.Value) error {
 	if val.IsNull() {
 		b.Unknown = false

@@ -39,6 +39,7 @@ func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (tfs
 	return list, err
 }
 
+// Equal returns true if `o` is also a ListType and has the same ElemType.
 func (l ListType) Equal(o tfsdk.AttributeType) bool {
 	other, ok := o.(ListType)
 	if !ok {
@@ -148,6 +149,7 @@ func (l *List) Equal(o tfsdk.AttributeValue) bool {
 	return true
 }
 
+// SetTerraformValue updates `l` to reflect the data stored in `in`.
 func (l *List) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
 	l.Unknown = false
 	l.Null = false

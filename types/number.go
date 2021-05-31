@@ -51,6 +51,7 @@ func (n *Number) Equal(other tfsdk.AttributeValue) bool {
 	return n.Value == o.Value
 }
 
+// SetTerraformValue updates `n` to reflect the data stored in `in`.
 func (n *Number) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
 	n.Unknown = false
 	n.Null = false

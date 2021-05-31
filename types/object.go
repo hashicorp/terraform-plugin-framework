@@ -39,6 +39,28 @@ func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (t
 	return object, err
 }
 
+// Equal returns true if `candidate` is also an ObjectType and has the same
+// AttributeTypes.
+func (o ObjectType) Equal(candidate tfsdk.AttributeType) bool {
+	other, ok := candidate.(ObjectType)
+	if !ok {
+		return false
+	}
+	if len(other.AttributeTypes) != len(o.AttributeTypes) {
+		return false
+	}
+	for k, v := range o.AttributeTypes {
+		attr, ok := other.AttributeTypes[k]
+		if !ok {
+			return false
+		}
+		if !v.Equal(attr) {
+			return false
+		}
+	}
+	return true
+}
+
 // Object represents an object
 type Object struct {
 	// Unknown will be set to true if the entire object is an unknown value.
@@ -125,6 +147,7 @@ func (o *Object) Equal(c tfsdk.AttributeValue) bool {
 	return true
 }
 
+// SetTerraformValue updates `o` to reflect the data stored in `in`.
 func (o *Object) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
 	o.Unknown = false
 	o.Null = false

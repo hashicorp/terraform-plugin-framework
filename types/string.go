@@ -49,6 +49,7 @@ func (s *String) Equal(other tfsdk.AttributeValue) bool {
 	return s.Value == o.Value
 }
 
+// SetTerraformValue updates `s` to reflect the data stored in `in`.
 func (s *String) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
 	s.Unknown = false
 	s.Null = false

@@ -4,11 +4,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// ConfigureProviderRequest represents a request supplying the provider with
-// the values the user supplied for the provider configuration block, along with
-// other runtime information supplied by Terraform or the Plugin SDK. An
-// instance of this request struct is supplied as an argument to the provider's
-// Configure function.
+// ConfigureProviderRequest represents a request containing the values the user
+// specified for the provider configuration block, along with other runtime
+// information from Terraform or the Plugin SDK. An instance of this request
+// struct is supplied as an argument to the provider's Configure function.
 type ConfigureProviderRequest struct {
 	// TerraformVersion is the version of Terraform executing the request.
 	// This is supplied for logging, analytics, and User-Agent purposes
@@ -45,9 +44,6 @@ type CreateResourceRequest struct {
 // resource. An instance of this request struct is supplied as an argument to
 // the resource's Read function.
 type ReadResourceRequest struct {
-	// tfprotov6.ReadResourceRequest has no Config field
-	// Config     Config
-
 	// State is the current state of the resource prior to the Read
 	// operation.
 	// TODO uncomment when implemented

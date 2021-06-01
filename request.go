@@ -32,10 +32,12 @@ type CreateResourceRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	// TODO uncomment when implemented
+	// Config Config
 
 	// Plan is the planned state for the resource.
-	Plan Plan
+	// TODO uncomment when implemented
+	// Plan Plan
 }
 
 // ReadResourceRequest represents a request for the provider to read a
@@ -48,7 +50,8 @@ type ReadResourceRequest struct {
 
 	// State is the current state of the resource prior to the Read
 	// operation.
-	State State
+	// TODO uncomment when implemented
+	// State State
 }
 
 // UpdateResourceRequest represents a request for the provider to update a
@@ -60,14 +63,17 @@ type UpdateResourceRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	// TODO uncomment when implemented
+	// Config Config
 
 	// Plan is the planned state for the resource.
-	Plan Plan
+	// TODO uncomment when implemented
+	// Plan Plan
 
 	// State is the current state of the resource prior to the Update
 	// operation.
-	State State
+	// TODO uncomment when implemented
+	// State State
 }
 
 // DeleteResourceRequest represents a request for the provider to delete a
@@ -79,5 +85,6 @@ type DeleteResourceRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	// TODO uncomment when implemented
+	// Config Config
 }

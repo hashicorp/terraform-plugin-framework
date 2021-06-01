@@ -66,7 +66,8 @@ type CreateResourceResponse struct {
 	// State is the state of the resource following the Create operation.
 	// This field is pre-populated from CreateResourceRequest.Plan and
 	// should be set during the resource's Create operation.
-	State State
+	// TODO uncomment when implemented
+	// State State
 
 	// Diagnostics report errors or warnings related to creating the
 	// resource. An empty slice indicates a successful operation with no
@@ -124,7 +125,8 @@ type ReadResourceResponse struct {
 	// State is the state of the resource following the Read operation.
 	// This field is pre-populated from ReadResourceRequest.State and
 	// should be set during the resource's Read operation.
-	State State
+	// TODO uncomment when implemented
+	// State State
 
 	// Diagnostics report errors or warnings related to reading the
 	// resource. An empty slice indicates a successful operation with no
@@ -182,7 +184,8 @@ type UpdateResourceResponse struct {
 	// State is the state of the resource following the Update operation.
 	// This field is pre-populated from UpdateResourceRequest.Plan and
 	// should be set during the resource's Update operation.
-	State State
+	// TODO uncomment when implemented
+	// State State
 
 	// Diagnostics report errors or warnings related to updating the
 	// resource. An empty slice indicates a successful operation with no

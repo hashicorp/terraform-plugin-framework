@@ -143,7 +143,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 // OutOf is the inverse of Into, taking a Go value (val) and transforming it
 // into an (attr.Value, attr.Type) pair. Each Go type present in val must have
 // an appropriate attr.Type supplied via opts.
-func OutOf(ctx context.Context, val interface{}, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+func OutOf(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
 	kind := trueReflectValue(val).Type().Kind()
 	if _, ok := trueReflectValue(val).Interface().(big.Float); ok {
 		// cheat, pretend *big.Float is a float64 so it gets reflected
@@ -161,7 +161,7 @@ func OutOf(ctx context.Context, val interface{}, opts OutOfOptions, path *tftype
 	// reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8,
 	// reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float64,
 	case reflect.String:
-		return reflectOutOfString(ctx, val.(string), opts, path)
+		return reflectOutOfString(ctx, val.Interface().(string), opts, path)
 	// case reflect.Slice:
 	default:
 		return nil, nil, path.NewErrorf("don't know how to reflect %s of type %T", val, kind)

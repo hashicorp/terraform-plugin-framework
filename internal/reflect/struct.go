@@ -97,7 +97,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	return result, nil
 }
 
-func reflectObjectOutOfStruct(ctx context.Context, val interface{}, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.ObjectType, error) {
+func reflectObjectOutOfStruct(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.ObjectType, error) {
 	typ := trueReflectValue(val).Type()
 
 	objTypes := map[string]tftypes.Type{}
@@ -122,14 +122,14 @@ func reflectObjectOutOfStruct(ctx context.Context, val interface{}, opts OutOfOp
 			return nil, nil, path.NewError(errors.New("invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter"))
 		}
 
-		fieldValue := trueReflectValue(val).Field(i).Interface()
+		fieldValue := trueReflectValue(val).Field(i)
 
 		var attrVal attr.Value
 		var attrType attr.Type
 		var err error
 		switch field.Type.Kind() {
 		case reflect.String:
-			attrVal, attrType, err = reflectOutOfString(ctx, fieldValue.(string), opts, path)
+			attrVal, attrType, err = reflectOutOfString(ctx, fieldValue.Interface().(string), opts, path)
 			if err != nil {
 				return nil, nil, path.NewErrorf("error when reflecting field %s: %s", tag, err)
 			}

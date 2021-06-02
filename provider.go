@@ -3,6 +3,7 @@ package tfsdk
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
@@ -35,7 +36,7 @@ type Provider interface {
 // without warning; it should only be used by providers that are collaborating
 // on its use with the Terraform team.
 type ProviderWithProviderMeta interface {
-    Provider
+	Provider
 	// GetMetaSchema returns the provider meta schema.
 	GetMetaSchema(context.Context) (*tfprotov6.Schema, []*tfprotov6.Diagnostic)
 }

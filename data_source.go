@@ -3,6 +3,7 @@ package tfsdk
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 

@@ -3,8 +3,8 @@ package tfsdk
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // A ResourceType is a type of resource. For each type of resource this provider

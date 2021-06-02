@@ -2,8 +2,10 @@ package types
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -78,6 +80,37 @@ type Object struct {
 	Attributes map[string]attr.Value
 
 	AttributeTypes map[string]attr.Type
+}
+
+// As populates `target` with the data in the Object, throwing an error if the
+// data cannot be stored in `target`.
+func (o *Object) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) error {
+	// we need a tftypes.Value for this Object to be able to use it with
+	// our reflection code
+	values := map[string]tftypes.Value{}
+	types := map[string]tftypes.Type{}
+	for key, attr := range o.Attributes {
+		val, err := attr.ToTerraformValue(ctx)
+		if err != nil {
+			return fmt.Errorf("error getting Terraform value for attribute %q: %w", key, err)
+		}
+		typ, ok := o.AttributeTypes[key]
+		if !ok {
+			return fmt.Errorf("no AttributeType defined for attribute %q: %w", key, err)
+		}
+		types[key] = typ.TerraformType(ctx)
+		err = tftypes.ValidateValue(typ.TerraformType(ctx), val)
+		if err != nil {
+			return fmt.Errorf("error using created Terraform value for element %q: %w", key, err)
+		}
+		values[key] = tftypes.NewValue(typ.TerraformType(ctx), val)
+	}
+	return reflect.Into(ctx, tftypes.NewValue(tftypes.Object{
+		AttributeTypes: types,
+	}, values), target, reflect.Options{
+		UnhandledNullAsEmpty:    allowUnhandled,
+		UnhandledUnknownAsEmpty: allowUnhandled,
+	})
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as

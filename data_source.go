@@ -7,8 +7,8 @@ import (
 )
 
 // A DataSourceType is a type of data source. For each type of data source this
-// provider supports, it should instantiate a struct implementing DataSourceType
-// and return it as a value in the map returned by Provider.GetDataSources.
+// provider supports, it should define a type implementing DataSourceType and
+// return an instance of it in the map returned by Provider.GetDataSources.
 type DataSourceType interface {
 	// GetSchema returns the schema for this data source.
 	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)

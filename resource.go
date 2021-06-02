@@ -8,8 +8,8 @@ import (
 )
 
 // A ResourceType is a type of resource. For each type of resource this provider
-// supports, it should instantiate a struct implementing ResourceType and return
-// it as a value in the map returned by Provider.GetResources.
+// supports, it should define a type implementing ResourceType and return an
+// instance of it in the map returned by Provider.GeResources.
 type ResourceType interface {
 	// GetSchema returns the schema for this resource.
 	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)

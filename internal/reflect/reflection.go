@@ -30,7 +30,7 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 	if err != nil {
 		return err
 	}
-	v.Set(result)
+	v.Elem().Set(result)
 	return nil
 }
 

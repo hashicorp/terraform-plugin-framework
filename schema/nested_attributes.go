@@ -34,6 +34,7 @@ const (
 type NestedAttributes interface {
 	getNestingMode() nestingMode
 	getAttributes() map[string]Attribute
+	tftypes.AttributePathStepper
 }
 
 type nestedAttributes map[string]Attribute
@@ -86,6 +87,14 @@ type ListNestedAttributesOptions struct {
 
 func (l listNestedAttributes) getNestingMode() nestingMode {
 	return nestingModeList
+}
+
+func (l listNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if _, ok := step.(tftypes.ElementKeyInt); !ok {
+		return nil, fmt.Errorf("cannot apply step %T to ListNestedAttributes", step)
+	}
+
+	return l.nestedAttributes, nil
 }
 
 // SetNestedAttributes nests `attributes` under another attribute, allowing

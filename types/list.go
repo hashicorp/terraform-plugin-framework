@@ -187,3 +187,23 @@ func (l *List) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
 	l.Elems = elems
 	return nil
 }
+
+// ListOf returns a new list with an ElemType of tftypes.Object, whose elements
+// are the values passed in. The struct type must have struct tags TODO
+// func ListOf(values []interface{}) List {
+// 	// make the list
+// 	// populate the list with tftypes.Objects
+
+// 	// to make the object type:
+// 	// reflect to get the type of the passed in struct
+// 	// need to get map[string]tftypes.Type
+
+// 	l := List{
+// 		ElemType: tftypes.Object,
+// 	}
+
+// 	for _, v := range values {
+// 		objType :=
+// 		l.Elems = append(l.Elems, )
+// 	}
+// }

@@ -26,6 +26,19 @@ type Type interface {
 	// Equal must return true if the Type is considered semantically equal
 	// to the Type passed as an argument.
 	Equal(Type) bool
+
+	tftypes.AttributePathStepper
+}
+
+// ObjectType extends the Type interface to include a method returning a copy
+// of the type with its "attribute types" filled in. Attribute types are
+// part of the definition of an object type.
+type ObjectType interface {
+	Type
+
+	// Equal must return true if the Type is considered semantically equal
+	// to the Type passed as an argument.
+	Equal(Type) bool
 }
 
 // TypeWithValidate extends the Type interface to include a Validate method,

@@ -88,3 +88,7 @@ func (p primitive) Equal(o attr.Type) bool {
 		return false
 	}
 }
+
+func (p primitive) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	return nil, fmt.Errorf("cannot apply AttributePathStep %T to %s", step, p.String())
+}

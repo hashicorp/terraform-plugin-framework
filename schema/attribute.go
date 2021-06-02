@@ -1,6 +1,9 @@
 package schema
 
-import "github.com/hashicorp/terraform-plugin-framework/attr"
+import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+)
 
 // Attribute defines the constraints and behaviors of a single field in a
 // schema. Attributes are the fields that show up in Terraform state files and
@@ -59,4 +62,13 @@ type Attribute struct {
 	// using this attribute, warning them that it is deprecated and
 	// instructing them on what upgrade steps to take.
 	DeprecationMessage string
+}
+
+func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if a.Type != nil {
+		return a.Type.ApplyTerraform5AttributePathStep(step)
+	}
+	if a.Attributes != nil {
+		return a.Attributes.ApplyTerraform5AttributePathStep(step)
+	}
 }

@@ -11,7 +11,7 @@ import (
 // and return it as a value in the map returned by Provider.GetDataSources.
 type DataSourceType interface {
 	// GetSchema returns the schema for this data source.
-	GetSchema(context.Context) (*tfprotov6.Schema, []*tfprotov6.Diagnostic)
+	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
 
 	// NewDataSource instantiates a new DataSource of this DataSourceType.
 	NewDataSource(Provider) (DataSource, []*tfprotov6.Diagnostic)

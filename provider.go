@@ -10,7 +10,7 @@ import (
 type Provider interface {
 	// GetSchema returns the schema for this provider's configuration. If
 	// this provider has no configuration, return nil.
-	GetSchema(context.Context) (*tfprotov6.Schema, []*tfprotov6.Diagnostic)
+	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
 
 	// Configure is called at the beginning of the provider lifecycle, when
 	// Terraform sends to the provider the values the user specified in the
@@ -35,6 +35,7 @@ type Provider interface {
 // without warning; it should only be used by providers that are collaborating
 // on its use with the Terraform team.
 type ProviderWithProviderMeta interface {
+    Provider
 	// GetMetaSchema returns the provider meta schema.
 	GetMetaSchema(context.Context) (*tfprotov6.Schema, []*tfprotov6.Diagnostic)
 }

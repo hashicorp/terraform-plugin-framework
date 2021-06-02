@@ -671,7 +671,3 @@ func TestListEqual(t *testing.T) {
 		})
 	}
 }
-
-func TestListSetTerraformValue(t *testing.T) {
-	t.Parallel()
-}

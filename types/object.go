@@ -20,7 +20,7 @@ type ObjectType struct {
 // will use this to translate the AttributeType to something Terraform
 // can understand.
 func (o ObjectType) TerraformType(ctx context.Context) tftypes.Type {
-	var attributeTypes map[string]tftypes.Type
+	attributeTypes := map[string]tftypes.Type{}
 	for k, v := range o.AttributeTypes {
 		attributeTypes[k] = v.TerraformType(ctx)
 	}
@@ -84,7 +84,7 @@ type Object struct {
 
 // As populates `target` with the data in the Object, throwing an error if the
 // data cannot be stored in `target`.
-func (o *Object) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) error {
+func (o *Object) As(ctx context.Context, target interface{}, allowUnhandled bool) error {
 	// we need a tftypes.Value for this Object to be able to use it with
 	// our reflection code
 	values := map[string]tftypes.Value{}
@@ -208,5 +208,8 @@ func (o *Object) SetTerraformValue(ctx context.Context, in tftypes.Value) error 
 		attributes[k] = a
 	}
 	o.Attributes = attributes
+	// we can't set AttributeTypes, we have no way of knowing them
+	// callers should set them before or after calling SetTerraformValue
+	// this is largely because reflection has no way of knowing about them
 	return nil
 }

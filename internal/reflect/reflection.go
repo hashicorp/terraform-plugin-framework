@@ -21,12 +21,12 @@ import (
 // in the tftypes.Value must have a corresponding property in the struct. Into
 // will be called for each struct field. Slices will have Into called for each
 // element.
-func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Options) error {
+func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interface{}, opts Options) error {
 	v := reflect.ValueOf(target)
 	if v.Kind() != reflect.Ptr {
 		return fmt.Errorf("target must be a pointer, got %T, which is a %s", target, v.Kind())
 	}
-	result, err := buildReflectValue(ctx, val, v.Elem(), opts, tftypes.NewAttributePath())
+	result, err := BuildValue(ctx, typ, val, v.Elem(), opts, tftypes.NewAttributePath())
 	if err != nil {
 		return err
 	}
@@ -34,12 +34,12 @@ func Into(ctx context.Context, val tftypes.Value, target interface{}, opts Optio
 	return nil
 }
 
-// buildReflectValue constructs a reflect.Value of the same type as `target`,
+// BuildValue constructs a reflect.Value of the same type as `target`,
 // populated with the data in `val`. It will defensively instantiate new values
 // to set, making it safe for use with pointer types which may be nil. It tries
 // to give consumers the ability to override its default behaviors wherever
 // possible.
-func buildReflectValue(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	// if this isn't a valid reflect.Value, bail before we accidentally
 	// panic
 	if !target.IsValid() {
@@ -47,17 +47,17 @@ func buildReflectValue(ctx context.Context, val tftypes.Value, target reflect.Va
 	}
 	// if this is an attr.Value, build the type from that
 	if target.Type().Implements(reflect.TypeOf((*attr.Value)(nil)).Elem()) {
-		return reflectAttributeValue(ctx, val, target, opts, path)
+		return AttributeValue(ctx, typ, val, target, opts, path)
 	}
 	// if this tells tftypes how to build an instance of it out of a
 	// tftypes.Value, well, that's what we want, so do that instead of our
 	// default logic.
 	if target.Type().Implements(reflect.TypeOf((*tftypes.ValueConverter)(nil)).Elem()) {
-		return reflectValueConverter(ctx, val, target, opts, path)
+		return ValueConverter(ctx, typ, val, target, opts, path)
 	}
 	// if this can explicitly be set to unknown, do that
-	if target.Type().Implements(reflect.TypeOf((*setUnknownable)(nil)).Elem()) {
-		res, err := reflectUnknownable(ctx, val, target, opts, path)
+	if target.Type().Implements(reflect.TypeOf((*SetUnknownable)(nil)).Elem()) {
+		res, err := Unknownable(ctx, typ, val, target, opts, path)
 		if err != nil {
 			return target, err
 		}
@@ -70,8 +70,8 @@ func buildReflectValue(ctx context.Context, val tftypes.Value, target reflect.Va
 		}
 	}
 	// if this can explicitly be set to null, do that
-	if target.Type().Implements(reflect.TypeOf((*setNullable)(nil)).Elem()) {
-		res, err := reflectNullable(ctx, val, target, opts, path)
+	if target.Type().Implements(reflect.TypeOf((*SetNullable)(nil)).Elem()) {
+		res, err := Nullable(ctx, typ, val, target, opts, path)
 		if err != nil {
 			return target, err
 		}
@@ -112,13 +112,13 @@ func buildReflectValue(ctx context.Context, val tftypes.Value, target reflect.Va
 	// *big.Float and *big.Int are technically pointers, but we want them
 	// handled as numbers
 	if target.Type() == reflect.TypeOf(big.NewFloat(0)) || target.Type() == reflect.TypeOf(big.NewInt(0)) {
-		return reflectNumber(ctx, val, target, opts, path)
+		return Number(ctx, typ, val, target, opts, path)
 	}
 	switch target.Kind() {
 	case reflect.Struct:
-		return reflectStructFromObject(ctx, val, target, opts, path)
+		return Struct(ctx, typ, val, target, opts, path)
 	case reflect.Bool, reflect.String:
-		return reflectPrimitive(ctx, val, target, path)
+		return Primitive(ctx, typ, val, target, path)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16,
 		reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
@@ -128,13 +128,13 @@ func buildReflectValue(ctx context.Context, val tftypes.Value, target reflect.Va
 		// nil *big.Float will crash everything if we don't handle it
 		// as a special case, so let's just special case numbers and
 		// let people use the types they want
-		return reflectNumber(ctx, val, target, opts, path)
+		return Number(ctx, typ, val, target, opts, path)
 	case reflect.Slice:
-		return reflectSlice(ctx, val, target, opts, path)
+		return reflectSlice(ctx, typ, val, target, opts, path)
 	case reflect.Map:
-		return reflectMap(ctx, val, target, opts, path)
+		return reflectMap(ctx, typ, val, target, opts, path)
 	case reflect.Ptr:
-		return reflectPointer(ctx, val, target, opts, path)
+		return Pointer(ctx, typ, val, target, opts, path)
 	default:
 		return target, path.NewErrorf("don't know how to reflect %s into %s", val.Type(), target.Type())
 	}

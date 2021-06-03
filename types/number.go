@@ -9,12 +9,21 @@ import (
 )
 
 func numberValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	n := new(Number)
-	err := n.SetTerraformValue(ctx, in)
-	return n, err
+	if !in.IsKnown() {
+		return Number{Unknown: true}, nil
+	}
+	if in.IsNull() {
+		return Number{Null: true}, nil
+	}
+	var n *big.Float
+	err := in.As(&n)
+	if err != nil {
+		return nil, err
+	}
+	return Number{Value: n}, nil
 }
 
-var _ attr.Value = &Number{}
+var _ attr.Value = Number{}
 
 // Number represents a number value, exposed as a *big.Float. Numbers can be
 // floats or integers.
@@ -34,7 +43,7 @@ type Number struct {
 // ToTerraformValue returns the data contained in the *Number as a *big.Float.
 // If Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
 // returns nil.
-func (n *Number) ToTerraformValue(_ context.Context) (interface{}, error) {
+func (n Number) ToTerraformValue(_ context.Context) (interface{}, error) {
 	if n.Null {
 		return nil, nil
 	}
@@ -45,14 +54,8 @@ func (n *Number) ToTerraformValue(_ context.Context) (interface{}, error) {
 }
 
 // Equal returns true if `other` is a *Number and has the same value as `n`.
-func (n *Number) Equal(other attr.Value) bool {
-	if n == nil && other == nil {
-		return true
-	}
-	if n == nil || other == nil {
-		return false
-	}
-	o, ok := other.(*Number)
+func (n Number) Equal(other attr.Value) bool {
+	o, ok := other.(Number)
 	if !ok {
 		return false
 	}
@@ -69,21 +72,4 @@ func (n *Number) Equal(other attr.Value) bool {
 		return false
 	}
 	return n.Value.Cmp(o.Value) == 0
-}
-
-// SetTerraformValue updates the Number to match the contents of `val`.
-func (n *Number) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
-	n.Unknown = false
-	n.Null = false
-	n.Value = nil
-	if !in.IsKnown() {
-		n.Unknown = true
-		return nil
-	}
-	if in.IsNull() {
-		n.Null = true
-		return nil
-	}
-	err := in.As(&n.Value)
-	return err
 }

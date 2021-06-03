@@ -1,4 +1,4 @@
-package reflect
+package reflect_test
 
 import (
 	"context"
@@ -6,7 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
+	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -20,7 +22,7 @@ func (u *unknownableString) SetUnknown(_ context.Context, unknown bool) error {
 	return nil
 }
 
-var _ setUnknownable = &unknownableString{}
+var _ refl.SetUnknownable = &unknownableString{}
 
 type unknownableStringError struct {
 	String  string
@@ -31,14 +33,14 @@ func (u *unknownableStringError) SetUnknown(_ context.Context, unknown bool) err
 	return errors.New("this is an error")
 }
 
-var _ setUnknownable = &unknownableStringError{}
+var _ refl.SetUnknownable = &unknownableStringError{}
 
 type nullableString struct {
 	String string
 	Null   bool
 }
 
-var _ setNullable = &nullableString{}
+var _ refl.SetNullable = &nullableString{}
 
 func (n *nullableString) SetNull(_ context.Context, null bool) error {
 	n.Null = null
@@ -54,63 +56,7 @@ func (n *nullableStringError) SetNull(_ context.Context, null bool) error {
 	return errors.New("this is an error")
 }
 
-var _ setNullable = &nullableStringError{}
-
-type attributeValue struct {
-	Value   string
-	Null    bool
-	Unknown bool
-}
-
-func (a *attributeValue) ToTerraformValue(_ context.Context) (interface{}, error) {
-	var val interface{}
-	if a.Null {
-		val = nil
-	}
-	if a.Value != "" {
-		val = a.Value
-	}
-	if a.Unknown {
-		val = tftypes.UnknownValue
-	}
-	return val, nil
-}
-
-func (a *attributeValue) SetTerraformValue(_ context.Context, val tftypes.Value) error {
-	a.Value = ""
-	a.Null = false
-	a.Unknown = false
-	if val.IsNull() {
-		a.Null = true
-		return nil
-	}
-	if !val.IsKnown() {
-		a.Unknown = true
-		return nil
-	}
-	err := val.As(&a.Value)
-	return err
-}
-
-func (a *attributeValue) Equal(o attr.Value) bool {
-	other, ok := o.(*attributeValue)
-	if !ok {
-		return false
-	}
-	return a.Value == other.Value && a.Null == other.Null && a.Unknown == other.Unknown
-}
-
-var _ attr.Value = &attributeValue{}
-
-type attributeValueError struct {
-	*attributeValue
-}
-
-func (a *attributeValueError) SetTerraformValue(_ context.Context, _ tftypes.Value) error {
-	return errors.New("this is an error")
-}
-
-var _ attr.Value = &attributeValueError{}
+var _ refl.SetNullable = &nullableStringError{}
 
 type valueConverter struct {
 	value   string
@@ -164,13 +110,13 @@ func (v *valueConverterError) FromTerraform5Value(_ tftypes.Value) error {
 
 var _ tftypes.ValueConverter = &valueConverterError{}
 
-func TestReflectUnknownable_known(t *testing.T) {
+func TestUnknownable_known(t *testing.T) {
 	t.Parallel()
 
 	unknownable := &unknownableString{
 		Unknown: true,
 	}
-	res, err := reflectUnknownable(context.Background(), tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(unknownable), Options{}, tftypes.NewAttributePath())
+	res, err := refl.Unknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -180,11 +126,11 @@ func TestReflectUnknownable_known(t *testing.T) {
 	}
 }
 
-func TestReflectUnknownable_unknown(t *testing.T) {
+func TestUnknownable_unknown(t *testing.T) {
 	t.Parallel()
 
 	var unknownable *unknownableString
-	res, err := reflectUnknownable(context.Background(), tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), Options{}, tftypes.NewAttributePath())
+	res, err := refl.Unknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -194,23 +140,23 @@ func TestReflectUnknownable_unknown(t *testing.T) {
 	}
 }
 
-func TestReflectUnknownable_error(t *testing.T) {
+func TestUnknownable_error(t *testing.T) {
 	t.Parallel()
 
 	var unknownable *unknownableStringError
-	_, err := reflectUnknownable(context.Background(), tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Unknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
 	if expected := ": this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
 	}
 }
 
-func TestReflectNullable_notNull(t *testing.T) {
+func TestNullable_notNull(t *testing.T) {
 	t.Parallel()
 
 	nullable := &nullableString{
 		Null: true,
 	}
-	res, err := reflectNullable(context.Background(), tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), Options{}, tftypes.NewAttributePath())
+	res, err := refl.Nullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -220,11 +166,11 @@ func TestReflectNullable_notNull(t *testing.T) {
 	}
 }
 
-func TestReflectNullable_null(t *testing.T) {
+func TestNullable_null(t *testing.T) {
 	t.Parallel()
 
 	var nullable *nullableString
-	res, err := reflectNullable(context.Background(), tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(nullable), Options{}, tftypes.NewAttributePath())
+	res, err := refl.Nullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -234,76 +180,66 @@ func TestReflectNullable_null(t *testing.T) {
 	}
 }
 
-func TestReflectNullable_error(t *testing.T) {
+func TestNullable_error(t *testing.T) {
 	t.Parallel()
 
 	var nullable *nullableStringError
-	_, err := reflectNullable(context.Background(), tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Nullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
 	if expected := ": this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
 	}
 }
 
-func TestReflectAttributeValue_unknown(t *testing.T) {
+func TestAttributeValue_unknown(t *testing.T) {
 	t.Parallel()
 
-	var av *attributeValue
-	res, err := reflectAttributeValue(context.Background(), tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(av), Options{}, tftypes.NewAttributePath())
+	var av types.String
+	res, err := refl.AttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
-	got := res.Interface().(*attributeValue)
-	expected := &attributeValue{Unknown: true}
+	got := res.Interface().(types.String)
+	expected := types.String{Unknown: true}
 	if !got.Equal(expected) {
 		t.Errorf("Expected %+v, got %+v", expected, got)
 	}
 }
 
-func TestReflectAttributeValue_null(t *testing.T) {
+func TestAttributeValue_null(t *testing.T) {
 	t.Parallel()
 
-	var av *attributeValue
-	res, err := reflectAttributeValue(context.Background(), tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(av), Options{}, tftypes.NewAttributePath())
+	var av types.String
+	res, err := refl.AttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
-	got := res.Interface().(*attributeValue)
-	expected := &attributeValue{Null: true}
+	got := res.Interface().(types.String)
+	expected := types.String{Null: true}
 	if !got.Equal(expected) {
 		t.Errorf("Expected %+v, got %+v", expected, got)
 	}
 }
 
-func TestReflectAttributeValue_value(t *testing.T) {
+func TestAttributeValue_value(t *testing.T) {
 	t.Parallel()
 
-	var av *attributeValue
-	res, err := reflectAttributeValue(context.Background(), tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(av), Options{}, tftypes.NewAttributePath())
+	var av types.String
+	res, err := refl.AttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
-	got := res.Interface().(*attributeValue)
-	expected := &attributeValue{Value: "hello"}
+	got := res.Interface().(types.String)
+	expected := types.String{Value: "hello"}
 	if !got.Equal(expected) {
 		t.Errorf("Expected %+v, got %+v", expected, got)
 	}
 }
 
-func TestReflectAttributeValue_error(t *testing.T) {
-	t.Parallel()
-
-	var av *attributeValueError
-	_, err := reflectAttributeValue(context.Background(), tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(av), Options{}, tftypes.NewAttributePath())
-	if expected := ": this is an error"; err == nil || err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %v", expected, err)
-	}
-}
-
-func TestReflectValueConverter_unknown(t *testing.T) {
+func TestValueConverter_unknown(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverter
-	res, err := reflectValueConverter(context.Background(), tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(vc), Options{}, tftypes.NewAttributePath())
+	res, err := refl.ValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -314,11 +250,11 @@ func TestReflectValueConverter_unknown(t *testing.T) {
 	}
 }
 
-func TestReflectValueConverter_null(t *testing.T) {
+func TestValueConverter_null(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverter
-	res, err := reflectValueConverter(context.Background(), tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(vc), Options{}, tftypes.NewAttributePath())
+	res, err := refl.ValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -329,11 +265,11 @@ func TestReflectValueConverter_null(t *testing.T) {
 	}
 }
 
-func TestReflectValueConverter_value(t *testing.T) {
+func TestValueConverter_value(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverter
-	res, err := reflectValueConverter(context.Background(), tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), Options{}, tftypes.NewAttributePath())
+	res, err := refl.ValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -344,11 +280,11 @@ func TestReflectValueConverter_value(t *testing.T) {
 	}
 }
 
-func TestReflectValueConverter_error(t *testing.T) {
+func TestValueConverter_error(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverterError
-	_, err := reflectValueConverter(context.Background(), tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), Options{}, tftypes.NewAttributePath())
+	_, err := refl.ValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
 	if expected := ": this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
 	}

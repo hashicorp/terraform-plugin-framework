@@ -4,12 +4,16 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// build a pointer of the same type as `target`, ensuring that the data it
-// points to exists and it is not set to nil.
-func reflectPointer(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+// Pointer builds a new zero value of the concrete type that `target`
+// references, populates it with BuildValue, and takes a pointer to it.
+//
+// It is meant to be called through Into, not directly.
+func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	if target.Kind() != reflect.Ptr {
 		return target, path.NewErrorf("can't dereference pointer, not a pointer, is a %s (%s)", target.Type(), target.Kind())
 	}
@@ -17,7 +21,7 @@ func reflectPointer(ctx context.Context, val tftypes.Value, target reflect.Value
 	// we can set
 	pointer := reflect.New(target.Type().Elem())
 	// build out whatever the pointer is pointing to
-	pointed, err := buildReflectValue(ctx, val, pointer.Elem(), opts, path)
+	pointed, err := BuildValue(ctx, typ, val, pointer.Elem(), opts, path)
 	if err != nil {
 		return target, err
 	}

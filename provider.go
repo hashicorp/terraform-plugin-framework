@@ -38,5 +38,5 @@ type Provider interface {
 type ProviderWithProviderMeta interface {
 	Provider
 	// GetMetaSchema returns the provider meta schema.
-	GetMetaSchema(context.Context) (*tfprotov6.Schema, []*tfprotov6.Diagnostic)
+	GetMetaSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
 }

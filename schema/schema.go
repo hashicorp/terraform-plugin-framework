@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -70,4 +71,16 @@ func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, err
 	}
 
 	return attrType, nil
+}
+func (s Schema) TerraformType(ctx context.Context) tftypes.Type {
+	attrTypes := map[string]tftypes.Type{}
+	for name, attr := range s.Attributes {
+		if attr.Type != nil {
+			attrTypes[name] = attr.Type.TerraformType(ctx)
+		}
+		if attr.Attributes != nil {
+			// TODO: handle nested attributes
+		}
+	}
+	return tftypes.Object{AttributeTypes: attrTypes}
 }

@@ -28,6 +28,47 @@ type Type interface {
 	Equal(Type) bool
 }
 
+// TypeWithAttributeTypes extends the Type interface to include information about
+// attribute types. Attribute types are part of the definition of an object type.
+type TypeWithAttributeTypes interface {
+	Type
+
+	// WithAttributeTypes returns a new copy of the type with its
+	// attribute types set.
+	WithAttributeTypes(map[string]Type) TypeWithAttributeTypes
+
+	// AttributeTypes returns the object's attribute types.
+	AttributeTypes() map[string]Type
+}
+
+// TypeWithElementType extends the Type interface to include information about the type
+// all elements will share. Element types are part of the definition of a list,
+// set, or map type.
+type TypeWithElementType interface {
+	Type
+
+	// WithElementType returns a new copy of the type with its element type
+	// set.
+	WithElementType(Type) TypeWithElementType
+
+	// TypeWithElementType returns the type's element type.
+	ElementType() Type
+}
+
+// TypeWithElementTypes extends the Type interface to include information about the
+// types of each element. Element types are part of the definition of a tuple
+// type.
+type TypeWithElementTypes interface {
+	Type
+
+	// WithElementTypes returns a new copy of the type with its elements'
+	// types set.
+	WithElementTypes([]Type) TypeWithElementTypes
+
+	// ElementTypes returns the type's elements' types.
+	ElementTypes() []Type
+}
+
 // TypeWithValidate extends the Type interface to include a Validate method,
 // used to bundle consistent validation logic with the Type.
 type TypeWithValidate interface {

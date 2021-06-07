@@ -1,9 +1,5 @@
 package tfsdk
 
-import (
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-)
-
 // ConfigureProviderRequest represents a request containing the values the user
 // specified for the provider configuration block, along with other runtime
 // information from Terraform or the Plugin SDK. An instance of this request
@@ -19,7 +15,7 @@ type ConfigureProviderRequest struct {
 	// information should usually be persisted to the underlying type
 	// that's implementing the Provider interface, for use in later
 	// resource CRUD operations.
-	Config *tftypes.Value
+	Config Config
 }
 
 // CreateResourceRequest represents a request for the provider to create a

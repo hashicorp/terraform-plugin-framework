@@ -532,20 +532,20 @@ func TestObjectAs_struct(t *testing.T) {
 		},
 		D: []string{"it's", "getting", "hard", "to", "come", "up", "with", "test", "values"},
 		E: []Bool{
-			Bool{Value: true},
-			Bool{Value: false},
-			Bool{Value: false},
-			Bool{Value: true},
+			{Value: true},
+			{Value: false},
+			{Value: false},
+			{Value: true},
 		},
 		F: []List{
-			List{
+			{
 				ElemType: StringType,
 				Elems: []attr.Value{
 					String{Value: "head"},
 					String{Value: "empty"},
 				},
 			},
-			List{
+			{
 				ElemType: StringType,
 				Elems: []attr.Value{
 					String{Value: "no"},

@@ -32,14 +32,28 @@ func proto6Schema(ctx context.Context, s schema.Schema) (*tfprotov6.Schema, erro
 	return nil, nil
 }
 
+func diagsHasErrors(in []*tfprotov6.Diagnostic) bool {
+	for _, diag := range in {
+		if diag == nil {
+			continue
+		}
+		if diag.Severity == tfprotov6.DiagnosticSeverityError {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
 	resp := new(tfprotov6.GetProviderSchemaResponse)
 
 	// get the provider schema
 	providerSchema, diags := s.p.GetSchema(ctx)
-	if diags != nil { // TODO: don't return if no errors
+	if diags != nil {
 		resp.Diagnostics = append(resp.Diagnostics, diags...)
-		return resp, nil
+		if diagsHasErrors(resp.Diagnostics) {
+			return resp, nil
+		}
 	}
 	// convert the provider schema to a *tfprotov6.Schema
 	provider6Schema, err := proto6Schema(ctx, providerSchema)
@@ -57,9 +71,11 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 	var providerMeta6Schema *tfprotov6.Schema
 	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
 		providerMetaSchema, diags := pm.GetMetaSchema(ctx)
-		if diags != nil { // TODO: don't return if no errors
+		if diags != nil {
 			resp.Diagnostics = append(resp.Diagnostics, diags...)
-			return resp, nil
+			if diagsHasErrors(resp.Diagnostics) {
+				return resp, nil
+			}
 		}
 		pm6Schema, err := proto6Schema(ctx, providerMetaSchema)
 		if err != nil {
@@ -71,16 +87,20 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 
 	// get our resource schemas
 	resourceSchemas, diags := s.p.GetResources(ctx)
-	if diags != nil { // TODO: don't return if no errors
+	if diags != nil {
 		resp.Diagnostics = append(resp.Diagnostics, diags...)
-		return resp, nil
+		if diagsHasErrors(resp.Diagnostics) {
+			return resp, nil
+		}
 	}
 	resource6Schemas := map[string]*tfprotov6.Schema{}
 	for k, v := range resourceSchemas {
 		schema, diags := v.GetSchema(ctx)
-		if diags != nil { // TODO: don't return if no errors
+		if diags != nil {
 			resp.Diagnostics = append(resp.Diagnostics, diags...)
-			return resp, nil
+			if diagsHasErrors(resp.Diagnostics) {
+				return resp, nil
+			}
 		}
 		schema6, err := proto6Schema(ctx, schema)
 		if err != nil {
@@ -92,16 +112,20 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 
 	// get our data source schemas
 	dataSourceSchemas, diags := s.p.GetDataSources(ctx)
-	if diags != nil { // TODO: don't return if no errors
+	if diags != nil {
 		resp.Diagnostics = append(resp.Diagnostics, diags...)
-		return resp, nil
+		if diagsHasErrors(resp.Diagnostics) {
+			return resp, nil
+		}
 	}
 	dataSource6Schemas := map[string]*tfprotov6.Schema{}
 	for k, v := range dataSourceSchemas {
 		schema, diags := v.GetSchema(ctx)
-		if diags != nil { // TODO: don't return if no errors
+		if diags != nil {
 			resp.Diagnostics = append(resp.Diagnostics, diags...)
-			return resp, nil
+			if diagsHasErrors(resp.Diagnostics) {
+				return resp, nil
+			}
 		}
 		schema6, err := proto6Schema(ctx, schema)
 		if err != nil {
@@ -129,9 +153,11 @@ func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 func (s *server) ConfigureProvider(ctx context.Context, req *tfprotov6.ConfigureProviderRequest) (*tfprotov6.ConfigureProviderResponse, error) {
 	resp := &tfprotov6.ConfigureProviderResponse{}
 	schema, diags := s.p.GetSchema(ctx)
-	if diags != nil { // TODO: only return if error diags
+	if diags != nil {
 		resp.Diagnostics = append(resp.Diagnostics, diags...)
-		return resp, nil
+		if diagsHasErrors(resp.Diagnostics) {
+			return resp, nil
+		}
 	}
 	config, err := req.Config.Unmarshal(schema.TerraformType(ctx))
 	if err != nil {
@@ -167,25 +193,45 @@ func (s *server) UpgradeResourceState(ctx context.Context, _ *tfprotov6.UpgradeR
 }
 
 func (s *server) ReadResource(ctx context.Context, _ *tfprotov6.ReadResourceRequest) (*tfprotov6.ReadResourceResponse, error) {
+	// TODO: find the resource type
+	// TODO: make a resource instance
+	// TODO: build our request and response types
+	// TODO: call read
 	panic("not implemented") // TODO: Implement
 }
 
 func (s *server) PlanResourceChange(ctx context.Context, _ *tfprotov6.PlanResourceChangeRequest) (*tfprotov6.PlanResourceChangeResponse, error) {
+	// TODO: set all nil + computed values to unknown
+	// TODO: implement customizable plan modifications later
 	panic("not implemented") // TODO: Implement
 }
 
 func (s *server) ApplyResourceChange(ctx context.Context, _ *tfprotov6.ApplyResourceChangeRequest) (*tfprotov6.ApplyResourceChangeResponse, error) {
+	// TODO: find the resource type
+	// TODO: make a resource instance
+	// TODO: decide whether we're creating, updating, or destroying
+	//		* Create will have a null prior state
+	//		* Update will have a prior state and a planned state
+	//		* Destroy will have a prior state and a null planned state
+	// TODO: create request and response types
+	// TODO: call create/update/delete as appropriate
 	panic("not implemented") // TODO: Implement
 }
 
 func (s *server) ImportResourceState(ctx context.Context, _ *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
-	panic("not implemented") // TODO: Implement
+	// TODO: support resource importing
+	return &tfprotov6.ImportResourceStateResponse{}, nil
 }
 
 func (s *server) ValidateDataResourceConfig(ctx context.Context, _ *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {
-	panic("not implemented") // TODO: Implement
+	// TODO: support validation
+	return &tfprotov6.ValidateDataResourceConfigResponse{}, nil
 }
 
 func (s *server) ReadDataSource(ctx context.Context, _ *tfprotov6.ReadDataSourceRequest) (*tfprotov6.ReadDataSourceResponse, error) {
+	// TODO: find the data source type
+	// TODO: make a data source instance
+	// TODO: build our request and response types
+	// TODO: call read
 	panic("not implemented") // TODO: Implement
 }

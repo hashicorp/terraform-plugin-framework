@@ -169,7 +169,7 @@ func OutOf(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tfty
 }
 
 type OutOfOptions struct {
-	Structs  attr.ObjectType
+	Structs  attr.TypeWithAttributeTypes
 	Slices   attr.Type
 	Strings  attr.Type
 	Integers attr.Type

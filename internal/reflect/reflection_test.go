@@ -5,10 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -43,7 +41,7 @@ func TestOutOfString(t *testing.T) {
 	expectedVal := types.String{
 		Value: "mystring",
 	}
-	actualVal, actualType, err := refl.OutOf(context.Background(), "mystring", refl.OutOfOptions{
+	actualVal, actualType, err := refl.OutOf(context.Background(), reflect.ValueOf("mystring"), refl.OutOfOptions{
 		Strings: types.StringType,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -67,7 +65,7 @@ func TestOutOfStruct(t *testing.T) {
 		Name: "myfirstdisk",
 	}
 
-	actualVal, actualType, err := refl.OutOf(context.Background(), disk1, refl.OutOfOptions{
+	actualVal, actualType, err := refl.OutOf(context.Background(), reflect.ValueOf(disk1), refl.OutOfOptions{
 		Structs: types.ObjectType{},
 		Strings: types.StringType,
 	}, tftypes.NewAttributePath())
@@ -76,15 +74,15 @@ func TestOutOfStruct(t *testing.T) {
 	}
 
 	expectedVal := types.Object{
-		Attributes: map[string]attr.Value{
+		Attrs: map[string]attr.Value{
 			"name": types.String{Value: "myfirstdisk"},
 		},
-		AttributeTypes: map[string]tftypes.Type{
-			"name": tftypes.String,
+		AttrTypes: map[string]attr.Type{
+			"name": types.StringType,
 		},
 	}
 	expectedType := types.ObjectType{
-		AttributeTypes: map[string]attr.Type{
+		AttrTypes: map[string]attr.Type{
 			"name": types.StringType,
 		},
 	}

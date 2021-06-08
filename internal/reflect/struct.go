@@ -97,7 +97,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	return result, nil
 }
 
-func reflectObjectOutOfStruct(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.ObjectType, error) {
+func reflectObjectOutOfStruct(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.TypeWithAttributeTypes, error) {
 	typ := trueReflectValue(val).Type()
 
 	objTypes := map[string]tftypes.Type{}

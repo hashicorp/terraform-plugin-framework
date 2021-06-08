@@ -1,12 +1,24 @@
 package reflect_test
 
-// TODO: uncomment when Object is merged
-/*
-func TestReflectObjectIntoStruct_notAnObject(t *testing.T) {
+import (
+	"context"
+	"math/big"
+	"reflect"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+)
+
+func TestStruct_notAnObject(t *testing.T) {
 	t.Parallel()
 
 	var s struct{}
-	_, err := refl.ReflectStructFromObject(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+	_, err := refl.Struct(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
@@ -15,11 +27,11 @@ func TestReflectObjectIntoStruct_notAnObject(t *testing.T) {
 	}
 }
 
-func TestReflectObjectIntoStruct_notAStruct(t *testing.T) {
+func TestStruct_notAStruct(t *testing.T) {
 	t.Parallel()
 
 	var s string
-	_, err := refl.ReflectStructFromObject(context.Background(), types.ObjectType{
+	_, err := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"a": types.StringType,
 		},
@@ -38,13 +50,13 @@ func TestReflectObjectIntoStruct_notAStruct(t *testing.T) {
 	}
 }
 
-func TestReflectObjectIntoStruct_objectMissingFields(t *testing.T) {
+func TestStruct_objectMissingFields(t *testing.T) {
 	t.Parallel()
 
 	var s struct {
 		A string `tfsdk:"a"`
 	}
-	_, err := refl.ReflectStructFromObject(context.Background(), types.ObjectType{}, tftypes.NewValue(tftypes.Object{
+	_, err := refl.Struct(context.Background(), types.ObjectType{}, tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{},
 	}, map[string]tftypes.Value{}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
@@ -55,11 +67,11 @@ func TestReflectObjectIntoStruct_objectMissingFields(t *testing.T) {
 	}
 }
 
-func TestReflectObjectIntoStruct_structMissingProperties(t *testing.T) {
+func TestStruct_structMissingProperties(t *testing.T) {
 	t.Parallel()
 
 	var s struct{}
-	_, err := refl.ReflectStructFromObject(context.Background(), types.ObjectType{
+	_, err := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"a": types.StringType,
 		},
@@ -78,13 +90,13 @@ func TestReflectObjectIntoStruct_structMissingProperties(t *testing.T) {
 	}
 }
 
-func TestReflectObjectIntoStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
+func TestStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
 	t.Parallel()
 
 	var s struct {
 		A string `tfsdk:"a"`
 	}
-	_, err := refl.ReflectStructFromObject(context.Background(), types.ObjectType{
+	_, err := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"a": types.StringType,
 		},
@@ -103,7 +115,7 @@ func TestReflectObjectIntoStruct_objectMissingFieldsAndStructMissingProperties(t
 	}
 }
 
-func TestReflectObjectIntoStruct_primitives(t *testing.T) {
+func TestStruct_primitives(t *testing.T) {
 	t.Parallel()
 
 	var s struct {
@@ -111,11 +123,11 @@ func TestReflectObjectIntoStruct_primitives(t *testing.T) {
 		B *big.Float `tfsdk:"b"`
 		C bool       `tfsdk:"c"`
 	}
-	result, err := refl.ReflectStructFromObject(context.Background(), types.ObjectType{
+	result, err := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"a": types.StringType,
-			"b": testNumberType{},
-			"c": testBoolType{},
+			"b": types.NumberType,
+			"c": types.BoolType,
 		},
 	}, tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
@@ -143,7 +155,7 @@ func TestReflectObjectIntoStruct_primitives(t *testing.T) {
 	}
 }
 
-func TestReflectObjectIntoStruct_complex(t *testing.T) {
+func TestStruct_complex(t *testing.T) {
 	t.Parallel()
 
 	type myStruct struct {
@@ -156,42 +168,46 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 			A     bool      `tfsdk:"a"`
 			Slice []float64 `tfsdk:"slice"`
 		} `tfsdk:"struct"`
-		Map              map[string][]string `tfsdk:"map"`
-		Pointer          *string             `tfsdk:"pointer"`
-		Unknownable      *unknownableString  `tfsdk:"unknownable"`
-		Nullable         *nullableString     `tfsdk:"nullable"`
-		AttributeValue   *testStringValue    `tfsdk:"attribute_value"`
-		ValueConverter   *valueConverter     `tfsdk:"value_converter"`
-		UnhandledNull    string              `tfsdk:"unhandled_null"`
-		UnhandledUnknown string              `tfsdk:"unhandled_unknown"`
+		// TODO: uncomment when maps are supported
+		// Map              map[string][]string `tfsdk:"map"`
+		Pointer          *string            `tfsdk:"pointer"`
+		Unknownable      *unknownableString `tfsdk:"unknownable"`
+		Nullable         *nullableString    `tfsdk:"nullable"`
+		AttributeValue   types.String       `tfsdk:"attribute_value"`
+		ValueConverter   *valueConverter    `tfsdk:"value_converter"`
+		UnhandledNull    string             `tfsdk:"unhandled_null"`
+		UnhandledUnknown string             `tfsdk:"unhandled_unknown"`
 	}
 	var s myStruct
-	result, err := refl.ReflectStructFromObject(context.Background(), types.ObjectType{
+	result, err := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
-			"slice": testListType{
+			"slice": types.ListType{
 				ElemType: types.StringType,
 			},
-			"slice_of_structs": testListType{
+			"slice_of_structs": types.ListType{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"a": types.StringType,
-						"b": testNumberType{},
+						"b": types.NumberType,
 					},
 				},
 			},
 			"struct": types.ObjectType{
 				AttrTypes: map[string]attr.Type{
-					"a": testBoolType{},
-					"slice": testListType{
-						ElemType: testNumberType{},
+					"a": types.BoolType,
+					"slice": types.ListType{
+						ElemType: types.NumberType,
 					},
 				},
 			},
-			"map": testMapType{
-				ElemType: testListType{
-					ElemType: types.StringType,
+			// TODO: uncomment when maps are supported
+			/*
+				"map": testMapType{
+					ElemType: types.ListType{
+						ElemType: types.StringType,
+					},
 				},
-			},
+			*/
 			"pointer":           types.StringType,
 			"unknownable":       types.StringType,
 			"nullable":          types.StringType,
@@ -221,11 +237,14 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 					},
 				},
 			},
-			"map": tftypes.Map{
-				AttributeType: tftypes.List{
-					ElementType: tftypes.String,
+			// TODO: uncomment when maps are supported
+			/*
+				"map": tftypes.Map{
+					AttributeType: tftypes.List{
+						ElementType: tftypes.String,
+					},
 				},
-			},
+			*/
 			"pointer":           tftypes.String,
 			"unknownable":       tftypes.String,
 			"nullable":          tftypes.String,
@@ -286,25 +305,28 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 				tftypes.NewValue(tftypes.Number, 789),
 			}),
 		}),
-		"map": tftypes.NewValue(tftypes.Map{
-			AttributeType: tftypes.List{
-				ElementType: tftypes.String,
-			},
-		}, map[string]tftypes.Value{
-			"colors": tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "red"),
-				tftypes.NewValue(tftypes.String, "orange"),
-				tftypes.NewValue(tftypes.String, "yellow"),
+		// TODO: uncomment when maps are supported
+		/*
+			"map": tftypes.NewValue(tftypes.Map{
+				AttributeType: tftypes.List{
+					ElementType: tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"colors": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.String,
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"fruits": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.String,
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "apple"),
+					tftypes.NewValue(tftypes.String, "banana"),
+				}),
 			}),
-			"fruits": tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "apple"),
-				tftypes.NewValue(tftypes.String, "banana"),
-			}),
-		}),
+		*/
 		"pointer":           tftypes.NewValue(tftypes.String, "pointed"),
 		"unknownable":       tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 		"nullable":          tftypes.NewValue(tftypes.String, nil),
@@ -343,10 +365,13 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 			A:     true,
 			Slice: []float64{123, 456, 789},
 		},
-		Map: map[string][]string{
-			"colors": {"red", "orange", "yellow"},
-			"fruits": {"apple", "banana"},
-		},
+		// TODO: uncomment when maps are supported
+		/*
+			Map: map[string][]string{
+				"colors": {"red", "orange", "yellow"},
+				"fruits": {"apple", "banana"},
+			},
+		*/
 		Pointer: &str,
 		Unknownable: &unknownableString{
 			Unknown: true,
@@ -354,7 +379,7 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 		Nullable: &nullableString{
 			Null: true,
 		},
-		AttributeValue: &testStringValue{
+		AttributeValue: types.String{
 			Unknown: true,
 		},
 		ValueConverter: &valueConverter{
@@ -367,4 +392,3 @@ func TestReflectObjectIntoStruct_complex(t *testing.T) {
 		t.Errorf("Didn't get expected value. Diff (+ is expected, - is result): %s", diff)
 	}
 }
-*/

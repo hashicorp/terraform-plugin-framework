@@ -157,7 +157,7 @@ func (l List) ToTerraformValue(ctx context.Context) (interface{}, error) {
 		}
 		err = tftypes.ValidateValue(l.ElemType.TerraformType(ctx), val)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error validating terraform type: %w", err)
 		}
 		vals = append(vals, tftypes.NewValue(l.ElemType.TerraformType(ctx), val))
 	}

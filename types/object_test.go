@@ -69,11 +69,11 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 				"b": tftypes.NewValue(tftypes.Bool, true),
 				"c": tftypes.NewValue(tftypes.Number, 123),
 			}),
-			expected: &Object{
+			expected: Object{
 				Attributes: map[string]attr.Value{
-					"a": &String{Value: "red"},
-					"b": &Bool{Value: true},
-					"c": &Number{Value: big.NewFloat(123)},
+					"a": String{Value: "red"},
+					"b": Bool{Value: true},
+					"c": Number{Value: big.NewFloat(123)},
 				},
 				AttributeTypes: map[string]attr.Type{
 					"a": StringType,
@@ -82,9 +82,88 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 				},
 			},
 		},
+		"extra-attribute": {
+			receiver: ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+			},
+			input: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+					"b": tftypes.Bool,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "red"),
+				"b": tftypes.NewValue(tftypes.Bool, true),
+			}),
+			expectedErr: `expected tftypes.Object["a":tftypes.String], got tftypes.Object["a":tftypes.String, "b":tftypes.Bool]`,
+		},
+		"missing-attribute": {
+			receiver: ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"a": StringType,
+					"b": BoolType,
+				},
+			},
+			input: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "red"),
+			}),
+			expectedErr: `expected tftypes.Object["a":tftypes.String, "b":tftypes.Bool], got tftypes.Object["a":tftypes.String]`,
+		},
+		"wrong-type": {
+			receiver: ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+			},
+			input:       tftypes.NewValue(tftypes.String, "hello"),
+			expectedErr: `expected tftypes.Object["a":tftypes.String], got tftypes.String`,
+		},
+		"unknown": {
+			receiver: ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+			},
+			input: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, tftypes.UnknownValue),
+			expected: Object{
+				AttributeTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+				Unknown: true,
+			},
+		},
+		"null": {
+			receiver: ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+			},
+			input: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, nil),
+			expected: Object{
+				AttributeTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+				Null: true,
+			},
+		},
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -112,20 +191,1114 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 
 func TestObjectTypeEqual(t *testing.T) {
 	t.Parallel()
+
+	type testCase struct {
+		receiver ObjectType
+		input    attr.Type
+		expected bool
+	}
+	tests := map[string]testCase{
+		"equal": {
+			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"c": BoolType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			input: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"c": BoolType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			expected: true,
+		},
+		"missing-attr": {
+			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"c": BoolType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			input: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			expected: false,
+		},
+		"extra-attr": {
+			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			input: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"c": BoolType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			expected: false,
+		},
+		"diff-attrs": {
+			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"e": BoolType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			input: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"c": BoolType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			expected: false,
+		},
+		"diff": {
+			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": BoolType,
+				"c": BoolType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			input: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"c": BoolType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			expected: false,
+		},
+		"nested-diff": {
+			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"c": BoolType,
+				"d": ListType{
+					ElemType: StringType,
+				},
+			}},
+			input: ObjectType{AttributeTypes: map[string]attr.Type{
+				"a": StringType,
+				"b": NumberType,
+				"c": BoolType,
+				"d": ListType{
+					ElemType: BoolType,
+				},
+			}},
+			expected: false,
+		},
+		"wrongType": {
+			receiver: ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+			},
+			input:    NumberType,
+			expected: false,
+		},
+		"nil": {
+			receiver: ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+			},
+			input:    nil,
+			expected: false,
+		},
+		"nil-attrs": {
+			receiver: ObjectType{},
+			input:    ObjectType{},
+			expected: true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.receiver.Equal(test.input)
+			if test.expected != got {
+				t.Errorf("Expected %v, got %v", test.expected, got)
+			}
+		})
+	}
 }
 
-func TestObjectAs(t *testing.T) {
+func TestObjectAs_struct(t *testing.T) {
 	t.Parallel()
+
+	type myEmbeddedStruct struct {
+		Red    string `tfsdk:"red"`
+		Blue   List   `tfsdk:"blue"`
+		Green  Number `tfsdk:"green"`
+		Yellow int    `tfsdk:"yellow"`
+	}
+	type myStruct struct {
+		A string           `tfsdk:"a"`
+		B Bool             `tfsdk:"b"`
+		C List             `tfsdk:"c"`
+		D []string         `tfsdk:"d"`
+		E []Bool           `tfsdk:"e"`
+		F []List           `tfsdk:"f"`
+		G Object           `tfsdk:"g"`
+		H myEmbeddedStruct `tfsdk:"h"`
+		I Object           `tfsdk:"i"`
+	}
+	object := Object{
+		AttributeTypes: map[string]attr.Type{
+			"a": StringType,
+			"b": BoolType,
+			"c": ListType{ElemType: StringType},
+			"d": ListType{ElemType: StringType},
+			"e": ListType{ElemType: BoolType},
+			"f": ListType{ElemType: ListType{ElemType: StringType}},
+			"g": ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"dogs":  NumberType,
+					"cats":  NumberType,
+					"names": ListType{ElemType: StringType},
+				},
+			},
+			"h": ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"red":    StringType,
+					"blue":   ListType{ElemType: NumberType},
+					"green":  NumberType,
+					"yellow": NumberType,
+				},
+			},
+			"i": ObjectType{
+				AttributeTypes: map[string]attr.Type{
+					"name":     StringType,
+					"age":      NumberType,
+					"opted_in": BoolType,
+				},
+			},
+		},
+		Attributes: map[string]attr.Value{
+			"a": String{Value: "hello"},
+			"b": Bool{Value: true},
+			"c": List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "into"},
+					String{Value: "the"},
+					String{Unknown: true},
+					String{Null: true},
+				},
+			},
+			"d": List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "it's"},
+					String{Value: "getting"},
+					String{Value: "hard"},
+					String{Value: "to"},
+					String{Value: "come"},
+					String{Value: "up"},
+					String{Value: "with"},
+					String{Value: "test"},
+					String{Value: "values"},
+				},
+			},
+			"e": List{
+				ElemType: BoolType,
+				Elems: []attr.Value{
+					Bool{Value: true},
+					Bool{Value: false},
+					Bool{Value: false},
+					Bool{Value: true},
+				},
+			},
+			"f": List{
+				ElemType: ListType{
+					ElemType: StringType,
+				},
+				Elems: []attr.Value{
+					List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "head"},
+							String{Value: "empty"},
+						},
+					},
+					List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "no"},
+							String{Value: "thoughts"},
+						},
+					},
+				},
+			},
+			"g": Object{
+				AttributeTypes: map[string]attr.Type{
+					"dogs":  NumberType,
+					"cats":  NumberType,
+					"names": ListType{ElemType: StringType},
+				},
+				Attributes: map[string]attr.Value{
+					"dogs": Number{Value: big.NewFloat(3)},
+					"cats": Number{Value: big.NewFloat(5)},
+					"names": List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "Roxy"},
+							String{Value: "Jpeg"},
+							String{Value: "Kupo"},
+							String{Value: "Clawde"},
+							String{Value: "Yeti"},
+							String{Value: "Abby"},
+							String{Value: "Ellie"},
+							String{Value: "Lexi"},
+						},
+					},
+				},
+			},
+			"h": Object{
+				AttributeTypes: map[string]attr.Type{
+					"red":    StringType,
+					"blue":   ListType{ElemType: NumberType},
+					"green":  NumberType,
+					"yellow": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"red": String{Value: "judge me not too harshly, future maintainers, this much random data is hard to come up with without getting weird."},
+					"blue": List{
+						ElemType: NumberType,
+						Elems: []attr.Value{
+							Number{Value: big.NewFloat(1)},
+							Number{Value: big.NewFloat(2)},
+							Number{Value: big.NewFloat(3)},
+						},
+					},
+					"green":  Number{Value: big.NewFloat(123.456)},
+					"yellow": Number{Value: big.NewFloat(123)},
+				},
+			},
+			"i": Object{
+				AttributeTypes: map[string]attr.Type{
+					"name":     StringType,
+					"age":      NumberType,
+					"opted_in": BoolType,
+				},
+				Attributes: map[string]attr.Value{
+					"name":     String{Value: "J Doe"},
+					"age":      Number{Value: big.NewFloat(28)},
+					"opted_in": Bool{Value: true},
+				},
+			},
+		},
+	}
+	var target myStruct
+	err := object.As(context.Background(), &target, ObjectAsOptions{})
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	expected := myStruct{
+		A: "hello",
+		B: Bool{Value: true},
+		C: List{
+			ElemType: StringType,
+			Elems: []attr.Value{
+				String{Value: "into"},
+				String{Value: "the"},
+				String{Unknown: true},
+				String{Null: true},
+			},
+		},
+		D: []string{"it's", "getting", "hard", "to", "come", "up", "with", "test", "values"},
+		E: []Bool{
+			Bool{Value: true},
+			Bool{Value: false},
+			Bool{Value: false},
+			Bool{Value: true},
+		},
+		F: []List{
+			List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "head"},
+					String{Value: "empty"},
+				},
+			},
+			List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "no"},
+					String{Value: "thoughts"},
+				},
+			},
+		},
+		G: Object{
+			AttributeTypes: map[string]attr.Type{
+				"dogs":  NumberType,
+				"cats":  NumberType,
+				"names": ListType{ElemType: StringType},
+			},
+			Attributes: map[string]attr.Value{
+				"dogs": Number{Value: big.NewFloat(3)},
+				"cats": Number{Value: big.NewFloat(5)},
+				"names": List{
+					ElemType: StringType,
+					Elems: []attr.Value{
+						String{Value: "Roxy"},
+						String{Value: "Jpeg"},
+						String{Value: "Kupo"},
+						String{Value: "Clawde"},
+						String{Value: "Yeti"},
+						String{Value: "Abby"},
+						String{Value: "Ellie"},
+						String{Value: "Lexi"},
+					},
+				},
+			},
+		},
+		H: myEmbeddedStruct{
+			Red: "judge me not too harshly, future maintainers, this much random data is hard to come up with without getting weird.",
+			Blue: List{
+				ElemType: NumberType,
+				Elems: []attr.Value{
+					Number{Value: big.NewFloat(1)},
+					Number{Value: big.NewFloat(2)},
+					Number{Value: big.NewFloat(3)},
+				},
+			},
+			Green:  Number{Value: big.NewFloat(123.456)},
+			Yellow: 123,
+		},
+		I: Object{
+			AttributeTypes: map[string]attr.Type{
+				"name":     StringType,
+				"age":      NumberType,
+				"opted_in": BoolType,
+			},
+			Attributes: map[string]attr.Value{
+				"name":     String{Value: "J Doe"},
+				"age":      Number{Value: big.NewFloat(28)},
+				"opted_in": Bool{Value: true},
+			},
+		},
+	}
+	if diff := cmp.Diff(expected, target); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
 }
 
 func TestObjectToTerraformValue(t *testing.T) {
 	t.Parallel()
+	type testCase struct {
+		receiver    Object
+		expected    interface{}
+		expectedErr string
+	}
+	tests := map[string]testCase{
+		"value": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"a": ListType{ElemType: StringType},
+					"b": StringType,
+					"c": BoolType,
+					"d": NumberType,
+					"e": ObjectType{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+					},
+				},
+				Attributes: map[string]attr.Value{
+					"a": List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+					"b": String{Value: "woohoo"},
+					"c": Bool{Value: true},
+					"d": Number{Value: big.NewFloat(1234)},
+					"e": Object{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+						Attributes: map[string]attr.Value{
+							"name": String{Value: "testing123"},
+						},
+					},
+				},
+			},
+			expected: map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"b": tftypes.NewValue(tftypes.String, "woohoo"),
+				"c": tftypes.NewValue(tftypes.Bool, true),
+				"d": tftypes.NewValue(tftypes.Number, big.NewFloat(1234)),
+				"e": tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "testing123"),
+				}),
+			},
+		},
+		"unknown": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"a": ListType{ElemType: StringType},
+					"b": StringType,
+					"c": BoolType,
+					"d": NumberType,
+					"e": ObjectType{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+					},
+				},
+				Unknown: true,
+			},
+			expected: tftypes.UnknownValue,
+		},
+		"null": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"a": ListType{ElemType: StringType},
+					"b": StringType,
+					"c": BoolType,
+					"d": NumberType,
+					"e": ObjectType{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+					},
+				},
+				Null: true,
+			},
+			expected: nil,
+		},
+		"partial-unknown": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"a": ListType{ElemType: StringType},
+					"b": StringType,
+					"c": BoolType,
+					"d": NumberType,
+					"e": ObjectType{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+					},
+				},
+				Attributes: map[string]attr.Value{
+					"a": List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+					"b": String{Unknown: true},
+					"c": Bool{Value: true},
+					"d": Number{Value: big.NewFloat(1234)},
+					"e": Object{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+						Attributes: map[string]attr.Value{
+							"name": String{Value: "testing123"},
+						},
+					},
+				},
+			},
+			expected: map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"b": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"c": tftypes.NewValue(tftypes.Bool, true),
+				"d": tftypes.NewValue(tftypes.Number, big.NewFloat(1234)),
+				"e": tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "testing123"),
+				}),
+			},
+		},
+		"partial-null": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"a": ListType{ElemType: StringType},
+					"b": StringType,
+					"c": BoolType,
+					"d": NumberType,
+					"e": ObjectType{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+					},
+				},
+				Attributes: map[string]attr.Value{
+					"a": List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+					"b": String{Null: true},
+					"c": Bool{Value: true},
+					"d": Number{Value: big.NewFloat(1234)},
+					"e": Object{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+						Attributes: map[string]attr.Value{
+							"name": String{Value: "testing123"},
+						},
+					},
+				},
+			},
+			expected: map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"b": tftypes.NewValue(tftypes.String, nil),
+				"c": tftypes.NewValue(tftypes.Bool, true),
+				"d": tftypes.NewValue(tftypes.Number, big.NewFloat(1234)),
+				"e": tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "testing123"),
+				}),
+			},
+		},
+		"deep-partial-unknown": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"a": ListType{ElemType: StringType},
+					"b": StringType,
+					"c": BoolType,
+					"d": NumberType,
+					"e": ObjectType{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+					},
+				},
+				Attributes: map[string]attr.Value{
+					"a": List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+					"b": String{Value: "woohoo"},
+					"c": Bool{Value: true},
+					"d": Number{Value: big.NewFloat(1234)},
+					"e": Object{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+						Attributes: map[string]attr.Value{
+							"name": String{Unknown: true},
+						},
+					},
+				},
+			},
+			expected: map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"b": tftypes.NewValue(tftypes.String, "woohoo"),
+				"c": tftypes.NewValue(tftypes.Bool, true),
+				"d": tftypes.NewValue(tftypes.Number, big.NewFloat(1234)),
+				"e": tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				}),
+			},
+		},
+		"deep-partial-null": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"a": ListType{ElemType: StringType},
+					"b": StringType,
+					"c": BoolType,
+					"d": NumberType,
+					"e": ObjectType{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+					},
+				},
+				Attributes: map[string]attr.Value{
+					"a": List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+					"b": String{Value: "woohoo"},
+					"c": Bool{Value: true},
+					"d": Number{Value: big.NewFloat(1234)},
+					"e": Object{
+						AttributeTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+						Attributes: map[string]attr.Value{
+							"name": String{Null: true},
+						},
+					},
+				},
+			},
+			expected: map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"b": tftypes.NewValue(tftypes.String, "woohoo"),
+				"c": tftypes.NewValue(tftypes.Bool, true),
+				"d": tftypes.NewValue(tftypes.Number, big.NewFloat(1234)),
+				"e": tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, nil),
+				}),
+			},
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			got, err := test.receiver.ToTerraformValue(context.Background())
+			if err != nil {
+				if test.expectedErr == "" {
+					t.Errorf("unexpected error: %s", err)
+					return
+				}
+				if test.expectedErr != err.Error() {
+					t.Errorf("expected error to be %q, got %q", test.expectedErr, err.Error())
+					return
+				}
+				return
+			}
+			if err == nil && test.expectedErr != "" {
+				t.Errorf("expected error to be %q, got nil", test.expectedErr)
+				return
+			}
+			if diff := cmp.Diff(test.expected, got); diff != "" {
+				t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+			}
+		})
+	}
 }
 
 func TestObjectEqual(t *testing.T) {
 	t.Parallel()
-}
+	type testCase struct {
+		receiver Object
+		arg      attr.Value
+		expected bool
+	}
+	tests := map[string]testCase{
+		"equal": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"bool":   Bool{Value: true},
+					"number": Number{Value: big.NewFloat(123)},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"bool":   Bool{Value: true},
+					"number": Number{Value: big.NewFloat(123)},
+				},
+			},
+			expected: true,
+		},
+		"diff": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"bool":   Bool{Value: true},
+					"number": Number{Value: big.NewFloat(123)},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "world"},
+					"bool":   Bool{Value: true},
+					"number": Number{Value: big.NewFloat(123)},
+				},
+			},
+			expected: false,
+		},
+		"equal-complex": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"list":   ListType{ElemType: StringType},
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"list": List{ElemType: StringType, Elems: []attr.Value{
+						String{Value: "a"},
+						String{Value: "b"},
+						String{Value: "c"},
+					}},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"list":   ListType{ElemType: StringType},
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"list": List{ElemType: StringType, Elems: []attr.Value{
+						String{Value: "a"},
+						String{Value: "b"},
+						String{Value: "c"},
+					}},
+				},
+			},
+			expected: true,
+		},
+		"diff-complex": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"list":   ListType{ElemType: StringType},
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"list": List{ElemType: StringType, Elems: []attr.Value{
+						String{Value: "a"},
+						String{Value: "b"},
+						String{Value: "c"},
+					}},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"list":   ListType{ElemType: StringType},
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"list": List{ElemType: StringType, Elems: []attr.Value{
+						String{Value: "a"},
+						String{Value: "b"},
+						String{Value: "c"},
+						String{Value: "d"},
+					}},
+				},
+			},
+			expected: false,
+		},
+		"both-unknown": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Unknown: true,
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Unknown: true,
+			},
+			expected: true,
+		},
+		"unknown": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"bool":   Bool{Value: true},
+					"number": Number{Value: big.NewFloat(123)},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Unknown: true,
+			},
+			expected: false,
+		},
+		"both-null": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Null: true,
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Null: true,
+			},
+			expected: true,
+		},
+		"null": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"bool":   Bool{Value: true},
+					"number": Number{Value: big.NewFloat(123)},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Null: true,
+			},
+			expected: false,
+		},
+		"wrong-type": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+					"number": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"bool":   Bool{Value: true},
+					"number": Number{Value: big.NewFloat(123)},
+				},
+			},
+			arg:      String{Value: "whoops"},
+			expected: false,
+		},
+		"wrong-type-complex": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"list":   ListType{ElemType: StringType},
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"list": List{ElemType: StringType, Elems: []attr.Value{
+						String{Value: "a"},
+						String{Value: "b"},
+						String{Value: "c"},
+					}},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"list":   ListType{ElemType: StringType},
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"list": List{ElemType: BoolType, Elems: []attr.Value{
+						Bool{Value: true},
+						Bool{Value: false},
+					}},
+				},
+			},
+			expected: false,
+		},
+		"diff-attribute-types": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"number": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"number": Number{Value: big.NewFloat(123)},
+				},
+			},
+			expected: false,
+		},
+		"diff-attribute-types-count": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+					"list":   ListType{ElemType: StringType},
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+					"list": List{ElemType: BoolType, Elems: []attr.Value{
+						Bool{Value: true},
+						Bool{Value: false},
+					}},
+				},
+			},
+			expected: false,
+		},
+		"diff-attribute-types-value": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": NumberType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": Number{Value: big.NewFloat(123)},
+				},
+			},
+			expected: false,
+		},
+		"diff-attribute-count": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+				},
+				Attributes: map[string]attr.Value{},
+			},
+			expected: false,
+		},
+		"diff-attribute-names": {
+			receiver: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+				},
+				Attributes: map[string]attr.Value{
+					"string": String{Value: "hello"},
+				},
+			},
+			arg: Object{
+				AttributeTypes: map[string]attr.Type{
+					"string": StringType,
+				},
+				Attributes: map[string]attr.Value{
+					"strng": String{Value: "hello"},
+				},
+			},
+			expected: false,
+		},
+	}
 
-func TestObjectSetTerraformValue(t *testing.T) {
-	t.Parallel()
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.receiver.Equal(test.arg)
+			if got != test.expected {
+				t.Errorf("Expected %v, got %v", test.expected, got)
+			}
+		})
+	}
 }

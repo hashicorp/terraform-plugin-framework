@@ -14,6 +14,19 @@ type ObjectType struct {
 	AttributeTypes map[string]attr.Type
 }
 
+// WithAttributesTypes returns a new copy of the type with its
+// attribute types set.
+func (o ObjectType) WithAttributesTypes(typs map[string]attr.Type) attr.AttributesType {
+	return ObjectType{
+		AttributeTypes: typs,
+	}
+}
+
+// AttributesTypes returns the type's attribute types.
+func (o ObjectType) AttributesTypes() map[string]attr.Type {
+	return o.AttributeTypes
+}
+
 // TerraformType returns the tftypes.Type that should be used to
 // represent this type. This constrains what user input will be
 // accepted and what kind of data can be set in state. The framework
@@ -33,11 +46,37 @@ func (o ObjectType) TerraformType(ctx context.Context) tftypes.Type {
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
 func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	object := &Object{
+	object := Object{
 		AttributeTypes: o.AttributeTypes,
 	}
-	err := object.SetTerraformValue(ctx, in)
-	return object, err
+	if !in.Type().Is(o.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", o.TerraformType(ctx), in.Type())
+	}
+	if !in.IsKnown() {
+		object.Unknown = true
+		return object, nil
+	}
+	if in.IsNull() {
+		object.Null = true
+		return object, nil
+	}
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+	err := in.As(&val)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := object.AttributeTypes[k].ValueFromTerraform(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		attributes[k] = a
+	}
+	object.Attributes = attributes
+	return object, nil
 }
 
 // Equal returns true if `candidate` is also an ObjectType and has the same
@@ -82,47 +121,53 @@ type Object struct {
 	AttributeTypes map[string]attr.Type
 }
 
+// ObjectAsOptions is a collection of toggles to control the behavior of
+// Object.As.
+type ObjectAsOptions struct {
+	// UnhandledNullAsEmpty controls what happens when As needs to put a
+	// null value in a type that has no way to preserve that distinction.
+	// When set to true, the type's empty value will be used.  When set to
+	// false, an error will be returned.
+	UnhandledNullAsEmpty bool
+
+	// UnhandledUnknownAsEmpty controls what happens when As needs to put
+	// an unknown value in a type that has no way to preserve that
+	// distinction. When set to true, the type's empty value will be used.
+	// When set to false, an error will be returned.
+	UnhandledUnknownAsEmpty bool
+}
+
 // As populates `target` with the data in the Object, throwing an error if the
 // data cannot be stored in `target`.
-func (o *Object) As(ctx context.Context, target interface{}, allowUnhandled bool) error {
+func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions) error {
 	// we need a tftypes.Value for this Object to be able to use it with
 	// our reflection code
-	values := map[string]tftypes.Value{}
-	types := map[string]tftypes.Type{}
-	for key, attr := range o.Attributes {
-		val, err := attr.ToTerraformValue(ctx)
-		if err != nil {
-			return fmt.Errorf("error getting Terraform value for attribute %q: %w", key, err)
-		}
-		typ, ok := o.AttributeTypes[key]
-		if !ok {
-			return fmt.Errorf("no AttributeType defined for attribute %q: %w", key, err)
-		}
-		types[key] = typ.TerraformType(ctx)
-		err = tftypes.ValidateValue(typ.TerraformType(ctx), val)
-		if err != nil {
-			return fmt.Errorf("error using created Terraform value for element %q: %w", key, err)
-		}
-		values[key] = tftypes.NewValue(typ.TerraformType(ctx), val)
+	obj := ObjectType{AttributeTypes: o.AttributeTypes}
+	typ := obj.TerraformType(ctx)
+	val, err := o.ToTerraformValue(ctx)
+	if err != nil {
+		return err
 	}
-	return reflect.Into(ctx, tftypes.NewValue(tftypes.Object{
-		AttributeTypes: types,
-	}, values), target, reflect.Options{
-		UnhandledNullAsEmpty:    allowUnhandled,
-		UnhandledUnknownAsEmpty: allowUnhandled,
+	err = tftypes.ValidateValue(typ, val)
+	if err != nil {
+		return err
+	}
+	return reflect.Into(ctx, obj, tftypes.NewValue(typ, val), target, reflect.Options{
+		UnhandledNullAsEmpty:    opts.UnhandledNullAsEmpty,
+		UnhandledUnknownAsEmpty: opts.UnhandledUnknownAsEmpty,
 	})
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a Go type that tftypes.NewValue will accept.
-func (o *Object) ToTerraformValue(ctx context.Context) (interface{}, error) {
+func (o Object) ToTerraformValue(ctx context.Context) (interface{}, error) {
 	if o.Unknown {
 		return tftypes.UnknownValue, nil
 	}
 	if o.Null {
 		return nil, nil
 	}
-	var vals map[string]tftypes.Value
+	vals := map[string]tftypes.Value{}
 
 	for k, v := range o.Attributes {
 		val, err := v.ToTerraformValue(ctx)
@@ -140,8 +185,8 @@ func (o *Object) ToTerraformValue(ctx context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (o *Object) Equal(c attr.Value) bool {
-	other, ok := c.(*Object)
+func (o Object) Equal(c attr.Value) bool {
+	other, ok := c.(Object)
 	if !ok {
 		return false
 	}
@@ -177,39 +222,4 @@ func (o *Object) Equal(c attr.Value) bool {
 	}
 
 	return true
-}
-
-// SetTerraformValue updates `o` to reflect the data stored in `in`.
-func (o *Object) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
-	o.Unknown = false
-	o.Null = false
-	o.Attributes = nil
-	if !in.IsKnown() {
-		o.Unknown = true
-		return nil
-	}
-	if in.IsNull() {
-		o.Null = true
-		return nil
-	}
-	attributes := map[string]attr.Value{}
-
-	val := map[string]tftypes.Value{}
-	err := in.As(&val)
-	if err != nil {
-		return err
-	}
-
-	for k, v := range val {
-		a, err := o.AttributeTypes[k].ValueFromTerraform(ctx, v)
-		if err != nil {
-			return err
-		}
-		attributes[k] = a
-	}
-	o.Attributes = attributes
-	// we can't set AttributeTypes, we have no way of knowing them
-	// callers should set them before or after calling SetTerraformValue
-	// this is largely because reflection has no way of knowing about them
-	return nil
 }

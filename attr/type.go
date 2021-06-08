@@ -26,6 +26,8 @@ type Type interface {
 	// Equal must return true if the Type is considered semantically equal
 	// to the Type passed as an argument.
 	Equal(Type) bool
+
+	tftypes.AttributePathStepper
 }
 
 // TypeWithAttributeTypes extends the Type interface to include information about

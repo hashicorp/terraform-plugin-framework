@@ -91,6 +91,16 @@ func (l ListType) Equal(o attr.Type) bool {
 	return l.ElemType.Equal(other.ElemType)
 }
 
+// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
+// list.
+func (l ListType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if _, ok := step.(tftypes.ElementKeyInt); !ok {
+		return nil, fmt.Errorf("cannot apply step %T to ListType", step)
+	}
+
+	return l.ElemType, nil
+}
+
 // List represents a list of AttributeValues, all of the same type, indicated
 // by ElemType.
 type List struct {

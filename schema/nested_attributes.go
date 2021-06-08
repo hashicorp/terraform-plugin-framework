@@ -1,5 +1,11 @@
 package schema
 
+import (
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+)
+
 type nestingMode uint8
 
 const (
@@ -34,6 +40,7 @@ const (
 type NestedAttributes interface {
 	getNestingMode() nestingMode
 	getAttributes() map[string]Attribute
+	tftypes.AttributePathStepper
 }
 
 type nestedAttributes map[string]Attribute
@@ -57,6 +64,16 @@ type singleNestedAttributes struct {
 
 func (s singleNestedAttributes) getNestingMode() nestingMode {
 	return nestingModeSingle
+}
+
+// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
+// nested attributes.
+func (s singleNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if _, ok := step.(tftypes.ElementKeyString); !ok {
+		return nil, fmt.Errorf("cannot apply step %T to SingleNestedAttributes", step)
+	}
+
+	return s.nestedAttributes, nil
 }
 
 // ListNestedAttributes nests `attributes` under another attribute, allowing
@@ -86,6 +103,16 @@ type ListNestedAttributesOptions struct {
 
 func (l listNestedAttributes) getNestingMode() nestingMode {
 	return nestingModeList
+}
+
+// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
+// nested attributes.
+func (l listNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if _, ok := step.(tftypes.ElementKeyInt); !ok {
+		return nil, fmt.Errorf("cannot apply step %T to ListNestedAttributes", step)
+	}
+
+	return l.nestedAttributes, nil
 }
 
 // SetNestedAttributes nests `attributes` under another attribute, allowing
@@ -118,6 +145,16 @@ func (s setNestedAttributes) getNestingMode() nestingMode {
 	return nestingModeSet
 }
 
+// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
+// nested attributes.
+func (s setNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if _, ok := step.(tftypes.ElementKeyInt); !ok {
+		return nil, fmt.Errorf("cannot apply step %T to ListNestedAttributes", step)
+	}
+
+	return s.nestedAttributes, nil
+}
+
 // MapNestedAttributes nests `attributes` under another attribute, allowing
 // multiple instances of that group of attributes to appear in the
 // configuration. Each group will need to be associated with a unique string by
@@ -146,4 +183,14 @@ type MapNestedAttributesOptions struct {
 
 func (m mapNestedAttributes) getNestingMode() nestingMode {
 	return nestingModeMap
+}
+
+// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
+// nested attributes.
+func (m mapNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if _, ok := step.(tftypes.ElementKeyString); !ok {
+		return nil, fmt.Errorf("cannot apply step %T to SingleNestedAttributes", step)
+	}
+
+	return m.nestedAttributes, nil
 }

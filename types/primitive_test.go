@@ -67,6 +67,10 @@ func (t testAttributeType) Equal(_ attr.Type) bool {
 	panic("not implemented")
 }
 
+func (t testAttributeType) ApplyTerraform5AttributePathStep(_ tftypes.AttributePathStep) (interface{}, error) {
+	panic("not implemented")
+}
+
 func TestPrimitiveEqual(t *testing.T) {
 	t.Parallel()
 

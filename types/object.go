@@ -9,22 +9,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// ObjectType is an AttributeType representing a object
+// ObjectType is an AttributeType representing an object.
 type ObjectType struct {
-	AttributeTypes map[string]attr.Type
+	AttrTypes map[string]attr.Type
 }
 
-// WithAttributesTypes returns a new copy of the type with its
-// attribute types set.
-func (o ObjectType) WithAttributesTypes(typs map[string]attr.Type) attr.AttributesType {
+// WithAttributeTypes returns a new copy of the type with its attribute types
+// set.
+func (o ObjectType) WithAttributeTypes(typs map[string]attr.Type) attr.TypeWithAttributeTypes {
 	return ObjectType{
-		AttributeTypes: typs,
+		AttrTypes: typs,
 	}
 }
 
-// AttributesTypes returns the type's attribute types.
-func (o ObjectType) AttributesTypes() map[string]attr.Type {
-	return o.AttributeTypes
+// AttributeTypes returns the type's attribute types.
+func (o ObjectType) AttributeTypes() map[string]attr.Type {
+	return o.AttrTypes
 }
 
 // TerraformType returns the tftypes.Type that should be used to
@@ -34,7 +34,7 @@ func (o ObjectType) AttributesTypes() map[string]attr.Type {
 // can understand.
 func (o ObjectType) TerraformType(ctx context.Context) tftypes.Type {
 	attributeTypes := map[string]tftypes.Type{}
-	for k, v := range o.AttributeTypes {
+	for k, v := range o.AttrTypes {
 		attributeTypes[k] = v.TerraformType(ctx)
 	}
 	return tftypes.Object{
@@ -47,7 +47,7 @@ func (o ObjectType) TerraformType(ctx context.Context) tftypes.Type {
 // type for the provider to consume the data with.
 func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	object := Object{
-		AttributeTypes: o.AttributeTypes,
+		AttrTypes: o.AttrTypes,
 	}
 	if !in.Type().Is(o.TerraformType(ctx)) {
 		return nil, fmt.Errorf("expected %s, got %s", o.TerraformType(ctx), in.Type())
@@ -69,13 +69,13 @@ func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 	}
 
 	for k, v := range val {
-		a, err := object.AttributeTypes[k].ValueFromTerraform(ctx, v)
+		a, err := object.AttrTypes[k].ValueFromTerraform(ctx, v)
 		if err != nil {
 			return nil, err
 		}
 		attributes[k] = a
 	}
-	object.Attributes = attributes
+	object.Attrs = attributes
 	return object, nil
 }
 
@@ -86,11 +86,11 @@ func (o ObjectType) Equal(candidate attr.Type) bool {
 	if !ok {
 		return false
 	}
-	if len(other.AttributeTypes) != len(o.AttributeTypes) {
+	if len(other.AttrTypes) != len(o.AttrTypes) {
 		return false
 	}
-	for k, v := range o.AttributeTypes {
-		attr, ok := other.AttributeTypes[k]
+	for k, v := range o.AttrTypes {
+		attr, ok := other.AttrTypes[k]
 		if !ok {
 			return false
 		}
@@ -116,9 +116,9 @@ type Object struct {
 	// explicitly set to null.
 	Null bool
 
-	Attributes map[string]attr.Value
+	Attrs map[string]attr.Value
 
-	AttributeTypes map[string]attr.Type
+	AttrTypes map[string]attr.Type
 }
 
 // ObjectAsOptions is a collection of toggles to control the behavior of
@@ -142,7 +142,7 @@ type ObjectAsOptions struct {
 func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions) error {
 	// we need a tftypes.Value for this Object to be able to use it with
 	// our reflection code
-	obj := ObjectType{AttributeTypes: o.AttributeTypes}
+	obj := ObjectType{AttrTypes: o.AttrTypes}
 	typ := obj.TerraformType(ctx)
 	val, err := o.ToTerraformValue(ctx)
 	if err != nil {
@@ -169,16 +169,16 @@ func (o Object) ToTerraformValue(ctx context.Context) (interface{}, error) {
 	}
 	vals := map[string]tftypes.Value{}
 
-	for k, v := range o.Attributes {
+	for k, v := range o.Attrs {
 		val, err := v.ToTerraformValue(ctx)
 		if err != nil {
 			return nil, err
 		}
-		err = tftypes.ValidateValue(o.AttributeTypes[k].TerraformType(ctx), val)
+		err = tftypes.ValidateValue(o.AttrTypes[k].TerraformType(ctx), val)
 		if err != nil {
 			return nil, err
 		}
-		vals[k] = tftypes.NewValue(o.AttributeTypes[k].TerraformType(ctx), val)
+		vals[k] = tftypes.NewValue(o.AttrTypes[k].TerraformType(ctx), val)
 	}
 	return vals, nil
 }
@@ -196,11 +196,11 @@ func (o Object) Equal(c attr.Value) bool {
 	if o.Null != other.Null {
 		return false
 	}
-	if len(o.AttributeTypes) != len(other.AttributeTypes) {
+	if len(o.AttrTypes) != len(other.AttrTypes) {
 		return false
 	}
-	for k, v := range o.AttributeTypes {
-		attr, ok := other.AttributeTypes[k]
+	for k, v := range o.AttrTypes {
+		attr, ok := other.AttrTypes[k]
 		if !ok {
 			return false
 		}
@@ -208,11 +208,11 @@ func (o Object) Equal(c attr.Value) bool {
 			return false
 		}
 	}
-	if len(o.Attributes) != len(other.Attributes) {
+	if len(o.Attrs) != len(other.Attrs) {
 		return false
 	}
-	for k, v := range o.Attributes {
-		attr, ok := other.Attributes[k]
+	for k, v := range o.Attrs {
+		attr, ok := other.Attrs[k]
 		if !ok {
 			return false
 		}

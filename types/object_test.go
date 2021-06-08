@@ -13,7 +13,7 @@ import (
 func TestObjectTypeTerraformType_simple(t *testing.T) {
 	t.Parallel()
 	result := ObjectType{
-		AttributeTypes: map[string]attr.Type{
+		AttrTypes: map[string]attr.Type{
 			"foo": StringType,
 			"bar": NumberType,
 			"baz": BoolType,
@@ -52,7 +52,7 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 	tests := map[string]testCase{
 		"basic-object": {
 			receiver: ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 					"b": BoolType,
 					"c": NumberType,
@@ -70,12 +70,12 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 				"c": tftypes.NewValue(tftypes.Number, 123),
 			}),
 			expected: Object{
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"a": String{Value: "red"},
 					"b": Bool{Value: true},
 					"c": Number{Value: big.NewFloat(123)},
 				},
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 					"b": BoolType,
 					"c": NumberType,
@@ -84,7 +84,7 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 		},
 		"extra-attribute": {
 			receiver: ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 				},
 			},
@@ -101,7 +101,7 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 		},
 		"missing-attribute": {
 			receiver: ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 					"b": BoolType,
 				},
@@ -117,7 +117,7 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 		},
 		"wrong-type": {
 			receiver: ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 				},
 			},
@@ -126,7 +126,7 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 		},
 		"unknown": {
 			receiver: ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 				},
 			},
@@ -136,7 +136,7 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 				},
 			}, tftypes.UnknownValue),
 			expected: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 				},
 				Unknown: true,
@@ -144,7 +144,7 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 		},
 		"null": {
 			receiver: ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 				},
 			},
@@ -154,7 +154,7 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 				},
 			}, nil),
 			expected: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 				},
 				Null: true,
@@ -199,7 +199,7 @@ func TestObjectTypeEqual(t *testing.T) {
 	}
 	tests := map[string]testCase{
 		"equal": {
-			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+			receiver: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"c": BoolType,
@@ -207,7 +207,7 @@ func TestObjectTypeEqual(t *testing.T) {
 					ElemType: StringType,
 				},
 			}},
-			input: ObjectType{AttributeTypes: map[string]attr.Type{
+			input: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"c": BoolType,
@@ -218,7 +218,7 @@ func TestObjectTypeEqual(t *testing.T) {
 			expected: true,
 		},
 		"missing-attr": {
-			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+			receiver: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"c": BoolType,
@@ -226,7 +226,7 @@ func TestObjectTypeEqual(t *testing.T) {
 					ElemType: StringType,
 				},
 			}},
-			input: ObjectType{AttributeTypes: map[string]attr.Type{
+			input: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"d": ListType{
@@ -236,14 +236,14 @@ func TestObjectTypeEqual(t *testing.T) {
 			expected: false,
 		},
 		"extra-attr": {
-			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+			receiver: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"d": ListType{
 					ElemType: StringType,
 				},
 			}},
-			input: ObjectType{AttributeTypes: map[string]attr.Type{
+			input: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"c": BoolType,
@@ -254,7 +254,7 @@ func TestObjectTypeEqual(t *testing.T) {
 			expected: false,
 		},
 		"diff-attrs": {
-			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+			receiver: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"e": BoolType,
@@ -262,7 +262,7 @@ func TestObjectTypeEqual(t *testing.T) {
 					ElemType: StringType,
 				},
 			}},
-			input: ObjectType{AttributeTypes: map[string]attr.Type{
+			input: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"c": BoolType,
@@ -273,7 +273,7 @@ func TestObjectTypeEqual(t *testing.T) {
 			expected: false,
 		},
 		"diff": {
-			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+			receiver: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": BoolType,
 				"c": BoolType,
@@ -281,7 +281,7 @@ func TestObjectTypeEqual(t *testing.T) {
 					ElemType: StringType,
 				},
 			}},
-			input: ObjectType{AttributeTypes: map[string]attr.Type{
+			input: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"c": BoolType,
@@ -292,7 +292,7 @@ func TestObjectTypeEqual(t *testing.T) {
 			expected: false,
 		},
 		"nested-diff": {
-			receiver: ObjectType{AttributeTypes: map[string]attr.Type{
+			receiver: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"c": BoolType,
@@ -300,7 +300,7 @@ func TestObjectTypeEqual(t *testing.T) {
 					ElemType: StringType,
 				},
 			}},
-			input: ObjectType{AttributeTypes: map[string]attr.Type{
+			input: ObjectType{AttrTypes: map[string]attr.Type{
 				"a": StringType,
 				"b": NumberType,
 				"c": BoolType,
@@ -312,7 +312,7 @@ func TestObjectTypeEqual(t *testing.T) {
 		},
 		"wrongType": {
 			receiver: ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 				},
 			},
@@ -321,7 +321,7 @@ func TestObjectTypeEqual(t *testing.T) {
 		},
 		"nil": {
 			receiver: ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": StringType,
 				},
 			},
@@ -368,7 +368,7 @@ func TestObjectAs_struct(t *testing.T) {
 		I Object           `tfsdk:"i"`
 	}
 	object := Object{
-		AttributeTypes: map[string]attr.Type{
+		AttrTypes: map[string]attr.Type{
 			"a": StringType,
 			"b": BoolType,
 			"c": ListType{ElemType: StringType},
@@ -376,14 +376,14 @@ func TestObjectAs_struct(t *testing.T) {
 			"e": ListType{ElemType: BoolType},
 			"f": ListType{ElemType: ListType{ElemType: StringType}},
 			"g": ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"dogs":  NumberType,
 					"cats":  NumberType,
 					"names": ListType{ElemType: StringType},
 				},
 			},
 			"h": ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"red":    StringType,
 					"blue":   ListType{ElemType: NumberType},
 					"green":  NumberType,
@@ -391,14 +391,14 @@ func TestObjectAs_struct(t *testing.T) {
 				},
 			},
 			"i": ObjectType{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"name":     StringType,
 					"age":      NumberType,
 					"opted_in": BoolType,
 				},
 			},
 		},
-		Attributes: map[string]attr.Value{
+		Attrs: map[string]attr.Value{
 			"a": String{Value: "hello"},
 			"b": Bool{Value: true},
 			"c": List{
@@ -455,12 +455,12 @@ func TestObjectAs_struct(t *testing.T) {
 				},
 			},
 			"g": Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"dogs":  NumberType,
 					"cats":  NumberType,
 					"names": ListType{ElemType: StringType},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"dogs": Number{Value: big.NewFloat(3)},
 					"cats": Number{Value: big.NewFloat(5)},
 					"names": List{
@@ -479,13 +479,13 @@ func TestObjectAs_struct(t *testing.T) {
 				},
 			},
 			"h": Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"red":    StringType,
 					"blue":   ListType{ElemType: NumberType},
 					"green":  NumberType,
 					"yellow": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"red": String{Value: "judge me not too harshly, future maintainers, this much random data is hard to come up with without getting weird."},
 					"blue": List{
 						ElemType: NumberType,
@@ -500,12 +500,12 @@ func TestObjectAs_struct(t *testing.T) {
 				},
 			},
 			"i": Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"name":     StringType,
 					"age":      NumberType,
 					"opted_in": BoolType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"name":     String{Value: "J Doe"},
 					"age":      Number{Value: big.NewFloat(28)},
 					"opted_in": Bool{Value: true},
@@ -554,12 +554,12 @@ func TestObjectAs_struct(t *testing.T) {
 			},
 		},
 		G: Object{
-			AttributeTypes: map[string]attr.Type{
+			AttrTypes: map[string]attr.Type{
 				"dogs":  NumberType,
 				"cats":  NumberType,
 				"names": ListType{ElemType: StringType},
 			},
-			Attributes: map[string]attr.Value{
+			Attrs: map[string]attr.Value{
 				"dogs": Number{Value: big.NewFloat(3)},
 				"cats": Number{Value: big.NewFloat(5)},
 				"names": List{
@@ -591,12 +591,12 @@ func TestObjectAs_struct(t *testing.T) {
 			Yellow: 123,
 		},
 		I: Object{
-			AttributeTypes: map[string]attr.Type{
+			AttrTypes: map[string]attr.Type{
 				"name":     StringType,
 				"age":      NumberType,
 				"opted_in": BoolType,
 			},
-			Attributes: map[string]attr.Value{
+			Attrs: map[string]attr.Value{
 				"name":     String{Value: "J Doe"},
 				"age":      Number{Value: big.NewFloat(28)},
 				"opted_in": Bool{Value: true},
@@ -618,18 +618,18 @@ func TestObjectToTerraformValue(t *testing.T) {
 	tests := map[string]testCase{
 		"value": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
 					"d": NumberType,
 					"e": ObjectType{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
 					},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"a": List{
 						ElemType: StringType,
 						Elems: []attr.Value{
@@ -641,10 +641,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 					"c": Bool{Value: true},
 					"d": Number{Value: big.NewFloat(1234)},
 					"e": Object{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
-						Attributes: map[string]attr.Value{
+						Attrs: map[string]attr.Value{
 							"name": String{Value: "testing123"},
 						},
 					},
@@ -669,13 +669,13 @@ func TestObjectToTerraformValue(t *testing.T) {
 		},
 		"unknown": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
 					"d": NumberType,
 					"e": ObjectType{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
 					},
@@ -686,13 +686,13 @@ func TestObjectToTerraformValue(t *testing.T) {
 		},
 		"null": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
 					"d": NumberType,
 					"e": ObjectType{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
 					},
@@ -703,18 +703,18 @@ func TestObjectToTerraformValue(t *testing.T) {
 		},
 		"partial-unknown": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
 					"d": NumberType,
 					"e": ObjectType{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
 					},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"a": List{
 						ElemType: StringType,
 						Elems: []attr.Value{
@@ -726,10 +726,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 					"c": Bool{Value: true},
 					"d": Number{Value: big.NewFloat(1234)},
 					"e": Object{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
-						Attributes: map[string]attr.Value{
+						Attrs: map[string]attr.Value{
 							"name": String{Value: "testing123"},
 						},
 					},
@@ -754,18 +754,18 @@ func TestObjectToTerraformValue(t *testing.T) {
 		},
 		"partial-null": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
 					"d": NumberType,
 					"e": ObjectType{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
 					},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"a": List{
 						ElemType: StringType,
 						Elems: []attr.Value{
@@ -777,10 +777,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 					"c": Bool{Value: true},
 					"d": Number{Value: big.NewFloat(1234)},
 					"e": Object{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
-						Attributes: map[string]attr.Value{
+						Attrs: map[string]attr.Value{
 							"name": String{Value: "testing123"},
 						},
 					},
@@ -805,18 +805,18 @@ func TestObjectToTerraformValue(t *testing.T) {
 		},
 		"deep-partial-unknown": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
 					"d": NumberType,
 					"e": ObjectType{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
 					},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"a": List{
 						ElemType: StringType,
 						Elems: []attr.Value{
@@ -828,10 +828,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 					"c": Bool{Value: true},
 					"d": Number{Value: big.NewFloat(1234)},
 					"e": Object{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
-						Attributes: map[string]attr.Value{
+						Attrs: map[string]attr.Value{
 							"name": String{Unknown: true},
 						},
 					},
@@ -856,18 +856,18 @@ func TestObjectToTerraformValue(t *testing.T) {
 		},
 		"deep-partial-null": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
 					"d": NumberType,
 					"e": ObjectType{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
 					},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"a": List{
 						ElemType: StringType,
 						Elems: []attr.Value{
@@ -879,10 +879,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 					"c": Bool{Value: true},
 					"d": Number{Value: big.NewFloat(1234)},
 					"e": Object{
-						AttributeTypes: map[string]attr.Type{
+						AttrTypes: map[string]attr.Type{
 							"name": StringType,
 						},
-						Attributes: map[string]attr.Value{
+						Attrs: map[string]attr.Value{
 							"name": String{Null: true},
 						},
 					},
@@ -945,24 +945,24 @@ func TestObjectEqual(t *testing.T) {
 	tests := map[string]testCase{
 		"equal": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"bool":   Bool{Value: true},
 					"number": Number{Value: big.NewFloat(123)},
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"bool":   Bool{Value: true},
 					"number": Number{Value: big.NewFloat(123)},
@@ -972,24 +972,24 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"diff": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"bool":   Bool{Value: true},
 					"number": Number{Value: big.NewFloat(123)},
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "world"},
 					"bool":   Bool{Value: true},
 					"number": Number{Value: big.NewFloat(123)},
@@ -999,11 +999,11 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"equal-complex": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"list":   ListType{ElemType: StringType},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"list": List{ElemType: StringType, Elems: []attr.Value{
 						String{Value: "a"},
@@ -1013,11 +1013,11 @@ func TestObjectEqual(t *testing.T) {
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"list":   ListType{ElemType: StringType},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"list": List{ElemType: StringType, Elems: []attr.Value{
 						String{Value: "a"},
@@ -1030,11 +1030,11 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"diff-complex": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"list":   ListType{ElemType: StringType},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"list": List{ElemType: StringType, Elems: []attr.Value{
 						String{Value: "a"},
@@ -1044,11 +1044,11 @@ func TestObjectEqual(t *testing.T) {
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"list":   ListType{ElemType: StringType},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"list": List{ElemType: StringType, Elems: []attr.Value{
 						String{Value: "a"},
@@ -1062,7 +1062,7 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"both-unknown": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
@@ -1070,7 +1070,7 @@ func TestObjectEqual(t *testing.T) {
 				Unknown: true,
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
@@ -1081,19 +1081,19 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"unknown": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"bool":   Bool{Value: true},
 					"number": Number{Value: big.NewFloat(123)},
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
@@ -1104,7 +1104,7 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"both-null": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
@@ -1112,7 +1112,7 @@ func TestObjectEqual(t *testing.T) {
 				Null: true,
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
@@ -1123,19 +1123,19 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"null": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"bool":   Bool{Value: true},
 					"number": Number{Value: big.NewFloat(123)},
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
@@ -1146,12 +1146,12 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"wrong-type": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"bool":   Bool{Value: true},
 					"number": Number{Value: big.NewFloat(123)},
@@ -1162,11 +1162,11 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"wrong-type-complex": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"list":   ListType{ElemType: StringType},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"list": List{ElemType: StringType, Elems: []attr.Value{
 						String{Value: "a"},
@@ -1176,11 +1176,11 @@ func TestObjectEqual(t *testing.T) {
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"list":   ListType{ElemType: StringType},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"list": List{ElemType: BoolType, Elems: []attr.Value{
 						Bool{Value: true},
@@ -1192,18 +1192,18 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"diff-attribute-types": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"number": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"number": Number{Value: big.NewFloat(123)},
 				},
 			},
@@ -1211,19 +1211,19 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"diff-attribute-types-count": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 					"list":   ListType{ElemType: StringType},
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 					"list": List{ElemType: BoolType, Elems: []attr.Value{
 						Bool{Value: true},
@@ -1235,18 +1235,18 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"diff-attribute-types-value": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": NumberType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": Number{Value: big.NewFloat(123)},
 				},
 			},
@@ -1254,35 +1254,35 @@ func TestObjectEqual(t *testing.T) {
 		},
 		"diff-attribute-count": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 				},
-				Attributes: map[string]attr.Value{},
+				Attrs: map[string]attr.Value{},
 			},
 			expected: false,
 		},
 		"diff-attribute-names": {
 			receiver: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"string": String{Value: "hello"},
 				},
 			},
 			arg: Object{
-				AttributeTypes: map[string]attr.Type{
+				AttrTypes: map[string]attr.Type{
 					"string": StringType,
 				},
-				Attributes: map[string]attr.Value{
+				Attrs: map[string]attr.Value{
 					"strng": String{Value: "hello"},
 				},
 			},

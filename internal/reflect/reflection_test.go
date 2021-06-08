@@ -2,6 +2,7 @@ package reflect_test
 
 import (
 	"context"
+	"math/big"
 	"reflect"
 	"testing"
 
@@ -92,7 +93,94 @@ func TestOutOfStruct(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(expectedType, actualType) {
-
 		t.Fatalf("fail: got %+v, wanted %+v", actualType, expectedType)
+	}
+}
+
+func TestOutOfBool(t *testing.T) {
+	// the rare exhaustive test
+	cases := []struct {
+		val         reflect.Value
+		expectedVal attr.Value
+	}{
+		{
+			reflect.ValueOf(true),
+			types.Bool{
+				Value: true,
+			},
+		},
+		{
+			reflect.ValueOf(false),
+			types.Bool{
+				Value: false,
+			},
+		},
+	}
+
+	expectedType := types.BoolType
+
+	for _, tc := range cases {
+		actualVal, actualType, err := refl.OutOf(context.Background(), tc.val, refl.OutOfOptions{Bools: types.BoolType}, tftypes.NewAttributePath())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !tc.expectedVal.Equal(actualVal) {
+			t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expectedVal)
+		}
+
+		if !reflect.DeepEqual(expectedType, actualType) {
+			t.Fatalf("fail: got %+v, wanted %+v", actualType, expectedType)
+		}
+	}
+}
+
+func TestOutOfInteger(t *testing.T) {
+	cases := []struct {
+		val         reflect.Value
+		expectedVal attr.Value
+	}{
+		{
+			reflect.ValueOf(0),
+
+			types.Number{
+				Value: big.NewFloat(0),
+			},
+		},
+		{
+			reflect.ValueOf(1),
+			types.Number{
+				Value: big.NewFloat(1),
+			},
+		},
+		{
+			reflect.ValueOf(big.MaxExp),
+			types.Number{
+				Value: big.NewFloat(big.MaxExp),
+			},
+		},
+		{
+			reflect.ValueOf(big.MinExp),
+			types.Number{
+				Value: big.NewFloat(big.MinExp),
+			},
+		},
+	}
+
+	expectedType := types.NumberType
+
+	for _, tc := range cases {
+		actualVal, actualType, err := refl.OutOf(context.Background(), tc.val, refl.OutOfOptions{Integers: types.NumberType}, tftypes.NewAttributePath())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !tc.expectedVal.Equal(actualVal) {
+			t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expectedVal)
+		}
+
+		if !reflect.DeepEqual(expectedType, actualType) {
+			t.Fatalf("fail: got %+v, wanted %+v", actualType, expectedType)
+		}
 	}
 }

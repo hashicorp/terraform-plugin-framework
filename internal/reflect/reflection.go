@@ -157,9 +157,12 @@ func OutOf(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tfty
 	switch kind {
 	case reflect.Struct:
 		return reflectObjectOutOfStruct(ctx, val, opts, path)
-	// case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16,
-	// reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8,
-	// reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float64,
+	case reflect.Int, reflect.Int8, reflect.Int16,
+		reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8,
+		reflect.Uint16, reflect.Uint32:
+		return reflectOutOfInteger(ctx, val, opts, path)
+	case reflect.Bool:
+		return reflectOutOfBool(ctx, val.Interface().(bool), opts, path)
 	case reflect.String:
 		return reflectOutOfString(ctx, val.Interface().(string), opts, path)
 	// case reflect.Slice:

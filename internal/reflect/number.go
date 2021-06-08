@@ -189,3 +189,14 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 	}
 	return target, path.NewErrorf("can't convert number to %s", target.Type())
 }
+
+func reflectOutOfInteger(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	tfNum := tftypes.NewValue(tftypes.Number, val.Interface())
+
+	num, err := opts.Integers.ValueFromTerraform(ctx, tfNum)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return num, opts.Integers, nil
+}

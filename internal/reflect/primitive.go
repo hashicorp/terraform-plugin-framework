@@ -43,3 +43,14 @@ func reflectOutOfString(ctx context.Context, val string, opts OutOfOptions, path
 
 	return str, opts.Strings, nil
 }
+
+func reflectOutOfBool(ctx context.Context, val bool, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	tfBool := tftypes.NewValue(tftypes.Bool, val)
+
+	b, err := opts.Bools.ValueFromTerraform(ctx, tfBool)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return b, opts.Bools, nil
+}

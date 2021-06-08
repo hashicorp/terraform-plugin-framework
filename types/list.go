@@ -22,6 +22,17 @@ type ListType struct {
 	ElemType attr.Type
 }
 
+// ElementType returns the attr.Type elements will be created from.
+func (l ListType) ElementType() attr.Type {
+	return l.ElemType
+}
+
+// WithElementType returns a ListType that is identical to `l`, but with the
+// element type set to `typ`.
+func (l ListType) WithElementType(typ attr.Type) attr.TypeWithElementType {
+	return ListType{ElemType: typ}
+}
+
 // TerraformType returns the tftypes.Type that should be used to
 // represent this type. This constrains what user input will be
 // accepted and what kind of data can be set in state. The framework
@@ -37,11 +48,35 @@ func (l ListType) TerraformType(ctx context.Context) tftypes.Type {
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
 func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	list := &List{
+	if !in.Type().Is(l.TerraformType(ctx)) {
+		return nil, fmt.Errorf("can't use %s as value of List with ElementType %T, can only use %s values", in.String(), l.ElemType, l.ElemType.TerraformType(ctx).String())
+	}
+	list := List{
 		ElemType: l.ElemType,
 	}
-	err := list.SetTerraformValue(ctx, in)
-	return list, err
+	if !in.IsKnown() {
+		list.Unknown = true
+		return list, nil
+	}
+	if in.IsNull() {
+		list.Null = true
+		return list, nil
+	}
+	val := []tftypes.Value{}
+	err := in.As(&val)
+	if err != nil {
+		return nil, err
+	}
+	elems := make([]attr.Value, 0, len(val))
+	for _, elem := range val {
+		av, err := l.ElemType.ValueFromTerraform(ctx, elem)
+		if err != nil {
+			return nil, err
+		}
+		elems = append(elems, av)
+	}
+	list.Elems = elems
+	return list, nil
 }
 
 // Equal returns true if `o` is also a ListType and has the same ElemType.
@@ -82,7 +117,7 @@ type List struct {
 
 // ElementsAs populates `target` with the elements of the List, throwing an
 // error if the elements cannot be stored in `target`.
-func (l *List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) error {
+func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) error {
 	// we need a tftypes.Value for this List to be able to use it with our
 	// reflection code
 	values := make([]tftypes.Value, 0, len(l.Elems))
@@ -97,7 +132,7 @@ func (l *List) ElementsAs(ctx context.Context, target interface{}, allowUnhandle
 		}
 		values = append(values, tftypes.NewValue(l.ElemType.TerraformType(ctx), val))
 	}
-	return reflect.Into(ctx, tftypes.NewValue(tftypes.List{
+	return reflect.Into(ctx, ListType{ElemType: l.ElemType}, tftypes.NewValue(tftypes.List{
 		ElementType: l.ElemType.TerraformType(ctx),
 	}, values), target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
@@ -107,7 +142,7 @@ func (l *List) ElementsAs(ctx context.Context, target interface{}, allowUnhandle
 
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a Go type that tftypes.NewValue will accept.
-func (l *List) ToTerraformValue(ctx context.Context) (interface{}, error) {
+func (l List) ToTerraformValue(ctx context.Context) (interface{}, error) {
 	if l.Unknown {
 		return tftypes.UnknownValue, nil
 	}
@@ -131,11 +166,8 @@ func (l *List) ToTerraformValue(ctx context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered
 // semantically equal to the AttributeValue passed as an argument.
-func (l *List) Equal(o attr.Value) bool {
-	if l == nil {
-		return false
-	}
-	other, ok := o.(*List)
+func (l List) Equal(o attr.Value) bool {
+	other, ok := o.(List)
 	if !ok {
 		return false
 	}
@@ -158,40 +190,4 @@ func (l *List) Equal(o attr.Value) bool {
 		}
 	}
 	return true
-}
-
-// SetTerraformValue updates `l` to reflect the data stored in `in`.
-func (l *List) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
-	l.Unknown = false
-	l.Null = false
-	l.Elems = nil
-	if !in.Type().Is(tftypes.List{}) {
-		return fmt.Errorf("can't use %s as value of List, can only use tftypes.List values", in.String())
-	}
-	if !in.Type().Is(tftypes.List{ElementType: l.ElemType.TerraformType(ctx)}) {
-		return fmt.Errorf("can't use %s as value of List with ElementType %T, can only use %s values", in.String(), l.ElemType, l.ElemType.TerraformType(ctx).String())
-	}
-	if !in.IsKnown() {
-		l.Unknown = true
-		return nil
-	}
-	if in.IsNull() {
-		l.Null = true
-		return nil
-	}
-	val := []tftypes.Value{}
-	err := in.As(&val)
-	if err != nil {
-		return err
-	}
-	elems := make([]attr.Value, 0, len(val))
-	for _, elem := range val {
-		av, err := l.ElemType.ValueFromTerraform(ctx, elem)
-		if err != nil {
-			return err
-		}
-		elems = append(elems, av)
-	}
-	l.Elems = elems
-	return nil
 }

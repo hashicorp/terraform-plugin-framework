@@ -4,15 +4,22 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-type setUnknownable interface {
+// SetUnknownable is an interface for types that can be explicitly set to known
+// or unknown.
+type SetUnknownable interface {
 	SetUnknown(context.Context, bool) error
 }
 
-// call the SetUnknown method on types that support it.
-func reflectUnknownable(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+// Unknownable creates a zero value of `target` (or the concrete type it's
+// referencing, if it's a pointer) and calls its SetUnknown method.
+//
+// It is meant to be called through Into, not directly.
+func Unknownable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("SetUnknown")
 	if !method.IsValid() {
@@ -29,12 +36,16 @@ func reflectUnknownable(ctx context.Context, val tftypes.Value, target reflect.V
 	return receiver, nil
 }
 
-type setNullable interface {
+// SetNullable is an interface for types that can be explicitly set to null.
+type SetNullable interface {
 	SetNull(context.Context, bool) error
 }
 
-// call the SetNull method on types that support it.
-func reflectNullable(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+// Nullable creates a zero value of `target` (or the concrete type it's
+// referencing, if it's a pointer) and calls its SetNull method.
+//
+// It is meant to be called through Into, not directly.
+func Nullable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("SetNull")
 	if !method.IsValid() {
@@ -51,8 +62,11 @@ func reflectNullable(ctx context.Context, val tftypes.Value, target reflect.Valu
 	return receiver, nil
 }
 
-// call the FromTerraform5Value method on types that support it.
-func reflectValueConverter(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+// ValueConverter creates a zero value of `target` (or the concrete type it's
+// referencing, if it's a pointer) and calls its FromTerraform5Value method.
+//
+// It is meant to be called through Into, not directly.
+func ValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("FromTerraform5Value")
 	if !method.IsValid() {
@@ -66,20 +80,18 @@ func reflectValueConverter(ctx context.Context, val tftypes.Value, target reflec
 	return receiver, nil
 }
 
-// call the SetTerraformValue method on attr.Values.
-func reflectAttributeValue(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
-	receiver := pointerSafeZeroValue(ctx, target)
-	method := receiver.MethodByName("SetTerraformValue")
-	if !method.IsValid() {
-		return target, path.NewErrorf("unexpectedly couldn't find SetTeraformValue method on type %s", receiver.Type().String())
-	}
-	results := method.Call([]reflect.Value{
-		reflect.ValueOf(ctx),
-		reflect.ValueOf(val),
-	})
-	err := results[0].Interface()
+// AttributeValue creates a new reflect.Value by calling the ValueFromTerraform
+// method on `typ`. It will return an error if the returned `attr.Value` is not
+// the same type as `target`.
+//
+// It is meant to be called through Into, not directly.
+func AttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+	res, err := typ.ValueFromTerraform(ctx, val)
 	if err != nil {
-		return target, path.NewError(err.(error))
+		return target, err
 	}
-	return receiver, nil
+	if reflect.TypeOf(res) != target.Type() {
+		return target, path.NewErrorf("can't use attr.Value %s, only %s is supported because %T is the type in the schema", target.Type(), reflect.TypeOf(res), typ)
+	}
+	return reflect.ValueOf(res), nil
 }

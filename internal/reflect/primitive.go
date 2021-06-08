@@ -4,12 +4,16 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// build a string or bool depending on the type of `target`, and populate it
-// with the data in `val`.
-func reflectPrimitive(ctx context.Context, val tftypes.Value, target reflect.Value, path *tftypes.AttributePath) (reflect.Value, error) {
+// Primitive builds a string or boolean, depending on the type of `target`, and
+// populates it with the data in `val`.
+//
+// It is meant to be called through `Into`, not directly.
+func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, path *tftypes.AttributePath) (reflect.Value, error) {
 	switch target.Kind() {
 	case reflect.Bool:
 		var b bool

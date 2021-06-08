@@ -7,17 +7,23 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// create a number and populate it with the data in val. Numbers will use
-// whatever type `target` is, as long as it's a valid number type: any of the
-// builtin int, uint, or float types, or *big.Float or *big.Int. reflectNumber
-// will loudly fail when a number cannot be losslessly represented using the
-// target type, unless opts.AllowRoundingNumbers is set to true, which you
-// should consider not doing because Terraform does not like when you round
+// Number creates a *big.Float and populates it with the data in `val`. It then
+// gets converted to the type of `target`, as long as `target` is a valid
+// number type (any of the built-in int, uint, or float types, *big.Float, and
+// *big.Int).
+//
+// Number will loudly fail when a number cannot be losslessly represented using
+// the requested type, unless opts.AllowRoundingNumbers is set to true. This
+// setting is mildly dangerous, because Terraform does not like when you round
 // things, as a general rule of thumb.
-func reflectNumber(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+//
+// It is meant to be called through Into, not directly.
+func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	result := big.NewFloat(0)
 	err := val.As(&result)
 	if err != nil {

@@ -4,12 +4,14 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // create a map value that matches the type of `target`, and populate it with
 // the contents of `val`.
-func reflectMap(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+func reflectMap(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	underlyingValue := trueReflectValue(target)
 
 	// this only works with maps, so check that out first
@@ -18,6 +20,10 @@ func reflectMap(ctx context.Context, val tftypes.Value, target reflect.Value, op
 	}
 	if !val.Type().Is(tftypes.Map{}) {
 		return target, path.NewErrorf("can't reflect %s into a map, must be a map", val.Type().String())
+	}
+	elemTyper, ok := typ.(attr.TypeWithElementType)
+	if !ok {
+		return target, path.NewErrorf("can't reflect map using type information provided by %T, %T must be an attr.TypeWithElementType", typ, typ)
 	}
 
 	// we need our value to become a map of values so we can iterate over
@@ -30,6 +36,7 @@ func reflectMap(ctx context.Context, val tftypes.Value, target reflect.Value, op
 
 	// we need to know the type the slice is wrapping
 	elemType := underlyingValue.Type().Elem()
+	elemAttrType := elemTyper.ElementType()
 
 	// we want an empty version of the map
 	m := reflect.MakeMapWithSize(underlyingValue.Type(), len(values))
@@ -44,7 +51,7 @@ func reflectMap(ctx context.Context, val tftypes.Value, target reflect.Value, op
 		path := path.WithElementKeyString(key)
 
 		// reflect the value into our new target
-		result, err := buildReflectValue(ctx, value, targetValue, opts, path)
+		result, err := BuildValue(ctx, elemAttrType, value, targetValue, opts, path)
 		if err != nil {
 			return target, err
 		}

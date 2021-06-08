@@ -4,15 +4,22 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // build a slice of elements, matching the type of `target`, and fill it with
 // the data in `val`.
-func reflectSlice(ctx context.Context, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	// this only works with slices, so check that out first
 	if target.Kind() != reflect.Slice {
 		return target, path.NewErrorf("expected a slice type, got %s", target.Type())
+	}
+	// TODO: check that the val is a list or set or tuple
+	elemTyper, ok := typ.(attr.TypeWithElementType)
+	if !ok {
+		return target, path.NewErrorf("can't reflect %s using type information provided by %T, %T must be an attr.TypeWithElementType", val.Type(), typ, typ)
 	}
 
 	// we need our value to become a list of values so we can iterate over
@@ -25,6 +32,7 @@ func reflectSlice(ctx context.Context, val tftypes.Value, target reflect.Value, 
 
 	// we need to know the type the slice is wrapping
 	elemType := target.Type().Elem()
+	elemAttrType := elemTyper.ElementType()
 
 	// we want an empty version of the slice
 	slice := reflect.MakeSlice(target.Type(), 0, len(values))
@@ -39,7 +47,7 @@ func reflectSlice(ctx context.Context, val tftypes.Value, target reflect.Value, 
 		path := path.WithElementKeyInt(int64(pos))
 
 		// reflect the value into our new target
-		val, err := buildReflectValue(ctx, value, targetValue, opts, path)
+		val, err := BuildValue(ctx, elemAttrType, value, targetValue, opts, path)
 		if err != nil {
 			return target, err
 		}

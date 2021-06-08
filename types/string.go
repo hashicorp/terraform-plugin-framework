@@ -8,12 +8,21 @@ import (
 )
 
 func stringValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	s := new(String)
-	err := s.SetTerraformValue(ctx, in)
-	return s, err
+	if !in.IsKnown() {
+		return String{Unknown: true}, nil
+	}
+	if in.IsNull() {
+		return String{Null: true}, nil
+	}
+	var s string
+	err := in.As(&s)
+	if err != nil {
+		return nil, err
+	}
+	return String{Value: s}, nil
 }
 
-var _ attr.Value = &String{}
+var _ attr.Value = String{}
 
 // String represents a UTF-8 string value.
 type String struct {
@@ -32,7 +41,7 @@ type String struct {
 // ToTerraformValue returns the data contained in the *String as a string. If
 // Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
 // returns nil.
-func (s *String) ToTerraformValue(_ context.Context) (interface{}, error) {
+func (s String) ToTerraformValue(_ context.Context) (interface{}, error) {
 	if s.Null {
 		return nil, nil
 	}
@@ -43,14 +52,8 @@ func (s *String) ToTerraformValue(_ context.Context) (interface{}, error) {
 }
 
 // Equal returns true if `other` is a *String and has the same value as `s`.
-func (s *String) Equal(other attr.Value) bool {
-	if s == nil && other == nil {
-		return true
-	}
-	if s == nil || other == nil {
-		return false
-	}
-	o, ok := other.(*String)
+func (s String) Equal(other attr.Value) bool {
+	o, ok := other.(String)
 	if !ok {
 		return false
 	}
@@ -61,21 +64,4 @@ func (s *String) Equal(other attr.Value) bool {
 		return false
 	}
 	return s.Value == o.Value
-}
-
-// SetTerraformValue updates the String to match the contents of `val`.
-func (s *String) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
-	s.Unknown = false
-	s.Null = false
-	s.Value = ""
-	if !in.IsKnown() {
-		s.Unknown = true
-		return nil
-	}
-	if in.IsNull() {
-		s.Null = true
-		return nil
-	}
-	err := in.As(&s.Value)
-	return err
 }

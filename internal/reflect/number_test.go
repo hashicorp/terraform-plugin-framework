@@ -1,4 +1,4 @@
-package reflect
+package reflect_test
 
 import (
 	"context"
@@ -7,6 +7,9 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+
+	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -21,12 +24,12 @@ var (
 	underflowNegativeFloat, _, _ = big.ParseFloat("-1e-1000", 10, 0, big.ToNegativeInf)
 )
 
-func TestReflectNumber_bigFloat(t *testing.T) {
+func TestNumber_bigFloat(t *testing.T) {
 	t.Parallel()
 
 	var f *big.Float
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123456), reflect.ValueOf(f), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456), reflect.ValueOf(f), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -40,12 +43,12 @@ func TestReflectNumber_bigFloat(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_bigInt(t *testing.T) {
+func TestNumber_bigInt(t *testing.T) {
 	t.Parallel()
 
 	var n *big.Int
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123456), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -59,12 +62,12 @@ func TestReflectNumber_bigInt(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_bigIntRounded(t *testing.T) {
+func TestNumber_bigIntRounded(t *testing.T) {
 	t.Parallel()
 
 	var n *big.Int
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123456.123), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456.123), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -80,12 +83,12 @@ func TestReflectNumber_bigIntRounded(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_bigIntRoundingError(t *testing.T) {
+func TestNumber_bigIntRoundingError(t *testing.T) {
 	t.Parallel()
 
 	var n *big.Int
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123456.123), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456.123), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -95,12 +98,12 @@ func TestReflectNumber_bigIntRoundingError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int(t *testing.T) {
+func TestNumber_int(t *testing.T) {
 	t.Parallel()
 
 	var n int
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -110,12 +113,12 @@ func TestReflectNumber_int(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_intOverflow(t *testing.T) {
+func TestNumber_intOverflow(t *testing.T) {
 	t.Parallel()
 
 	var n int
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -129,12 +132,12 @@ func TestReflectNumber_intOverflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_intOverflowError(t *testing.T) {
+func TestNumber_intOverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -144,12 +147,12 @@ func TestReflectNumber_intOverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_intUnderflow(t *testing.T) {
+func TestNumber_intUnderflow(t *testing.T) {
 	t.Parallel()
 
 	var n int
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -163,12 +166,12 @@ func TestReflectNumber_intUnderflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_intUnderflowError(t *testing.T) {
+func TestNumber_intUnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -178,12 +181,12 @@ func TestReflectNumber_intUnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int8(t *testing.T) {
+func TestNumber_int8(t *testing.T) {
 	t.Parallel()
 
 	var n int8
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -193,12 +196,12 @@ func TestReflectNumber_int8(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int8Overflow(t *testing.T) {
+func TestNumber_int8Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n int8
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxInt8+1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt8+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -210,12 +213,12 @@ func TestReflectNumber_int8Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int8OverflowError(t *testing.T) {
+func TestNumber_int8OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int8
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxInt8+1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt8+1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -225,12 +228,12 @@ func TestReflectNumber_int8OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int8Underflow(t *testing.T) {
+func TestNumber_int8Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n int8
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MinInt8-1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt8-1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -242,12 +245,12 @@ func TestReflectNumber_int8Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int8UnderflowError(t *testing.T) {
+func TestNumber_int8UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int8
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MinInt8-1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt8-1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -257,16 +260,16 @@ func TestReflectNumber_int8UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int16(t *testing.T) {
+func TestNumber_int16(t *testing.T) {
 	t.Parallel()
 }
 
-func TestReflectNumber_int16Overflow(t *testing.T) {
+func TestNumber_int16Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n int16
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxInt16+1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt16+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -278,12 +281,12 @@ func TestReflectNumber_int16Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int16OverflowError(t *testing.T) {
+func TestNumber_int16OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int16
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxInt16+1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt16+1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -293,12 +296,12 @@ func TestReflectNumber_int16OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int16Underflow(t *testing.T) {
+func TestNumber_int16Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n int16
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MinInt16-1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt16-1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -310,12 +313,12 @@ func TestReflectNumber_int16Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int16UnderflowError(t *testing.T) {
+func TestNumber_int16UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int16
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MinInt16-1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt16-1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -325,16 +328,16 @@ func TestReflectNumber_int16UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int32(t *testing.T) {
+func TestNumber_int32(t *testing.T) {
 	t.Parallel()
 }
 
-func TestReflectNumber_int32Overflow(t *testing.T) {
+func TestNumber_int32Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n int32
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxInt32+1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt32+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -346,12 +349,12 @@ func TestReflectNumber_int32Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int32OverflowError(t *testing.T) {
+func TestNumber_int32OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int32
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxInt32+1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt32+1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -361,12 +364,12 @@ func TestReflectNumber_int32OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int32Underflow(t *testing.T) {
+func TestNumber_int32Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n int32
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MinInt32-1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt32-1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -378,12 +381,12 @@ func TestReflectNumber_int32Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int32UnderflowError(t *testing.T) {
+func TestNumber_int32UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int32
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MinInt32-1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt32-1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -393,12 +396,12 @@ func TestReflectNumber_int32UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int64(t *testing.T) {
+func TestNumber_int64(t *testing.T) {
 	t.Parallel()
 
 	var n int64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -408,12 +411,12 @@ func TestReflectNumber_int64(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int64Overflow(t *testing.T) {
+func TestNumber_int64Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n int64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -425,12 +428,12 @@ func TestReflectNumber_int64Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int64OverflowError(t *testing.T) {
+func TestNumber_int64OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int64
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -440,12 +443,12 @@ func TestReflectNumber_int64OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int64Underflow(t *testing.T) {
+func TestNumber_int64Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n int64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -457,12 +460,12 @@ func TestReflectNumber_int64Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_int64UnderflowError(t *testing.T) {
+func TestNumber_int64UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n int64
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -472,12 +475,12 @@ func TestReflectNumber_int64UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint(t *testing.T) {
+func TestNumber_uint(t *testing.T) {
 	t.Parallel()
 
 	var n uint
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -487,12 +490,12 @@ func TestReflectNumber_uint(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uintOverflow(t *testing.T) {
+func TestNumber_uintOverflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -506,12 +509,12 @@ func TestReflectNumber_uintOverflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uintOverflowError(t *testing.T) {
+func TestNumber_uintOverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -521,12 +524,12 @@ func TestReflectNumber_uintOverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uintUnderflow(t *testing.T) {
+func TestNumber_uintUnderflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -538,12 +541,12 @@ func TestReflectNumber_uintUnderflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uintUnderflowError(t *testing.T) {
+func TestNumber_uintUnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -553,12 +556,12 @@ func TestReflectNumber_uintUnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint8(t *testing.T) {
+func TestNumber_uint8(t *testing.T) {
 	t.Parallel()
 
 	var n uint8
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -568,12 +571,12 @@ func TestReflectNumber_uint8(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint8Overflow(t *testing.T) {
+func TestNumber_uint8Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint8
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxUint8+1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint8+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -585,12 +588,12 @@ func TestReflectNumber_uint8Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint8OverflowError(t *testing.T) {
+func TestNumber_uint8OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint8
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxUint8+1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint8+1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -600,12 +603,12 @@ func TestReflectNumber_uint8OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint8Underflow(t *testing.T) {
+func TestNumber_uint8Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint8
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -617,12 +620,12 @@ func TestReflectNumber_uint8Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint8UnderflowError(t *testing.T) {
+func TestNumber_uint8UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint8
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -632,16 +635,16 @@ func TestReflectNumber_uint8UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint16(t *testing.T) {
+func TestNumber_uint16(t *testing.T) {
 	t.Parallel()
 }
 
-func TestReflectNumber_uint16Overflow(t *testing.T) {
+func TestNumber_uint16Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint16
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxUint16+1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint16+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -653,12 +656,12 @@ func TestReflectNumber_uint16Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint16OverflowError(t *testing.T) {
+func TestNumber_uint16OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint16
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxUint16+1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint16+1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -668,12 +671,12 @@ func TestReflectNumber_uint16OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint16Underflow(t *testing.T) {
+func TestNumber_uint16Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint16
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -685,12 +688,12 @@ func TestReflectNumber_uint16Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint16UnderflowError(t *testing.T) {
+func TestNumber_uint16UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint16
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -700,16 +703,16 @@ func TestReflectNumber_uint16UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint32(t *testing.T) {
+func TestNumber_uint32(t *testing.T) {
 	t.Parallel()
 }
 
-func TestReflectNumber_uint32Overflow(t *testing.T) {
+func TestNumber_uint32Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint32
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxUint32+1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint32+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -721,12 +724,12 @@ func TestReflectNumber_uint32Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint32OverflowError(t *testing.T) {
+func TestNumber_uint32OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint32
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxUint32+1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint32+1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -736,12 +739,12 @@ func TestReflectNumber_uint32OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint32Underflow(t *testing.T) {
+func TestNumber_uint32Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint32
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -753,12 +756,12 @@ func TestReflectNumber_uint32Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint32UnderflowError(t *testing.T) {
+func TestNumber_uint32UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint32
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -768,12 +771,12 @@ func TestReflectNumber_uint32UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint64(t *testing.T) {
+func TestNumber_uint64(t *testing.T) {
 	t.Parallel()
 
 	var n uint64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -783,12 +786,12 @@ func TestReflectNumber_uint64(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint64Overflow(t *testing.T) {
+func TestNumber_uint64Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -800,12 +803,12 @@ func TestReflectNumber_uint64Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint64OverflowError(t *testing.T) {
+func TestNumber_uint64OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint64
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -815,12 +818,12 @@ func TestReflectNumber_uint64OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint64Underflow(t *testing.T) {
+func TestNumber_uint64Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n uint64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -832,12 +835,12 @@ func TestReflectNumber_uint64Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_uint64UnderflowError(t *testing.T) {
+func TestNumber_uint64UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n uint64
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -847,16 +850,16 @@ func TestReflectNumber_uint64UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float32(t *testing.T) {
+func TestNumber_float32(t *testing.T) {
 	t.Parallel()
 }
 
-func TestReflectNumber_float32Overflow(t *testing.T) {
+func TestNumber_float32Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n float32
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxFloat64), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxFloat64), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -868,12 +871,12 @@ func TestReflectNumber_float32Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float32OverflowError(t *testing.T) {
+func TestNumber_float32OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n float32
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.MaxFloat64), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxFloat64), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -884,12 +887,12 @@ func TestReflectNumber_float32OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float32Underflow(t *testing.T) {
+func TestNumber_float32Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n float32
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.SmallestNonzeroFloat64), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.SmallestNonzeroFloat64), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -901,12 +904,12 @@ func TestReflectNumber_float32Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float32UnderflowError(t *testing.T) {
+func TestNumber_float32UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n float32
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, math.SmallestNonzeroFloat64), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.SmallestNonzeroFloat64), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -916,12 +919,12 @@ func TestReflectNumber_float32UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float64(t *testing.T) {
+func TestNumber_float64(t *testing.T) {
 	t.Parallel()
 
 	var n float64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -931,12 +934,12 @@ func TestReflectNumber_float64(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float64Overflow(t *testing.T) {
+func TestNumber_float64Overflow(t *testing.T) {
 	t.Parallel()
 
 	var n float64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowFloat), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowFloat), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -948,12 +951,12 @@ func TestReflectNumber_float64Overflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float64OverflowError(t *testing.T) {
+func TestNumber_float64OverflowError(t *testing.T) {
 	t.Parallel()
 
 	var n float64
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowFloat), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowFloat), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -963,12 +966,12 @@ func TestReflectNumber_float64OverflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float64OverflowNegative(t *testing.T) {
+func TestNumber_float64OverflowNegative(t *testing.T) {
 	t.Parallel()
 
 	var n float64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowNegativeFloat), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -980,12 +983,12 @@ func TestReflectNumber_float64OverflowNegative(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float64OverflowNegativeError(t *testing.T) {
+func TestNumber_float64OverflowNegativeError(t *testing.T) {
 	t.Parallel()
 
 	var n float64
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, overflowNegativeFloat), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -995,12 +998,12 @@ func TestReflectNumber_float64OverflowNegativeError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float64Underflow(t *testing.T) {
+func TestNumber_float64Underflow(t *testing.T) {
 	t.Parallel()
 
 	var n float64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, underflowFloat), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -1012,12 +1015,12 @@ func TestReflectNumber_float64Underflow(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float64UnderflowError(t *testing.T) {
+func TestNumber_float64UnderflowError(t *testing.T) {
 	t.Parallel()
 
 	var n float64
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, underflowFloat), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return
@@ -1027,12 +1030,12 @@ func TestReflectNumber_float64UnderflowError(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float64UnderflowNegative(t *testing.T) {
+func TestNumber_float64UnderflowNegative(t *testing.T) {
 	t.Parallel()
 
 	var n float64
 
-	result, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, underflowNegativeFloat), reflect.ValueOf(n), Options{
+	result, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -1044,12 +1047,12 @@ func TestReflectNumber_float64UnderflowNegative(t *testing.T) {
 	}
 }
 
-func TestReflectNumber_float64UnderflowNegativeError(t *testing.T) {
+func TestNumber_float64UnderflowNegativeError(t *testing.T) {
 	t.Parallel()
 
 	var n float64
 
-	_, err := reflectNumber(context.Background(), tftypes.NewValue(tftypes.Number, underflowNegativeFloat), reflect.ValueOf(n), Options{}, tftypes.NewAttributePath())
+	_, err := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat), reflect.ValueOf(n), refl.Options{}, tftypes.NewAttributePath())
 	if err == nil {
 		t.Error("Expected error, got none")
 		return

@@ -6,17 +6,25 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// build a struct with a type matching that of `target` and populate it with
-// the values in `object`. `target` must be a struct type. The properties on
-// `target` must be tagged with a "tfsdk" label, and every property must be
-// present in the type of `object`, and all the attributes in the type of
-// `object` must have a corresponding property. Properties that don't map to
-// object attributes must have a `tfsdk:"-"` tag, explicitly defining them as
-// not part of the object.
-func reflectStructFromObject(ctx context.Context, object tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+// Struct builds a new struct using the data in `object`, as long as `object`
+// is a `tftypes.Object`. It will take the struct type from `target`, which
+// must be a struct type.
+//
+// The properties on `target` must be tagged with a "tfsdk" label containing
+// the field name to map to that property. Every property must be tagged, and
+// every property must be present in the type of `object`, and all the
+// attributes in the type of `object` must have a corresponding property.
+// Properties that don't map to object attributes must have a `tfsdk:"-"` tag,
+// explicitly defining them as not part of the object. This is to catch typos
+// and other mistakes early.
+//
+// Struct is meant to be called from Into, not directly.
+func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	// this only works with object values, so make sure that constraint is
 	// met
 	if target.Kind() != reflect.Struct {
@@ -24,6 +32,10 @@ func reflectStructFromObject(ctx context.Context, object tftypes.Value, target r
 	}
 	if !object.Type().Is(tftypes.Object{}) {
 		return target, path.NewErrorf("can't reflect %s into a struct, must be an object", object.Type().String())
+	}
+	attrsType, ok := typ.(attr.TypeWithAttributeTypes)
+	if !ok {
+		return target, path.NewErrorf("can't reflect object using type information provided by %T, %T must be an attr.TypeWithAttributeTypes", typ, typ)
 	}
 
 	// collect a map of fields that are in the object passed in
@@ -65,12 +77,18 @@ func reflectStructFromObject(ctx context.Context, object tftypes.Value, target r
 		return target, path.NewErrorf("mismatch between struct and object: %s", strings.Join(missing, " "))
 	}
 
+	attrTypes := attrsType.AttributeTypes()
+
 	// now that we know they match perfectly, fill the struct with the
 	// values in the object
 	result := reflect.New(target.Type()).Elem()
 	for field, structFieldPos := range targetFields {
+		attrType, ok := attrTypes[field]
+		if !ok {
+			return target, path.WithAttributeName(field).NewErrorf("couldn't find type information for attribute in supplied attr.Type %T", typ)
+		}
 		structField := result.Field(structFieldPos)
-		fieldVal, err := buildReflectValue(ctx, objectFields[field], structField, opts, path.WithAttributeName(field))
+		fieldVal, err := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.WithAttributeName(field))
 		if err != nil {
 			return target, err
 		}

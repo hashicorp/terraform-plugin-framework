@@ -51,32 +51,19 @@ func TestStateGet(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error running Get: %s", err)
 	}
-	if val.Foo.Unknown {
-		t.Error("Expected Foo to be known")
+	expected := myType{
+	  Foo: types.String{Value: "hello, world"},
+	  Bar: types.List{
+	    ElemType: types.StringType,
+	    Elems: []attr.Value{
+	      types.String{Value: "red"},
+	      types.String{Value: "blue"},
+	      types.String{Value: "green"},
+	    },
+	  },
 	}
-	if val.Foo.Null {
-		t.Error("Expected Foo to be non-null")
-	}
-	if val.Foo.Value != "hello, world" {
-		t.Errorf("Expected Foo to be %q, got %q", "hello, world", val.Foo.Value)
-	}
-	if val.Bar.Unknown {
-		t.Error("Expected Bar to be known")
-	}
-	if val.Bar.Null {
-		t.Errorf("Expected Bar to be non-null")
-	}
-	if len(val.Bar.Elems) != 3 {
-		t.Errorf("Expected Bar to have 3 elements, had %d", len(val.Bar.Elems))
-	}
-	if val.Bar.Elems[0].(types.String).Value != "red" {
-		t.Errorf("Expected Bar's first element to be %q, got %q", "red", val.Bar.Elems[0].(types.String).Value)
-	}
-	if val.Bar.Elems[1].(types.String).Value != "blue" {
-		t.Errorf("Expected Bar's second element to be %q, got %q", "blue", val.Bar.Elems[1].(types.String).Value)
-	}
-	if val.Bar.Elems[2].(types.String).Value != "green" {
-		t.Errorf("Expected Bar's third element to be %q, got %q", "green", val.Bar.Elems[2].(types.String).Value)
+	diff := cmp.Diff(expected, val); diff != "" {
+	  t.Errorf("unexpected diff (+wanted, -got): %s", diff)
 	}
 }
 

@@ -149,7 +149,7 @@ func (s setNestedAttributes) getNestingMode() nestingMode {
 // nested attributes.
 func (s setNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	if _, ok := step.(tftypes.ElementKeyInt); !ok {
-		return nil, fmt.Errorf("cannot apply step %T to ListNestedAttributes", step)
+		return nil, fmt.Errorf("cannot apply step %T to SetNestedAttributes", step)
 	}
 
 	return s.nestedAttributes, nil
@@ -189,7 +189,7 @@ func (m mapNestedAttributes) getNestingMode() nestingMode {
 // nested attributes.
 func (m mapNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	if _, ok := step.(tftypes.ElementKeyString); !ok {
-		return nil, fmt.Errorf("cannot apply step %T to SingleNestedAttributes", step)
+		return nil, fmt.Errorf("cannot apply step %T to MapNestedAttributes", step)
 	}
 
 	return m.nestedAttributes, nil

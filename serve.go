@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	tf6server "github.com/hashicorp/terraform-plugin-go/tfprotov6/server"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ tfprotov6.ProviderServer = &server{}
@@ -284,12 +285,48 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	return resp, nil
 }
 
-func (s *server) PlanResourceChange(ctx context.Context, _ *tfprotov6.PlanResourceChangeRequest) (*tfprotov6.PlanResourceChangeResponse, error) {
+func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanResourceChangeRequest) (*tfprotov6.PlanResourceChangeResponse, error) {
 	ctx = s.registerContext(ctx)
+	resp := &tfprotov6.PlanResourceChangeResponse{}
 
-	// TODO: set all nil + computed values to unknown
+	// get the type of resource, so we can get its schema and create an
+	// instance
+	resourceType, diags := s.getResourceType(ctx, req.TypeName)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
+
+	// get the schema from the resource type, so we can embed it in the
+	// config and plan
+	resourceSchema, diags := resourceType.GetSchema(ctx)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
+
+	plan, err := req.ProposedNewState.Unmarshal(resourceSchema.TerraformType(ctx))
+	if err != nil {
+		// TODO: return error
+	}
+
+	modifiedPlan, err := tftypes.Transform(plan, func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
+		if !val.IsNull() {
+			return val, nil
+		}
+		// TODO: if the Attribute at this path in the resource schema is not computed, return val instead of modifying it
+		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
+	})
+
+	plannedState, err := tfprotov6.NewDynamicValue(modifiedPlan.Type(), modifiedPlan)
+	if err != nil {
+		// TODO: return error
+	}
+	resp.PlannedState = &plannedState
+
 	// TODO: implement customizable plan modifications later
-	panic("not implemented") // TODO: Implement
+	// TODO: implement RequiresReplace behavior later
+	return resp, nil
 }
 
 func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest) (*tfprotov6.ApplyResourceChangeResponse, error) {

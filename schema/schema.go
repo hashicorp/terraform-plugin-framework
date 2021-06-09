@@ -46,7 +46,7 @@ func (s Schema) AttributeType() attr.Type {
 			attrTypes[name] = attr.Type
 		}
 		if attr.Attributes != nil {
-			// TODO: handle nested attributes
+			attrTypes[name] = attr.Attributes.AttributeType()
 		}
 	}
 	return types.ObjectType{AttrTypes: attrTypes}

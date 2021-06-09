@@ -4,104 +4,129 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestStateGet(t *testing.T) {
-	schema := schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"foo": {
-				Type:     types.StringType,
-				Required: true,
+var testSchema = schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"foo": {
+			Type:     types.StringType,
+			Required: true,
+		},
+		"bar": {
+			Type: types.ListType{
+				ElemType: types.StringType,
 			},
-			"bar": {
-				Type: types.ListType{
-					ElemType: types.StringType,
+			Required: true,
+		},
+		"disks": {
+			Attributes: schema.ListNestedAttributes(map[string]schema.Attribute{
+				"id": {
+					Type:     types.StringType,
+					Required: true,
 				},
-				Required: true,
+				"delete_with_instance": {
+					Type:     types.BoolType,
+					Optional: true,
+				},
+			}, schema.ListNestedAttributesOptions{}),
+			Optional: true,
+			Computed: true,
+		},
+	},
+}
+
+var diskElementType = tftypes.Object{
+	AttributeTypes: map[string]tftypes.Type{
+		"id":                   tftypes.String,
+		"delete_with_instance": tftypes.Bool,
+	},
+}
+
+var testState = State{
+	Raw: tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.List{ElementType: tftypes.String},
+			"disks": tftypes.List{
+				ElementType: diskElementType,
+			},
+		},
+	}, map[string]tftypes.Value{
+		"foo": tftypes.NewValue(tftypes.String, "hello, world"),
+		"bar": tftypes.NewValue(tftypes.List{
+			ElementType: tftypes.String,
+		}, []tftypes.Value{
+			tftypes.NewValue(tftypes.String, "red"),
+			tftypes.NewValue(tftypes.String, "blue"),
+			tftypes.NewValue(tftypes.String, "green"),
+		}),
+		"disks": tftypes.NewValue(tftypes.List{
+			ElementType: diskElementType,
+		}, []tftypes.Value{
+			tftypes.NewValue(diskElementType, map[string]tftypes.Value{
+				"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+			}),
+			tftypes.NewValue(diskElementType, map[string]tftypes.Value{
+				"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+				"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+			}),
+		}),
+	}),
+	Schema: testSchema,
+}
+
+func TestStateGet(t *testing.T) {
+	t.Logf("+%v", testSchema.AttributeType())
+	type myType struct {
+		Foo   types.String `tfsdk:"foo"`
+		Bar   types.List   `tfsdk:"bar"`
+		Disks []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"disks"`
+	}
+	var val myType
+	err := testState.Get(context.Background(), &val)
+	if err != nil {
+		t.Fatalf("Error running Get: %s", err)
+	}
+	expected := myType{
+		Foo: types.String{Value: "hello, world"},
+		Bar: types.List{
+			ElemType: types.StringType,
+			Elems: []attr.Value{
+				types.String{Value: "red"},
+				types.String{Value: "blue"},
+				types.String{Value: "green"},
+			},
+		},
+		Disks: []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		}{
+			{
+				ID:                 "disk0",
+				DeleteWithInstance: true,
+			},
+			{
+				ID:                 "disk1",
+				DeleteWithInstance: false,
 			},
 		},
 	}
-	state := State{
-		Raw: tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"foo": tftypes.String,
-				"bar": tftypes.List{ElementType: tftypes.String},
-			},
-		}, map[string]tftypes.Value{
-			"foo": tftypes.NewValue(tftypes.String, "hello, world"),
-			"bar": tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "red"),
-				tftypes.NewValue(tftypes.String, "blue"),
-				tftypes.NewValue(tftypes.String, "green"),
-			}),
-		}),
-		Schema: schema,
-	}
-	type myType struct {
-		Foo types.String `tfsdk:"foo"`
-		Bar types.List   `tfsdk:"bar"`
-	}
-	var val myType
-	err := state.Get(context.Background(), &val)
-	if err != nil {
-		t.Errorf("Error running Get: %s", err)
-	}
-	expected := myType{
-	  Foo: types.String{Value: "hello, world"},
-	  Bar: types.List{
-	    ElemType: types.StringType,
-	    Elems: []attr.Value{
-	      types.String{Value: "red"},
-	      types.String{Value: "blue"},
-	      types.String{Value: "green"},
-	    },
-	  },
-	}
-	diff := cmp.Diff(expected, val); diff != "" {
-	  t.Errorf("unexpected diff (+wanted, -got): %s", diff)
+	if diff := cmp.Diff(val, expected); diff != "" {
+		t.Errorf("unexpected diff (+wanted, -got): %s", diff)
 	}
 }
 
 func TestStateGetAttribute(t *testing.T) {
-	schema := schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"foo": {
-				Type:     types.StringType,
-				Required: true,
-			},
-			"bar": {
-				Type: types.ListType{
-					ElemType: types.StringType,
-				},
-				Required: true,
-			},
-		},
-	}
-	state := State{
-		Raw: tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"foo": tftypes.String,
-				"bar": tftypes.List{ElementType: tftypes.String},
-			},
-		}, map[string]tftypes.Value{
-			"foo": tftypes.NewValue(tftypes.String, "hello, world"),
-			"bar": tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "red"),
-				tftypes.NewValue(tftypes.String, "blue"),
-				tftypes.NewValue(tftypes.String, "green"),
-			}),
-		}),
-		Schema: schema,
-	}
-
-	fooVal, err := state.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("foo"))
+	fooVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("foo"))
 	if err != nil {
 		t.Errorf("Error running GetAttribute for foo: %s", err)
 	}
@@ -119,7 +144,7 @@ func TestStateGetAttribute(t *testing.T) {
 		t.Errorf("Expected Foo to be %q, got %q", "hello, world", foo.Value)
 	}
 
-	barVal, err := state.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar"))
+	barVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar"))
 	if err != nil {
 		t.Errorf("Error running GetAttribute for bar: %s", err)
 	}
@@ -146,7 +171,7 @@ func TestStateGetAttribute(t *testing.T) {
 		t.Errorf("Expected Bar's third element to be %q, got %q", "green", bar.Elems[2].(types.String).Value)
 	}
 
-	bar0Val, err := state.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar").WithElementKeyInt(0))
+	bar0Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar").WithElementKeyInt(0))
 	if err != nil {
 		t.Errorf("Error running GetAttribute for bar[0]: %s", err)
 	}
@@ -164,7 +189,7 @@ func TestStateGetAttribute(t *testing.T) {
 		t.Errorf("Expected bar[0] to be %q, got %q", "red", bar0.Value)
 	}
 
-	bar1Val, err := state.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar").WithElementKeyInt(1))
+	bar1Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar").WithElementKeyInt(1))
 	if err != nil {
 		t.Errorf("Error running GetAttribute for bar[1]: %s", err)
 	}
@@ -182,7 +207,7 @@ func TestStateGetAttribute(t *testing.T) {
 		t.Errorf("Expected bar[1] to be %q, got %q", "red", bar1.Value)
 	}
 
-	bar2Val, err := state.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar").WithElementKeyInt(2))
+	bar2Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar").WithElementKeyInt(2))
 	if err != nil {
 		t.Errorf("Error running GetAttribute for bar[2]: %s", err)
 	}

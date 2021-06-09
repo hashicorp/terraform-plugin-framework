@@ -3,6 +3,8 @@ package schema
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -41,6 +43,7 @@ type NestedAttributes interface {
 	getNestingMode() nestingMode
 	getAttributes() map[string]Attribute
 	tftypes.AttributePathStepper
+	AttributeType() attr.Type
 }
 
 type nestedAttributes map[string]Attribute
@@ -74,6 +77,22 @@ func (s singleNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.At
 	}
 
 	return s.nestedAttributes, nil
+}
+
+// AttributeType returns an attr.Type corresponding to the nested attributes.
+func (s singleNestedAttributes) AttributeType() attr.Type {
+	attrTypes := map[string]attr.Type{}
+	for name, attr := range s.getAttributes() {
+		if attr.Type != nil {
+			attrTypes[name] = attr.Type
+		}
+		if attr.Attributes != nil {
+			attrTypes[name] = attr.Attributes.AttributeType()
+		}
+	}
+	return types.ObjectType{
+		AttrTypes: attrTypes,
+	}
 }
 
 // ListNestedAttributes nests `attributes` under another attribute, allowing
@@ -113,6 +132,24 @@ func (l listNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.Attr
 	}
 
 	return l.nestedAttributes, nil
+}
+
+// AttributeType returns an attr.Type corresponding to the nested attributes.
+func (l listNestedAttributes) AttributeType() attr.Type {
+	attrTypes := map[string]attr.Type{}
+	for name, attr := range l.getAttributes() {
+		if attr.Type != nil {
+			attrTypes[name] = attr.Type
+		}
+		if attr.Attributes != nil {
+			attrTypes[name] = attr.Attributes.AttributeType()
+		}
+	}
+	return types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: attrTypes,
+		},
+	}
 }
 
 // SetNestedAttributes nests `attributes` under another attribute, allowing
@@ -155,6 +192,22 @@ func (s setNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.Attri
 	return s.nestedAttributes, nil
 }
 
+// AttributeType returns an attr.Type corresponding to the nested attributes.
+func (s setNestedAttributes) AttributeType() attr.Type {
+	attrTypes := map[string]attr.Type{}
+	for name, attr := range s.getAttributes() {
+		if attr.Type != nil {
+			attrTypes[name] = attr.Type
+		}
+		if attr.Attributes != nil {
+			attrTypes[name] = attr.Attributes.AttributeType()
+		}
+	}
+	return types.ObjectType{
+		AttrTypes: attrTypes,
+	}
+}
+
 // MapNestedAttributes nests `attributes` under another attribute, allowing
 // multiple instances of that group of attributes to appear in the
 // configuration. Each group will need to be associated with a unique string by
@@ -193,4 +246,20 @@ func (m mapNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.Attri
 	}
 
 	return m.nestedAttributes, nil
+}
+
+// AttributeType returns an attr.Type corresponding to the nested attributes.
+func (m mapNestedAttributes) AttributeType() attr.Type {
+	attrTypes := map[string]attr.Type{}
+	for name, attr := range m.getAttributes() {
+		if attr.Type != nil {
+			attrTypes[name] = attr.Type
+		}
+		if attr.Attributes != nil {
+			attrTypes[name] = attr.Attributes.AttributeType()
+		}
+	}
+	return types.ObjectType{
+		AttrTypes: attrTypes,
+	}
 }

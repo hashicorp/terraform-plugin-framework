@@ -38,12 +38,6 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 	return attrType.ValueFromTerraform(ctx, *attrValue)
 }
 
-// MustGetAttribute retrieves the attribute as GetAttribute does, but populates target using As,
-// using the simplified representation without Unknown. Errors if Unknown present
-// func (s State) MustGetAttribute(ctx context.Context, path tftypes.AttributePath, target interface{}) error {
-// 	return nil
-// }
-
 func (s State) terraformValueAtPath(path *tftypes.AttributePath) (*tftypes.Value, error) {
 	rawValue, remaining, err := tftypes.WalkAttributePath(s.Raw, path)
 	if err != nil {

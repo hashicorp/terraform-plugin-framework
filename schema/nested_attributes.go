@@ -5,13 +5,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type nestingMode uint8
+type NestingMode uint8
 
 const (
-	nestingModeSingle nestingMode = 0
-	nestingModeList   nestingMode = 1
-	nestingModeSet    nestingMode = 2
-	nestingModeMap    nestingMode = 3
+	NestingModeUnknown NestingMode = 0
+	NestingModeSingle  NestingMode = 1
+	NestingModeList    NestingMode = 2
+	NestingModeSet     NestingMode = 3
+	NestingModeMap     NestingMode = 4
 )
 
 // NestedAttributes surfaces a group of attributes to nest beneath another
@@ -37,16 +38,21 @@ const (
 // attributes must be associated with a unique key. Unlike SetNestedAttributes,
 // the key must be explicitly set by the user.
 type NestedAttributes interface {
-	getNestingMode() nestingMode
-	getAttributes() map[string]Attribute
 	AttributeType() attr.Type
+	GetNestingMode() NestingMode
+	GetAttributes() map[string]Attribute
+	GetMinItems() int64
+	GetMaxItems() int64
+	unimplementable()
 }
 
 type nestedAttributes map[string]Attribute
 
-func (n nestedAttributes) getAttributes() map[string]Attribute {
+func (n nestedAttributes) GetAttributes() map[string]Attribute {
 	return map[string]Attribute(n)
 }
+
+func (n nestedAttributes) unimplementable() {}
 
 // SingleNestedAttributes nests `attributes` under another attribute, only
 // allowing one instance of that group of attributes to appear in the
@@ -61,14 +67,22 @@ type singleNestedAttributes struct {
 	nestedAttributes
 }
 
-func (s singleNestedAttributes) getNestingMode() nestingMode {
-	return nestingModeSingle
+func (s singleNestedAttributes) GetNestingMode() NestingMode {
+	return NestingModeSingle
+}
+
+func (s singleNestedAttributes) GetMinItems() int64 {
+	return 0
+}
+
+func (s singleNestedAttributes) GetMaxItems() int64 {
+	return 0
 }
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.
 func (s singleNestedAttributes) AttributeType() attr.Type {
 	attrTypes := map[string]attr.Type{}
-	for name, attr := range s.getAttributes() {
+	for name, attr := range s.GetAttributes() {
 		if attr.Type != nil {
 			attrTypes[name] = attr.Type
 		}
@@ -106,14 +120,22 @@ type ListNestedAttributesOptions struct {
 	MaxItems int
 }
 
-func (l listNestedAttributes) getNestingMode() nestingMode {
-	return nestingModeList
+func (l listNestedAttributes) GetNestingMode() NestingMode {
+	return NestingModeList
+}
+
+func (l listNestedAttributes) GetMinItems() int64 {
+	return int64(l.min)
+}
+
+func (l listNestedAttributes) GetMaxItems() int64 {
+	return int64(l.max)
 }
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.
 func (l listNestedAttributes) AttributeType() attr.Type {
 	attrTypes := map[string]attr.Type{}
-	for name, attr := range l.getAttributes() {
+	for name, attr := range l.GetAttributes() {
 		if attr.Type != nil {
 			attrTypes[name] = attr.Type
 		}
@@ -154,8 +176,16 @@ type SetNestedAttributesOptions struct {
 	MaxItems int
 }
 
-func (s setNestedAttributes) getNestingMode() nestingMode {
-	return nestingModeSet
+func (s setNestedAttributes) GetNestingMode() NestingMode {
+	return NestingModeSet
+}
+
+func (s setNestedAttributes) GetMinItems() int64 {
+	return int64(s.min)
+}
+
+func (s setNestedAttributes) GetMaxItems() int64 {
+	return int64(s.max)
 }
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.
@@ -190,8 +220,16 @@ type MapNestedAttributesOptions struct {
 	MaxItems int
 }
 
-func (m mapNestedAttributes) getNestingMode() nestingMode {
-	return nestingModeMap
+func (m mapNestedAttributes) GetNestingMode() NestingMode {
+	return NestingModeMap
+}
+
+func (m mapNestedAttributes) GetMinItems() int64 {
+	return int64(m.min)
+}
+
+func (m mapNestedAttributes) GetMaxItems() int64 {
+	return int64(m.max)
 }
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.

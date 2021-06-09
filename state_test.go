@@ -37,6 +37,17 @@ var testSchema = schema.Schema{
 			Optional: true,
 			Computed: true,
 		},
+		"boot_disk": {
+			Attributes: schema.SingleNestedAttributes(map[string]schema.Attribute{
+				"id": {
+					Type:     types.StringType,
+					Required: true,
+				},
+				"delete_with_instance": {
+					Type: types.BoolType,
+				},
+			}),
+		},
 	},
 }
 
@@ -55,6 +66,7 @@ var testState = State{
 			"disks": tftypes.List{
 				ElementType: diskElementType,
 			},
+			"boot_disk": diskElementType,
 		},
 	}, map[string]tftypes.Value{
 		"foo": tftypes.NewValue(tftypes.String, "hello, world"),
@@ -77,12 +89,15 @@ var testState = State{
 				"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
 			}),
 		}),
+		"boot_disk": tftypes.NewValue(diskElementType, map[string]tftypes.Value{
+			"id":                   tftypes.NewValue(tftypes.String, "bootdisk"),
+			"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+		}),
 	}),
 	Schema: testSchema,
 }
 
 func TestStateGet(t *testing.T) {
-	t.Logf("+%v", testSchema.AttributeType())
 	type myType struct {
 		Foo   types.String `tfsdk:"foo"`
 		Bar   types.List   `tfsdk:"bar"`
@@ -90,6 +105,10 @@ func TestStateGet(t *testing.T) {
 			ID                 string `tfsdk:"id"`
 			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
 		} `tfsdk:"disks"`
+		BootDisk struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"boot_disk"`
 	}
 	var val myType
 	err := testState.Get(context.Background(), &val)
@@ -119,13 +138,20 @@ func TestStateGet(t *testing.T) {
 				DeleteWithInstance: false,
 			},
 		},
+		BootDisk: struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		}{
+			ID:                 "bootdisk",
+			DeleteWithInstance: true,
+		},
 	}
 	if diff := cmp.Diff(val, expected); diff != "" {
 		t.Errorf("unexpected diff (+wanted, -got): %s", diff)
 	}
 }
 
-func TestStateGetAttribute(t *testing.T) {
+func TestStateGetAttribute_primitive(t *testing.T) {
 	fooVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("foo"))
 	if err != nil {
 		t.Errorf("Error running GetAttribute for foo: %s", err)
@@ -143,7 +169,9 @@ func TestStateGetAttribute(t *testing.T) {
 	if foo.Value != "hello, world" {
 		t.Errorf("Expected Foo to be %q, got %q", "hello, world", foo.Value)
 	}
+}
 
+func TestStateGetAttribute_list(t *testing.T) {
 	barVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar"))
 	if err != nil {
 		t.Errorf("Error running GetAttribute for bar: %s", err)
@@ -223,5 +251,122 @@ func TestStateGetAttribute(t *testing.T) {
 	}
 	if bar2.Value != "green" {
 		t.Errorf("Expected bar[2] to be %q, got %q", "red", bar2.Value)
+	}
+}
+
+func TestStateGetAttribute_nestedlist(t *testing.T) {
+	disksVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("disks"))
+	if err != nil {
+		t.Errorf("Error running GetAttribute for foo: %s", err)
+	}
+
+	disks, ok := disksVal.(types.List)
+	if !ok {
+		t.Errorf("expected disks to have type List, but it was %T", disksVal)
+	}
+	if disks.Unknown {
+		t.Error("Expected disks to be known")
+	}
+	if disks.Null {
+		t.Errorf("Expected disks to be non-null")
+	}
+	if len(disks.Elems) != 2 {
+		t.Errorf("Expected disks to have 2 elements, had %d", len(disks.Elems))
+	}
+
+	disk0, ok := disks.Elems[0].(types.Object)
+	if !ok {
+		t.Errorf("expected disks[0] to have type Object, but it was %T", disks.Elems[0])
+	}
+	if disk0.Unknown {
+		t.Errorf("Expected disks[0] to be known")
+	}
+	if disk0.Null {
+		t.Errorf("expected disks[0] to be non-null")
+	}
+
+	disk0Id, ok := disk0.Attrs["id"].(types.String)
+	if !ok {
+		t.Errorf("expected disks[0].id to have type String, but it was %T", disk0.Attrs["id"])
+	}
+	if disk0Id.Unknown {
+		t.Errorf("expected disks[0].id to be known")
+	}
+	if disk0Id.Null {
+		t.Errorf("expected disks[0].id to be non-null")
+	}
+	if disk0Id.Value != "disk0" {
+		t.Errorf("expected disks[0].id to be %q, got %q", "disk0", disk0Id.Value)
+	}
+
+	disk1, ok := disks.Elems[1].(types.Object)
+	if !ok {
+		t.Errorf("expected disks[1] to have type Object, but it was %T", disks.Elems[1])
+	}
+	if disk1.Unknown {
+		t.Errorf("Expected disks[1] to be known")
+	}
+	if disk1.Null {
+		t.Errorf("expected disks[1] to be non-null")
+	}
+
+	disk1Id, ok := disk0.Attrs["id"].(types.String)
+	if !ok {
+		t.Errorf("expected disks[1].id to have type String, but it was %T", disk1.Attrs["id"])
+	}
+	if disk1Id.Unknown {
+		t.Errorf("expected disks[1].id to be known")
+	}
+	if disk1Id.Null {
+		t.Errorf("expected disks[1].id to be non-null")
+	}
+	if disk1Id.Value != "disk0" {
+		t.Errorf("expected disks[1].id to be %q, got %q", "disk0", disk1Id.Value)
+	}
+}
+
+func TestStateGetAttribute_nestedsingle(t *testing.T) {
+	bootDiskVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("boot_disk"))
+	if err != nil {
+		t.Errorf("Error running GetAttribute for foo: %s", err)
+	}
+
+	bootDisk, ok := bootDiskVal.(types.Object)
+	if !ok {
+		t.Errorf("expected boot_disk to have type Object, but it was %T", bootDiskVal)
+	}
+	if bootDisk.Unknown {
+		t.Error("expected bootDisk to be known")
+	}
+	if bootDisk.Null {
+		t.Errorf("expected bootDisk to be non-null")
+	}
+
+	bootDiskID, ok := bootDisk.Attrs["id"].(types.String)
+	if !ok {
+		t.Errorf("expected bootDisk.Attrs[\"id\"] to have type String, but it was %T", bootDisk.Attrs["id"])
+	}
+	if bootDiskID.Unknown {
+		t.Errorf("expected bootDisk.Attrs[\"id\"] to be known")
+	}
+	if bootDiskID.Null {
+		t.Errorf("expected bootDisk.Attrs[\"id\"] to be non-null")
+	}
+	if bootDiskID.Value != "bootdisk" {
+		t.Errorf("expected bootDisk.Attrs[\"id\"] to be %q, got %q", "bootdisk", bootDiskID.Value)
+	}
+
+	bootDiskDelete, ok := bootDisk.Attrs["delete_with_instance"].(types.Bool)
+	if !ok {
+		t.Errorf("expected bootDisk.Attrs[\"delete_with_instance\"] to have type Bool, but it was %T", bootDisk.Attrs["delete_with_instance"])
+	}
+	if bootDiskDelete.Unknown {
+		t.Errorf("expected bootDisk.Attrs[\"delete_with_instance\"] to be known")
+	}
+	if bootDiskDelete.Null {
+		t.Errorf("expected bootDisk.Attrs[\"delete_with_instance\"] to be non-null")
+	}
+	if bootDiskDelete.Value != true {
+		t.Errorf("expected bootDisk.Attrs[\"delete_with_instance\"] to be %t, got %t", true, bootDiskDelete.Value)
 	}
 }

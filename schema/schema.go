@@ -31,7 +31,12 @@ type Schema struct {
 func (s Schema) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	if v, ok := step.(tftypes.AttributeName); ok {
 		if attr, ok := s.Attributes[string(v)]; ok {
-			return attr.Type, nil
+			if attr.Type != nil {
+				return attr.Type, nil
+			}
+			if attr.Attributes != nil {
+				return attr.Attributes.AttributeType(), nil
+			}
 		}
 		return nil, fmt.Errorf("could not find attribute %q in schema", v)
 	}

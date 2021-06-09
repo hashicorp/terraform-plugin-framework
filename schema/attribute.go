@@ -1,10 +1,7 @@
 package schema
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Attribute defines the constraints and behaviors of a single field in a
@@ -64,17 +61,4 @@ type Attribute struct {
 	// using this attribute, warning them that it is deprecated and
 	// instructing them on what upgrade steps to take.
 	DeprecationMessage string
-}
-
-// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
-// attribute.
-func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	if a.Type != nil {
-		return a.Type.ApplyTerraform5AttributePathStep(step)
-	}
-	if a.Attributes != nil {
-		return a.Attributes.ApplyTerraform5AttributePathStep(step)
-	}
-
-	return nil, fmt.Errorf("could not apply step %T to Attribute, because it has no Type or Attributes set", step)
 }

@@ -35,6 +35,17 @@ func TestSchemaAttributeType(t *testing.T) {
 				Optional: true,
 				Computed: true,
 			},
+			"boot_disk": {
+				Attributes: SingleNestedAttributes(map[string]Attribute{
+					"id": {
+						Type:     types.StringType,
+						Required: true,
+					},
+					"delete_with_instance": {
+						Type: types.BoolType,
+					},
+				}),
+			},
 		},
 	}
 
@@ -50,6 +61,12 @@ func TestSchemaAttributeType(t *testing.T) {
 						"id":                   types.StringType,
 						"delete_with_instance": types.BoolType,
 					},
+				},
+			},
+			"boot_disk": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"id":                   types.StringType,
+					"delete_with_instance": types.BoolType,
 				},
 			},
 		},

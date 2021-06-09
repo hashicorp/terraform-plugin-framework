@@ -25,6 +25,10 @@ type Schema struct {
 	// changing an attribute type, that needs manual upgrade handling.
 	// Versions should only be incremented by one each release.
 	Version int64
+
+	DeprecationMessage  string
+	Description         string
+	MarkdownDescription string
 }
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the

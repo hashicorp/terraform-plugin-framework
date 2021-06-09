@@ -26,11 +26,18 @@ func Schema(ctx context.Context, s schema.Schema) (*tfprotov6.Schema, error) {
 		return nil, errors.New("must have at least one attribute in the schema")
 	}
 	result.Block = &tfprotov6.SchemaBlock{
-		// TODO: set Version?
-		// TODO: set Description?
-		// TODO: set DescriptionKind?
-		// TODO: set Deprecated?
+		// core doesn't do anything with version, as far as I can tell,
+		// so let's not set it.
 		Attributes: attrs,
+		Deprecated: s.DeprecationMessage != "",
+	}
+	if s.Description != "" {
+		result.Block.Description = s.Description
+		result.Block.DescriptionKind = tfprotov6.StringKindPlain
+	}
+	if s.MarkdownDescription != "" {
+		result.Block.Description = s.MarkdownDescription
+		result.Block.DescriptionKind = tfprotov6.StringKindMarkdown
 	}
 	return result, nil
 }

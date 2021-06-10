@@ -3,6 +3,7 @@ package reflect_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -26,6 +27,19 @@ func (u *unknownableString) GetUnknown(_ context.Context) bool {
 	return u.Unknown
 }
 
+func (u *unknownableString) SetValue(_ context.Context, value interface{}) error {
+	v, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("can't set type %T", value)
+	}
+	u.String = v
+	return nil
+}
+
+func (u *unknownableString) GetValue(_ context.Context) interface{} {
+	return u.Unknown
+}
+
 var _ refl.Unknownable = &unknownableString{}
 
 type unknownableStringError struct {
@@ -37,8 +51,21 @@ func (u *unknownableStringError) SetUnknown(_ context.Context, unknown bool) err
 	return errors.New("this is an error")
 }
 
+func (u *unknownableStringError) SetValue(_ context.Context, val interface{}) error {
+	v, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("can't set type %T", val)
+	}
+	u.String = v
+	return nil
+}
+
 func (u *unknownableStringError) GetUnknown(_ context.Context) bool {
 	return u.Unknown
+}
+
+func (u *unknownableStringError) GetValue(_ context.Context) interface{} {
+	return u.String
 }
 
 var _ refl.Unknownable = &unknownableStringError{}
@@ -55,8 +82,21 @@ func (n *nullableString) SetNull(_ context.Context, null bool) error {
 	return nil
 }
 
+func (n *nullableString) SetValue(_ context.Context, value interface{}) error {
+	val, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("can't set type %T", value)
+	}
+	n.String = val
+	return nil
+}
+
 func (n *nullableString) GetNull(_ context.Context) bool {
 	return n.Null
+}
+
+func (n *nullableString) GetValue(_ context.Context) interface{} {
+	return n.String
 }
 
 type nullableStringError struct {
@@ -68,8 +108,21 @@ func (n *nullableStringError) SetNull(_ context.Context, null bool) error {
 	return errors.New("this is an error")
 }
 
+func (n *nullableStringError) SetValue(_ context.Context, value interface{}) error {
+	v, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("can't set type %T", value)
+	}
+	n.String = v
+	return nil
+}
+
 func (n *nullableStringError) GetNull(_ context.Context) bool {
 	return n.Null
+}
+
+func (n *nullableStringError) GetValue(_ context.Context) interface{} {
+	return n.String
 }
 
 var _ refl.Nullable = &nullableStringError{}

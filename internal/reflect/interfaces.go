@@ -13,7 +13,9 @@ import (
 // unknown.
 type Unknownable interface {
 	SetUnknown(context.Context, bool) error
+	SetValue(context.Context, interface{}) error
 	GetUnknown(context.Context) bool
+	GetValue(context.Context) interface{}
 }
 
 // NewUnknownable creates a zero value of `target` (or the concrete type it's
@@ -37,12 +39,31 @@ func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, targe
 	return receiver, nil
 }
 
-// TODO: support FromUnknownable
+func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+	if val.GetUnknown(ctx) {
+		res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tftypes.UnknownValue))
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		return res, nil
+	}
+	err := tftypes.ValidateValue(typ.TerraformType(ctx), val.GetValue(ctx))
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx)))
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	return res, nil
+}
 
 // Nullable is an interface for types that can be explicitly set to null.
 type Nullable interface {
 	SetNull(context.Context, bool) error
+	SetValue(context.Context, interface{}) error
 	GetNull(context.Context) bool
+	GetValue(context.Context) interface{}
 }
 
 // NewNullable creates a zero value of `target` (or the concrete type it's
@@ -66,7 +87,24 @@ func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target r
 	return receiver, nil
 }
 
-// TODO: support FromNullable
+func FromNullable(ctx context.Context, typ attr.Type, val Nullable, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+	if val.GetNull(ctx) {
+		res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		return res, nil
+	}
+	err := tftypes.ValidateValue(typ.TerraformType(ctx), val.GetValue(ctx))
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx)))
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	return res, nil
+}
 
 // NewValueConverter creates a zero value of `target` (or the concrete type
 // it's referencing, if it's a pointer) and calls its FromTerraform5Value
@@ -87,7 +125,22 @@ func NewValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 	return receiver, nil
 }
 
-// TODO: support FromValueCreator
+func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreator, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+	raw, err := val.ToTerraform5Value()
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	err = tftypes.ValidateValue(typ.TerraformType(ctx), raw)
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	tfVal := tftypes.NewValue(typ.TerraformType(ctx), raw)
+	res, err := typ.ValueFromTerraform(ctx, tfVal)
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	return res, nil
+}
 
 // NewAttributeValue creates a new reflect.Value by calling the
 // ValueFromTerraform method on `typ`. It will return an error if the returned
@@ -105,4 +158,6 @@ func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 	return reflect.ValueOf(res), nil
 }
 
-// TODO: support FromAttributeValue
+func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+	return val, nil
+}

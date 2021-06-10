@@ -91,6 +91,16 @@ func (l ListType) Equal(o attr.Type) bool {
 	return l.ElemType.Equal(other.ElemType)
 }
 
+// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
+// list.
+func (l ListType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if _, ok := step.(tftypes.ElementKeyInt); !ok {
+		return nil, fmt.Errorf("cannot apply step %T to ListType", step)
+	}
+
+	return l.ElemType, nil
+}
+
 // List represents a list of AttributeValues, all of the same type, indicated
 // by ElemType.
 type List struct {
@@ -120,17 +130,9 @@ type List struct {
 func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) error {
 	// we need a tftypes.Value for this List to be able to use it with our
 	// reflection code
-	values := make([]tftypes.Value, 0, len(l.Elems))
-	for pos, elem := range l.Elems {
-		val, err := elem.ToTerraformValue(ctx)
-		if err != nil {
-			return fmt.Errorf("error getting Terraform value for element %d: %w", pos, err)
-		}
-		err = tftypes.ValidateValue(l.ElemType.TerraformType(ctx), val)
-		if err != nil {
-			return fmt.Errorf("error using created Terraform value for element %d: %w", pos, err)
-		}
-		values = append(values, tftypes.NewValue(l.ElemType.TerraformType(ctx), val))
+	values, err := l.ToTerraformValue(ctx)
+	if err != nil {
+		return err
 	}
 	return reflect.Into(ctx, ListType{ElemType: l.ElemType}, tftypes.NewValue(tftypes.List{
 		ElementType: l.ElemType.TerraformType(ctx),

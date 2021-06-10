@@ -1,6 +1,8 @@
 package schema
 
-import "github.com/hashicorp/terraform-plugin-framework/attr"
+import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+)
 
 // Attribute defines the constraints and behaviors of a single field in a
 // schema. Attributes are the fields that show up in Terraform state files and

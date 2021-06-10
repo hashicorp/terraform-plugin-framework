@@ -48,6 +48,14 @@ var testSchema = schema.Schema{
 				},
 			}),
 		},
+		"scratch_disk": {
+			Type: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"interface": types.StringType,
+				},
+			},
+			Optional: true,
+		},
 	},
 }
 
@@ -67,6 +75,11 @@ var testState = State{
 				ElementType: diskElementType,
 			},
 			"boot_disk": diskElementType,
+			"scratch_disk": tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"interface": tftypes.String,
+				},
+			},
 		},
 	}, map[string]tftypes.Value{
 		"foo": tftypes.NewValue(tftypes.String, "hello, world"),
@@ -93,6 +106,13 @@ var testState = State{
 			"id":                   tftypes.NewValue(tftypes.String, "bootdisk"),
 			"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
 		}),
+		"scratch_disk": tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"interface": tftypes.String,
+			},
+		}, map[string]tftypes.Value{
+			"interface": tftypes.NewValue(tftypes.String, "SCSI"),
+		}),
 	}),
 	Schema: testSchema,
 }
@@ -109,6 +129,9 @@ func TestStateGet(t *testing.T) {
 			ID                 string `tfsdk:"id"`
 			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
 		} `tfsdk:"boot_disk"`
+		ScratchDisk struct {
+			Interface string `tfsdk:"interface"`
+		} `tfsdk:"scratch_disk"`
 	}
 	var val myType
 	err := testState.Get(context.Background(), &val)
@@ -144,6 +167,11 @@ func TestStateGet(t *testing.T) {
 		}{
 			ID:                 "bootdisk",
 			DeleteWithInstance: true,
+		},
+		ScratchDisk: struct {
+			Interface string `tfsdk:"interface"`
+		}{
+			Interface: "SCSI",
 		},
 	}
 	if diff := cmp.Diff(val, expected); diff != "" {
@@ -368,5 +396,55 @@ func TestStateGetAttribute_nestedsingle(t *testing.T) {
 	}
 	if bootDiskDelete.Value != true {
 		t.Errorf("expected bootDisk.Attrs[\"delete_with_instance\"] to be %t, got %t", true, bootDiskDelete.Value)
+	}
+}
+
+func TestStateGetAttribute_object(t *testing.T) {
+	scratchDiskVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk"))
+	if err != nil {
+		t.Errorf("error running GetAttribute for scratch_disk: %s", err)
+	}
+	scratchDisk, ok := scratchDiskVal.(types.Object)
+	if !ok {
+		t.Errorf("expected scratchDisk to have type Object, but it was %T", scratchDiskVal)
+	}
+	if scratchDisk.Unknown {
+		t.Error("expected scratchDisk to be known")
+	}
+	if scratchDisk.Null {
+		t.Error("expected scratchDisk to be non-null")
+	}
+
+	scratchDiskInterface, ok := scratchDisk.Attrs["interface"].(types.String)
+	if !ok {
+		t.Errorf("expected scratchDisk[\"interface\"] to have type String, but it was %T", scratchDisk.Attrs["interface"])
+	}
+	if scratchDiskInterface.Unknown {
+		t.Error("expected scratchDiskInterface to be known")
+	}
+	if scratchDiskInterface.Null {
+		t.Error("expected scratchDiskInterface to be non-null")
+	}
+	if scratchDiskInterface.Value != "SCSI" {
+		t.Errorf("expected scratchDiskInterface to be %q, got %q", "SCSI", scratchDiskInterface.Value)
+	}
+
+	// now get the value directly
+	sdInterfaceVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"))
+	if err != nil {
+		t.Errorf("error running GetAttribute for scratch_disk.interface: %s", err)
+	}
+	sdInterface, ok := sdInterfaceVal.(types.String)
+	if !ok {
+		t.Errorf("expected scratchDiskInterface to have type String, but it was %T", sdInterfaceVal)
+	}
+	if sdInterface.Unknown {
+		t.Error("expected scratchDiskInterface to be known")
+	}
+	if sdInterface.Null {
+		t.Error("expected scratchDiskInterface to be non-null")
+	}
+	if sdInterface.Value != "SCSI" {
+		t.Errorf("expected scratchDiskInterface to be %q, got %q", "SCSI", sdInterface.Value)
 	}
 }

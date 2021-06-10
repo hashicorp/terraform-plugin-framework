@@ -104,11 +104,11 @@ func (o ObjectType) Equal(candidate attr.Type) bool {
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
 // object.
 func (o ObjectType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	if _, ok := step.(tftypes.ElementKeyString); !ok {
+	if _, ok := step.(tftypes.AttributeName); !ok {
 		return nil, fmt.Errorf("cannot apply step %T to ObjectType", step)
 	}
 
-	return o.AttrTypes[string(step.(tftypes.ElementKeyString))], nil
+	return o.AttrTypes[string(step.(tftypes.AttributeName))], nil
 }
 
 // Object represents an object

@@ -35,17 +35,17 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 		return nil, fmt.Errorf("error walking state: %w", err)
 	}
 
-	return attrType.ValueFromTerraform(ctx, *attrValue)
+	return attrType.ValueFromTerraform(ctx, attrValue)
 }
 
-func (s State) terraformValueAtPath(path *tftypes.AttributePath) (*tftypes.Value, error) {
+func (s State) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {
 	rawValue, remaining, err := tftypes.WalkAttributePath(s.Raw, path)
 	if err != nil {
-		return nil, fmt.Errorf("%v still remains in the path: %w", remaining, err)
+		return tftypes.Value{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
 	}
 	attrValue, ok := rawValue.(tftypes.Value)
 	if !ok {
-		return nil, fmt.Errorf("got non-tftypes.Value result %v", rawValue)
+		return tftypes.Value{}, fmt.Errorf("got non-tftypes.Value result %v", rawValue)
 	}
-	return &attrValue, err
+	return attrValue, err
 }

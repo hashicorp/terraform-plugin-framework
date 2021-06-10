@@ -190,13 +190,77 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 	return target, path.NewErrorf("can't convert number to %s", target.Type())
 }
 
-func reflectOutOfInteger(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
-	tfNum := tftypes.NewValue(tftypes.Number, val.Interface())
+func FromInt(ctx context.Context, val int64, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	err := tftypes.ValidateValue(tftypes.Number, val)
+	if err != nil {
+		return nil, nil, path.NewError(err)
+	}
+	tfNum := tftypes.NewValue(tftypes.Number, val)
 
-	num, err := opts.Integers.ValueFromTerraform(ctx, tfNum)
+	num, err := opts.Ints.ValueFromTerraform(ctx, tfNum)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return num, opts.Integers, nil
+	return num, opts.Ints, nil
+}
+
+func FromUint(ctx context.Context, val uint64, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	err := tftypes.ValidateValue(tftypes.Number, val)
+	if err != nil {
+		return nil, nil, path.NewError(err)
+	}
+	tfNum := tftypes.NewValue(tftypes.Number, val)
+
+	num, err := opts.Uints.ValueFromTerraform(ctx, tfNum)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return num, opts.Uints, nil
+}
+
+func FromFloat(ctx context.Context, val float64, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	err := tftypes.ValidateValue(tftypes.Number, val)
+	if err != nil {
+		return nil, nil, path.NewError(err)
+	}
+	tfNum := tftypes.NewValue(tftypes.Number, val)
+
+	num, err := opts.Floats.ValueFromTerraform(ctx, tfNum)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return num, opts.Floats, nil
+}
+
+func FromBigFloat(ctx context.Context, val *big.Float, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	err := tftypes.ValidateValue(tftypes.Number, val)
+	if err != nil {
+		return nil, nil, path.NewError(err)
+	}
+	tfNum := tftypes.NewValue(tftypes.Number, val)
+
+	num, err := opts.Floats.ValueFromTerraform(ctx, tfNum)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return num, opts.Floats, nil
+}
+
+func FromBigInt(ctx context.Context, val *big.Int, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	err := tftypes.ValidateValue(tftypes.Number, val)
+	if err != nil {
+		return nil, nil, path.NewError(err)
+	}
+	tfNum := tftypes.NewValue(tftypes.Number, val)
+
+	num, err := opts.Ints.ValueFromTerraform(ctx, tfNum)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return num, opts.Ints, nil
 }

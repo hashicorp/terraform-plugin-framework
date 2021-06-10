@@ -33,18 +33,26 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 	}
 }
 
-func reflectOutOfString(ctx context.Context, val string, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+func FromString(ctx context.Context, val string, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	err := tftypes.ValidateValue(tftypes.String, val)
+	if err != nil {
+		return nil, nil, path.NewError(err)
+	}
 	tfStr := tftypes.NewValue(tftypes.String, val)
 
 	str, err := opts.Strings.ValueFromTerraform(ctx, tfStr)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, path.NewError(err)
 	}
 
 	return str, opts.Strings, nil
 }
 
-func reflectOutOfBool(ctx context.Context, val bool, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+func FromBool(ctx context.Context, val bool, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	err := tftypes.ValidateValue(tftypes.Bool, val)
+	if err != nil {
+		return nil, nil, path.NewError(err)
+	}
 	tfBool := tftypes.NewValue(tftypes.Bool, val)
 
 	b, err := opts.Bools.ValueFromTerraform(ctx, tfBool)

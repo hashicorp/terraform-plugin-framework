@@ -58,3 +58,7 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 
 	return slice, nil
 }
+
+func FromSlice(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.TypeWithElementType, error) {
+	return nil, nil, nil
+}

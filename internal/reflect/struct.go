@@ -2,7 +2,6 @@ package reflect
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -97,67 +96,38 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	return result, nil
 }
 
-func reflectObjectOutOfStruct(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.TypeWithAttributeTypes, error) {
-	typ := trueReflectValue(val).Type()
-
+func FromStruct(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.TypeWithAttributeTypes, error) {
 	objTypes := map[string]tftypes.Type{}
 	attrTypes := map[string]attr.Type{}
 	objValues := map[string]tftypes.Value{}
-	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
-		if field.PkgPath != "" {
-			// skip unexported fields
-			continue
-		}
-		tag := field.Tag.Get(`tfsdk`)
-		if tag == "-" {
-			// skip explicitly excluded fields
-			continue
-		}
-		if tag == "" {
-			return nil, nil, path.NewErrorf(`need a struct tag for "tfsdk" on %s`, field.Name)
-		}
-		path := path.WithAttributeName(tag)
-		if !isValidFieldName(tag) {
-			return nil, nil, path.NewError(errors.New("invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter"))
-		}
 
-		fieldValue := trueReflectValue(val).Field(i)
+	// collect a map of fields that are defined in the tags of the struct
+	// passed in
+	targetFields, err := getStructTags(ctx, val, path)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error retrieving field names from struct tags: %w", err)
+	}
 
-		var attrVal attr.Value
-		var attrType attr.Type
-		var err error
-		switch field.Type.Kind() {
-		case reflect.String:
-			attrVal, attrType, err = reflectOutOfString(ctx, fieldValue.Interface().(string), opts, path)
-			if err != nil {
-				return nil, nil, path.NewErrorf("error when reflecting field %s: %s", tag, err)
-			}
-			attrTypes[tag] = attrType
-			objTypes[tag] = attrType.TerraformType(ctx)
+	for name, fieldNo := range targetFields {
+		path := path.WithAttributeName(name)
+		fieldValue := val.Field(fieldNo)
 
-			tfVal, err := attrVal.ToTerraformValue(ctx)
-			if err != nil {
-				return nil, nil, path.NewErrorf("error when reflecting field %s: %s", tag, err)
-			}
-			objValues[tag] = tftypes.NewValue(objTypes[tag], tfVal)
-		case reflect.Struct:
-			attrVal, attrType, err = reflectObjectOutOfStruct(ctx, fieldValue, opts, path)
-			if err != nil {
-				return nil, nil, path.NewErrorf("error when recursing into field %s: %s", tag, err)
-			}
-
-			attrTypes[tag] = attrType
-			objTypes[tag] = attrType.TerraformType(ctx)
-		default:
-			return nil, nil, path.NewErrorf("don't know how to reflect %s", field.Type.Kind())
+		attrVal, attrType, err := OutOf(ctx, fieldValue.Interface(), opts, path)
+		if err != nil {
+			return nil, nil, err
 		}
+		attrTypes[name] = attrType
+		objTypes[name] = attrType.TerraformType(ctx)
 
 		tfVal, err := attrVal.ToTerraformValue(ctx)
 		if err != nil {
-			return nil, nil, path.NewErrorf("error when reflecting field %s: %s", tag, err)
+			return nil, nil, path.NewError(err)
 		}
-		objValues[tag] = tftypes.NewValue(objTypes[tag], tfVal)
+		err = tftypes.ValidateValue(objTypes[name], tfVal)
+		if err != nil {
+			return nil, nil, path.NewError(err)
+		}
+		objValues[name] = tftypes.NewValue(objTypes[name], tfVal)
 	}
 
 	tfVal := tftypes.NewValue(tftypes.Object{

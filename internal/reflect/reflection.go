@@ -143,40 +143,45 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 // OutOf is the inverse of Into, taking a Go value (val) and transforming it
 // into an (attr.Value, attr.Type) pair. Each Go type present in val must have
 // an appropriate attr.Type supplied via opts.
-func OutOf(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
-	kind := trueReflectValue(val).Type().Kind()
-	if _, ok := trueReflectValue(val).Interface().(big.Float); ok {
-		// cheat, pretend *big.Float is a float64 so it gets reflected
-		// as a number
-		kind = reflect.Float64
-	} else if _, ok := trueReflectValue(val).Interface().(big.Int); ok {
-		// cheat, pretend *big.Int is an int64 so it gets reflected as
-		// a number
-		kind = reflect.Int64
+func OutOf(ctx context.Context, val interface{}, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+	if bf, ok := val.(*big.Float); ok {
+		return FromBigFloat(ctx, bf, opts, path)
+	} else if bi, ok := val.(*big.Int); ok {
+		return FromBigInt(ctx, bi, opts, path)
 	}
+	value := reflect.ValueOf(val)
+	kind := value.Kind()
 	switch kind {
 	case reflect.Struct:
-		return reflectObjectOutOfStruct(ctx, val, opts, path)
-	case reflect.Int, reflect.Int8, reflect.Int16,
-		reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8,
-		reflect.Uint16, reflect.Uint32:
-		return reflectOutOfInteger(ctx, val, opts, path)
+		return FromStruct(ctx, value, opts, path)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
+		reflect.Int64:
+		return FromInt(ctx, value.Int(), opts, path)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
+		reflect.Uint64:
+		return FromUint(ctx, value.Uint(), opts, path)
+	case reflect.Float32, reflect.Float64:
+		return FromFloat(ctx, value.Float(), opts, path)
 	case reflect.Bool:
-		return reflectOutOfBool(ctx, val.Interface().(bool), opts, path)
+		return FromBool(ctx, value.Bool(), opts, path)
 	case reflect.String:
-		return reflectOutOfString(ctx, val.Interface().(string), opts, path)
-	// case reflect.Slice:
+		return FromString(ctx, value.String(), opts, path)
+	case reflect.Slice:
+		return FromSlice(ctx, value, opts, path)
+	case reflect.Map:
+		return FromMap(ctx, value, opts, path)
 	default:
-		return nil, nil, path.NewErrorf("don't know how to reflect %s of type %T", val, kind)
+		return nil, nil, path.NewErrorf("don't know how to reflect type %T (%s)", val, kind)
 	}
 }
 
 type OutOfOptions struct {
-	Structs  attr.TypeWithAttributeTypes
-	Slices   attr.Type
-	Strings  attr.Type
-	Integers attr.Type
-	Floats   attr.Type
-	Bools    attr.Type
+	Structs attr.TypeWithAttributeTypes
+	Slices  attr.TypeWithElementType
+	Strings attr.Type
+	Ints    attr.Type
+	Uints   attr.Type
+	Floats  attr.Type
+	Bools   attr.Type
 	// etc
 }

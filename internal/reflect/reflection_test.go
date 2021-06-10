@@ -42,7 +42,7 @@ func TestOutOfString(t *testing.T) {
 	expectedVal := types.String{
 		Value: "mystring",
 	}
-	actualVal, actualType, err := refl.OutOf(context.Background(), reflect.ValueOf("mystring"), refl.OutOfOptions{
+	actualVal, actualType, err := refl.OutOf(context.Background(), "mystring", refl.OutOfOptions{
 		Strings: types.StringType,
 	}, tftypes.NewAttributePath())
 	if err != nil {
@@ -66,7 +66,7 @@ func TestOutOfStruct(t *testing.T) {
 		Name: "myfirstdisk",
 	}
 
-	actualVal, actualType, err := refl.OutOf(context.Background(), reflect.ValueOf(disk1), refl.OutOfOptions{
+	actualVal, actualType, err := refl.OutOf(context.Background(), disk1, refl.OutOfOptions{
 		Structs: types.ObjectType{},
 		Strings: types.StringType,
 	}, tftypes.NewAttributePath())
@@ -100,17 +100,17 @@ func TestOutOfStruct(t *testing.T) {
 func TestOutOfBool(t *testing.T) {
 	// the rare exhaustive test
 	cases := []struct {
-		val         reflect.Value
+		val         interface{}
 		expectedVal attr.Value
 	}{
 		{
-			reflect.ValueOf(true),
+			true,
 			types.Bool{
 				Value: true,
 			},
 		},
 		{
-			reflect.ValueOf(false),
+			false,
 			types.Bool{
 				Value: false,
 			},
@@ -135,34 +135,21 @@ func TestOutOfBool(t *testing.T) {
 	}
 }
 
-func TestOutOfInteger(t *testing.T) {
+func TestOutOfInt(t *testing.T) {
 	cases := []struct {
-		val         reflect.Value
+		val         interface{}
 		expectedVal attr.Value
 	}{
 		{
-			reflect.ValueOf(0),
-
+			0,
 			types.Number{
 				Value: big.NewFloat(0),
 			},
 		},
 		{
-			reflect.ValueOf(1),
+			1,
 			types.Number{
 				Value: big.NewFloat(1),
-			},
-		},
-		{
-			reflect.ValueOf(big.MaxExp),
-			types.Number{
-				Value: big.NewFloat(big.MaxExp),
-			},
-		},
-		{
-			reflect.ValueOf(big.MinExp),
-			types.Number{
-				Value: big.NewFloat(big.MinExp),
 			},
 		},
 	}
@@ -170,7 +157,7 @@ func TestOutOfInteger(t *testing.T) {
 	expectedType := types.NumberType
 
 	for _, tc := range cases {
-		actualVal, actualType, err := refl.OutOf(context.Background(), tc.val, refl.OutOfOptions{Integers: types.NumberType}, tftypes.NewAttributePath())
+		actualVal, actualType, err := refl.OutOf(context.Background(), tc.val, refl.OutOfOptions{Ints: types.NumberType}, tftypes.NewAttributePath())
 		if err != nil {
 			t.Fatal(err)
 		}

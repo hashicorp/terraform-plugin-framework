@@ -59,3 +59,7 @@ func reflectMap(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	}
 	return m, nil
 }
+
+func FromMap(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.TypeWithElementType, error) {
+	return nil, nil, nil
+}

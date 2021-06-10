@@ -392,3 +392,35 @@ func TestStruct_complex(t *testing.T) {
 		t.Errorf("Didn't get expected value. Diff (+ is expected, - is result): %s", diff)
 	}
 }
+
+func TestFromStruct(t *testing.T) {
+	type disk struct {
+		Name string `tfsdk:"name"`
+		// bool
+	}
+	disk1 := disk{
+		Name: "myfirstdisk",
+	}
+
+	actualVal, err := refl.FromStruct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"name": types.StringType,
+		},
+	}, reflect.ValueOf(disk1), refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedVal := types.Object{
+		Attrs: map[string]attr.Value{
+			"name": types.String{Value: "myfirstdisk"},
+		},
+		AttrTypes: map[string]attr.Type{
+			"name": types.StringType,
+		},
+	}
+
+	if diff := cmp.Diff(expectedVal, actualVal); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}

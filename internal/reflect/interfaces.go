@@ -9,17 +9,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// SetUnknownable is an interface for types that can be explicitly set to known
-// or unknown.
-type SetUnknownable interface {
+// Unknownable is an interface for types that can be explicitly set to known or
+// unknown.
+type Unknownable interface {
 	SetUnknown(context.Context, bool) error
+	GetUnknown(context.Context) bool
 }
 
-// Unknownable creates a zero value of `target` (or the concrete type it's
+// NewUnknownable creates a zero value of `target` (or the concrete type it's
 // referencing, if it's a pointer) and calls its SetUnknown method.
 //
 // It is meant to be called through Into, not directly.
-func Unknownable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("SetUnknown")
 	if !method.IsValid() {
@@ -36,16 +37,19 @@ func Unknownable(ctx context.Context, typ attr.Type, val tftypes.Value, target r
 	return receiver, nil
 }
 
-// SetNullable is an interface for types that can be explicitly set to null.
-type SetNullable interface {
+// TODO: support FromUnknownable
+
+// Nullable is an interface for types that can be explicitly set to null.
+type Nullable interface {
 	SetNull(context.Context, bool) error
+	GetNull(context.Context) bool
 }
 
-// Nullable creates a zero value of `target` (or the concrete type it's
+// NewNullable creates a zero value of `target` (or the concrete type it's
 // referencing, if it's a pointer) and calls its SetNull method.
 //
 // It is meant to be called through Into, not directly.
-func Nullable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("SetNull")
 	if !method.IsValid() {
@@ -62,11 +66,14 @@ func Nullable(ctx context.Context, typ attr.Type, val tftypes.Value, target refl
 	return receiver, nil
 }
 
-// ValueConverter creates a zero value of `target` (or the concrete type it's
-// referencing, if it's a pointer) and calls its FromTerraform5Value method.
+// TODO: support FromNullable
+
+// NewValueConverter creates a zero value of `target` (or the concrete type
+// it's referencing, if it's a pointer) and calls its FromTerraform5Value
+// method.
 //
 // It is meant to be called through Into, not directly.
-func ValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+func NewValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("FromTerraform5Value")
 	if !method.IsValid() {
@@ -80,12 +87,14 @@ func ValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, targe
 	return receiver, nil
 }
 
-// AttributeValue creates a new reflect.Value by calling the ValueFromTerraform
-// method on `typ`. It will return an error if the returned `attr.Value` is not
-// the same type as `target`.
+// TODO: support FromValueCreator
+
+// NewAttributeValue creates a new reflect.Value by calling the
+// ValueFromTerraform method on `typ`. It will return an error if the returned
+// `attr.Value` is not the same type as `target`.
 //
 // It is meant to be called through Into, not directly.
-func AttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	res, err := typ.ValueFromTerraform(ctx, val)
 	if err != nil {
 		return target, err
@@ -95,3 +104,5 @@ func AttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, targe
 	}
 	return reflect.ValueOf(res), nil
 }
+
+// TODO: support FromAttributeValue

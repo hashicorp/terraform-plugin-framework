@@ -96,36 +96,36 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	return result, nil
 }
 
-func FromStruct(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.TypeWithAttributeTypes, error) {
+func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
 	objTypes := map[string]tftypes.Type{}
-	attrTypes := map[string]attr.Type{}
 	objValues := map[string]tftypes.Value{}
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
 	targetFields, err := getStructTags(ctx, val, path)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error retrieving field names from struct tags: %w", err)
+		return nil, fmt.Errorf("error retrieving field names from struct tags: %w", err)
 	}
 
+	attrTypes := typ.AttributeTypes()
 	for name, fieldNo := range targetFields {
 		path := path.WithAttributeName(name)
 		fieldValue := val.Field(fieldNo)
 
-		attrVal, attrType, err := OutOf(ctx, fieldValue.Interface(), opts, path)
+		attrVal, err := FromValue(ctx, attrTypes[name], fieldValue.Interface(), opts, path)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		attrTypes[name] = attrType
-		objTypes[name] = attrType.TerraformType(ctx)
+
+		objTypes[name] = attrTypes[name].TerraformType(ctx)
 
 		tfVal, err := attrVal.ToTerraformValue(ctx)
 		if err != nil {
-			return nil, nil, path.NewError(err)
+			return nil, path.NewError(err)
 		}
 		err = tftypes.ValidateValue(objTypes[name], tfVal)
 		if err != nil {
-			return nil, nil, path.NewError(err)
+			return nil, path.NewError(err)
 		}
 		objValues[name] = tftypes.NewValue(objTypes[name], tfVal)
 	}
@@ -134,11 +134,11 @@ func FromStruct(ctx context.Context, val reflect.Value, opts OutOfOptions, path 
 		AttributeTypes: objTypes,
 	}, objValues)
 
-	retType := opts.Structs.WithAttributeTypes(attrTypes)
+	retType := typ.WithAttributeTypes(attrTypes)
 	ret, err := retType.ValueFromTerraform(ctx, tfVal)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return ret, retType, nil
+	return ret, nil
 }

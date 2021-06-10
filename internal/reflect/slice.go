@@ -59,6 +59,35 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 	return slice, nil
 }
 
-func FromSlice(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.TypeWithElementType, error) {
-	return nil, nil, nil
+func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+	// TODO: support tuples, which are attr.TypeWithElementTypes
+
+	if val.Interface() == nil {
+		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+	}
+
+	t := typ.(attr.TypeWithElementType)
+
+	elemType := t.ElementType()
+	tfElems := make([]tftypes.Value, 0, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		val, err := FromValue(ctx, elemType, val.Index(i), opts, path.WithElementKeyInt(int64(i)))
+		if err != nil {
+			return nil, err
+		}
+		tfVal, err := val.ToTerraformValue(ctx)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		err = tftypes.ValidateValue(elemType.TerraformType(ctx), tfVal)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		tfElems = append(tfElems, tftypes.NewValue(elemType.TerraformType(ctx), tfVal))
+	}
+	err := tftypes.ValidateValue(typ.TerraformType(ctx), tfElems)
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tfElems))
 }

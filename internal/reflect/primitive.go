@@ -33,32 +33,32 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 	}
 }
 
-func FromString(ctx context.Context, val string, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+func FromString(ctx context.Context, typ attr.Type, val string, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.String, val)
 	if err != nil {
-		return nil, nil, path.NewError(err)
+		return nil, path.NewError(err)
 	}
 	tfStr := tftypes.NewValue(tftypes.String, val)
 
-	str, err := opts.Strings.ValueFromTerraform(ctx, tfStr)
+	str, err := typ.ValueFromTerraform(ctx, tfStr)
 	if err != nil {
-		return nil, nil, path.NewError(err)
+		return nil, path.NewError(err)
 	}
 
-	return str, opts.Strings, nil
+	return str, nil
 }
 
-func FromBool(ctx context.Context, val bool, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
+func FromBool(ctx context.Context, typ attr.Type, val bool, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.Bool, val)
 	if err != nil {
-		return nil, nil, path.NewError(err)
+		return nil, path.NewError(err)
 	}
 	tfBool := tftypes.NewValue(tftypes.Bool, val)
 
-	b, err := opts.Bools.ValueFromTerraform(ctx, tfBool)
+	b, err := typ.ValueFromTerraform(ctx, tfBool)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return b, opts.Bools, nil
+	return b, nil
 }

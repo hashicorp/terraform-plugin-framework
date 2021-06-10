@@ -47,17 +47,17 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	}
 	// if this is an attr.Value, build the type from that
 	if target.Type().Implements(reflect.TypeOf((*attr.Value)(nil)).Elem()) {
-		return AttributeValue(ctx, typ, val, target, opts, path)
+		return NewAttributeValue(ctx, typ, val, target, opts, path)
 	}
 	// if this tells tftypes how to build an instance of it out of a
 	// tftypes.Value, well, that's what we want, so do that instead of our
 	// default logic.
 	if target.Type().Implements(reflect.TypeOf((*tftypes.ValueConverter)(nil)).Elem()) {
-		return ValueConverter(ctx, typ, val, target, opts, path)
+		return NewValueConverter(ctx, typ, val, target, opts, path)
 	}
 	// if this can explicitly be set to unknown, do that
-	if target.Type().Implements(reflect.TypeOf((*SetUnknownable)(nil)).Elem()) {
-		res, err := Unknownable(ctx, typ, val, target, opts, path)
+	if target.Type().Implements(reflect.TypeOf((*Unknownable)(nil)).Elem()) {
+		res, err := NewUnknownable(ctx, typ, val, target, opts, path)
 		if err != nil {
 			return target, err
 		}
@@ -70,8 +70,8 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		}
 	}
 	// if this can explicitly be set to null, do that
-	if target.Type().Implements(reflect.TypeOf((*SetNullable)(nil)).Elem()) {
-		res, err := Nullable(ctx, typ, val, target, opts, path)
+	if target.Type().Implements(reflect.TypeOf((*Nullable)(nil)).Elem()) {
+		res, err := NewNullable(ctx, typ, val, target, opts, path)
 		if err != nil {
 			return target, err
 		}
@@ -138,50 +138,4 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	default:
 		return target, path.NewErrorf("don't know how to reflect %s into %s", val.Type(), target.Type())
 	}
-}
-
-// OutOf is the inverse of Into, taking a Go value (val) and transforming it
-// into an (attr.Value, attr.Type) pair. Each Go type present in val must have
-// an appropriate attr.Type supplied via opts.
-func OutOf(ctx context.Context, val interface{}, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.Type, error) {
-	if bf, ok := val.(*big.Float); ok {
-		return FromBigFloat(ctx, bf, opts, path)
-	} else if bi, ok := val.(*big.Int); ok {
-		return FromBigInt(ctx, bi, opts, path)
-	}
-	value := reflect.ValueOf(val)
-	kind := value.Kind()
-	switch kind {
-	case reflect.Struct:
-		return FromStruct(ctx, value, opts, path)
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
-		reflect.Int64:
-		return FromInt(ctx, value.Int(), opts, path)
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
-		reflect.Uint64:
-		return FromUint(ctx, value.Uint(), opts, path)
-	case reflect.Float32, reflect.Float64:
-		return FromFloat(ctx, value.Float(), opts, path)
-	case reflect.Bool:
-		return FromBool(ctx, value.Bool(), opts, path)
-	case reflect.String:
-		return FromString(ctx, value.String(), opts, path)
-	case reflect.Slice:
-		return FromSlice(ctx, value, opts, path)
-	case reflect.Map:
-		return FromMap(ctx, value, opts, path)
-	default:
-		return nil, nil, path.NewErrorf("don't know how to reflect type %T (%s)", val, kind)
-	}
-}
-
-type OutOfOptions struct {
-	Structs attr.TypeWithAttributeTypes
-	Slices  attr.TypeWithElementType
-	Strings attr.Type
-	Ints    attr.Type
-	Uints   attr.Type
-	Floats  attr.Type
-	Bools   attr.Type
-	// etc
 }

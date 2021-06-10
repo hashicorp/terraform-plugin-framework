@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -1059,5 +1060,224 @@ func TestNumber_float64UnderflowNegativeError(t *testing.T) {
 	}
 	if expected := ": can't store -1e-1000 in float64"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
+	}
+}
+
+func TestFromInt(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		val         int64
+		typ         attr.Type
+		expected    attr.Value
+		expectedErr string
+	}{
+		"0": {
+			val: 0,
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(0),
+			},
+		},
+		"1": {
+			val: 1,
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			actualVal, err := refl.FromInt(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !tc.expected.Equal(actualVal) {
+				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
+			}
+		})
+	}
+}
+
+func TestFromUint(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		val         uint64
+		typ         attr.Type
+		expected    attr.Value
+		expectedErr string
+	}{
+		"0": {
+			val: 0,
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(0),
+			},
+		},
+		"1": {
+			val: 1,
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			actualVal, err := refl.FromUint(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !tc.expected.Equal(actualVal) {
+				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
+			}
+		})
+	}
+}
+
+func TestFromFloat(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		val         float64
+		typ         attr.Type
+		expected    attr.Value
+		expectedErr string
+	}{
+		"0": {
+			val: 0,
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(0),
+			},
+		},
+		"1": {
+			val: 1,
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+		},
+		"1.234": {
+			val: 1.234,
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(1.234),
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			actualVal, err := refl.FromFloat(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !tc.expected.Equal(actualVal) {
+				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
+			}
+		})
+	}
+}
+
+func TestFromBigFloat(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		val         *big.Float
+		typ         attr.Type
+		expected    attr.Value
+		expectedErr string
+	}{
+		"0": {
+			val: big.NewFloat(0),
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(0),
+			},
+		},
+		"1": {
+			val: big.NewFloat(1),
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+		},
+		"1.234": {
+			val: big.NewFloat(1.234),
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(1.234),
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			actualVal, err := refl.FromBigFloat(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !tc.expected.Equal(actualVal) {
+				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
+			}
+		})
+	}
+}
+
+func TestFromBigInt(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		val         *big.Int
+		typ         attr.Type
+		expected    attr.Value
+		expectedErr string
+	}{
+		"0": {
+			val: big.NewInt(0),
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(0),
+			},
+		},
+		"1": {
+			val: big.NewInt(1),
+			typ: types.NumberType,
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			actualVal, err := refl.FromBigInt(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !tc.expected.Equal(actualVal) {
+				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
+			}
+		})
 	}
 }

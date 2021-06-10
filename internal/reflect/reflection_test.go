@@ -2,11 +2,9 @@ package reflect_test
 
 import (
 	"context"
-	"math/big"
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -38,6 +36,7 @@ func TestBuildValue_unhandledUnknown(t *testing.T) {
 	}
 }
 
+/*
 func TestOutOfString(t *testing.T) {
 	expectedVal := types.String{
 		Value: "mystring",
@@ -134,40 +133,4 @@ func TestOutOfBool(t *testing.T) {
 		}
 	}
 }
-
-func TestOutOfInt(t *testing.T) {
-	cases := []struct {
-		val         interface{}
-		expectedVal attr.Value
-	}{
-		{
-			0,
-			types.Number{
-				Value: big.NewFloat(0),
-			},
-		},
-		{
-			1,
-			types.Number{
-				Value: big.NewFloat(1),
-			},
-		},
-	}
-
-	expectedType := types.NumberType
-
-	for _, tc := range cases {
-		actualVal, actualType, err := refl.OutOf(context.Background(), tc.val, refl.OutOfOptions{Ints: types.NumberType}, tftypes.NewAttributePath())
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if !tc.expectedVal.Equal(actualVal) {
-			t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expectedVal)
-		}
-
-		if !reflect.DeepEqual(expectedType, actualType) {
-			t.Fatalf("fail: got %+v, wanted %+v", actualType, expectedType)
-		}
-	}
-}
+*/

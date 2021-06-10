@@ -22,7 +22,11 @@ func (u *unknownableString) SetUnknown(_ context.Context, unknown bool) error {
 	return nil
 }
 
-var _ refl.SetUnknownable = &unknownableString{}
+func (u *unknownableString) GetUnknown(_ context.Context) bool {
+	return u.Unknown
+}
+
+var _ refl.Unknownable = &unknownableString{}
 
 type unknownableStringError struct {
 	String  string
@@ -33,18 +37,26 @@ func (u *unknownableStringError) SetUnknown(_ context.Context, unknown bool) err
 	return errors.New("this is an error")
 }
 
-var _ refl.SetUnknownable = &unknownableStringError{}
+func (u *unknownableStringError) GetUnknown(_ context.Context) bool {
+	return u.Unknown
+}
+
+var _ refl.Unknownable = &unknownableStringError{}
 
 type nullableString struct {
 	String string
 	Null   bool
 }
 
-var _ refl.SetNullable = &nullableString{}
+var _ refl.Nullable = &nullableString{}
 
 func (n *nullableString) SetNull(_ context.Context, null bool) error {
 	n.Null = null
 	return nil
+}
+
+func (n *nullableString) GetNull(_ context.Context) bool {
+	return n.Null
 }
 
 type nullableStringError struct {
@@ -56,7 +68,11 @@ func (n *nullableStringError) SetNull(_ context.Context, null bool) error {
 	return errors.New("this is an error")
 }
 
-var _ refl.SetNullable = &nullableStringError{}
+func (n *nullableStringError) GetNull(_ context.Context) bool {
+	return n.Null
+}
+
+var _ refl.Nullable = &nullableStringError{}
 
 type valueConverter struct {
 	value   string
@@ -116,7 +132,7 @@ func TestUnknownable_known(t *testing.T) {
 	unknownable := &unknownableString{
 		Unknown: true,
 	}
-	res, err := refl.Unknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -130,7 +146,7 @@ func TestUnknownable_unknown(t *testing.T) {
 	t.Parallel()
 
 	var unknownable *unknownableString
-	res, err := refl.Unknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -144,7 +160,7 @@ func TestUnknownable_error(t *testing.T) {
 	t.Parallel()
 
 	var unknownable *unknownableStringError
-	_, err := refl.Unknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
+	_, err := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
 	if expected := ": this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
 	}
@@ -156,7 +172,7 @@ func TestNullable_notNull(t *testing.T) {
 	nullable := &nullableString{
 		Null: true,
 	}
-	res, err := refl.Nullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -170,7 +186,7 @@ func TestNullable_null(t *testing.T) {
 	t.Parallel()
 
 	var nullable *nullableString
-	res, err := refl.Nullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -184,7 +200,7 @@ func TestNullable_error(t *testing.T) {
 	t.Parallel()
 
 	var nullable *nullableStringError
-	_, err := refl.Nullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
+	_, err := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
 	if expected := ": this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
 	}
@@ -194,7 +210,7 @@ func TestAttributeValue_unknown(t *testing.T) {
 	t.Parallel()
 
 	var av types.String
-	res, err := refl.AttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewAttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -209,7 +225,7 @@ func TestAttributeValue_null(t *testing.T) {
 	t.Parallel()
 
 	var av types.String
-	res, err := refl.AttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewAttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -224,7 +240,7 @@ func TestAttributeValue_value(t *testing.T) {
 	t.Parallel()
 
 	var av types.String
-	res, err := refl.AttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewAttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -239,7 +255,7 @@ func TestValueConverter_unknown(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverter
-	res, err := refl.ValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -254,7 +270,7 @@ func TestValueConverter_null(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverter
-	res, err := refl.ValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -269,7 +285,7 @@ func TestValueConverter_value(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverter
-	res, err := refl.ValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
+	res, err := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}
@@ -284,7 +300,7 @@ func TestValueConverter_error(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverterError
-	_, err := refl.ValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
+	_, err := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
 	if expected := ": this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
 	}

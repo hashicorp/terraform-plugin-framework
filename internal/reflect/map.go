@@ -60,6 +60,33 @@ func reflectMap(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	return m, nil
 }
 
-func FromMap(ctx context.Context, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, attr.TypeWithElementType, error) {
-	return nil, nil, nil
+func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+	if val.Interface() == nil {
+		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+	}
+	elemType := typ.ElementType()
+	tfElems := map[string]tftypes.Value{}
+	for _, key := range val.MapKeys() {
+		if key.Kind() != reflect.String {
+			return nil, path.NewErrorf("map keys must be strings, got %s", key.Type())
+		}
+		val, err := FromValue(ctx, elemType, val.MapIndex(key), opts, path.WithElementKeyString(key.String()))
+		if err != nil {
+			return nil, err
+		}
+		tfVal, err := val.ToTerraformValue(ctx)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		err = tftypes.ValidateValue(elemType.TerraformType(ctx), tfVal)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		tfElems[key.String()] = tftypes.NewValue(elemType.TerraformType(ctx), tfVal)
+	}
+	err := tftypes.ValidateValue(typ.TerraformType(ctx), tfElems)
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tfElems))
 }

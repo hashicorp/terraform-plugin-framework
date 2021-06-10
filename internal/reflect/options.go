@@ -18,3 +18,6 @@ type Options struct {
 	// returning errors. Numbers will always be rounded towards 0.
 	AllowRoundingNumbers bool
 }
+
+type OutOfOptions struct {
+}

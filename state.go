@@ -44,7 +44,7 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 func (s *State) Set(ctx context.Context, val interface{}) error {
 	newStateAttrValue, err := reflect.OutOf(ctx, s.Schema.AttributeType(), val)
 	if err != nil {
-		return fmt.Errorf("error setting state: %w", err)
+		return fmt.Errorf("error creating new state value: %w", err)
 	}
 
 	newStateVal, err := newStateAttrValue.ToTerraformValue(ctx)
@@ -59,7 +59,34 @@ func (s *State) Set(ctx context.Context, val interface{}) error {
 }
 
 // SetAttribute sets the attribute at `path` using the supplied Go value.
-func (s State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, val interface{}) error {
+func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, val interface{}) error {
+	attrType, err := s.Schema.AttributeTypeAtPath(path)
+	if err != nil {
+		return fmt.Errorf("error getting attribute type at path %s in schema: %w", path, err)
+	}
+
+	newVal, err := reflect.OutOf(ctx, attrType, val)
+	if err != nil {
+		return fmt.Errorf("error creating new state value: %w", err)
+	}
+
+	newTfVal, err := newVal.ToTerraformValue(ctx)
+	if err != nil {
+		return fmt.Errorf("error running ToTerraformValue on new state value: %w", err)
+	}
+
+	transformFunc := func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
+		if p.Equal(path) {
+			return tftypes.NewValue(attrType.TerraformType(ctx), newTfVal), nil
+		}
+		return v, nil
+	}
+
+	s.Raw, err = tftypes.Transform(s.Raw, transformFunc)
+	if err != nil {
+		return fmt.Errorf("error setting attribute in state: %w", err)
+	}
+
 	return nil
 }
 

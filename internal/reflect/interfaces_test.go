@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -37,7 +38,7 @@ func (u *unknownableString) SetValue(_ context.Context, value interface{}) error
 }
 
 func (u *unknownableString) GetValue(_ context.Context) interface{} {
-	return u.Unknown
+	return u.String
 }
 
 var _ refl.Unknownable = &unknownableString{}
@@ -179,7 +180,44 @@ func (v *valueConverterError) FromTerraform5Value(_ tftypes.Value) error {
 
 var _ tftypes.ValueConverter = &valueConverterError{}
 
-func TestUnknownable_known(t *testing.T) {
+type valueCreator struct {
+	value   string
+	unknown bool
+	null    bool
+}
+
+func (v *valueCreator) ToTerraform5Value() (interface{}, error) {
+	if v.unknown {
+		return tftypes.UnknownValue, nil
+	}
+	if v.null {
+		return nil, nil
+	}
+	return v.value, nil
+}
+
+func (v *valueCreator) Equal(o *valueCreator) bool {
+	if v == nil && o == nil {
+		return true
+	}
+	if v == nil {
+		return false
+	}
+	if o == nil {
+		return false
+	}
+	if v.unknown != o.unknown {
+		return false
+	}
+	if v.null != o.null {
+		return false
+	}
+	return v.value == o.value
+}
+
+var _ tftypes.ValueCreator = &valueCreator{}
+
+func TestNewUnknownable_known(t *testing.T) {
 	t.Parallel()
 
 	unknownable := &unknownableString{
@@ -195,7 +233,7 @@ func TestUnknownable_known(t *testing.T) {
 	}
 }
 
-func TestUnknownable_unknown(t *testing.T) {
+func TestNewUnknownable_unknown(t *testing.T) {
 	t.Parallel()
 
 	var unknownable *unknownableString
@@ -209,7 +247,7 @@ func TestUnknownable_unknown(t *testing.T) {
 	}
 }
 
-func TestUnknownable_error(t *testing.T) {
+func TestNewUnknownable_error(t *testing.T) {
 	t.Parallel()
 
 	var unknownable *unknownableStringError
@@ -219,7 +257,39 @@ func TestUnknownable_error(t *testing.T) {
 	}
 }
 
-func TestNullable_notNull(t *testing.T) {
+func TestFromUnknownable_unknown(t *testing.T) {
+	t.Parallel()
+
+	foo := &unknownableString{
+		Unknown: true,
+	}
+	expected := types.String{Unknown: true}
+	got, err := refl.FromUnknownable(context.Background(), types.StringType, foo, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromUnknownable_value(t *testing.T) {
+	t.Parallel()
+
+	foo := &unknownableString{
+		String: "hello, world",
+	}
+	expected := types.String{Value: "hello, world"}
+	got, err := refl.FromUnknownable(context.Background(), types.StringType, foo, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestNewNullable_notNull(t *testing.T) {
 	t.Parallel()
 
 	nullable := &nullableString{
@@ -235,7 +305,7 @@ func TestNullable_notNull(t *testing.T) {
 	}
 }
 
-func TestNullable_null(t *testing.T) {
+func TestNewNullable_null(t *testing.T) {
 	t.Parallel()
 
 	var nullable *nullableString
@@ -249,7 +319,7 @@ func TestNullable_null(t *testing.T) {
 	}
 }
 
-func TestNullable_error(t *testing.T) {
+func TestNewNullable_error(t *testing.T) {
 	t.Parallel()
 
 	var nullable *nullableStringError
@@ -259,7 +329,39 @@ func TestNullable_error(t *testing.T) {
 	}
 }
 
-func TestAttributeValue_unknown(t *testing.T) {
+func TestFromNullable_null(t *testing.T) {
+	t.Parallel()
+
+	foo := &nullableString{
+		Null: true,
+	}
+	expected := types.String{Null: true}
+	got, err := refl.FromNullable(context.Background(), types.StringType, foo, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromNullable_value(t *testing.T) {
+	t.Parallel()
+
+	foo := &nullableString{
+		String: "hello, world",
+	}
+	expected := types.String{Value: "hello, world"}
+	got, err := refl.FromNullable(context.Background(), types.StringType, foo, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestNewAttributeValue_unknown(t *testing.T) {
 	t.Parallel()
 
 	var av types.String
@@ -274,7 +376,7 @@ func TestAttributeValue_unknown(t *testing.T) {
 	}
 }
 
-func TestAttributeValue_null(t *testing.T) {
+func TestNewAttributeValue_null(t *testing.T) {
 	t.Parallel()
 
 	var av types.String
@@ -289,7 +391,46 @@ func TestAttributeValue_null(t *testing.T) {
 	}
 }
 
-func TestAttributeValue_value(t *testing.T) {
+func TestFromAttributeValue_null(t *testing.T) {
+	t.Parallel()
+
+	expected := types.String{Null: true}
+	got, err := refl.FromAttributeValue(context.Background(), types.StringType, expected, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err.Error())
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromAttributeValue_unknown(t *testing.T) {
+	t.Parallel()
+
+	expected := types.String{Unknown: true}
+	got, err := refl.FromAttributeValue(context.Background(), types.StringType, expected, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err.Error())
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromAttributeValue_value(t *testing.T) {
+	t.Parallel()
+
+	expected := types.String{Value: "hello, world"}
+	got, err := refl.FromAttributeValue(context.Background(), types.StringType, expected, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err.Error())
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestNewAttributeValue_value(t *testing.T) {
 	t.Parallel()
 
 	var av types.String
@@ -304,7 +445,7 @@ func TestAttributeValue_value(t *testing.T) {
 	}
 }
 
-func TestValueConverter_unknown(t *testing.T) {
+func TestNewValueConverter_unknown(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverter
@@ -319,7 +460,7 @@ func TestValueConverter_unknown(t *testing.T) {
 	}
 }
 
-func TestValueConverter_null(t *testing.T) {
+func TestNewValueConverter_null(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverter
@@ -334,7 +475,7 @@ func TestValueConverter_null(t *testing.T) {
 	}
 }
 
-func TestValueConverter_value(t *testing.T) {
+func TestNewValueConverter_value(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverter
@@ -349,12 +490,60 @@ func TestValueConverter_value(t *testing.T) {
 	}
 }
 
-func TestValueConverter_error(t *testing.T) {
+func TestNewValueConverter_error(t *testing.T) {
 	t.Parallel()
 
 	var vc *valueConverterError
 	_, err := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
 	if expected := ": this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
+	}
+}
+
+func TestFromValueCreator_null(t *testing.T) {
+	t.Parallel()
+
+	vc := &valueCreator{
+		null: true,
+	}
+	expected := types.String{Null: true}
+	got, err := refl.FromValueCreator(context.Background(), types.StringType, vc, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromValueCreator_unknown(t *testing.T) {
+	t.Parallel()
+
+	vc := &valueCreator{
+		unknown: true,
+	}
+	expected := types.String{Unknown: true}
+	got, err := refl.FromValueCreator(context.Background(), types.StringType, vc, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromValueCreator_value(t *testing.T) {
+	t.Parallel()
+
+	vc := &valueCreator{
+		value: "hello, world",
+	}
+	expected := types.String{Value: "hello, world"}
+	got, err := refl.FromValueCreator(context.Background(), types.StringType, vc, refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
 	}
 }

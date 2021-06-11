@@ -70,7 +70,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 		if key.Kind() != reflect.String {
 			return nil, path.NewErrorf("map keys must be strings, got %s", key.Type())
 		}
-		val, err := FromValue(ctx, elemType, val.MapIndex(key), opts, path.WithElementKeyString(key.String()))
+		val, err := FromValue(ctx, elemType, val.MapIndex(key).Interface(), opts, path.WithElementKeyString(key.String()))
 		if err != nil {
 			return nil, err
 		}

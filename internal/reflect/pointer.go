@@ -61,8 +61,8 @@ func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, opts O
 	if value.Kind() != reflect.Ptr {
 		return nil, path.NewErrorf("can't use type %s as a pointer", value.Type())
 	}
-	if value.Interface() == nil {
+	if value.IsNil() {
 		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
 	}
-	return FromValue(ctx, typ, value.Elem(), opts, path)
+	return FromValue(ctx, typ, value.Elem().Interface(), opts, path)
 }

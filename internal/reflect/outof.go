@@ -17,16 +17,33 @@ func OutOf(ctx context.Context, typ attr.Type, val interface{}, opts OutOfOption
 }
 
 func FromValue(ctx context.Context, typ attr.Type, val interface{}, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+	if v, ok := val.(attr.Value); ok {
+		return FromAttributeValue(ctx, typ, v, opts, path)
+	}
+	if v, ok := val.(tftypes.ValueCreator); ok {
+		return FromValueCreator(ctx, typ, v, opts, path)
+	}
+	if v, ok := val.(Unknownable); ok {
+		return FromUnknownable(ctx, typ, v, opts, path)
+	}
+	if v, ok := val.(Nullable); ok {
+		return FromNullable(ctx, typ, v, opts, path)
+	}
 	if bf, ok := val.(*big.Float); ok {
 		return FromBigFloat(ctx, typ, bf, opts, path)
-	} else if bi, ok := val.(*big.Int); ok {
+	}
+	if bi, ok := val.(*big.Int); ok {
 		return FromBigInt(ctx, typ, bi, opts, path)
 	}
 	value := reflect.ValueOf(val)
 	kind := value.Kind()
 	switch kind {
 	case reflect.Struct:
-		return FromStruct(ctx, typ.(attr.TypeWithAttributeTypes), value, opts, path)
+		t, ok := typ.(attr.TypeWithAttributeTypes)
+		if !ok {
+			return nil, path.NewErrorf("can't use type %T as schema type %T; %T must be an attr.TypeWithAttributeTypes to hold %T", val, typ, typ, val)
+		}
+		return FromStruct(ctx, t, value, opts, path)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Int64:
 		return FromInt(ctx, typ, value.Int(), opts, path)
@@ -42,7 +59,11 @@ func FromValue(ctx context.Context, typ attr.Type, val interface{}, opts OutOfOp
 	case reflect.Slice:
 		return FromSlice(ctx, typ, value, opts, path)
 	case reflect.Map:
-		return FromMap(ctx, typ.(attr.TypeWithElementType), value, opts, path)
+		t, ok := typ.(attr.TypeWithElementType)
+		if !ok {
+			return nil, path.NewErrorf("can't use type %T as schema type %T; %T must be an attr.TypeWithElementType to hold %T", val, typ, typ, val)
+		}
+		return FromMap(ctx, t, value, opts, path)
 	case reflect.Ptr:
 		return FromPointer(ctx, typ, value, opts, path)
 	default:

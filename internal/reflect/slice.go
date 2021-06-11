@@ -62,16 +62,19 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
 	// TODO: support tuples, which are attr.TypeWithElementTypes
 
-	if val.Interface() == nil {
+	if val.IsNil() {
 		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
 	}
 
-	t := typ.(attr.TypeWithElementType)
+	t, ok := typ.(attr.TypeWithElementType)
+	if !ok {
+		return nil, path.NewErrorf("can't use type %T as schema type %T; %T must be an attr.TypeWithElementType to hold %T", val, typ, typ, val)
+	}
 
 	elemType := t.ElementType()
 	tfElems := make([]tftypes.Value, 0, val.Len())
 	for i := 0; i < val.Len(); i++ {
-		val, err := FromValue(ctx, elemType, val.Index(i), opts, path.WithElementKeyInt(int64(i)))
+		val, err := FromValue(ctx, elemType, val.Index(i).Interface(), opts, path.WithElementKeyInt(int64(i)))
 		if err != nil {
 			return nil, err
 		}

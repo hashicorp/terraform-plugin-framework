@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestStruct_notAnObject(t *testing.T) {
+func TestNewStruct_notAnObject(t *testing.T) {
 	t.Parallel()
 
 	var s struct{}
@@ -27,7 +27,7 @@ func TestStruct_notAnObject(t *testing.T) {
 	}
 }
 
-func TestStruct_notAStruct(t *testing.T) {
+func TestNewStruct_notAStruct(t *testing.T) {
 	t.Parallel()
 
 	var s string
@@ -50,7 +50,7 @@ func TestStruct_notAStruct(t *testing.T) {
 	}
 }
 
-func TestStruct_objectMissingFields(t *testing.T) {
+func TestNewStruct_objectMissingFields(t *testing.T) {
 	t.Parallel()
 
 	var s struct {
@@ -67,7 +67,7 @@ func TestStruct_objectMissingFields(t *testing.T) {
 	}
 }
 
-func TestStruct_structMissingProperties(t *testing.T) {
+func TestNewStruct_structMissingProperties(t *testing.T) {
 	t.Parallel()
 
 	var s struct{}
@@ -90,7 +90,7 @@ func TestStruct_structMissingProperties(t *testing.T) {
 	}
 }
 
-func TestStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
+func TestNewStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
 	t.Parallel()
 
 	var s struct {
@@ -115,7 +115,7 @@ func TestStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
 	}
 }
 
-func TestStruct_primitives(t *testing.T) {
+func TestNewStruct_primitives(t *testing.T) {
 	t.Parallel()
 
 	var s struct {
@@ -155,7 +155,7 @@ func TestStruct_primitives(t *testing.T) {
 	}
 }
 
-func TestStruct_complex(t *testing.T) {
+func TestNewStruct_complex(t *testing.T) {
 	t.Parallel()
 
 	type myStruct struct {
@@ -393,18 +393,23 @@ func TestStruct_complex(t *testing.T) {
 	}
 }
 
-func TestFromStruct(t *testing.T) {
+func TestFromStruct_primitives(t *testing.T) {
 	type disk struct {
-		Name string `tfsdk:"name"`
-		// bool
+		Name    string `tfsdk:"name"`
+		Age     int    `tfsdk:"age"`
+		OptedIn bool   `tfsdk:"opted_in"`
 	}
 	disk1 := disk{
-		Name: "myfirstdisk",
+		Name:    "myfirstdisk",
+		Age:     30,
+		OptedIn: true,
 	}
 
 	actualVal, err := refl.FromStruct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
-			"name": types.StringType,
+			"name":     types.StringType,
+			"age":      types.NumberType,
+			"opted_in": types.BoolType,
 		},
 	}, reflect.ValueOf(disk1), refl.OutOfOptions{}, tftypes.NewAttributePath())
 	if err != nil {
@@ -413,14 +418,242 @@ func TestFromStruct(t *testing.T) {
 
 	expectedVal := types.Object{
 		Attrs: map[string]attr.Value{
-			"name": types.String{Value: "myfirstdisk"},
+			"name":     types.String{Value: "myfirstdisk"},
+			"age":      types.Number{Value: big.NewFloat(30)},
+			"opted_in": types.Bool{Value: true},
 		},
 		AttrTypes: map[string]attr.Type{
-			"name": types.StringType,
+			"name":     types.StringType,
+			"age":      types.NumberType,
+			"opted_in": types.BoolType,
 		},
 	}
 
 	if diff := cmp.Diff(expectedVal, actualVal); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromStruct_complex(t *testing.T) {
+	t.Parallel()
+
+	type myStruct struct {
+		Slice          []string `tfsdk:"slice"`
+		SliceOfStructs []struct {
+			A string `tfsdk:"a"`
+			B int    `tfsdk:"b"`
+		} `tfsdk:"slice_of_structs"`
+		Struct struct {
+			A     bool      `tfsdk:"a"`
+			Slice []float64 `tfsdk:"slice"`
+		} `tfsdk:"struct"`
+		// TODO: uncomment when maps are supported
+		// Map              map[string][]string `tfsdk:"map"`
+		Pointer        *string            `tfsdk:"pointer"`
+		Unknownable    *unknownableString `tfsdk:"unknownable"`
+		Nullable       *nullableString    `tfsdk:"nullable"`
+		AttributeValue types.String       `tfsdk:"attribute_value"`
+		ValueCreator   *valueCreator      `tfsdk:"value_creator"`
+		BigFloat       *big.Float         `tfsdk:"big_float"`
+		BigInt         *big.Int           `tfsdk:"big_int"`
+		Uint           uint64             `tfsdk:"uint"`
+	}
+	str := "pointed"
+	s := myStruct{
+		Slice: []string{"red", "blue", "green"},
+		SliceOfStructs: []struct {
+			A string `tfsdk:"a"`
+			B int    `tfsdk:"b"`
+		}{
+			{
+				A: "hello, world",
+				B: 123,
+			},
+			{
+				A: "goodnight, moon",
+				B: 456,
+			},
+		},
+		Struct: struct {
+			A     bool      `tfsdk:"a"`
+			Slice []float64 `tfsdk:"slice"`
+		}{
+			A:     true,
+			Slice: []float64{123, 456, 789},
+		},
+		// TODO: uncomment when maps are supported
+		/*
+			Map: map[string][]string{
+				"colors": {"red", "orange", "yellow"},
+				"fruits": {"apple", "banana"},
+			},
+		*/
+		Pointer: &str,
+		Unknownable: &unknownableString{
+			Unknown: true,
+		},
+		Nullable: &nullableString{
+			Null: true,
+		},
+		AttributeValue: types.String{
+			Unknown: true,
+		},
+		ValueCreator: &valueCreator{
+			null: true,
+		},
+		BigFloat: big.NewFloat(123.456),
+		BigInt:   big.NewInt(123456),
+		Uint:     123456,
+	}
+	result, err := refl.FromStruct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"slice": types.ListType{
+				ElemType: types.StringType,
+			},
+			"slice_of_structs": types.ListType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"a": types.StringType,
+						"b": types.NumberType,
+					},
+				},
+			},
+			"struct": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.BoolType,
+					"slice": types.ListType{
+						ElemType: types.NumberType,
+					},
+				},
+			},
+			// TODO: uncomment when maps are supported
+			/*
+				"map": testMapType{
+					ElemType: types.ListType{
+						ElemType: types.StringType,
+					},
+				},
+			*/
+			"pointer":         types.StringType,
+			"unknownable":     types.StringType,
+			"nullable":        types.StringType,
+			"attribute_value": types.StringType,
+			"value_creator":   types.StringType,
+			"big_float":       types.NumberType,
+			"big_int":         types.NumberType,
+			"uint":            types.NumberType,
+		},
+	}, reflect.ValueOf(s), refl.OutOfOptions{}, tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	expected := types.Object{
+		AttrTypes: map[string]attr.Type{
+			"slice": types.ListType{
+				ElemType: types.StringType,
+			},
+			"slice_of_structs": types.ListType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"a": types.StringType,
+						"b": types.NumberType,
+					},
+				},
+			},
+			"struct": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.BoolType,
+					"slice": types.ListType{
+						ElemType: types.NumberType,
+					},
+				},
+			},
+			// TODO: uncomment when maps are supported
+			/*
+				"map": testMapType{
+					ElemType: types.ListType{
+						ElemType: types.StringType,
+					},
+				},
+			*/
+			"pointer":         types.StringType,
+			"unknownable":     types.StringType,
+			"nullable":        types.StringType,
+			"attribute_value": types.StringType,
+			"value_creator":   types.StringType,
+			"big_float":       types.NumberType,
+			"big_int":         types.NumberType,
+			"uint":            types.NumberType,
+		},
+		Attrs: map[string]attr.Value{
+			"slice": types.List{
+				ElemType: types.StringType,
+				Elems: []attr.Value{
+					types.String{Value: "red"},
+					types.String{Value: "blue"},
+					types.String{Value: "green"},
+				},
+			},
+			"slice_of_structs": types.List{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"a": types.StringType,
+						"b": types.NumberType,
+					},
+				},
+				Elems: []attr.Value{
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"a": types.StringType,
+							"b": types.NumberType,
+						},
+						Attrs: map[string]attr.Value{
+							"a": types.String{Value: "hello, world"},
+							"b": types.Number{Value: big.NewFloat(123)},
+						},
+					},
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"a": types.StringType,
+							"b": types.NumberType,
+						},
+						Attrs: map[string]attr.Value{
+							"a": types.String{Value: "goodnight, moon"},
+							"b": types.Number{Value: big.NewFloat(456)},
+						},
+					},
+				},
+			},
+			"struct": types.Object{
+				AttrTypes: map[string]attr.Type{
+					"a": types.BoolType,
+					"slice": types.ListType{
+						ElemType: types.NumberType,
+					},
+				},
+				Attrs: map[string]attr.Value{
+					"a": types.Bool{Value: true},
+					"slice": types.List{
+						ElemType: types.NumberType,
+						Elems: []attr.Value{
+							types.Number{Value: big.NewFloat(123)},
+							types.Number{Value: big.NewFloat(456)},
+							types.Number{Value: big.NewFloat(789)},
+						},
+					},
+				},
+			},
+			"pointer":         types.String{Value: "pointed"},
+			"unknownable":     types.String{Unknown: true},
+			"nullable":        types.String{Null: true},
+			"attribute_value": types.String{Unknown: true},
+			"value_creator":   types.String{Null: true},
+			"big_float":       types.Number{Value: big.NewFloat(123.456)},
+			"big_int":         types.Number{Value: big.NewFloat(123456)},
+			"uint":            types.Number{Value: big.NewFloat(123456)},
+		},
+	}
+	if diff := cmp.Diff(expected, result); diff != "" {
+		t.Errorf("Didn't get expected value. Diff (+ is expected, - is result): %s", diff)
 	}
 }

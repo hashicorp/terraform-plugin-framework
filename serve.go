@@ -3,6 +3,7 @@ package tfsdk
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
@@ -11,6 +12,8 @@ import (
 	tf6server "github.com/hashicorp/terraform-plugin-go/tfprotov6/server"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+var stderr = os.Stderr
 
 var _ tfprotov6.ProviderServer = &server{}
 
@@ -296,6 +299,7 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 		})
 		return resp, nil
 	}
+	fmt.Fprintln(stderr, "[DEBUG] got current state:", state)
 	readReq := ReadResourceRequest{
 		State: State{
 			Raw:    state,
@@ -492,7 +496,8 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		if diagsHasErrors(resp.Diagnostics) {
 			return resp, nil
 		}
-		newState, err := tfprotov6.NewDynamicValue(createResp.State.Schema.TerraformType(ctx), createResp.State.Raw)
+		fmt.Fprintln(stderr, "[DEBUG] setting value in state:", createResp.State.Raw)
+		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), createResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 				Severity: tfprotov6.DiagnosticSeverityError,

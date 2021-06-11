@@ -3,7 +3,6 @@ package tfsdk
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
@@ -12,8 +11,6 @@ import (
 	tf6server "github.com/hashicorp/terraform-plugin-go/tfprotov6/server"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
-
-var stderr = os.Stderr
 
 var _ tfprotov6.ProviderServer = &server{}
 
@@ -264,11 +261,15 @@ func (s *server) ValidateResourceConfig(ctx context.Context, _ *tfprotov6.Valida
 	return &tfprotov6.ValidateResourceConfigResponse{}, nil
 }
 
-func (s *server) UpgradeResourceState(ctx context.Context, _ *tfprotov6.UpgradeResourceStateRequest) (*tfprotov6.UpgradeResourceStateResponse, error) {
+func (s *server) UpgradeResourceState(ctx context.Context, req *tfprotov6.UpgradeResourceStateRequest) (*tfprotov6.UpgradeResourceStateResponse, error) {
 	ctx = s.registerContext(ctx)
 
 	// TODO: support state upgrades
-	return &tfprotov6.UpgradeResourceStateResponse{}, nil
+	return &tfprotov6.UpgradeResourceStateResponse{
+		UpgradedState: &tfprotov6.DynamicValue{
+			JSON: req.RawState.JSON,
+		},
+	}, nil
 }
 
 func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRequest) (*tfprotov6.ReadResourceResponse, error) {
@@ -299,7 +300,6 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 		})
 		return resp, nil
 	}
-	fmt.Fprintln(stderr, "[DEBUG] got current state:", state)
 	readReq := ReadResourceRequest{
 		State: State{
 			Raw:    state,
@@ -315,7 +315,7 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 		return resp, nil
 	}
 
-	newState, err := tfprotov6.NewDynamicValue(readResp.State.Schema.TerraformType(ctx), readResp.State.Raw)
+	newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), readResp.State.Raw)
 	if err != nil {
 		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 			Severity: tfprotov6.DiagnosticSeverityError,
@@ -496,7 +496,6 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		if diagsHasErrors(resp.Diagnostics) {
 			return resp, nil
 		}
-		fmt.Fprintln(stderr, "[DEBUG] setting value in state:", createResp.State.Raw)
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), createResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
@@ -532,7 +531,7 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		if diagsHasErrors(resp.Diagnostics) {
 			return resp, nil
 		}
-		newState, err := tfprotov6.NewDynamicValue(updateResp.State.Schema.TerraformType(ctx), updateResp.State.Raw)
+		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), updateResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 				Severity: tfprotov6.DiagnosticSeverityError,
@@ -558,7 +557,7 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		if diagsHasErrors(resp.Diagnostics) {
 			return resp, nil
 		}
-		newState, err := tfprotov6.NewDynamicValue(destroyResp.State.Schema.TerraformType(ctx), destroyResp.State.Raw)
+		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), destroyResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 				Severity: tfprotov6.DiagnosticSeverityError,
@@ -636,7 +635,7 @@ func (s *server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 		return resp, nil
 	}
 
-	state, err := tfprotov6.NewDynamicValue(readResp.State.Schema.TerraformType(ctx), readResp.State.Raw)
+	state, err := tfprotov6.NewDynamicValue(dataSourceSchema.TerraformType(ctx), readResp.State.Raw)
 	if err != nil {
 		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 			Severity: tfprotov6.DiagnosticSeverityError,

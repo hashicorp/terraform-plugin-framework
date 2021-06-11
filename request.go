@@ -66,12 +66,9 @@ type UpdateResourceRequest struct {
 // resource. An instance of this request struct is supplied as an argument to
 // the resource's Delete function.
 type DeleteResourceRequest struct {
-	// Config is the configuration the user supplied for the resource.
-	//
-	// This configuration may contain unknown values if a user uses
-	// interpolation or other functionality that would prevent Terraform
-	// from knowing the value at request time.
-	Config Config
+	// State is the current state of the resource prior to the Delete
+	// operation.
+	State State
 }
 
 // ReadDataSourceRequest represents a request for the provider to read a data

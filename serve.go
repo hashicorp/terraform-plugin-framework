@@ -422,6 +422,26 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		return resp, nil
 	}
 
+	plan, err := req.PlannedState.Unmarshal(resourceSchema.TerraformType(ctx))
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing plan",
+			Detail:   "An unexpected error was encountered trying to parse the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
+	}
+
+	priorState, err := req.PriorState.Unmarshal(resourceSchema.TerraformType(ctx))
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing prior state",
+			Detail:   "An unexpected error was encountered trying to parse the prior state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
+	}
+
 	// figure out what kind of request we're serving
 	create, err := proto6.IsCreate(ctx, req, resourceSchema.TerraformType(ctx))
 	if err != nil {
@@ -458,6 +478,10 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				Schema: resourceSchema,
 				Raw:    config,
 			},
+			Plan: Plan{
+				Schema: resourceSchema,
+				Raw:    plan,
+			},
 		}
 		createResp := CreateResourceResponse{
 			Diagnostics: resp.Diagnostics,
@@ -480,7 +504,20 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		resp.NewState = &newState
 		return resp, nil
 	case !create && update && !destroy:
-		updateReq := UpdateResourceRequest{}
+		updateReq := UpdateResourceRequest{
+			Config: Config{
+				Schema: resourceSchema,
+				Raw:    config,
+			},
+			Plan: Plan{
+				Schema: resourceSchema,
+				Raw:    plan,
+			},
+			State: State{
+				Schema: resourceSchema,
+				Raw:    priorState,
+			},
+		}
 		updateResp := UpdateResourceResponse{
 			Diagnostics: resp.Diagnostics,
 		}
@@ -501,7 +538,12 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		}
 		resp.NewState = &newState
 	case !create && !update && destroy:
-		destroyReq := DeleteResourceRequest{}
+		destroyReq := DeleteResourceRequest{
+			State: State{
+				Schema: resourceSchema,
+				Raw:    priorState,
+			},
+		}
 		destroyResp := DeleteResourceResponse{
 			Diagnostics: resp.Diagnostics,
 		}

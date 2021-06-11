@@ -38,6 +38,58 @@ func (p Plan) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (at
 	return attrType.ValueFromTerraform(ctx, attrValue)
 }
 
+// Set populates the entire plan using the supplied Go value. The value `val`
+// should be a struct whose values have one of the attr.Value types. Each field
+// must be tagged with the corresponding schema field.
+func (p *Plan) Set(ctx context.Context, val interface{}) error {
+	newPlanAttrValue, err := reflect.OutOf(ctx, p.Schema.AttributeType(), val)
+	if err != nil {
+		return fmt.Errorf("error creating new plan value: %w", err)
+	}
+
+	newPlanVal, err := newPlanAttrValue.ToTerraformValue(ctx)
+	if err != nil {
+		return fmt.Errorf("error running ToTerraformValue on plan: %w", err)
+	}
+
+	newPlan := tftypes.NewValue(p.Schema.AttributeType().TerraformType(ctx), newPlanVal)
+
+	p.Raw = newPlan
+	return nil
+}
+
+// SetAttribute sets the attribute at `path` using the supplied Go value.
+func (p *Plan) SetAttribute(ctx context.Context, path *tftypes.AttributePath, val interface{}) error {
+	attrType, err := p.Schema.AttributeTypeAtPath(path)
+	if err != nil {
+		return fmt.Errorf("error getting attribute type at path %s in schema: %w", path, err)
+	}
+
+	newVal, err := reflect.OutOf(ctx, attrType, val)
+	if err != nil {
+		return fmt.Errorf("error creating new plan value: %w", err)
+	}
+
+	newTfVal, err := newVal.ToTerraformValue(ctx)
+	if err != nil {
+		return fmt.Errorf("error running ToTerraformValue on new plan value: %w", err)
+	}
+
+	transformFunc := func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
+		if p.Equal(path) {
+			return tftypes.NewValue(attrType.TerraformType(ctx), newTfVal), nil
+		}
+		return v, nil
+	}
+
+	p.Raw, err = tftypes.Transform(p.Raw, transformFunc)
+	if err != nil {
+		return fmt.Errorf("error setting attribute in plan: %w", err)
+	}
+
+	return nil
+}
+
 func (p Plan) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {
 	rawValue, remaining, err := tftypes.WalkAttributePath(p.Raw, path)
 	if err != nil {

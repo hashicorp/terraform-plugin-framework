@@ -60,8 +60,13 @@ func reflectMap(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	return m, nil
 }
 
+// FromMap returns an attr.Value representing the data contained in `val`.
+// `val` must be a map type with keys that are a string type. The attr.Value
+// will be of the type produced by `typ`.
+//
+// It is meant to be called through OutOf, not directly.
 func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
-	if val.Interface() == nil {
+	if val.IsNil() {
 		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
 	}
 	elemType := typ.ElementType()

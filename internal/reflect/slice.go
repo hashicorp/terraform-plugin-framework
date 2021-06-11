@@ -59,6 +59,14 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 	return slice, nil
 }
 
+// FromSlice returns an attr.Value as produced by `typ` using the data in
+// `val`. `val` must be a slice. `typ` must be an attr.TypeWithElementType or
+// attr.TypeWithElementTypes. If the slice is nil, the representation of null
+// for `typ` will be returned. Otherwise, FromSlice will recurse into FromValue
+// for each element in the slice, using the element type or types defined on
+// `typ` to construct values for them.
+//
+// It is meant to be called through OutOf, not directly.
 func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
 	// TODO: support tuples, which are attr.TypeWithElementTypes
 

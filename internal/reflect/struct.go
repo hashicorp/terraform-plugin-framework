@@ -96,6 +96,13 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	return result, nil
 }
 
+// FromStruct builds an attr.Value as produced by `typ` from the data in `val`.
+// `val` must be a struct type, and must have all its properties tagged and be
+// a 1:1 match with the attributes reported by `typ`. FromStruct will recurse
+// into FromValue for each attribute, using the type of the attribute as
+// reported by `typ`.
+//
+// It is meant to be called through OutOf, not directly.
 func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
 	objTypes := map[string]tftypes.Type{}
 	objValues := map[string]tftypes.Value{}

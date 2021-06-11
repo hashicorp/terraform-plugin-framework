@@ -57,6 +57,12 @@ func pointerSafeZeroValue(ctx context.Context, target reflect.Value) reflect.Val
 	return receiver
 }
 
+// FromPointer turns a pointer into an attr.Value using `typ`. If the pointer
+// is nil, the attr.Value will use its null representation. If it is not nil,
+// it will recurse into FromValue to find the attr.Value of the type the value
+// the pointer is referencing.
+//
+// It is meant to be called through OutOf, not directly.
 func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
 	if value.Kind() != reflect.Ptr {
 		return nil, path.NewErrorf("can't use type %s as a pointer", value.Type())

@@ -33,6 +33,9 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 	}
 }
 
+// FromString returns an attr.Value as produced by `typ` from a string.
+//
+// It is meant to be called through OutOf, not directly.
 func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.String, val)
 	if err != nil {
@@ -48,6 +51,9 @@ func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.At
 	return str, nil
 }
 
+// FromBool returns an attr.Value as produced by `typ` from a bool.
+//
+// It is meant to be called through OutOf, not directly.
 func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.Bool, val)
 	if err != nil {

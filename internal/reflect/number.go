@@ -190,6 +190,9 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 	return target, path.NewErrorf("can't convert number to %s", target.Type())
 }
 
+// FromInt creates an attr.Value using `typ` from an int64.
+//
+// It is meant to be called through OutOf, not directly.
 func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.Number, val)
 	if err != nil {
@@ -205,6 +208,9 @@ func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.Attrib
 	return num, nil
 }
 
+// FromUint creates an attr.Value using `typ` from a uint64.
+//
+// It is meant to be called through OutOf, not directly.
 func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.Number, val)
 	if err != nil {
@@ -220,6 +226,9 @@ func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.Attr
 	return num, nil
 }
 
+// FromFloat creates an attr.Value using `typ` from a float64.
+//
+// It is meant to be called through OutOf, not directly.
 func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.Number, val)
 	if err != nil {
@@ -235,6 +244,9 @@ func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.At
 	return num, nil
 }
 
+// FromBigFloat creates an attr.Value using `typ` from a *big.Float.
+//
+// It is meant to be called through OutOf, not directly.
 func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.Number, val)
 	if err != nil {
@@ -250,6 +262,9 @@ func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tfty
 	return num, nil
 }
 
+// FromBigInt creates an attr.Value using `typ` from a *big.Int.
+//
+// It is meant to be called through OutOf, not directly.
 func FromBigInt(ctx context.Context, typ attr.Type, val *big.Int, path *tftypes.AttributePath) (attr.Value, error) {
 	fl := big.NewFloat(0).SetInt(val)
 	err := tftypes.ValidateValue(tftypes.Number, fl)

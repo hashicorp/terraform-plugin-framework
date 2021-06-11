@@ -39,6 +39,9 @@ func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, targe
 	return receiver, nil
 }
 
+// FromUnknownable creates an attr.Value from the data in an Unknownable.
+//
+// It is meant to be called through OutOf, not directly.
 func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path *tftypes.AttributePath) (attr.Value, error) {
 	if val.GetUnknown(ctx) {
 		res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tftypes.UnknownValue))
@@ -87,6 +90,9 @@ func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target r
 	return receiver, nil
 }
 
+// FromNullable creates an attr.Value from the data in a Nullable.
+//
+// It is meant to be called through OutOf, not directly.
 func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path *tftypes.AttributePath) (attr.Value, error) {
 	if val.GetNull(ctx) {
 		res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
@@ -125,6 +131,11 @@ func NewValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 	return receiver, nil
 }
 
+// FromValueCreator creates an attr.Value from the data in a
+// tftypes.ValueCreator, calling its ToTerraform5Value method and converting
+// the result to an attr.Value using `typ`.
+//
+// It is meant to be called from OutOf, not directly.
 func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreator, path *tftypes.AttributePath) (attr.Value, error) {
 	raw, err := val.ToTerraform5Value()
 	if err != nil {
@@ -158,6 +169,12 @@ func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 	return reflect.ValueOf(res), nil
 }
 
+// FromAttributeValue creates an attr.Value from an attr.Value. It just returns
+// the attr.Value it is passed, but reserves the right in the future to do some
+// validation on that attr.Value to make sure it matches the type produced by
+// `typ`.
+//
+// It is meant to be called through OutOf, not directly.
 func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, path *tftypes.AttributePath) (attr.Value, error) {
 	return val, nil
 }

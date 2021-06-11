@@ -118,7 +118,7 @@ var testState = State{
 }
 
 func TestStateGet(t *testing.T) {
-	type myType struct {
+	type testStateStructType struct {
 		Foo   types.String `tfsdk:"foo"`
 		Bar   types.List   `tfsdk:"bar"`
 		Disks []struct {
@@ -133,12 +133,12 @@ func TestStateGet(t *testing.T) {
 			Interface string `tfsdk:"interface"`
 		} `tfsdk:"scratch_disk"`
 	}
-	var val myType
+	var val testStateStructType
 	err := testState.Get(context.Background(), &val)
 	if err != nil {
 		t.Fatalf("Error running Get: %s", err)
 	}
-	expected := myType{
+	expected := testStateStructType{
 		Foo: types.String{Value: "hello, world"},
 		Bar: types.List{
 			ElemType: types.StringType,
@@ -446,5 +446,107 @@ func TestStateGetAttribute_object(t *testing.T) {
 	}
 	if sdInterface.Value != "SCSI" {
 		t.Errorf("expected scratchDiskInterface to be %q, got %q", "SCSI", sdInterface.Value)
+	}
+}
+
+func TestStateSet(t *testing.T) {
+	state := State{
+		// Raw:    tftypes.Value{},
+		Schema: testSchema,
+	}
+
+	type newStateType struct {
+		Foo   string   `tfsdk:"foo"`
+		Bar   []string `tfsdk:"bar"`
+		Disks []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"disks"`
+		BootDisk struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"boot_disk"`
+		ScratchDisk struct {
+			Interface string `tfsdk:"interface"`
+		} `tfsdk:"scratch_disk"`
+	}
+
+	err := state.Set(context.Background(), newStateType{
+		Foo: "hello, world",
+		Bar: []string{"red", "blue", "green"},
+		Disks: []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		}{{
+			ID:                 "disk0",
+			DeleteWithInstance: true,
+		},
+			{
+				ID:                 "disk1",
+				DeleteWithInstance: false,
+			}},
+		BootDisk: struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		}{
+			ID:                 "bootdisk",
+			DeleteWithInstance: true,
+		},
+		ScratchDisk: struct {
+			Interface string `tfsdk:"interface"`
+		}{
+			Interface: "SCSI",
+		},
+	})
+	if err != nil {
+		t.Fatalf("error setting state: %s", err)
+	}
+
+	actual := state.Raw
+	expected := testState.Raw
+	t.Logf("actual: %+v", actual.String())
+
+	if !expected.Equal(actual) {
+		t.Fatalf("unexpected diff in state.Raw (+wanted, -got): %s", cmp.Diff(actual, expected))
+	}
+}
+
+func TestStateGetSetInverse(t *testing.T) {
+	t.Skip()
+	// test that Get and Set are inverses of each other
+	type testStateStructType struct {
+		Foo   types.String `tfsdk:"foo"`
+		Bar   types.List   `tfsdk:"bar"`
+		Disks []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"disks"`
+		BootDisk struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"boot_disk"`
+		ScratchDisk struct {
+			Interface string `tfsdk:"interface"`
+		} `tfsdk:"scratch_disk"`
+	}
+	var val testStateStructType
+	err := testState.Get(context.Background(), &val)
+	if err != nil {
+		t.Fatalf("Error running Get: %s", err)
+	}
+
+	newState := State{
+		Schema: testSchema,
+	}
+
+	err = newState.Set(context.Background(), val)
+	if err != nil {
+		t.Fatalf("error setting state: %s", err)
+	}
+
+	t.Log(newState)
+
+	if diff := cmp.Diff(testState, newState); diff != "" {
+		t.Fatalf("unexpected diff (+wanted, -got): %s", diff)
 	}
 }

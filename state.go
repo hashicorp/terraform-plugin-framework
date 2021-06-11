@@ -38,6 +38,31 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 	return attrType.ValueFromTerraform(ctx, attrValue)
 }
 
+// Set populates the entire state using the supplied Go value. The value `val`
+// should be a struct whose values have one of the attr.Value types. Each field
+// must be tagged with the corresponding schema field.
+func (s *State) Set(ctx context.Context, val interface{}) error {
+	newStateAttrValue, err := reflect.OutOf(ctx, s.Schema.AttributeType(), val)
+	if err != nil {
+		return fmt.Errorf("error setting state: %w", err)
+	}
+
+	newStateVal, err := newStateAttrValue.ToTerraformValue(ctx)
+	if err != nil {
+		return fmt.Errorf("error running ToTerraformValue on state: %w", err)
+	}
+
+	newState := tftypes.NewValue(s.Schema.AttributeType().TerraformType(ctx), newStateVal)
+
+	s.Raw = newState
+	return nil
+}
+
+// SetAttribute sets the attribute at `path` using the supplied Go value.
+func (s State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, val interface{}) error {
+	return nil
+}
+
 func (s State) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {
 	rawValue, remaining, err := tftypes.WalkAttributePath(s.Raw, path)
 	if err != nil {

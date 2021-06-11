@@ -1,8 +1,11 @@
 package schema
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type NestingMode uint8
@@ -38,6 +41,7 @@ const (
 // attributes must be associated with a unique key. Unlike SetNestedAttributes,
 // the key must be explicitly set by the user.
 type NestedAttributes interface {
+	tftypes.AttributePathStepper
 	AttributeType() attr.Type
 	GetNestingMode() NestingMode
 	GetAttributes() map[string]Attribute
@@ -53,6 +57,34 @@ func (n nestedAttributes) GetAttributes() map[string]Attribute {
 }
 
 func (n nestedAttributes) unimplementable() {}
+
+func (n nestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	a, ok := step.(tftypes.AttributeName)
+	if !ok {
+		return nil, fmt.Errorf("can't apply %T to Attributes", step)
+	}
+	res, ok := n[string(a)]
+	if !ok {
+		return nil, fmt.Errorf("no attribute %q on Attributes", a)
+	}
+	return res, nil
+}
+
+// AttributeType returns an attr.Type corresponding to the nested attributes.
+func (n nestedAttributes) AttributeType() attr.Type {
+	attrTypes := map[string]attr.Type{}
+	for name, attr := range n.GetAttributes() {
+		if attr.Type != nil {
+			attrTypes[name] = attr.Type
+		}
+		if attr.Attributes != nil {
+			attrTypes[name] = attr.Attributes.AttributeType()
+		}
+	}
+	return types.ObjectType{
+		AttrTypes: attrTypes,
+	}
+}
 
 // SingleNestedAttributes nests `attributes` under another attribute, only
 // allowing one instance of that group of attributes to appear in the
@@ -77,22 +109,6 @@ func (s singleNestedAttributes) GetMinItems() int64 {
 
 func (s singleNestedAttributes) GetMaxItems() int64 {
 	return 0
-}
-
-// AttributeType returns an attr.Type corresponding to the nested attributes.
-func (s singleNestedAttributes) AttributeType() attr.Type {
-	attrTypes := map[string]attr.Type{}
-	for name, attr := range s.GetAttributes() {
-		if attr.Type != nil {
-			attrTypes[name] = attr.Type
-		}
-		if attr.Attributes != nil {
-			attrTypes[name] = attr.Attributes.AttributeType()
-		}
-	}
-	return types.ObjectType{
-		AttrTypes: attrTypes,
-	}
 }
 
 // ListNestedAttributes nests `attributes` under another attribute, allowing
@@ -134,20 +150,17 @@ func (l listNestedAttributes) GetMaxItems() int64 {
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.
 func (l listNestedAttributes) AttributeType() attr.Type {
-	attrTypes := map[string]attr.Type{}
-	for name, attr := range l.GetAttributes() {
-		if attr.Type != nil {
-			attrTypes[name] = attr.Type
-		}
-		if attr.Attributes != nil {
-			attrTypes[name] = attr.Attributes.AttributeType()
-		}
-	}
 	return types.ListType{
-		ElemType: types.ObjectType{
-			AttrTypes: attrTypes,
-		},
+		ElemType: l.nestedAttributes.AttributeType(),
 	}
+}
+
+func (l listNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	_, ok := step.(tftypes.ElementKeyInt)
+	if !ok {
+		return nil, fmt.Errorf("can't apply %T to ListNestedAttributes", step)
+	}
+	return l.nestedAttributes, nil
 }
 
 // SetNestedAttributes nests `attributes` under another attribute, allowing
@@ -194,6 +207,14 @@ func (s setNestedAttributes) AttributeType() attr.Type {
 	return nil
 }
 
+func (s setNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	_, ok := step.(tftypes.ElementKeyValue)
+	if !ok {
+		return nil, fmt.Errorf("can't use %T on sets", step)
+	}
+	return s.nestedAttributes, nil
+}
+
 // MapNestedAttributes nests `attributes` under another attribute, allowing
 // multiple instances of that group of attributes to appear in the
 // configuration. Each group will need to be associated with a unique string by
@@ -236,4 +257,12 @@ func (m mapNestedAttributes) GetMaxItems() int64 {
 func (m mapNestedAttributes) AttributeType() attr.Type {
 	// TODO fill in implementation when types.MapType is available
 	return nil
+}
+
+func (m mapNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	_, ok := step.(tftypes.ElementKeyString)
+	if !ok {
+		return nil, fmt.Errorf("can't use %T on maps", step)
+	}
+	return m.nestedAttributes, nil
 }

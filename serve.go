@@ -98,7 +98,11 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 	// convert the provider schema to a *tfprotov6.Schema
 	provider6Schema, err := proto6.Schema(ctx, providerSchema)
 	if err != nil {
-		// TODO: convert to diag
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error converting provider schema",
+			Detail:   "The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
 		return resp, nil
 	}
 
@@ -119,7 +123,11 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 		}
 		pm6Schema, err := proto6.Schema(ctx, providerMetaSchema)
 		if err != nil {
-			// TODO: convert to diag
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting provider_meta schema",
+				Detail:   "The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
 			return resp, nil
 		}
 		providerMeta6Schema = pm6Schema
@@ -144,7 +152,11 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 		}
 		schema6, err := proto6.Schema(ctx, schema)
 		if err != nil {
-			// TODO: convert to diag
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting resource schema",
+				Detail:   "The schema for the resource \"" + k + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
 			return resp, nil
 		}
 		resource6Schemas[k] = schema6
@@ -169,7 +181,11 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 		}
 		schema6, err := proto6.Schema(ctx, schema)
 		if err != nil {
-			// TODO: convert to diag
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting data sourceschema",
+				Detail:   "The schema for the data source \"" + k + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
 			return resp, nil
 		}
 		dataSource6Schemas[k] = schema6
@@ -208,7 +224,11 @@ func (s *server) ConfigureProvider(ctx context.Context, req *tfprotov6.Configure
 	}
 	config, err := req.Config.Unmarshal(schema.TerraformType(ctx))
 	if err != nil {
-		// TODO: convert to diagnostic
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing config",
+			Detail:   "The provider had a problem parsing the config. Report this to the provider developer:\n\n" + err.Error(),
+		})
 		return resp, nil
 	}
 	r := &ConfigureProviderRequest{
@@ -257,31 +277,50 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
-	/*
-		TODO: eventually we'll have a State on the ReadResourceRequest type, and we'll want to fill in the schema on that. Until then, this is unused, so let's comment it out.
-		resourceSchema, diags := resourceType.GetSchema(ctx)
-		resp.Diagnostics = append(resp.Diagnostics, diags...)
-		if diagsHasErrors(resp.Diagnostics) {
-			return resp, nil
-		}
-	*/
+	resourceSchema, diags := resourceType.GetSchema(ctx)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
 	resource, diags := resourceType.NewResource(s.p)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
+	state, err := req.CurrentState.Unmarshal(resourceSchema.TerraformType(ctx))
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing current state",
+			Detail:   "There was an error parsing the current state. Please report this to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
+	}
 	readReq := ReadResourceRequest{
-		// TODO: when we get a state type, populate it
+		State: State{
+			Raw:    state,
+			Schema: resourceSchema,
+		},
 	}
 	readResp := ReadResourceResponse{
 		Diagnostics: resp.Diagnostics,
 	}
-	resource.Read(ctx, &readReq, &readResp)
+	resource.Read(ctx, readReq, &readResp)
 	resp.Diagnostics = readResp.Diagnostics
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
-	// TODO: at some point we're going to need to handle the State that's returned. Not today, though!
+
+	newState, err := tfprotov6.NewDynamicValue(readResp.State.Schema.TerraformType(ctx), readResp.State.Raw)
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error converting read response",
+			Detail:   "An unexpected error was encountered when converting the read response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
+	}
+	resp.NewState = &newState
 	return resp, nil
 }
 
@@ -307,20 +346,36 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 
 	plan, err := req.ProposedNewState.Unmarshal(resourceSchema.TerraformType(ctx))
 	if err != nil {
-		// TODO: return error
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing plan",
+			Detail:   "There was an unexpected error parsing the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
 	}
 
 	modifiedPlan, err := tftypes.Transform(plan, func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
 		if !val.IsNull() {
 			return val, nil
 		}
-		// TODO: if the Attribute at this path in the resource schema is not computed, return val instead of modifying it
+		attribute, err := resourceSchema.AttributeAtPath(path)
+		if err != nil {
+			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
+		}
+		if !attribute.Computed {
+			return val, nil
+		}
 		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
 	})
 
 	plannedState, err := tfprotov6.NewDynamicValue(modifiedPlan.Type(), modifiedPlan)
 	if err != nil {
-		// TODO: return error
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error converting response",
+			Detail:   "There was an unexpected error converting the state in the response to a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
 	}
 	resp.PlannedState = &plannedState
 
@@ -359,67 +414,120 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 
 	config, err := req.Config.Unmarshal(resourceSchema.TerraformType(ctx))
 	if err != nil {
-		// TODO: return error
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing configuration",
+			Detail:   "An unexpected error was encountered trying to parse the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
 	}
 
 	// figure out what kind of request we're serving
 	create, err := proto6.IsCreate(ctx, req, resourceSchema.TerraformType(ctx))
 	if err != nil {
-		// TODO: return error
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error understanding request",
+			Detail:   "An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
 	}
 	update, err := proto6.IsUpdate(ctx, req, resourceSchema.TerraformType(ctx))
 	if err != nil {
-		// TODO: return error
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error understanding request",
+			Detail:   "An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
 	}
 	destroy, err := proto6.IsDestroy(ctx, req, resourceSchema.TerraformType(ctx))
 	if err != nil {
-		// TODO: return error
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error understanding request",
+			Detail:   "An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
 	}
 
 	switch {
 	case create && !update && !destroy:
-		createReq := &CreateResourceRequest{
+		createReq := CreateResourceRequest{
 			Config: Config{
 				Schema: resourceSchema,
 				Raw:    config,
 			},
 		}
-		createResp := &CreateResourceResponse{
+		createResp := CreateResourceResponse{
 			Diagnostics: resp.Diagnostics,
 		}
-		resource.Create(ctx, createReq, createResp)
+		resource.Create(ctx, createReq, &createResp)
 		resp.Diagnostics = createResp.Diagnostics
 		// TODO: set partial state before returning error
 		if diagsHasErrors(resp.Diagnostics) {
 			return resp, nil
 		}
-		// TODO: set state on resp
+		newState, err := tfprotov6.NewDynamicValue(createResp.State.Schema.TerraformType(ctx), createResp.State.Raw)
+		if err != nil {
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting create response",
+				Detail:   "An unexpected error was encountered when converting the create response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n" + err.Error(),
+			})
+			return resp, nil
+		}
+		resp.NewState = &newState
+		return resp, nil
 	case !create && update && !destroy:
-		updateReq := &UpdateResourceRequest{}
-		updateResp := &UpdateResourceResponse{
+		updateReq := UpdateResourceRequest{}
+		updateResp := UpdateResourceResponse{
 			Diagnostics: resp.Diagnostics,
 		}
-		resource.Update(ctx, updateReq, updateResp)
+		resource.Update(ctx, updateReq, &updateResp)
 		resp.Diagnostics = updateResp.Diagnostics
 		// TODO: set partial state before returning error
 		if diagsHasErrors(resp.Diagnostics) {
 			return resp, nil
 		}
-		// TODO: set state on resp
+		newState, err := tfprotov6.NewDynamicValue(updateResp.State.Schema.TerraformType(ctx), updateResp.State.Raw)
+		if err != nil {
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting update response",
+				Detail:   "An unexpected error was encountered when converting the update response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n" + err.Error(),
+			})
+			return resp, nil
+		}
+		resp.NewState = &newState
 	case !create && !update && destroy:
-		destroyReq := &DeleteResourceRequest{}
-		destroyResp := &DeleteResourceResponse{
+		destroyReq := DeleteResourceRequest{}
+		destroyResp := DeleteResourceResponse{
 			Diagnostics: resp.Diagnostics,
 		}
-		resource.Delete(ctx, destroyReq, destroyResp)
+		resource.Delete(ctx, destroyReq, &destroyResp)
 		resp.Diagnostics = destroyResp.Diagnostics
 		// TODO: set partial state before returning error
 		if diagsHasErrors(resp.Diagnostics) {
 			return resp, nil
 		}
-		// TODO: set state on resp
+		newState, err := tfprotov6.NewDynamicValue(destroyResp.State.Schema.TerraformType(ctx), destroyResp.State.Raw)
+		if err != nil {
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting delete response",
+				Detail:   "An unexpected error was encountered when converting the delete response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n" + err.Error(),
+			})
+			return resp, nil
+		}
+		resp.NewState = &newState
 	default:
-		// TODO: return error
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error understanding request",
+			Detail:   fmt.Sprintf("An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\nRequest matched unexpected number of methods: (create: %v, update: %v, delete: %v)", create, update, destroy),
+		})
+		return resp, nil
 	}
 	return resp, nil
 }
@@ -447,30 +555,49 @@ func (s *server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
-	/*
-		TODO: eventually we'll have a State on the ReadDataSourceRequest type, and we'll want to fill in the schema on that. Until then, this is unused, so let's comment it out.
-		dataSourceSchema, diags := dataSourceType.GetSchema(ctx)
-		resp.Diagnostics = append(resp.Diagnostics, diags...)
-		if diagsHasErrors(resp.Diagnostics) {
-			return resp, nil
-		}
-	*/
+	dataSourceSchema, diags := dataSourceType.GetSchema(ctx)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
 	dataSource, diags := dataSourceType.NewDataSource(s.p)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
-	readReq := ReadResourceRequest{
-		// TODO: when we get a state type, populate it
+	config, err := req.Config.Unmarshal(dataSourceSchema.TerraformType(ctx))
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing current state",
+			Detail:   "There was an error parsing the current state. Please report this to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
 	}
-	readResp := ReadResourceResponse{
+	readReq := ReadDataSourceRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: dataSourceSchema,
+		},
+	}
+	readResp := ReadDataSourceResponse{
 		Diagnostics: resp.Diagnostics,
 	}
-	dataSource.Read(ctx, &readReq, &readResp)
+	dataSource.Read(ctx, readReq, &readResp)
 	resp.Diagnostics = readResp.Diagnostics
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
-	// TODO: at some point we're going to need to handle the State that's returned. Not today, though!
+
+	state, err := tfprotov6.NewDynamicValue(readResp.State.Schema.TerraformType(ctx), readResp.State.Raw)
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error converting read response",
+			Detail:   "An unexpected error was encountered when converting the read response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
+	}
+	resp.State = &state
 	return resp, nil
 }

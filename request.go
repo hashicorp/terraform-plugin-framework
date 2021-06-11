@@ -73,3 +73,16 @@ type DeleteResourceRequest struct {
 	// from knowing the value at request time.
 	Config Config
 }
+
+// ReadDataSourceRequest represents a request for the provider to read a data
+// source, i.e., update values in state according to the real state of the
+// data source. An instance of this request struct is supplied as an argument
+// to the data source's Read function.
+type ReadDataSourceRequest struct {
+	// Config is the configuration the user supplied for the data source.
+	//
+	// This configuration may contain unknown values if a user uses
+	// interpolation or other functionality that would prevent Terraform
+	// from knowing the value at request time.
+	Config Config
+}

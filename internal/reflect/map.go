@@ -60,7 +60,7 @@ func reflectMap(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	return m, nil
 }
 
-func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
 	if val.Interface() == nil {
 		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
 	}
@@ -70,7 +70,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 		if key.Kind() != reflect.String {
 			return nil, path.NewErrorf("map keys must be strings, got %s", key.Type())
 		}
-		val, err := FromValue(ctx, elemType, val.MapIndex(key).Interface(), opts, path.WithElementKeyString(key.String()))
+		val, err := FromValue(ctx, elemType, val.MapIndex(key).Interface(), path.WithElementKeyString(key.String()))
 		if err != nil {
 			return nil, err
 		}

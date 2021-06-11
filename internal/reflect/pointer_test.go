@@ -74,7 +74,7 @@ func TestFromPointer_simple(t *testing.T) {
 	t.Parallel()
 
 	v := "hello, world"
-	got, err := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(&v), refl.OutOfOptions{}, tftypes.NewAttributePath())
+	got, err := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(&v), tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
@@ -90,7 +90,7 @@ func TestFromPointer_null(t *testing.T) {
 	t.Parallel()
 
 	var v *string
-	got, err := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(v), refl.OutOfOptions{}, tftypes.NewAttributePath())
+	got, err := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(v), tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}

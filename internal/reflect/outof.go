@@ -12,28 +12,28 @@ import (
 // OutOf is the inverse of Into, taking a Go value (val) and transforming it
 // into an (attr.Value, attr.Type) pair. Each Go type present in val must have
 // an appropriate attr.Type supplied via opts.
-func OutOf(ctx context.Context, typ attr.Type, val interface{}, opts OutOfOptions) (attr.Value, error) {
-	return FromValue(ctx, typ, val, opts, tftypes.NewAttributePath())
+func OutOf(ctx context.Context, typ attr.Type, val interface{}) (attr.Value, error) {
+	return FromValue(ctx, typ, val, tftypes.NewAttributePath())
 }
 
-func FromValue(ctx context.Context, typ attr.Type, val interface{}, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromValue(ctx context.Context, typ attr.Type, val interface{}, path *tftypes.AttributePath) (attr.Value, error) {
 	if v, ok := val.(attr.Value); ok {
-		return FromAttributeValue(ctx, typ, v, opts, path)
+		return FromAttributeValue(ctx, typ, v, path)
 	}
 	if v, ok := val.(tftypes.ValueCreator); ok {
-		return FromValueCreator(ctx, typ, v, opts, path)
+		return FromValueCreator(ctx, typ, v, path)
 	}
 	if v, ok := val.(Unknownable); ok {
-		return FromUnknownable(ctx, typ, v, opts, path)
+		return FromUnknownable(ctx, typ, v, path)
 	}
 	if v, ok := val.(Nullable); ok {
-		return FromNullable(ctx, typ, v, opts, path)
+		return FromNullable(ctx, typ, v, path)
 	}
 	if bf, ok := val.(*big.Float); ok {
-		return FromBigFloat(ctx, typ, bf, opts, path)
+		return FromBigFloat(ctx, typ, bf, path)
 	}
 	if bi, ok := val.(*big.Int); ok {
-		return FromBigInt(ctx, typ, bi, opts, path)
+		return FromBigInt(ctx, typ, bi, path)
 	}
 	value := reflect.ValueOf(val)
 	kind := value.Kind()
@@ -43,29 +43,29 @@ func FromValue(ctx context.Context, typ attr.Type, val interface{}, opts OutOfOp
 		if !ok {
 			return nil, path.NewErrorf("can't use type %T as schema type %T; %T must be an attr.TypeWithAttributeTypes to hold %T", val, typ, typ, val)
 		}
-		return FromStruct(ctx, t, value, opts, path)
+		return FromStruct(ctx, t, value, path)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Int64:
-		return FromInt(ctx, typ, value.Int(), opts, path)
+		return FromInt(ctx, typ, value.Int(), path)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
 		reflect.Uint64:
-		return FromUint(ctx, typ, value.Uint(), opts, path)
+		return FromUint(ctx, typ, value.Uint(), path)
 	case reflect.Float32, reflect.Float64:
-		return FromFloat(ctx, typ, value.Float(), opts, path)
+		return FromFloat(ctx, typ, value.Float(), path)
 	case reflect.Bool:
-		return FromBool(ctx, typ, value.Bool(), opts, path)
+		return FromBool(ctx, typ, value.Bool(), path)
 	case reflect.String:
-		return FromString(ctx, typ, value.String(), opts, path)
+		return FromString(ctx, typ, value.String(), path)
 	case reflect.Slice:
-		return FromSlice(ctx, typ, value, opts, path)
+		return FromSlice(ctx, typ, value, path)
 	case reflect.Map:
 		t, ok := typ.(attr.TypeWithElementType)
 		if !ok {
 			return nil, path.NewErrorf("can't use type %T as schema type %T; %T must be an attr.TypeWithElementType to hold %T", val, typ, typ, val)
 		}
-		return FromMap(ctx, t, value, opts, path)
+		return FromMap(ctx, t, value, path)
 	case reflect.Ptr:
-		return FromPointer(ctx, typ, value, opts, path)
+		return FromPointer(ctx, typ, value, path)
 	default:
 		return nil, path.NewErrorf("don't know how to construct attr.Type from %T (%s)", val, kind)
 	}

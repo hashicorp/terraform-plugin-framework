@@ -411,7 +411,7 @@ func TestFromStruct_primitives(t *testing.T) {
 			"age":      types.NumberType,
 			"opted_in": types.BoolType,
 		},
-	}, reflect.ValueOf(disk1), refl.OutOfOptions{}, tftypes.NewAttributePath())
+	}, reflect.ValueOf(disk1), tftypes.NewAttributePath())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -543,7 +543,7 @@ func TestFromStruct_complex(t *testing.T) {
 			"big_int":         types.NumberType,
 			"uint":            types.NumberType,
 		},
-	}, reflect.ValueOf(s), refl.OutOfOptions{}, tftypes.NewAttributePath())
+	}, reflect.ValueOf(s), tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}

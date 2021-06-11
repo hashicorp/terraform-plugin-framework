@@ -78,7 +78,7 @@ func TestFromString(t *testing.T) {
 	expectedVal := types.String{
 		Value: "mystring",
 	}
-	actualVal, err := refl.FromString(context.Background(), types.StringType, "mystring", refl.OutOfOptions{}, tftypes.NewAttributePath())
+	actualVal, err := refl.FromString(context.Background(), types.StringType, "mystring", tftypes.NewAttributePath())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ func TestFromBool(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		actualVal, err := refl.FromBool(context.Background(), types.BoolType, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+		actualVal, err := refl.FromBool(context.Background(), types.BoolType, tc.val, tftypes.NewAttributePath())
 		if err != nil {
 			t.Fatal(err)
 		}

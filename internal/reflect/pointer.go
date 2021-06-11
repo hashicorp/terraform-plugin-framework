@@ -57,12 +57,12 @@ func pointerSafeZeroValue(ctx context.Context, target reflect.Value) reflect.Val
 	return receiver
 }
 
-func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
 	if value.Kind() != reflect.Ptr {
 		return nil, path.NewErrorf("can't use type %s as a pointer", value.Type())
 	}
 	if value.IsNil() {
 		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
 	}
-	return FromValue(ctx, typ, value.Elem().Interface(), opts, path)
+	return FromValue(ctx, typ, value.Elem().Interface(), path)
 }

@@ -96,7 +96,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	return result, nil
 }
 
-func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
 	objTypes := map[string]tftypes.Type{}
 	objValues := map[string]tftypes.Value{}
 
@@ -112,7 +112,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		path := path.WithAttributeName(name)
 		fieldValue := val.Field(fieldNo)
 
-		attrVal, err := FromValue(ctx, attrTypes[name], fieldValue.Interface(), opts, path)
+		attrVal, err := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)
 		if err != nil {
 			return nil, err
 		}

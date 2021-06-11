@@ -33,7 +33,7 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 	}
 }
 
-func FromString(ctx context.Context, typ attr.Type, val string, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.String, val)
 	if err != nil {
 		return nil, path.NewError(err)
@@ -48,7 +48,7 @@ func FromString(ctx context.Context, typ attr.Type, val string, opts OutOfOption
 	return str, nil
 }
 
-func FromBool(ctx context.Context, typ attr.Type, val bool, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.AttributePath) (attr.Value, error) {
 	err := tftypes.ValidateValue(tftypes.Bool, val)
 	if err != nil {
 		return nil, path.NewError(err)

@@ -1092,7 +1092,7 @@ func TestFromInt(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, err := refl.FromInt(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			actualVal, err := refl.FromInt(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1133,7 +1133,7 @@ func TestFromUint(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, err := refl.FromUint(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			actualVal, err := refl.FromUint(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1181,7 +1181,7 @@ func TestFromFloat(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, err := refl.FromFloat(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			actualVal, err := refl.FromFloat(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1229,7 +1229,7 @@ func TestFromBigFloat(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, err := refl.FromBigFloat(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			actualVal, err := refl.FromBigFloat(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1270,7 +1270,7 @@ func TestFromBigInt(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, err := refl.FromBigInt(context.Background(), tc.typ, tc.val, refl.OutOfOptions{}, tftypes.NewAttributePath())
+			actualVal, err := refl.FromBigInt(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
 			if err != nil {
 				t.Fatal(err)
 			}

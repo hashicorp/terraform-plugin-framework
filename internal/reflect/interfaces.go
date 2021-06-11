@@ -39,7 +39,7 @@ func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, targe
 	return receiver, nil
 }
 
-func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path *tftypes.AttributePath) (attr.Value, error) {
 	if val.GetUnknown(ctx) {
 		res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tftypes.UnknownValue))
 		if err != nil {
@@ -87,7 +87,7 @@ func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target r
 	return receiver, nil
 }
 
-func FromNullable(ctx context.Context, typ attr.Type, val Nullable, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path *tftypes.AttributePath) (attr.Value, error) {
 	if val.GetNull(ctx) {
 		res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
 		if err != nil {
@@ -125,7 +125,7 @@ func NewValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 	return receiver, nil
 }
 
-func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreator, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreator, path *tftypes.AttributePath) (attr.Value, error) {
 	raw, err := val.ToTerraform5Value()
 	if err != nil {
 		return nil, path.NewError(err)
@@ -158,6 +158,6 @@ func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 	return reflect.ValueOf(res), nil
 }
 
-func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, opts OutOfOptions, path *tftypes.AttributePath) (attr.Value, error) {
+func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, path *tftypes.AttributePath) (attr.Value, error) {
 	return val, nil
 }

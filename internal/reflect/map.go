@@ -59,3 +59,39 @@ func reflectMap(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	}
 	return m, nil
 }
+
+// FromMap returns an attr.Value representing the data contained in `val`.
+// `val` must be a map type with keys that are a string type. The attr.Value
+// will be of the type produced by `typ`.
+//
+// It is meant to be called through OutOf, not directly.
+func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
+	if val.IsNil() {
+		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+	}
+	elemType := typ.ElementType()
+	tfElems := map[string]tftypes.Value{}
+	for _, key := range val.MapKeys() {
+		if key.Kind() != reflect.String {
+			return nil, path.NewErrorf("map keys must be strings, got %s", key.Type())
+		}
+		val, err := FromValue(ctx, elemType, val.MapIndex(key).Interface(), path.WithElementKeyString(key.String()))
+		if err != nil {
+			return nil, err
+		}
+		tfVal, err := val.ToTerraformValue(ctx)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		err = tftypes.ValidateValue(elemType.TerraformType(ctx), tfVal)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		tfElems[key.String()] = tftypes.NewValue(elemType.TerraformType(ctx), tfVal)
+	}
+	err := tftypes.ValidateValue(typ.TerraformType(ctx), tfElems)
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tfElems))
+}

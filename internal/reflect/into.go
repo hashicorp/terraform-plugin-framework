@@ -47,17 +47,17 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	}
 	// if this is an attr.Value, build the type from that
 	if target.Type().Implements(reflect.TypeOf((*attr.Value)(nil)).Elem()) {
-		return AttributeValue(ctx, typ, val, target, opts, path)
+		return NewAttributeValue(ctx, typ, val, target, opts, path)
 	}
 	// if this tells tftypes how to build an instance of it out of a
 	// tftypes.Value, well, that's what we want, so do that instead of our
 	// default logic.
 	if target.Type().Implements(reflect.TypeOf((*tftypes.ValueConverter)(nil)).Elem()) {
-		return ValueConverter(ctx, typ, val, target, opts, path)
+		return NewValueConverter(ctx, typ, val, target, opts, path)
 	}
 	// if this can explicitly be set to unknown, do that
-	if target.Type().Implements(reflect.TypeOf((*SetUnknownable)(nil)).Elem()) {
-		res, err := Unknownable(ctx, typ, val, target, opts, path)
+	if target.Type().Implements(reflect.TypeOf((*Unknownable)(nil)).Elem()) {
+		res, err := NewUnknownable(ctx, typ, val, target, opts, path)
 		if err != nil {
 			return target, err
 		}
@@ -70,8 +70,8 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		}
 	}
 	// if this can explicitly be set to null, do that
-	if target.Type().Implements(reflect.TypeOf((*SetNullable)(nil)).Elem()) {
-		res, err := Nullable(ctx, typ, val, target, opts, path)
+	if target.Type().Implements(reflect.TypeOf((*Nullable)(nil)).Elem()) {
+		res, err := NewNullable(ctx, typ, val, target, opts, path)
 		if err != nil {
 			return target, err
 		}

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -70,5 +71,50 @@ func TestPrimitive_boolAlias(t *testing.T) {
 	reflect.ValueOf(&b).Elem().Set(result)
 	if b != true {
 		t.Errorf("Expected %v, got %v", true, b)
+	}
+}
+
+func TestFromString(t *testing.T) {
+	expectedVal := types.String{
+		Value: "mystring",
+	}
+	actualVal, err := refl.FromString(context.Background(), types.StringType, "mystring", tftypes.NewAttributePath())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !expectedVal.Equal(actualVal) {
+		t.Fatalf("fail: got %+v, wanted %+v", actualVal, expectedVal)
+	}
+}
+
+func TestFromBool(t *testing.T) {
+	// the rare exhaustive test
+	cases := []struct {
+		val      bool
+		expected attr.Value
+	}{
+		{
+			true,
+			types.Bool{
+				Value: true,
+			},
+		},
+		{
+			false,
+			types.Bool{
+				Value: false,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		actualVal, err := refl.FromBool(context.Background(), types.BoolType, tc.val, tftypes.NewAttributePath())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !tc.expected.Equal(actualVal) {
+			t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
+		}
 	}
 }

@@ -58,3 +58,47 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 
 	return slice, nil
 }
+
+// FromSlice returns an attr.Value as produced by `typ` using the data in
+// `val`. `val` must be a slice. `typ` must be an attr.TypeWithElementType or
+// attr.TypeWithElementTypes. If the slice is nil, the representation of null
+// for `typ` will be returned. Otherwise, FromSlice will recurse into FromValue
+// for each element in the slice, using the element type or types defined on
+// `typ` to construct values for them.
+//
+// It is meant to be called through OutOf, not directly.
+func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
+	// TODO: support tuples, which are attr.TypeWithElementTypes
+
+	if val.IsNil() {
+		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+	}
+
+	t, ok := typ.(attr.TypeWithElementType)
+	if !ok {
+		return nil, path.NewErrorf("can't use type %T as schema type %T; %T must be an attr.TypeWithElementType to hold %T", val, typ, typ, val)
+	}
+
+	elemType := t.ElementType()
+	tfElems := make([]tftypes.Value, 0, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		val, err := FromValue(ctx, elemType, val.Index(i).Interface(), path.WithElementKeyInt(int64(i)))
+		if err != nil {
+			return nil, err
+		}
+		tfVal, err := val.ToTerraformValue(ctx)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		err = tftypes.ValidateValue(elemType.TerraformType(ctx), tfVal)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		tfElems = append(tfElems, tftypes.NewValue(elemType.TerraformType(ctx), tfVal))
+	}
+	err := tftypes.ValidateValue(typ.TerraformType(ctx), tfElems)
+	if err != nil {
+		return nil, path.NewError(err)
+	}
+	return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tfElems))
+}

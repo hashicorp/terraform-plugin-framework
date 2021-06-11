@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -66,5 +67,37 @@ func TestPointer_pointerPointer(t *testing.T) {
 	}
 	if **(got.Interface().(**string)) != "hello" {
 		t.Errorf("Expected \"hello\", got %+v", **(got.Interface().(**string)))
+	}
+}
+
+func TestFromPointer_simple(t *testing.T) {
+	t.Parallel()
+
+	v := "hello, world"
+	got, err := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(&v), tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	expected := types.String{
+		Value: "hello, world",
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromPointer_null(t *testing.T) {
+	t.Parallel()
+
+	var v *string
+	got, err := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(v), tftypes.NewAttributePath())
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	expected := types.String{
+		Null: true,
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
 	}
 }

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -95,4 +94,58 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 		structField.Set(fieldVal)
 	}
 	return result, nil
+}
+
+// FromStruct builds an attr.Value as produced by `typ` from the data in `val`.
+// `val` must be a struct type, and must have all its properties tagged and be
+// a 1:1 match with the attributes reported by `typ`. FromStruct will recurse
+// into FromValue for each attribute, using the type of the attribute as
+// reported by `typ`.
+//
+// It is meant to be called through OutOf, not directly.
+func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
+	objTypes := map[string]tftypes.Type{}
+	objValues := map[string]tftypes.Value{}
+
+	// collect a map of fields that are defined in the tags of the struct
+	// passed in
+	targetFields, err := getStructTags(ctx, val, path)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving field names from struct tags: %w", err)
+	}
+
+	attrTypes := typ.AttributeTypes()
+	for name, fieldNo := range targetFields {
+		path := path.WithAttributeName(name)
+		fieldValue := val.Field(fieldNo)
+
+		attrVal, err := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)
+		if err != nil {
+			return nil, err
+		}
+
+		objTypes[name] = attrTypes[name].TerraformType(ctx)
+
+		tfVal, err := attrVal.ToTerraformValue(ctx)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		err = tftypes.ValidateValue(objTypes[name], tfVal)
+		if err != nil {
+			return nil, path.NewError(err)
+		}
+		objValues[name] = tftypes.NewValue(objTypes[name], tfVal)
+	}
+
+	tfVal := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: objTypes,
+	}, objValues)
+
+	retType := typ.WithAttributeTypes(attrTypes)
+	ret, err := retType.ValueFromTerraform(ctx, tfVal)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }

@@ -1,0 +1,3 @@
+```release-note:feature
+Added interfaces extending the attr.Type interface to include attribute and element types.
+```

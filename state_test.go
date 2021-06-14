@@ -2,6 +2,7 @@ package tfsdk
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -11,13 +12,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+var allowAllUnexported = cmp.Exporter(func(reflect.Type) bool { return true })
+
+// schema used for all tests
 var testSchema = schema.Schema{
 	Attributes: map[string]schema.Attribute{
-		"foo": {
+		"name": {
 			Type:     types.StringType,
 			Required: true,
 		},
-		"bar": {
+		"machine_type": {
+			Type: types.StringType,
+		},
+		"tags": {
 			Type: types.ListType{
 				ElemType: types.StringType,
 			},
@@ -59,6 +66,8 @@ var testSchema = schema.Schema{
 	},
 }
 
+// element type for the "disks" attribute, which is a list of disks.
+// only used in "disks"
 var diskElementType = tftypes.Object{
 	AttributeTypes: map[string]tftypes.Type{
 		"id":                   tftypes.String,
@@ -66,81 +75,92 @@ var diskElementType = tftypes.Object{
 	},
 }
 
-var testState = State{
-	Raw: tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"foo": tftypes.String,
-			"bar": tftypes.List{ElementType: tftypes.String},
-			"disks": tftypes.List{
-				ElementType: diskElementType,
+// state used for all tests
+func makeTestState() State {
+	return State{
+		Raw: tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"name":         tftypes.String,
+				"machine_type": tftypes.String,
+				"tags":         tftypes.List{ElementType: tftypes.String},
+				"disks": tftypes.List{
+					ElementType: diskElementType,
+				},
+				"boot_disk": diskElementType,
+				"scratch_disk": tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"interface": tftypes.String,
+					},
+				},
 			},
-			"boot_disk": diskElementType,
-			"scratch_disk": tftypes.Object{
+		}, map[string]tftypes.Value{
+			"name":         tftypes.NewValue(tftypes.String, "hello, world"),
+			"machine_type": tftypes.NewValue(tftypes.String, "e2-medium"),
+			"tags": tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "red"),
+				tftypes.NewValue(tftypes.String, "blue"),
+				tftypes.NewValue(tftypes.String, "green"),
+			}),
+			"disks": tftypes.NewValue(tftypes.List{
+				ElementType: diskElementType,
+			}, []tftypes.Value{
+				tftypes.NewValue(diskElementType, map[string]tftypes.Value{
+					"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+					"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+				}),
+				tftypes.NewValue(diskElementType, map[string]tftypes.Value{
+					"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+					"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+				}),
+			}),
+			"boot_disk": tftypes.NewValue(diskElementType, map[string]tftypes.Value{
+				"id":                   tftypes.NewValue(tftypes.String, "bootdisk"),
+				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+			}),
+			"scratch_disk": tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"interface": tftypes.String,
 				},
-			},
-		},
-	}, map[string]tftypes.Value{
-		"foo": tftypes.NewValue(tftypes.String, "hello, world"),
-		"bar": tftypes.NewValue(tftypes.List{
-			ElementType: tftypes.String,
-		}, []tftypes.Value{
-			tftypes.NewValue(tftypes.String, "red"),
-			tftypes.NewValue(tftypes.String, "blue"),
-			tftypes.NewValue(tftypes.String, "green"),
-		}),
-		"disks": tftypes.NewValue(tftypes.List{
-			ElementType: diskElementType,
-		}, []tftypes.Value{
-			tftypes.NewValue(diskElementType, map[string]tftypes.Value{
-				"id":                   tftypes.NewValue(tftypes.String, "disk0"),
-				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-			}),
-			tftypes.NewValue(diskElementType, map[string]tftypes.Value{
-				"id":                   tftypes.NewValue(tftypes.String, "disk1"),
-				"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+			}, map[string]tftypes.Value{
+				"interface": tftypes.NewValue(tftypes.String, "SCSI"),
 			}),
 		}),
-		"boot_disk": tftypes.NewValue(diskElementType, map[string]tftypes.Value{
-			"id":                   tftypes.NewValue(tftypes.String, "bootdisk"),
-			"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-		}),
-		"scratch_disk": tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"interface": tftypes.String,
-			},
-		}, map[string]tftypes.Value{
-			"interface": tftypes.NewValue(tftypes.String, "SCSI"),
-		}),
-	}),
-	Schema: testSchema,
+		Schema: testSchema,
+	}
+}
+
+// struct type used for Get() calls. note the mix of framework types and
+// native Go types.
+type testStateStructType struct {
+	Name        types.String `tfsdk:"name"`
+	MachineType string       `tfsdk:"machine_type"`
+	Tags        types.List   `tfsdk:"tags"`
+	Disks       []struct {
+		ID                 string `tfsdk:"id"`
+		DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+	} `tfsdk:"disks"`
+	BootDisk struct {
+		ID                 string `tfsdk:"id"`
+		DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+	} `tfsdk:"boot_disk"`
+	ScratchDisk struct {
+		Interface string `tfsdk:"interface"`
+	} `tfsdk:"scratch_disk"`
 }
 
 func TestStateGet(t *testing.T) {
-	type myType struct {
-		Foo   types.String `tfsdk:"foo"`
-		Bar   types.List   `tfsdk:"bar"`
-		Disks []struct {
-			ID                 string `tfsdk:"id"`
-			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
-		} `tfsdk:"disks"`
-		BootDisk struct {
-			ID                 string `tfsdk:"id"`
-			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
-		} `tfsdk:"boot_disk"`
-		ScratchDisk struct {
-			Interface string `tfsdk:"interface"`
-		} `tfsdk:"scratch_disk"`
-	}
-	var val myType
+	testState := makeTestState()
+	var val testStateStructType
 	err := testState.Get(context.Background(), &val)
 	if err != nil {
 		t.Fatalf("Error running Get: %s", err)
 	}
-	expected := myType{
-		Foo: types.String{Value: "hello, world"},
-		Bar: types.List{
+	expected := testStateStructType{
+		Name:        types.String{Value: "hello, world"},
+		MachineType: "e2-medium",
+		Tags: types.List{
 			ElemType: types.StringType,
 			Elems: []attr.Value{
 				types.String{Value: "red"},
@@ -180,112 +200,115 @@ func TestStateGet(t *testing.T) {
 }
 
 func TestStateGetAttribute_primitive(t *testing.T) {
-	fooVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("foo"))
+	testState := makeTestState()
+	nameVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"))
 	if err != nil {
-		t.Errorf("Error running GetAttribute for foo: %s", err)
+		t.Errorf("Error running GetAttribute for name: %s", err)
 	}
-	foo, ok := fooVal.(types.String)
+	name, ok := nameVal.(types.String)
 	if !ok {
-		t.Errorf("expected foo to have type String, but it was %T", fooVal)
+		t.Errorf("expected name to have type String, but it was %T", nameVal)
 	}
-	if foo.Unknown {
-		t.Error("Expected Foo to be known")
+	if name.Unknown {
+		t.Error("Expected Name to be known")
 	}
-	if foo.Null {
-		t.Error("Expected Foo to be non-null")
+	if name.Null {
+		t.Error("Expected Name to be non-null")
 	}
-	if foo.Value != "hello, world" {
-		t.Errorf("Expected Foo to be %q, got %q", "hello, world", foo.Value)
+	if name.Value != "hello, world" {
+		t.Errorf("Expected Name to be %q, got %q", "hello, world", name.Value)
 	}
 }
 
 func TestStateGetAttribute_list(t *testing.T) {
-	barVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar"))
+	testState := makeTestState()
+	tagsVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags"))
 	if err != nil {
-		t.Errorf("Error running GetAttribute for bar: %s", err)
+		t.Errorf("Error running GetAttribute for tags: %s", err)
 	}
-	bar, ok := barVal.(types.List)
+	tags, ok := tagsVal.(types.List)
 	if !ok {
-		t.Errorf("expected bar to have type List, but it was %T", barVal)
+		t.Errorf("expected tags to have type List, but it was %T", tagsVal)
 	}
-	if bar.Unknown {
-		t.Error("Expected Bar to be known")
+	if tags.Unknown {
+		t.Error("Expected Tags to be known")
 	}
-	if bar.Null {
-		t.Errorf("Expected Bar to be non-null")
+	if tags.Null {
+		t.Errorf("Expected Tags to be non-null")
 	}
-	if len(bar.Elems) != 3 {
-		t.Errorf("Expected Bar to have 3 elements, had %d", len(bar.Elems))
+	if len(tags.Elems) != 3 {
+		t.Errorf("Expected Tags to have 3 elements, had %d", len(tags.Elems))
 	}
-	if bar.Elems[0].(types.String).Value != "red" {
-		t.Errorf("Expected Bar's first element to be %q, got %q", "red", bar.Elems[0].(types.String).Value)
+	if tags.Elems[0].(types.String).Value != "red" {
+		t.Errorf("Expected Tags's first element to be %q, got %q", "red", tags.Elems[0].(types.String).Value)
 	}
-	if bar.Elems[1].(types.String).Value != "blue" {
-		t.Errorf("Expected Bar's second element to be %q, got %q", "blue", bar.Elems[1].(types.String).Value)
+	if tags.Elems[1].(types.String).Value != "blue" {
+		t.Errorf("Expected Tags's second element to be %q, got %q", "blue", tags.Elems[1].(types.String).Value)
 	}
-	if bar.Elems[2].(types.String).Value != "green" {
-		t.Errorf("Expected Bar's third element to be %q, got %q", "green", bar.Elems[2].(types.String).Value)
+	if tags.Elems[2].(types.String).Value != "green" {
+		t.Errorf("Expected Tags's third element to be %q, got %q", "green", tags.Elems[2].(types.String).Value)
 	}
 
-	bar0Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar").WithElementKeyInt(0))
+	tags0Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(0))
 	if err != nil {
-		t.Errorf("Error running GetAttribute for bar[0]: %s", err)
+		t.Errorf("Error running GetAttribute for tags[0]: %s", err)
 	}
-	bar0, ok := bar0Val.(types.String)
+	tags0, ok := tags0Val.(types.String)
 	if !ok {
-		t.Errorf("expected bar[0] to have type String, but it was %T", bar0Val)
+		t.Errorf("expected tags[0] to have type String, but it was %T", tags0Val)
 	}
-	if bar0.Unknown {
-		t.Error("expected bar[0] to be known")
+	if tags0.Unknown {
+		t.Error("expected tags[0] to be known")
 	}
-	if bar0.Null {
-		t.Error("expected bar[0] to be non-null")
+	if tags0.Null {
+		t.Error("expected tags[0] to be non-null")
 	}
-	if bar0.Value != "red" {
-		t.Errorf("Expected bar[0] to be %q, got %q", "red", bar0.Value)
+	if tags0.Value != "red" {
+		t.Errorf("Expected tags[0] to be %q, got %q", "red", tags0.Value)
 	}
 
-	bar1Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar").WithElementKeyInt(1))
+	tags1Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(1))
 	if err != nil {
-		t.Errorf("Error running GetAttribute for bar[1]: %s", err)
+		t.Errorf("Error running GetAttribute for tags[1]: %s", err)
 	}
-	bar1, ok := bar1Val.(types.String)
+	tags1, ok := tags1Val.(types.String)
 	if !ok {
-		t.Errorf("expected bar[1] to have type String, but it was %T", bar1Val)
+		t.Errorf("expected tags[1] to have type String, but it was %T", tags1Val)
 	}
-	if bar1.Unknown {
-		t.Error("expected bar[1] to be known")
+	if tags1.Unknown {
+		t.Error("expected tags[1] to be known")
 	}
-	if bar1.Null {
-		t.Error("expected bar[1] to be non-null")
+	if tags1.Null {
+		t.Error("expected tags[1] to be non-null")
 	}
-	if bar1.Value != "blue" {
-		t.Errorf("Expected bar[1] to be %q, got %q", "red", bar1.Value)
+	if tags1.Value != "blue" {
+		t.Errorf("Expected tags[1] to be %q, got %q", "red", tags1.Value)
 	}
 
-	bar2Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("bar").WithElementKeyInt(2))
+	tags2Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(2))
 	if err != nil {
-		t.Errorf("Error running GetAttribute for bar[2]: %s", err)
+		t.Errorf("Error running GetAttribute for tags[2]: %s", err)
 	}
-	bar2, ok := bar2Val.(types.String)
+	tags2, ok := tags2Val.(types.String)
 	if !ok {
-		t.Errorf("expected bar[2] to have type String, but it was %T", bar2Val)
+		t.Errorf("expected tags[2] to have type String, but it was %T", tags2Val)
 	}
-	if bar2.Unknown {
-		t.Error("expected bar[2] to be known")
+	if tags2.Unknown {
+		t.Error("expected tags[2] to be known")
 	}
-	if bar2.Null {
-		t.Error("expected bar[2] to be non-null")
+	if tags2.Null {
+		t.Error("expected tags[2] to be non-null")
 	}
-	if bar2.Value != "green" {
-		t.Errorf("Expected bar[2] to be %q, got %q", "red", bar2.Value)
+	if tags2.Value != "green" {
+		t.Errorf("Expected tags[2] to be %q, got %q", "red", tags2.Value)
 	}
 }
 
 func TestStateGetAttribute_nestedlist(t *testing.T) {
+	testState := makeTestState()
 	disksVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("disks"))
 	if err != nil {
-		t.Errorf("Error running GetAttribute for foo: %s", err)
+		t.Errorf("Error running GetAttribute for name: %s", err)
 	}
 
 	disks, ok := disksVal.(types.List)
@@ -354,9 +377,10 @@ func TestStateGetAttribute_nestedlist(t *testing.T) {
 }
 
 func TestStateGetAttribute_nestedsingle(t *testing.T) {
+	testState := makeTestState()
 	bootDiskVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("boot_disk"))
 	if err != nil {
-		t.Errorf("Error running GetAttribute for foo: %s", err)
+		t.Errorf("Error running GetAttribute for name: %s", err)
 	}
 
 	bootDisk, ok := bootDiskVal.(types.Object)
@@ -400,6 +424,7 @@ func TestStateGetAttribute_nestedsingle(t *testing.T) {
 }
 
 func TestStateGetAttribute_object(t *testing.T) {
+	testState := makeTestState()
 	scratchDiskVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk"))
 	if err != nil {
 		t.Errorf("error running GetAttribute for scratch_disk: %s", err)
@@ -446,5 +471,179 @@ func TestStateGetAttribute_object(t *testing.T) {
 	}
 	if sdInterface.Value != "SCSI" {
 		t.Errorf("expected scratchDiskInterface to be %q, got %q", "SCSI", sdInterface.Value)
+	}
+}
+
+func TestStateSet(t *testing.T) {
+	state := State{
+		Raw:    tftypes.Value{},
+		Schema: testSchema,
+	}
+
+	type newStateType struct {
+		Name        string   `tfsdk:"name"`
+		MachineType string   `tfsdk:"machine_type"`
+		Tags        []string `tfsdk:"tags"`
+		Disks       []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"disks"`
+		BootDisk struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"boot_disk"`
+		ScratchDisk struct {
+			Interface string `tfsdk:"interface"`
+		} `tfsdk:"scratch_disk"`
+	}
+
+	err := state.Set(context.Background(), newStateType{
+		Name:        "hello, world",
+		MachineType: "e2-medium",
+		Tags:        []string{"red", "blue", "green"},
+		Disks: []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		}{{
+			ID:                 "disk0",
+			DeleteWithInstance: true,
+		},
+			{
+				ID:                 "disk1",
+				DeleteWithInstance: false,
+			}},
+		BootDisk: struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		}{
+			ID:                 "bootdisk",
+			DeleteWithInstance: true,
+		},
+		ScratchDisk: struct {
+			Interface string `tfsdk:"interface"`
+		}{
+			Interface: "SCSI",
+		},
+	})
+	if err != nil {
+		t.Fatalf("error setting state: %s", err)
+	}
+
+	actual := state.Raw
+	testState := makeTestState()
+	expected := testState.Raw
+
+	if !expected.Equal(actual) {
+		t.Fatalf("unexpected diff in state.Raw (+wanted, -got): %s", cmp.Diff(actual, expected))
+	}
+}
+
+// test that Get and Set are inverses of each other
+func TestStateGetSetInverse(t *testing.T) {
+	testState := makeTestState()
+	var val testStateStructType
+	err := testState.Get(context.Background(), &val)
+	if err != nil {
+		t.Fatalf("Error running Get: %s", err)
+	}
+
+	newState := State{
+		Schema: testSchema,
+	}
+
+	err = newState.Set(context.Background(), val)
+	if err != nil {
+		t.Fatalf("error setting state: %s", err)
+	}
+
+	if diff := cmp.Diff(testState, newState, allowAllUnexported); diff != "" {
+		t.Fatalf("unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestStateSetAttribute(t *testing.T) {
+	testState := makeTestState()
+
+	// set a simple string attribute
+	err := testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"), "newname")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// set an entire list
+	err = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags"), []string{"one", "two"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// set a list item
+	err = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(1), struct {
+		ID                 string `tfsdk:"id"`
+		DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+	}{
+		ID:                 "mynewdisk",
+		DeleteWithInstance: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// set an object attribute
+	err = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"), "NVME")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedRawState := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"name":         tftypes.String,
+			"machine_type": tftypes.String,
+			"tags":         tftypes.List{ElementType: tftypes.String},
+			"disks": tftypes.List{
+				ElementType: diskElementType,
+			},
+			"boot_disk": diskElementType,
+			"scratch_disk": tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"interface": tftypes.String,
+				},
+			},
+		},
+	}, map[string]tftypes.Value{
+		"name":         tftypes.NewValue(tftypes.String, "newname"),
+		"machine_type": tftypes.NewValue(tftypes.String, "e2-medium"),
+		"tags": tftypes.NewValue(tftypes.List{
+			ElementType: tftypes.String,
+		}, []tftypes.Value{
+			tftypes.NewValue(tftypes.String, "one"),
+			tftypes.NewValue(tftypes.String, "two"),
+		}),
+		"disks": tftypes.NewValue(tftypes.List{
+			ElementType: diskElementType,
+		}, []tftypes.Value{
+			tftypes.NewValue(diskElementType, map[string]tftypes.Value{
+				"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+			}),
+			tftypes.NewValue(diskElementType, map[string]tftypes.Value{
+				"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
+				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+			}),
+		}),
+		"boot_disk": tftypes.NewValue(diskElementType, map[string]tftypes.Value{
+			"id":                   tftypes.NewValue(tftypes.String, "bootdisk"),
+			"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+		}),
+		"scratch_disk": tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"interface": tftypes.String,
+			},
+		}, map[string]tftypes.Value{
+			"interface": tftypes.NewValue(tftypes.String, "NVME"),
+		}),
+	})
+
+	if diff := cmp.Diff(expectedRawState, testState.Raw, allowAllUnexported); diff != "" {
+		t.Fatalf("unexpected diff (+wanted, -got): %s", diff)
 	}
 }

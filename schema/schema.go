@@ -2,11 +2,16 @@ package schema
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+)
+
+var (
+	ErrPathInsideAtomicAttribute = errors.New("path leads to element or attribute of a schema.Attribute that has no schema associated with it")
 )
 
 // Schema is used to define the shape of practitioner-provider information,
@@ -96,6 +101,10 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 	res, remaining, err := tftypes.WalkAttributePath(s, path)
 	if err != nil {
 		return Attribute{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
+	}
+
+	if _, ok := res.(attr.Type); ok {
+		return Attribute{}, ErrPathInsideAtomicAttribute
 	}
 
 	a, ok := res.(Attribute)

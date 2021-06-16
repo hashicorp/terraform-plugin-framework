@@ -2,10 +2,12 @@ package tfsdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
+	"github.com/hashicorp/terraform-plugin-framework/schema"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	tf6server "github.com/hashicorp/terraform-plugin-go/tfprotov6/server"
@@ -50,6 +52,15 @@ func (s *server) registerContext(in context.Context) context.Context {
 	defer s.contextCancelsMu.Unlock()
 	s.contextCancels = append(s.contextCancels, cancel)
 	return ctx
+}
+
+func (s *server) cancelRegisteredContexts(ctx context.Context) {
+	s.contextCancelsMu.Lock()
+	defer s.contextCancelsMu.Unlock()
+	for _, cancel := range s.contextCancels {
+		cancel()
+	}
+	s.contextCancels = nil
 }
 
 func (s *server) getResourceType(ctx context.Context, typ string) (ResourceType, []*tfprotov6.Diagnostic) {
@@ -245,12 +256,8 @@ func (s *server) ConfigureProvider(ctx context.Context, req *tfprotov6.Configure
 }
 
 func (s *server) StopProvider(ctx context.Context, _ *tfprotov6.StopProviderRequest) (*tfprotov6.StopProviderResponse, error) {
-	s.contextCancelsMu.Lock()
-	defer s.contextCancelsMu.Unlock()
-	for _, cancel := range s.contextCancels {
-		cancel()
-	}
-	s.contextCancels = nil
+	s.cancelRegisteredContexts(ctx)
+
 	return &tfprotov6.StopProviderResponse{}, nil
 }
 
@@ -328,6 +335,26 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	return resp, nil
 }
 
+func markComputedNilsAsUnknown(ctx context.Context, resourceSchema schema.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
+	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
+		if !val.IsNull() {
+			return val, nil
+		}
+		attribute, err := resourceSchema.AttributeAtPath(path)
+		if err != nil {
+			if errors.Is(err, schema.ErrPathInsideAtomicAttribute) {
+				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
+				return val, nil
+			}
+			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
+		}
+		if !attribute.Computed {
+			return val, nil
+		}
+		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
+	}
+}
+
 func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanResourceChangeRequest) (*tfprotov6.PlanResourceChangeResponse, error) {
 	ctx = s.registerContext(ctx)
 	resp := &tfprotov6.PlanResourceChangeResponse{}
@@ -358,19 +385,15 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return resp, nil
 	}
 
-	modifiedPlan, err := tftypes.Transform(plan, func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
-		if !val.IsNull() {
-			return val, nil
-		}
-		attribute, err := resourceSchema.AttributeAtPath(path)
-		if err != nil {
-			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
-		}
-		if !attribute.Computed {
-			return val, nil
-		}
-		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
-	})
+	modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, resourceSchema))
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error modifying plan",
+			Detail:   "There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
+	}
 
 	plannedState, err := tfprotov6.NewDynamicValue(modifiedPlan.Type(), modifiedPlan)
 	if err != nil {

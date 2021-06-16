@@ -321,6 +321,9 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 		},
 	}
 	readResp := ReadResourceResponse{
+		State: State{
+			Schema: resourceSchema,
+		},
 		Diagnostics: resp.Diagnostics,
 	}
 	resource.Read(ctx, readReq, &readResp)
@@ -518,6 +521,9 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			},
 		}
 		createResp := CreateResourceResponse{
+			State: State{
+				Schema: resourceSchema,
+			},
 			Diagnostics: resp.Diagnostics,
 		}
 		resource.Create(ctx, createReq, &createResp)
@@ -553,6 +559,9 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			},
 		}
 		updateResp := UpdateResourceResponse{
+			State: State{
+				Schema: resourceSchema,
+			},
 			Diagnostics: resp.Diagnostics,
 		}
 		resource.Update(ctx, updateReq, &updateResp)
@@ -579,6 +588,9 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			},
 		}
 		destroyResp := DeleteResourceResponse{
+			State: State{
+				Schema: resourceSchema,
+			},
 			Diagnostics: resp.Diagnostics,
 		}
 		resource.Delete(ctx, destroyReq, &destroyResp)
@@ -659,6 +671,9 @@ func (s *server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 		},
 	}
 	readResp := ReadDataSourceResponse{
+		State: State{
+			Schema: dataSourceSchema,
+		},
 		Diagnostics: resp.Diagnostics,
 	}
 	dataSource.Read(ctx, readReq, &readResp)

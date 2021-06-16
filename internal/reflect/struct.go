@@ -124,7 +124,12 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 			return nil, err
 		}
 
-		objTypes[name] = attrTypes[name].TerraformType(ctx)
+		attrType, ok := attrTypes[name]
+		if !ok || attrType == nil {
+			return nil, path.NewErrorf("couldn't find type information for attribute in supplied attr.Type %T", typ)
+		}
+
+		objTypes[name] = attrType.TerraformType(ctx)
 
 		tfVal, err := attrVal.ToTerraformValue(ctx)
 		if err != nil {

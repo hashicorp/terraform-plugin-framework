@@ -15,7 +15,7 @@ func numberValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value
 	if in.IsNull() {
 		return Number{Null: true}, nil
 	}
-	var n *big.Float
+	n := big.NewFloat(0)
 	err := in.As(&n)
 	if err != nil {
 		return nil, err

@@ -42,6 +42,9 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 // should be a struct whose values have one of the attr.Value types. Each field
 // must be tagged with the corresponding schema field.
 func (s *State) Set(ctx context.Context, val interface{}) error {
+	if val == nil {
+		return fmt.Errorf("can't set nil as entire state; to remove a resource from state, call State.RemoveResource, instead")
+	}
 	newStateAttrValue, err := reflect.OutOf(ctx, s.Schema.AttributeType(), val)
 	if err != nil {
 		return fmt.Errorf("error creating new state value: %w", err)
@@ -88,6 +91,11 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 	}
 
 	return nil
+}
+
+// RemoveResource removes the entire resource from state.
+func (s *State) RemoveResource(ctx context.Context) {
+	s.Raw = tftypes.NewValue(s.Schema.TerraformType(ctx), nil)
 }
 
 func (s State) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {

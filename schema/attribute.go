@@ -66,6 +66,10 @@ type Attribute struct {
 	DeprecationMessage string
 }
 
+// ApplyTerraform5AttributePathStep transparently calls
+// ApplyTerraform5AttributePathStep on a.Type or a.Attributes, whichever is
+// non-nil. It allows Attributes to be walked using tftypes.Walk and
+// tftypes.Transform.
 func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	if a.Type != nil {
 		return a.Type.ApplyTerraform5AttributePathStep(step)

@@ -11,6 +11,10 @@ import (
 )
 
 var (
+	// ErrPathInsideAtomicAttribute is used with AttributeAtPath is called
+	// on a path that doesn't have a schema associated with it, because
+	// it's an element or attribute of a complex type, not a nested
+	// attribute.
 	ErrPathInsideAtomicAttribute = errors.New("path leads to element or attribute of a schema.Attribute that has no schema associated with it")
 )
 
@@ -74,6 +78,10 @@ func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, err
 		return typ, nil
 	}
 
+	if n, ok := rawType.(nestedAttributes); ok {
+		return n.AttributeType(), nil
+	}
+
 	a, ok := rawType.(Attribute)
 	if !ok {
 		return nil, fmt.Errorf("got unexpected type %T", rawType)
@@ -84,6 +92,8 @@ func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, err
 
 	return a.Attributes.AttributeType(), nil
 }
+
+// TerraformType returns a tftypes.Type that can represent the schema.
 func (s Schema) TerraformType(ctx context.Context) tftypes.Type {
 	attrTypes := map[string]tftypes.Type{}
 	for name, attr := range s.Attributes {
@@ -97,6 +107,9 @@ func (s Schema) TerraformType(ctx context.Context) tftypes.Type {
 	return tftypes.Object{AttributeTypes: attrTypes}
 }
 
+// AttributeAtPath returns the Attribute at the passed path. If the path points
+// to an element or attribute of a complex type, rather than to an Attribute,
+// it will return an ErrPathInsideAtomicAttribute error.
 func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) {
 	res, remaining, err := tftypes.WalkAttributePath(s, path)
 	if err != nil {

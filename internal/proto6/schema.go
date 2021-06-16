@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+// Schema returns the *tfprotov6.Schema equivalent of a schema.Schema. At least
+// one attribute must be set in the schema, or an error will be returned.
 func Schema(ctx context.Context, s schema.Schema) (*tfprotov6.Schema, error) {
 	result := &tfprotov6.Schema{
 		Version: s.Version,
@@ -42,6 +44,9 @@ func Schema(ctx context.Context, s schema.Schema) (*tfprotov6.Schema, error) {
 	return result, nil
 }
 
+// Attribute returns the *tfprotov6.SchemaAttribute equivalent of a
+// schema.Attribute. Errors will be tftypes.AttributePathErrors based on
+// `path`. `name` is the name of the attribute.
 func Attribute(ctx context.Context, name string, attr schema.Attribute, path *tftypes.AttributePath) (*tfprotov6.SchemaAttribute, error) {
 	a := &tfprotov6.SchemaAttribute{
 		Name:      name,

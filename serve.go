@@ -22,10 +22,14 @@ type server struct {
 	contextCancelsMu sync.Mutex
 }
 
+// ServeOpts are options for serving the provider.
 type ServeOpts struct {
+	// Name is the name of the provider, in full address form. For example:
+	// registry.terraform.io/hashicorp/random.
 	Name string
 }
 
+// Serve serves a provider, blocking until the context is canceled.
 func Serve(ctx context.Context, factory func() Provider, opts ServeOpts) error {
 	return tf6server.Serve(opts.Name, func() tfprotov6.ProviderServer {
 		return &server{
@@ -212,7 +216,8 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 }
 
 func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.ValidateProviderConfigRequest) (*tfprotov6.ValidateProviderConfigResponse, error) {
-	ctx = s.registerContext(ctx)
+	// uncomment when we implement this function
+	// ctx = s.registerContext(ctx)
 
 	// We don't actually do anything as part of this. In theory, we could
 	// validate the configuration for the provider block? Need to check in
@@ -262,14 +267,16 @@ func (s *server) StopProvider(ctx context.Context, _ *tfprotov6.StopProviderRequ
 }
 
 func (s *server) ValidateResourceConfig(ctx context.Context, _ *tfprotov6.ValidateResourceConfigRequest) (*tfprotov6.ValidateResourceConfigResponse, error) {
-	ctx = s.registerContext(ctx)
+	// uncomment when we implement this function
+	//ctx = s.registerContext(ctx)
 
 	// TODO: support validation
 	return &tfprotov6.ValidateResourceConfigResponse{}, nil
 }
 
 func (s *server) UpgradeResourceState(ctx context.Context, req *tfprotov6.UpgradeResourceStateRequest) (*tfprotov6.UpgradeResourceStateResponse, error) {
-	ctx = s.registerContext(ctx)
+	// uncomment when we implement this function
+	//ctx = s.registerContext(ctx)
 
 	// TODO: support state upgrades
 	return &tfprotov6.UpgradeResourceStateResponse{
@@ -602,14 +609,16 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 }
 
 func (s *server) ImportResourceState(ctx context.Context, _ *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
-	ctx = s.registerContext(ctx)
+	// uncomment when we implement this function
+	//ctx = s.registerContext(ctx)
 
 	// TODO: support resource importing
 	return &tfprotov6.ImportResourceStateResponse{}, nil
 }
 
 func (s *server) ValidateDataResourceConfig(ctx context.Context, _ *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {
-	ctx = s.registerContext(ctx)
+	// uncomment when we implement this function
+	// ctx = s.registerContext(ctx)
 
 	// TODO: support validation
 	return &tfprotov6.ValidateDataResourceConfigResponse{}, nil

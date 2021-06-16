@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+// IsCreate returns true if the request is creating a resource.
 func IsCreate(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, typ tftypes.Type) (bool, error) {
 	priorState, err := req.PriorState.Unmarshal(typ)
 	if err != nil {
@@ -22,6 +23,7 @@ func IsCreate(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, ty
 	return true, nil
 }
 
+// IsUpdate returns true if the request is updating a resource.
 func IsUpdate(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, typ tftypes.Type) (bool, error) {
 	priorState, err := req.PriorState.Unmarshal(typ)
 	if err != nil {
@@ -47,6 +49,7 @@ func IsUpdate(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, ty
 	return true, nil
 }
 
+// IsDestroy returns true if the request is deleting a resource.
 func IsDestroy(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, typ tftypes.Type) (bool, error) {
 	plannedState, err := req.PlannedState.Unmarshal(typ)
 	if err != nil {

@@ -3,6 +3,7 @@ package proto6
 import (
 	"context"
 	"errors"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema"
 
@@ -24,6 +25,15 @@ func Schema(ctx context.Context, s schema.Schema) (*tfprotov6.Schema, error) {
 		}
 		attrs = append(attrs, a)
 	}
+	sort.Slice(attrs, func(i, j int) bool {
+		if attrs[i] == nil {
+			return true
+		}
+		if attrs[j] == nil {
+			return false
+		}
+		return attrs[i].Name < attrs[j].Name
+	})
 	if len(attrs) < 1 {
 		return nil, errors.New("must have at least one attribute in the schema")
 	}
@@ -88,12 +98,21 @@ func Attribute(ctx context.Context, name string, attr schema.Attribute, path *tf
 		}
 		attrs := attr.Attributes.GetAttributes()
 		for nestedName, nestedAttr := range attrs {
-			nestedA, err := Attribute(ctx, name, nestedAttr, path.WithAttributeName(nestedName))
+			nestedA, err := Attribute(ctx, nestedName, nestedAttr, path.WithAttributeName(nestedName))
 			if err != nil {
 				return nil, err
 			}
 			object.Attributes = append(object.Attributes, nestedA)
 		}
+		sort.Slice(object.Attributes, func(i, j int) bool {
+			if object.Attributes[i] == nil {
+				return true
+			}
+			if object.Attributes[j] == nil {
+				return false
+			}
+			return object.Attributes[i].Name < object.Attributes[j].Name
+		})
 		a.NestedType = object
 	} else if attr.Attributes != nil && attr.Type != nil {
 		return nil, path.NewErrorf("can't have both Attributes and Type set")

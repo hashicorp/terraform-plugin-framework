@@ -247,7 +247,7 @@ func (s *server) ConfigureProvider(ctx context.Context, req *tfprotov6.Configure
 		})
 		return resp, nil
 	}
-	r := &ConfigureProviderRequest{
+	r := ConfigureProviderRequest{
 		TerraformVersion: req.TerraformVersion,
 		Config: Config{
 			Raw:    config,

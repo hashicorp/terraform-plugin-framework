@@ -78,7 +78,7 @@ func Attribute(ctx context.Context, name string, attr schema.Attribute, path *tf
 	}
 	if attr.Type != nil && attr.Attributes == nil {
 		a.Type = attr.Type.TerraformType(ctx)
-	} else if attr.Attributes != nil && attr.Type == nil {
+	} else if attr.Attributes != nil && len(attr.Attributes.GetAttributes()) > 0 && attr.Type == nil {
 		object := &tfprotov6.SchemaObject{
 			MinItems: attr.Attributes.GetMinItems(),
 			MaxItems: attr.Attributes.GetMaxItems(),
@@ -114,9 +114,9 @@ func Attribute(ctx context.Context, name string, attr schema.Attribute, path *tf
 			return object.Attributes[i].Name < object.Attributes[j].Name
 		})
 		a.NestedType = object
-	} else if attr.Attributes != nil && attr.Type != nil {
+	} else if attr.Attributes != nil && len(attr.Attributes.GetAttributes()) > 0 && attr.Type != nil {
 		return nil, path.NewErrorf("can't have both Attributes and Type set")
-	} else if attr.Attributes == nil && attr.Type == nil {
+	} else if (attr.Attributes == nil || len(attr.Attributes.GetAttributes()) < 1) && attr.Type == nil {
 		return nil, path.NewErrorf("must have Attributes or Type set")
 	}
 	return a, nil

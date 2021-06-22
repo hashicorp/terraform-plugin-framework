@@ -499,15 +499,15 @@ func (rt testServeResourceOne) GetSchema(_ context.Context) (schema.Schema, []*t
 	return schema.Schema{
 		Version: 1,
 		Attributes: map[string]schema.Attribute{
-			"name": schema.Attribute{
+			"name": {
 				Required: true,
 				Type:     types.StringType,
 			},
-			"favorite_colors": schema.Attribute{
+			"favorite_colors": {
 				Optional: true,
 				Type:     types.ListType{ElemType: types.StringType},
 			},
-			"created_timestamp": schema.Attribute{
+			"created_timestamp": {
 				Computed: true,
 				Type:     types.StringType,
 			},
@@ -547,12 +547,12 @@ type testServeResourceTwo struct{}
 func (rt testServeResourceTwo) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.Attribute{
+			"id": {
 				Optional: true,
 				Computed: true,
 				Type:     types.StringType,
 			},
-			"disks": schema.Attribute{
+			"disks": {
 				Optional: true,
 				Computed: true,
 				Attributes: schema.ListNestedAttributes(map[string]schema.Attribute{

@@ -68,6 +68,7 @@ type NestedAttributes interface {
 	GetAttributes() map[string]Attribute
 	GetMinItems() int64
 	GetMaxItems() int64
+	Equal(NestedAttributes) bool
 	unimplementable()
 }
 
@@ -132,6 +133,26 @@ func (s singleNestedAttributes) GetMaxItems() int64 {
 	return 0
 }
 
+func (s singleNestedAttributes) Equal(o NestedAttributes) bool {
+	other, ok := o.(singleNestedAttributes)
+	if !ok {
+		return false
+	}
+	if len(other.nestedAttributes) != len(s.nestedAttributes) {
+		return false
+	}
+	for k, v := range s.nestedAttributes {
+		otherV, ok := other.nestedAttributes[k]
+		if !ok {
+			return false
+		}
+		if !v.Equal(otherV) {
+			return false
+		}
+	}
+	return true
+}
+
 // ListNestedAttributes nests `attributes` under another attribute, allowing
 // multiple instances of that group of attributes to appear in the
 // configuration. Minimum and maximum numbers of times the group can appear in
@@ -182,6 +203,32 @@ func (l listNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.Attr
 		return nil, fmt.Errorf("can't apply %T to ListNestedAttributes", step)
 	}
 	return l.nestedAttributes, nil
+}
+
+func (l listNestedAttributes) Equal(o NestedAttributes) bool {
+	other, ok := o.(listNestedAttributes)
+	if !ok {
+		return false
+	}
+	if l.min != other.min {
+		return false
+	}
+	if l.max != other.max {
+		return false
+	}
+	if len(other.nestedAttributes) != len(l.nestedAttributes) {
+		return false
+	}
+	for k, v := range l.nestedAttributes {
+		otherV, ok := other.nestedAttributes[k]
+		if !ok {
+			return false
+		}
+		if !v.Equal(otherV) {
+			return false
+		}
+	}
+	return true
 }
 
 // SetNestedAttributes nests `attributes` under another attribute, allowing
@@ -236,6 +283,32 @@ func (s setNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.Attri
 	return s.nestedAttributes, nil
 }
 
+func (s setNestedAttributes) Equal(o NestedAttributes) bool {
+	other, ok := o.(setNestedAttributes)
+	if !ok {
+		return false
+	}
+	if s.min != other.min {
+		return false
+	}
+	if s.max != other.max {
+		return false
+	}
+	if len(other.nestedAttributes) != len(s.nestedAttributes) {
+		return false
+	}
+	for k, v := range s.nestedAttributes {
+		otherV, ok := other.nestedAttributes[k]
+		if !ok {
+			return false
+		}
+		if !v.Equal(otherV) {
+			return false
+		}
+	}
+	return true
+}
+
 // MapNestedAttributes nests `attributes` under another attribute, allowing
 // multiple instances of that group of attributes to appear in the
 // configuration. Each group will need to be associated with a unique string by
@@ -286,4 +359,30 @@ func (m mapNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.Attri
 		return nil, fmt.Errorf("can't use %T on maps", step)
 	}
 	return m.nestedAttributes, nil
+}
+
+func (m mapNestedAttributes) Equal(o NestedAttributes) bool {
+	other, ok := o.(mapNestedAttributes)
+	if !ok {
+		return false
+	}
+	if m.min != other.min {
+		return false
+	}
+	if m.max != other.max {
+		return false
+	}
+	if len(other.nestedAttributes) != len(m.nestedAttributes) {
+		return false
+	}
+	for k, v := range m.nestedAttributes {
+		otherV, ok := other.nestedAttributes[k]
+		if !ok {
+			return false
+		}
+		if !v.Equal(otherV) {
+			return false
+		}
+	}
+	return true
 }

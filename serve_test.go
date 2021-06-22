@@ -201,7 +201,22 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 	}
 }
 
-type testServeProvider struct{}
+type testServeProvider struct {
+	// configure
+	configuredVal       tftypes.Value
+	configuredSchema    schema.Schema
+	configuredTFVersion string
+
+	// read resource request
+	readResourceCurrentState tftypes.Value
+	readResourcePrivate      []byte
+	readResourceProviderMeta tftypes.Value
+
+	// read resource response
+	readResourceNewState        tftypes.Value
+	readResourceDiagnostics     []*tfprotov6.Diagnostic
+	readResourceReturnedPrivate []byte
+}
 
 func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
 	return schema.Schema{
@@ -475,6 +490,42 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 	},
 }
 
+var testServeProviderProviderType = tftypes.Object{
+	AttributeTypes: map[string]tftypes.Type{
+		"required":          tftypes.String,
+		"optional":          tftypes.String,
+		"computed":          tftypes.String,
+		"optional_computed": tftypes.String,
+		"sensitive":         tftypes.String,
+		"deprecated":        tftypes.String,
+		"string":            tftypes.String,
+		"number":            tftypes.Number,
+		"bool":              tftypes.Bool,
+		"list-string":       tftypes.List{ElementType: tftypes.String},
+		"list-list-string":  tftypes.List{ElementType: tftypes.List{ElementType: tftypes.String}},
+		"list-object": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.Bool,
+			"baz": tftypes.Number,
+		}}},
+		"object": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo":  tftypes.String,
+			"bar":  tftypes.Bool,
+			"baz":  tftypes.Number,
+			"quux": tftypes.List{ElementType: tftypes.String},
+		}},
+		"empty-object": tftypes.Object{AttributeTypes: map[string]tftypes.Type{}},
+		"single-nested-attributes": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.Number,
+		}},
+		"list-nested-attributes": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.Number,
+		}}},
+	},
+}
+
 type testServeProviderWithMetaSchema struct {
 	*testServeProvider
 }
@@ -728,7 +779,10 @@ func (t *testServeProvider) GetDataSources(_ context.Context) (map[string]DataSo
 	}, nil
 }
 
-func (t *testServeProvider) Configure(_ context.Context, _ ConfigureProviderRequest, _ *ConfigureProviderResponse) {
+func (t *testServeProvider) Configure(_ context.Context, req ConfigureProviderRequest, _ *ConfigureProviderResponse) {
+	t.configuredVal = req.Config.Raw
+	t.configuredSchema = req.Config.Schema
+	t.configuredTFVersion = req.TerraformVersion
 }
 
 func TestServerGetProviderSchema(t *testing.T) {
@@ -804,7 +858,157 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 func TestServerConfigureProvider(t *testing.T) {
 	t.Parallel()
 
-	// TODO: test configuring the provider
+	type testCase struct {
+		tfVersion     string
+		config        tftypes.Value
+		expectedDiags []*tfprotov6.Diagnostic
+	}
+
+	tests := map[string]testCase{
+		"basic": {
+			tfVersion: "1.0.0",
+			config: tftypes.NewValue(testServeProviderProviderType, map[string]tftypes.Value{
+				"required":          tftypes.NewValue(tftypes.String, "this is a required value"),
+				"optional":          tftypes.NewValue(tftypes.String, nil),
+				"computed":          tftypes.NewValue(tftypes.String, nil),
+				"optional_computed": tftypes.NewValue(tftypes.String, "they filled this one out"),
+				"sensitive":         tftypes.NewValue(tftypes.String, "hunter42"),
+				"deprecated":        tftypes.NewValue(tftypes.String, "oops"),
+				"string":            tftypes.NewValue(tftypes.String, "a new string value"),
+				"number":            tftypes.NewValue(tftypes.Number, 1234),
+				"bool":              tftypes.NewValue(tftypes.Bool, true),
+				"list-string": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"list-list-string": tftypes.NewValue(tftypes.List{ElementType: tftypes.List{ElementType: tftypes.String}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
+					tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "rojo"),
+						tftypes.NewValue(tftypes.String, "azul"),
+						tftypes.NewValue(tftypes.String, "verde"),
+					}),
+				}),
+				"list-object": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Bool,
+					"baz": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Bool,
+						"baz": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "hello, world"),
+						"bar": tftypes.NewValue(tftypes.Bool, true),
+						"baz": tftypes.NewValue(tftypes.Number, 4567),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Bool,
+						"baz": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "goodnight, moon"),
+						"bar": tftypes.NewValue(tftypes.Bool, false),
+						"baz": tftypes.NewValue(tftypes.Number, 8675309),
+					}),
+				}),
+				"object": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo":  tftypes.String,
+					"bar":  tftypes.Bool,
+					"baz":  tftypes.Number,
+					"quux": tftypes.List{ElementType: tftypes.String},
+				}}, map[string]tftypes.Value{
+					"foo": tftypes.NewValue(tftypes.String, "testing123"),
+					"bar": tftypes.NewValue(tftypes.Bool, true),
+					"baz": tftypes.NewValue(tftypes.Number, 123),
+					"quux": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
+				}),
+				"empty-object": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{}),
+				"single-nested-attributes": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}, map[string]tftypes.Value{
+					"foo": tftypes.NewValue(tftypes.String, "almost done"),
+					"bar": tftypes.NewValue(tftypes.Number, 12),
+				}),
+				"list-nested-attributes": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "let's do the math"),
+						"bar": tftypes.NewValue(tftypes.Number, 18973),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "this is why we can't have nice things"),
+						"bar": tftypes.NewValue(tftypes.Number, 14554216),
+					}),
+				}),
+			}),
+		},
+		// TODO: "config-unknown-value": {},
+	}
+
+	for name, tc := range tests {
+		name, tc := name, tc
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			s := new(testServeProvider)
+			testServer := &server{
+				p: s,
+			}
+			dv, err := tfprotov6.NewDynamicValue(testServeProviderProviderType, tc.config)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+
+			providerSchema, diags := s.GetSchema(context.Background())
+			if len(diags) > 0 {
+				t.Errorf("Unexpected diags: %+v", diags)
+				return
+			}
+			got, err := testServer.ConfigureProvider(context.Background(), &tfprotov6.ConfigureProviderRequest{
+				TerraformVersion: tc.tfVersion,
+				Config:           &dv,
+			})
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			if s.configuredTFVersion != tc.tfVersion {
+				t.Errorf("Expected Terraform version to be %q, got %q", tc.tfVersion, s.configuredTFVersion)
+			}
+			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
+			}
+			if diff := cmp.Diff(s.configuredVal, tc.config); diff != "" {
+				t.Errorf("Unexpected diff in config (+wanted, -got): %s", diff)
+				return
+			}
+			if diff := cmp.Diff(s.configuredSchema, providerSchema); diff != "" {
+				t.Errorf("Unexpected diff in schema (+wanted, -got): %s", diff)
+				return
+			}
+		})
+	}
 }
 
 func TestServerReadResource(t *testing.T) {

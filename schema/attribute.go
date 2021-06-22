@@ -79,3 +79,42 @@ func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSt
 	}
 	return nil, errors.New("Attribute has no type or nested attributes")
 }
+
+func (a Attribute) Equal(o Attribute) bool {
+	if a.Type == nil && o.Type != nil {
+		return false
+	} else if a.Type != nil && o.Type == nil {
+		return false
+	} else if a.Type != nil && o.Type != nil && !a.Type.Equal(o.Type) {
+		return false
+	}
+	if a.Attributes == nil && o.Attributes != nil {
+		return false
+	} else if a.Attributes != nil && o.Attributes == nil {
+		return false
+	} else if a.Attributes != nil && o.Attributes != nil && !a.Attributes.Equal(o.Attributes) {
+		return false
+	}
+	if a.Description != o.Description {
+		return false
+	}
+	if a.MarkdownDescription != o.MarkdownDescription {
+		return false
+	}
+	if a.Required != o.Required {
+		return false
+	}
+	if a.Optional != o.Optional {
+		return false
+	}
+	if a.Computed != o.Computed {
+		return false
+	}
+	if a.Sensitive != o.Sensitive {
+		return false
+	}
+	if a.DeprecationMessage != o.DeprecationMessage {
+		return false
+	}
+	return true
+}

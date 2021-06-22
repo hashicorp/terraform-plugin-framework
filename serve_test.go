@@ -961,7 +961,53 @@ func TestServerConfigureProvider(t *testing.T) {
 				}),
 			}),
 		},
-		// TODO: "config-unknown-value": {},
+		"config-unknown-value": {
+			tfVersion: "1.0.0",
+			config: tftypes.NewValue(testServeProviderProviderType, map[string]tftypes.Value{
+				"required":          tftypes.NewValue(tftypes.String, "this is a required value"),
+				"optional":          tftypes.NewValue(tftypes.String, nil),
+				"computed":          tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"optional_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"sensitive":         tftypes.NewValue(tftypes.String, "hunter42"),
+				"deprecated":        tftypes.NewValue(tftypes.String, "oops"),
+				"string":            tftypes.NewValue(tftypes.String, "a new string value"),
+				"number":            tftypes.NewValue(tftypes.Number, 1234),
+				"bool":              tftypes.NewValue(tftypes.Bool, true),
+				"list-string": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"list-list-string": tftypes.NewValue(tftypes.List{ElementType: tftypes.List{ElementType: tftypes.String}}, tftypes.UnknownValue),
+				"list-object": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Bool,
+					"baz": tftypes.Number,
+				}}}, tftypes.UnknownValue),
+				"object": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo":  tftypes.String,
+					"bar":  tftypes.Bool,
+					"baz":  tftypes.Number,
+					"quux": tftypes.List{ElementType: tftypes.String},
+				}}, map[string]tftypes.Value{
+					"foo":  tftypes.NewValue(tftypes.String, "testing123"),
+					"bar":  tftypes.NewValue(tftypes.Bool, true),
+					"baz":  tftypes.NewValue(tftypes.Number, 123),
+					"quux": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
+				}),
+				"empty-object": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{}),
+				"single-nested-attributes": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}, map[string]tftypes.Value{
+					"foo": tftypes.NewValue(tftypes.String, "almost done"),
+					"bar": tftypes.NewValue(tftypes.Number, 12),
+				}),
+				"list-nested-attributes": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, tftypes.UnknownValue),
+			}),
+		},
 	}
 
 	for name, tc := range tests {

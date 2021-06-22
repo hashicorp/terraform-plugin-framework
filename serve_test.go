@@ -205,113 +205,53 @@ type testServeProvider struct{}
 
 func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
 	return schema.Schema{
-		Version:             1,
-		DeprecationMessage:  "Deprecated in favor of other_resource",
-		Description:         "A test resource.",
-		MarkdownDescription: "A **test** resource",
+		Version:            1,
+		DeprecationMessage: "Deprecated in favor of other_resource",
 		Attributes: map[string]schema.Attribute{
 			"required": {
-				Type:                types.StringType,
-				Required:            true,
-				Description:         "A required attribute",
-				MarkdownDescription: "A **required** attribute",
+				Type:     types.StringType,
+				Required: true,
 			},
 			"optional": {
-				Type:                types.StringType,
-				Optional:            true,
-				Description:         "An optional attribute",
-				MarkdownDescription: "An _optional_ attribute",
+				Type:     types.StringType,
+				Optional: true,
 			},
 			"computed": {
-				Type:                types.StringType,
-				Computed:            true,
-				Description:         "A read-only attribute",
-				MarkdownDescription: "A read-only attribute",
+				Type:     types.StringType,
+				Computed: true,
 			},
 			"optional_computed": {
-				Type:                types.StringType,
-				Optional:            true,
-				Computed:            true,
-				Description:         "An optional and computed attribute",
-				MarkdownDescription: "An optional and computed attribute",
+				Type:     types.StringType,
+				Optional: true,
+				Computed: true,
 			},
-			"required_sensitive": {
-				Type:                types.StringType,
-				Required:            true,
-				Sensitive:           true,
-				Description:         "A required attribute with sensitive values",
-				MarkdownDescription: "A _required_ attribute with sensitive values",
+			"sensitive": {
+				Type:      types.StringType,
+				Optional:  true,
+				Sensitive: true,
 			},
-			"optional_sensitive": {
-				Type:                types.StringType,
-				Optional:            true,
-				Sensitive:           true,
-				Description:         "An optional attribute with sensitive values",
-				MarkdownDescription: "An _optional_ attribute with sensitive values",
-			},
-			"computed_sensitive": {
-				Type:                types.StringType,
-				Computed:            true,
-				Sensitive:           true,
-				Description:         "A read-only attribute with sensitive values",
-				MarkdownDescription: "A read-only attribute with _sensitive_ values",
-			},
-			"optional_computed_sensitive": {
-				Type:                types.StringType,
-				Computed:            true,
-				Sensitive:           true,
-				Description:         "An optional and computed attribute with sensitive values",
-				MarkdownDescription: "An _optional_ and computed attribute with sensitive values",
-			},
-			"optional_deprecated": {
-				Type:                types.StringType,
-				Optional:            true,
-				DeprecationMessage:  "Deprecated, please use \"optional\" instead",
-				Description:         "A deprecated, optional attribute",
-				MarkdownDescription: "A **deprecated**, optional attribute",
-			},
-			"optional_computed_deprecated": {
-				Type:                types.StringType,
-				Optional:            true,
-				Computed:            true,
-				DeprecationMessage:  "Deprecated, please use \"optional_computed\" instead",
-				Description:         "A deprecated, optional and computed attribute",
-				MarkdownDescription: "A **deprecated**, optional and computed attribute",
-			},
-			"optional_computed_sensitive_deprecated": {
-				Type:                types.StringType,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           true,
-				DeprecationMessage:  "Deprecated, please use \"optional_computed_sensitive\" instead",
-				Description:         "A deprecated, optional, and computed attribute with sensitive values",
-				MarkdownDescription: "A **deprecated**, optional, and computed attribute with sensitive values",
+			"deprecated": {
+				Type:               types.StringType,
+				Optional:           true,
+				DeprecationMessage: "Deprecated, please use \"optional\" instead",
 			},
 			"string": {
-				Type:                types.StringType,
-				Optional:            true,
-				Description:         "A string attribute",
-				MarkdownDescription: "A _string_ attribute",
+				Type:     types.StringType,
+				Optional: true,
 			},
 			"number": {
-				Type:                types.NumberType,
-				Optional:            true,
-				Description:         "A number attribute",
-				MarkdownDescription: "A _number_ attribute",
+				Type:     types.NumberType,
+				Optional: true,
 			},
 			"bool": {
-				Type:                types.BoolType,
-				Optional:            true,
-				Description:         "A boolean attribute",
-				MarkdownDescription: "A _boolean_ attribute",
+				Type:     types.BoolType,
+				Optional: true,
 			},
 			"list-string": {
 				Type: types.ListType{
 					ElemType: types.StringType,
 				},
-				Optional:            true,
-				Description:         "A list of strings",
-				MarkdownDescription: "A list of **strings**",
+				Optional: true,
 			},
 			"list-list-string": {
 				Type: types.ListType{
@@ -319,9 +259,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 						ElemType: types.StringType,
 					},
 				},
-				Optional:            true,
-				Description:         "A list of lists of strings",
-				MarkdownDescription: "A list of lists of _strings_",
+				Optional: true,
 			},
 			"list-object": {
 				Type: types.ListType{
@@ -333,9 +271,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 						},
 					},
 				},
-				Optional:            true,
-				Description:         "A list of objects",
-				MarkdownDescription: "A list of _objects_",
+				Optional: true,
 			},
 			"object": {
 				Type: types.ObjectType{
@@ -348,15 +284,11 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 						},
 					},
 				},
-				Optional:            true,
-				Description:         "An object attribute",
-				MarkdownDescription: "An object _attribute_",
+				Optional: true,
 			},
 			"empty-object": {
-				Type:                types.ObjectType{},
-				Optional:            true,
-				Description:         "An object attribute with no attributes",
-				MarkdownDescription: "An object attribute _with no attributes_",
+				Type:     types.ObjectType{},
+				Optional: true,
 			},
 			// TODO: add maps when we support them
 			// TODO: add sets when we support them
@@ -364,45 +296,30 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 			"single-nested-attributes": {
 				Attributes: schema.SingleNestedAttributes(map[string]schema.Attribute{
 					"foo": {
-						Type:                types.StringType,
-						Optional:            true,
-						Computed:            true,
-						Description:         "A nested string attribute",
-						MarkdownDescription: "A nested _string_ attribute",
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
 					},
 					"bar": {
-						Type:                types.NumberType,
-						Required:            true,
-						Description:         "A nested number attribute",
-						MarkdownDescription: "A nested _number_ attribute",
+						Type:     types.NumberType,
+						Required: true,
 					},
 				}),
-				Optional:            true,
-				Description:         "A single nested attribute",
-				MarkdownDescription: "A single _nested_ attribute",
+				Optional: true,
 			},
 			"list-nested-attributes": {
 				Attributes: schema.ListNestedAttributes(map[string]schema.Attribute{
 					"foo": {
-						Type:                types.StringType,
-						Optional:            true,
-						Computed:            true,
-						Description:         "A nested string attribute",
-						MarkdownDescription: "A nested _string_ attribute",
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
 					},
 					"bar": {
-						Type:                types.NumberType,
-						Required:            true,
-						Description:         "A nested number attribute",
-						MarkdownDescription: "A nested _number_ attribute",
+						Type:     types.NumberType,
+						Required: true,
 					},
-				}, schema.ListNestedAttributesOptions{
-					MinItems: 2,
-					MaxItems: 10,
-				}),
-				Optional:            true,
-				Description:         "A list nested attribute",
-				MarkdownDescription: "A list _nested_ attribute",
+				}, schema.ListNestedAttributesOptions{}),
+				Optional: true,
 			},
 		},
 	}, nil
@@ -411,40 +328,30 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 var testServeProviderProviderSchema = &tfprotov6.Schema{
 	Version: 1,
 	Block: &tfprotov6.SchemaBlock{
-		Deprecated:      true,
-		Description:     "A **test** resource",
-		DescriptionKind: tfprotov6.StringKindMarkdown,
+		Deprecated: true,
 		Attributes: []*tfprotov6.SchemaAttribute{
 			{
-				Name:            "bool",
-				Type:            tftypes.Bool,
-				Optional:        true,
-				Description:     "A _boolean_ attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Name:     "bool",
+				Type:     tftypes.Bool,
+				Optional: true,
 			},
 			{
-				Name:            "computed",
-				Type:            tftypes.String,
-				Computed:        true,
-				Description:     "A read-only attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Name:     "computed",
+				Type:     tftypes.String,
+				Computed: true,
 			},
 			{
-				Name:            "computed_sensitive",
-				Type:            tftypes.String,
-				Computed:        true,
-				Sensitive:       true,
-				Description:     "A read-only attribute with _sensitive_ values",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Name:       "deprecated",
+				Type:       tftypes.String,
+				Optional:   true,
+				Deprecated: true,
 			},
 			{
 				Name: "empty-object",
 				Type: tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{},
 				},
-				Optional:        true,
-				Description:     "An object attribute _with no attributes_",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Optional: true,
 			},
 			{
 				Name: "list-list-string",
@@ -453,37 +360,27 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 						ElementType: tftypes.String,
 					},
 				},
-				Optional:        true,
-				Description:     "A list of lists of _strings_",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Optional: true,
 			},
 			{
 				Name: "list-nested-attributes",
 				NestedType: &tfprotov6.SchemaObject{
-					Nesting:  tfprotov6.SchemaObjectNestingModeList,
-					MaxItems: 10,
-					MinItems: 2,
+					Nesting: tfprotov6.SchemaObjectNestingModeList,
 					Attributes: []*tfprotov6.SchemaAttribute{
 						{
-							Name:            "bar",
-							Type:            tftypes.Number,
-							Required:        true,
-							Description:     "A nested _number_ attribute",
-							DescriptionKind: tfprotov6.StringKindMarkdown,
+							Name:     "bar",
+							Type:     tftypes.Number,
+							Required: true,
 						},
 						{
-							Name:            "foo",
-							Type:            tftypes.String,
-							Optional:        true,
-							Computed:        true,
-							Description:     "A nested _string_ attribute",
-							DescriptionKind: tfprotov6.StringKindMarkdown,
+							Name:     "foo",
+							Type:     tftypes.String,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
-				Optional:        true,
-				Description:     "A list _nested_ attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Optional: true,
 			},
 			{
 				Name: "list-object",
@@ -496,25 +393,19 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 						},
 					},
 				},
-				Optional:        true,
-				Description:     "A list of _objects_",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Optional: true,
 			},
 			{
 				Name: "list-string",
 				Type: tftypes.List{
 					ElementType: tftypes.String,
 				},
-				Optional:        true,
-				Description:     "A list of **strings**",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Optional: true,
 			},
 			{
-				Name:            "number",
-				Type:            tftypes.Number,
-				Optional:        true,
-				Description:     "A _number_ attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Name:     "number",
+				Type:     tftypes.Number,
+				Optional: true,
 			},
 			{
 				Name: "object",
@@ -528,82 +419,29 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 						},
 					},
 				},
-				Optional:        true,
-				Description:     "An object _attribute_",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Optional: true,
 			},
 			{
-				Name:            "optional",
-				Type:            tftypes.String,
-				Optional:        true,
-				Description:     "An _optional_ attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Name:     "optional",
+				Type:     tftypes.String,
+				Optional: true,
 			},
 			{
-				Name:            "optional_computed",
-				Type:            tftypes.String,
-				Optional:        true,
-				Computed:        true,
-				Description:     "An optional and computed attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Name:     "optional_computed",
+				Type:     tftypes.String,
+				Optional: true,
+				Computed: true,
 			},
 			{
-				Name:            "optional_computed_deprecated",
-				Type:            tftypes.String,
-				Optional:        true,
-				Computed:        true,
-				Deprecated:      true,
-				Description:     "A **deprecated**, optional and computed attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Name:     "required",
+				Type:     tftypes.String,
+				Required: true,
 			},
 			{
-				Name:            "optional_computed_sensitive",
-				Type:            tftypes.String,
-				Computed:        true,
-				Sensitive:       true,
-				Description:     "An _optional_ and computed attribute with sensitive values",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
-			},
-			{
-				Name:            "optional_computed_sensitive_deprecated",
-				Type:            tftypes.String,
-				Optional:        true,
-				Computed:        true,
-				Sensitive:       true,
-				Deprecated:      true,
-				Description:     "A **deprecated**, optional, and computed attribute with sensitive values",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
-			},
-			{
-				Name:            "optional_deprecated",
-				Type:            tftypes.String,
-				Optional:        true,
-				Deprecated:      true,
-				Description:     "A **deprecated**, optional attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
-			},
-			{
-				Name:            "optional_sensitive",
-				Type:            tftypes.String,
-				Optional:        true,
-				Sensitive:       true,
-				Description:     "An _optional_ attribute with sensitive values",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
-			},
-			{
-				Name:            "required",
-				Type:            tftypes.String,
-				Required:        true,
-				Description:     "A **required** attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
-			},
-			{
-				Name:            "required_sensitive",
-				Type:            tftypes.String,
-				Required:        true,
-				Sensitive:       true,
-				Description:     "A _required_ attribute with sensitive values",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Name:      "sensitive",
+				Type:      tftypes.String,
+				Optional:  true,
+				Sensitive: true,
 			},
 			{
 				Name: "single-nested-attributes",
@@ -611,32 +449,24 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 					Nesting: tfprotov6.SchemaObjectNestingModeSingle,
 					Attributes: []*tfprotov6.SchemaAttribute{
 						{
-							Name:            "bar",
-							Type:            tftypes.Number,
-							Required:        true,
-							Description:     "A nested _number_ attribute",
-							DescriptionKind: tfprotov6.StringKindMarkdown,
+							Name:     "bar",
+							Type:     tftypes.Number,
+							Required: true,
 						},
 						{
-							Name:            "foo",
-							Type:            tftypes.String,
-							Optional:        true,
-							Computed:        true,
-							Description:     "A nested _string_ attribute",
-							DescriptionKind: tfprotov6.StringKindMarkdown,
+							Name:     "foo",
+							Type:     tftypes.String,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
-				Optional:        true,
-				Description:     "A single _nested_ attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Optional: true,
 			},
 			{
-				Name:            "string",
-				Type:            tftypes.String,
-				Optional:        true,
-				Description:     "A _string_ attribute",
-				DescriptionKind: tfprotov6.StringKindMarkdown,
+				Name:     "string",
+				Type:     tftypes.String,
+				Optional: true,
 			},
 			// TODO: add maps when we support them
 			// TODO: add sets when we support them
@@ -663,12 +493,239 @@ func (t *testServeProviderWithMetaSchema) GetMetaSchema(context.Context) (schema
 	}, nil
 }
 
+type testServeResourceOne struct{}
+
+func (rt testServeResourceOne) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
+	return schema.Schema{
+		Version: 1,
+		Attributes: map[string]schema.Attribute{
+			"name": schema.Attribute{
+				Required: true,
+				Type:     types.StringType,
+			},
+			"favorite_colors": schema.Attribute{
+				Optional: true,
+				Type:     types.ListType{ElemType: types.StringType},
+			},
+			"created_timestamp": schema.Attribute{
+				Computed: true,
+				Type:     types.StringType,
+			},
+		},
+	}, nil
+}
+
+func (rt testServeResourceOne) NewResource(_ Provider) (Resource, []*tfprotov6.Diagnostic) {
+	panic("not implemented") // TODO: Implement
+}
+
+var testServeResourceOneSchema = &tfprotov6.Schema{
+	Version: 1,
+	Block: &tfprotov6.SchemaBlock{
+		Attributes: []*tfprotov6.SchemaAttribute{
+			{
+				Name:     "created_timestamp",
+				Computed: true,
+				Type:     tftypes.String,
+			},
+			{
+				Name:     "favorite_colors",
+				Optional: true,
+				Type:     tftypes.List{ElementType: tftypes.String},
+			},
+			{
+				Name:     "name",
+				Required: true,
+				Type:     tftypes.String,
+			},
+		},
+	},
+}
+
+type testServeResourceTwo struct{}
+
+func (rt testServeResourceTwo) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
+	return schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.Attribute{
+				Optional: true,
+				Computed: true,
+				Type:     types.StringType,
+			},
+			"disks": schema.Attribute{
+				Optional: true,
+				Computed: true,
+				Attributes: schema.ListNestedAttributes(map[string]schema.Attribute{
+					"name": {
+						Required: true,
+						Type:     types.StringType,
+					},
+					"size_gb": {
+						Required: true,
+						Type:     types.NumberType,
+					},
+					"boot": {
+						Required: true,
+						Type:     types.BoolType,
+					},
+				}, schema.ListNestedAttributesOptions{}),
+			},
+		},
+	}, nil
+}
+
+func (rt testServeResourceTwo) NewResource(_ Provider) (Resource, []*tfprotov6.Diagnostic) {
+	panic("not implemented") // TODO: Implement
+}
+
+var testServeResourceTwoSchema = &tfprotov6.Schema{
+	Block: &tfprotov6.SchemaBlock{
+		Attributes: []*tfprotov6.SchemaAttribute{
+			{
+				Name:     "disks",
+				Optional: true,
+				Computed: true,
+				NestedType: &tfprotov6.SchemaObject{
+					Attributes: []*tfprotov6.SchemaAttribute{
+						{
+							Name:     "boot",
+							Required: true,
+							Type:     tftypes.Bool,
+						},
+						{
+							Name:     "name",
+							Required: true,
+							Type:     tftypes.String,
+						},
+						{
+							Name:     "size_gb",
+							Required: true,
+							Type:     tftypes.Number,
+						},
+					},
+					Nesting: tfprotov6.SchemaObjectNestingModeList,
+				},
+			},
+			{
+				Name:     "id",
+				Optional: true,
+				Computed: true,
+				Type:     tftypes.String,
+			},
+		},
+	},
+}
+
+type testServeDataSourceOne struct{}
+
+func (dt testServeDataSourceOne) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
+	return schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"current_time": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"current_date": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"is_dst": {
+				Type:     types.BoolType,
+				Computed: true,
+			},
+		},
+	}, nil
+}
+
+func (dt testServeDataSourceOne) NewDataSource(_ Provider) (DataSource, []*tfprotov6.Diagnostic) {
+	panic("not implemented") // TODO: Implement
+}
+
+var testServeDataSourceOneSchema = &tfprotov6.Schema{
+	Block: &tfprotov6.SchemaBlock{
+		Attributes: []*tfprotov6.SchemaAttribute{
+			{
+				Name:     "current_date",
+				Computed: true,
+				Type:     tftypes.String,
+			},
+			{
+				Name:     "current_time",
+				Computed: true,
+				Type:     tftypes.String,
+			},
+			{
+				Name:     "is_dst",
+				Computed: true,
+				Type:     tftypes.Bool,
+			},
+		},
+	},
+}
+
+type testServeDataSourceTwo struct{}
+
+func (dt testServeDataSourceTwo) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
+	return schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"family": {
+				Type:     types.StringType,
+				Optional: true,
+				Computed: true,
+			},
+			"name": {
+				Type:     types.StringType,
+				Optional: true,
+				Computed: true,
+			},
+			"id": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+		},
+	}, nil
+}
+
+func (dt testServeDataSourceTwo) NewDataSource(_ Provider) (DataSource, []*tfprotov6.Diagnostic) {
+	panic("not implemented") // TODO: Implement
+}
+
+var testServeDataSourceTwoSchema = &tfprotov6.Schema{
+	Block: &tfprotov6.SchemaBlock{
+		Attributes: []*tfprotov6.SchemaAttribute{
+			{
+				Name:     "family",
+				Optional: true,
+				Computed: true,
+				Type:     tftypes.String,
+			},
+			{
+				Name:     "id",
+				Computed: true,
+				Type:     tftypes.String,
+			},
+			{
+				Name:     "name",
+				Optional: true,
+				Computed: true,
+				Type:     tftypes.String,
+			},
+		},
+	},
+}
+
 func (t *testServeProvider) GetResources(_ context.Context) (map[string]ResourceType, []*tfprotov6.Diagnostic) {
-	return nil, nil
+	return map[string]ResourceType{
+		"test_one": testServeResourceOne{},
+		"test_two": testServeResourceTwo{},
+	}, nil
 }
 
 func (t *testServeProvider) GetDataSources(_ context.Context) (map[string]DataSourceType, []*tfprotov6.Diagnostic) {
-	return nil, nil
+	return map[string]DataSourceType{
+		"test_one": testServeDataSourceOne{},
+		"test_two": testServeDataSourceTwo{},
+	}, nil
 }
 
 func (t *testServeProvider) Configure(_ context.Context, _ ConfigureProviderRequest, _ *ConfigureProviderResponse) {
@@ -687,15 +744,89 @@ func TestServerGetProviderSchema(t *testing.T) {
 		return
 	}
 	expected := &tfprotov6.GetProviderSchemaResponse{
-		Provider:        testServeProviderProviderSchema,
+		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
-			// TODO: include resource schemas
+			"test_one": testServeResourceOneSchema,
+			"test_two": testServeResourceTwoSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
-			// TODO: include data source schemas
+			"test_one": testServeDataSourceOneSchema,
+			"test_two": testServeDataSourceTwoSchema,
 		},
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (-wanted, +got): %s", diff)
 	}
+}
+
+func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
+	t.Parallel()
+
+	s := new(testServeProviderWithMetaSchema)
+	testServer := &server{
+		p: s,
+	}
+	got, err := testServer.GetProviderSchema(context.Background(), new(tfprotov6.GetProviderSchemaRequest))
+	if err != nil {
+		t.Errorf("Got unexpected error: %s", err)
+		return
+	}
+	expected := &tfprotov6.GetProviderSchemaResponse{
+		Provider: testServeProviderProviderSchema,
+		ResourceSchemas: map[string]*tfprotov6.Schema{
+			"test_one": testServeResourceOneSchema,
+			"test_two": testServeResourceTwoSchema,
+		},
+		DataSourceSchemas: map[string]*tfprotov6.Schema{
+			"test_one": testServeDataSourceOneSchema,
+			"test_two": testServeDataSourceTwoSchema,
+		},
+		ProviderMeta: &tfprotov6.Schema{
+			Version: 2,
+			Block: &tfprotov6.SchemaBlock{
+				Attributes: []*tfprotov6.SchemaAttribute{
+					{
+						Name:            "foo",
+						Required:        true,
+						Type:            tftypes.String,
+						Description:     "A **string**",
+						DescriptionKind: tfprotov6.StringKindMarkdown,
+					},
+				},
+			},
+		},
+	}
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Errorf("Unexpected diff (-wanted, +got): %s", diff)
+	}
+}
+
+func TestServerConfigureProvider(t *testing.T) {
+	t.Parallel()
+
+	// TODO: test configuring the provider
+}
+
+func TestServerReadResource(t *testing.T) {
+	t.Parallel()
+
+	// TODO: test reading resource
+}
+
+func TestServerPlanResourceChange(t *testing.T) {
+	t.Parallel()
+
+	// TODO: test planning
+}
+
+func TestServerApplyResourceChange(t *testing.T) {
+	t.Parallel()
+
+	// TODO: test applying
+}
+
+func TestServerReadDataSource(t *testing.T) {
+	t.Parallel()
+
+	// TODO: test reading data source
 }

@@ -420,6 +420,11 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return resp, nil
 	}
 
+	if plan.IsNull() || !plan.IsKnown() {
+		// on null or unknown plans, just bail, we can't do anything
+		resp.PlannedState = req.ProposedNewState
+		return resp, nil
+	}
 	modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, resourceSchema))
 	if err != nil {
 		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{

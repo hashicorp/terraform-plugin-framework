@@ -844,7 +844,176 @@ func TestServerReadResource(t *testing.T) {
 func TestServerPlanResourceChange(t *testing.T) {
 	t.Parallel()
 
-	// TODO: test planning
+	type testCase struct {
+		// request input
+		priorState       tftypes.Value
+		proposedNewState tftypes.Value
+		config           tftypes.Value
+		priorPrivate     []byte
+		providerMeta     tftypes.Value
+		resource         string
+		resourceType     tftypes.Type
+
+		// response expectations
+		expectedPlannedState    tftypes.Value
+		expectedRequiresReplace []*tftypes.AttributePath
+		expectedPlannedPrivate  []byte
+		expectedDiags           []*tfprotov6.Diagnostic
+	}
+
+	tests := map[string]testCase{
+		"one_basic": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_one",
+			resourceType: testServeResourceTypeOneType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
+			}),
+		},
+		"two_delete": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			proposedNewState:     tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			config:               tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			resource:             "test_two",
+			resourceType:         testServeResourceTypeTwoType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+		},
+		"one_add": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name":              tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name":              tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_one",
+			resourceType: testServeResourceTypeOneType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name":              tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+		},
+	}
+
+	for name, tc := range tests {
+		name, tc := name, tc
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			s := &testServeProvider{}
+			testServer := &server{
+				p: s,
+			}
+
+			priorStateDV, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.priorState)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			proposedStateDV, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.proposedNewState)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			configDV, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.config)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			req := &tfprotov6.PlanResourceChangeRequest{
+				TypeName:         tc.resource,
+				PriorPrivate:     tc.priorPrivate,
+				PriorState:       &priorStateDV,
+				ProposedNewState: &proposedStateDV,
+				Config:           &configDV,
+			}
+			if tc.providerMeta.Type() != nil {
+				providerMeta, err := tfprotov6.NewDynamicValue(testServeProviderMetaType, tc.providerMeta)
+				if err != nil {
+					t.Errorf("Unexpected error: %s", err)
+					return
+				}
+				req.ProviderMeta = &providerMeta
+			}
+			got, err := testServer.PlanResourceChange(context.Background(), req)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
+			}
+			gotPlannedState, err := got.PlannedState.Unmarshal(tc.resourceType)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			if diff := cmp.Diff(gotPlannedState, tc.expectedPlannedState); diff != "" {
+				t.Errorf("Unexpected diff in planned state (+wanted, -got): %s", diff)
+				return
+			}
+			if string(got.PlannedPrivate) != string(tc.expectedPlannedPrivate) {
+				t.Errorf("Expected planned private to be %q, got %q", tc.expectedPlannedPrivate, got.PlannedPrivate)
+				return
+			}
+			if diff := cmp.Diff(got.RequiresReplace, tc.expectedRequiresReplace); diff != "" {
+				t.Errorf("Unexpected diff in requires replace (+wanted, -got): %s", diff)
+				return
+			}
+		})
+	}
 }
 
 func TestServerApplyResourceChange(t *testing.T) {

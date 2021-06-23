@@ -31,6 +31,9 @@ type CreateResourceRequest struct {
 
 	// Plan is the planned state for the resource.
 	Plan Plan
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
 }
 
 // ReadResourceRequest represents a request for the provider to read a
@@ -63,6 +66,9 @@ type UpdateResourceRequest struct {
 	// State is the current state of the resource prior to the Update
 	// operation.
 	State State
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
 }
 
 // DeleteResourceRequest represents a request for the provider to delete a
@@ -72,6 +78,9 @@ type DeleteResourceRequest struct {
 	// State is the current state of the resource prior to the Delete
 	// operation.
 	State State
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
 }
 
 // ReadDataSourceRequest represents a request for the provider to read a data

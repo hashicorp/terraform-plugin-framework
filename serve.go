@@ -453,7 +453,11 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 
 func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest) (*tfprotov6.ApplyResourceChangeResponse, error) {
 	ctx = s.registerContext(ctx)
-	resp := &tfprotov6.ApplyResourceChangeResponse{}
+	resp := &tfprotov6.ApplyResourceChangeResponse{
+		// default to the prior state, so the state won't change unless
+		// we choose to change it
+		NewState: req.PriorState,
+	}
 
 	// get the type of resource, so we can get its scheman and create an
 	// instance

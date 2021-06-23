@@ -1019,7 +1019,635 @@ func TestServerPlanResourceChange(t *testing.T) {
 func TestServerApplyResourceChange(t *testing.T) {
 	t.Parallel()
 
-	// TODO: test applying
+	type testCase struct {
+		// request input
+		priorState     tftypes.Value
+		plannedState   tftypes.Value
+		config         tftypes.Value
+		plannedPrivate []byte
+		providerMeta   tftypes.Value
+		resource       string
+		action         string
+		resourceType   tftypes.Type
+
+		create  func(context.Context, CreateResourceRequest, *CreateResourceResponse)
+		update  func(context.Context, UpdateResourceRequest, *UpdateResourceResponse)
+		destroy func(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
+
+		// response expectations
+		expectedNewState tftypes.Value
+		expectedDiags    []*tfprotov6.Diagnostic
+		expectedPrivate  []byte
+	}
+
+	tests := map[string]testCase{
+		"one_create": {
+			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_one",
+			action:       "create",
+			resourceType: testServeResourceTypeOneType,
+			create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "hello, world"),
+					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+					}),
+					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+				})
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+		},
+		"one_create_diags": {
+			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_one",
+			action:       "create",
+			resourceType: testServeResourceTypeOneType,
+			create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "hello, world"),
+					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+					}),
+					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+				})
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Summary:   "This is a warning",
+					Detail:    "I'm warning you",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("favorite_colors").WithElementKeyInt(0),
+				})
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Summary:   "This is a warning",
+					Detail:    "I'm warning you",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("favorite_colors").WithElementKeyInt(0),
+				},
+			},
+		},
+		"one_update": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_one",
+			action:       "update",
+			resourceType: testServeResourceTypeOneType,
+			update: func(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "hello, world"),
+					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "orange"),
+						tftypes.NewValue(tftypes.String, "yellow"),
+					}),
+					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+				})
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+		},
+		"one_update_diags": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_one",
+			action:       "update",
+			resourceType: testServeResourceTypeOneType,
+			update: func(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "hello, world"),
+					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "orange"),
+						tftypes.NewValue(tftypes.String, "yellow"),
+					}),
+					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+				})
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Summary:   "I'm warning you...",
+					Detail:    "This is a warning!",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("name"),
+				})
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Summary:   "I'm warning you...",
+					Detail:    "This is a warning!",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("name"),
+				},
+			},
+		},
+		"one_update_diags_error": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_one",
+			action:       "update",
+			resourceType: testServeResourceTypeOneType,
+			update: func(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "hello, world"),
+					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "orange"),
+						tftypes.NewValue(tftypes.String, "yellow"),
+					}),
+					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+				})
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityError,
+					Summary:   "Oops!",
+					Detail:    "This is an error! Don't update the state!",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("name"),
+				})
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity:  tfprotov6.DiagnosticSeverityError,
+					Summary:   "Oops!",
+					Detail:    "This is an error! Don't update the state!",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("name"),
+				},
+			},
+		},
+		"one_delete": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+		},
+		"one_delete_diags": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Summary:   "This is a warning",
+					Detail:    "just a warning diagnostic, no behavior changes",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
+				})
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Summary:   "This is a warning",
+					Detail:    "just a warning diagnostic, no behavior changes",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
+				},
+			},
+		},
+		"one_delete_diags_error": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "This is an error",
+					Detail:   "Something went wrong, keep the old state around",
+				})
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "This is an error",
+					Detail:   "Something went wrong, keep the old state around",
+				},
+			},
+		},
+		/*
+			"two_create": {
+				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				resource:     "test_two",
+				action:       "create",
+				resourceType: testServeResourceTypeTwoType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			},
+			"two_create_diags": {
+				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				resource:     "test_two",
+				action:       "create",
+				resourceType: testServeResourceTypeTwoType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			},
+			"two_update": {
+				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				resource:     "test_two",
+				action:       "update",
+				resourceType: testServeResourceTypeTwoType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			},
+			"two_update_diags": {
+				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				resource:     "test_two",
+				action:       "update",
+				resourceType: testServeResourceTypeTwoType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			},
+			"two_delete": {
+				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				resource:     "test_two",
+				action:       "delete",
+				resourceType: testServeResourceTypeTwoType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			},
+			"two_delete_diags": {
+				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				resource:     "test_two",
+				action:       "delete",
+				resourceType: testServeResourceTypeTwoType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			},
+			"one_meta_create": {
+				plannedState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+				config:       tftypes.NewValue(testServeResourceTypeOneType, nil),
+				providerMeta: tftypes.NewValue(testServeResourceTypeOneType, nil),
+				resource:     "test_one",
+				action:       "create",
+				resourceType: testServeResourceTypeOneType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			},
+			"one_meta_update": {
+				priorState:   tftypes.NewValue(testServeResourceTypeOneType, nil),
+				plannedState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+				config:       tftypes.NewValue(testServeResourceTypeOneType, nil),
+				providerMeta: tftypes.NewValue(testServeResourceTypeOneType, nil),
+				resource:     "test_one",
+				action:       "update",
+				resourceType: testServeResourceTypeOneType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			},
+			"one_meta_delete": {
+				priorState:   tftypes.NewValue(testServeResourceTypeOneType, nil),
+				providerMeta: tftypes.NewValue(testServeResourceTypeOneType, nil),
+				resource:     "test_one",
+				action:       "delete",
+				resourceType: testServeResourceTypeOneType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			},
+			"two_meta_create": {
+				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				providerMeta: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				resource:     "test_two",
+				action:       "create",
+				resourceType: testServeResourceTypeTwoType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			},
+			"two_meta_update": {
+				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				providerMeta: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				resource:     "test_two",
+				action:       "update",
+				resourceType: testServeResourceTypeTwoType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			},
+			"two_meta_delete": {
+				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				providerMeta: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+				resource:     "test_two",
+				action:       "delete",
+				resourceType: testServeResourceTypeTwoType,
+				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				},
+				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			},
+		*/
+	}
+
+	for name, tc := range tests {
+		name, tc := name, tc
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			s := &testServeProvider{
+				createFunc: tc.create,
+				updateFunc: tc.update,
+				deleteFunc: tc.destroy,
+			}
+			testServer := &server{
+				p: s,
+			}
+			var pmSchema schema.Schema
+			if tc.providerMeta.Type() != nil {
+				sWithMeta := &testServeProviderWithMetaSchema{s}
+				testServer.p = sWithMeta
+				schema, diags := sWithMeta.GetMetaSchema(context.Background())
+				if len(diags) > 0 {
+					t.Errorf("Unexpected diags: %+v", diags)
+					return
+				}
+				pmSchema = schema
+			}
+
+			rt, diags := testServer.getResourceType(context.Background(), tc.resource)
+			if len(diags) > 0 {
+				t.Errorf("Unexpected diags: %+v", diags)
+				return
+			}
+			schema, diags := rt.GetSchema(context.Background())
+			if len(diags) > 0 {
+				t.Errorf("Unexpected diags: %+v", diags)
+				return
+			}
+
+			priorState, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.priorState)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			plannedState, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.plannedState)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			config, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.config)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			req := &tfprotov6.ApplyResourceChangeRequest{
+				TypeName:       tc.resource,
+				PlannedPrivate: tc.plannedPrivate,
+				PriorState:     &priorState,
+				PlannedState:   &plannedState,
+				Config:         &config,
+			}
+			if tc.providerMeta.Type() != nil {
+				providerMeta, err := tfprotov6.NewDynamicValue(testServeProviderMetaType, tc.providerMeta)
+				if err != nil {
+					t.Errorf("Unexpected error: %s", err)
+					return
+				}
+				req.ProviderMeta = &providerMeta
+			}
+			got, err := testServer.ApplyResourceChange(context.Background(), req)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
+			}
+			if s.applyResourceChangeCalledResourceType != tc.resource {
+				t.Errorf("Called wrong resource. Expected to call %q, actually called %q", tc.resource, s.applyResourceChangeCalledResourceType)
+				return
+			}
+			if s.applyResourceChangeCalledAction != tc.action {
+				t.Errorf("Called wrong action. Expected to call %q, actually called %q", tc.action, s.applyResourceChangeCalledAction)
+				return
+			}
+			if tc.priorState.Type() != nil {
+				if diff := cmp.Diff(s.applyResourceChangePriorStateValue, tc.priorState); diff != "" {
+					t.Errorf("Unexpected diff in prior state (+wanted, -got): %s", diff)
+					return
+				}
+				if diff := cmp.Diff(s.applyResourceChangePriorStateSchema, schema); diff != "" {
+					t.Errorf("Unexpected diff in prior state schema (+wanted, -got): %s", diff)
+					return
+				}
+			}
+			if tc.plannedState.Type() != nil {
+				if diff := cmp.Diff(s.applyResourceChangePlannedStateValue, tc.plannedState); diff != "" {
+					t.Errorf("Unexpected diff in planned state (+wanted, -got): %s", diff)
+					return
+				}
+				if diff := cmp.Diff(s.applyResourceChangePlannedStateSchema, schema); diff != "" {
+					t.Errorf("Unexpected diff in planned state schema (+wanted, -got): %s", diff)
+					return
+				}
+			}
+			if tc.config.Type() != nil {
+				if diff := cmp.Diff(s.applyResourceChangeConfigValue, tc.config); diff != "" {
+					t.Errorf("Unexpected diff in config (+wanted, -got): %s", diff)
+					return
+				}
+				if diff := cmp.Diff(s.applyResourceChangeConfigSchema, schema); diff != "" {
+					t.Errorf("Unexpected diff in config schema (+wanted, -got): %s", diff)
+					return
+				}
+			}
+			if tc.providerMeta.Type() != nil {
+				if diff := cmp.Diff(s.applyResourceChangeProviderMetaValue, tc.providerMeta); diff != "" {
+					t.Errorf("Unexpected diff in provider meta (+wanted, -got): %s", diff)
+					return
+				}
+				if diff := cmp.Diff(s.applyResourceChangeProviderMetaSchema, pmSchema); diff != "" {
+					t.Errorf("Unexpected diff in provider meta schema (+wanted, -got): %s", diff)
+					return
+				}
+			}
+			gotNewState, err := got.NewState.Unmarshal(tc.resourceType)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			if diff := cmp.Diff(gotNewState, tc.expectedNewState); diff != "" {
+				t.Errorf("Unexpected diff in new state (+wanted, -got): %s", diff)
+				return
+			}
+			if string(got.Private) != string(tc.expectedPrivate) {
+				t.Errorf("Expected private to be %q, got %q", tc.expectedPrivate, got.Private)
+				return
+			}
+		})
+	}
 }
 
 func TestServerReadDataSource(t *testing.T) {

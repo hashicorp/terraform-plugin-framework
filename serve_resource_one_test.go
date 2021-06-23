@@ -82,8 +82,16 @@ type testServeResourceOne struct {
 	provider *testServeProvider
 }
 
-func (r testServeResourceOne) Create(_ context.Context, _ CreateResourceRequest, _ *CreateResourceResponse) {
-	panic("not implemented") // TODO: Implement
+func (r testServeResourceOne) Create(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+	r.provider.applyResourceChangePlannedStateValue = req.Plan.Raw
+	r.provider.applyResourceChangePlannedStateSchema = req.Plan.Schema
+	r.provider.applyResourceChangeConfigValue = req.Config.Raw
+	r.provider.applyResourceChangeConfigSchema = req.Config.Schema
+	r.provider.applyResourceChangeProviderMetaValue = req.ProviderMeta.Raw
+	r.provider.applyResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
+	r.provider.applyResourceChangeCalledResourceType = "test_one"
+	r.provider.applyResourceChangeCalledAction = "create"
+	r.provider.createFunc(ctx, req, resp)
 }
 
 func (r testServeResourceOne) Read(ctx context.Context, req ReadResourceRequest, resp *ReadResourceResponse) {
@@ -95,10 +103,26 @@ func (r testServeResourceOne) Read(ctx context.Context, req ReadResourceRequest,
 	r.provider.readResourceImpl(ctx, req, resp)
 }
 
-func (r testServeResourceOne) Update(_ context.Context, _ UpdateResourceRequest, _ *UpdateResourceResponse) {
-	panic("not implemented") // TODO: Implement
+func (r testServeResourceOne) Update(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+	r.provider.applyResourceChangePriorStateValue = req.State.Raw
+	r.provider.applyResourceChangePriorStateSchema = req.State.Schema
+	r.provider.applyResourceChangePlannedStateValue = req.Plan.Raw
+	r.provider.applyResourceChangePlannedStateSchema = req.Plan.Schema
+	r.provider.applyResourceChangeConfigValue = req.Config.Raw
+	r.provider.applyResourceChangeConfigSchema = req.Config.Schema
+	r.provider.applyResourceChangeProviderMetaValue = req.ProviderMeta.Raw
+	r.provider.applyResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
+	r.provider.applyResourceChangeCalledResourceType = "test_one"
+	r.provider.applyResourceChangeCalledAction = "update"
+	r.provider.updateFunc(ctx, req, resp)
 }
 
-func (r testServeResourceOne) Delete(_ context.Context, _ DeleteResourceRequest, _ *DeleteResourceResponse) {
-	panic("not implemented") // TODO: Implement
+func (r testServeResourceOne) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+	r.provider.applyResourceChangePriorStateValue = req.State.Raw
+	r.provider.applyResourceChangePriorStateSchema = req.State.Schema
+	r.provider.applyResourceChangeProviderMetaValue = req.ProviderMeta.Raw
+	r.provider.applyResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
+	r.provider.applyResourceChangeCalledResourceType = "test_one"
+	r.provider.applyResourceChangeCalledAction = "delete"
+	r.provider.deleteFunc(ctx, req, resp)
 }

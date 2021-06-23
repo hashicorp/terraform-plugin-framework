@@ -24,6 +24,21 @@ type testServeProvider struct {
 	readResourceProviderMetaSchema schema.Schema
 	readResourceImpl               func(context.Context, ReadResourceRequest, *ReadResourceResponse)
 	readResourceCalledResourceType string
+
+	// apply resource change
+	applyResourceChangeCalledResourceType string
+	applyResourceChangeCalledAction       string
+	applyResourceChangePriorStateValue    tftypes.Value
+	applyResourceChangePriorStateSchema   schema.Schema
+	applyResourceChangePlannedStateValue  tftypes.Value
+	applyResourceChangePlannedStateSchema schema.Schema
+	applyResourceChangeConfigValue        tftypes.Value
+	applyResourceChangeConfigSchema       schema.Schema
+	applyResourceChangeProviderMetaValue  tftypes.Value
+	applyResourceChangeProviderMetaSchema schema.Schema
+	createFunc                            func(context.Context, CreateResourceRequest, *CreateResourceResponse)
+	updateFunc                            func(context.Context, UpdateResourceRequest, *UpdateResourceResponse)
+	deleteFunc                            func(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
 }
 
 func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {

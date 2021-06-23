@@ -79,6 +79,9 @@ func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr
 
 // Equal returns true if `o` is also a MapType and has the same ElemType.
 func (m MapType) Equal(o attr.Type) bool {
+	if m.ElemType == nil {
+		return false
+	}
 	other, ok := o.(MapType)
 	if !ok {
 		return false

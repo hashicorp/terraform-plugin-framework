@@ -17,6 +17,18 @@ type MapType struct {
 	ElemType attr.Type
 }
 
+// WithElementType returns a new copy of the type with its element type set.
+func (m MapType) WithElementType(typ attr.Type) attr.TypeWithElementType {
+	return MapType{
+		ElemType: typ,
+	}
+}
+
+// ElementType returns the type's element type.
+func (m MapType) ElementType() attr.Type {
+	return m.ElemType
+}
+
 // TerraformType returns the tftypes.Type that should be used to represent this
 // type. This constrains what user input will be accepted and what kind of data
 // can be set in state. The framework will use this to translate the
@@ -31,11 +43,38 @@ func (m MapType) TerraformType(ctx context.Context) tftypes.Type {
 // meant to convert the tftypes.Value into a more convenient Go type for the
 // provider to consume the data with.
 func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	val := &Map{
+	ma := Map{
 		ElemType: m.ElemType,
 	}
-	err := val.SetTerraformValue(ctx, in)
-	return val, err
+	if !in.Type().Is(tftypes.Map{}) {
+		return nil, fmt.Errorf("can't use %s as value of Map, can only use tftypes.Map values", in.String())
+	}
+	if !in.Type().Is(tftypes.Map{AttributeType: m.ElemType.TerraformType(ctx)}) {
+		return nil, fmt.Errorf("can't use %s as value of Map with ElementType %T, can only use %s values", in.String(), m.ElemType, m.ElemType.TerraformType(ctx).String())
+	}
+	if !in.IsKnown() {
+		ma.Unknown = true
+		return ma, nil
+	}
+	if in.IsNull() {
+		ma.Null = true
+		return ma, nil
+	}
+	val := map[string]tftypes.Value{}
+	err := in.As(&val)
+	if err != nil {
+		return nil, err
+	}
+	elems := make(map[string]attr.Value, len(val))
+	for key, elem := range val {
+		av, err := m.ElemType.ValueFromTerraform(ctx, elem)
+		if err != nil {
+			return nil, err
+		}
+		elems[key] = av
+	}
+	ma.Elems = elems
+	return ma, nil
 }
 
 // Equal returns true if `o` is also a MapType and has the same ElemType.
@@ -45,6 +84,16 @@ func (m MapType) Equal(o attr.Type) bool {
 		return false
 	}
 	return m.ElemType.Equal(other.ElemType)
+}
+
+// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
+// map.
+func (m MapType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if _, ok := step.(tftypes.ElementKeyString); !ok {
+		return nil, fmt.Errorf("cannot apply step %T to MapType", step)
+	}
+
+	return m.ElemType, nil
 }
 
 // Map represents a map of AttributeValues, all of the same type, indicated by
@@ -73,7 +122,7 @@ type Map struct {
 
 // ElementsAs populates `target` with the elements of the Map, throwing an
 // error if the elements cannot be stored in `target`.
-func (m *Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) error {
+func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) error {
 	// we need a tftypes.Value for this Map to be able to use it with our
 	// reflection code
 	values := make(map[string]tftypes.Value, len(m.Elems))
@@ -88,7 +137,7 @@ func (m *Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled
 		}
 		values[key] = tftypes.NewValue(m.ElemType.TerraformType(ctx), val)
 	}
-	return reflect.Into(ctx, tftypes.NewValue(tftypes.Map{
+	return reflect.Into(ctx, MapType{ElemType: m.ElemType}, tftypes.NewValue(tftypes.Map{
 		AttributeType: m.ElemType.TerraformType(ctx),
 	}, values), target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
@@ -98,7 +147,7 @@ func (m *Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled
 
 // ToTerraformValue returns the data contained in the AttributeValue as a Go
 // type that tftypes.NewValue will accept.
-func (m *Map) ToTerraformValue(ctx context.Context) (interface{}, error) {
+func (m Map) ToTerraformValue(ctx context.Context) (interface{}, error) {
 	if m.Unknown {
 		return tftypes.UnknownValue, nil
 	}
@@ -122,8 +171,8 @@ func (m *Map) ToTerraformValue(ctx context.Context) (interface{}, error) {
 
 // Equal must return true if the AttributeValue is considered semantically
 // equal to the AttributeValue passed as an argument.
-func (m *Map) Equal(o attr.Value) bool {
-	other, ok := o.(*Map)
+func (m Map) Equal(o attr.Value) bool {
+	other, ok := o.(Map)
 	if !ok {
 		return false
 	}
@@ -149,40 +198,4 @@ func (m *Map) Equal(o attr.Value) bool {
 		}
 	}
 	return true
-}
-
-// SetTerraformValue updates `m` to reflect the data stored in `in`.
-func (m *Map) SetTerraformValue(ctx context.Context, in tftypes.Value) error {
-	m.Unknown = false
-	m.Null = false
-	m.Elems = nil
-	if !in.Type().Is(tftypes.Map{}) {
-		return fmt.Errorf("can't use %s as value of Map, can only use tftypes.Map values", in.String())
-	}
-	if !in.Type().Is(tftypes.Map{AttributeType: m.ElemType.TerraformType(ctx)}) {
-		return fmt.Errorf("can't use %s as value of Map with ElementType %T, can only use %s values", in.String(), m.ElemType, m.ElemType.TerraformType(ctx).String())
-	}
-	if !in.IsKnown() {
-		m.Unknown = true
-		return nil
-	}
-	if in.IsNull() {
-		m.Null = true
-		return nil
-	}
-	val := map[string]tftypes.Value{}
-	err := in.As(&val)
-	if err != nil {
-		return err
-	}
-	elems := make(map[string]attr.Value, len(val))
-	for key, elem := range val {
-		av, err := m.ElemType.ValueFromTerraform(ctx, elem)
-		if err != nil {
-			return err
-		}
-		elems[key] = av
-	}
-	m.Elems = elems
-	return nil
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// MapType is an AttributeType representing a list of values. All values must
+// MapType is an AttributeType representing a map of values. All values must
 // be of the same type, which the provider must specify as the ElemType
 // property. Keys will always be strings.
 type MapType struct {

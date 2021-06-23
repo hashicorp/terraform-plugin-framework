@@ -300,7 +300,7 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
-	resource, diags := resourceType.NewResource(s.p)
+	resource, diags := resourceType.NewResource(ctx, s.p)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
@@ -477,7 +477,7 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 
 	// create the resource instance, so we can call its methods and handle
 	// the request
-	resource, diags := resourceType.NewResource(s.p)
+	resource, diags := resourceType.NewResource(ctx, s.p)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil

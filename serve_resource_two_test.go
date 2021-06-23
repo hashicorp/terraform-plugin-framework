@@ -43,7 +43,7 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (schema.Schema, 
 	}, nil
 }
 
-func (rt testServeResourceTypeTwo) NewResource(p Provider) (Resource, []*tfprotov6.Diagnostic) {
+func (rt testServeResourceTypeTwo) NewResource(_ context.Context, p Provider) (Resource, []*tfprotov6.Diagnostic) {
 	provider, ok := p.(*testServeProvider)
 	if !ok {
 		prov, ok := p.(*testServeProviderWithMetaSchema)

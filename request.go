@@ -41,6 +41,9 @@ type ReadResourceRequest struct {
 	// State is the current state of the resource prior to the Read
 	// operation.
 	State State
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
 }
 
 // UpdateResourceRequest represents a request for the provider to update a

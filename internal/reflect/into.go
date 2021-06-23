@@ -132,7 +132,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	case reflect.Slice:
 		return reflectSlice(ctx, typ, val, target, opts, path)
 	case reflect.Map:
-		return reflectMap(ctx, typ, val, target, opts, path)
+		return Map(ctx, typ, val, target, opts, path)
 	case reflect.Ptr:
 		return Pointer(ctx, typ, val, target, opts, path)
 	default:

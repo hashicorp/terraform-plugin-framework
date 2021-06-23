@@ -1,7 +1,15 @@
-package reflect
+package reflect_test
 
-// TODO: uncomment when we have map type support
-/*
+import (
+	"context"
+	"reflect"
+	"testing"
+
+	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+)
+
 func TestReflectMap_string(t *testing.T) {
 	t.Parallel()
 
@@ -13,15 +21,15 @@ func TestReflectMap_string(t *testing.T) {
 		"c": "green",
 	}
 
-	result, err := reflectMap(context.Background(), testMapType{
-		ElemType: testStringType{},
+	result, err := refl.Map(context.Background(), types.MapType{
+		ElemType: types.StringType,
 	}, tftypes.NewValue(tftypes.Map{
 		AttributeType: tftypes.String,
 	}, map[string]tftypes.Value{
 		"a": tftypes.NewValue(tftypes.String, "red"),
 		"b": tftypes.NewValue(tftypes.String, "blue"),
 		"c": tftypes.NewValue(tftypes.String, "green"),
-	}), reflect.ValueOf(m), Options{}, tftypes.NewAttributePath())
+	}), reflect.ValueOf(m), refl.Options{}, tftypes.NewAttributePath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -34,4 +42,3 @@ func TestReflectMap_string(t *testing.T) {
 		}
 	}
 }
-*/

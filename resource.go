@@ -15,7 +15,7 @@ type ResourceType interface {
 	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
 
 	// NewResource instantiates a new Resource of this ResourceType.
-	NewResource(Provider) (Resource, []*tfprotov6.Diagnostic)
+	NewResource(context.Context, Provider) (Resource, []*tfprotov6.Diagnostic)
 }
 
 // Resource represents a resource instance. This is the core interface that all

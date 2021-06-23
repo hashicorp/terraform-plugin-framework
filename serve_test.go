@@ -1380,134 +1380,673 @@ func TestServerApplyResourceChange(t *testing.T) {
 				},
 			},
 		},
-		/*
-			"two_create": {
-				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				resource:     "test_two",
-				action:       "create",
-				resourceType: testServeResourceTypeTwoType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+		"two_create": {
+			plannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, tftypes.UnknownValue),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, nil),
+			}),
+			resource:     "test_two",
+			action:       "create",
+			resourceType: testServeResourceTypeTwoType,
+			create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+					"id": tftypes.NewValue(tftypes.String, "test-instance"),
+					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 123),
+							"boot":    tftypes.NewValue(tftypes.Bool, true),
+						}),
+					}),
+				})
 			},
-			"two_create_diags": {
-				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				resource:     "test_two",
-				action:       "create",
-				resourceType: testServeResourceTypeTwoType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 123),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+			}),
+		},
+		"two_update": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 123),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+			}),
+			plannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			resource:     "test_two",
+			action:       "update",
+			resourceType: testServeResourceTypeTwoType,
+			update: func(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+					"id": tftypes.NewValue(tftypes.String, "test-instance"),
+					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+							"boot":    tftypes.NewValue(tftypes.Bool, true),
+						}),
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+							"boot":    tftypes.NewValue(tftypes.Bool, false),
+						}),
+					}),
+				})
 			},
-			"two_update": {
-				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				resource:     "test_two",
-				action:       "update",
-				resourceType: testServeResourceTypeTwoType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+		},
+		"two_delete": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			resource:     "test_two",
+			action:       "delete",
+			resourceType: testServeResourceTypeTwoType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, nil)
 			},
-			"two_update_diags": {
-				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				resource:     "test_two",
-				action:       "update",
-				resourceType: testServeResourceTypeTwoType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+		},
+		"one_meta_create": {
+			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
+				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
+			}),
+			resource:     "test_one",
+			action:       "create",
+			resourceType: testServeResourceTypeOneType,
+			create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "hello, world"),
+					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+					}),
+					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+				})
 			},
-			"two_delete": {
-				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				resource:     "test_two",
-				action:       "delete",
-				resourceType: testServeResourceTypeTwoType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+		},
+		"one_meta_update": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
+				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
+			}),
+			resource:     "test_one",
+			action:       "update",
+			resourceType: testServeResourceTypeOneType,
+			update: func(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "hello, world"),
+					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "orange"),
+						tftypes.NewValue(tftypes.String, "yellow"),
+					}),
+					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+				})
 			},
-			"two_delete_diags": {
-				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				resource:     "test_two",
-				action:       "delete",
-				resourceType: testServeResourceTypeTwoType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+		},
+		"one_meta_delete": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
+				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
 			},
-			"one_meta_create": {
-				plannedState: tftypes.NewValue(testServeResourceTypeOneType, nil),
-				config:       tftypes.NewValue(testServeResourceTypeOneType, nil),
-				providerMeta: tftypes.NewValue(testServeResourceTypeOneType, nil),
-				resource:     "test_one",
-				action:       "create",
-				resourceType: testServeResourceTypeOneType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+		},
+		"two_meta_create": {
+			plannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, tftypes.UnknownValue),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, nil),
+			}),
+			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
+				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
+			}),
+			resource:     "test_two",
+			action:       "create",
+			resourceType: testServeResourceTypeTwoType,
+			create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+					"id": tftypes.NewValue(tftypes.String, "test-instance"),
+					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 123),
+							"boot":    tftypes.NewValue(tftypes.Bool, true),
+						}),
+					}),
+				})
 			},
-			"one_meta_update": {
-				priorState:   tftypes.NewValue(testServeResourceTypeOneType, nil),
-				plannedState: tftypes.NewValue(testServeResourceTypeOneType, nil),
-				config:       tftypes.NewValue(testServeResourceTypeOneType, nil),
-				providerMeta: tftypes.NewValue(testServeResourceTypeOneType, nil),
-				resource:     "test_one",
-				action:       "update",
-				resourceType: testServeResourceTypeOneType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 123),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+			}),
+		},
+		"two_meta_update": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 123),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+			}),
+			plannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
+				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
+			}),
+			resource:     "test_two",
+			action:       "update",
+			resourceType: testServeResourceTypeTwoType,
+			update: func(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+					"id": tftypes.NewValue(tftypes.String, "test-instance"),
+					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+							"boot":    tftypes.NewValue(tftypes.Bool, true),
+						}),
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+							"boot":    tftypes.NewValue(tftypes.Bool, false),
+						}),
+					}),
+				})
 			},
-			"one_meta_delete": {
-				priorState:   tftypes.NewValue(testServeResourceTypeOneType, nil),
-				providerMeta: tftypes.NewValue(testServeResourceTypeOneType, nil),
-				resource:     "test_one",
-				action:       "delete",
-				resourceType: testServeResourceTypeOneType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+		},
+		"two_meta_delete": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "test-instance"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
+				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
+			}),
+			resource:     "test_two",
+			action:       "delete",
+			resourceType: testServeResourceTypeTwoType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, nil)
 			},
-			"two_meta_create": {
-				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				providerMeta: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				resource:     "test_two",
-				action:       "create",
-				resourceType: testServeResourceTypeTwoType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-			},
-			"two_meta_update": {
-				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				plannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				providerMeta: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				resource:     "test_two",
-				action:       "update",
-				resourceType: testServeResourceTypeTwoType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-			},
-			"two_meta_delete": {
-				priorState:   tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				providerMeta: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-				resource:     "test_two",
-				action:       "delete",
-				resourceType: testServeResourceTypeTwoType,
-				create: func(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-				},
-				expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-			},
-		*/
+			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+		},
 	}
 
 	for name, tc := range tests {

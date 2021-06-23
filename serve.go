@@ -554,6 +554,32 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				Raw:    plan,
 			},
 		}
+		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			pmSchema, diags := pm.GetMetaSchema(ctx)
+			if diags != nil {
+				resp.Diagnostics = append(resp.Diagnostics, diags...)
+				if diagsHasErrors(resp.Diagnostics) {
+					return resp, nil
+				}
+			}
+			createReq.ProviderMeta = Config{
+				Schema: pmSchema,
+				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+			}
+
+			if req.ProviderMeta != nil {
+				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				if err != nil {
+					resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Error parsing provider_meta",
+						Detail:   "There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n" + err.Error(),
+					})
+					return resp, nil
+				}
+				createReq.ProviderMeta.Raw = pmValue
+			}
+		}
 		createResp := CreateResourceResponse{
 			State: State{
 				Schema: resourceSchema,
@@ -592,6 +618,32 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				Raw:    priorState,
 			},
 		}
+		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			pmSchema, diags := pm.GetMetaSchema(ctx)
+			if diags != nil {
+				resp.Diagnostics = append(resp.Diagnostics, diags...)
+				if diagsHasErrors(resp.Diagnostics) {
+					return resp, nil
+				}
+			}
+			updateReq.ProviderMeta = Config{
+				Schema: pmSchema,
+				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+			}
+
+			if req.ProviderMeta != nil {
+				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				if err != nil {
+					resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Error parsing provider_meta",
+						Detail:   "There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n" + err.Error(),
+					})
+					return resp, nil
+				}
+				updateReq.ProviderMeta.Raw = pmValue
+			}
+		}
 		updateResp := UpdateResourceResponse{
 			State: State{
 				Schema: resourceSchema,
@@ -620,6 +672,32 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				Schema: resourceSchema,
 				Raw:    priorState,
 			},
+		}
+		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			pmSchema, diags := pm.GetMetaSchema(ctx)
+			if diags != nil {
+				resp.Diagnostics = append(resp.Diagnostics, diags...)
+				if diagsHasErrors(resp.Diagnostics) {
+					return resp, nil
+				}
+			}
+			destroyReq.ProviderMeta = Config{
+				Schema: pmSchema,
+				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+			}
+
+			if req.ProviderMeta != nil {
+				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				if err != nil {
+					resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Error parsing provider_meta",
+						Detail:   "There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n" + err.Error(),
+					})
+					return resp, nil
+				}
+				destroyReq.ProviderMeta.Raw = pmValue
+			}
 		}
 		destroyResp := DeleteResourceResponse{
 			State: State{

@@ -168,15 +168,14 @@ func TestNewStruct_complex(t *testing.T) {
 			A     bool      `tfsdk:"a"`
 			Slice []float64 `tfsdk:"slice"`
 		} `tfsdk:"struct"`
-		// TODO: uncomment when maps are supported
-		// Map              map[string][]string `tfsdk:"map"`
-		Pointer          *string            `tfsdk:"pointer"`
-		Unknownable      *unknownableString `tfsdk:"unknownable"`
-		Nullable         *nullableString    `tfsdk:"nullable"`
-		AttributeValue   types.String       `tfsdk:"attribute_value"`
-		ValueConverter   *valueConverter    `tfsdk:"value_converter"`
-		UnhandledNull    string             `tfsdk:"unhandled_null"`
-		UnhandledUnknown string             `tfsdk:"unhandled_unknown"`
+		Map              map[string][]string `tfsdk:"map"`
+		Pointer          *string             `tfsdk:"pointer"`
+		Unknownable      *unknownableString  `tfsdk:"unknownable"`
+		Nullable         *nullableString     `tfsdk:"nullable"`
+		AttributeValue   types.String        `tfsdk:"attribute_value"`
+		ValueConverter   *valueConverter     `tfsdk:"value_converter"`
+		UnhandledNull    string              `tfsdk:"unhandled_null"`
+		UnhandledUnknown string              `tfsdk:"unhandled_unknown"`
 	}
 	var s myStruct
 	result, err := refl.Struct(context.Background(), types.ObjectType{
@@ -200,14 +199,11 @@ func TestNewStruct_complex(t *testing.T) {
 					},
 				},
 			},
-			// TODO: uncomment when maps are supported
-			/*
-				"map": testMapType{
-					ElemType: types.ListType{
-						ElemType: types.StringType,
-					},
+			"map": types.MapType{
+				ElemType: types.ListType{
+					ElemType: types.StringType,
 				},
-			*/
+			},
 			"pointer":           types.StringType,
 			"unknownable":       types.StringType,
 			"nullable":          types.StringType,
@@ -237,14 +233,11 @@ func TestNewStruct_complex(t *testing.T) {
 					},
 				},
 			},
-			// TODO: uncomment when maps are supported
-			/*
-				"map": tftypes.Map{
-					AttributeType: tftypes.List{
-						ElementType: tftypes.String,
-					},
+			"map": tftypes.Map{
+				AttributeType: tftypes.List{
+					ElementType: tftypes.String,
 				},
-			*/
+			},
 			"pointer":           tftypes.String,
 			"unknownable":       tftypes.String,
 			"nullable":          tftypes.String,
@@ -305,28 +298,25 @@ func TestNewStruct_complex(t *testing.T) {
 				tftypes.NewValue(tftypes.Number, 789),
 			}),
 		}),
-		// TODO: uncomment when maps are supported
-		/*
-			"map": tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.List{
-					ElementType: tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"colors": tftypes.NewValue(tftypes.List{
-					ElementType: tftypes.String,
-				}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"fruits": tftypes.NewValue(tftypes.List{
-					ElementType: tftypes.String,
-				}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "apple"),
-					tftypes.NewValue(tftypes.String, "banana"),
-				}),
+		"map": tftypes.NewValue(tftypes.Map{
+			AttributeType: tftypes.List{
+				ElementType: tftypes.String,
+			},
+		}, map[string]tftypes.Value{
+			"colors": tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "red"),
+				tftypes.NewValue(tftypes.String, "orange"),
+				tftypes.NewValue(tftypes.String, "yellow"),
 			}),
-		*/
+			"fruits": tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "apple"),
+				tftypes.NewValue(tftypes.String, "banana"),
+			}),
+		}),
 		"pointer":           tftypes.NewValue(tftypes.String, "pointed"),
 		"unknownable":       tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 		"nullable":          tftypes.NewValue(tftypes.String, nil),
@@ -365,13 +355,10 @@ func TestNewStruct_complex(t *testing.T) {
 			A:     true,
 			Slice: []float64{123, 456, 789},
 		},
-		// TODO: uncomment when maps are supported
-		/*
-			Map: map[string][]string{
-				"colors": {"red", "orange", "yellow"},
-				"fruits": {"apple", "banana"},
-			},
-		*/
+		Map: map[string][]string{
+			"colors": {"red", "orange", "yellow"},
+			"fruits": {"apple", "banana"},
+		},
 		Pointer: &str,
 		Unknownable: &unknownableString{
 			Unknown: true,
@@ -447,16 +434,15 @@ func TestFromStruct_complex(t *testing.T) {
 			A     bool      `tfsdk:"a"`
 			Slice []float64 `tfsdk:"slice"`
 		} `tfsdk:"struct"`
-		// TODO: uncomment when maps are supported
-		// Map              map[string][]string `tfsdk:"map"`
-		Pointer        *string            `tfsdk:"pointer"`
-		Unknownable    *unknownableString `tfsdk:"unknownable"`
-		Nullable       *nullableString    `tfsdk:"nullable"`
-		AttributeValue types.String       `tfsdk:"attribute_value"`
-		ValueCreator   *valueCreator      `tfsdk:"value_creator"`
-		BigFloat       *big.Float         `tfsdk:"big_float"`
-		BigInt         *big.Int           `tfsdk:"big_int"`
-		Uint           uint64             `tfsdk:"uint"`
+		Map            map[string][]string `tfsdk:"map"`
+		Pointer        *string             `tfsdk:"pointer"`
+		Unknownable    *unknownableString  `tfsdk:"unknownable"`
+		Nullable       *nullableString     `tfsdk:"nullable"`
+		AttributeValue types.String        `tfsdk:"attribute_value"`
+		ValueCreator   *valueCreator       `tfsdk:"value_creator"`
+		BigFloat       *big.Float          `tfsdk:"big_float"`
+		BigInt         *big.Int            `tfsdk:"big_int"`
+		Uint           uint64              `tfsdk:"uint"`
 	}
 	str := "pointed"
 	s := myStruct{
@@ -481,13 +467,10 @@ func TestFromStruct_complex(t *testing.T) {
 			A:     true,
 			Slice: []float64{123, 456, 789},
 		},
-		// TODO: uncomment when maps are supported
-		/*
-			Map: map[string][]string{
-				"colors": {"red", "orange", "yellow"},
-				"fruits": {"apple", "banana"},
-			},
-		*/
+		Map: map[string][]string{
+			"colors": {"red", "orange", "yellow"},
+			"fruits": {"apple", "banana"},
+		},
 		Pointer: &str,
 		Unknownable: &unknownableString{
 			Unknown: true,
@@ -526,14 +509,11 @@ func TestFromStruct_complex(t *testing.T) {
 					},
 				},
 			},
-			// TODO: uncomment when maps are supported
-			/*
-				"map": testMapType{
-					ElemType: types.ListType{
-						ElemType: types.StringType,
-					},
+			"map": types.MapType{
+				ElemType: types.ListType{
+					ElemType: types.StringType,
 				},
-			*/
+			},
 			"pointer":         types.StringType,
 			"unknownable":     types.StringType,
 			"nullable":        types.StringType,
@@ -568,14 +548,11 @@ func TestFromStruct_complex(t *testing.T) {
 					},
 				},
 			},
-			// TODO: uncomment when maps are supported
-			/*
-				"map": testMapType{
-					ElemType: types.ListType{
-						ElemType: types.StringType,
-					},
+			"map": types.MapType{
+				ElemType: types.ListType{
+					ElemType: types.StringType,
 				},
-			*/
+			},
 			"pointer":         types.StringType,
 			"unknownable":     types.StringType,
 			"nullable":        types.StringType,
@@ -639,6 +616,28 @@ func TestFromStruct_complex(t *testing.T) {
 							types.Number{Value: big.NewFloat(123)},
 							types.Number{Value: big.NewFloat(456)},
 							types.Number{Value: big.NewFloat(789)},
+						},
+					},
+				},
+			},
+			"map": types.Map{
+				ElemType: types.ListType{
+					ElemType: types.StringType,
+				},
+				Elems: map[string]attr.Value{
+					"colors": types.List{
+						ElemType: types.StringType,
+						Elems: []attr.Value{
+							types.String{Value: "red"},
+							types.String{Value: "orange"},
+							types.String{Value: "yellow"},
+						},
+					},
+					"fruits": types.List{
+						ElemType: types.StringType,
+						Elems: []attr.Value{
+							types.String{Value: "apple"},
+							types.String{Value: "banana"},
 						},
 					},
 				},

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// create a map value that matches the type of `target`, and populate it with
-// the contents of `val`.
-func reflectMap(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+// Map creates a map value that matches the type of `target`, and populates it
+// with the contents of `val`.
+func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
 	underlyingValue := trueReflectValue(target)
 
 	// this only works with maps, so check that out first

@@ -53,7 +53,7 @@ type TypeWithElementType interface {
 	// set.
 	WithElementType(Type) TypeWithElementType
 
-	// TypeWithElementType returns the type's element type.
+	// ElementType returns the type's element type.
 	ElementType() Type
 }
 

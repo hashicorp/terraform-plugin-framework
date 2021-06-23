@@ -2,6 +2,7 @@ package tfsdk
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -10,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-type testServeDataSourceTwo struct{}
+type testServeDataSourceTypeTwo struct{}
 
-func (dt testServeDataSourceTwo) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
+func (dt testServeDataSourceTypeTwo) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"family": {
@@ -33,11 +34,21 @@ func (dt testServeDataSourceTwo) GetSchema(_ context.Context) (schema.Schema, []
 	}, nil
 }
 
-func (dt testServeDataSourceTwo) NewDataSource(_ Provider) (DataSource, []*tfprotov6.Diagnostic) {
-	panic("not implemented") // TODO: Implement
+func (dt testServeDataSourceTypeTwo) NewDataSource(p Provider) (DataSource, []*tfprotov6.Diagnostic) {
+	provider, ok := p.(*testServeProvider)
+	if !ok {
+		prov, ok := p.(*testServeProviderWithMetaSchema)
+		if !ok {
+			panic(fmt.Sprintf("unexpected provider type %T", p))
+		}
+		provider = prov.testServeProvider
+	}
+	return testServeDataSourceTwo{
+		provider: provider,
+	}, nil
 }
 
-var testServeDataSourceTwoSchema = &tfprotov6.Schema{
+var testServeDataSourceTypeTwoSchema = &tfprotov6.Schema{
 	Block: &tfprotov6.SchemaBlock{
 		Attributes: []*tfprotov6.SchemaAttribute{
 			{
@@ -59,4 +70,25 @@ var testServeDataSourceTwoSchema = &tfprotov6.Schema{
 			},
 		},
 	},
+}
+
+var testServeDataSourceTypeTwoType = tftypes.Object{
+	AttributeTypes: map[string]tftypes.Type{
+		"family": tftypes.String,
+		"name":   tftypes.String,
+		"id":     tftypes.String,
+	},
+}
+
+type testServeDataSourceTwo struct {
+	provider *testServeProvider
+}
+
+func (r testServeDataSourceTwo) Read(ctx context.Context, req ReadDataSourceRequest, resp *ReadDataSourceResponse) {
+	r.provider.readDataSourceConfigValue = req.Config.Raw
+	r.provider.readDataSourceConfigSchema = req.Config.Schema
+	r.provider.readDataSourceProviderMetaValue = req.ProviderMeta.Raw
+	r.provider.readDataSourceProviderMetaSchema = req.ProviderMeta.Schema
+	r.provider.readDataSourceCalledDataSourceType = "test_two"
+	r.provider.readDataSourceImpl(ctx, req, resp)
 }

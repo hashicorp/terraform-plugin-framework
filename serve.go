@@ -782,6 +782,32 @@ func (s *server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 			Schema: dataSourceSchema,
 		},
 	}
+	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+		pmSchema, diags := pm.GetMetaSchema(ctx)
+		if diags != nil {
+			resp.Diagnostics = append(resp.Diagnostics, diags...)
+			if diagsHasErrors(resp.Diagnostics) {
+				return resp, nil
+			}
+		}
+		readReq.ProviderMeta = Config{
+			Schema: pmSchema,
+			Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+		}
+
+		if req.ProviderMeta != nil {
+			pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+			if err != nil {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Error parsing provider_meta",
+					Detail:   "There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n" + err.Error(),
+				})
+				return resp, nil
+			}
+			readReq.ProviderMeta.Raw = pmValue
+		}
+	}
 	readResp := ReadDataSourceResponse{
 		State: State{
 			Schema: dataSourceSchema,
@@ -790,9 +816,8 @@ func (s *server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 	}
 	dataSource.Read(ctx, readReq, &readResp)
 	resp.Diagnostics = readResp.Diagnostics
-	if diagsHasErrors(resp.Diagnostics) {
-		return resp, nil
-	}
+	// don't return even if we have error diagnostics, we need to set the
+	// state on the response, first
 
 	state, err := tfprotov6.NewDynamicValue(dataSourceSchema.TerraformType(ctx), readResp.State.Raw)
 	if err != nil {

@@ -39,6 +39,14 @@ type testServeProvider struct {
 	createFunc                            func(context.Context, CreateResourceRequest, *CreateResourceResponse)
 	updateFunc                            func(context.Context, UpdateResourceRequest, *UpdateResourceResponse)
 	deleteFunc                            func(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
+
+	// read data source request
+	readDataSourceConfigValue          tftypes.Value
+	readDataSourceConfigSchema         schema.Schema
+	readDataSourceProviderMetaValue    tftypes.Value
+	readDataSourceProviderMetaSchema   schema.Schema
+	readDataSourceImpl                 func(context.Context, ReadDataSourceRequest, *ReadDataSourceResponse)
+	readDataSourceCalledDataSourceType string
 }
 
 func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
@@ -358,8 +366,8 @@ func (t *testServeProvider) GetResources(_ context.Context) (map[string]Resource
 
 func (t *testServeProvider) GetDataSources(_ context.Context) (map[string]DataSourceType, []*tfprotov6.Diagnostic) {
 	return map[string]DataSourceType{
-		"test_one": testServeDataSourceOne{},
-		"test_two": testServeDataSourceTwo{},
+		"test_one": testServeDataSourceTypeOne{},
+		"test_two": testServeDataSourceTypeTwo{},
 	}, nil
 }
 

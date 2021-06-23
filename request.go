@@ -94,4 +94,7 @@ type ReadDataSourceRequest struct {
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
 	Config Config
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
 }

@@ -217,7 +217,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one": testServeResourceTypeOneSchema,
-			"test_two": testServeResourceTwoSchema,
+			"test_two": testServeResourceTypeTwoSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one": testServeDataSourceOneSchema,
@@ -245,7 +245,7 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one": testServeResourceTypeOneSchema,
-			"test_two": testServeResourceTwoSchema,
+			"test_two": testServeResourceTypeTwoSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one": testServeDataSourceOneSchema,
@@ -575,6 +575,169 @@ func TestServerReadResource(t *testing.T) {
 			},
 
 			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+		},
+		"two_basic": {
+			currentState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123foo"),
+				"disks": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					},
+				}, tftypes.UnknownValue),
+			}),
+			resource:     "test_two",
+			resourceType: testServeResourceTypeTwoType,
+
+			impl: func(_ context.Context, req ReadResourceRequest, resp *ReadResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+					"id": tftypes.NewValue(tftypes.String, "123foo"),
+					"disks": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 100),
+							"boot":    tftypes.NewValue(tftypes.Bool, true),
+						}),
+					}),
+				})
+			},
+
+			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123foo"),
+				"disks": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 100),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+			}),
+		},
+		"two_diags": {
+			currentState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123foo"),
+				"disks": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					},
+				}, tftypes.UnknownValue),
+			}),
+			resource:     "test_two",
+			resourceType: testServeResourceTypeTwoType,
+
+			impl: func(_ context.Context, req ReadResourceRequest, resp *ReadResourceResponse) {
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+					"id": tftypes.NewValue(tftypes.String, "123foo"),
+					"disks": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"name":    tftypes.String,
+								"size_gb": tftypes.Number,
+								"boot":    tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 100),
+							"boot":    tftypes.NewValue(tftypes.Bool, true),
+						}),
+					}),
+				})
+				resp.Diagnostics = []*tfprotov6.Diagnostic{
+					{
+						Summary:   "This is a warning",
+						Severity:  tfprotov6.DiagnosticSeverityWarning,
+						Detail:    "This is your final warning",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					},
+					{
+						Summary:  "This is an error",
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Detail:   "Oops.",
+					},
+				}
+			},
+
+			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123foo"),
+				"disks": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 100),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+			}),
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
 		},
 	}
 

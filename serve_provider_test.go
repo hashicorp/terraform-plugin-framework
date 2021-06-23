@@ -337,7 +337,7 @@ var testServeProviderProviderType = tftypes.Object{
 func (t *testServeProvider) GetResources(_ context.Context) (map[string]ResourceType, []*tfprotov6.Diagnostic) {
 	return map[string]ResourceType{
 		"test_one": testServeResourceTypeOne{},
-		"test_two": testServeResourceTwo{},
+		"test_two": testServeResourceTypeTwo{},
 	}, nil
 }
 

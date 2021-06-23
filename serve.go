@@ -354,9 +354,8 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	}
 	resource.Read(ctx, readReq, &readResp)
 	resp.Diagnostics = readResp.Diagnostics
-	if diagsHasErrors(resp.Diagnostics) {
-		return resp, nil
-	}
+	// don't return even if we have error diagnostics, we need to set the
+	// state on the response, first
 
 	newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), readResp.State.Raw)
 	if err != nil {

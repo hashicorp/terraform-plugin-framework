@@ -15,7 +15,7 @@ type DataSourceType interface {
 	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
 
 	// NewDataSource instantiates a new DataSource of this DataSourceType.
-	NewDataSource(Provider) (DataSource, []*tfprotov6.Diagnostic)
+	NewDataSource(context.Context, Provider) (DataSource, []*tfprotov6.Diagnostic)
 }
 
 // DataSource implements a data source instance.

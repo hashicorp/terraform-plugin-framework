@@ -21,8 +21,8 @@ type DataSourceType interface {
 // DataSource implements a data source instance.
 type DataSource interface {
 	// Read is called when the provider must read data source values in
-	// order to update state. Planned state values should be read from the
-	// ReadResourceRequest and new state values set on the
-	// ReadResourceResponse.
-	Read(context.Context, *ReadResourceRequest, *ReadResourceResponse)
+	// order to update state. Config values should be read from the
+	// ReadDataSourceRequest and new state values set on the
+	// ReadDataSourceResponse.
+	Read(context.Context, ReadDataSourceRequest, *ReadDataSourceResponse)
 }

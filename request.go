@@ -1,9 +1,5 @@
 package tfsdk
 
-import (
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-)
-
 // ConfigureProviderRequest represents a request containing the values the user
 // specified for the provider configuration block, along with other runtime
 // information from Terraform or the Plugin SDK. An instance of this request
@@ -19,7 +15,7 @@ type ConfigureProviderRequest struct {
 	// information should usually be persisted to the underlying type
 	// that's implementing the Provider interface, for use in later
 	// resource CRUD operations.
-	Config *tftypes.Value
+	Config Config
 }
 
 // CreateResourceRequest represents a request for the provider to create a
@@ -35,6 +31,9 @@ type CreateResourceRequest struct {
 
 	// Plan is the planned state for the resource.
 	Plan Plan
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
 }
 
 // ReadResourceRequest represents a request for the provider to read a
@@ -45,6 +44,9 @@ type ReadResourceRequest struct {
 	// State is the current state of the resource prior to the Read
 	// operation.
 	State State
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
 }
 
 // UpdateResourceRequest represents a request for the provider to update a
@@ -64,16 +66,35 @@ type UpdateResourceRequest struct {
 	// State is the current state of the resource prior to the Update
 	// operation.
 	State State
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
 }
 
 // DeleteResourceRequest represents a request for the provider to delete a
 // resource. An instance of this request struct is supplied as an argument to
 // the resource's Delete function.
 type DeleteResourceRequest struct {
-	// Config is the configuration the user supplied for the resource.
+	// State is the current state of the resource prior to the Delete
+	// operation.
+	State State
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
+}
+
+// ReadDataSourceRequest represents a request for the provider to read a data
+// source, i.e., update values in state according to the real state of the
+// data source. An instance of this request struct is supplied as an argument
+// to the data source's Read function.
+type ReadDataSourceRequest struct {
+	// Config is the configuration the user supplied for the data source.
 	//
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
 	Config Config
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
 }

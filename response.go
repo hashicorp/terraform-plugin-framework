@@ -237,6 +237,11 @@ func (r *UpdateResourceResponse) AddAttributeError(attributePath *tftypes.Attrib
 // an argument to the resource's Delete function, in which the provider
 // should set values on the DeleteResourceResponse as appropriate.
 type DeleteResourceResponse struct {
+	// State is the state of the resource following the Delete operation.
+	// This field is pre-populated from UpdateResourceRequest.Plan and
+	// should be set during the resource's Update operation.
+	State State
+
 	// Diagnostics report errors or warnings related to deleting the
 	// resource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
@@ -283,4 +288,19 @@ func (r *DeleteResourceResponse) AddAttributeError(attributePath *tftypes.Attrib
 		Detail:    detail,
 		Severity:  tfprotov6.DiagnosticSeverityError,
 	})
+}
+
+// ReadDataSourceResponse represents a response to a ReadDataSourceRequest. An
+// instance of this response struct is supplied as an argument to the data
+// source's Read function, in which the provider should set values on the
+// ReadDataSourceResponse as appropriate.
+type ReadDataSourceResponse struct {
+	// State is the state of the data source following the Read operation.
+	// This field should be set during the resource's Read operation.
+	State State
+
+	// Diagnostics report errors or warnings related to reading the data
+	// source. An empty slice indicates a successful operation with no
+	// warnings or errors generated.
+	Diagnostics []*tfprotov6.Diagnostic
 }

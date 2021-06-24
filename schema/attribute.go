@@ -1,7 +1,10 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Attribute defines the constraints and behaviors of a single field in a
@@ -61,4 +64,57 @@ type Attribute struct {
 	// using this attribute, warning them that it is deprecated and
 	// instructing them on what upgrade steps to take.
 	DeprecationMessage string
+}
+
+// ApplyTerraform5AttributePathStep transparently calls
+// ApplyTerraform5AttributePathStep on a.Type or a.Attributes, whichever is
+// non-nil. It allows Attributes to be walked using tftypes.Walk and
+// tftypes.Transform.
+func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	if a.Type != nil {
+		return a.Type.ApplyTerraform5AttributePathStep(step)
+	}
+	if a.Attributes != nil {
+		return a.Attributes.ApplyTerraform5AttributePathStep(step)
+	}
+	return nil, errors.New("Attribute has no type or nested attributes")
+}
+
+func (a Attribute) Equal(o Attribute) bool {
+	if a.Type == nil && o.Type != nil {
+		return false
+	} else if a.Type != nil && o.Type == nil {
+		return false
+	} else if a.Type != nil && o.Type != nil && !a.Type.Equal(o.Type) {
+		return false
+	}
+	if a.Attributes == nil && o.Attributes != nil {
+		return false
+	} else if a.Attributes != nil && o.Attributes == nil {
+		return false
+	} else if a.Attributes != nil && o.Attributes != nil && !a.Attributes.Equal(o.Attributes) {
+		return false
+	}
+	if a.Description != o.Description {
+		return false
+	}
+	if a.MarkdownDescription != o.MarkdownDescription {
+		return false
+	}
+	if a.Required != o.Required {
+		return false
+	}
+	if a.Optional != o.Optional {
+		return false
+	}
+	if a.Computed != o.Computed {
+		return false
+	}
+	if a.Sensitive != o.Sensitive {
+		return false
+	}
+	if a.DeprecationMessage != o.DeprecationMessage {
+		return false
+	}
+	return true
 }

@@ -20,7 +20,7 @@ type Provider interface {
 	// Values from provider configuration are often used to initialise an
 	// API client, which should be stored on the struct implementing the
 	// Provider interface.
-	Configure(context.Context, *ConfigureProviderRequest, *ConfigureProviderResponse)
+	Configure(context.Context, ConfigureProviderRequest, *ConfigureProviderResponse)
 
 	// GetResources returns a map of the resource types this provider
 	// supports.
@@ -38,5 +38,5 @@ type Provider interface {
 type ProviderWithProviderMeta interface {
 	Provider
 	// GetMetaSchema returns the provider meta schema.
-	GetMetaSchema(context.Context) (*tfprotov6.Schema, []*tfprotov6.Diagnostic)
+	GetMetaSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
 }

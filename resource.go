@@ -25,21 +25,21 @@ type Resource interface {
 	// and planned state values should be read from the
 	// CreateResourceRequest and new state values set on the
 	// CreateResourceResponse.
-	Create(context.Context, *CreateResourceRequest, *CreateResourceResponse)
+	Create(context.Context, CreateResourceRequest, *CreateResourceResponse)
 
 	// Read is called when the provider must read resource values in order
 	// to update state. Planned state values should be read from the
 	// ReadResourceRequest and new state values set on the
 	// ReadResourceResponse.
-	Read(context.Context, *ReadResourceRequest, *ReadResourceResponse)
+	Read(context.Context, ReadResourceRequest, *ReadResourceResponse)
 
 	// Update is called to update the state of the resource. Config, planned
 	// state, and prior state values should be read from the
 	// UpdateResourceRequest and new state values set on the
 	// UpdateResourceResponse.
-	Update(context.Context, *UpdateResourceRequest, *UpdateResourceResponse)
+	Update(context.Context, UpdateResourceRequest, *UpdateResourceResponse)
 
 	// Delete is called when the provider must delete the resource. Config
 	// values may be read from the DeleteResourceRequest.
-	Delete(context.Context, *DeleteResourceRequest, *DeleteResourceResponse)
+	Delete(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
 }

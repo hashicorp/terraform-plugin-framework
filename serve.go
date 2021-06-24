@@ -762,7 +762,7 @@ func (s *server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
-	dataSource, diags := dataSourceType.NewDataSource(s.p)
+	dataSource, diags := dataSourceType.NewDataSource(ctx, s.p)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil

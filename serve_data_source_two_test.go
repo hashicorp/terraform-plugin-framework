@@ -34,7 +34,7 @@ func (dt testServeDataSourceTypeTwo) GetSchema(_ context.Context) (schema.Schema
 	}, nil
 }
 
-func (dt testServeDataSourceTypeTwo) NewDataSource(p Provider) (DataSource, []*tfprotov6.Diagnostic) {
+func (dt testServeDataSourceTypeTwo) NewDataSource(_ context.Context, p Provider) (DataSource, []*tfprotov6.Diagnostic) {
 	provider, ok := p.(*testServeProvider)
 	if !ok {
 		prov, ok := p.(*testServeProviderWithMetaSchema)

@@ -80,6 +80,7 @@ func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSt
 	return nil, errors.New("Attribute has no type or nested attributes")
 }
 
+// Equal returns true if `a` and `o` should be considered Equal.
 func (a Attribute) Equal(o Attribute) bool {
 	if a.Type == nil && o.Type != nil {
 		return false

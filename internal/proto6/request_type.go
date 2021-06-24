@@ -29,7 +29,7 @@ func IsUpdate(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, ty
 	if err != nil {
 		return false, err
 	}
-	// if our prior state is null, the state doesn't exist, this can't be
+	// if our prior state is null, the state doesn't exist, so this can't be
 	// an update request
 	if priorState.IsNull() {
 		return false, nil

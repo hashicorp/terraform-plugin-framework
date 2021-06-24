@@ -18,7 +18,7 @@ func TestBuildValue_unhandledNull(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
-	if expected := `: unhandled null value`; expected != err.Error() {
+	if expected := `unhandled null value`; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -31,7 +31,7 @@ func TestBuildValue_unhandledUnknown(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
-	if expected := `: unhandled unknown value`; expected != err.Error() {
+	if expected := `unhandled unknown value`; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }

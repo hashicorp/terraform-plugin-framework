@@ -22,7 +22,7 @@ func TestNewStruct_notAnObject(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
-	if expected := `: can't reflect tftypes.String into a struct, must be an object`; expected != err.Error() {
+	if expected := `can't reflect tftypes.String into a struct, must be an object`; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -45,7 +45,7 @@ func TestNewStruct_notAStruct(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
-	if expected := `: expected a struct type, got string`; expected != err.Error() {
+	if expected := `expected a struct type, got string`; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -62,7 +62,7 @@ func TestNewStruct_objectMissingFields(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
-	if expected := `: mismatch between struct and object: Struct defines fields not found in object: a.`; expected != err.Error() {
+	if expected := `mismatch between struct and object: Struct defines fields not found in object: a.`; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -85,7 +85,7 @@ func TestNewStruct_structMissingProperties(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
-	if expected := `: mismatch between struct and object: Object defines fields not found in struct: a.`; expected != err.Error() {
+	if expected := `mismatch between struct and object: Object defines fields not found in struct: a.`; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -110,7 +110,7 @@ func TestNewStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, didn't get one")
 	}
-	if expected := `: mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b.`; expected != err.Error() {
+	if expected := `mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b.`; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }

@@ -1042,7 +1042,7 @@ func TestAttribute(t *testing.T) {
 				Optional: true,
 			},
 			path:        tftypes.NewAttributePath(),
-			expectedErr: ": can't have both Attributes and Type set",
+			expectedErr: "can't have both Attributes and Type set",
 		},
 		"attr-and-nested-attr-unset": {
 			name: "whoops",
@@ -1050,7 +1050,7 @@ func TestAttribute(t *testing.T) {
 				Optional: true,
 			},
 			path:        tftypes.NewAttributePath(),
-			expectedErr: ": must have Attributes or Type set",
+			expectedErr: "must have Attributes or Type set",
 		},
 		"attr-and-nested-attr-empty": {
 			name: "whoops",
@@ -1059,7 +1059,7 @@ func TestAttribute(t *testing.T) {
 				Attributes: schema.SingleNestedAttributes(map[string]schema.Attribute{}),
 			},
 			path:        tftypes.NewAttributePath(),
-			expectedErr: ": must have Attributes or Type set",
+			expectedErr: "must have Attributes or Type set",
 		},
 	}
 

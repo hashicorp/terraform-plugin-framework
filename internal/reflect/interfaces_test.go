@@ -252,7 +252,7 @@ func TestNewUnknownable_error(t *testing.T) {
 
 	var unknownable *unknownableStringError
 	_, err := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
-	if expected := ": this is an error"; err == nil || err.Error() != expected {
+	if expected := "this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
 	}
 }
@@ -324,7 +324,7 @@ func TestNewNullable_error(t *testing.T) {
 
 	var nullable *nullableStringError
 	_, err := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
-	if expected := ": this is an error"; err == nil || err.Error() != expected {
+	if expected := "this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
 	}
 }
@@ -495,7 +495,7 @@ func TestNewValueConverter_error(t *testing.T) {
 
 	var vc *valueConverterError
 	_, err := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
-	if expected := ": this is an error"; err == nil || err.Error() != expected {
+	if expected := "this is an error"; err == nil || err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %v", expected, err)
 	}
 }

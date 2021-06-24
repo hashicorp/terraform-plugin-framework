@@ -94,7 +94,7 @@ func TestNumber_bigIntRoundingError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 123456.123 in *big.Int"; expected != err.Error() {
+	if expected := "can't store 123456.123 in *big.Int"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -143,7 +143,7 @@ func TestNumber_intOverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store " + overflowInt.String() + " in int"; expected != err.Error() {
+	if expected := "can't store " + overflowInt.String() + " in int"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -177,7 +177,7 @@ func TestNumber_intUnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store " + underflowInt.String() + " in int"; expected != err.Error() {
+	if expected := "can't store " + underflowInt.String() + " in int"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -224,7 +224,7 @@ func TestNumber_int8OverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 128 in int8"; expected != err.Error() {
+	if expected := "can't store 128 in int8"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -256,7 +256,7 @@ func TestNumber_int8UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -129 in int8"; expected != err.Error() {
+	if expected := "can't store -129 in int8"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -292,7 +292,7 @@ func TestNumber_int16OverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 32768 in int16"; expected != err.Error() {
+	if expected := "can't store 32768 in int16"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -324,7 +324,7 @@ func TestNumber_int16UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -32769 in int16"; expected != err.Error() {
+	if expected := "can't store -32769 in int16"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -360,7 +360,7 @@ func TestNumber_int32OverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 2147483648 in int32"; expected != err.Error() {
+	if expected := "can't store 2147483648 in int32"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -392,7 +392,7 @@ func TestNumber_int32UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -2147483649 in int32"; expected != err.Error() {
+	if expected := "can't store -2147483649 in int32"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -439,7 +439,7 @@ func TestNumber_int64OverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 9.223372037e+18 in int64"; expected != err.Error() {
+	if expected := "can't store 9.223372037e+18 in int64"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -471,7 +471,7 @@ func TestNumber_int64UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -9.223372037e+18 in int64"; expected != err.Error() {
+	if expected := "can't store -9.223372037e+18 in int64"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -520,7 +520,7 @@ func TestNumber_uintOverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store " + overflowUint.String() + " in uint"; expected != err.Error() {
+	if expected := "can't store " + overflowUint.String() + " in uint"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -552,7 +552,7 @@ func TestNumber_uintUnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -1 in uint"; expected != err.Error() {
+	if expected := "can't store -1 in uint"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -599,7 +599,7 @@ func TestNumber_uint8OverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 256 in uint8"; expected != err.Error() {
+	if expected := "can't store 256 in uint8"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -631,7 +631,7 @@ func TestNumber_uint8UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -1 in uint8"; expected != err.Error() {
+	if expected := "can't store -1 in uint8"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -667,7 +667,7 @@ func TestNumber_uint16OverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 65536 in uint16"; expected != err.Error() {
+	if expected := "can't store 65536 in uint16"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -699,7 +699,7 @@ func TestNumber_uint16UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -1 in uint16"; expected != err.Error() {
+	if expected := "can't store -1 in uint16"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -735,7 +735,7 @@ func TestNumber_uint32OverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 4294967296 in uint32"; expected != err.Error() {
+	if expected := "can't store 4294967296 in uint32"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -767,7 +767,7 @@ func TestNumber_uint32UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -1 in uint32"; expected != err.Error() {
+	if expected := "can't store -1 in uint32"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -814,7 +814,7 @@ func TestNumber_uint64OverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 1.844674407e+19 in uint64"; expected != err.Error() {
+	if expected := "can't store 1.844674407e+19 in uint64"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -846,7 +846,7 @@ func TestNumber_uint64UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -1 in uint64"; expected != err.Error() {
+	if expected := "can't store -1 in uint64"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -883,7 +883,7 @@ func TestNumber_float32OverflowError(t *testing.T) {
 		return
 	}
 	reflect.ValueOf(&n).Elem().Set(result)
-	if expected := ": can't store 1.797693135e+308 in float32"; expected != err.Error() {
+	if expected := "can't store 1.797693135e+308 in float32"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -915,7 +915,7 @@ func TestNumber_float32UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 4.940656458e-324 in float32"; expected != err.Error() {
+	if expected := "can't store 4.940656458e-324 in float32"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -962,7 +962,7 @@ func TestNumber_float64OverflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 1e+10000 in float64"; expected != err.Error() {
+	if expected := "can't store 1e+10000 in float64"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -994,7 +994,7 @@ func TestNumber_float64OverflowNegativeError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -1e+10000 in float64"; expected != err.Error() {
+	if expected := "can't store -1e+10000 in float64"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -1026,7 +1026,7 @@ func TestNumber_float64UnderflowError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store 1e-1000 in float64"; expected != err.Error() {
+	if expected := "can't store 1e-1000 in float64"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
@@ -1058,7 +1058,7 @@ func TestNumber_float64UnderflowNegativeError(t *testing.T) {
 		t.Error("Expected error, got none")
 		return
 	}
-	if expected := ": can't store -1e-1000 in float64"; expected != err.Error() {
+	if expected := "can't store -1e-1000 in float64"; expected != err.Error() {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }

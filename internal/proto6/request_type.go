@@ -39,8 +39,8 @@ func IsUpdate(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, ty
 	if err != nil {
 		return false, err
 	}
-	// if our planned state is null, this is a delete request, it can't be
-	// an update, too
+	// if our planned state is null, this is a delete request, and it can't be
+	// an update too
 	if plannedState.IsNull() {
 		return false, nil
 	}

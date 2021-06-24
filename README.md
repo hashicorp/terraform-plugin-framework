@@ -2,7 +2,7 @@
 
 # Terraform Plugin Framework
 
-terraform-plugin-framework is a module for building Terraform providers built on [terraform-plugin-go](https://github.com/hashicorp/terraform-plugin-go). It aims to provide as much of the power, predictability, and versatility of terraform-plugin-go as it can while abstracting away implementation details and repetitive, verbose tasks.
+terraform-plugin-framework is a module for building Terraform providers. It is built on [terraform-plugin-go](https://github.com/hashicorp/terraform-plugin-go). It aims to provide as much of the power, predictability, and versatility of terraform-plugin-go as it can while abstracting away implementation details and repetitive, verbose tasks.
 
 ## Status
 

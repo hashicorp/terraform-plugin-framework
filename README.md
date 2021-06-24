@@ -28,7 +28,7 @@ Currently that means Go **1.16** must be used when building a provider with this
 
 ## Getting Started
 
-Documentation for terraform-plugin-framework is still in development. In the meantime, the [GoDoc](https://github.com/pkg.go.dev/github.com/hashicorp/terraform-plugin-framework) is the best source of documentation.
+Documentation for terraform-plugin-framework is still in development. In the meantime, the [GoDoc](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework) is the best source of documentation.
 
 The [`tfsdk.Provider`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Provider) type is the root of your provider implementation. From there, [`tfsdk.ResourceType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceType) and [`tfsdk.DataSourceType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DataSourceType) implementations define the [schema](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#Schema) of your resources and data sources, and how to create [`tfsdk.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Resource) and [`tfsdk.DataSource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DataSource) implementations that talk to the API.
 

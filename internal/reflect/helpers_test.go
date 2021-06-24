@@ -124,7 +124,7 @@ func TestGetStructTags_untagged(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, got nil")
 	}
-	expected := `: need a struct tag for "tfsdk" on ExportedAndUntagged`
+	expected := `need a struct tag for "tfsdk" on ExportedAndUntagged`
 	if err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
@@ -169,7 +169,7 @@ func TestGetStructTags_notAStruct(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
-	expected := `: can't get struct tags of string, is not a struct`
+	expected := `can't get struct tags of string, is not a struct`
 	if err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}

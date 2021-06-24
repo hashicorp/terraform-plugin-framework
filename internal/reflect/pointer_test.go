@@ -17,7 +17,7 @@ func TestPointer_notAPointer(t *testing.T) {
 
 	var s string
 	_, err := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if expected := ": can't dereference pointer, not a pointer, is a string (string)"; err.Error() != expected {
+	if expected := "can't dereference pointer, not a pointer, is a string (string)"; err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }

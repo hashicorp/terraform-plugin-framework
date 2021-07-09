@@ -225,7 +225,7 @@ message ValidateProviderConfig {
 }
 ```
 
-#### `ValidateResourceTypeConfig` RPC
+#### `ValidateResourceConfig` RPC
 
 Called during the `terraform apply`, `terraform destroy`, `terraform plan`, `terraform refresh`, and `terraform validate` commands if managed resources are present.
 
@@ -272,42 +272,59 @@ The [`terraform-plugin-go` library](https://pkg.go.dev/hashicorp/terraform-plugi
 
 Most of the Go types and functionality from `terraform-plugin-go` will be abstracted by this framework before reaching provider developers. The details represented here are not finalized as this framework is still being designed, however these current details are presented here for additional context in the later proposals.
 
-Generic `tftypes` values are abstracted into an `attr.Value` Go interface type with concrete Go types such as `types.String`:
+Providers are currently implemented in the `Provider` Go interface type. Provider implementations are responsible for implementing the concrete Go type.
 
 ```go
-// Value defines an interface for describing data associated with an attribute.
-// Values allow provider developers to specify data in a convenient format, and
-// have it transparently be converted to formats Terraform understands.
-type Value interface {
-    // ToTerraformValue returns the data contained in the Value as
-    // a Go type that tftypes.NewValue will accept.
-    ToTerraformValue(context.Context) (interface{}, error)
+// Provider is the core interface that all Terraform providers must implement.
+type Provider interface {
+    // GetSchema returns the schema for this provider's configuration. If
+    // this provider has no configuration, return nil.
+    GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
 
-    // Equal must return true if the Value is considered semantically equal
-    // to the Value passed as an argument.
-    Equal(Value) bool
-}
+    // Configure is called at the beginning of the provider lifecycle, when
+    // Terraform sends to the provider the values the user specified in the
+    // provider configuration block. These are supplied in the
+    // ConfigureProviderRequest argument.
+    // Values from provider configuration are often used to initialise an
+    // API client, which should be stored on the struct implementing the
+    // Provider interface.
+    Configure(context.Context, ConfigureProviderRequest, *ConfigureProviderResponse)
 
-// ... separately ...
+    // GetResources returns a map of the resource types this provider
+    // supports.
+    GetResources(context.Context) (map[string]ResourceType, []*tfprotov6.Diagnostic)
 
-var _ attr.Value = String{}
-
-// String represents a UTF-8 string value.
-type String struct {
-    // Unknown will be true if the value is not yet known.
-    Unknown bool
-
-    // Null will be true if the value was not set, or was explicitly set to
-    // null.
-    Null bool
-
-    // Value contains the set value, as long as Unknown and Null are both
-    // false.
-    Value string
+    // GetDataSources returns a map of the data source types this provider
+    // supports.
+    GetDataSources(context.Context) (map[string]DataSourceType, []*tfprotov6.Diagnostic)
 }
 ```
 
-Resources (and similarly, but separately, data sources) are currently implmented in their own `Resource` and `ResourceType` Go interface types. Providers are responsible for implementing the concrete Go types.
+Data Sources are currently implemented in their own `DataSource` and `DataSourceType` Go interface types. Providers are responsible for implementing the concrete Go types.
+
+```go
+// A DataSourceType is a type of data source. For each type of data source this
+// provider supports, it should define a type implementing DataSourceType and
+// return an instance of it in the map returned by Provider.GetDataSources.
+type DataSourceType interface {
+    // GetSchema returns the schema for this data source.
+    GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
+
+    // NewDataSource instantiates a new DataSource of this DataSourceType.
+    NewDataSource(context.Context, Provider) (DataSource, []*tfprotov6.Diagnostic)
+}
+
+// DataSource implements a data source instance.
+type DataSource interface {
+    // Read is called when the provider must read data source values in
+    // order to update state. Config values should be read from the
+    // ReadDataSourceRequest and new state values set on the
+    // ReadDataSourceResponse.
+    Read(context.Context, ReadDataSourceRequest, *ReadDataSourceResponse)
+}
+```
+
+Managed resources are currently implemented in their own `Resource` and `ResourceType` Go interface types. Providers are responsible for implementing the concrete Go types.
 
 ```go
 // A ResourceType is a type of resource. For each type of resource this provider
@@ -412,6 +429,43 @@ type Attribute struct {
 ```
 
 Although later designs surrounding the ability to allow providers to define custom schema types may change this particular Go typing detail.
+
+Values of `Attribute` in this framework are abstracted from the generic `tftypes` values into an `attr.Value` Go interface type:
+
+```go
+// Value defines an interface for describing data associated with an attribute.
+// Values allow provider developers to specify data in a convenient format, and
+// have it transparently be converted to formats Terraform understands.
+type Value interface {
+    // ToTerraformValue returns the data contained in the Value as
+    // a Go type that tftypes.NewValue will accept.
+    ToTerraformValue(context.Context) (interface{}, error)
+
+    // Equal must return true if the Value is considered semantically equal
+    // to the Value passed as an argument.
+    Equal(Value) bool
+}
+```
+
+This framework then implements concrete Go types such as `types.String`:
+
+```go
+var _ attr.Value = String{}
+
+// String represents a UTF-8 string value.
+type String struct {
+    // Unknown will be true if the value is not yet known.
+    Unknown bool
+
+    // Null will be true if the value was not set, or was explicitly set to
+    // null.
+    Null bool
+
+    // Value contains the set value, as long as Unknown and Null are both
+    // false.
+    Value string
+}
+```
 
 ## Prior Implementations
 

@@ -1,6 +1,6 @@
 # Validation
 
-Practitioners implementing Terraform configurations desire feedback surrounding the syntax, types, and acceptable values. This feedback, typically referred to as validation, is perferably given as early as possible before a configuration is applied. Terraform supports a plugin architecture, which extends the configuration and validation surface area based on the implementation details of those plugins. This framework provides validation hooks for plugins. This design document will outline background information on the problem space, prior framework choices, and proposals for this framework.
+Practitioners implementing Terraform configurations desire feedback surrounding the syntax, types, and acceptable values. This feedback, typically referred to as validation, is preferably given as early as possible before a configuration is applied. Terraform supports a plugin architecture, which extends the configuration and validation surface area based on the implementation details of those plugins. This framework provides validation hooks for plugins. This design document will outline background information on the problem space, prior framework choices, and proposals for this framework.
 
 ## Background
 
@@ -490,7 +490,7 @@ map[string]*schema.Schema{
 
 It supported single attribute value validation via the `ValidateFunc` or `ValidateDiagFunc` fields and multiple attribute validation via a collection of different fields (`AtLeastOneOf`, `ConflictsWith`, `ExactlyOneOf`, `RequiredWith`) which could be combined as necessary. For list, set, and map types, two additional fields (`MaxItems` and `MinItems`) provided validation for the number of elements.
 
-The multiple attribute validation support in the attribute schema is purely existance based, meaning it could not be conditional based on the attribute value. Conditional multiple attribute validation based on values was later added via the resource level `CustomizeDiff`, which will be described later on.
+The multiple attribute validation support in the attribute schema is purely existence based, meaning it could not be conditional based on the attribute value. Conditional multiple attribute validation based on values was later added via the resource level `CustomizeDiff`, which will be described later on.
 
 These fields also required a full attribute path in "flatmap" syntax, which had limitations for declaring them against nested attributes. For example:
 

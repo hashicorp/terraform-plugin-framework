@@ -992,3 +992,275 @@ Finally, these other considerations:
 - Ease of extending validation (e.g. handling type conversion and/or unknown values in the framework)
 - Ease of testing validation (e.g. unit testing)
 - Ease and succinctness of common validation scenarios (e.g. verbosity in provider code)
+
+## Proposals
+
+### Single Attribute Value Validation
+
+This validation would be applicable to the `schema.Attribute` types declared within the `GetSchema()` of `DataSourceType`, `Provider`, and `ResourceType` implementations. For most of these proposals, the framework would walk through all attribute paths during the `ValidateDataSourceConfig`, `ValidateProviderConfig`, and `ValidateResourceConfig` calls, executing the declared validation in each attribute if present.
+
+#### Declaring Value Validation for Attributes
+
+This section includes examples and details with `schema.Attribute` implemented as a Go structure type as it exists today. Future design considerations around creating specialized or custom attribute types may warrant switching this to an interface type with separate concrete types.
+
+##### Single Function Field on `schema.Attribute`
+
+Similar to the previous framework, a new field can be added to the `schema.Attribute` type. For example:
+
+```go
+schema.Attribute{
+    // ...
+    ValueValidation: T,
+}
+```
+
+Implementators would be responsible for ensuring that single function covered all necessary validation. The framework could provide wrapper functions similar to the previous `All()` and `Any()` to allow simpler validations built from multiple functions. For example:
+
+```go
+schema.Attribute{
+    // ...
+    ValueValidation: All(
+        T,
+        T,
+    ),
+}
+```
+
+As seen with the previous framework in practice however, it was very common to implement the `All()` wrapper function. New provider developers would be responsible for understanding that multiple validations are possible in the single function field and knowing that custom validation functions may not be necessary to write if using the wrapper functions.
+
+This proposal colocates the value validation behaviors in the schema definition, meaning it is easier for provider developers to discover this type of validation and correlate the validation logic to the name and type information.
+
+##### List of Functions Field on `schema.Attribute`
+
+A new field that accepts a list of functions can be added to the `schema.Attribute` type. For example:
+
+```go
+schema.Attribute{
+    // ...
+    ValueValidations: []T{
+        T,
+        T,
+    },
+}
+```
+
+In this case, the framework would perform the validation similar to the previous framework `All()` wrapper function. The logical `AND` type of value validation is overwhelmingly more common in practice, which will simplify provider implementations. This still allows for an `Any()` based wrapper (logical `OR`) to be inserted if necessary.
+
+Colocating the value validation behaviors in the schema definition, means it is easier for provider developers to discover this type of validation and correlate the validation logic to the name and type information. This proposal will feel familiar to existing provider developers. New provider developers will immediately know that multiple validations are supported.
+
+##### New Attribute With Value Validation Type(s)
+
+The `schema.Attribute` type could be converted to a Go interface type and split into capabilities, similar to other interface types in the framework. For example:
+
+```go
+type Attribute interface {
+    Type(context.Context) attr.Type
+    // ...
+}
+
+type AttributeWithValueValidations struct {
+    Attribute
+    ValueValidations []T
+}
+
+// or more interfaces
+
+type AttributeWithValueValidations interface {
+    Attribute
+    ValueValidations(/* ... */) []T
+}
+```
+
+This type of proposal, in isolation, feels extraneous given the current attribute implementation. The framework does not appear to benefit from this splitting and it seems desirable that all attributes should be able to optionally enable value validation. Future considerations to allow declaring custom attribute types, outside of validation handling, are more likely to drive this type of potential change.
+
+##### Resource Level
+
+This proposal would introduce no changes to `schema.Attribute`. Instead, this would require value validation declarations at the `DataSource` and `Resource` level similar to other proposed attribute validations. The implementation details of this validation depends on those later proposals, however a rough sketch of this would be:
+
+```go
+func (t *customResourceType) AttributeValidations(/* ... */) []T1 {
+    return []T1{
+      T1(*tftypes.AttributePath, T2), // or ...T2
+    }
+}
+```
+
+This proposal makes value validation behaviors occur at a distance, meaning it is harder for provider developers to correlate the validation logic to the name/path and type information. It would also be very verbose for even moderately sized schemas with thorough value validation. The only real potential benefit to this type of value validation is that the framework implementation is very straightforward, to just go through this single list of validations instead of walking all attributes.
+
+It could be possible to implement another proposal in this space, while also supporting this one, however this could introduce unnecessary complexity into the implementation.
+
+#### Defining Attribute Value Validation Functions
+
+This section includes examples with incoming types as `tftypes.AttributePath` and the `attr.Value` interface type with an output type of `error`. These implementation details are discussed later and only shown for simpler illustrative purposes here.
+
+##### `AttributeValueValidationFunc` Type
+
+A new Go type could be created that defines the signature of a value validation function, similar to the previous framework `SchemaValidateFunc`. For example:
+
+```go
+type AttributeValueValidationFunc func(context.Context, path *tftypes.AttributePath, value attr.Value) error
+```
+
+While the simplest implementation, this proposal does not allow for documentation hooks. It would strongly encourage all implementations to handle value type conversions since using a stronger type would risk panics that the framework cannot prevent and the compiler cannot check.
+
+##### `attr.ValueValidator` Generic Interface
+
+A new Go interface type could be created that defines an extensible value validation function type. For example:
+
+```go
+type ValueValidator interface {
+    Describe(context.Context) string
+    MarkdownDescribe(context.Context) string
+    Validate(context.Context, path *tftypes.AttributePath, value attr.Value) error
+}
+```
+
+With an example implementation:
+
+```go
+type stringLengthBetweenValidator struct {
+    ValueValidator
+
+    maximum int
+    minimum int
+}
+
+func (v stringLengthBetweenValidator) Description(_ context.Context) string {
+    return fmt.Sprintf("length must be between %d and %d", v.minimum, v.maximum)
+}
+
+func (v stringLengthBetweenValidator) MarkdownDescription(_ context.Context) string {
+    return fmt.Sprintf("length must be between `%d` and `%d`", v.minimum, v.maximum)
+}
+
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    value, ok := rawValue.(types.String)
+    
+    if !ok {
+        return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
+    }
+
+    if value.Unknown {
+        return fmt.Errorf("%s with unknown value", path)
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        return fmt.Errorf("%s with value %q %s", path, value.Value, v.Description(ctx))
+    }
+
+    return nil
+}
+
+func StringLengthBetween(minimum int, maximum int) stringLengthBetweenValidator {
+    return stringLengthBetweenValidator{
+        maximum: maximum,
+        minimum: minimum,
+    }
+}
+```
+
+While this helps solve the documentation issue, e.g. with the following example slice type alias and receiver method:
+
+```go
+// ValueValidators implements iteration functions across ValueValidator
+type ValueValidators []ValueValidator
+
+// Descriptions returns all ValueValidator Description
+func (vs ValueValidators) Descriptions(ctx context.Context) []string {
+    result := make([]string, 0, len(vs))
+
+    for _, v := range vs {
+        result = append(result, v.Description(ctx))
+    }
+    return result
+}
+```
+
+It still has value type issues similar to the generic `AttributeValueValidationFunc` proposal.
+
+##### `attr.ValueValidator` Typed Interface
+
+Multiple new Go interface types could be created that define extensible value validation functions with strong typing. For example:
+
+```go
+// ValueValidator describes common validation functionality
+type ValueValidator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+}
+
+// StringValueValidator describes String value validation
+type StringValueValidator interface {
+    ValueValidator
+    Validate(context.Context, *tftypes.AttributePath, types.String) error
+}
+```
+
+Then, this framework can handle the appropriate type conversions and error handling:
+
+```go
+// Validate performs all validation functions.
+//
+// Each type performs conversion or returns a conversion error
+// prior to executing the typed validation function.
+func (vs ValueValidators) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    for _, validator := range vs {
+        switch typedValidator := validator.(type) {
+        case StringValueValidator:
+            value, ok := rawValue.(types.String)
+
+            if !ok {
+                return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
+            }
+
+            if err := typedValidator.Validate(ctx, path, value); err != nil {
+                return err
+            }
+        default:
+            return fmt.Errorf("unknown validator type: %T", validator)
+        }
+    }
+
+    return nil
+}
+```
+
+Leaving the implementations to only be concerned with the typed value:
+
+```go
+type stringLengthBetweenValidator struct {
+    StringValueValidator
+
+    maximum int
+    minimum int
+}
+
+func (v stringLengthBetweenValidator) Description(_ context.Context) string {
+    return fmt.Sprintf("length must be between %d and %d", v.minimum, v.maximum)
+}
+
+func (v stringLengthBetweenValidator) MarkdownDescription(_ context.Context) string {
+    return fmt.Sprintf("length must be between `%d` and `%d`", v.minimum, v.maximum)
+}
+
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, value types.String) error {
+    if value.Unknown {
+        return fmt.Errorf("%s with unknown value", path)
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        return fmt.Errorf("%s with value %q %s", path, value.Value, v.Description(ctx))
+    }
+
+    return nil
+}
+
+func StringLengthBetween(minimum int, maximum int) stringLengthBetweenValidator {
+    return stringLengthBetweenValidator{
+        maximum: maximum,
+        minimum: minimum,
+    }
+}
+```
+
+This proposal allows each validation function to be succinctly defined with the expected value type. It may be possible to get the validation function implementations even closer to the true value logic if unknown values are also handled automatically by this framework, however that decision can be made further along in the design process.

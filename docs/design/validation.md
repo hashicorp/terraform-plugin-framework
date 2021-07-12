@@ -987,11 +987,12 @@ In terms of implementation, the following core concepts:
 
 Finally, these other considerations:
 
-- Providing the appropriate amount of contextual information for debugging purposes
-- Providing the appropriate amount of contextual information for practitioner facing output
+- Providing the appropriate amount of contextual information for debugging purposes (e.g. logging)
+- Providing the appropriate amount of contextual information for practitioner facing output (e.g. paths and values involved with validation decisions)
 - Ease of extending validation (e.g. handling type conversion and/or unknown values in the framework)
 - Ease of testing validation (e.g. unit testing)
 - Ease and succinctness of common validation scenarios (e.g. verbosity in provider code)
+- Allowing potential future enhancements of validation behavioral decisions based on configuration (e.g. converting validation errors to warnings or logs)
 
 ## Proposals
 

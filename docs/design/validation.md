@@ -1102,9 +1102,9 @@ A new Go type could be created that defines the signature of a value validation 
 type AttributeValueValidationFunc func(context.Context, path *tftypes.AttributePath, value attr.Value) error
 ```
 
-While the simplest implementation, this proposal does not allow for documentation hooks. It would strongly encourage all implementations to handle value type conversions since using a stronger type would risk panics that the framework cannot prevent and the compiler cannot check.
+While the simplest implementation, this proposal does not allow for documentation hooks.
 
-##### `attr.ValueValidator` Generic Interface
+##### `attr.ValueValidator` Interface
 
 A new Go interface type could be created that defines an extensible value validation function type. For example:
 
@@ -1160,7 +1160,7 @@ func StringLengthBetween(minimum int, maximum int) stringLengthBetweenValidator 
 }
 ```
 
-While this helps solve the documentation issue, e.g. with the following example slice type alias and receiver method:
+This helps solve the documentation issue with the following example slice type alias and receiver method:
 
 ```go
 // ValueValidators implements iteration functions across ValueValidator
@@ -1177,11 +1177,30 @@ func (vs ValueValidators) Descriptions(ctx context.Context) []string {
 }
 ```
 
-It still has value type issues similar to the generic `AttributeValueValidationFunc` proposal.
+#### Attribute Value Validation Function Value Parameter
 
-##### `attr.ValueValidator` Typed Interface
+Regardless the choice of concrete or interface types for the value validation functions, the parameters and returns for the implementations will play a crucial role on the extensibility and development experience.
 
-Multiple new Go interface types could be created that define extensible value validation functions with strong typing. For example:
+##### `attr.Value` Type
+
+The simplest implementation in the framework that could occur in all function types or interfaces is directly supplying an `attr.Value` and requiring implementations to handle all type conversion:
+
+```go
+func (v someValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    value, ok := rawValue.(types.String)
+    
+    if !ok {
+        return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
+    }
+
+    // ... rest of logic ...
+```
+
+This proposal would strongly encourage all implementations to handle value type conversions since using a stronger type in the function signature would risk panics that the framework cannot prevent and the compiler cannot check. Any error handling here could become inconsistent across implementations. This type conversion logic feels like an unnecessary burden on implementors and could reduce the developer experience as this logic would always need to be repeated with little to no actual utility.
+
+##### `types.T` Type
+
+If using an `attr.ValueValidator` interface approach, multiple new Go interface types could be created that define extensible value validation functions with strong typing. For example:
 
 ```go
 // ValueValidator describes common validation functionality
@@ -1229,21 +1248,6 @@ func (vs ValueValidators) Validate(ctx context.Context, path *tftypes.AttributeP
 Leaving the implementations to only be concerned with the typed value:
 
 ```go
-type stringLengthBetweenValidator struct {
-    StringValueValidator
-
-    maximum int
-    minimum int
-}
-
-func (v stringLengthBetweenValidator) Description(_ context.Context) string {
-    return fmt.Sprintf("length must be between %d and %d", v.minimum, v.maximum)
-}
-
-func (v stringLengthBetweenValidator) MarkdownDescription(_ context.Context) string {
-    return fmt.Sprintf("length must be between `%d` and `%d`", v.minimum, v.maximum)
-}
-
 func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, value types.String) error {
     if value.Unknown {
         return fmt.Errorf("%s with unknown value", path)
@@ -1254,13 +1258,6 @@ func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftype
     }
 
     return nil
-}
-
-func StringLengthBetween(minimum int, maximum int) stringLengthBetweenValidator {
-    return stringLengthBetweenValidator{
-        maximum: maximum,
-        minimum: minimum,
-    }
 }
 ```
 
@@ -1280,3 +1277,73 @@ type GenericValueValidator interface {
     Validate(context.Context, *tftypes.AttributePath, attr.Value) error
 }
 ```
+
+Offering the largest amount of flexibility for implementors to choose the level of desired abstraction, while not hindering more advanced implementations.
+
+#### Attribute Value Validation Function Path Parameter
+
+Another consideration with attribute value validation functions is whether the implementation should be responsible for adding context around the attribute path under validation and how that information (if provided) is surfaced to the function body.
+
+##### No Attribute Path Parameter
+
+Validation function implementations could potentially not have access to the attribute path under validation, instead relying on surrounding logic to handle wrapping errors or logging to include the path. For example:
+
+```go
+tflog.Debug(ctx, "validating attribute path (%s) attribute value (%s): %s", attributePath.String(), value, validator.Description())
+
+err := validator.Validate(ctx, value)
+
+if err != nil {
+    return fmt.Errorf("%s: %w", attributePath.String(), err)
+}
+```
+
+This could be a double edged sword for extensibility. Implementators do not need to worry about handling the attribute path in error messages that are returned to practitioners or manually adding logging around it. This does however prevent the ability to provide that additional context to the validation logic, if for example the logic warrants making decisions based on the given path or additional logging that includes the full path. In practice with validation functions in the previous framework, path based decisions are rare at best, and this framework could be opinionated against that particular pattern.
+
+##### Adding Attribute Path to Context
+
+This framework could inject additional validation information into the `context.Context` being passed through to the validation functions. For example:
+
+```go
+const ValidationAttributePathKey = "validation_attribute_path"
+
+validationCtx := context.WithValue(ctx, ValidationAttributePathKey, attributePath)
+validator.Validate(ctx, value)
+```
+
+With implementations referencing this data:
+
+```go
+func (v someValidator) Validate(ctx context.Context, rawValue attr.Value) error {
+    // ...
+    rawAttributePath := ctx.Value(ValidationAttributePathKey)
+
+    attributePath, ok := rawAttributePath.(*tftypes.AttributePath)
+
+    if !ok {
+        return fmt.Errorf("unexpected %s context value type: %T", ValidationAttributePathKey, rawAttributePath)
+    }
+    // ...
+```
+
+This experience seems subpar for developers though as they must know about the special context value(s) available and how to reference them appropriately, especially to avoid a type assertion panic. In this case, it seems more appropriately to pass the parameter directly, if necessary.
+
+##### `string` Type
+
+The attribute path could be passed to validation functions as its string representation. For example:
+
+```go
+validator.Validate(ctx, attributePath.String(), value)
+```
+
+This would allow implementors to ignore the details of what the attribute path is or how to represent it appropriately. However, this seems unnecessarily limiting should the path information need to be used in the logic. In this case, calling a Go conventional `String()` receiver method on the actual attribute path type does not feel like a development burden for implementors as necessary.
+
+##### `*tftypes.AttributePath` Type
+
+The attribute path could be passed to validation functions directly using `*tftypes.AttributePath` or its abstraction in this framework. For example:
+
+```go
+validator.Validate(ctx, attributePath, value)
+```
+
+This provides the ultimate flexibility for implementors, making the path information fully available in logic, logging, etc. This framework's design could also borrow ideas from the [No Attribute Path Parameter](#no-attribute-path-parameter) section and automatically handle logging and wrapping where appropriate, leaving it completely optional for implementators to handle the path information.

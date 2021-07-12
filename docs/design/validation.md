@@ -1264,3 +1264,18 @@ func StringLengthBetween(minimum int, maximum int) stringLengthBetweenValidator 
 ```
 
 This proposal allows each validation function to be succinctly defined with the expected value type. It may be possible to get the validation function implementations even closer to the true value logic if unknown values are also handled automatically by this framework, however that decision can be made further along in the design process.
+
+Even with this type of implementation, it is theoretically possible to create a "generic" type handler for escaping the strongly typed logic if necessary:
+
+```go
+// GenericValueValidator describes value validation without a strong type.
+//
+// While it is generally preferred to use the typed validation interfaces,
+// such as StringValueValidator, this interface allows custom implementations
+// where the others may not be suitable. The Validate function is responsible
+// for protecting against attr.Value type assertion panics.
+type GenericValueValidator interface {
+    ValueValidator
+    Validate(context.Context, *tftypes.AttributePath, attr.Value) error
+}
+```

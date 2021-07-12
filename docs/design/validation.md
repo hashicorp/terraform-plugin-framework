@@ -1347,3 +1347,216 @@ validator.Validate(ctx, attributePath, value)
 ```
 
 This provides the ultimate flexibility for implementors, making the path information fully available in logic, logging, etc. This framework's design could also borrow ideas from the [No Attribute Path Parameter](#no-attribute-path-parameter) section and automatically handle logging and wrapping where appropriate, leaving it completely optional for implementators to handle the path information.
+
+#### Attribute Value Validation Function Returns
+
+Depending on the validation function design, there could be important details about the validation process that need to be surfaced to callers. This section walks through different proposals on how information can be returned to callers.
+
+##### Attribute Value Validation Function `bool` Return
+
+Validation functions could implement return information via a `bool` type. For example:
+
+```go
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) bool {
+    value, ok := rawValue.(types.String)
+    
+    if !ok {
+        return false
+    }
+
+    if value.Unknown {
+        return false
+    }
+
+    return len(value.Value) > v.minimum && len(value.Value) < v.maximum
+}
+```
+
+This proposal encodes no information in the response from these functions beyond a simple boolean "validation passed" versus "validation failed" value. Information such as whether validation failed due to type conversion problems or validation could not be performed due to an unknown value is hidden. Giving the ability for functions to surface details about unsuccessful validation back to callers is likely required broader utility in this framework and extensions to it.
+
+In this scenario, it is this framework's responsibility to generate the appropriate diagnostic back. Implementors will not be able to influence the level, summary, or details associated with that diagnostic.
+
+##### Attribute Value Validation Function `error` Return
+
+Validation functions could implement return information via an untyped `error`. For example:
+
+```go
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    value, ok := rawValue.(types.String)
+    
+    if !ok {
+        return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
+    }
+
+    if value.Unknown {
+        return fmt.Errorf("%s with unknown value", path)
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        return fmt.Errorf("%s with value %q %s", path, value.Value, v.Description(ctx))
+    }
+
+    return nil
+}
+```
+
+In this scenario, callers will know that validation did not pass, but not necessarily why. This proposal is only marginally better than the `bool` return value, as some manual error message context can be provided about the problem that caused the failure. However short of perfectly consistent error messaging which is not feasible to enforce in all implementors, callers will still not reasonably be able to perform actions based on the differing reasons for errors.
+
+In this scenario, it is this framework's responsibility to generate the appropriate diagnostic back. Implementors will not be able to influence the level or summary associated with that diagnostic. The details would likely include the error messaging.
+
+##### Attribute Value Validation Function Typed Error Return
+
+This framework could provide typed errors for validation functions. For example:
+
+```go
+type ValueValidatorInvalidTypeError struct {
+    Path *tftypes.AttributePath
+    Value attr.Value
+}
+
+// Error implements the error interface
+func (e ValueValidatorInvalidTypeError) Error() string {
+    // ...
+}
+
+type ValueValidatorInvalidValueError struct {
+    Description string
+    Path *tftypes.AttributePath
+    Value attr.Value
+}
+
+// Error implements the error interface
+func (e ValueValidatorInvalidValueError) Error() string {
+    // ...
+}
+
+type ValueValidatorUnknownValueError struct {
+    Path *tftypes.AttributePath
+}
+
+// Error implements the error interface
+func (e ValueValidatorUnknownValueError) Error() string {
+    // ...
+}
+```
+
+With implementators able to return these such as:
+
+```go
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    value, ok := rawValue.(types.String)
+
+    if !ok {
+        return ValueValidatorInvalidTypeError{
+            Path: path,
+            Value: rawValue,
+        }
+    }
+
+    if value.Unknown {
+        return ValueValidatorUnknownValueError{
+            Path: path,
+        }
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        return ValueValidatorInvalidValueError{
+            Description: v.Description(ctx),
+            Path: path,
+            Value: value,
+        }
+    }
+
+    return nil
+}
+```
+
+This framework could also go further and require using one of these error types:
+
+```go
+type ValueValidatorError interface {}
+
+// ...
+
+type ValueValidatorInvalidTypeError struct {
+    ValueValidatorError
+
+    Path *tftypes.AttributePath
+    Value attr.Value
+}
+
+// ...
+
+type ValueValidator interface {
+    // ...
+    Validate(context.Context, *tftypes.AttributePath, attr.Value) ValueValidatorError
+}
+```
+
+Meaning that extensibility is guaranteed to follow certain compile time rules.
+
+In either the `error` or `ValueValidatorError` interface type scenarios, this allows callers to react to the responses by checking for underlying error types. For example, it is possible to implement a generic `Not()` (logical `NOT`) validation function that catches invalid values but passes through other errors:
+
+```go
+func (v notValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    var invalidValueError ValueValidatorInvalidValueError
+
+    err := v.validator.Validate(ctx, path, rawValue)
+
+    if err == nil {
+        return ValueValidatorInvalidValueError{
+            Description: v.Description(ctx),
+            Path: path,
+            Value: rawValue,
+        }
+    }
+
+    if errors.As(err, &invalidValueError) {
+        return nil
+    }
+
+    return err
+}
+```
+
+In this scenario, it is this framework's responsibility to generate the appropriate diagnostic back. Implementors will not be able to influence the level or summary associated with that diagnostic. The details would likely include the error messaging based on the error type implementations, although if it was warranted for extensibility, there could also be a "generic" `ValueValidatorError` type (or when there is an unrecognized `error` type) that this framework would pass over except transferring the messaging through to the diagnostic. Additional warning-only types could also be provided to allow further diagnostic customization.
+
+##### Attribute Value Validation Function Diagnostic Return
+
+Validation functions could directly return a `*tfprotov6.Diagnostic` or abstracted type from this framework. For example:
+
+```go
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) *tfprotov6.Diagnostic {
+    value, ok := rawValue.(types.String)
+
+    if !ok {
+        return &tfprotov6.Diagnostic{
+            Severity: tfprotov6.DiagnosticSeverityError,
+            Summary: "Incorrect validation type",
+            Details: fmt.Sprintf("%s with incorrect type: %T", path, rawValue),
+        }
+    }
+
+    if value.Unknown {
+        return &tfprotov6.Diagnostic{
+            Severity: tfprotov6.DiagnosticSeverityError,
+            Summary: "Unknown validation value",
+            Details: fmt.Sprintf("received unknown value at path: %s", path),
+        }
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        return &tfprotov6.Diagnostic{
+            Severity: tfprotov6.DiagnosticSeverityError,
+            Summary: "Value validation failed",
+            Details: fmt.Sprintf("%s with value %q %s", path, value.Value, v.Description(ctx))
+        }
+    }
+
+    return nil
+}
+```
+
+In this scenario, it the implementor's responsibility to generate the appropriate diagnostic back, but they have full control of the output. It could be difficult for the framework to enforce implementation rules around these responses or potentially allow configuration overrides for them without creating more abstractions on top of this type or additional helper functions. Differing diagnostic implementations could introduce confusion for practitioners.
+
+In general, this proposal feels very similar to either the generic `error` type or typed error proposals above (depending on the implmentation details) with minimal utility over them beyond complete output customization.

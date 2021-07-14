@@ -1108,8 +1108,8 @@ A new Go interface type could be created that defines an extensible value valida
 
 ```go
 type ValueValidator interface {
-    Describe(context.Context) string
-    MarkdownDescribe(context.Context) string
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
     Validate(context.Context, path *tftypes.AttributePath, value attr.Value) error
 }
 ```
@@ -1690,7 +1690,7 @@ This introduces a new extension interface type for `ResourceType` and `DataSourc
 
 ```go
 type DataSourceTypeWithAttributeValidations interface {
-    ResourceType
+    DataSourceType
     AttributeValidations(context.Context) AttributeValidators
 }
 
@@ -1743,8 +1743,8 @@ A new Go interface type could be created that defines an extensible attribute va
 
 ```go
 type AttributeValidator interface {
-    Describe(context.Context) string
-    MarkdownDescribe(context.Context) string
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
     Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
 }
 ```
@@ -1807,4 +1807,242 @@ type AttributeValidatorWithProvider interface {
     AttributeValidator
     ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
 }
+```
+
+## Recommendations
+
+This section will summarize the proposals into specific recommendations for each topic. Code examples are provided in following sections to illustrate the concepts. The final section provides some future considerations for the framework and terraform-plugin-go.
+
+### Overview
+
+Defining all validation functionality via interface types will offer the framework the most flexibility for future enhancements while ensuring consistent implementations. Furthermore for attribute value validation functions, providing strongly typed interfaces for common value types will reduce implementor burden and ensure consistent invalid type error messaging, rather than potential panic scenarios.
+
+Attribute value validations should be implemented as a slice of the interface type on `schema.Attribute`. Multiple attribute validation, such as declaring conflicting attributes on attributes themselves, should be implemented as a separate slice of that differing interface type on `schema.Attribute`. This would be in addition to supporting that functionality with resource level multiple attribute validation.
+
+Attribute value validations should be required to accept the attribute path in its native type as a parameter. This will allow a flexible implementation for provider developers that may desire advanced logic based on the path.
+
+Validation functions should be required to return framework defined error types. These errors will either result in the framework returning consistent error diagnostics or callers (such as wrapper validation functions) otherwise handling these results in a predictable manner. Error types that equate to consistent warning diagnostics can also be provided, if desired.
+
+Resource level multiple attribute validation functions should be implemented separately from plan modifications to separate concerns. For example:
+
+### Attribute Level Example Implementation
+
+Example framework code:
+
+```go
+// Well defined error types
+type ValueValidatorError interface {}
+
+type ValueValidatorInvalidTypeError interface {
+    ValueValidatorError
+}
+
+type ValueValidatorUnknownValueError interface {
+    ValueValidatorError
+}
+
+type ValueValidatorUnsuccessfulValidationError interface {
+    ValueValidatorError
+}
+
+// ValueValidator is an interface type for implementing common validation functionality.
+type ValueValidator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+}
+
+// ValueValidators is a type alias for a slice of ValueValidator.
+type ValueValidators []ValueValidator
+
+// Descriptions returns all ValueValidator Description
+func (vs ValueValidators) Descriptions(ctx context.Context) []string {
+    // ...
+}
+
+// MarkdownDescriptions returns all ValueValidator MarkdownDescription
+func (vs ValueValidators) MarkdownDescriptions(ctx context.Context) []string {
+    // ...
+}
+
+// Validates performs all ValueValidator Validate or ValidateWithProvider
+func (vs ValueValidators) Validates(ctx context.Context) diag.Diagnostics {
+    // ...
+}
+
+// GenericValueValidator describes value validation without a strong type.
+//
+// While it is generally preferred to use the typed validation interfaces,
+// such as StringValueValidator, this interface allows custom implementations
+// where the others may not be suitable. The Validate function is responsible
+// for protecting against attr.Value type assertion panics.
+type GenericValueValidator interface {
+    ValueValidator
+    Validate(context.Context, *tftypes.AttributePath, attr.Value) error
+}
+
+// StringValueValidator is an interface type for implementing String value validation.
+type StringValueValidator interface {
+    ValueValidator
+    Validate(context.Context, *tftypes.AttributePath, types.String) ValueValidatorError
+}
+
+// StringValueValidatorWithProvider is an interface type for implementing String value validation with a provider instance.
+type StringValueValidatorWithProvider interface {
+    StringValueValidator
+    ValidateWithProvider(context.Context, tfsdk.Provider, *tftypes.AttributePath, types.String) ValueValidatorError
+}
+
+type Attribute struct {
+    // ...
+    PathValidations  AttributeValidators // described below
+    ValueValidations ValueValidators
+}
+```
+
+Example validation function code:
+
+```go
+type stringLengthBetweenValidator struct {
+    StringValueValidator
+
+    maximum int
+    minimum int
+}
+
+func (v stringLengthBetweenValidator) Description(_ context.Context) string {
+    return fmt.Sprintf("length must be between %d and %d", v.minimum, v.maximum)
+}
+
+func (v stringLengthBetweenValidator) MarkdownDescription(_ context.Context) string {
+    return fmt.Sprintf("length must be between `%d` and `%d`", v.minimum, v.maximum)
+}
+
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, value types.String) ValueValidatorError {
+    if value.Unknown {
+        return ValueValidatorUnknownValueError{
+            Path: path,
+        }
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        return ValueValidatorUnsuccessfulValidationError{
+            Description: v.Description(ctx),
+            Path: path,
+            Value: value,
+        }
+    }
+
+    return nil
+}
+
+func StringLengthBetween(minimum int, maximum int) stringLengthBetweenValidator {
+    return stringLengthBetweenValidator{
+        maximum: maximum,
+        minimum: minimum,
+    }
+}
+```
+
+Example provider code:
+
+```go
+schema.Attribute{
+    Type:             types.StringType,
+    Required:         true,
+    PathValidations:  AttributeValidators{
+        ConflictsWithAttribute(tftypes.NewAttributePath().AttributeName("other_attribute")),
+    },
+    ValueValidations: ValueValidators{
+        StringLengthBetween(1, 256),
+    },
+}
+```
+
+### Resource Level Example Implementation
+
+Example framework code:
+
+```go
+// Well defined error types
+type AttributeValidatorError interface {}
+
+type AttributeValidatorInvalidTypeError interface {
+    AttributeValidatorError
+}
+
+type AttributeValidatorUnknownValueError interface {
+    AttributeValidatorError
+}
+
+type AttributeValidatorUnsuccessfulValidationError interface {
+    AttributeValidatorError
+}
+
+// AttributeValidator is an interface type for declaring multiple attribute validations.
+type AttributeValidator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) AttributeValidatorError
+}
+
+// AttributeValidators is a type alias for a slice of AttributeValidator.
+type AttributeValidators []AttributeValidator
+
+// Descriptions returns all AttributeValidator Description
+func (vs AttributeValidators) Descriptions(ctx context.Context) []string {
+    // ...
+}
+
+// MarkdownDescriptions returns all AttributeValidator MarkdownDescription
+func (vs AttributeValidators) MarkdownDescriptions(ctx context.Context) []string {
+    // ...
+}
+
+// Validates performs all AttributeValidator Validate or ValidateWithProvider
+func (vs AttributeValidators) Validates(ctx context.Context) diag.Diagnostics {
+    // ...
+}
+
+// AttributeValidatorWithProvider is an interface type for declaring multiple attribute validation that requires a provider instance.
+type AttributeValidatorWithProvider interface {
+    AttributeValidator
+    ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) AttributeValidatorError
+}
+
+// DataSourceTypeWithAttributeValidations is an interface type that extends DataSourceType to include attribute validations.
+type DataSourceTypeWithAttributeValidations interface {
+    DataSourceType
+    AttributeValidations(context.Context) AttributeValidators
+}
+
+// ResourceTypeWithAttributeValidations is an interface type that extends ResourceType to include attribute validations.
+type ResourceTypeWithAttributeValidations interface {
+    ResourceType
+    AttributeValidations(context.Context) AttributeValidators
+}
+```
+
+Example provider code:
+
+```go
+func (t *customResourceType) AttributeValidations(ctx context.Context) AttributeValidators {
+    return AttributeValidators{
+        ConflictingAttributes(
+            tftypes.NewAttributePath().AttributeName("first_attribute"),
+            tftypes.NewAttributePath().AttributeName("second_attribute"),
+        ),
+    }
+}
+```
+
+### Future Considerations
+
+It is recommended that the framework provide an abstracted `*tftypes.AttributePath` rather than depend on that type directly, but this can converted after an initial implementation. This is purely for decoupling the two projects, similar to other abstracted types already created in the framework.
+
+To better support provider-based validation functionality in the future, it is also recommended that the `Provider` interface type also add a new `Configured(context.Context) bool` function or another methodology for easily checking the configuration state of a provider instance. Adding a setter function could also allow the framework to manage the provider configuration state automatically. This would simplify validations that require provider instances since it will likely be required that implementations need to check on this status as part of the validation logic.
+
+It is recommended that the framework or the upstream terraform-plugin-go module provide functionality to declare relative attribute paths, such as "this" and "parent" methods to better enable nested attribute declarations. This will enable provider developers to create attribute paths such as:
+
+```go
+NewAttributePath(CurrentPath().Parent().AttributeName("other_attr"))
 ```

@@ -342,7 +342,7 @@ type ModifyAttributePlanResponse struct {
 }
 ```
 
-This approach directly offers documentation hooks, so that plan modification behaviours can be documented alongside their definition and included in generated schema docs.
+This approach directly offers documentation hooks, so that plan modification behaviours can be documented alongside their definition and included in generated schema docs, and therefore also in tools such as the Terraform Language Server that consume the schema.
 
 In this case, `RequiresReplace` and `RequiresReplaceIf` can be implemented as `AttributePlanModifier`s, e.g.:
 

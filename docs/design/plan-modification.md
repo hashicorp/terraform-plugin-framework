@@ -5,7 +5,7 @@ The Terraform [resource instance change lifecycle](https://github.com/hashicorp/
  1. `PlanResourceChange`
  1. `ApplyResourceChange`
 
-The plugin framework handles requests and responses for these RPCs, allowing providers to hook in to `ValidateResourceTypeConfig` via validation helpers (https://github.com/hashicorp/terraform-plugin-framework/issues/17), and to `ApplyResourceChange` via resource CRUD functions. This design document concerns the ways we allow provider developers to hook into the `PlanResourceChange` RPC, giving providers control over the plan rendered to users via the Terraform CLI.
+The plugin framework handles requests and responses for these RPCs, allowing providers to hook in to `ValidateResourceTypeConfig` via validation helpers (https://github.com/hashicorp/terraform-plugin-framework/issues/17), and to `ApplyResourceChange` via resource CRUD functions. This design document concerns the ways we allow provider developers to hook into the `PlanResourceChange` RPC, giving providers control over the plan rendered to users via the Terraform CLI, and which Terraform commits to apply.
 
 ## The `PlanResourceChange` RPC
 
@@ -37,15 +37,15 @@ The `PlanResourceChange` RPC response also contains a list of attribute paths: `
 
 In allowing providers to control the `PlanResourceChange` response, i.e. "modify the plan", the plugin framework therefore enables providers not only to modify the diff that will be displayed to the user (and ultimately applied), but also to branch into a destroy-and-create lifecycle phase, triggering other RPCs.
 
-Plan modification has two distinct use cases for providers:
+Plan modification currently has two distinct use cases for providers:
   - Modifying plan values, and
   - Forcing resource replacement.
 
 This design document therefore distinguishes "ModifyPlan" from "RequiresReplace" behaviour, the former being a superset of the latter.
 
-## History: `ForceNew` and `CustomizeDiff`
+## History: `ForceNew`, `DiffSuppressFunc`, and `CustomizeDiff`
 
-In `helper/schema`, there are two ways, both somewhat indirect, that a provider can customise the plan.
+In `helper/schema`, there are three ways, all somewhat indirect, that a provider can customise the plan.
 
 ### `ForceNew`
 
@@ -61,9 +61,23 @@ After receiving the `PlanResourceChange` request, the SDK determines whether any
 
 The SDK also executes logic at resource validation time (`InternalValidate`) to enforce the condition that if a resource does not have an Update function, all non-Computed attributes must have ForceNew set; and that if all fields are ForceNew or Computed without Optional, Update must _not_ be defined.
 
+### `DiffSuppressFunc`
+
+```go
+type SchemaDiffSuppressFunc func(k, old, new string, d *ResourceData) bool
+```
+
+Providers can use another schema behaviour, `DiffSuppressFunc`, to control whether a detected diff on a schema field should be considered valid. If this function returns true, any diff in the element values is ignored. This is commonly used to ignore differences in string capitalisation, or logically equivalent JSON values.
+
 ### `CustomizeDiff`
 
+```go
+type CustomizeDiffFunc func(context.Context, *ResourceDiff, interface{}) error
+```
+
 Rather than exposing Terraform plans to provider developers, `helper/schema` has as a first-class concept the _resource diff_. Providers can optionally define a `CustomizeDiff` method on the `Resource` struct, which resembles a CRUD method, except that instead of `ResourceData` the function is supplied a `*ResourceDiff`, and is called during several points in the resource lifecycle, and must therefore be "resilient to support all scenarios".
+
+Unlike `DiffSuppressFunc`, `CustomizeDiff` is supplied the `meta` parameter, so API calls can be made.
 
 A large proportion of the examples of `CustomizeDiff` in large cloud provider code involves conditionally setting `ForceNew` behaviour on an attribute, most often:
  - If certain conditions hold on the value of the attribute (e.g. if the bandwidth of an instance is reduced)
@@ -77,7 +91,7 @@ The legacy SDK provides a set of reusable and composable helper functions in its
 
 ## Solution options
 
-### `tfsdk.Resource.ModifyPlan()`
+### 1. `tfsdk.Resource.ModifyPlan()`
 
 An extension to the `tfsdk.Resource` interface could add an optional `ModifyPlan()` function to resource implementations:
 
@@ -128,10 +142,6 @@ type ModifyResourcePlanResponse struct {
 	// generated.
 	Diagnostics []*tfprotov6.Diagnostic
 }
-
-func (r ModifyResourcePlanResponse) AppendRequiresReplace(attrPath *tftypes.AttributePath) {
-  r.RequiresReplace = append(r.RequiresReplace, attrPath)
-}
 ```
 
 The only field unique to the `ModifyPlan` request or response types is `RequiresReplace` (whose name is copied directly from the protocol, but which could very well be called `ForceNewAttributes` or similar). 
@@ -155,7 +165,7 @@ func (r myFileResource) ModifyPlan(ctx context.Context, req ModifyResourcePlanRe
 
 	// force resource recreation if the new favourite number is larger than the old
 	if plan.FavoriteNumber > state.FavoriteNumber {
-		resp.AppendRequiresReplace(tftypes.NewAttributePath.WithAttributeName("favorite_number"))
+		resp.RequiresReplace = append(resp.RequiresReplace, tftypes.NewAttributePath.WithAttributeName("favorite_number"))
 	}
 }
 ```
@@ -168,7 +178,7 @@ A `ModifyPlan` method on a Resource is as unit testable as any CRUD method, and 
 
 The main tradeoff here is verbosity. The actual work done by the function is the selection of attribute path(s) whose old and new values should be compared, the comparison condition, and the selection of attribute path(s) to mark as RequiresReplace. In the `FavoriteNumber` example above in particular, a less verbose option is illustrated below with the use of `schema.Attribute.ModifyPlanFunc`. For complex cases of plan modification involving multiple attributes, reading config, or making API calls, the `Resource.ModifyPlan` method has an appropriate amount of verbosity. We anticipate that most use cases for plan modification will not be this complex.
 
-### `schema.Attribute.RequiresReplace`
+### 2. `schema.Attribute.RequiresReplace`
 
 Like `helper/schema`, we could add a `ForceNew bool`, here called `RequiresReplace` to match the protocol, to the framework's `schema.Attribute` struct, enabling provider developers to take advantage of this simple schema behaviour with one line of code.
 
@@ -182,7 +192,7 @@ A cursory survey of existing provider code finds `ForceNew` very widely used, an
 
 One possible disadvantage of this approach is that it is atomic with respect to compatibility - unlike provider-defined plan modification functions like those described below, the framework must deprecate the field or undergo a breaking change in order to modify the behaviour of `schema.Attribute.RequiresReplace`.
 
-### `schema.Attribute.RequiresReplaceIf`
+### 3. `schema.Attribute.RequiresReplaceIf`
 
 An field on the `schema.Attribute` struct could add an optional `RequiresReplaceIf` function to schema attributes:
 
@@ -193,7 +203,7 @@ type Attribute struct {
   RequiresReplaceIf RequiresReplaceIfFunc 
 }
 
-type RequiresReplaceIfFunc func(context.Context, old, new attr.Value) bool
+type RequiresReplaceIfFunc func(context.Context, state, config attr.Value) bool
 ```
 
 Provider code:
@@ -208,12 +218,12 @@ func (f fileResourceType) GetSchema(_ context.Context) (schema.Schema, []*tfprot
 			"favorite_number": {
 				Type:     types.NumberType,
 				Required: true,
-				RequiresReplaceIf: func(ctx context.Context, old, new attr.Value) bool {
-				  oldVal := old.(types.Number)
-				  newVal := new.(types.Number)
+				RequiresReplaceIf: func(ctx context.Context, state, config attr.Value) bool {
+				  stateVal := state.(types.Number)
+				  configVal := config.(types.Number)
 				  
-				  if !oldVal.Unknown && !oldVal.Null && !newVal.Unknown && !newVal.Null {
-				    if newVal.Value.Cmp(oldVal.Value) > 0 {
+				  if !stateVal.Unknown && !stateVal.Null && !configVal.Unknown && !configVal.Null {
+				    if configVal.Value.Cmp(stateVal.Value) > 0 {
 				      return true
 				    }
 				  }
@@ -239,24 +249,10 @@ Compatibility may be an issue if a common use case emerges for RequiresReplace c
 ```go
 type RequiresReplaceIfFunc (context.Context, ModifyPlanRequest) bool
 ```
-By doing this, however, we would lose the benefits of the `old, new` parameters in reducing verbosity - the provider code would have to repeat the attribute path in order to retrieve the values from `req.Plan` and `req.State`.
+By doing this, however, we would lose the benefits of the `state, config` parameters in reducing verbosity - the provider code would have to repeat the attribute path in order to retrieve the values from `req.Plan` and `req.State`.
 
-### `attr.TypeWithRequiresReplace`
 
-A `ModifyPlan()` or `RequiresReplaceIf()` function could be added to an extension of the `attr.Type` interface:
-
-```go
-type TypeWithRequiresReplace interface {
-  Type
-  
-  RequiresReplaceIf(context.Context, old, new Value) bool
-```
-
-This would allow bundling reusable RequiresReplace behaviour up with a custom type's validation and other behaviours.
-
-Without knowing how custom types will be used by provider developers, this option seems premature, and makes less sense than bundling validation functions with custom types.
-
-### Composition and other helpers
+### 3a. Composition and other helpers
 
 #### `All()`
 
@@ -268,7 +264,7 @@ func All(funcs ...RequiresReplaceFunc) bool {}
 
 #### `Sequence()`
 
-Similarly to `helper/schema`, the `Sequence` composition helper runs all `RequiresReplaceFunc`s in sequence, stopping at the first that returns false. 
+Similarly to `helper/schema`, the `Sequence` composition helper runs all `RequiresReplaceFunc`s in sequence, stopping at the first that returns true. 
 
 ```go
 func Sequence(funcs ...RequiresReplaceFunc) bool {}
@@ -293,6 +289,175 @@ func RequiresReplaceIfSet(f RequiresReplaceFunc) RequiresReplaceFunc {
 
 Note that this would require the addition of `IsNull()` and `IsUnknown()` functions to the `attr.Value` interface, since there is at present no way to determine whether a generic `attr.Value` is null or unknown.
 
+### 4. `schema.Attribute.PlanModifier`
+
+Extending the abstraction of `RequiresReplaceIf` one level higher, we can add a `PlanModifiers` field on the `schema.Attribute` struct, with the following framework code:
+
+```go
+type AttributePlanModifier interface {
+  Description(context.Context) string
+  MarkdownDescription(context.Context) string
+
+  Modify(context.Context, ModifyAttributePlanRequest, *ModifyAttributePlanResponse)
+}
+
+type AttributePlanModifiers []AttributePlanModifier
+
+type Attribute struct {
+  // ...
+  PlanModifiers AttributePlanModifiers
+}
+
+type ModifyAttributePlanRequest struct {
+	// Config is the configuration the user supplied for the attribute.
+	Config attr.Value
+
+	// State is the current state of the attribute.
+	State attr.Value
+
+	// Plan is the planned new state for the attribute.
+	Plan attr.Value
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
+}
+
+type ModifyAttributePlanResponse struct {
+	// Plan is the planned new state for the attribute.
+	Plan attr.Value
+
+	// RequiresReplace indicates whether a change in the attribute
+	// requires replacement of the whole resource.
+	RequiresReplace bool
+
+	// Diagnostics report errors or warnings related to determining the
+	// planned state of the requested resource. Returning an empty slice
+	// indicates a successful validation with no warnings or errors
+	// generated.
+	Diagnostics []*tfprotov6.Diagnostic
+}
+```
+
+This approach directly offers documentation hooks, so that plan modification behaviours can be documented alongside their definition and included in generated schema docs.
+
+In this case, `RequiresReplace` and `RequiresReplaceIf` can be implemented as `AttributePlanModifier`s, e.g.:
+
+
+```go
+func RequiresReplace() AttributePlanModifier {
+  return RequiresReplaceModifier{}
+}
+
+type RequiresReplaceModifier struct{}
+
+func (r RequiresReplace) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+  resp.RequiresReplace = true
+}
+
+func (r RequiresReplace) Description(ctx context.Context) string {
+  // ...
+}
+
+func (r RequiresReplace) MarkdownDescription(ctx context.Context) string {
+  // ...
+}
+```
+
+```go
+func RequiresReplaceIf(f RequiresReplaceIfFunc, description markdownDescription string) AttributePlanModifier {
+  return RequiresReplaceIfModifier{
+    f: f, 
+    description: description, 
+    markdownDescription: markdownDescription
+  }
+}
+
+type RequiresReplaceIfFunc func(context.Context, state, config attr.Value) bool
+
+type RequiresReplaceIfModifier struct {
+  f RequiresReplaceIfFunc
+  description string
+  markdownDescription string
+}
+
+func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+  resp.RequiresReplace = r.f(ctx, req.State, req.Config)
+}
+
+func (r RequiresReplaceIfModifier) Description(ctx context.Context) string {
+  return r.description
+}
+
+func (r RequiresReplaceIfModifier) MarkdownDescription(ctx context.Context) string {
+  return r.markdownDescription
+}
+```
+
+Provider code:
+
+```go
+type fileResourceType struct{}
+
+// GetSchema returns the schema for this resource.
+func (f fileResourceType) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
+	return schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"favorite_number": {
+				Type:     types.NumberType,
+				Required: true,
+				PlanModifiers: schema.AttributePlanModifiers{
+				  RequiresReplaceIf(func(ctx context.Context, state, config attr.Value) bool {
+				    stateVal := state.(types.Number)
+				    configVal := config.(types.Number)
+				  
+				    if !stateVal.Unknown && !stateVal.Null && !configVal.Unknown && !configVal.Null {
+				      if configVal.Value.Cmp(stateVal.Value) > 0 {
+				        return true
+				      }
+				    }
+				    return false
+				  }),
+				  CustomModifier,
+				  // ...
+				},
+			},
+		},
+	}, nil
+}
+```
+
+Here, `CustomModifier` is a user-defined `AttributePlanModifier`.
+
+The `AttriburePlanModifier`s in the slice of `PlanModifiers` are executed in order. Note that unlike the `customdiff.All` and `customdiff.Sequence` composition helpers in SDKv2, there is no choice to be made here between executing all helpers, and stopping at the first that "returns true", since the function could be setting the `resp.RequiresReplace` bool _or_ modifying the plan.
+
+The fields in the `ModifyAttributePlanRequest` and `ModifyAttributePlanResponse` struct are not the same as those in `ModifyResourcePlanRequest` and `ModifyResourcePlanResponse` from option 1. In particular, it is not possible to change the planned value of _other_ attributes inside an attribute's `PlanModifier`. If it were, it would be possible for two or more attributes to have `PlanModifier`s modifying each other's planned values, with no clear indication of the order in which those operations would be performed. 
+
+Framework documentation should make it clear that `schema.Attribute.PlanModifier` is scoped to a single attribute with no access to other attribute values or API requests. If either of these is needed, provider developers should use `tfsdk.Resource.ModifyPlan()`.
+
+#### Tradeoffs
+
+Similarly to option 3, the plan modifier functions are easily unit testable, and the `PlanModifier` field easily discoverable on the `schema.Attribute` struct. The code is reasonably Go-native.
+
+This solution aims to improve on the compatibility of option 3 by ensuring that no further fields need be added to `schema.Attribute` in future for the purposes of plan modification.
+
+If we were to change the fields of `ModifyResourcePlanRequest` to allow access to the full plan, state, and config (so that the result of the modify plan function could depend on the planned value of another attribute, for example), it would come at the cost of verbosity in the user-defined `RequiresIfFunc`, since the user must now retrieve the attribute values from the full `Config` and `State` rather than having them supplied as `attr.Value`s in the function arguments.
+
+### 5. `attr.TypeWithModifyPlan`
+
+A `ModifyPlan()` or `RequiresReplaceIf()` function could be added to an extension of the `attr.Type` interface:
+
+```go
+type TypeWithModifyPlan interface {
+  Type
+  
+  ModifyPlan(context.Context, ModifyAttributeTypePlanRequest, *ModifyAttributeTypePlanResponse) bool
+```
+
+This would allow bundling reusable `ModifyPlan` behaviour up with a custom type's validation and other behaviours. This could be useful, for example, in a custom timestamp type to squash semantically meanignless diffs, so provider developers do not have to specify the attribute plan modifier wherever the attribute appears in a schema.
+
+Without knowing how custom types will be used by provider developers, this option seems premature, and makes less sense than bundling validation functions with custom types.
+
+
 ## Recommendations
 
-We recommend implementing `schema.Attribute.RequiresReplace`, `schema.Attribute.RequiresReplaceIf`, and the `ResourceWithModifyPlan` interface. Composition and other helpers can be implemented as required.
+We recommend implementing `schema.Attribute.PlanModifier`, and the `ResourceWithModifyPlan` interface. Composition, `attr.TypeWithModifyPlan`, and other helpers can be implemented as required.

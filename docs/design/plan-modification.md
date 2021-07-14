@@ -178,11 +178,15 @@ A `ModifyPlan` method on a Resource is as unit testable as any CRUD method, and 
 
 The main tradeoff here is verbosity. The actual work done by the function is the selection of attribute path(s) whose old and new values should be compared, the comparison condition, and the selection of attribute path(s) to mark as RequiresReplace. In the `FavoriteNumber` example above in particular, a less verbose option is illustrated below with the use of `schema.Attribute.ModifyPlanFunc`. For complex cases of plan modification involving multiple attributes, reading config, or making API calls, the `Resource.ModifyPlan` method has an appropriate amount of verbosity. We anticipate that most use cases for plan modification will not be this complex.
 
+The inability to use a sequence of helper functions with more declarative syntax (see options 3 and 4) also makes this option more verbose.
+
 ### 2. `schema.Attribute.RequiresReplace`
 
 Like `helper/schema`, we could add a `ForceNew bool`, here called `RequiresReplace` to match the protocol, to the framework's `schema.Attribute` struct, enabling provider developers to take advantage of this simple schema behaviour with one line of code.
 
-Precedent for expressing RequiresReplace in a declarative manner is found in the AWS API, which has a concept of _create-only properties_: "properties that are only able to be specified by the customer when creating a resource" (see [CloudFormation Resource Semantics](https://github.com/aws-cloudformation/cloudformation-resource-schema#resource-semantics). For this API at least, marking such properties with ForceNew aligns with the [provider design principle](https://www.terraform.io/docs/extend/hashicorp-provider-design-principles.html#resource-and-attribute-schema-should-closely-match-the-underlying-api): _Resource and attribute schema should closely match the underlying API_.
+Precedent for expressing `RequiresReplace` in a declarative manner is found in the AWS API, which has a concept of _create-only properties_: "properties that are only able to be specified by the customer when creating a resource" (see [CloudFormation Resource Semantics](https://github.com/aws-cloudformation/cloudformation-resource-schema#resource-semantics). For this API at least, marking such properties with ForceNew aligns with the [provider design principle](https://www.terraform.io/docs/extend/hashicorp-provider-design-principles.html#resource-and-attribute-schema-should-closely-match-the-underlying-api): _Resource and attribute schema should closely match the underlying API_.
+
+Of course, the simplicity of a declarative `RequiresReplace` property means that there are many plan modification use cases it cannot cover, such as conditionally marking a field as requiring the resource to be replaced. This solution must therefore be combined with other solutions from this document.
 
 #### Tradeoffs
 

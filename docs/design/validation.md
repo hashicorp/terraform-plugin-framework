@@ -1094,6 +1094,12 @@ A new Go type could be created that defines the signature of a value validation 
 type AttributeValueValidationFunc func(context.Context, path *tftypes.AttributePath, value attr.Value) error
 ```
 
+To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
+
+```go
+type AttributeValueValidationFunc func(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value attr.Value) error
+```
+
 While the simplest implementation, this proposal does not allow for documentation hooks.
 
 ##### `attr.ValueValidator` Interface
@@ -1166,6 +1172,15 @@ func (vs ValueValidators) Descriptions(ctx context.Context) []string {
         result = append(result, v.Description(ctx))
     }
     return result
+}
+```
+
+To support passing through the provider instance, a separate interface type could be introduced that includes a function call with the `tfsdk.Provider` interface type:
+
+```go
+type ValueValidatorWithProvider interface {
+    ValueValidator
+    ValidateWithProvider(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value attr.Value) error
 }
 ```
 
@@ -1271,6 +1286,15 @@ type GenericValueValidator interface {
 ```
 
 Offering the largest amount of flexibility for implementors to choose the level of desired abstraction, while not hindering more advanced implementations.
+
+To support passing through the provider instance, separate interface types could be introduced that include a function call with the `tfsdk.Provider` interface type:
+
+```go
+type StringValueValidatorWithProvider interface {
+    ValueValidator
+    ValidateWithProvider(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value types.String) error
+}
+```
 
 #### Attribute Value Validation Function Path Parameter
 
@@ -1705,6 +1729,12 @@ A new Go type could be created that defines the signature of a value validation 
 type AttributeValidationFunc func(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
 ```
 
+To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
+
+```go
+type AttributeValidationFunc func(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
+```
+
 This proposal does not allow for documentation hooks. It could be confusing for implementors as they could be responsible for more complex validation logic or provider developers if many iterations of validation are implemented across many different functions since each would be unique. It might be possible to reduce this burden by passing in a `ValueValidator` as well.
 
 ##### `AttributeValidator` Interface
@@ -1767,5 +1797,14 @@ func (vs AttributeValidators) Descriptions(ctx context.Context) []string {
         result = append(result, v.Description(ctx))
     }
     return result
+}
+```
+
+To support passing through the provider instance, a separate interface type could be introduced that includes a function call with the `tfsdk.Provider` interface type:
+
+```go
+type AttributeValidatorWithProvider interface {
+    AttributeValidator
+    ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
 }
 ```

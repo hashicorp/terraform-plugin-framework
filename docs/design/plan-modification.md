@@ -67,7 +67,7 @@ The SDK also executes logic at resource validation time (`InternalValidate`) to 
 type SchemaDiffSuppressFunc func(k, old, new string, d *ResourceData) bool
 ```
 
-Providers can use another schema behaviour, `DiffSuppressFunc`, to control whether a detected diff on a schema field should be considered valid. If this function returns true, any diff in the element values is ignored. This is commonly used to ignore differences in string capitalisation, or logically equivalent JSON values.
+Providers can use another schema behaviour, `DiffSuppressFunc`, to control whether a detected diff on a schema field should be considered semantically different. If this function returns true, any diff in the element values is ignored. This is commonly used to ignore differences in string capitalisation, or logically equivalent JSON values.
 
 ### `CustomizeDiff`
 
@@ -432,7 +432,7 @@ func (f fileResourceType) GetSchema(_ context.Context) (schema.Schema, []*tfprot
 
 Here, `CustomModifier` is a user-defined `AttributePlanModifier`.
 
-The `AttriburePlanModifier`s in the slice of `PlanModifiers` are executed in order. Note that unlike the `customdiff.All` and `customdiff.Sequence` composition helpers in SDKv2, there is no choice to be made here between executing all helpers, and stopping at the first that "returns true", since the function could be setting the `resp.RequiresReplace` bool _or_ modifying the plan.
+The `AttributePlanModifier`s in the slice of `PlanModifiers` are executed in order. Note that unlike the `customdiff.All` and `customdiff.Sequence` composition helpers in SDKv2, there is no choice to be made here between executing all helpers, and stopping at the first that "returns true", since the function could be setting the `resp.RequiresReplace` bool _or_ modifying the plan.
 
 The fields in the `ModifyAttributePlanRequest` and `ModifyAttributePlanResponse` struct are not the same as those in `ModifyResourcePlanRequest` and `ModifyResourcePlanResponse` from option 1. In particular, it is not possible to change the planned value of _other_ attributes inside an attribute's `PlanModifier`. If it were, it would be possible for two or more attributes to have `PlanModifier`s modifying each other's planned values, with no clear indication of the order in which those operations would be performed. 
 
@@ -457,7 +457,7 @@ type TypeWithModifyPlan interface {
   ModifyPlan(context.Context, ModifyAttributeTypePlanRequest, *ModifyAttributeTypePlanResponse) bool
 ```
 
-This would allow bundling reusable `ModifyPlan` behaviour up with a custom type's validation and other behaviours. This could be useful, for example, in a custom timestamp type to squash semantically meanignless diffs, so provider developers do not have to specify the attribute plan modifier wherever the attribute appears in a schema.
+This would allow bundling reusable `ModifyPlan` behaviour up with a custom type's validation and other behaviours. This could be useful, for example, in a custom timestamp type to squash semantically meaningless diffs, so provider developers do not have to specify the attribute plan modifier wherever the attribute appears in a schema.
 
 Without knowing how custom types will be used by provider developers, this option seems premature, and makes less sense than bundling validation functions with custom types.
 

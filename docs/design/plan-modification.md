@@ -341,6 +341,15 @@ type Attribute struct {
 }
 
 type ModifyAttributePlanRequest struct {
+	// ResourceConfig is the configuration the user supplied for the resource.
+	ResourceConfig Config
+
+	// ResourceState is the current state of the resource.
+	ResourceState State
+
+	// ResourcePlan is the planned new state for the resource.
+	ResourcePlan Plan
+	
 	// Config is the configuration the user supplied for the attribute.
 	Config attr.Value
 
@@ -460,7 +469,7 @@ func (f fileResourceType) GetSchema(_ context.Context) (schema.Schema, []*tfprot
 
 Here, `CustomModifier` is a user-defined `AttributePlanModifier`.
 
-The `AttributePlanModifier`s in the slice of `PlanModifiers` are executed in order. Note that unlike the `customdiff.All` and `customdiff.Sequence` composition helpers in SDKv2, there is no choice to be made here between executing all helpers, and stopping at the first that "returns true", since the function could be setting the `resp.RequiresReplace` bool _or_ modifying the plan.
+The `AttributePlanModifier`s in the slice of `PlanModifiers` are executed in order. Note that unlike the `customdiff.All` and `customdiff.Sequence` composition helpers in SDKv2, there is no choice to be made here between executing all helpers, and stopping at the first that "returns true", since the function could be setting the `resp.RequiresReplace` bool _or_ modifying the plan. The `Sequence` behaviour could easily be reimplemented, however, as a helper that accepts `AttributePlanModifiers`.
 
 The fields in the `ModifyAttributePlanRequest` and `ModifyAttributePlanResponse` struct are not the same as those in `ModifyResourcePlanRequest` and `ModifyResourcePlanResponse` from option 1. In particular, it is not possible to change the planned value of _other_ attributes inside an attribute's `PlanModifier`. If it were, it would be possible for two or more attributes to have `PlanModifier`s modifying each other's planned values, with no clear indication of the order in which those operations would be performed. 
 
@@ -471,8 +480,6 @@ Framework documentation should make it clear that `schema.Attribute.PlanModifier
 Similarly to option 3, the plan modifier functions are easily unit testable, and the `PlanModifier` field easily discoverable on the `schema.Attribute` struct. The code is reasonably Go-native.
 
 This solution aims to improve on the compatibility of option 3 by ensuring that no further fields need be added to `schema.Attribute` in future for the purposes of plan modification.
-
-If we were to change the fields of `ModifyResourcePlanRequest` to allow access to the full plan, state, and config (so that the result of the modify plan function could depend on the planned value of another attribute, for example), it would come at the cost of verbosity in the user-defined `RequiresIfFunc`, since the user must now retrieve the attribute values from the full `Config` and `State` rather than having them supplied as `attr.Value`s in the function arguments.
 
 ### 4a. `attr.ValueAs()`
 
@@ -533,4 +540,4 @@ Without knowing how custom types will be used by provider developers, this optio
 
 ## Recommendations
 
-We recommend implementing `schema.Attribute.PlanModifiers`, and the `ResourceWithModifyPlan` interface. Composition, `attr.TypeWithModifyPlan`, and other helpers can be implemented as required.
+We recommend implementing options 4 and 4a (`schema.Attribute.PlanModifiers`), and option 1 (the `ResourceWithModifyPlan` interface). Composition, `attr.TypeWithModifyPlan`, and other helpers can be implemented as required.

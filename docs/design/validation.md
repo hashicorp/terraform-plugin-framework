@@ -1203,7 +1203,7 @@ func (v someValidator) Validate(ctx context.Context, path *tftypes.AttributePath
     // ... rest of logic ...
 ```
 
-This proposal would strongly encourage all implementations to handle value type conversions since using a stronger type in the function signature would risk panics that the framework cannot prevent and the compiler cannot check. Any error handling here could become inconsistent across implementations. This type conversion logic feels like an unnecessary burden on implementors and could reduce the developer experience as this logic would always need to be repeated with little to no actual utility.
+Using this interface type would be required to support validation for custom value types.
 
 ##### `types.T` Type
 

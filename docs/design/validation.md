@@ -1542,40 +1542,43 @@ In this scenario, it is this framework's responsibility to generate the appropri
 Validation functions could directly return a `*tfprotov6.Diagnostic` or abstracted type from this framework. For example:
 
 ```go
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) *tfprotov6.Diagnostic {
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) (diags tfprotov6.Diagnostics) {
     value, ok := rawValue.(types.String)
 
     if !ok {
-        return &tfprotov6.Diagnostic{
+        diags = append(diags, &tfprotov6.Diagnostic{
             Severity: tfprotov6.DiagnosticSeverityError,
             Summary: "Incorrect validation type",
             Details: fmt.Sprintf("%s with incorrect type: %T", path, rawValue),
-        }
+        })
+        return
     }
 
     if value.Unknown {
-        return &tfprotov6.Diagnostic{
+        diags = append(diags, &tfprotov6.Diagnostic{
             Severity: tfprotov6.DiagnosticSeverityError,
             Summary: "Unknown validation value",
             Details: fmt.Sprintf("received unknown value at path: %s", path),
-        }
+        })
+        return
     }
 
     if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
-        return &tfprotov6.Diagnostic{
+        diags = append(diags, &tfprotov6.Diagnostic{
             Severity: tfprotov6.DiagnosticSeverityError,
             Summary: "Value validation failed",
             Details: fmt.Sprintf("%s with value %q %s", path, value.Value, v.Description(ctx))
-        }
+        })
+        return
     }
 
-    return nil
+    return
 }
 ```
 
 In this scenario, it the implementor's responsibility to generate the appropriate diagnostic back, but they have full control of the output. It could be difficult for the framework to enforce implementation rules around these responses or potentially allow configuration overrides for them without creating more abstractions on top of this type or additional helper functions. Differing diagnostic implementations could introduce confusion for practitioners.
 
-In general, this proposal feels very similar to either the generic `error` type or typed error proposals above (depending on the implmentation details) with minimal utility over them beyond complete output customization.
+In general, this proposal feels very similar to either the generic `error` type or typed error proposals above (depending on the implmentation details) with minimal utility over them beyond complete output customization. However, the rest of the framework is designed around diagnostics so this would introduce a different implementation. To remain consistent with other framework design while still pushing for consistency, helpers could be introduced to nudge developers towards standardized summary information, if desired.
 
 ### Multiple Attribute Validation
 
@@ -1821,7 +1824,7 @@ Attribute value validations should be implemented as a slice of the interface ty
 
 Attribute value validations should be required to accept the attribute path in its native type as a parameter. This will allow a flexible implementation for provider developers that may desire advanced logic based on the path.
 
-Validation functions should be required to return framework defined error types. These errors will either result in the framework returning consistent error diagnostics or callers (such as wrapper validation functions) otherwise handling these results in a predictable manner. Error types that equate to consistent warning diagnostics can also be provided, if desired.
+Validation functions should be required to return diagnostics similar in design to other functionality in the framework. Helper functions could help return these results in a consistent manner.
 
 Resource level multiple attribute validation functions should be implemented separately from plan modifications to separate concerns. For example:
 
@@ -1830,21 +1833,6 @@ Resource level multiple attribute validation functions should be implemented sep
 Example framework code:
 
 ```go
-// Well defined error types
-type ValueValidatorError interface {}
-
-type ValueValidatorInvalidTypeError interface {
-    ValueValidatorError
-}
-
-type ValueValidatorUnknownValueError interface {
-    ValueValidatorError
-}
-
-type ValueValidatorUnsuccessfulValidationError interface {
-    ValueValidatorError
-}
-
 // ValueValidator is an interface type for implementing common validation functionality.
 type ValueValidator interface {
     Description(context.Context) string
@@ -1865,7 +1853,7 @@ func (vs ValueValidators) MarkdownDescriptions(ctx context.Context) []string {
 }
 
 // Validates performs all ValueValidator Validate or ValidateWithProvider
-func (vs ValueValidators) Validates(ctx context.Context) diag.Diagnostics {
+func (vs ValueValidators) Validates(ctx context.Context) tfprotov6.Diagnostics {
     // ...
 }
 
@@ -1877,19 +1865,19 @@ func (vs ValueValidators) Validates(ctx context.Context) diag.Diagnostics {
 // for protecting against attr.Value type assertion panics.
 type GenericValueValidator interface {
     ValueValidator
-    Validate(context.Context, *tftypes.AttributePath, attr.Value) error
+    Validate(context.Context, *tftypes.AttributePath, attr.Value) tfprotov6.Diagnostics
 }
 
 // StringValueValidator is an interface type for implementing String value validation.
 type StringValueValidator interface {
     ValueValidator
-    Validate(context.Context, *tftypes.AttributePath, types.String) ValueValidatorError
+    Validate(context.Context, *tftypes.AttributePath, types.String) tfprotov6.Diagnostics
 }
 
 // StringValueValidatorWithProvider is an interface type for implementing String value validation with a provider instance.
 type StringValueValidatorWithProvider interface {
     StringValueValidator
-    ValidateWithProvider(context.Context, tfsdk.Provider, *tftypes.AttributePath, types.String) ValueValidatorError
+    ValidateWithProvider(context.Context, tfsdk.Provider, *tftypes.AttributePath, types.String) tfprotov6.Diagnostics
 }
 
 type Attribute struct {
@@ -1917,22 +1905,26 @@ func (v stringLengthBetweenValidator) MarkdownDescription(_ context.Context) str
     return fmt.Sprintf("length must be between `%d` and `%d`", v.minimum, v.maximum)
 }
 
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, value types.String) ValueValidatorError {
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, value types.String) (diags tfprotov6.Diagnostics) {
     if value.Unknown {
-        return ValueValidatorUnknownValueError{
-            Path: path,
-        }
+        diags = append(diags, &tfprotov6.Diagnostic{
+            Severity: tfprotov6.DiagnosticSeverityError,
+            Summary: "Unknown validation value",
+            Details: fmt.Sprintf("received unknown value at path: %s", path),
+        })
+        return
     }
 
     if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
-        return ValueValidatorUnsuccessfulValidationError{
-            Description: v.Description(ctx),
-            Path: path,
-            Value: value,
-        }
+        diags = append(diags, &tfprotov6.Diagnostic{
+            Severity: tfprotov6.DiagnosticSeverityError,
+            Summary: "Value validation failed",
+            Details: fmt.Sprintf("%s with value %q %s", path, value.Value, v.Description(ctx))
+        })
+        return
     }
 
-    return nil
+    return
 }
 
 func StringLengthBetween(minimum int, maximum int) stringLengthBetweenValidator {
@@ -1963,26 +1955,11 @@ schema.Attribute{
 Example framework code:
 
 ```go
-// Well defined error types
-type AttributeValidatorError interface {}
-
-type AttributeValidatorInvalidTypeError interface {
-    AttributeValidatorError
-}
-
-type AttributeValidatorUnknownValueError interface {
-    AttributeValidatorError
-}
-
-type AttributeValidatorUnsuccessfulValidationError interface {
-    AttributeValidatorError
-}
-
 // AttributeValidator is an interface type for declaring multiple attribute validations.
 type AttributeValidator interface {
     Description(context.Context) string
     MarkdownDescription(context.Context) string
-    Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) AttributeValidatorError
+    Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
 }
 
 // AttributeValidators is a type alias for a slice of AttributeValidator.
@@ -1999,14 +1976,14 @@ func (vs AttributeValidators) MarkdownDescriptions(ctx context.Context) []string
 }
 
 // Validates performs all AttributeValidator Validate or ValidateWithProvider
-func (vs AttributeValidators) Validates(ctx context.Context) diag.Diagnostics {
+func (vs AttributeValidators) Validates(ctx context.Context) tfprotov6.Diagnostics {
     // ...
 }
 
 // AttributeValidatorWithProvider is an interface type for declaring multiple attribute validation that requires a provider instance.
 type AttributeValidatorWithProvider interface {
     AttributeValidator
-    ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) AttributeValidatorError
+    ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
 }
 
 // DataSourceTypeWithAttributeValidators is an interface type that extends DataSourceType to include attribute validations.

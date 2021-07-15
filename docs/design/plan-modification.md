@@ -278,6 +278,12 @@ func Sequence(funcs ...RequiresReplaceFunc) bool {}
 
 This helper reduces the verbosity of `RequiresReplaceFunc`s that always return false if either old or new value is null or unknown.
 
+
+This would require either:
+ - the addition of `IsNull()` and `IsUnknown()` functions to the `attr.Value` interface, or
+ - helper functions `attr.ValueIsKnown()` / `attr.ValueIsNull()` that use the `ToTerraformValue` to compare to `nil` and `tftypes.UnknownValue`
+ since there is at present no way to determine whether a generic `attr.Value` is null or unknown.
+
 Framework implementation:
 
 ```go
@@ -290,8 +296,30 @@ func RequiresReplaceIfSet(f RequiresReplaceFunc) RequiresReplaceFunc {
   }
 }
 ```
+or
+```go
+func RequiresReplaceIfSet(f RequiresReplaceFunc) RequiresReplaceFunc {
+  return func (ctx context.Context, old, new attr.Value) bool {
+    if !attr.ValueIsKnown(old) || !attr.ValueIsKnown(new) || attr.ValueIsNull(old) || attr.ValueIsNull(new) {
+      return false
+    }
+    return f(ctx, old, new)
+  }
+}
 
-Note that this would require the addition of `IsNull()` and `IsUnknown()` functions to the `attr.Value` interface, since there is at present no way to determine whether a generic `attr.Value` is null or unknown.
+
+// in attr package
+
+func ValueIsKnown(ctx context.Context, val Value) (bool, error) {
+  v, err := val.ToTerraformValue(ctx)
+  if err != nil {
+    return false, err
+  }
+  return v == tftypes.UnknownValue
+}
+```
+
+Similar functions could be added for `attr.ValueIsFullyKnown()` and the like.
 
 ### 4. `schema.Attribute.PlanModifiers`
 

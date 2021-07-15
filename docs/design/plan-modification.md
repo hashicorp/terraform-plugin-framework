@@ -293,7 +293,7 @@ func RequiresReplaceIfSet(f RequiresReplaceFunc) RequiresReplaceFunc {
 
 Note that this would require the addition of `IsNull()` and `IsUnknown()` functions to the `attr.Value` interface, since there is at present no way to determine whether a generic `attr.Value` is null or unknown.
 
-### 4. `schema.Attribute.PlanModifier`
+### 4. `schema.Attribute.PlanModifiers`
 
 Extending the abstraction of `RequiresReplaceIf` one level higher, we can add a `PlanModifiers` field on the `schema.Attribute` struct, with the following framework code:
 
@@ -464,4 +464,4 @@ Without knowing how custom types will be used by provider developers, this optio
 
 ## Recommendations
 
-We recommend implementing `schema.Attribute.PlanModifier`, and the `ResourceWithModifyPlan` interface. Composition, `attr.TypeWithModifyPlan`, and other helpers can be implemented as required.
+We recommend implementing `schema.Attribute.PlanModifiers`, and the `ResourceWithModifyPlan` interface. Composition, `attr.TypeWithModifyPlan`, and other helpers can be implemented as required.

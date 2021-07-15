@@ -1004,14 +1004,14 @@ This validation would be applicable to the `schema.Attribute` types declared wit
 
 This section includes examples and details with `schema.Attribute` implemented as a Go structure type as it exists today. Future design considerations around creating specialized or custom attribute types may warrant switching this to an interface type with separate concrete types.
 
-##### `ValueValidation` Field on `schema.Attribute`
+##### `ValueValidator` Field on `schema.Attribute`
 
 Similar to the previous framework, a new field can be added to the `schema.Attribute` type. For example:
 
 ```go
 schema.Attribute{
     // ...
-    ValueValidation: T,
+    ValueValidator: T,
 }
 ```
 
@@ -1020,7 +1020,7 @@ Implementators would be responsible for ensuring that single function covered al
 ```go
 schema.Attribute{
     // ...
-    ValueValidation: All(
+    ValueValidator: All(
         T,
         T,
     ),
@@ -1031,14 +1031,14 @@ As seen with the previous framework in practice however, it was very common to i
 
 This proposal colocates the value validation behaviors in the schema definition, meaning it is easier for provider developers to discover this type of validation and correlate the validation logic to the name and type information.
 
-##### `ValueValidations` Field on `schema.Attribute`
+##### `ValueValidators` Field on `schema.Attribute`
 
 A new field that accepts a list of functions can be added to the `schema.Attribute` type. For example:
 
 ```go
 schema.Attribute{
     // ...
-    ValueValidations: []T{
+    ValueValidators: []T{
         T,
         T,
     },
@@ -1059,16 +1059,16 @@ type Attribute interface {
     // ...
 }
 
-type AttributeWithValueValidations struct {
+type AttributeWithValueValidators struct {
     Attribute
-    ValueValidations []T
+    ValueValidators []T
 }
 
 // or more interfaces
 
-type AttributeWithValueValidations interface {
+type AttributeWithValueValidators interface {
     Attribute
-    ValueValidations(/* ... */) []T
+    ValueValidators(/* ... */) []T
 }
 ```
 
@@ -1086,18 +1086,18 @@ It could be possible to implement another proposal in this space, while also sup
 
 This section includes examples with incoming types as `tftypes.AttributePath` and the `attr.Value` interface type with an output type of `error`. These implementation details are discussed later and only shown for simpler illustrative purposes here.
 
-##### `AttributeValueValidationFunc` Type
+##### `AttributeValueValidatorFunc` Type
 
 A new Go type could be created that defines the signature of a value validation function, similar to the previous framework `SchemaValidateFunc`. For example:
 
 ```go
-type AttributeValueValidationFunc func(context.Context, path *tftypes.AttributePath, value attr.Value) error
+type AttributeValueValidatorFunc func(context.Context, path *tftypes.AttributePath, value attr.Value) error
 ```
 
 To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
 
 ```go
-type AttributeValueValidationFunc func(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value attr.Value) error
+type AttributeValueValidatorFunc func(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value attr.Value) error
 ```
 
 While the simplest implementation, this proposal does not allow for documentation hooks.
@@ -1609,14 +1609,14 @@ schema.Attribute{
 
 Regardless of the potential value handling, this proposal would feel familiar for existing provider developers and be relatively trivial for them to implement. One noticable downside to this approach however is that there can be any number of related, but disjointed attribute behaviors. The previous framework supported four of these already and there is logical room for addtional behaviors, making updates to the `schema.Attribute` type a limiting factor in this validation space. This proposal also differs from value validation proposals, which are focused around a single field.
 
-##### `PathValidation` Field on `schema.Attribute`
+##### `PathValidator` Field on `schema.Attribute`
 
 A new field for attribute validation can be added to the `schema.Attribute` type. For example:
 
 ```go
 schema.Attribute{
     // ...
-    PathValidation: T,
+    PathValidator: T,
 }
 ```
 
@@ -1625,7 +1625,7 @@ Implementators would be responsible for ensuring that single function covered al
 ```go
 schema.Attribute{
     // ...
-    PathValidation: All(
+    PathValidator: All(
         T,
         T,
     ),
@@ -1636,14 +1636,14 @@ As seen with the previous framework in practice however, it was very common to i
 
 This proposal colocates the attribute validation behaviors in the schema definition, meaning it is easier for provider developers to discover this type of validation and correlate the validation logic to the name and type information.
 
-##### `PathValidations` Field on `schema.Attribute`
+##### `PathValidators` Field on `schema.Attribute`
 
 A new field that accepts a list of functions can be added to the `schema.Attribute` type. For example:
 
 ```go
 schema.Attribute{
     // ...
-    PathValidations: []T{
+    PathValidators: []T{
         T,
         T,
     },
@@ -1654,14 +1654,14 @@ In this case, the framework would perform the validation similar to the previous
 
 Colocating the attribute validation behaviors in the schema definition, means it is easier for provider developers to discover this type of validation and correlate the validation logic to the name and type information. This proposal will feel familiar to existing provider developers. New provider developers will immediately know that multiple validations are supported.
 
-##### Combined `Validations` Field on `schema.Attribute`
+##### Combined `Validators` Field on `schema.Attribute`
 
-A new field that accepts the union of [`ValueValidations` field on `schema.Attribute`](#valuevalidations-field-on-schemaattribute) and [`PathValidations` field on `schema.Attribute`](#pathvalidations-field-on-schemaattribute) can be added to the `schema.Attribute` type. For example:
+A new field that accepts the union of [`ValueValidators` field on `schema.Attribute`](#valuevalidators-field-on-schemaattribute) and [`PathValidators` field on `schema.Attribute`](#pathvalidators-field-on-schemaattribute) can be added to the `schema.Attribute` type. For example:
 
 ```go
 schema.Attribute(
     // ...
-    Validations: []I(
+    Validators: []I(
         T1,
         T2,
     )
@@ -1684,19 +1684,19 @@ The [Plan Modifications design documentation](./plan-modifications.md) outlines 
 
 Implementing against that design could prove complex for the framework as they are intended to serve differing purposes. It could also be confusing for provider developers in the same way that `CustomizeDiff` was confusing where differing logical rules applied to differing attribute value and operation scenarios.
 
-##### `AttributeValidations` for Resources
+##### `AttributeValidators` for Resources
 
 This introduces a new extension interface type for `ResourceType` and `DataSourceType`. For example:
 
 ```go
-type DataSourceTypeWithAttributeValidations interface {
+type DataSourceTypeWithAttributeValidators interface {
     DataSourceType
-    AttributeValidations(context.Context) AttributeValidators
+    AttributeValidators(context.Context) AttributeValidators
 }
 
-type ResourceTypeWithAttributeValidations interface {
+type ResourceTypeWithAttributeValidators interface {
     ResourceType
-    AttributeValidations(context.Context) AttributeValidators
+    AttributeValidators(context.Context) AttributeValidators
 }
 ```
 
@@ -1705,7 +1705,7 @@ Where `AttributeValidators` is a slice of types to be discussed later.
 As an example sketch, provider developers could introduce a function that fulfills the new interface with example helpers such as:
 
 ```go
-func (t *customResourceType) AttributeValidations(ctx context.Context) AttributeValidators {
+func (t *customResourceType) AttributeValidators(ctx context.Context) AttributeValidators {
     return AttributeValidators{
       ConflictingAttributes(*tftypes.AttributePath, *tftypes.Attribute),
       ConflictingAttributesWithValues(*tftypes.AttributePath, ValueValidator, *tftypes.AttributePath, ValueValidator),
@@ -1721,18 +1721,18 @@ This setup would allow for the framework to provide flexible resource level vali
 
 This section includes examples with parameter types as `tftypes.AttributePath` and the `attr.Value` interface type with an return type of `error`. These implementation details are shown for simpler illustrative purposes here, but will likely depend on the outcome from the [Single Attribute Value Validation](#single-attribute-value-validation) proposals.
 
-##### `AttributeValidationFunc` Type
+##### `AttributeValidatorsFunc` Type
 
 A new Go type could be created that defines the signature of a value validation function, similar to the previous framework `SchemaValidateFunc`. For example:
 
 ```go
-type AttributeValidationFunc func(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
+type AttributeValidatorsFunc func(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
 ```
 
 To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
 
 ```go
-type AttributeValidationFunc func(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
+type AttributeValidatorsFunc func(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
 ```
 
 This proposal does not allow for documentation hooks. It could be confusing for implementors as they could be responsible for more complex validation logic or provider developers if many iterations of validation are implemented across many different functions since each would be unique. It might be possible to reduce this burden by passing in a `ValueValidator` as well.
@@ -1894,8 +1894,8 @@ type StringValueValidatorWithProvider interface {
 
 type Attribute struct {
     // ...
-    PathValidations  AttributeValidators // described below
-    ValueValidations ValueValidators
+    PathValidators  AttributeValidators // described below
+    ValueValidators ValueValidators
 }
 ```
 
@@ -1949,10 +1949,10 @@ Example provider code:
 schema.Attribute{
     Type:             types.StringType,
     Required:         true,
-    PathValidations:  AttributeValidators{
+    PathValidators:  AttributeValidators{
         ConflictsWithAttribute(tftypes.NewAttributePath().AttributeName("other_attribute")),
     },
-    ValueValidations: ValueValidators{
+    ValueValidators: ValueValidators{
         StringLengthBetween(1, 256),
     },
 }
@@ -2009,23 +2009,23 @@ type AttributeValidatorWithProvider interface {
     ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) AttributeValidatorError
 }
 
-// DataSourceTypeWithAttributeValidations is an interface type that extends DataSourceType to include attribute validations.
-type DataSourceTypeWithAttributeValidations interface {
+// DataSourceTypeWithAttributeValidators is an interface type that extends DataSourceType to include attribute validations.
+type DataSourceTypeWithAttributeValidators interface {
     DataSourceType
-    AttributeValidations(context.Context) AttributeValidators
+    AttributeValidators(context.Context) AttributeValidators
 }
 
-// ResourceTypeWithAttributeValidations is an interface type that extends ResourceType to include attribute validations.
-type ResourceTypeWithAttributeValidations interface {
+// ResourceTypeWithAttributeValidators is an interface type that extends ResourceType to include attribute validations.
+type ResourceTypeWithAttributeValidators interface {
     ResourceType
-    AttributeValidations(context.Context) AttributeValidators
+    AttributeValidators(context.Context) AttributeValidators
 }
 ```
 
 Example provider code:
 
 ```go
-func (t *customResourceType) AttributeValidations(ctx context.Context) AttributeValidators {
+func (t *customResourceType) AttributeValidators(ctx context.Context) AttributeValidators {
     return AttributeValidators{
         ConflictingAttributes(
             tftypes.NewAttributePath().AttributeName("first_attribute"),

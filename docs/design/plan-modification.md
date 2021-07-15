@@ -376,7 +376,7 @@ func RequiresReplaceIf(f RequiresReplaceIfFunc, description markdownDescription 
   }
 }
 
-type RequiresReplaceIfFunc func(context.Context, state, config attr.Value) bool
+type RequiresReplaceIfFunc func(context.Context, state, config attr.Value) (bool, error)
 
 type RequiresReplaceIfModifier struct {
   f RequiresReplaceIfFunc
@@ -410,16 +410,16 @@ func (f fileResourceType) GetSchema(_ context.Context) (schema.Schema, []*tfprot
 				Type:     types.NumberType,
 				Required: true,
 				PlanModifiers: schema.AttributePlanModifiers{
-				  RequiresReplaceIf(func(ctx context.Context, state, config attr.Value) bool {
+				  RequiresReplaceIf(func(ctx context.Context, state, config attr.Value) (bool, error) {
 				    stateVal := state.(types.Number)
 				    configVal := config.(types.Number)
 				  
 				    if !stateVal.Unknown && !stateVal.Null && !configVal.Unknown && !configVal.Null {
 				      if configVal.Value.Cmp(stateVal.Value) > 0 {
-				        return true
+				        return true, nil
 				      }
 				    }
-				    return false
+				    return false, nil
 				  }),
 				  CustomModifier,
 				  // ...
@@ -445,6 +445,47 @@ Similarly to option 3, the plan modifier functions are easily unit testable, and
 This solution aims to improve on the compatibility of option 3 by ensuring that no further fields need be added to `schema.Attribute` in future for the purposes of plan modification.
 
 If we were to change the fields of `ModifyResourcePlanRequest` to allow access to the full plan, state, and config (so that the result of the modify plan function could depend on the planned value of another attribute, for example), it would come at the cost of verbosity in the user-defined `RequiresIfFunc`, since the user must now retrieve the attribute values from the full `Config` and `State` rather than having them supplied as `attr.Value`s in the function arguments.
+
+### 4a. `attr.ValueAs()`
+
+This option is to be considered an extension to option 4.
+
+Plan modifier functions (`AttributePlanModifier.Modify()`), and helper functions such as `RequiresReplaceIf`, are supplied `attr.Value` arguments from which the provider code must derive attribute values. In the above example, this is done with type assertions:
+
+```go
+RequiresReplaceIf(func(ctx context.Context, state, config attr.Value) (bool, error) {
+  stateVal := state.(types.Number)
+  configVal := config.(types.Number)
+  // ...
+}
+```
+
+Avoiding such type assertions is one of the design goals of the new framework.
+
+Solution 4 should therefore be considered in combination with a way of avoiding such type assertions in provider code. One such proposal, which will be included in a separate design doc, is an `attr.ValueAs()` function:
+
+```go
+func ValueAs(ctx context.Context, val attr.Value, target interface{}) error {}
+```
+
+Similar to functions such as `state.Get(ctx, val, target)`, this function could use reflection to populate `target` with the value in `val`, returning an error if `target` is not of a compatible type. The provider code could then be:
+
+
+```go
+RequiresReplaceIf(func(ctx context.Context, state, config attr.Value) (bool, error) {
+  var stateInt int
+  var configInt int
+  err: = attr.ValueAs(ctx, state, stateInt)
+  if err != nil {
+  	return false, err
+  }
+    err: = attr.ValueAs(ctx, config, configInt)
+  if err != nil {
+  	return false, err
+  }
+  // ...
+}
+```
 
 ### 5. `attr.TypeWithModifyPlan`
 

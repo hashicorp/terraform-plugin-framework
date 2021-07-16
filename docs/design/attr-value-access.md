@@ -8,7 +8,7 @@ utilized to retrieve either the entire config/state/plan or to retrieve a
 specific attribute's value.
 
 There are some places in the framework, however, that are dealing with a
-specific attribute wtihin a plan, config, or state. Validation and plan
+specific attribute within a plan, config, or state. Validation and plan
 customization, for example, may have helpers in the schema that are meant to
 operate on a single attribute's values. While we could provide the entire
 config, plan, or state to these helpers, they would all need to pull out the

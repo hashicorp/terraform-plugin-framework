@@ -996,6 +996,95 @@ Finally, these other considerations:
 
 ## Proposals
 
+### Provider Validation
+
+At a high level, request and response types will be provided to match the RPC call and for consistency with the rest of the framework:
+
+```go
+type ValidateProviderConfigRequest struct {
+    Config tfsdk.Config
+}
+
+type ValidateProviderConfigResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
+}
+```
+
+An additional interface type will extend to the existing `Provider` type so provider developers can provide customized multiple attribute validation across all attributes:
+
+```go
+type ProviderWithAttributeValidators interface {
+    Provider
+    AttributeValidators(context.Context) AttributeValidators
+}
+```
+
+Where `AttributeValidators` is a slice of types to be discussed later that uses or directly implements the request and response types.
+
+As an example sketch, provider developers could introduce a function that fulfills the new interface with example helpers such as:
+
+```go
+func (p *customProvider) AttributeValidators(ctx context.Context) AttributeValidators {
+    return AttributeValidators{
+        CustomAttributeValidator(*tftypes.AttributePath, *tftypes.Attribute),
+    }
+}
+```
+
+The request and response types will also be automatically handled by the framework to walk the provider schema and enable attribute-based value validation. This declarative pattern enables built-in documentation for future enhancements.
+
+### Data Source and Resource Validation
+
+At a high level, request and response types will be provided to match the RPC calls and with consistency with the rest of the framework:
+
+```go
+type ValidateDataSourceConfigRequest struct {
+    Config   tfsdk.Config
+    TypeName string
+}
+
+type ValidateDataSourceConfigResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
+}
+
+type ValidateResourceConfigRequest struct {
+    Config   tfsdk.Config
+    TypeName string
+}
+
+type ValidateResourceConfigResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
+}
+```
+
+An additional interface types will extend to the existing `DataSourceType` and `ResourceType` types so provider developers can provide customized multiple attribute validation across all attributes:
+
+```go
+type DataSourceTypeWithAttributeValidators interface {
+    DataSourceType
+    AttributeValidators(context.Context) AttributeValidators
+}
+
+type ResourceTypeWithAttributeValidators interface {
+    ResourceType
+    AttributeValidators(context.Context) AttributeValidators
+}
+```
+
+Where `AttributeValidators` is a slice of types to be discussed later that uses or directly implements the request and response types.
+
+As an example sketch, provider developers could introduce a function that fulfills the new interface with example helpers such as:
+
+```go
+func (rt *customResourceType) AttributeValidators(ctx context.Context) AttributeValidators {
+    return AttributeValidators{
+        CustomAttributeValidator(*tftypes.AttributePath, *tftypes.Attribute),
+    }
+}
+```
+
+The request and response types will also be automatically handled by the framework to walk the provider schema and enable attribute-based value validation. This declarative pattern enables built-in documentation for future enhancements.
+
 ### Single Attribute Value Validation
 
 This validation would be applicable to the `schema.Attribute` types declared within the `GetSchema()` of `DataSourceType`, `Provider`, and `ResourceType` implementations. For most of these proposals, the framework would walk through all attribute paths during the `ValidateDataSourceConfig`, `ValidateProviderConfig`, and `ValidateResourceConfig` calls, executing the declared validation in each attribute if present.
@@ -1827,6 +1916,23 @@ Attribute value validations should be required to accept the attribute path in i
 Validation functions should be required to return diagnostics similar in design to other functionality in the framework. Helper functions could help return these results in a consistent manner.
 
 Resource level multiple attribute validation functions should be implemented separately from plan modifications to separate concerns. For example:
+
+### Provider Level Example Implementation
+
+```go
+type ValidateProviderConfigRequest struct {
+    Config tfsdk.Config
+}
+
+type ValidateProviderConfigResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
+}
+
+type ProviderWithAttributeValidators interface {
+    Provider
+    AttributeValidators(context.Context) AttributeValidators
+}
+```
 
 ### Attribute Level Example Implementation
 

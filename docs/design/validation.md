@@ -1917,6 +1917,41 @@ Validation functions should be required to return diagnostics similar in design 
 
 Resource level multiple attribute validation functions should be implemented separately from plan modifications to separate concerns. For example:
 
+### Validator Example Implementation
+
+```go
+// Validator is an interface type for declaring low level validation functions.
+type Validator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
+}
+
+// Validators is a type alias for a slice of Validator.
+type Validators []Validator
+
+// Descriptions returns all Validator Description
+func (vs Validators) Descriptions(ctx context.Context) []string {
+    // ...
+}
+
+// MarkdownDescriptions returns all Validator MarkdownDescription
+func (vs Validators) MarkdownDescriptions(ctx context.Context) []string {
+    // ...
+}
+
+// Validates performs all Validator Validate or ValidateWithProvider
+func (vs Validators) Validates(ctx context.Context) tfprotov6.Diagnostics {
+    // ...
+}
+
+// ValidatorWithProvider is an interface type for declaring multiple attribute validation that requires a provider instance.
+type ValidatorWithProvider interface {
+    Validator
+    ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
+}
+```
+
 ### Provider Level Example Implementation
 
 ```go
@@ -1931,6 +1966,37 @@ type ValidateProviderConfigResponse struct {
 type ProviderWithValidators interface {
     Provider
     Validators(context.Context) Validators
+}
+```
+
+### Resource Level Example Implementation
+
+Example framework code:
+
+```go
+// DataSourceTypeWithValidators is an interface type that extends DataSourceType to include attribute validations.
+type DataSourceTypeWithValidators interface {
+    DataSourceType
+    Validators(context.Context) Validators
+}
+
+// ResourceTypeWithValidators is an interface type that extends ResourceType to include attribute validations.
+type ResourceTypeWithValidators interface {
+    ResourceType
+    Validators(context.Context) Validators
+}
+```
+
+Example provider code:
+
+```go
+func (t *customResourceType) Validators(ctx context.Context) Validators {
+    return Validators{
+        ConflictingAttributes(
+            tftypes.NewAttributePath().AttributeName("first_attribute"),
+            tftypes.NewAttributePath().AttributeName("second_attribute"),
+        ),
+    }
 }
 ```
 
@@ -2053,68 +2119,6 @@ schema.Attribute{
     ValueValidators: ValueValidators{
         StringLengthBetween(1, 256),
     },
-}
-```
-
-### Resource Level Example Implementation
-
-Example framework code:
-
-```go
-// Validator is an interface type for declaring multiple attribute validations.
-type Validator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
-}
-
-// Validators is a type alias for a slice of Validator.
-type Validators []Validator
-
-// Descriptions returns all Validator Description
-func (vs Validators) Descriptions(ctx context.Context) []string {
-    // ...
-}
-
-// MarkdownDescriptions returns all Validator MarkdownDescription
-func (vs Validators) MarkdownDescriptions(ctx context.Context) []string {
-    // ...
-}
-
-// Validates performs all Validator Validate or ValidateWithProvider
-func (vs Validators) Validates(ctx context.Context) tfprotov6.Diagnostics {
-    // ...
-}
-
-// ValidatorWithProvider is an interface type for declaring multiple attribute validation that requires a provider instance.
-type ValidatorWithProvider interface {
-    Validator
-    ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
-}
-
-// DataSourceTypeWithValidators is an interface type that extends DataSourceType to include attribute validations.
-type DataSourceTypeWithValidators interface {
-    DataSourceType
-    Validators(context.Context) Validators
-}
-
-// ResourceTypeWithValidators is an interface type that extends ResourceType to include attribute validations.
-type ResourceTypeWithValidators interface {
-    ResourceType
-    Validators(context.Context) Validators
-}
-```
-
-Example provider code:
-
-```go
-func (t *customResourceType) Validators(ctx context.Context) Validators {
-    return Validators{
-        ConflictingAttributes(
-            tftypes.NewAttributePath().AttributeName("first_attribute"),
-            tftypes.NewAttributePath().AttributeName("second_attribute"),
-        ),
-    }
 }
 ```
 

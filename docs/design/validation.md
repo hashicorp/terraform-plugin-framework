@@ -1952,7 +1952,30 @@ type ValidatorWithProvider interface {
 }
 ```
 
+### Data Source Example Implementation
+
+Example framework code:
+
+```go
+type ValidateDataSourceConfigRequest struct {
+    Config   tfsdk.Config
+    TypeName string
+}
+
+type ValidateDataSourceConfigResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
+}
+
+// DataSourceTypeWithValidators is an interface type that extends DataSourceType to include attribute validations.
+type DataSourceTypeWithValidators interface {
+    DataSourceType
+    Validators(context.Context) Validators
+}
+```
+
 ### Provider Level Example Implementation
+
+Example framework code:
 
 ```go
 type ValidateProviderConfigRequest struct {
@@ -1974,10 +1997,13 @@ type ProviderWithValidators interface {
 Example framework code:
 
 ```go
-// DataSourceTypeWithValidators is an interface type that extends DataSourceType to include attribute validations.
-type DataSourceTypeWithValidators interface {
-    DataSourceType
-    Validators(context.Context) Validators
+type ValidateResourceConfigRequest struct {
+    Config   tfsdk.Config
+    TypeName string
+}
+
+type ValidateResourceConfigResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
 }
 
 // ResourceTypeWithValidators is an interface type that extends ResourceType to include attribute validations.

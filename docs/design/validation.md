@@ -114,8 +114,8 @@ data "example_thing" "example" { # Defined by the configuration language
 Terraform supports the following validation for provider implementations:
 
 - Provider configurations
-- Resource configurations and plans
-- Data Source configurations and plans
+- Resource configurations (and configurations during plans)
+- Data Source configurations (and configurations during plans)
 
 Within these, there are two types of validation:
 
@@ -971,8 +971,8 @@ This framework design should strive to accomplish the following with validation 
 Allow provider developers access to all current types of provider validation:
 
 - Provider configurations
-- Resource configurations and plans
-- Data Source configurations and plans
+- Resource configurations (and configurations during plans)
+- Data Source configurations (and configurations during plans)
 
 Including where possible:
 

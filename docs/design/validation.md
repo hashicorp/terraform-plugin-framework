@@ -2037,7 +2037,7 @@ type DataSourceWithConfigValidators interface {
 Example provider code:
 
 ```go
-func (t *customDataSourceType) ConfigValidators(ctx context.Context) DataSourceConfigValidators {
+func (d *customDataSource) ConfigValidators(ctx context.Context) DataSourceConfigValidators {
     return DataSourceConfigValidators{
         ConflictingAttributes(
             tftypes.NewAttributePath().AttributeName("first_attribute"),
@@ -2155,7 +2155,7 @@ type ResourceWithConfigValidators interface {
 Example provider code:
 
 ```go
-func (t *customResourceType) ConfigValidators(ctx context.Context) ResourceConfigValidators {
+func (r *customResource) ConfigValidators(ctx context.Context) ResourceConfigValidators {
     return ResourceConfigValidators{
         ConflictingAttributes(
             tftypes.NewAttributePath().AttributeName("first_attribute"),

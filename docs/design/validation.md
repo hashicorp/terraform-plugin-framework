@@ -1057,16 +1057,16 @@ type ValidateResourceConfigResponse struct {
 }
 ```
 
-An additional interface types will extend to the existing `DataSourceType` and `ResourceType` types so provider developers can provide customized multiple attribute validation across all attributes:
+An additional interface types will extend to the existing `DataSource` and `Resource` types so provider developers can provide customized multiple attribute validation across all attributes:
 
 ```go
-type DataSourceTypeWithValidators interface {
-    DataSourceType
+type DataSourceWithValidators interface {
+    DataSource
     Validators(context.Context) Validators
 }
 
-type ResourceTypeWithValidators interface {
-    ResourceType
+type ResourceWithValidators interface {
+    Resource
     Validators(context.Context) Validators
 }
 ```
@@ -1076,7 +1076,7 @@ Where `Validators` is a slice of types to be discussed later that uses or direct
 As an example sketch, provider developers could introduce a function that fulfills the new interface with example helpers such as:
 
 ```go
-func (rt *customResourceType) Validators(ctx context.Context) Validators {
+func (r *customResource) Validators(ctx context.Context) Validators {
     return Validators{
         CustomValidator(*tftypes.AttributePath, *tftypes.Attribute),
     }
@@ -1084,6 +1084,142 @@ func (rt *customResourceType) Validators(ctx context.Context) Validators {
 ```
 
 The request and response types will also be automatically handled by the framework to walk the provider schema and enable attribute-based value validation. This declarative pattern enables built-in documentation for future enhancements.
+
+### Defining Low Level Validation Functions
+
+#### `ValidatorsFunc` Type
+
+A new Go type could be created that defines the signature of a value validation function, similar to the previous framework `SchemaValidateFunc`. For example:
+
+```go
+type ValidatorsFunc func(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
+```
+
+To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
+
+```go
+type ValidatorsFunc func(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
+```
+
+This proposal does not allow for documentation hooks. It could be confusing for implementors as they could be responsible for more complex validation logic or provider developers if many iterations of validation are implemented across many different functions since each would be unique. It might be possible to reduce this burden by passing in a `ValueValidator` as well.
+
+#### Single `Validator` Interface
+
+A new Go interface type could be created that defines an extensible attribute validation function type. For example:
+
+```go
+type Validator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
+}
+```
+
+With an example implementation:
+
+```go
+type conflictingAttributesValidator struct {
+    Validator
+
+    path1 *tftypes.AttributePath
+    path2 *tftypes.AttributePath
+}
+
+func (v conflictingAttributesValidator) Description(_ context.Context) string {
+    return fmt.Sprintf("%s and %s cannot both be configured", v.path1.String(), v.path2.String())
+}
+
+func (v conflictingAttributesValidator) MarkdownDescription(_ context.Context) string {
+    return fmt.Sprintf("`%s` and `%s` cannot both be configured", v.path1.String(), v.path2.String())
+}
+
+func (v conflictingAttributesValidator) Validate(ctx context.Context, _ *tftypes.AttributePath, _ attr.Value, _ *tftypes.AttributePath, _ attr.Value) error {
+    if /* v.path1 configured */ && /* v.path2 configured */ {
+        return fmt.Errorf("%s", v.Description(ctx))
+    }
+
+    return nil
+}
+
+func ConflictingAttributes(path1 *tftypes.AttributePath, path2 *tftypes.AttributePath) conflictingAttributesValidator {
+    return conflictingAttributesValidator{
+        path1: path1,
+        path2: path1,
+    }
+}
+```
+
+This helps solve the documentation issue with the following example slice type alias and receiver method:
+
+```go
+// Validators implements iteration functions across Validator
+type Validators []Validator
+
+// Descriptions returns all Validator Description
+func (vs Validators) Descriptions(ctx context.Context) []string {
+    result := make([]string, 0, len(vs))
+
+    for _, v := range vs {
+        result = append(result, v.Description(ctx))
+    }
+    return result
+}
+```
+
+To support passing through the provider instance, a separate interface type could be introduced that includes a function call with the `tfsdk.Provider` interface type:
+
+```go
+type ValidatorWithProvider interface {
+    Validator
+    ValidateWithProvider(context.Context, tfsdk.Provider, tftypes.AttributePath, attr.Value, tftypes.AttributePath, attr.Value) error
+}
+```
+
+However, this does not align well with the request and response model pattern used throughout the rest of the framework. Interface compatibility breaks if parameters or returns require adjustment for future changes. This single interface could not also handle any potential nuance between provider, data source, and resource validation.
+
+#### Request and Response Pattern
+
+The framework could implement the request and response pattern for validation, typed to each RPC. For example:
+
+```go
+type Validator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+}
+
+type DataSourceConfigValidator interface {
+    Validator
+    ValidateDataSourceConfig(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+}
+
+type ProviderConfigValidator interface {
+    Validator
+    ValidateProviderConfig(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
+}
+
+type ResourceConfigValidator interface {
+    Validator
+    ValidateResourceConfig(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+}
+```
+
+Provider instances for data sources or resources could be supported by providing further interface types:
+
+```go
+// DataSourceConfigValidator is an interface type for declaring configuration validation that requires a provider instance.
+type DataSourceConfigValidatorWithProvider interface {
+    DataSourceConfigValidator
+    DataSourceConfigValidatorWithProvider(context.Context, tfsdk.Provider, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+}
+
+// ResourceConfigValidator is an interface type for declaring configuration validation that requires a provider instance.
+type ResourceConfigValidatorWithProvider interface {
+    ResourceConfigValidator
+    ResourceConfigValidatorWithProvider(context.Context, tfsdk.Provider, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+}
+```
+
+This would provide the lowest level and most customizable option to enable the framework and provider developers to abstract functionality on top. It also ensures compability can be maintained should parameters or returns necessitate changes, while also satisifying the ability for documentation hooks.
 
 ### Single Attribute Value Validation
 
@@ -1809,98 +1945,6 @@ func (t *customResourceType) Validators(ctx context.Context) Validators {
 
 This setup would allow for the framework to provide flexible resource level validation with a low amount of friction for provider developers. Helper functions would be extensible and make the behaviors clear.
 
-#### Defining Attribute Validation Functions
-
-This section includes examples with parameter types as `tftypes.AttributePath` and the `attr.Value` interface type with an return type of `error`. These implementation details are shown for simpler illustrative purposes here, but will likely depend on the outcome from the [Single Attribute Value Validation](#single-attribute-value-validation) proposals.
-
-##### `ValidatorsFunc` Type
-
-A new Go type could be created that defines the signature of a value validation function, similar to the previous framework `SchemaValidateFunc`. For example:
-
-```go
-type ValidatorsFunc func(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
-```
-
-To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
-
-```go
-type ValidatorsFunc func(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
-```
-
-This proposal does not allow for documentation hooks. It could be confusing for implementors as they could be responsible for more complex validation logic or provider developers if many iterations of validation are implemented across many different functions since each would be unique. It might be possible to reduce this burden by passing in a `ValueValidator` as well.
-
-##### `Validator` Interface
-
-A new Go interface type could be created that defines an extensible attribute validation function type. For example:
-
-```go
-type Validator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
-}
-```
-
-With an example implementation:
-
-```go
-type conflictingAttributesValidator struct {
-    Validator
-
-    path1 *tftypes.AttributePath
-    path2 *tftypes.AttributePath
-}
-
-func (v conflictingAttributesValidator) Description(_ context.Context) string {
-    return fmt.Sprintf("%s and %s cannot both be configured", v.path1.String(), v.path2.String())
-}
-
-func (v conflictingAttributesValidator) MarkdownDescription(_ context.Context) string {
-    return fmt.Sprintf("`%s` and `%s` cannot both be configured", v.path1.String(), v.path2.String())
-}
-
-func (v conflictingAttributesValidator) Validate(ctx context.Context, _ *tftypes.AttributePath, _ attr.Value, _ *tftypes.AttributePath, _ attr.Value) error {
-    if /* v.path1 configured */ && /* v.path2 configured */ {
-        return fmt.Errorf("%s", v.Description(ctx))
-    }
-
-    return nil
-}
-
-func ConflictingAttributes(path1 *tftypes.AttributePath, path2 *tftypes.AttributePath) conflictingAttributesValidator {
-    return conflictingAttributesValidator{
-        path1: path1,
-        path2: path1,
-    }
-}
-```
-
-This helps solve the documentation issue with the following example slice type alias and receiver method:
-
-```go
-// Validators implements iteration functions across Validator
-type Validators []Validator
-
-// Descriptions returns all Validator Description
-func (vs Validators) Descriptions(ctx context.Context) []string {
-    result := make([]string, 0, len(vs))
-
-    for _, v := range vs {
-        result = append(result, v.Description(ctx))
-    }
-    return result
-}
-```
-
-To support passing through the provider instance, a separate interface type could be introduced that includes a function call with the `tfsdk.Provider` interface type:
-
-```go
-type ValidatorWithProvider interface {
-    Validator
-    ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
-}
-```
-
 ## Recommendations
 
 This section will summarize the proposals into specific recommendations for each topic. Code examples are provided in following sections to illustrate the concepts. The final section provides some future considerations for the framework and terraform-plugin-go.
@@ -1924,7 +1968,6 @@ Resource level multiple attribute validation functions should be implemented sep
 type Validator interface {
     Description(context.Context) string
     MarkdownDescription(context.Context) string
-    Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
 }
 
 // Validators is a type alias for a slice of Validator.
@@ -1938,17 +1981,6 @@ func (vs Validators) Descriptions(ctx context.Context) []string {
 // MarkdownDescriptions returns all Validator MarkdownDescription
 func (vs Validators) MarkdownDescriptions(ctx context.Context) []string {
     // ...
-}
-
-// Validates performs all Validator Validate or ValidateWithProvider
-func (vs Validators) Validates(ctx context.Context) tfprotov6.Diagnostics {
-    // ...
-}
-
-// ValidatorWithProvider is an interface type for declaring multiple attribute validation that requires a provider instance.
-type ValidatorWithProvider interface {
-    Validator
-    ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
 }
 ```
 
@@ -1966,10 +1998,52 @@ type ValidateDataSourceConfigResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
 
-// DataSourceTypeWithValidators is an interface type that extends DataSourceType to include attribute validations.
-type DataSourceTypeWithValidators interface {
+type DataSourceConfigValidator interface {
+    Validator
+    ValidateDataSourceConfig(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+}
+
+// DataSourceConfigValidatorWithProvider is an interface type for declaring configuration validation that requires a provider instance.
+type DataSourceConfigValidatorWithProvider interface {
+    DataSourceConfigValidator
+    ValidateDataSourceConfigWithProvider(context.Context, tfsdk.Provider, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+}
+
+// DataSourceConfigValidators is a type alias for a slice of DataSourceConfigValidator.
+type DataSourceConfigValidators []Validator
+
+// Descriptions returns all DataSourceConfigValidator Description
+func (vs DataSourceConfigValidators) Descriptions(ctx context.Context) []string {
+    // ...
+}
+
+// MarkdownDescriptions returns all DataSourceConfigValidator MarkdownDescription
+func (vs DataSourceConfigValidators) MarkdownDescriptions(ctx context.Context) []string {
+    // ...
+}
+
+// Validates performs all DataSourceConfigValidator ValidateDataSourceConfig or ValidateDataSourceConfigWithProvider
+func (vs DataSourceConfigValidators) Validates(ctx context.Context) tfprotov6.Diagnostics {
+    // ...
+}
+
+// DataSourceWithConfigValidators is an interface type that extends DataSource to include validations.
+type DataSourceWithConfigValidators interface {
     DataSourceType
-    Validators(context.Context) Validators
+    ConfigValidators(context.Context) DataSourceConfigValidators
+}
+```
+
+Example provider code:
+
+```go
+func (t *customDataSourceType) ConfigValidators(ctx context.Context) DataSourceConfigValidators {
+    return DataSourceConfigValidators{
+        ConflictingAttributes(
+            tftypes.NewAttributePath().AttributeName("first_attribute"),
+            tftypes.NewAttributePath().AttributeName("second_attribute"),
+        ),
+    }
 }
 ```
 
@@ -1986,9 +2060,45 @@ type ValidateProviderConfigResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
 
-type ProviderWithValidators interface {
+type ProviderConfigValidator interface {
+    Validator
+    ValidateProviderConfig(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
+}
+
+// ProviderConfigValidators is a type alias for a slice of ProviderConfigValidator.
+type ProviderConfigValidators []Validator
+
+// Descriptions returns all Validator Description
+func (vs ProviderConfigValidators) Descriptions(ctx context.Context) []string {
+    // ...
+}
+
+// MarkdownDescriptions returns all Validator MarkdownDescription
+func (vs ProviderConfigValidators) MarkdownDescriptions(ctx context.Context) []string {
+    // ...
+}
+
+// Validates performs all Validator ValidateProviderConfig or ValidateProviderConfigWithProvider
+func (vs ProviderConfigValidators) Validates(ctx context.Context) tfprotov6.Diagnostics {
+    // ...
+}
+
+type ProviderWithConfigValidators interface {
     Provider
-    Validators(context.Context) Validators
+    ConfigValidators(context.Context) ProviderConfigValidators
+}
+```
+
+Example provider code:
+
+```go
+func (p *customProvider) ConfigValidators(ctx context.Context) ProviderConfigValidators {
+    return ProviderConfigValidators{
+        ConflictingAttributes(
+            tftypes.NewAttributePath().AttributeName("first_attribute"),
+            tftypes.NewAttributePath().AttributeName("second_attribute"),
+        ),
+    }
 }
 ```
 
@@ -2006,18 +2116,47 @@ type ValidateResourceConfigResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
 
-// ResourceTypeWithValidators is an interface type that extends ResourceType to include attribute validations.
-type ResourceTypeWithValidators interface {
+type ResourceConfigValidator interface {
+    Validator
+    ValidateResourceConfig(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+}
+
+// ResourceConfigValidatorWithProvider is an interface type for declaring configuration validation that requires a provider instance.
+type ResourceConfigValidatorWithProvider interface {
+    ResourceConfigValidator
+    ResourceConfigValidatorWithProvider(context.Context, tfsdk.Provider, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+}
+
+// ResourceConfigValidators is a type alias for a slice of ResourceConfigValidator.
+type ResourceConfigValidators []Validator
+
+// Descriptions returns all ResourceConfigValidator Description
+func (vs ResourceConfigValidators) Descriptions(ctx context.Context) []string {
+    // ...
+}
+
+// MarkdownDescriptions returns all ResourceConfigValidator MarkdownDescription
+func (vs ResourceConfigValidators) MarkdownDescriptions(ctx context.Context) []string {
+    // ...
+}
+
+// Validates performs all ResourceConfigValidator ValidateResourceConfig or ValidateResourceConfigWithProvider
+func (vs ResourceConfigValidators) Validates(ctx context.Context) tfprotov6.Diagnostics {
+    // ...
+}
+
+// ResourceWithConfigValidators is an interface type that extends ResourceType to include validations.
+type ResourceWithConfigValidators interface {
     ResourceType
-    Validators(context.Context) Validators
+    ConfigValidators(context.Context) ResourceConfigValidators
 }
 ```
 
 Example provider code:
 
 ```go
-func (t *customResourceType) Validators(ctx context.Context) Validators {
-    return Validators{
+func (t *customResourceType) ConfigValidators(ctx context.Context) ResourceConfigValidators {
+    return ResourceConfigValidators{
         ConflictingAttributes(
             tftypes.NewAttributePath().AttributeName("first_attribute"),
             tftypes.NewAttributePath().AttributeName("second_attribute"),

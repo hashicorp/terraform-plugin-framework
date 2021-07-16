@@ -1026,7 +1026,7 @@ As an example sketch, provider developers could introduce a function that fulfil
 ```go
 func (p *customProvider) Validators(ctx context.Context) Validators {
     return Validators{
-        CustomAttributeValidator(*tftypes.AttributePath, *tftypes.Attribute),
+        CustomValidator(*tftypes.AttributePath, *tftypes.Attribute),
     }
 }
 ```
@@ -1078,7 +1078,7 @@ As an example sketch, provider developers could introduce a function that fulfil
 ```go
 func (rt *customResourceType) Validators(ctx context.Context) Validators {
     return Validators{
-        CustomAttributeValidator(*tftypes.AttributePath, *tftypes.Attribute),
+        CustomValidator(*tftypes.AttributePath, *tftypes.Attribute),
     }
 }
 ```
@@ -1829,12 +1829,12 @@ type ValidatorsFunc func(context.Context, provider tfsdk.Provider, path1 *tftype
 
 This proposal does not allow for documentation hooks. It could be confusing for implementors as they could be responsible for more complex validation logic or provider developers if many iterations of validation are implemented across many different functions since each would be unique. It might be possible to reduce this burden by passing in a `ValueValidator` as well.
 
-##### `AttributeValidator` Interface
+##### `Validator` Interface
 
 A new Go interface type could be created that defines an extensible attribute validation function type. For example:
 
 ```go
-type AttributeValidator interface {
+type Validator interface {
     Description(context.Context) string
     MarkdownDescription(context.Context) string
     Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
@@ -1845,7 +1845,7 @@ With an example implementation:
 
 ```go
 type conflictingAttributesValidator struct {
-    AttributeValidator
+    Validator
 
     path1 *tftypes.AttributePath
     path2 *tftypes.AttributePath
@@ -1878,10 +1878,10 @@ func ConflictingAttributes(path1 *tftypes.AttributePath, path2 *tftypes.Attribut
 This helps solve the documentation issue with the following example slice type alias and receiver method:
 
 ```go
-// Validators implements iteration functions across AttributeValidator
-type Validators []AttributeValidator
+// Validators implements iteration functions across Validator
+type Validators []Validator
 
-// Descriptions returns all AttributeValidator Description
+// Descriptions returns all Validator Description
 func (vs Validators) Descriptions(ctx context.Context) []string {
     result := make([]string, 0, len(vs))
 
@@ -1895,8 +1895,8 @@ func (vs Validators) Descriptions(ctx context.Context) []string {
 To support passing through the provider instance, a separate interface type could be introduced that includes a function call with the `tfsdk.Provider` interface type:
 
 ```go
-type AttributeValidatorWithProvider interface {
-    AttributeValidator
+type ValidatorWithProvider interface {
+    Validator
     ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
 }
 ```
@@ -2061,34 +2061,34 @@ schema.Attribute{
 Example framework code:
 
 ```go
-// AttributeValidator is an interface type for declaring multiple attribute validations.
-type AttributeValidator interface {
+// Validator is an interface type for declaring multiple attribute validations.
+type Validator interface {
     Description(context.Context) string
     MarkdownDescription(context.Context) string
     Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
 }
 
-// Validators is a type alias for a slice of AttributeValidator.
-type Validators []AttributeValidator
+// Validators is a type alias for a slice of Validator.
+type Validators []Validator
 
-// Descriptions returns all AttributeValidator Description
+// Descriptions returns all Validator Description
 func (vs Validators) Descriptions(ctx context.Context) []string {
     // ...
 }
 
-// MarkdownDescriptions returns all AttributeValidator MarkdownDescription
+// MarkdownDescriptions returns all Validator MarkdownDescription
 func (vs Validators) MarkdownDescriptions(ctx context.Context) []string {
     // ...
 }
 
-// Validates performs all AttributeValidator Validate or ValidateWithProvider
+// Validates performs all Validator Validate or ValidateWithProvider
 func (vs Validators) Validates(ctx context.Context) tfprotov6.Diagnostics {
     // ...
 }
 
-// AttributeValidatorWithProvider is an interface type for declaring multiple attribute validation that requires a provider instance.
-type AttributeValidatorWithProvider interface {
-    AttributeValidator
+// ValidatorWithProvider is an interface type for declaring multiple attribute validation that requires a provider instance.
+type ValidatorWithProvider interface {
+    Validator
     ValidateWithProvider(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) tfprotov6.Diagnostics
 }
 

@@ -57,7 +57,7 @@ helpers, as only the value needs to be in the request, not an entire resource.
 
 ### Reflection helpers
 
-We can also add helpers, either to `tfsdk` or to `attr` to use the same
+We can also add helpers, either to `tfsdk` or to `attr`, to use the same
 reflection used in `Get` on the `attr.Value`:
 
 ```go

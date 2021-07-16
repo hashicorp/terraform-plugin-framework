@@ -473,7 +473,7 @@ The `AttributePlanModifier`s in the slice of `PlanModifiers` are executed in ord
 
 The fields in the `ModifyAttributePlanRequest` and `ModifyAttributePlanResponse` struct are not the same as those in `ModifyResourcePlanRequest` and `ModifyResourcePlanResponse` from option 1. In particular, it is not possible to change the planned value of _other_ attributes inside an attribute's `PlanModifier`. If it were, it would be possible for two or more attributes to have `PlanModifier`s modifying each other's planned values, with no clear indication of the order in which those operations would be performed. 
 
-Framework documentation should make it clear that `schema.Attribute.PlanModifier` is scoped to a single attribute with no access to other attribute values or API requests. If either of these is needed, provider developers should use `tfsdk.Resource.ModifyPlan()`.
+Framework documentation should make it clear that `schema.Attribute.PlanModifier` is scoped to a single attribute with no access to other attribute values or API requests. If either of these is needed, provider developers should use `tfsdk.Resource.ModifyPlan()`. Alternatively, we could add this functionality later in backwards-compatible ways, as described in options 4b and 4c below.
 
 #### Tradeoffs
 
@@ -521,6 +521,56 @@ RequiresReplaceIf(func(ctx context.Context, state, config attr.Value) (bool, err
   // ...
 }
 ```
+
+### 4b. `ModifyAttributePlanRequest.Resource{Config,State,Plan}`
+
+This option is to be considered an extension to option 4.
+
+In option 4, the plan modifier request type provides access only to the config, state, and plan values of the single attribute in question. We could add `Resource{Config,State,Plan}` fields to the request struct in a backwards-compatible manner:
+
+```go
+type ModifyAttributePlanRequest struct {
+	// ResourceConfig is the configuration the user supplied for the resource.
+	ResourceConfig Config
+
+	// ResourceState is the current state of the resource.
+	ResourceState State
+
+	// ResourcePlan is the planned new state for the resource.
+	ResourcePlan Plan
+	
+	// Config is the configuration the user supplied for the attribute.
+	Config attr.Value
+
+	// State is the current state of the attribute.
+	State attr.Value
+
+	// Plan is the planned new state for the attribute.
+	Plan attr.Value
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
+}
+```
+
+This could be useful for cases in which multiple attribute values must be read when determining whether a single attribute's plan should be modified, bridging the gap between the simpler `schema.Attribute.PlanModifiers` and the more complex and verbose `Resource.ModifyPlan()` functions.
+
+Some minor decisions of terminology must be made in implementing this option, such as whether data sources and resources have separate fields in the request. 
+
+### 4c. `schema.AttributePlanModifierWithProviders`
+
+This option is to be considered an extension to option 4.
+
+An additional tradeoff noted in option 4 is that there is no access to the `Provider` struct within `AttributePlanModifier`s, and therefore it is not possible to make API requests in attribute plan modifiers. We could define an extension to the `AttributePlanModifier` interface that explicitly supplies this:
+
+```go
+type AttributePlanModifierWithProvider interface {
+  AttributePlanModifier
+  ModifyWithProvider(context.Context, provider tfsdk.Provider, ModifyAttributePlanRequest, *ModifyAttributePlanResponse)
+}
+```
+
+Since this option does not change the `AttributePlanModifier` interface, it is backwards-compatible and can be added if a need for such plan modifiers arises.
 
 ### 5. `attr.TypeWithModifyPlan`
 

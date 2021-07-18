@@ -10,7 +10,7 @@ import (
 // Provider is the core interface that all Terraform providers must implement.
 type Provider interface {
 	// GetSchema returns the schema for this provider's configuration. If
-	// this provider has no configuration, return nil.
+	// this provider has no configuration, return an empty schema.Schema.
 	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
 
 	// Configure is called at the beginning of the provider lifecycle, when

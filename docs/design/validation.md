@@ -1177,7 +1177,7 @@ type ValidatorWithProvider interface {
 
 However, this does not align well with the request and response model pattern used throughout the rest of the framework. Interface compatibility breaks if parameters or returns require adjustment for future changes. This single interface could not also handle any potential nuance between provider, data source, and resource validation.
 
-#### Request and Response Pattern
+#### Validator Request and Response Pattern
 
 The framework could implement the request and response pattern for validation, typed to each RPC. For example:
 
@@ -1327,7 +1327,7 @@ type AttributeValueValidatorFunc func(context.Context, provider tfsdk.Provider, 
 
 While the simplest implementation, this proposal does not allow for documentation hooks.
 
-##### `attr.ValueValidator` Interface
+##### Single `attr.ValueValidator` Interface
 
 A new Go interface type could be created that defines an extensible value validation function type. For example:
 
@@ -1408,6 +1408,42 @@ type ValueValidatorWithProvider interface {
     ValidateWithProvider(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value attr.Value) error
 }
 ```
+
+However, this does not align well with the request and response model pattern used throughout the rest of the framework. Interface compatibility breaks if parameters or returns require adjustment for future changes. This single interface could not also handle any potential nuance between provider, data source, and resource validation.
+
+#### Value Validator Request and Response Pattern
+
+The framework could implement the request and response pattern for value validation. For example:
+
+```go
+type ValidateValueRequest struct {
+    AttributePath tftypes.AttributePath
+    Config        attr.Value
+}
+
+type ValidateValueResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
+}
+
+type ValueValidator interface {
+    Validator
+    ValidateValue(context.Context, ValidateValueRequest, *ValidateValueResponse)
+}
+```
+
+Provider instances for data sources or resources could be supported by providing further interface types:
+
+```go
+// ValueValidator is an interface type for declaring configuration value validation that requires a provider instance.
+type ValueValidatorWithProvider interface {
+    Validator
+    ValueValidatorWithProvider(context.Context, tfsdk.Provider, ValidateValueRequest, *ValidateValueResponse)
+}
+```
+
+This would provide the lowest level and most customizable option to enable the framework and provider developers to abstract functionality on top. It also ensures compability can be maintained should parameters or returns necessitate changes, while also satisifying the ability for documentation hooks.
+
+One caveat to this single type is that it would not capture any nuance between data sources, providers, and resources should their RPCs provide differing functionality in the future.
 
 #### Attribute Value Validation Function Value Parameter
 
@@ -2066,7 +2102,7 @@ type ProviderConfigValidator interface {
 }
 
 // ProviderConfigValidators is a type alias for a slice of ProviderConfigValidator.
-type ProviderConfigValidators []Validator
+type ProviderConfigValidators []ProviderConfigValidator
 
 // Descriptions returns all Validator Description
 func (vs ProviderConfigValidators) Descriptions(ctx context.Context) []string {
@@ -2128,7 +2164,7 @@ type ResourceConfigValidatorWithProvider interface {
 }
 
 // ResourceConfigValidators is a type alias for a slice of ResourceConfigValidator.
-type ResourceConfigValidators []Validator
+type ResourceConfigValidators []ResourceConfigValidator
 
 // Descriptions returns all ResourceConfigValidator Description
 func (vs ResourceConfigValidators) Descriptions(ctx context.Context) []string {
@@ -2170,57 +2206,51 @@ func (r *customResource) ConfigValidators(ctx context.Context) ResourceConfigVal
 Example framework code:
 
 ```go
-// ValueValidator is an interface type for implementing common validation functionality.
-type ValueValidator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-}
-
-// ValueValidators is a type alias for a slice of ValueValidator.
-type ValueValidators []ValueValidator
-
-// Descriptions returns all ValueValidator Description
-func (vs ValueValidators) Descriptions(ctx context.Context) []string {
+type Attribute struct {
     // ...
+    Validators Validators
 }
 
-// MarkdownDescriptions returns all ValueValidator MarkdownDescription
-func (vs ValueValidators) MarkdownDescriptions(ctx context.Context) []string {
-    // ...
+type ValidateValueRequest struct {
+    AttributePath tftypes.AttributePath
+    Config        attr.Value
 }
 
-// Validates performs all ValueValidator Validate or ValidateWithProvider
-func (vs ValueValidators) Validates(ctx context.Context) tfprotov6.Diagnostics {
-    // ...
+type ValidateValueResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
 }
 
-// GenericValueValidator describes value validation without a strong type.
+// ValueValidator describes value validation without a strong type.
 //
 // While it is generally preferred to use the typed validation interfaces,
 // such as StringValueValidator, this interface allows custom implementations
-// where the others may not be suitable. The Validate function is responsible
-// for protecting against attr.Value type assertion panics.
-type GenericValueValidator interface {
-    ValueValidator
-    Validate(context.Context, *tftypes.AttributePath, attr.Value) tfprotov6.Diagnostics
+// where the others may not be suitable.
+type ValueValidator interface {
+    Validator
+    ValidateValue(context.Context, ValidateValueRequest, *ValidateValueResponse)
+}
+
+// ValueValidatorWithProvider is an interface type for implementing String value validation with a provider instance.
+type ValueValidatorWithProvider interface {
+    Validator
+    ValidateValueWithProvider(context.Context, tfsdk.Provider, ValidateValueRequest, *ValidateValueResponse)
+}
+
+type ValidateStringValueRequest struct {
+    AttributePath tftypes.AttributePath
+    Config        types.String
 }
 
 // StringValueValidator is an interface type for implementing String value validation.
 type StringValueValidator interface {
-    ValueValidator
-    Validate(context.Context, *tftypes.AttributePath, types.String) tfprotov6.Diagnostics
+    Validator
+    ValidateValue(context.Context, ValidateStringValueRequest, *ValidateValueResponse)
 }
 
 // StringValueValidatorWithProvider is an interface type for implementing String value validation with a provider instance.
 type StringValueValidatorWithProvider interface {
     StringValueValidator
-    ValidateWithProvider(context.Context, tfsdk.Provider, *tftypes.AttributePath, types.String) tfprotov6.Diagnostics
-}
-
-type Attribute struct {
-    // ...
-    PathValidators  Validators // described below
-    ValueValidators ValueValidators
+    ValidateValueWithProvider(context.Context, tfsdk.Provider, ValidateStringValueRequest, *ValidateStringValueResponse)
 }
 ```
 
@@ -2242,21 +2272,21 @@ func (v stringLengthBetweenValidator) MarkdownDescription(_ context.Context) str
     return fmt.Sprintf("length must be between `%d` and `%d`", v.minimum, v.maximum)
 }
 
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, value types.String) (diags tfprotov6.Diagnostics) {
-    if value.Unknown {
-        diags = append(diags, &tfprotov6.Diagnostic{
+func (v stringLengthBetweenValidator) ValidateValue(ctx context.Context, req ValidateStringValueRequest, resp *ValidateValueResponse) {
+    if req.Config.Unknown {
+        resp.diags = append(resp.diags, &tfprotov6.Diagnostic{
             Severity: tfprotov6.DiagnosticSeverityError,
             Summary: "Unknown validation value",
-            Details: fmt.Sprintf("received unknown value at path: %s", path),
+            Details: fmt.Sprintf("received unknown value at path: %s", req.Config.AttributePath),
         })
         return
     }
 
-    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
-        diags = append(diags, &tfprotov6.Diagnostic{
+    if len(req.Config.Value) < v.minimum || len(req.Config.Value) > v.maximum {
+        resp.diags = append(resp.diags, &tfprotov6.Diagnostic{
             Severity: tfprotov6.DiagnosticSeverityError,
             Summary: "Value validation failed",
-            Details: fmt.Sprintf("%s with value %q %s", path, value.Value, v.Description(ctx))
+            Details: fmt.Sprintf("%s with value %q %s", req.Config.AttributePath, req.Config.Value, v.Description(ctx))
         })
         return
     }
@@ -2276,12 +2306,10 @@ Example provider code:
 
 ```go
 schema.Attribute{
-    Type:             types.StringType,
-    Required:         true,
-    PathValidators:  Validators{
+    Type:       types.StringType,
+    Required:   true,
+    Validators: Validators{
         ConflictsWithAttribute(tftypes.NewAttributePath().AttributeName("other_attribute")),
-    },
-    ValueValidators: ValueValidators{
         StringLengthBetween(1, 256),
     },
 }

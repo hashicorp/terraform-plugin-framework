@@ -1148,12 +1148,22 @@ This will ensure that all features are compiler-checked for each validation requ
 
 ##### Imperative
 
-An additional interface type can extend the existing `Provider` type so provider developers can enable advanced validation imperatively:
+Additional interface types can extend the existing `DataSource`, `Provider`, and `Resource` types so provider developers can enable advanced validation imperatively:
 
 ```go
+type DataSourceWithValidate interface {
+    DataSource
+    Validate(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+}
+
 type ProviderWithValidate interface {
     Provider
     Validate(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
+}
+
+type ResourceWithValidate interface {
+    Resource
+    Validate(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 }
 ```
 
@@ -1161,16 +1171,24 @@ This would enable simpler inline validation function creation as other proposals
 
 ##### Declarative
 
-An additional interface type can extend the existing `Provider` type so provider developers can enable advanced validation declaratively:
+Additional interface types can extend the existing `DataSource`, `Provider`, and `Resource` types so provider developers can enable advanced validation declaratively:
 
 ```go
+type DataSourceWithValidators interface {
+    DataSource
+    Validators(context.Context) []T
+}
+
 type ProviderWithValidators interface {
     Provider
-    Validators(context.Context) Validators
+    Validators(context.Context) []T
+}
+
+type ResourceWithValidators interface {
+    Resource
+    Validators(context.Context) []T
 }
 ```
-
-Where `Validators` is a slice of types to be discussed later that uses or directly implements the request and response types.
 
 As an example sketch, provider developers could introduce a function that fulfills the new interface with example helpers such as:
 

@@ -2220,19 +2220,24 @@ type ValidateValueResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
 
-// ValueValidator describes value validation without a strong type.
+// ValueValidator is an interface for all value validation functionality.
+type ValueValidator interface {
+    Validator
+}
+
+// GenericValueValidator describes value validation without a strong type.
 //
 // While it is generally preferred to use the typed validation interfaces,
 // such as StringValueValidator, this interface allows custom implementations
 // where the others may not be suitable.
-type ValueValidator interface {
-    Validator
+type GenericValueValidator interface {
+    ValueValidator
     ValidateValue(context.Context, ValidateValueRequest, *ValidateValueResponse)
 }
 
-// ValueValidatorWithProvider is an interface type for implementing String value validation with a provider instance.
-type ValueValidatorWithProvider interface {
-    Validator
+// GenericValueValidatorWithProvider is an interface type for implementing String value validation with a provider instance.
+type GenericValueValidatorWithProvider interface {
+    ValueValidator
     ValidateValueWithProvider(context.Context, tfsdk.Provider, ValidateValueRequest, *ValidateValueResponse)
 }
 
@@ -2243,7 +2248,7 @@ type ValidateStringValueRequest struct {
 
 // StringValueValidator is an interface type for implementing String value validation.
 type StringValueValidator interface {
-    Validator
+    ValueValidator
     ValidateValue(context.Context, ValidateStringValueRequest, *ValidateValueResponse)
 }
 

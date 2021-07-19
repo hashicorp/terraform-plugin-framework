@@ -996,11 +996,104 @@ Finally, these other considerations:
 
 ## Proposals
 
-### Provider Validation
+### Typed Parameters Versus Request and Response Types
 
-At a high level, request and response types will be provided to match the RPC call and for consistency with the rest of the framework:
+#### Typed Parameters
+
+The framework could implement bespoke error, path, and value types in function parameters and returns. For example:
 
 ```go
+func(context.Context, path *tftypes.AttributePath, value attr.Value) error
+```
+
+While very explictly defining function signatures specific to the validation concepts as they are understood today (such as validation currently only being against configuration) to potentially make testing and implementation details easier, this presents future compatibility concerns. Any changes or additions would require breaking changes. Any semantic differences about the context of a call when it reaches the function cannot be captured. The rest of the framework has opted for a request and response type pattern to handle these concerns, where choosing typed parameters here does not seem to provide much benefit to have a separate implementation.
+
+#### Request and Response Types
+
+The framework could implement the request and response pattern for validation, typed to each RPC. For example:
+
+```go
+func(context.Context, ValidateRequest, *ValidateResponse)
+```
+
+Ease of implementation and testing is slightly reduced because of the wrapper types, however compatibility is more guaranteed. The framework can signal smaller deprecations and implement underlying migrations if necessary. Each request and response can be tailed to the exact context and functionality available at the time.
+
+Examples in the rest of the proposals will prefer this style where appropriate.
+
+### Validation Function Types Versus Interfaces
+
+#### Validation Function Type
+
+New Go type(s) could be created that define the signature of a validation function, similar to the previous framework `SchemaValidateFunc`. For example:
+
+```go
+type ValidationFunc func(context.Context, ValidationRequest, *ValidationResponse)
+```
+
+To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
+
+```go
+type ValidationFunc func(context.Context, provider tfsdk.Provider, ValidationRequest, *ValidationResponse)
+```
+
+The main drawback of this approach is that it does not allow for documentation hooks. This also drifts from other design decisions of the framework without providing much benefit for the differing implementation.
+
+#### Interfaces
+
+New Go interface type(s) could be created that require additional implementation details for validation functions. For example:
+
+```go
+type Validator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateRequest, *ValidateResponse)
+}
+```
+
+This would provide the lowest level and most customizable option to enable the framework and provider developers to abstract functionality on top. It also ensures compability can be maintained should parameters or returns necessitate changes, while also satisifying the ability for documentation hooks. Many other pieces of the framework prefer this design.
+
+Examples in the rest of the proposals will prefer this style where appropriate.
+
+### Data Source, Provider, and Resource Level Validation
+
+#### Single Interface Versus Typed Interfaces
+
+##### Single Interface
+
+The framework can introduce a single interface across `DataSource`, `Provider`, and `Resource` validation. For example:
+
+```go
+type ValidateRequest struct {
+    Config tfsdk.Config
+}
+
+type ValidateResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
+}
+
+type Validator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateRequest, *ValidateResponse)
+}
+```
+
+While simpler for implementations that are generic across `DataSource`, `Provider`, and `Resource` types, such as a function for declaring conflicting attribute paths in configurations, details associated with the underlying `ValidateDataSourceConfig`, `ValidateProviderConfig`, and `ValidateResourceConfig` RPC calls are lost. If future enhancements are type specific, request and response types may not be fully compatible introducing additional non-compiler rules that provider developers must follow.
+
+##### Typed Interfaces
+
+The framework can introduce interfaces to match the `ValidateDataSourceConfig`, `ValidateProviderConfig`, and `ValidateResourceConfig` RPC calls. For example:
+
+```go
+type ValidateDataSourceConfigRequest struct {
+    Config   tfsdk.Config
+    TypeName string
+}
+
+type ValidateDataSourceConfigResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
+}
+
 type ValidateProviderConfigRequest struct {
     Config tfsdk.Config
 }
@@ -1008,9 +1101,55 @@ type ValidateProviderConfigRequest struct {
 type ValidateProviderConfigResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
+
+type ValidateResourceConfigRequest struct {
+    Config   tfsdk.Config
+    TypeName string
+}
+
+type ValidateResourceConfigResponse struct {
+    Diagnostics []*tfprotov6.Diagnostic
+}
+
+type DataSourceConfigValidator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+}
+
+type ProviderConfigValidator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
+}
+
+type ResourceConfigValidator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+}
 ```
 
-An additional interface type will extend to the existing `Provider` type so provider developers can provide customized multiple attribute validation across all attributes:
+This will ensure that all features are compiler-checked for each validation request and response.
+
+#### Imperative Versus Declarative
+
+##### Imperative
+
+An additional interface type can extend the existing `Provider` type so provider developers can enable advanced validation imperatively:
+
+```go
+type ProviderWithValidate interface {
+    Provider
+    Validate(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
+}
+```
+
+This would enable simpler inline validation function creation as other proposals could require additional interface methods to be fulfilled. Documentation hooks are not provided here, instead relying on provider developers to include that information inline. Reusability is possible, however the implementation details are more complicated for provider developers.
+
+##### Declarative
+
+An additional interface type can extend the existing `Provider` type so provider developers can enable advanced validation declaratively:
 
 ```go
 type ProviderWithValidators interface {
@@ -1031,30 +1170,16 @@ func (p *customProvider) Validators(ctx context.Context) Validators {
 }
 ```
 
-The request and response types will also be automatically handled by the framework to walk the provider schema and enable attribute-based value validation. This declarative pattern enables built-in documentation for future enhancements.
+This declarative pattern enables reusable functions and built-in documentation for future enhancements. It is also consistent with proposed attribute level validations.
 
 ### Data Source and Resource Validation
 
 At a high level, request and response types will be provided to match the RPC calls and with consistency with the rest of the framework:
 
 ```go
-type ValidateDataSourceConfigRequest struct {
-    Config   tfsdk.Config
-    TypeName string
-}
 
-type ValidateDataSourceConfigResponse struct {
-    Diagnostics []*tfprotov6.Diagnostic
-}
 
-type ValidateResourceConfigRequest struct {
-    Config   tfsdk.Config
-    TypeName string
-}
 
-type ValidateResourceConfigResponse struct {
-    Diagnostics []*tfprotov6.Diagnostic
-}
 ```
 
 An additional interface types will extend to the existing `DataSource` and `Resource` types so provider developers can provide customized multiple attribute validation across all attributes:
@@ -1085,149 +1210,13 @@ func (r *customResource) Validators(ctx context.Context) Validators {
 
 The request and response types will also be automatically handled by the framework to walk the provider schema and enable attribute-based value validation. This declarative pattern enables built-in documentation for future enhancements.
 
-### Defining Low Level Validation Functions
-
-#### `ValidatorsFunc` Type
-
-A new Go type could be created that defines the signature of a value validation function, similar to the previous framework `SchemaValidateFunc`. For example:
-
-```go
-type ValidatorsFunc func(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
-```
-
-To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
-
-```go
-type ValidatorsFunc func(context.Context, provider tfsdk.Provider, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
-```
-
-This proposal does not allow for documentation hooks. It could be confusing for implementors as they could be responsible for more complex validation logic or provider developers if many iterations of validation are implemented across many different functions since each would be unique. It might be possible to reduce this burden by passing in a `ValueValidator` as well.
-
-#### Single `Validator` Interface
-
-A new Go interface type could be created that defines an extensible attribute validation function type. For example:
-
-```go
-type Validator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    Validate(context.Context, path1 *tftypes.AttributePath, value1 attr.Value, path2 *tftypes.AttributePath, value2 attr.Value) error
-}
-```
-
-With an example implementation:
-
-```go
-type conflictingAttributesValidator struct {
-    Validator
-
-    path1 *tftypes.AttributePath
-    path2 *tftypes.AttributePath
-}
-
-func (v conflictingAttributesValidator) Description(_ context.Context) string {
-    return fmt.Sprintf("%s and %s cannot both be configured", v.path1.String(), v.path2.String())
-}
-
-func (v conflictingAttributesValidator) MarkdownDescription(_ context.Context) string {
-    return fmt.Sprintf("`%s` and `%s` cannot both be configured", v.path1.String(), v.path2.String())
-}
-
-func (v conflictingAttributesValidator) Validate(ctx context.Context, _ *tftypes.AttributePath, _ attr.Value, _ *tftypes.AttributePath, _ attr.Value) error {
-    if /* v.path1 configured */ && /* v.path2 configured */ {
-        return fmt.Errorf("%s", v.Description(ctx))
-    }
-
-    return nil
-}
-
-func ConflictingAttributes(path1 *tftypes.AttributePath, path2 *tftypes.AttributePath) conflictingAttributesValidator {
-    return conflictingAttributesValidator{
-        path1: path1,
-        path2: path1,
-    }
-}
-```
-
-This helps solve the documentation issue with the following example slice type alias and receiver method:
-
-```go
-// Validators implements iteration functions across Validator
-type Validators []Validator
-
-// Descriptions returns all Validator Description
-func (vs Validators) Descriptions(ctx context.Context) []string {
-    result := make([]string, 0, len(vs))
-
-    for _, v := range vs {
-        result = append(result, v.Description(ctx))
-    }
-    return result
-}
-```
-
-To support passing through the provider instance, a separate interface type could be introduced that includes a function call with the `tfsdk.Provider` interface type:
-
-```go
-type ValidatorWithProvider interface {
-    Validator
-    ValidateWithProvider(context.Context, tfsdk.Provider, tftypes.AttributePath, attr.Value, tftypes.AttributePath, attr.Value) error
-}
-```
-
-However, this does not align well with the request and response model pattern used throughout the rest of the framework. Interface compatibility breaks if parameters or returns require adjustment for future changes. This single interface could not also handle any potential nuance between provider, data source, and resource validation.
-
-#### Validator Request and Response Pattern
-
-The framework could implement the request and response pattern for validation, typed to each RPC. For example:
-
-```go
-type DataSourceConfigValidator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    Validate(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
-}
-
-type ProviderConfigValidator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    Validate(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
-}
-
-type ResourceConfigValidator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    Validate(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
-}
-```
-
-Provider instances for data sources or resources could be supported by providing further interface types:
-
-```go
-// DataSourceConfigValidator is an interface type for declaring configuration validation that requires a provider instance.
-type DataSourceConfigValidatorWithProvider interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    ValidateWithProvider(context.Context, tfsdk.Provider, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
-}
-
-// ResourceConfigValidator is an interface type for declaring configuration validation that requires a provider instance.
-type ResourceConfigValidatorWithProvider interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    ValidateWithProvider(context.Context, tfsdk.Provider, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
-}
-```
-
-This would provide the lowest level and most customizable option to enable the framework and provider developers to abstract functionality on top. It also ensures compability can be maintained should parameters or returns necessitate changes, while also satisifying the ability for documentation hooks.
-
-### Single Attribute Value Validation
+### Attribute Validation
 
 This validation would be applicable to the `schema.Attribute` types declared within the `GetSchema()` of `DataSourceType`, `Provider`, and `ResourceType` implementations. For most of these proposals, the framework would walk through all attribute paths during the `ValidateDataSourceConfig`, `ValidateProviderConfig`, and `ValidateResourceConfig` calls, executing the declared validation in each attribute if present.
 
 #### Declaring Value Validation for Attributes
 
-This section includes examples and details with `schema.Attribute` implemented as a Go structure type as it exists today. Future design considerations around creating specialized or custom attribute types may warrant switching this to an interface type with separate concrete types.
+This section includes examples and details with `schema.Attribute` implemented as a Go structure type as it exists today.
 
 ##### `ValueValidator` Field on `schema.Attribute`
 
@@ -1297,15 +1286,13 @@ type AttributeWithValueValidators interface {
 }
 ```
 
-This type of proposal, in isolation, feels extraneous given the current attribute implementation. The framework does not appear to benefit from this splitting and it seems desirable that all attributes should be able to optionally enable value validation. Future considerations to allow declaring custom attribute types, outside of validation handling, are more likely to drive this type of potential change.
+This type of proposal, in isolation, feels extraneous given the current attribute implementation. The framework does not appear to benefit from this splitting and it seems desirable that all attributes should be able to enable value validation via optional data on the existing type.
 
-##### Resource Level Attribute Value Validation Handling
+##### Resource Level Attribute Validation Handling
 
-This proposal would introduce no changes to `schema.Attribute`. Instead, this would require value validation declarations at the `DataSource` and `Resource` level similar to other proposed attribute validations in the [Declaring Multiple Attribute Validation for Resources](#declaring-multiple-attribute-validation-for-resources) section.
+This proposal would introduce no changes to `schema.Attribute`. Instead, this would require all attribute validation declarations at the `DataSource`, `Provider`, and `Resource` level.
 
-This proposal makes value validation behaviors occur at a distance, meaning it is harder for provider developers to correlate the validation logic to the name/path and type information. It would also be very verbose for even moderately sized schemas with thorough value validation. The only real potential benefit to this type of value validation is that the framework implementation is very straightforward, to just go through this single list of validations instead of walking all attributes.
-
-It could be possible to implement another proposal in this space, while also supporting this one, however this could introduce unnecessary complexity into the implementation.
+This proposal makes any value validation behaviors occur at a distance, meaning it is harder for provider developers to correlate the validation logic to the name/path and type information. It would also be very verbose for even moderately sized schemas with thorough value validation. The only real potential benefit to this framework implementation is that it is very straightforward from the framework perspective. The logic would execute the top level list of validations instead of walking all attributes to find other attributes.
 
 #### Defining Attribute Value Validation Functions
 
@@ -1451,402 +1438,6 @@ type AttributeValidatorWithProvider interface {
 This would provide the lowest level and most customizable option to enable the framework and provider developers to abstract functionality on top. It also ensures compability can be maintained should parameters or returns necessitate changes, while also satisifying the ability for documentation hooks.
 
 One caveat to this single type is that it would not capture any nuance between data sources, providers, and resources should their RPCs provide differing functionality in the future.
-
-#### Attribute Value Validation Function Value Parameter
-
-Regardless the choice of concrete or interface types for the value validation functions, the parameters and returns for the implementations will play a crucial role on the extensibility and development experience.
-
-##### `attr.Value` Type
-
-The simplest implementation in the framework that could occur in all function types or interfaces is directly supplying an `attr.Value` and requiring implementations to handle all type conversion:
-
-```go
-func (v someValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
-    value, ok := rawValue.(types.String)
-    
-    if !ok {
-        return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
-    }
-
-    // ... rest of logic ...
-```
-
-Using this interface type would be required to support validation for custom value types.
-
-##### `types.T` Type
-
-If using an `attr.ValueValidator` interface approach, multiple new Go interface types could be created that define extensible value validation functions with strong typing. For example:
-
-```go
-// ValueValidator describes common validation functionality
-type ValueValidator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-}
-
-// StringValueValidator describes String value validation
-type StringValueValidator interface {
-    ValueValidator
-    Validate(context.Context, *tftypes.AttributePath, types.String) error
-}
-```
-
-Then, this framework can handle the appropriate type conversions and error handling:
-
-```go
-// Validate performs all validation functions.
-//
-// Each type performs conversion or returns a conversion error
-// prior to executing the typed validation function.
-func (vs ValueValidators) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
-    for _, validator := range vs {
-        switch typedValidator := validator.(type) {
-        case StringValueValidator:
-            value, ok := rawValue.(types.String)
-
-            if !ok {
-                return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
-            }
-
-            if err := typedValidator.Validate(ctx, path, value); err != nil {
-                return err
-            }
-        default:
-            return fmt.Errorf("unknown validator type: %T", validator)
-        }
-    }
-
-    return nil
-}
-```
-
-Leaving the implementations to only be concerned with the typed value:
-
-```go
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, value types.String) error {
-    if value.Unknown {
-        return fmt.Errorf("%s with unknown value", path)
-    }
-
-    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
-        return fmt.Errorf("%s with value %q %s", path, value.Value, v.Description(ctx))
-    }
-
-    return nil
-}
-```
-
-This proposal allows each validation function to be succinctly defined with the expected value type. It may be possible to get the validation function implementations even closer to the true value logic if unknown values are also handled automatically by this framework, however that decision can be made further along in the design process.
-
-Even with this type of implementation, it is theoretically possible to create a "generic" type handler for escaping the strongly typed logic if necessary:
-
-```go
-// GenericValueValidator describes value validation without a strong type.
-//
-// While it is generally preferred to use the typed validation interfaces,
-// such as StringValueValidator, this interface allows custom implementations
-// where the others may not be suitable. The Validate function is responsible
-// for protecting against attr.Value type assertion panics.
-type GenericValueValidator interface {
-    ValueValidator
-    Validate(context.Context, *tftypes.AttributePath, attr.Value) error
-}
-```
-
-Offering the largest amount of flexibility for implementors to choose the level of desired abstraction, while not hindering more advanced implementations.
-
-To support passing through the provider instance, separate interface types could be introduced that include a function call with the `tfsdk.Provider` interface type:
-
-```go
-type StringValueValidatorWithProvider interface {
-    ValueValidator
-    ValidateWithProvider(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value types.String) error
-}
-```
-
-#### Attribute Value Validation Function Path Parameter
-
-Another consideration with attribute value validation functions is whether the implementation should be responsible for adding context around the attribute path under validation and how that information (if provided) is surfaced to the function body.
-
-##### No Attribute Path Parameter
-
-Validation function implementations could potentially not have access to the attribute path under validation, instead relying on surrounding logic to handle wrapping errors or logging to include the path. For example:
-
-```go
-tflog.Debug(ctx, "validating attribute path (%s) attribute value (%s): %s", attributePath.String(), value, validator.Description())
-
-err := validator.Validate(ctx, value)
-
-if err != nil {
-    return fmt.Errorf("%s: %w", attributePath.String(), err)
-}
-```
-
-This could be a double edged sword for extensibility. Implementators do not need to worry about handling the attribute path in error messages that are returned to practitioners or manually adding logging around it. This does however prevent the ability to provide that additional context to the validation logic, if for example the logic warrants making decisions based on the given path or additional logging that includes the full path. In practice with validation functions in the previous framework, path based decisions are rare at best, and this framework could be opinionated against that particular pattern.
-
-##### Adding Attribute Path to Context
-
-This framework could inject additional validation information into the `context.Context` being passed through to the validation functions. For example:
-
-```go
-const ValidationAttributePathKey = "validation_attribute_path"
-
-validationCtx := context.WithValue(ctx, ValidationAttributePathKey, attributePath)
-validator.Validate(ctx, value)
-```
-
-With implementations referencing this data:
-
-```go
-func (v someValidator) Validate(ctx context.Context, rawValue attr.Value) error {
-    // ...
-    rawAttributePath := ctx.Value(ValidationAttributePathKey)
-
-    attributePath, ok := rawAttributePath.(*tftypes.AttributePath)
-
-    if !ok {
-        return fmt.Errorf("unexpected %s context value type: %T", ValidationAttributePathKey, rawAttributePath)
-    }
-    // ...
-```
-
-This experience seems subpar for developers though as they must know about the special context value(s) available and how to reference them appropriately, especially to avoid a type assertion panic. In this case, it seems more appropriately to pass the parameter directly, if necessary.
-
-##### `string` Type
-
-The attribute path could be passed to validation functions as its string representation. For example:
-
-```go
-validator.Validate(ctx, attributePath.String(), value)
-```
-
-This would allow implementors to ignore the details of what the attribute path is or how to represent it appropriately. However, this seems unnecessarily limiting should the path information need to be used in the logic. In this case, calling a Go conventional `String()` receiver method on the actual attribute path type does not feel like a development burden for implementors as necessary.
-
-##### `*tftypes.AttributePath` Type
-
-The attribute path could be passed to validation functions directly using `*tftypes.AttributePath` or its abstraction in this framework. For example:
-
-```go
-validator.Validate(ctx, attributePath, value)
-```
-
-This provides the ultimate flexibility for implementors, making the path information fully available in logic, logging, etc. This framework's design could also borrow ideas from the [No Attribute Path Parameter](#no-attribute-path-parameter) section and automatically handle logging and wrapping where appropriate, leaving it completely optional for implementators to handle the path information.
-
-#### Attribute Value Validation Function Returns
-
-Depending on the validation function design, there could be important details about the validation process that need to be surfaced to callers. This section walks through different proposals on how information can be returned to callers.
-
-##### Attribute Value Validation Function `bool` Return
-
-Validation functions could implement return information via a `bool` type. For example:
-
-```go
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) bool {
-    value, ok := rawValue.(types.String)
-    
-    if !ok {
-        return false
-    }
-
-    if value.Unknown {
-        return false
-    }
-
-    return len(value.Value) > v.minimum && len(value.Value) < v.maximum
-}
-```
-
-This proposal encodes no information in the response from these functions beyond a simple boolean "validation passed" versus "validation failed" value. Information such as whether validation failed due to type conversion problems or validation could not be performed due to an unknown value is hidden. Giving the ability for functions to surface details about unsuccessful validation back to callers is likely required broader utility in this framework and extensions to it.
-
-In this scenario, it is this framework's responsibility to generate the appropriate diagnostic back. Implementors will not be able to influence the level, summary, or details associated with that diagnostic.
-
-##### Attribute Value Validation Function `error` Return
-
-Validation functions could implement return information via an untyped `error`. For example:
-
-```go
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
-    value, ok := rawValue.(types.String)
-    
-    if !ok {
-        return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
-    }
-
-    if value.Unknown {
-        return fmt.Errorf("%s with unknown value", path)
-    }
-
-    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
-        return fmt.Errorf("%s with value %q %s", path, value.Value, v.Description(ctx))
-    }
-
-    return nil
-}
-```
-
-In this scenario, callers will know that validation did not pass, but not necessarily why. This proposal is only marginally better than the `bool` return value, as some manual error message context can be provided about the problem that caused the failure. However short of perfectly consistent error messaging which is not feasible to enforce in all implementors, callers will still not reasonably be able to perform actions based on the differing reasons for errors.
-
-In this scenario, it is this framework's responsibility to generate the appropriate diagnostic back. Implementors will not be able to influence the level or summary associated with that diagnostic. The details would likely include the error messaging.
-
-##### Attribute Value Validation Function Typed Error Return
-
-This framework could provide typed errors for validation functions. For example:
-
-```go
-type ValueValidatorInvalidTypeError struct {
-    Path *tftypes.AttributePath
-    Value attr.Value
-}
-
-// Error implements the error interface
-func (e ValueValidatorInvalidTypeError) Error() string {
-    // ...
-}
-
-type ValueValidatorInvalidValueError struct {
-    Description string
-    Path *tftypes.AttributePath
-    Value attr.Value
-}
-
-// Error implements the error interface
-func (e ValueValidatorInvalidValueError) Error() string {
-    // ...
-}
-
-type ValueValidatorUnknownValueError struct {
-    Path *tftypes.AttributePath
-}
-
-// Error implements the error interface
-func (e ValueValidatorUnknownValueError) Error() string {
-    // ...
-}
-```
-
-With implementators able to return these such as:
-
-```go
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
-    value, ok := rawValue.(types.String)
-
-    if !ok {
-        return ValueValidatorInvalidTypeError{
-            Path: path,
-            Value: rawValue,
-        }
-    }
-
-    if value.Unknown {
-        return ValueValidatorUnknownValueError{
-            Path: path,
-        }
-    }
-
-    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
-        return ValueValidatorInvalidValueError{
-            Description: v.Description(ctx),
-            Path: path,
-            Value: value,
-        }
-    }
-
-    return nil
-}
-```
-
-This framework could also go further and require using one of these error types:
-
-```go
-type ValueValidatorError interface {}
-
-// ...
-
-type ValueValidatorInvalidTypeError struct {
-    ValueValidatorError
-
-    Path *tftypes.AttributePath
-    Value attr.Value
-}
-
-// ...
-
-type ValueValidator interface {
-    // ...
-    Validate(context.Context, *tftypes.AttributePath, attr.Value) ValueValidatorError
-}
-```
-
-Meaning that extensibility is guaranteed to follow certain compile time rules.
-
-In either the `error` or `ValueValidatorError` interface type scenarios, this allows callers to react to the responses by checking for underlying error types. For example, it is possible to implement a generic `Not()` (logical `NOT`) validation function that catches invalid values but passes through other errors:
-
-```go
-func (v notValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
-    var invalidValueError ValueValidatorInvalidValueError
-
-    err := v.validator.Validate(ctx, path, rawValue)
-
-    if err == nil {
-        return ValueValidatorInvalidValueError{
-            Description: v.Description(ctx),
-            Path: path,
-            Value: rawValue,
-        }
-    }
-
-    if errors.As(err, &invalidValueError) {
-        return nil
-    }
-
-    return err
-}
-```
-
-In this scenario, it is this framework's responsibility to generate the appropriate diagnostic back. Implementors will not be able to influence the level or summary associated with that diagnostic. The details would likely include the error messaging based on the error type implementations, although if it was warranted for extensibility, there could also be a "generic" `ValueValidatorError` type (or when there is an unrecognized `error` type) that this framework would pass over except transferring the messaging through to the diagnostic. Additional warning-only types could also be provided to allow further diagnostic customization.
-
-##### Attribute Value Validation Function Diagnostic Return
-
-Validation functions could directly return a `*tfprotov6.Diagnostic` or abstracted type from this framework. For example:
-
-```go
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) (diags tfprotov6.Diagnostics) {
-    value, ok := rawValue.(types.String)
-
-    if !ok {
-        diags = append(diags, &tfprotov6.Diagnostic{
-            Severity: tfprotov6.DiagnosticSeverityError,
-            Summary: "Incorrect validation type",
-            Details: fmt.Sprintf("%s with incorrect type: %T", path, rawValue),
-        })
-        return
-    }
-
-    if value.Unknown {
-        diags = append(diags, &tfprotov6.Diagnostic{
-            Severity: tfprotov6.DiagnosticSeverityError,
-            Summary: "Unknown validation value",
-            Details: fmt.Sprintf("received unknown value at path: %s", path),
-        })
-        return
-    }
-
-    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
-        diags = append(diags, &tfprotov6.Diagnostic{
-            Severity: tfprotov6.DiagnosticSeverityError,
-            Summary: "Value validation failed",
-            Details: fmt.Sprintf("%s with value %q %s", path, value.Value, v.Description(ctx))
-        })
-        return
-    }
-
-    return
-}
-```
-
-In this scenario, it the implementor's responsibility to generate the appropriate diagnostic back, but they have full control of the output. It could be difficult for the framework to enforce implementation rules around these responses or potentially allow configuration overrides for them without creating more abstractions on top of this type or additional helper functions. Differing diagnostic implementations could introduce confusion for practitioners.
-
-In general, this proposal feels very similar to either the generic `error` type or typed error proposals above (depending on the implmentation details) with minimal utility over them beyond complete output customization. However, the rest of the framework is designed around diagnostics so this would introduce a different implementation. To remain consistent with other framework design while still pushing for consistency, helpers could be introduced to nudge developers towards standardized summary information, if desired.
 
 ### Multiple Attribute Validation
 
@@ -2275,3 +1866,405 @@ NewAttributePath(CurrentPath().Parent().AttributeName("other_attr"))
 ```
 
 Strongly typed attribute validation can be introduced to simplify implementations for common value types, such as `types.String`. Future designs can discuss the potential designs and tradeoffs.
+
+## Appendix - Additional Design Considerations
+
+During this design process, varying implementations details were discussed, but including this level of detail would be distracting from the overall flow of this documentation. Rather than discard these choices, they are captured here for additional context in case they may be valuable.
+
+### Attribute Validation Input and Output Types
+
+#### Attribute Value Parameter
+
+Regardless the choice of concrete or interface types for the value validation functions, the parameters and returns for the implementations will play a crucial role on the extensibility and development experience.
+
+##### `attr.Value` Type
+
+The simplest implementation in the framework that could occur in all function types or interfaces is directly supplying an `attr.Value` and requiring implementations to handle all type conversion:
+
+```go
+func (v someValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    value, ok := rawValue.(types.String)
+    
+    if !ok {
+        return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
+    }
+
+    // ... rest of logic ...
+```
+
+Using this interface type would be required to support validation for custom value types. Type implementations could introduce helpers to automatically handle this type conversion for simplication.
+
+##### `types.T` Type
+
+If using an `attr.ValueValidator` interface approach, multiple new Go interface types could be created that define extensible value validation functions with strong typing. For example:
+
+```go
+// ValueValidator describes common validation functionality
+type ValueValidator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+}
+
+// StringValueValidator describes String value validation
+type StringValueValidator interface {
+    ValueValidator
+    Validate(context.Context, *tftypes.AttributePath, types.String) error
+}
+```
+
+Then, this framework can handle the appropriate type conversions and error handling:
+
+```go
+// Validate performs all validation functions.
+//
+// Each type performs conversion or returns a conversion error
+// prior to executing the typed validation function.
+func (vs ValueValidators) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    for _, validator := range vs {
+        switch typedValidator := validator.(type) {
+        case StringValueValidator:
+            value, ok := rawValue.(types.String)
+
+            if !ok {
+                return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
+            }
+
+            if err := typedValidator.Validate(ctx, path, value); err != nil {
+                return err
+            }
+        default:
+            return fmt.Errorf("unknown validator type: %T", validator)
+        }
+    }
+
+    return nil
+}
+```
+
+Leaving the implementations to only be concerned with the typed value:
+
+```go
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, value types.String) error {
+    if value.Unknown {
+        return fmt.Errorf("%s with unknown value", path)
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        return fmt.Errorf("%s with value %q %s", path, value.Value, v.Description(ctx))
+    }
+
+    return nil
+}
+```
+
+This proposal allows each validation function to be succinctly defined with the expected value type. It may be possible to get the validation function implementations even closer to the true value logic if unknown values are also handled automatically by this framework, however that decision can be made further along in the design process.
+
+Even with this type of implementation, it is theoretically possible to create a "generic" type handler for escaping the strongly typed logic if necessary:
+
+```go
+// GenericValueValidator describes value validation without a strong type.
+//
+// While it is generally preferred to use the typed validation interfaces,
+// such as StringValueValidator, this interface allows custom implementations
+// where the others may not be suitable. The Validate function is responsible
+// for protecting against attr.Value type assertion panics.
+type GenericValueValidator interface {
+    ValueValidator
+    Validate(context.Context, *tftypes.AttributePath, attr.Value) error
+}
+```
+
+Offering the largest amount of flexibility for implementors to choose the level of desired abstraction, while not hindering more advanced implementations.
+
+To support passing through the provider instance, separate interface types could be introduced that include a function call with the `tfsdk.Provider` interface type:
+
+```go
+type StringValueValidatorWithProvider interface {
+    ValueValidator
+    ValidateWithProvider(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value types.String) error
+}
+```
+
+#### Attribute Path Parameter
+
+Another consideration with attribute validation is whether the implementation should be responsible for adding context around the attribute path under validation and how that information (if provided) is surfaced to the function body.
+
+##### No Attribute Path Parameter
+
+Validation function implementations could potentially not have access to the attribute path under validation, instead relying on surrounding logic to handle wrapping errors or logging to include the path. For example:
+
+```go
+tflog.Debug(ctx, "validating attribute path (%s) attribute value (%s): %s", attributePath.String(), value, validator.Description())
+
+err := validator.Validate(ctx, value)
+
+if err != nil {
+    return fmt.Errorf("%s: %w", attributePath.String(), err)
+}
+```
+
+This could be a double edged sword for extensibility. Implementators do not need to worry about handling the attribute path in error messages that are returned to practitioners or manually adding logging around it. This does however prevent the ability to provide that additional context to the validation logic, if for example the logic warrants making decisions based on the given path or additional logging that includes the full path. In practice with validation functions in the previous framework, path based decisions are rare at best, and this framework could be opinionated against that particular pattern.
+
+##### Adding Attribute Path to Context
+
+This framework could inject additional validation information into the `context.Context` being passed through to the validation functions. For example:
+
+```go
+const ValidationAttributePathKey = "validation_attribute_path"
+
+validationCtx := context.WithValue(ctx, ValidationAttributePathKey, attributePath)
+validator.Validate(ctx, value)
+```
+
+With implementations referencing this data:
+
+```go
+func (v someValidator) Validate(ctx context.Context, rawValue attr.Value) error {
+    // ...
+    rawAttributePath := ctx.Value(ValidationAttributePathKey)
+
+    attributePath, ok := rawAttributePath.(*tftypes.AttributePath)
+
+    if !ok {
+        return fmt.Errorf("unexpected %s context value type: %T", ValidationAttributePathKey, rawAttributePath)
+    }
+    // ...
+```
+
+This experience seems subpar for developers though as they must know about the special context value(s) available and how to reference them appropriately, especially to avoid a type assertion panic. In this case, it seems more appropriately to pass the parameter directly, if necessary.
+
+##### `string` Type
+
+The attribute path could be passed to validation functions as its string representation. For example:
+
+```go
+validator.Validate(ctx, attributePath.String(), value)
+```
+
+This would allow implementors to ignore the details of what the attribute path is or how to represent it appropriately. However, this seems unnecessarily limiting should the path information need to be used in the logic. In this case, calling a Go conventional `String()` receiver method on the actual attribute path type does not feel like a development burden for implementors as necessary.
+
+##### `*tftypes.AttributePath` Type
+
+The attribute path could be passed to validation functions directly using `*tftypes.AttributePath` or its abstraction in this framework. For example:
+
+```go
+validator.Validate(ctx, attributePath, value)
+```
+
+This provides the ultimate flexibility for implementors, making the path information fully available in logic, logging, etc. This framework's design could also borrow ideas from the [No Attribute Path Parameter](#no-attribute-path-parameter) section and automatically handle logging and wrapping where appropriate, leaving it completely optional for implementators to handle the path information.
+
+#### Attribute Validation Return Value
+
+Depending on the validation function design, there could be important details about the validation process that need to be surfaced to callers. This section walks through different proposals on how information can be returned to callers.
+
+##### Attribute Validation `bool` Return
+
+Validation functions could return information via a `bool` type. For example:
+
+```go
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) bool {
+    value, ok := rawValue.(types.String)
+    
+    if !ok {
+        return false
+    }
+
+    if value.Unknown {
+        return false
+    }
+
+    return len(value.Value) > v.minimum && len(value.Value) < v.maximum
+}
+```
+
+This proposal encodes no information in the response from these functions beyond a simple boolean "validation passed" versus "validation failed" value. Information such as whether validation failed due to type conversion problems or validation could not be performed due to an unknown value is hidden. Giving the ability for functions to surface details about unsuccessful validation back to callers is likely required broader utility in this framework and extensions to it.
+
+In this scenario, it is this framework's responsibility to generate the appropriate diagnostic back. Implementors will not be able to influence the level, summary, or details associated with that diagnostic.
+
+##### Attribute Validation `error` Return
+
+Validation functions could implement return information via an untyped `error`. For example:
+
+```go
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    value, ok := rawValue.(types.String)
+    
+    if !ok {
+        return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
+    }
+
+    if value.Unknown {
+        return fmt.Errorf("%s with unknown value", path)
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        return fmt.Errorf("%s with value %q %s", path, value.Value, v.Description(ctx))
+    }
+
+    return nil
+}
+```
+
+In this scenario, callers will know that validation did not pass, but not necessarily why. This proposal is only marginally better than the `bool` return value, as some manual error message context can be provided about the problem that caused the failure. However short of perfectly consistent error messaging which is not feasible to enforce in all implementors, callers will still not reasonably be able to perform actions based on the differing reasons for errors.
+
+In this scenario, it is this framework's responsibility to generate the appropriate diagnostic back. Implementors will not be able to influence the level or summary associated with that diagnostic. The details would likely include the error messaging.
+
+##### Attribute Validation Typed Error Return
+
+This framework could provide typed errors for validation functions. For example:
+
+```go
+type ValueValidatorInvalidTypeError struct {
+    Path *tftypes.AttributePath
+    Value attr.Value
+}
+
+// Error implements the error interface
+func (e ValueValidatorInvalidTypeError) Error() string {
+    // ...
+}
+
+type ValueValidatorInvalidValueError struct {
+    Description string
+    Path *tftypes.AttributePath
+    Value attr.Value
+}
+
+// Error implements the error interface
+func (e ValueValidatorInvalidValueError) Error() string {
+    // ...
+}
+
+type ValueValidatorUnknownValueError struct {
+    Path *tftypes.AttributePath
+}
+
+// Error implements the error interface
+func (e ValueValidatorUnknownValueError) Error() string {
+    // ...
+}
+```
+
+With implementators able to return these such as:
+
+```go
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    value, ok := rawValue.(types.String)
+
+    if !ok {
+        return ValueValidatorInvalidTypeError{
+            Path: path,
+            Value: rawValue,
+        }
+    }
+
+    if value.Unknown {
+        return ValueValidatorUnknownValueError{
+            Path: path,
+        }
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        return ValueValidatorInvalidValueError{
+            Description: v.Description(ctx),
+            Path: path,
+            Value: value,
+        }
+    }
+
+    return nil
+}
+```
+
+This framework could also go further and require using one of these error types:
+
+```go
+type ValueValidatorError interface {}
+
+// ...
+
+type ValueValidatorInvalidTypeError struct {
+    ValueValidatorError
+
+    Path *tftypes.AttributePath
+    Value attr.Value
+}
+
+// ...
+
+type ValueValidator interface {
+    // ...
+    Validate(context.Context, *tftypes.AttributePath, attr.Value) ValueValidatorError
+}
+```
+
+Meaning that extensibility is guaranteed to follow certain compile time rules.
+
+In either the `error` or `ValueValidatorError` interface type scenarios, this allows callers to react to the responses by checking for underlying error types. For example, it is possible to implement a generic `Not()` (logical `NOT`) validation function that catches invalid values but passes through other errors:
+
+```go
+func (v notValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
+    var invalidValueError ValueValidatorInvalidValueError
+
+    err := v.validator.Validate(ctx, path, rawValue)
+
+    if err == nil {
+        return ValueValidatorInvalidValueError{
+            Description: v.Description(ctx),
+            Path: path,
+            Value: rawValue,
+        }
+    }
+
+    if errors.As(err, &invalidValueError) {
+        return nil
+    }
+
+    return err
+}
+```
+
+In this scenario, it is this framework's responsibility to generate the appropriate diagnostic back. Implementors will not be able to influence the level or summary associated with that diagnostic. The details would likely include the error messaging based on the error type implementations, although if it was warranted for extensibility, there could also be a "generic" `ValueValidatorError` type (or when there is an unrecognized `error` type) that this framework would pass over except transferring the messaging through to the diagnostic. Additional warning-only types could also be provided to allow further diagnostic customization.
+
+##### Attribute Validation Diagnostic Return
+
+Validation functions could directly return a `*tfprotov6.Diagnostic` or abstracted type from this framework. For example:
+
+```go
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) (diags tfprotov6.Diagnostics) {
+    value, ok := rawValue.(types.String)
+
+    if !ok {
+        diags = append(diags, &tfprotov6.Diagnostic{
+            Severity: tfprotov6.DiagnosticSeverityError,
+            Summary: "Incorrect validation type",
+            Details: fmt.Sprintf("%s with incorrect type: %T", path, rawValue),
+        })
+        return
+    }
+
+    if value.Unknown {
+        diags = append(diags, &tfprotov6.Diagnostic{
+            Severity: tfprotov6.DiagnosticSeverityError,
+            Summary: "Unknown validation value",
+            Details: fmt.Sprintf("received unknown value at path: %s", path),
+        })
+        return
+    }
+
+    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
+        diags = append(diags, &tfprotov6.Diagnostic{
+            Severity: tfprotov6.DiagnosticSeverityError,
+            Summary: "Value validation failed",
+            Details: fmt.Sprintf("%s with value %q %s", path, value.Value, v.Description(ctx))
+        })
+        return
+    }
+
+    return
+}
+```
+
+In this scenario, it the implementor's responsibility to generate the appropriate diagnostic back, but they have full control of the output. It could be difficult for the framework to enforce implementation rules around these responses or potentially allow configuration overrides for them without creating more abstractions on top of this type or additional helper functions. Differing diagnostic implementations could introduce confusion for practitioners.
+
+In general, this proposal feels very similar to either the generic `error` type or typed error proposals above (depending on the implmentation details) with minimal utility over them beyond complete output customization. However, the rest of the framework is designed around diagnostics so this would introduce a different implementation. To remain consistent with other framework design while still pushing for consistency, helpers could be introduced to nudge developers towards standardized summary information, if desired.

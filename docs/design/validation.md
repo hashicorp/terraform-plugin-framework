@@ -430,8 +430,6 @@ type Attribute struct {
 }
 ```
 
-Although later designs surrounding the ability to allow providers to define custom schema types may change this particular Go typing detail.
-
 Values of `Attribute` in this framework are abstracted from the generic `tftypes` values into an `attr.Value` Go interface type:
 
 ```go

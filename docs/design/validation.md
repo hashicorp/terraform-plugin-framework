@@ -1946,7 +1946,7 @@ In the previous framework, the `CustomizeDiff` functionality enabled resource (o
 
 The [Plan Modifications design documentation](./plan-modifications.md) outlines proposals which broadly replace the previous framework's `CustomizeDiff` functionality. See that documentation for considerations and recommendations there. In this proposal for validation, new functions for validation would be provided within that framework, rather than introducing separate handling.
 
-Implementing against that design could prove complex for the framework as they are intended to serve differing purposes. It could also be confusing for provider developers in the same way that `CustomizeDiff` was confusing where differing logical rules applied to differing attribute value and operation scenarios.
+Implementing against that design could prove complex for the framework as they are intended to serve differing purposes. It could also be confusing for provider developers in the same way that `CustomizeDiff` was confusing where differing logical rules applied to differing attribute value and operation scenarios. Another wrinkle is that plan modifications are only intended to run during `terraform plan` (`PlanResourceChanges` RPC) and `terraform apply` (`ApplyResourceChanges` RPC), so the framework would be introducing its own additional logic to extract and perform any validation functions during the `terraform validate` (`ValidateDataSourceConfig`/`ValidateProviderConfig`/`ValidateResourceConfig` RPCs).
 
 ##### `Validators` for Resources
 

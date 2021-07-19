@@ -2003,15 +2003,18 @@ All validation should be implemented separately from plan modifications as they 
 Example framework code:
 
 ```go
+// ValidateDataSourceConfigRequest contains request information from the ValidateDataSourceConfig RPC.
 type ValidateDataSourceConfigRequest struct {
     Config   tfsdk.Config
     TypeName string
 }
 
+// ValidateDataSourceConfigResponse contains request information for the ValidateDataSourceConfig RPC.
 type ValidateDataSourceConfigResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
 
+// DataSourceConfigValidator describes a reusable Data Source configuration validation function.
 type DataSourceConfigValidator interface {
     Description(context.Context) string
     MarkdownDescription(context.Context) string
@@ -2024,10 +2027,16 @@ type DataSourceConfigValidatorWithProvider interface {
     ValidateWithProvider(context.Context, tfsdk.Provider, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
 }
 
-// DataSourceWithConfigValidators is an interface type that extends DataSource to include validations.
+// DataSourceWithConfigValidators is an interface type that extends DataSource to include declarative validations.
 type DataSourceWithConfigValidators interface {
-    DataSourceType
+    DataSource
     ConfigValidators(context.Context) []DataSourceConfigValidator
+}
+
+// DataSourceWithValidateConfig is an interface type that extends DataSource to include imperative validation.
+type DataSourceWithValidateConfig interface {
+    DataSource
+    ValidateConfig(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
 }
 ```
 
@@ -2049,23 +2058,33 @@ func (d *customDataSource) ConfigValidators(ctx context.Context) DataSourceConfi
 Example framework code:
 
 ```go
+// ValidateProviderConfigRequest contains request information from the ValidateProviderConfig RPC.
 type ValidateProviderConfigRequest struct {
     Config tfsdk.Config
 }
 
+// ValidateProviderConfigResponse contains request information for the ValidateProviderConfig RPC.
 type ValidateProviderConfigResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
 
+// ProviderConfigValidator describes a reusable Provider configuration validation function.
 type ProviderConfigValidator interface {
     Description(context.Context) string
     MarkdownDescription(context.Context) string
     Validate(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
 }
 
+// DataSourceWithConfigValidators is an interface type that extends DataSource to include declarative validations.
 type ProviderWithConfigValidators interface {
     Provider
     ConfigValidators(context.Context) []ProviderConfigValidator
+}
+
+// ProviderWithValidateConfig is an interface type that extends Provider to include imperative validation.
+type ProviderWithValidateConfig interface {
+    Provider
+    ValidateConfig(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
 }
 ```
 
@@ -2087,15 +2106,18 @@ func (p *customProvider) ConfigValidators(ctx context.Context) ProviderConfigVal
 Example framework code:
 
 ```go
+// ValidateResourceConfigRequest contains request information from the ValidateResourceConfig RPC.
 type ValidateResourceConfigRequest struct {
     Config   tfsdk.Config
     TypeName string
 }
 
+// ValidateResourceConfigResponse contains request information for the ValidateResourceConfig RPC.
 type ValidateResourceConfigResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
 
+// ResourceConfigValidator describes a reusable Resource configuration validation function.
 type ResourceConfigValidator interface {
     Description(context.Context) string
     MarkdownDescription(context.Context) string
@@ -2108,10 +2130,16 @@ type ResourceConfigValidatorWithProvider interface {
     ValidateWithProvider(context.Context, tfsdk.Provider, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 }
 
-// ResourceWithConfigValidators is an interface type that extends Resource to include validations.
+// ResourceWithConfigValidators is an interface type that extends Resource to include declarative validations.
 type ResourceWithConfigValidators interface {
-    ResourceType
+    Resource
     ConfigValidators(context.Context) []ResourceConfigValidator
+}
+
+// ResourceWithValidateConfig is an interface type that extends Resource to include imperative validations.
+type ResourceWithValidateConfig interface {
+    Resource
+    ValidateConfig(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 }
 ```
 

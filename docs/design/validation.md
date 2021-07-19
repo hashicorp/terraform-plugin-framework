@@ -122,6 +122,8 @@ Within these, there are two types of validation:
 - Single attribute value validation (e.g. string length)
 - Multiple attribute validation (e.g. attributes or attribute values that conflict with each other)
 
+There is no difference between these types of validation to Terraform, as Terraform just works with errors and warnings being returned from providers, but the previous framework surfaced these different conceptually.
+
 The next sections will outline some of the underlying details relevant to implementation proposals in this framework.
 
 ### Terraform Plugin Protocol

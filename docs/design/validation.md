@@ -2274,7 +2274,7 @@ func (v stringLengthBetweenValidator) MarkdownDescription(_ context.Context) str
 
 func (v stringLengthBetweenValidator) ValidateValue(ctx context.Context, req ValidateStringValueRequest, resp *ValidateValueResponse) {
     if req.Config.Unknown {
-        resp.diags = append(resp.diags, &tfprotov6.Diagnostic{
+        resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
             Severity: tfprotov6.DiagnosticSeverityError,
             Summary: "Unknown validation value",
             Details: fmt.Sprintf("received unknown value at path: %s", req.Config.AttributePath),
@@ -2283,7 +2283,7 @@ func (v stringLengthBetweenValidator) ValidateValue(ctx context.Context, req Val
     }
 
     if len(req.Config.Value) < v.minimum || len(req.Config.Value) > v.maximum {
-        resp.diags = append(resp.diags, &tfprotov6.Diagnostic{
+        resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
             Severity: tfprotov6.DiagnosticSeverityError,
             Summary: "Value validation failed",
             Details: fmt.Sprintf("%s with value %q %s", req.Config.AttributePath, req.Config.Value, v.Description(ctx))

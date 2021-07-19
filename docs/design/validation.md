@@ -488,7 +488,7 @@ map[string]*schema.Schema{
 }
 ```
 
-It supported single attribute value validation via the `ValidateFunc` or `ValidateDiagFunc` fields and multiple attribute validation via a collection of different fields (`AtLeastOneOf`, `ConflictsWith`, `ExactlyOneOf`, `RequiredWith`) which could be combined as necessary. For list, set, and map types, two additional fields (`MaxItems` and `MinItems`) provided validation for the number of elements.
+It supported single attribute value validation via the `ValidateFunc` or `ValidateDiagFunc` fields and multiple attribute validation via a collection of different fields (`AtLeastOneOf`, `ConflictsWith`, `ExactlyOneOf`, `RequiredWith`) which could be combined as necessary. For list and set types, two additional fields (`MaxItems` and `MinItems`) provided validation for the number of elements.
 
 The multiple attribute validation support in the attribute schema is purely existence based, meaning it could not be conditional based on the attribute value. Conditional multiple attribute validation based on values was later added via the resource level `CustomizeDiff`, which will be described later on.
 
@@ -710,7 +710,7 @@ resource "example_thing" "example" {
 
 ##### `MinItems`
 
-This field enabled the schema to validate the minimum number of elements in a list, set, or map type. For example,
+This field enabled the schema to validate the minimum number of elements in a list or set type. For example,
 
 ```go
 map[string]*schema.Schema{

@@ -1182,24 +1182,22 @@ However, this does not align well with the request and response model pattern us
 The framework could implement the request and response pattern for validation, typed to each RPC. For example:
 
 ```go
-type Validator interface {
+type DataSourceConfigValidator interface {
     Description(context.Context) string
     MarkdownDescription(context.Context) string
-}
-
-type DataSourceConfigValidator interface {
-    Validator
-    ValidateDataSourceConfig(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+    Validate(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
 }
 
 type ProviderConfigValidator interface {
-    Validator
-    ValidateProviderConfig(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
 }
 
 type ResourceConfigValidator interface {
-    Validator
-    ValidateResourceConfig(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 }
 ```
 
@@ -1208,14 +1206,16 @@ Provider instances for data sources or resources could be supported by providing
 ```go
 // DataSourceConfigValidator is an interface type for declaring configuration validation that requires a provider instance.
 type DataSourceConfigValidatorWithProvider interface {
-    DataSourceConfigValidator
-    DataSourceConfigValidatorWithProvider(context.Context, tfsdk.Provider, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    ValidateWithProvider(context.Context, tfsdk.Provider, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
 }
 
 // ResourceConfigValidator is an interface type for declaring configuration validation that requires a provider instance.
 type ResourceConfigValidatorWithProvider interface {
-    ResourceConfigValidator
-    ResourceConfigValidatorWithProvider(context.Context, tfsdk.Provider, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    ValidateWithProvider(context.Context, tfsdk.Provider, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 }
 ```
 
@@ -1411,33 +1411,40 @@ type ValueValidatorWithProvider interface {
 
 However, this does not align well with the request and response model pattern used throughout the rest of the framework. Interface compatibility breaks if parameters or returns require adjustment for future changes. This single interface could not also handle any potential nuance between provider, data source, and resource validation.
 
-#### Value Validator Request and Response Pattern
+#### Attribute Validator Request and Response Pattern
 
-The framework could implement the request and response pattern for value validation. For example:
+The framework could implement the request and response pattern for attribute validation. For example:
 
 ```go
-type ValidateValueRequest struct {
+type ValidateAttributeRequest struct {
+    // AttributePath contains the path of the attribute.
     AttributePath tftypes.AttributePath
-    Config        attr.Value
+
+    // AttributeConfig contains the value of the attribute.
+    AttributeConfig attr.Value
+
+    // Config contains the entire configuration of the data source, provider, or resource.
+    Config tfsdk.Config
 }
 
-type ValidateValueResponse struct {
+type ValidateAttributeResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
 
-type ValueValidator interface {
-    Validator
-    ValidateValue(context.Context, ValidateValueRequest, *ValidateValueResponse)
+type AttributeValidator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateAttributeRequest, *ValidateAttributeResponse)
 }
 ```
 
 Provider instances for data sources or resources could be supported by providing further interface types:
 
 ```go
-// ValueValidator is an interface type for declaring configuration value validation that requires a provider instance.
-type ValueValidatorWithProvider interface {
-    Validator
-    ValueValidatorWithProvider(context.Context, tfsdk.Provider, ValidateValueRequest, *ValidateValueResponse)
+// AttributeValidator is an interface type for declaring attribute validation that requires a provider instance.
+type AttributeValidatorWithProvider interface {
+    AttributeValidator
+    ValidateWithProvider(context.Context, tfsdk.Provider, ValidateAttributeRequest, *ValidateAttributeResponse)
 }
 ```
 
@@ -1987,38 +1994,9 @@ This section will summarize the proposals into specific recommendations for each
 
 ### Overview
 
-Defining all validation functionality via interface types will offer the framework the most flexibility for future enhancements while ensuring consistent implementations. Furthermore for attribute value validation functions, providing strongly typed interfaces for common value types will reduce implementor burden and ensure consistent invalid type error messaging, rather than potential panic scenarios.
+Defining all validation functionality via interface types will offer the framework the most flexibility for future enhancements while ensuring consistent implementations. The request and response pattern should be used to enable backwards (in the case of field deprecations) and forwards compatibility.
 
-Attribute value validations should be implemented as a slice of the interface type on `schema.Attribute`. Multiple attribute validation, such as declaring conflicting attributes on attributes themselves, should be implemented as a separate slice of that differing interface type on `schema.Attribute`. This would be in addition to supporting that functionality with resource level multiple attribute validation.
-
-Attribute value validations should be required to accept the attribute path in its native type as a parameter. This will allow a flexible implementation for provider developers that may desire advanced logic based on the path.
-
-Validation functions should be required to return diagnostics similar in design to other functionality in the framework. Helper functions could help return these results in a consistent manner.
-
-Resource level multiple attribute validation functions should be implemented separately from plan modifications to separate concerns. For example:
-
-### Validator Example Implementation
-
-```go
-// Validator is an interface type for declaring low level validation functions.
-type Validator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-}
-
-// Validators is a type alias for a slice of Validator.
-type Validators []Validator
-
-// Descriptions returns all Validator Description
-func (vs Validators) Descriptions(ctx context.Context) []string {
-    // ...
-}
-
-// MarkdownDescriptions returns all Validator MarkdownDescription
-func (vs Validators) MarkdownDescriptions(ctx context.Context) []string {
-    // ...
-}
-```
+All validation should be implemented separately from plan modifications as they address differing concerns and operations within the Terraform. Attribute validations should be implemented as a slice of the interface type on `schema.Attribute` while Data Source, Provider, and Resource level validation should be implemented as new extension interface types. Further helper functions and designs can reduce implementation details.
 
 ### Data Source Example Implementation
 
@@ -2035,38 +2013,21 @@ type ValidateDataSourceConfigResponse struct {
 }
 
 type DataSourceConfigValidator interface {
-    Validator
-    ValidateDataSourceConfig(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
 }
 
 // DataSourceConfigValidatorWithProvider is an interface type for declaring configuration validation that requires a provider instance.
 type DataSourceConfigValidatorWithProvider interface {
     DataSourceConfigValidator
-    ValidateDataSourceConfigWithProvider(context.Context, tfsdk.Provider, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
-}
-
-// DataSourceConfigValidators is a type alias for a slice of DataSourceConfigValidator.
-type DataSourceConfigValidators []Validator
-
-// Descriptions returns all DataSourceConfigValidator Description
-func (vs DataSourceConfigValidators) Descriptions(ctx context.Context) []string {
-    // ...
-}
-
-// MarkdownDescriptions returns all DataSourceConfigValidator MarkdownDescription
-func (vs DataSourceConfigValidators) MarkdownDescriptions(ctx context.Context) []string {
-    // ...
-}
-
-// Validates performs all DataSourceConfigValidator ValidateDataSourceConfig or ValidateDataSourceConfigWithProvider
-func (vs DataSourceConfigValidators) Validates(ctx context.Context) tfprotov6.Diagnostics {
-    // ...
+    ValidateWithProvider(context.Context, tfsdk.Provider, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
 }
 
 // DataSourceWithConfigValidators is an interface type that extends DataSource to include validations.
 type DataSourceWithConfigValidators interface {
     DataSourceType
-    ConfigValidators(context.Context) DataSourceConfigValidators
+    ConfigValidators(context.Context) []DataSourceConfigValidator
 }
 ```
 
@@ -2097,31 +2058,14 @@ type ValidateProviderConfigResponse struct {
 }
 
 type ProviderConfigValidator interface {
-    Validator
-    ValidateProviderConfig(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
-}
-
-// ProviderConfigValidators is a type alias for a slice of ProviderConfigValidator.
-type ProviderConfigValidators []ProviderConfigValidator
-
-// Descriptions returns all Validator Description
-func (vs ProviderConfigValidators) Descriptions(ctx context.Context) []string {
-    // ...
-}
-
-// MarkdownDescriptions returns all Validator MarkdownDescription
-func (vs ProviderConfigValidators) MarkdownDescriptions(ctx context.Context) []string {
-    // ...
-}
-
-// Validates performs all Validator ValidateProviderConfig or ValidateProviderConfigWithProvider
-func (vs ProviderConfigValidators) Validates(ctx context.Context) tfprotov6.Diagnostics {
-    // ...
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
 }
 
 type ProviderWithConfigValidators interface {
     Provider
-    ConfigValidators(context.Context) ProviderConfigValidators
+    ConfigValidators(context.Context) []ProviderConfigValidator
 }
 ```
 
@@ -2153,38 +2097,21 @@ type ValidateResourceConfigResponse struct {
 }
 
 type ResourceConfigValidator interface {
-    Validator
-    ValidateResourceConfig(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 }
 
 // ResourceConfigValidatorWithProvider is an interface type for declaring configuration validation that requires a provider instance.
 type ResourceConfigValidatorWithProvider interface {
     ResourceConfigValidator
-    ResourceConfigValidatorWithProvider(context.Context, tfsdk.Provider, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+    ValidateWithProvider(context.Context, tfsdk.Provider, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 }
 
-// ResourceConfigValidators is a type alias for a slice of ResourceConfigValidator.
-type ResourceConfigValidators []ResourceConfigValidator
-
-// Descriptions returns all ResourceConfigValidator Description
-func (vs ResourceConfigValidators) Descriptions(ctx context.Context) []string {
-    // ...
-}
-
-// MarkdownDescriptions returns all ResourceConfigValidator MarkdownDescription
-func (vs ResourceConfigValidators) MarkdownDescriptions(ctx context.Context) []string {
-    // ...
-}
-
-// Validates performs all ResourceConfigValidator ValidateResourceConfig or ValidateResourceConfigWithProvider
-func (vs ResourceConfigValidators) Validates(ctx context.Context) tfprotov6.Diagnostics {
-    // ...
-}
-
-// ResourceWithConfigValidators is an interface type that extends ResourceType to include validations.
+// ResourceWithConfigValidators is an interface type that extends Resource to include validations.
 type ResourceWithConfigValidators interface {
     ResourceType
-    ConfigValidators(context.Context) ResourceConfigValidators
+    ConfigValidators(context.Context) []ResourceConfigValidator
 }
 ```
 
@@ -2206,56 +2133,32 @@ func (r *customResource) ConfigValidators(ctx context.Context) ResourceConfigVal
 Example framework code:
 
 ```go
-type Attribute struct {
-    // ...
-    Validators Validators
-}
-
-type ValidateValueRequest struct {
+type ValidateAttributeRequest struct {
+    // AttributePath contains the path of the attribute.
     AttributePath tftypes.AttributePath
-    Config        attr.Value
+
+    // AttributeConfig contains the value of the attribute.
+    AttributeConfig attr.Value
+
+    // Config contains the entire configuration of the data source, provider, or resource.
+    Config tfsdk.Config
 }
 
-type ValidateValueResponse struct {
+type ValidateAttributeResponse struct {
     Diagnostics []*tfprotov6.Diagnostic
 }
 
-// ValueValidator is an interface for all value validation functionality.
-type ValueValidator interface {
-    Validator
+// AttributeValidator describes attribute validation functionality.
+type AttributeValidator interface {
+    Description(context.Context) string
+    MarkdownDescription(context.Context) string
+    Validate(context.Context, ValidateAttributeRequest, *ValidateAttributeResponse)
 }
 
-// GenericValueValidator describes value validation without a strong type.
-//
-// While it is generally preferred to use the typed validation interfaces,
-// such as StringValueValidator, this interface allows custom implementations
-// where the others may not be suitable.
-type GenericValueValidator interface {
-    ValueValidator
-    ValidateValue(context.Context, ValidateValueRequest, *ValidateValueResponse)
-}
-
-// GenericValueValidatorWithProvider is an interface type for implementing String value validation with a provider instance.
-type GenericValueValidatorWithProvider interface {
-    ValueValidator
-    ValidateValueWithProvider(context.Context, tfsdk.Provider, ValidateValueRequest, *ValidateValueResponse)
-}
-
-type ValidateStringValueRequest struct {
-    AttributePath tftypes.AttributePath
-    Config        types.String
-}
-
-// StringValueValidator is an interface type for implementing String value validation.
-type StringValueValidator interface {
-    ValueValidator
-    ValidateValue(context.Context, ValidateStringValueRequest, *ValidateValueResponse)
-}
-
-// StringValueValidatorWithProvider is an interface type for implementing String value validation with a provider instance.
-type StringValueValidatorWithProvider interface {
-    StringValueValidator
-    ValidateValueWithProvider(context.Context, tfsdk.Provider, ValidateStringValueRequest, *ValidateStringValueResponse)
+// Existing schema.Attribute struct type
+type Attribute struct {
+    // ...
+    Validators []AttributeValidator
 }
 ```
 
@@ -2277,7 +2180,18 @@ func (v stringLengthBetweenValidator) MarkdownDescription(_ context.Context) str
     return fmt.Sprintf("length must be between `%d` and `%d`", v.minimum, v.maximum)
 }
 
-func (v stringLengthBetweenValidator) ValidateValue(ctx context.Context, req ValidateStringValueRequest, resp *ValidateValueResponse) {
+func (v stringLengthBetweenValidator) Validate(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+    value, ok := req.AttributeConfig.(types.String) // see also attr.ValueAs() proposal
+
+    if !ok {
+        resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+            Severity: tfprotov6.DiagnosticSeverityError,
+            Summary: "Invalid value type",
+            Details: fmt.Sprintf("received incorrect value type (%T) at path: %s", req.AttributeConfig, req.Config.AttributePath),
+        })
+        return
+    }
+
     if req.Config.Unknown {
         resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
             Severity: tfprotov6.DiagnosticSeverityError,
@@ -2313,7 +2227,7 @@ Example provider code:
 schema.Attribute{
     Type:       types.StringType,
     Required:   true,
-    Validators: Validators{
+    Validators: []AttributeValidator{
         ConflictsWithAttribute(tftypes.NewAttributePath().AttributeName("other_attribute")),
         StringLengthBetween(1, 256),
     },
@@ -2331,3 +2245,5 @@ It is recommended that the framework or the upstream terraform-plugin-go module 
 ```go
 NewAttributePath(CurrentPath().Parent().AttributeName("other_attr"))
 ```
+
+Strongly typed attribute validation can be introduced to simplify implementations for common value types, such as `types.String`. Future designs can discuss the potential designs and tradeoffs.

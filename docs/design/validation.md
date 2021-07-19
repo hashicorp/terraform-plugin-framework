@@ -996,6 +996,18 @@ Finally, these other considerations:
 
 ## Proposals
 
+### Extending Plan Modifications Versus New Handling
+
+#### Extending Plan Modifications
+
+The [Plan Modifications design documentation](./plan-modifications.md) outlines proposals which broadly replace the previous framework's `CustomizeDiff` functionality. See that documentation for considerations and recommendations there. In this proposal for validation, new functions for validation would be provided within that framework, rather than introducing separate handling.
+
+Implementing against that design could prove complex for the framework as they are intended to serve differing purposes. It could also be confusing for provider developers in the same way that `CustomizeDiff` was confusing where differing logical rules applied to differing attribute value and operation scenarios. Another wrinkle is that plan modifications are only intended to run during `terraform plan` (`PlanResourceChanges` RPC) and `terraform apply` (`ApplyResourceChanges` RPC), so the framework would be introducing its own additional logic to extract and perform any validation functions during the `terraform validate` (`ValidateDataSourceConfig`/`ValidateProviderConfig`/`ValidateResourceConfig` RPCs).
+
+#### New Handling
+
+This framework can implement separate types and logic for validation. This aligns well with other design decisions in the framework and will enable it to provide targeted solutions that can capture context and functionality appropriately for various validation scenarios, which may not be appropriate if bundled with other functionality such as plan modifications.
+
 ### Typed Parameters Versus Request and Response Types
 
 #### Typed Parameters
@@ -1172,60 +1184,40 @@ func (p *customProvider) Validators(ctx context.Context) Validators {
 
 This declarative pattern enables reusable functions and built-in documentation for future enhancements. It is also consistent with proposed attribute level validations.
 
-### Data Source and Resource Validation
-
-At a high level, request and response types will be provided to match the RPC calls and with consistency with the rest of the framework:
-
-```go
-
-
-
-```
-
-An additional interface types will extend to the existing `DataSource` and `Resource` types so provider developers can provide customized multiple attribute validation across all attributes:
-
-```go
-type DataSourceWithValidators interface {
-    DataSource
-    Validators(context.Context) Validators
-}
-
-type ResourceWithValidators interface {
-    Resource
-    Validators(context.Context) Validators
-}
-```
-
-Where `Validators` is a slice of types to be discussed later that uses or directly implements the request and response types.
-
-As an example sketch, provider developers could introduce a function that fulfills the new interface with example helpers such as:
-
-```go
-func (r *customResource) Validators(ctx context.Context) Validators {
-    return Validators{
-        CustomValidator(*tftypes.AttributePath, *tftypes.Attribute),
-    }
-}
-```
-
-The request and response types will also be automatically handled by the framework to walk the provider schema and enable attribute-based value validation. This declarative pattern enables built-in documentation for future enhancements.
-
 ### Attribute Validation
 
 This validation would be applicable to the `schema.Attribute` types declared within the `GetSchema()` of `DataSourceType`, `Provider`, and `ResourceType` implementations. For most of these proposals, the framework would walk through all attribute paths during the `ValidateDataSourceConfig`, `ValidateProviderConfig`, and `ValidateResourceConfig` calls, executing the declared validation in each attribute if present.
 
-#### Declaring Value Validation for Attributes
+#### Declaring Attribute Validation
 
-This section includes examples and details with `schema.Attribute` implemented as a Go structure type as it exists today.
+##### No Attribute Level Validation
 
-##### `ValueValidator` Field on `schema.Attribute`
+This proposal would introduce no changes to `schema.Attribute`. Instead, this would require all attribute validation declarations at the `DataSource`, `Provider`, and `Resource` level.
+
+This proposal makes any value validation behaviors occur at a distance, meaning it is harder for provider developers to correlate the validation logic to the name/path and type information. It would also be very verbose for even moderately sized schemas with thorough value validation. The only real potential benefit to this framework implementation is that it is very straightforward from the framework perspective. The logic would execute the top level list of validations instead of walking all attributes to find other attributes.
+
+##### Individual Behavior Fields on `schema.Attribute`
+
+Similar to the previous framework, individual fields for each attribute validation behavior could be added to the `schema.Attribute` type. For example:
+
+```go
+schema.Attribute{
+    // ...
+    ConflictsWith: /* ... */,
+    ValueValidation: /* ... */,
+}
+```
+
+This proposal would feel familiar for existing provider developers and be relatively trivial for them to implement. One noticable downside to this approach however is that there can be any number of related, but disjointed attribute behaviors. The previous framework supported four behaviors in addition to value validation and there is logical room for addtional behaviors. Making updates to the `schema.Attribute` type becomes a limiting factor in this validation space.
+
+##### `Validator` Field on `schema.Attribute`
 
 Similar to the previous framework, a new field can be added to the `schema.Attribute` type. For example:
 
 ```go
 schema.Attribute{
     // ...
-    ValueValidator: T,
+    Validator: T,
 }
 ```
 
@@ -1234,7 +1226,7 @@ Implementators would be responsible for ensuring that single function covered al
 ```go
 schema.Attribute{
     // ...
-    ValueValidator: All(
+    Validator: All(
         T,
         T,
     ),
@@ -1245,14 +1237,14 @@ As seen with the previous framework in practice however, it was very common to i
 
 This proposal colocates the value validation behaviors in the schema definition, meaning it is easier for provider developers to discover this type of validation and correlate the validation logic to the name and type information.
 
-##### `ValueValidators` Field on `schema.Attribute`
+##### `Validators` Field on `schema.Attribute`
 
 A new field that accepts a list of functions can be added to the `schema.Attribute` type. For example:
 
 ```go
 schema.Attribute{
     // ...
-    ValueValidators: []T{
+    Validators: []T{
         T,
         T,
     },
@@ -1273,311 +1265,20 @@ type Attribute interface {
     // ...
 }
 
-type AttributeWithValueValidators struct {
+type AttributeWithValidators struct {
     Attribute
-    ValueValidators []T
+    Validators []T
 }
 
 // or more interfaces
 
-type AttributeWithValueValidators interface {
+type AttributeWithValidators interface {
     Attribute
-    ValueValidators(/* ... */) []T
+    Validators(/* ... */) []T
 }
 ```
 
 This type of proposal, in isolation, feels extraneous given the current attribute implementation. The framework does not appear to benefit from this splitting and it seems desirable that all attributes should be able to enable value validation via optional data on the existing type.
-
-##### Resource Level Attribute Validation Handling
-
-This proposal would introduce no changes to `schema.Attribute`. Instead, this would require all attribute validation declarations at the `DataSource`, `Provider`, and `Resource` level.
-
-This proposal makes any value validation behaviors occur at a distance, meaning it is harder for provider developers to correlate the validation logic to the name/path and type information. It would also be very verbose for even moderately sized schemas with thorough value validation. The only real potential benefit to this framework implementation is that it is very straightforward from the framework perspective. The logic would execute the top level list of validations instead of walking all attributes to find other attributes.
-
-#### Defining Attribute Value Validation Functions
-
-This section includes examples with incoming types as `tftypes.AttributePath` and the `attr.Value` interface type with an output type of `error`. These implementation details are discussed later and only shown for simpler illustrative purposes here.
-
-##### `AttributeValueValidatorFunc` Type
-
-A new Go type could be created that defines the signature of a value validation function, similar to the previous framework `SchemaValidateFunc`. For example:
-
-```go
-type AttributeValueValidatorFunc func(context.Context, path *tftypes.AttributePath, value attr.Value) error
-```
-
-To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
-
-```go
-type AttributeValueValidatorFunc func(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value attr.Value) error
-```
-
-While the simplest implementation, this proposal does not allow for documentation hooks.
-
-##### Single `attr.ValueValidator` Interface
-
-A new Go interface type could be created that defines an extensible value validation function type. For example:
-
-```go
-type ValueValidator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    Validate(context.Context, path *tftypes.AttributePath, value attr.Value) error
-}
-```
-
-With an example implementation:
-
-```go
-type stringLengthBetweenValidator struct {
-    ValueValidator
-
-    maximum int
-    minimum int
-}
-
-func (v stringLengthBetweenValidator) Description(_ context.Context) string {
-    return fmt.Sprintf("length must be between %d and %d", v.minimum, v.maximum)
-}
-
-func (v stringLengthBetweenValidator) MarkdownDescription(_ context.Context) string {
-    return fmt.Sprintf("length must be between `%d` and `%d`", v.minimum, v.maximum)
-}
-
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, path *tftypes.AttributePath, rawValue attr.Value) error {
-    value, ok := rawValue.(types.String)
-    
-    if !ok {
-        return fmt.Errorf("%s with incorrect type: %T", path, rawValue)
-    }
-
-    if value.Unknown {
-        return fmt.Errorf("%s with unknown value", path)
-    }
-
-    if len(value.Value) < v.minimum || len(value.Value) > v.maximum {
-        return fmt.Errorf("%s with value %q %s", path, value.Value, v.Description(ctx))
-    }
-
-    return nil
-}
-
-func StringLengthBetween(minimum int, maximum int) stringLengthBetweenValidator {
-    return stringLengthBetweenValidator{
-        maximum: maximum,
-        minimum: minimum,
-    }
-}
-```
-
-This helps solve the documentation issue with the following example slice type alias and receiver method:
-
-```go
-// ValueValidators implements iteration functions across ValueValidator
-type ValueValidators []ValueValidator
-
-// Descriptions returns all ValueValidator Description
-func (vs ValueValidators) Descriptions(ctx context.Context) []string {
-    result := make([]string, 0, len(vs))
-
-    for _, v := range vs {
-        result = append(result, v.Description(ctx))
-    }
-    return result
-}
-```
-
-To support passing through the provider instance, a separate interface type could be introduced that includes a function call with the `tfsdk.Provider` interface type:
-
-```go
-type ValueValidatorWithProvider interface {
-    ValueValidator
-    ValidateWithProvider(context.Context, provider tfsdk.Provider, path *tftypes.AttributePath, value attr.Value) error
-}
-```
-
-However, this does not align well with the request and response model pattern used throughout the rest of the framework. Interface compatibility breaks if parameters or returns require adjustment for future changes. This single interface could not also handle any potential nuance between provider, data source, and resource validation.
-
-#### Attribute Validator Request and Response Pattern
-
-The framework could implement the request and response pattern for attribute validation. For example:
-
-```go
-type ValidateAttributeRequest struct {
-    // AttributePath contains the path of the attribute.
-    AttributePath tftypes.AttributePath
-
-    // AttributeConfig contains the value of the attribute.
-    AttributeConfig attr.Value
-
-    // Config contains the entire configuration of the data source, provider, or resource.
-    Config tfsdk.Config
-}
-
-type ValidateAttributeResponse struct {
-    Diagnostics []*tfprotov6.Diagnostic
-}
-
-type AttributeValidator interface {
-    Description(context.Context) string
-    MarkdownDescription(context.Context) string
-    Validate(context.Context, ValidateAttributeRequest, *ValidateAttributeResponse)
-}
-```
-
-Provider instances for data sources or resources could be supported by providing further interface types:
-
-```go
-// AttributeValidator is an interface type for declaring attribute validation that requires a provider instance.
-type AttributeValidatorWithProvider interface {
-    AttributeValidator
-    ValidateWithProvider(context.Context, tfsdk.Provider, ValidateAttributeRequest, *ValidateAttributeResponse)
-}
-```
-
-This would provide the lowest level and most customizable option to enable the framework and provider developers to abstract functionality on top. It also ensures compability can be maintained should parameters or returns necessitate changes, while also satisifying the ability for documentation hooks.
-
-One caveat to this single type is that it would not capture any nuance between data sources, providers, and resources should their RPCs provide differing functionality in the future.
-
-### Multiple Attribute Validation
-
-This framework should also provide the ability to handle validation situations across multiple attributes as noted in the goals. Some of the proposals from the [Single Attribute Value Validation](#single-attribute-value-validation) section are applicable for these proposals as well, so they are largely omitted here for brevity. Examples showing `attr.Value`, `*tftypes.AttributePath`, and bare `error` types are for illustrative purposes, whose final forms would be determined by those proposals.
-
-#### Declaring Multiple Attribute Validation for Attributes
-
-The previous framework implemented behaviors, such as `ConflictsWith`, as an individual field per behavior within each attribute. This section of proposals targets this specific functionality. One major caveat to these proposals is that they should not be considered exclusive to attribute value validations as it may be desirable to provide some consistency between the two implementations to improve developer experience.
-
-This section includes examples and details with `schema.Attribute` implemented as a Go structure type as it exists today. Future design considerations around creating specialized or custom attribute types may warrant switching this to an interface type with separate concrete types.
-
-##### Individual Behavior Fields on `schema.Attribute`
-
-Similar to the previous framework, individual fields for each attribute validation could be added to the `schema.Attribute` type which accepts multiple attribute paths. For example:
-
-```go
-schema.Attribute{
-    // ...
-    ConflictsWith: []tftypes.AttributePath,
-}
-```
-
-A potential downside is that these behaviors cannot support the notion of conditional logic without changes to the implementations, since they can only be existence based if passed an attribute path. Allowing value validations in the declarations (on either side), could allieviate this issue. For example:
-
-```go
-schema.Attribute{
-    // ...
-    ConflictsWith: []func(AttributeValueValidator, tftypes.AttributePath, AttributeValueValidator),
-}
-```
-
-Regardless of the potential value handling, this proposal would feel familiar for existing provider developers and be relatively trivial for them to implement. One noticable downside to this approach however is that there can be any number of related, but disjointed attribute behaviors. The previous framework supported four of these already and there is logical room for addtional behaviors, making updates to the `schema.Attribute` type a limiting factor in this validation space. This proposal also differs from value validation proposals, which are focused around a single field.
-
-##### `PathValidator` Field on `schema.Attribute`
-
-A new field for attribute validation can be added to the `schema.Attribute` type. For example:
-
-```go
-schema.Attribute{
-    // ...
-    PathValidator: T,
-}
-```
-
-Implementators would be responsible for ensuring that single function covered all necessary validation. The framework could provide wrapper functions similar to the previous `All()` and `Any()` of `ValidateFunc` to allow simpler validations built from multiple functions. For example:
-
-```go
-schema.Attribute{
-    // ...
-    PathValidator: All(
-        T,
-        T,
-    ),
-}
-```
-
-As seen with the previous framework in practice however, it was very common to implement the `All()` wrapper function. New provider developers would be responsible for understanding that multiple validations are possible in the single function field and knowing that custom validation functions may not be necessary to write if using the wrapper functions.
-
-This proposal colocates the attribute validation behaviors in the schema definition, meaning it is easier for provider developers to discover this type of validation and correlate the validation logic to the name and type information.
-
-##### `PathValidators` Field on `schema.Attribute`
-
-A new field that accepts a list of functions can be added to the `schema.Attribute` type. For example:
-
-```go
-schema.Attribute{
-    // ...
-    PathValidators: []T{
-        T,
-        T,
-    },
-}
-```
-
-In this case, the framework would perform the validation similar to the previous framework `All()` wrapper function for `ValidateFunc`. The logical `AND` type of value validation is overwhelmingly more common in practice, which will simplify provider implementations. This still allows for an `Any()` based wrapper (logical `OR`) to be inserted if necessary.
-
-Colocating the attribute validation behaviors in the schema definition, means it is easier for provider developers to discover this type of validation and correlate the validation logic to the name and type information. This proposal will feel familiar to existing provider developers. New provider developers will immediately know that multiple validations are supported.
-
-##### Combined `Validators` Field on `schema.Attribute`
-
-A new field that accepts the union of [`ValueValidators` field on `schema.Attribute`](#valuevalidators-field-on-schemaattribute) and [`PathValidators` field on `schema.Attribute`](#pathvalidators-field-on-schemaattribute) can be added to the `schema.Attribute` type. For example:
-
-```go
-schema.Attribute(
-    // ...
-    Validators: []I(
-        T1,
-        T2,
-    )
-)
-```
-
-Since value validation functions would inherently be implemented different than path validation functions and they are conceptually similar but different in certain ways, this could be complex to implement or understand correctly. When trying to handle documentation output for example, this framework or callers would need to distinguish between the two validation types to ensure the intended validation meanings are correct.
-
-##### Resource Level Attribute Path Validation Handling
-
-Rather than adjusting the `schema.Attribute` type for this type of validation, it could be forced to the resource (or data source) level. The [Declaring Multiple Attribute Validation for Resources](#declaring-multiple-attribute-validation-for-resources) proposals presented later are revelant for this section. To prevent proposal duplication, please see that section for more details and associated tradeoffs.
-
-#### Declaring Multiple Attribute Validation for Resources
-
-In the previous framework, the `CustomizeDiff` functionality enabled resource (or data source) level validation as a logical catch-all. These proposals cover the next iteration of that type of functionality.
-
-##### `PlanModifications` for Resources
-
-The [Plan Modifications design documentation](./plan-modifications.md) outlines proposals which broadly replace the previous framework's `CustomizeDiff` functionality. See that documentation for considerations and recommendations there. In this proposal for validation, new functions for validation would be provided within that framework, rather than introducing separate handling.
-
-Implementing against that design could prove complex for the framework as they are intended to serve differing purposes. It could also be confusing for provider developers in the same way that `CustomizeDiff` was confusing where differing logical rules applied to differing attribute value and operation scenarios. Another wrinkle is that plan modifications are only intended to run during `terraform plan` (`PlanResourceChanges` RPC) and `terraform apply` (`ApplyResourceChanges` RPC), so the framework would be introducing its own additional logic to extract and perform any validation functions during the `terraform validate` (`ValidateDataSourceConfig`/`ValidateProviderConfig`/`ValidateResourceConfig` RPCs).
-
-##### `Validators` for Resources
-
-This introduces a new extension interface type for `ResourceType` and `DataSourceType`. For example:
-
-```go
-type DataSourceTypeWithValidators interface {
-    DataSourceType
-    Validators(context.Context) Validators
-}
-
-type ResourceTypeWithValidators interface {
-    ResourceType
-    Validators(context.Context) Validators
-}
-```
-
-Where `Validators` is a slice of types to be discussed later.
-
-As an example sketch, provider developers could introduce a function that fulfills the new interface with example helpers such as:
-
-```go
-func (t *customResourceType) Validators(ctx context.Context) Validators {
-    return Validators{
-      ConflictingAttributes(*tftypes.AttributePath, *tftypes.Attribute),
-      ConflictingAttributesWithValues(*tftypes.AttributePath, ValueValidator, *tftypes.AttributePath, ValueValidator),
-      PrerequisiteAttribute(*tftypes.AttributePath, *tftypes.AttributePath),
-      PrerequisiteAttributeWithValue(*tftypes.AttributePath, ValueValidator, *tftypes.AttributePath),
-    }
-}
-```
-
-This setup would allow for the framework to provide flexible resource level validation with a low amount of friction for provider developers. Helper functions would be extensible and make the behaviors clear.
 
 ## Recommendations
 

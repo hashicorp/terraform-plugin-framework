@@ -122,7 +122,7 @@ Within these, there are two types of validation:
 - Single attribute value validation (e.g. string length)
 - Multiple attribute validation (e.g. attributes or attribute values that conflict with each other)
 
-There is no difference between these types of validation to Terraform, as Terraform just works with errors and warnings being returned from providers, but the previous framework surfaced these different conceptually.
+There is no difference between these types of validation to Terraform, as Terraform just works with errors and warnings being returned from providers, but the previous framework surfaced these concepts differently.
 
 The next sections will outline some of the underlying details relevant to implementation proposals in this framework.
 
@@ -974,18 +974,18 @@ Allow provider developers access to all current types of provider validation:
 - Resource configurations (and configurations during plans)
 - Data Source configurations (and configurations during plans)
 
-Including where possible:
+Including support of these concepts where possible:
 
 - Single attribute value validation (e.g. string length)
 - Multiple attribute validation (e.g. attributes or attribute values that conflict with each other)
 
-In terms of implementation, the following core concepts:
+In terms of implementation, the following core concepts should be prioritized:
 
-- Low level primitives (e.g other portions of the framework, external packages, and provider developers can implement higher level functionality)
+- Composable building blocks (e.g other portions of the framework, external packages, and provider developers can implement higher level functionality)
 - Reusability between single attribute and multiple attribute validation functionality (e.g. attribute value functions)
 - Hooks for documentation (e.g. for future tooling such as provider documentation generators to self-document attributes)
 
-Finally, these other considerations:
+Finally, this design should have considerations for the following:
 
 - Providing the appropriate amount of contextual information for debugging purposes (e.g. logging)
 - Providing the appropriate amount of contextual information for practitioner facing output (e.g. paths and values involved with validation decisions)
@@ -996,7 +996,7 @@ Finally, these other considerations:
 
 ## Proposals
 
-### Extending Plan Modifications Versus New Handling
+### Extending Plan Modifications Versus New Abstraction
 
 #### Extending Plan Modifications
 
@@ -1004,7 +1004,7 @@ The [Plan Modifications design documentation](./plan-modifications.md) outlines 
 
 Implementing against that design could prove complex for the framework as they are intended to serve differing purposes. It could also be confusing for provider developers in the same way that `CustomizeDiff` was confusing where differing logical rules applied to differing attribute value and operation scenarios. Another wrinkle is that plan modifications are only intended to run during `terraform plan` (`PlanResourceChanges` RPC) and `terraform apply` (`ApplyResourceChanges` RPC), so the framework would be introducing its own additional logic to extract and perform any validation functions during the `terraform validate` (`ValidateDataSourceConfig`/`ValidateProviderConfig`/`ValidateResourceConfig` RPCs).
 
-#### New Handling
+#### New Abstraction
 
 This framework can implement separate types and logic for validation. This aligns well with other design decisions in the framework and will enable it to provide targeted solutions that can capture context and functionality appropriately for various validation scenarios, which may not be appropriate if bundled with other functionality such as plan modifications.
 
@@ -1042,13 +1042,13 @@ New Go type(s) could be created that define the signature of a validation functi
 type ValidationFunc func(context.Context, ValidationRequest, *ValidationResponse)
 ```
 
-To support passing through the provider instance to the function, the parameters would also need to include a `tfsdk.Provider` interface type:
+To support passing through the provider instance to the function, the framework would either need to include a `tfsdk.Provider` field in the request type or as a separate parameter:
 
 ```go
 type ValidationFunc func(context.Context, provider tfsdk.Provider, ValidationRequest, *ValidationResponse)
 ```
 
-The main drawback of this approach is that it does not allow for documentation hooks. This also drifts from other design decisions of the framework without providing much benefit for the differing implementation.
+For one-off implementations, the functionality can be written inline without creating an additional type. The main drawback of this approach is that it does not allow for documentation hooks. This also drifts from other design decisions of the framework without providing much benefit for the differing implementation.
 
 #### Interfaces
 
@@ -1306,7 +1306,7 @@ This section will summarize the proposals into specific recommendations for each
 
 Defining all validation functionality via interface types will offer the framework the most flexibility for future enhancements while ensuring consistent implementations. The request and response pattern should be used to enable backwards (in the case of field deprecations) and forwards compatibility.
 
-All validation should be implemented separately from plan modifications as they address differing concerns and operations within the Terraform. Attribute validations should be implemented as a slice of the interface type on `schema.Attribute` while Data Source, Provider, and Resource level validation should be implemented as new extension interface types. Further helper functions and designs can reduce implementation details.
+All validation should be implemented separately from plan modifications as they address differing concerns and operations within Terraform. Attribute validations should be implemented as a slice of the interface type on `schema.Attribute` while Data Source, Provider, and Resource level validation should be implemented as new extension interface types. Further helper functions and designs can reduce implementation details.
 
 ### Data Source Example Implementation
 
@@ -1504,7 +1504,7 @@ Example validation function code:
 
 ```go
 type stringLengthBetweenValidator struct {
-    StringValueValidator
+    AttributeValidator
 
     maximum int
     minimum int
@@ -1574,11 +1574,11 @@ schema.Attribute{
 
 ### Future Considerations
 
-It is recommended that the framework provide an abstracted `*tftypes.AttributePath` rather than depend on that type directly, but this can converted after an initial implementation. This is purely for decoupling the two projects, similar to other abstracted types already created in the framework.
+It is recommended to discuss whether the framework should provide an abstracted `*tftypes.AttributePath` rather than depend on that type directly. This can converted after an initial implementation and purely for decoupling the two projects, similar to other abstracted types already created in the framework.
 
-To better support provider-based validation functionality in the future, it is also recommended that the `Provider` interface type also add a new `Configured(context.Context) bool` function or another methodology for easily checking the configuration state of a provider instance. Adding a setter function could also allow the framework to manage the provider configuration state automatically. This would simplify validations that require provider instances since it will likely be required that implementations need to check on this status as part of the validation logic.
+To better support provider-based validation functionality in the future, it is also recommended to discuss whether the `Provider` interface type also add a new `Configured(context.Context) bool` function or another methodology for easily checking the configuration state of a provider instance. Adding a setter function could also allow the framework to manage the provider configuration state automatically. This would simplify validations that require provider instances since it will likely be required that implementations need to check on this status as part of the validation logic.
 
-It is recommended that the framework or the upstream terraform-plugin-go module provide functionality to declare relative attribute paths, such as "this" and "parent" methods to better enable nested attribute declarations. This will enable provider developers to create attribute paths such as:
+It is recommended to discuss whether the framework or the upstream terraform-plugin-go module provide functionality to declare relative attribute paths, such as "this" and "parent" methods to better enable nested attribute declarations. This will enable provider developers to create attribute paths such as:
 
 ```go
 NewAttributePath(CurrentPath().Parent().AttributeName("other_attr"))

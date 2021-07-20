@@ -5,15 +5,14 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/hashicorp/terraform-plugin-framework/schema"
-
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// Schema returns the *tfprotov6.Schema equivalent of a schema.Schema. At least
+// Schema returns the *tfprotov6.Schema equivalent of a tfsdk.Schema. At least
 // one attribute must be set in the schema, or an error will be returned.
-func Schema(ctx context.Context, s schema.Schema) (*tfprotov6.Schema, error) {
+func Schema(ctx context.Context, s tfsdk.Schema) (*tfprotov6.Schema, error) {
 	result := &tfprotov6.Schema{
 		Version: s.Version,
 	}
@@ -55,9 +54,9 @@ func Schema(ctx context.Context, s schema.Schema) (*tfprotov6.Schema, error) {
 }
 
 // Attribute returns the *tfprotov6.SchemaAttribute equivalent of a
-// schema.Attribute. Errors will be tftypes.AttributePathErrors based on
+// tfsdk.Attribute. Errors will be tftypes.AttributePathErrors based on
 // `path`. `name` is the name of the attribute.
-func Attribute(ctx context.Context, name string, attr schema.Attribute, path *tftypes.AttributePath) (*tfprotov6.SchemaAttribute, error) {
+func Attribute(ctx context.Context, name string, attr tfsdk.Attribute, path *tftypes.AttributePath) (*tfprotov6.SchemaAttribute, error) {
 	a := &tfprotov6.SchemaAttribute{
 		Name:      name,
 		Required:  attr.Required,
@@ -85,13 +84,13 @@ func Attribute(ctx context.Context, name string, attr schema.Attribute, path *tf
 		}
 		nm := attr.Attributes.GetNestingMode()
 		switch nm {
-		case schema.NestingModeSingle:
+		case tfsdk.NestingModeSingle:
 			object.Nesting = tfprotov6.SchemaObjectNestingModeSingle
-		case schema.NestingModeList:
+		case tfsdk.NestingModeList:
 			object.Nesting = tfprotov6.SchemaObjectNestingModeList
-		case schema.NestingModeSet:
+		case tfsdk.NestingModeSet:
 			object.Nesting = tfprotov6.SchemaObjectNestingModeSet
-		case schema.NestingModeMap:
+		case tfsdk.NestingModeMap:
 			object.Nesting = tfprotov6.SchemaObjectNestingModeMap
 		default:
 			return nil, path.NewErrorf("unrecognized nesting mode %v", nm)

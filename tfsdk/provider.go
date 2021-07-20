@@ -3,7 +3,6 @@ package tfsdk
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
@@ -11,7 +10,7 @@ import (
 type Provider interface {
 	// GetSchema returns the schema for this provider's configuration. If
 	// this provider has no configuration, return an empty schema.Schema.
-	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
+	GetSchema(context.Context) (Schema, []*tfprotov6.Diagnostic)
 
 	// Configure is called at the beginning of the provider lifecycle, when
 	// Terraform sends to the provider the values the user specified in the
@@ -38,5 +37,5 @@ type Provider interface {
 type ProviderWithProviderMeta interface {
 	Provider
 	// GetMetaSchema returns the provider meta schema.
-	GetMetaSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
+	GetMetaSchema(context.Context) (Schema, []*tfprotov6.Diagnostic)
 }

@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
-	"github.com/hashicorp/terraform-plugin-framework/schema"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	tf6server "github.com/hashicorp/terraform-plugin-go/tfprotov6/server"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -379,14 +377,14 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	return resp, nil
 }
 
-func markComputedNilsAsUnknown(ctx context.Context, resourceSchema schema.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
+func markComputedNilsAsUnknown(ctx context.Context, resourceSchema Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
 	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
 		if !val.IsNull() {
 			return val, nil
 		}
 		attribute, err := resourceSchema.AttributeAtPath(path)
 		if err != nil {
-			if errors.Is(err, schema.ErrPathInsideAtomicAttribute) {
+			if errors.Is(err, ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
 				return val, nil
 			}

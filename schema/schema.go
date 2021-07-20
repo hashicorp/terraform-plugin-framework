@@ -126,3 +126,19 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 	}
 	return a, nil
 }
+
+func (s Schema) Validate(ctx context.Context, req ValidateSchemaRequest, resp *ValidateSchemaResponse) {
+	for name, attribute := range s.Attributes {
+		attributeReq := ValidateAttributeRequest{
+			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
+			Config:        req.Config,
+		}
+		attributeResp := &ValidateAttributeResponse{}
+
+		attribute.Validate(ctx, attributeReq, attributeResp)
+
+		resp.Diagnostics = append(resp.Diagnostics, attributeResp.Diagnostics...)
+	}
+
+	return
+}

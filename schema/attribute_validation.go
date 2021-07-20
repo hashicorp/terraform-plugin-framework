@@ -1,0 +1,44 @@
+package schema
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+)
+
+// AttributeValidator describes reusable Attribute validation functionality.
+type AttributeValidator interface {
+	// Description describes the validation in plain text formatting.
+	Description(context.Context) string
+
+	// MarkdownDescription describes the validation in Markdown formatting.
+	MarkdownDescription(context.Context) string
+
+	// Validate performs the validation.
+	Validate(context.Context, ValidateAttributeRequest, *ValidateAttributeResponse)
+}
+
+// ValidateAttributeRequest repesents a request for
+type ValidateAttributeRequest struct {
+	// AttributePath contains the path of the attribute.
+	AttributePath *tftypes.AttributePath
+
+	// AttributeConfig contains the value of the attribute in the configuration.
+	AttributeConfig attr.Value
+
+	// Config contains the entire configuration of the data source, provider, or resource.
+	Config tfsdk.Config
+}
+
+// ValidateAttributeResponse represents a response to a
+// ValidateAttributeRequest. An instance of this response struct is
+// automatically passed through to each AttributeValidator.
+type ValidateAttributeResponse struct {
+	// Diagnostics report errors or warnings related to validating the data
+	// source configuration. An empty slice indicates success, with no warnings
+	// or errors generated.
+	Diagnostics []*tfprotov6.Diagnostic
+}

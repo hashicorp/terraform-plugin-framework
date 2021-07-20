@@ -1,6 +1,7 @@
 package tfsdk
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -66,7 +67,7 @@ type CreateResourceResponse struct {
 	// State is the state of the resource following the Create operation.
 	// This field is pre-populated from CreateResourceRequest.Plan and
 	// should be set during the resource's Create operation.
-	State State
+	State schema.State
 
 	// Diagnostics report errors or warnings related to creating the
 	// resource. An empty slice indicates a successful operation with no
@@ -124,7 +125,7 @@ type ReadResourceResponse struct {
 	// State is the state of the resource following the Read operation.
 	// This field is pre-populated from ReadResourceRequest.State and
 	// should be set during the resource's Read operation.
-	State State
+	State schema.State
 
 	// Diagnostics report errors or warnings related to reading the
 	// resource. An empty slice indicates a successful operation with no
@@ -182,7 +183,7 @@ type UpdateResourceResponse struct {
 	// State is the state of the resource following the Update operation.
 	// This field is pre-populated from UpdateResourceRequest.Plan and
 	// should be set during the resource's Update operation.
-	State State
+	State schema.State
 
 	// Diagnostics report errors or warnings related to updating the
 	// resource. An empty slice indicates a successful operation with no
@@ -240,7 +241,7 @@ type DeleteResourceResponse struct {
 	// State is the state of the resource following the Delete operation.
 	// This field is pre-populated from UpdateResourceRequest.Plan and
 	// should be set during the resource's Update operation.
-	State State
+	State schema.State
 
 	// Diagnostics report errors or warnings related to deleting the
 	// resource. An empty slice indicates a successful operation with no
@@ -297,7 +298,7 @@ func (r *DeleteResourceResponse) AddAttributeError(attributePath *tftypes.Attrib
 type ReadDataSourceResponse struct {
 	// State is the state of the data source following the Read operation.
 	// This field should be set during the resource's Read operation.
-	State State
+	State schema.State
 
 	// Diagnostics report errors or warnings related to reading the data
 	// source. An empty slice indicates a successful operation with no

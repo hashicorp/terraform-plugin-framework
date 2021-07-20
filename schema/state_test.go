@@ -1,4 +1,4 @@
-package tfsdk
+package schema
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -15,8 +14,8 @@ import (
 var allowAllUnexported = cmp.Exporter(func(reflect.Type) bool { return true })
 
 // schema used for all tests
-var testSchema = schema.Schema{
-	Attributes: map[string]schema.Attribute{
+var testSchema = Schema{
+	Attributes: map[string]Attribute{
 		"name": {
 			Type:     types.StringType,
 			Required: true,
@@ -31,7 +30,7 @@ var testSchema = schema.Schema{
 			Required: true,
 		},
 		"disks": {
-			Attributes: schema.ListNestedAttributes(map[string]schema.Attribute{
+			Attributes: ListNestedAttributes(map[string]Attribute{
 				"id": {
 					Type:     types.StringType,
 					Required: true,
@@ -40,12 +39,12 @@ var testSchema = schema.Schema{
 					Type:     types.BoolType,
 					Optional: true,
 				},
-			}, schema.ListNestedAttributesOptions{}),
+			}, ListNestedAttributesOptions{}),
 			Optional: true,
 			Computed: true,
 		},
 		"boot_disk": {
-			Attributes: schema.SingleNestedAttributes(map[string]schema.Attribute{
+			Attributes: SingleNestedAttributes(map[string]Attribute{
 				"id": {
 					Type:     types.StringType,
 					Required: true,

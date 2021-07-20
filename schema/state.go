@@ -1,4 +1,4 @@
-package tfsdk
+package schema
 
 import (
 	"context"
@@ -6,14 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // State represents a Terraform state.
 type State struct {
 	Raw    tftypes.Value
-	Schema schema.Schema
+	Schema Schema
 }
 
 // Get populates the struct passed as `target` with the entire state.

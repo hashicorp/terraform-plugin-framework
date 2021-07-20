@@ -1,5 +1,9 @@
 package tfsdk
 
+import (
+	"github.com/hashicorp/terraform-plugin-framework/schema"
+)
+
 // ConfigureProviderRequest represents a request containing the values the user
 // specified for the provider configuration block, along with other runtime
 // information from Terraform or the Plugin SDK. An instance of this request
@@ -15,7 +19,7 @@ type ConfigureProviderRequest struct {
 	// information should usually be persisted to the underlying type
 	// that's implementing the Provider interface, for use in later
 	// resource CRUD operations.
-	Config Config
+	Config schema.Config
 }
 
 // CreateResourceRequest represents a request for the provider to create a
@@ -27,13 +31,13 @@ type CreateResourceRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config schema.Config
 
 	// Plan is the planned state for the resource.
-	Plan Plan
+	Plan schema.Plan
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta schema.Config
 }
 
 // ReadResourceRequest represents a request for the provider to read a
@@ -43,10 +47,10 @@ type CreateResourceRequest struct {
 type ReadResourceRequest struct {
 	// State is the current state of the resource prior to the Read
 	// operation.
-	State State
+	State schema.State
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta schema.Config
 }
 
 // UpdateResourceRequest represents a request for the provider to update a
@@ -58,17 +62,17 @@ type UpdateResourceRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config schema.Config
 
 	// Plan is the planned state for the resource.
-	Plan Plan
+	Plan schema.Plan
 
 	// State is the current state of the resource prior to the Update
 	// operation.
-	State State
+	State schema.State
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta schema.Config
 }
 
 // DeleteResourceRequest represents a request for the provider to delete a
@@ -77,10 +81,10 @@ type UpdateResourceRequest struct {
 type DeleteResourceRequest struct {
 	// State is the current state of the resource prior to the Delete
 	// operation.
-	State State
+	State schema.State
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta schema.Config
 }
 
 // ReadDataSourceRequest represents a request for the provider to read a data
@@ -93,8 +97,8 @@ type ReadDataSourceRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config schema.Config
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta schema.Config
 }

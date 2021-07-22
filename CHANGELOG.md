@@ -1,4 +1,4 @@
-# 0.2.0 (Unreleased)
+# 0.2.0 (July 22, 2021)
 
 ENHANCEMENTS:
 * Added `tfsdk.NewProtocol6Server` to return a `tfprotov6.ProviderServer` implementation for testing and muxing purposes. ([#72](https://github.com/hashicorp/terraform-plugin-framework/issues/72))

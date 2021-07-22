@@ -136,7 +136,10 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 				Type:     types.ObjectType{},
 				Optional: true,
 			},
-			// TODO: add maps when we support them
+			"map": {
+				Type:     types.MapType{ElemType: types.NumberType},
+				Optional: true,
+			},
 			// TODO: add sets when we support them
 			// TODO: add tuples when we support them
 			"single-nested-attributes": {
@@ -165,6 +168,20 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 						Required: true,
 					},
 				}, schema.ListNestedAttributesOptions{}),
+				Optional: true,
+			},
+			"map-nested-attributes": {
+				Attributes: schema.MapNestedAttributes(map[string]schema.Attribute{
+					"foo": {
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
+					},
+					"bar": {
+						Type:     types.NumberType,
+						Required: true,
+					},
+				}, schema.MapNestedAttributesOptions{}),
 				Optional: true,
 			},
 		},
@@ -249,6 +266,33 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 				Optional: true,
 			},
 			{
+				Name: "map",
+				Type: tftypes.Map{
+					AttributeType: tftypes.Number,
+				},
+				Optional: true,
+			},
+			{
+				Name:     "map-nested-attributes",
+				Optional: true,
+				NestedType: &tfprotov6.SchemaObject{
+					Nesting: tfprotov6.SchemaObjectNestingModeMap,
+					Attributes: []*tfprotov6.SchemaAttribute{
+						{
+							Name:     "bar",
+							Type:     tftypes.Number,
+							Required: true,
+						},
+						{
+							Name:     "foo",
+							Type:     tftypes.String,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
+			{
 				Name:     "number",
 				Type:     tftypes.Number,
 				Optional: true,
@@ -314,7 +358,6 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 				Type:     tftypes.String,
 				Optional: true,
 			},
-			// TODO: add maps when we support them
 			// TODO: add sets when we support them
 			// TODO: add tuples when we support them
 		},
@@ -339,6 +382,7 @@ var testServeProviderProviderType = tftypes.Object{
 			"bar": tftypes.Bool,
 			"baz": tftypes.Number,
 		}}},
+		"map": tftypes.Map{AttributeType: tftypes.Number},
 		"object": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo":  tftypes.String,
 			"bar":  tftypes.Bool,
@@ -351,6 +395,10 @@ var testServeProviderProviderType = tftypes.Object{
 			"bar": tftypes.Number,
 		}},
 		"list-nested-attributes": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.Number,
+		}}},
+		"map-nested-attributes": tftypes.Map{AttributeType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo": tftypes.String,
 			"bar": tftypes.Number,
 		}}},

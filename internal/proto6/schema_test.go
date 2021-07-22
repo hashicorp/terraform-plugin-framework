@@ -84,7 +84,10 @@ func TestSchema(t *testing.T) {
 						}},
 						Optional: true,
 					},
-					// TODO: add map support when it lands
+					"map": {
+						Type:     types.MapType{ElemType: types.NumberType},
+						Computed: true,
+					},
 					// TODO: add tuple support when it lands
 					// TODO: add set support when it lands
 				},
@@ -97,6 +100,11 @@ func TestSchema(t *testing.T) {
 							Name:     "list",
 							Type:     tftypes.List{ElementType: tftypes.String},
 							Required: true,
+						},
+						{
+							Name:     "map",
+							Type:     tftypes.Map{AttributeType: tftypes.Number},
+							Computed: true,
 						},
 						{
 							Name: "object",
@@ -572,6 +580,19 @@ func TestAttribute(t *testing.T) {
 				Optional: true,
 			},
 		},
+		"attr-map": {
+			name: "map",
+			attr: schema.Attribute{
+				Type:     types.MapType{ElemType: types.StringType},
+				Optional: true,
+			},
+			path: tftypes.NewAttributePath(),
+			expected: &tfprotov6.SchemaAttribute{
+				Name:     "map",
+				Type:     tftypes.Map{AttributeType: tftypes.String},
+				Optional: true,
+			},
+		},
 		"attr-object": {
 			name: "object",
 			attr: schema.Attribute{
@@ -593,7 +614,6 @@ func TestAttribute(t *testing.T) {
 				Optional: true,
 			},
 		},
-		// TODO: add map attribute when we support it
 		// TODO: add set attribute when we support it
 		// TODO: add tuple attribute when we support it
 		"required": {

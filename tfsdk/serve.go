@@ -29,6 +29,14 @@ type ServeOpts struct {
 	Name string
 }
 
+// NewProtocol6Server returns a tfprotov6.ProviderServer implementation based
+// on the passed Provider implementation.
+func NewProtocol6Server(p Provider) tfprotov6.ProviderServer {
+	return &server{
+		p: p,
+	}
+}
+
 // Serve serves a provider, blocking until the context is canceled.
 func Serve(ctx context.Context, factory func() Provider, opts ServeOpts) error {
 	return tf6server.Serve(opts.Name, func() tfprotov6.ProviderServer {

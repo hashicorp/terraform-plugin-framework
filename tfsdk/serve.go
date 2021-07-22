@@ -356,6 +356,7 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	}
 	readResp := ReadResourceResponse{
 		State: State{
+			Raw:    state,
 			Schema: resourceSchema,
 		},
 		Diagnostics: resp.Diagnostics,
@@ -591,15 +592,12 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		createResp := CreateResourceResponse{
 			State: State{
 				Schema: resourceSchema,
+				Raw:    priorState,
 			},
 			Diagnostics: resp.Diagnostics,
 		}
 		resource.Create(ctx, createReq, &createResp)
 		resp.Diagnostics = createResp.Diagnostics
-		// TODO: set partial state before returning error
-		if diagsHasErrors(resp.Diagnostics) {
-			return resp, nil
-		}
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), createResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
@@ -655,15 +653,12 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		updateResp := UpdateResourceResponse{
 			State: State{
 				Schema: resourceSchema,
+				Raw:    priorState,
 			},
 			Diagnostics: resp.Diagnostics,
 		}
 		resource.Update(ctx, updateReq, &updateResp)
 		resp.Diagnostics = updateResp.Diagnostics
-		// TODO: set partial state before returning error
-		if diagsHasErrors(resp.Diagnostics) {
-			return resp, nil
-		}
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), updateResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
@@ -674,6 +669,7 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			return resp, nil
 		}
 		resp.NewState = &newState
+		return resp, nil
 	case !create && !update && destroy:
 		destroyReq := DeleteResourceRequest{
 			State: State{
@@ -710,15 +706,12 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		destroyResp := DeleteResourceResponse{
 			State: State{
 				Schema: resourceSchema,
+				Raw:    priorState,
 			},
 			Diagnostics: resp.Diagnostics,
 		}
 		resource.Delete(ctx, destroyReq, &destroyResp)
 		resp.Diagnostics = destroyResp.Diagnostics
-		// TODO: set partial state before returning error
-		if diagsHasErrors(resp.Diagnostics) {
-			return resp, nil
-		}
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), destroyResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
@@ -729,6 +722,7 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			return resp, nil
 		}
 		resp.NewState = &newState
+		return resp, nil
 	default:
 		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 			Severity: tfprotov6.DiagnosticSeverityError,
@@ -737,7 +731,6 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		})
 		return resp, nil
 	}
-	return resp, nil
 }
 
 func (s *server) ImportResourceState(ctx context.Context, _ *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
@@ -819,6 +812,10 @@ func (s *server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 	readResp := ReadDataSourceResponse{
 		State: State{
 			Schema: dataSourceSchema,
+			// default to the config values
+			// they should be of the same type
+			// we just want SetAttribute to not find an empty value
+			Raw: config,
 		},
 		Diagnostics: resp.Diagnostics,
 	}

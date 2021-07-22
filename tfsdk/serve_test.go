@@ -1289,6 +1289,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 				"name": tftypes.NewValue(tftypes.String, "hello, world"),
 				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
 					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
 				}),
 				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
 			}),

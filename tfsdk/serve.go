@@ -117,7 +117,7 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 		}
 	}
 	// convert the provider schema to a *tfprotov6.Schema
-	provider6Schema, err := proto6.Schema(ctx, providerSchema)
+	provider6Schema, err := providerSchema.tfprotov6Schema(ctx)
 	if err != nil {
 		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 			Severity: tfprotov6.DiagnosticSeverityError,
@@ -142,7 +142,7 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 				return resp, nil
 			}
 		}
-		pm6Schema, err := proto6.Schema(ctx, providerMetaSchema)
+		pm6Schema, err := providerMetaSchema.tfprotov6Schema(ctx)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 				Severity: tfprotov6.DiagnosticSeverityError,
@@ -171,7 +171,7 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 				return resp, nil
 			}
 		}
-		schema6, err := proto6.Schema(ctx, schema)
+		schema6, err := schema.tfprotov6Schema(ctx)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 				Severity: tfprotov6.DiagnosticSeverityError,
@@ -200,7 +200,7 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 				return resp, nil
 			}
 		}
-		schema6, err := proto6.Schema(ctx, schema)
+		schema6, err := schema.tfprotov6Schema(ctx)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 				Severity: tfprotov6.DiagnosticSeverityError,

@@ -1,9 +1,12 @@
 package tfsdk
 
 import (
+	"context"
 	"errors"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -118,4 +121,89 @@ func (a Attribute) Equal(o Attribute) bool {
 		return false
 	}
 	return true
+}
+
+// tfprotov6 returns the *tfprotov6.SchemaAttribute equivalent of an
+// Attribute. Errors will be tftypes.AttributePathErrors based on
+// `path`. `name` is the name of the attribute.
+func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath) (*tfprotov6.SchemaAttribute, error) {
+	schemaAttribute := &tfprotov6.SchemaAttribute{
+		Name:      name,
+		Required:  a.Required,
+		Optional:  a.Optional,
+		Computed:  a.Computed,
+		Sensitive: a.Sensitive,
+	}
+
+	if a.DeprecationMessage != "" {
+		schemaAttribute.Deprecated = true
+	}
+
+	if a.Description != "" {
+		schemaAttribute.Description = a.Description
+		schemaAttribute.DescriptionKind = tfprotov6.StringKindPlain
+	}
+
+	if a.MarkdownDescription != "" {
+		schemaAttribute.Description = a.MarkdownDescription
+		schemaAttribute.DescriptionKind = tfprotov6.StringKindMarkdown
+	}
+
+	if a.Attributes != nil && len(a.Attributes.GetAttributes()) > 0 && a.Type != nil {
+		return nil, path.NewErrorf("can't have both Attributes and Type set")
+	}
+
+	if (a.Attributes == nil || len(a.Attributes.GetAttributes()) < 1) && a.Type == nil {
+		return nil, path.NewErrorf("must have Attributes or Type set")
+	}
+
+	if a.Type != nil {
+		schemaAttribute.Type = a.Type.TerraformType(ctx)
+
+		return schemaAttribute, nil
+	}
+
+	object := &tfprotov6.SchemaObject{
+		MinItems: a.Attributes.GetMinItems(),
+		MaxItems: a.Attributes.GetMaxItems(),
+	}
+	nm := a.Attributes.GetNestingMode()
+	switch nm {
+	case NestingModeSingle:
+		object.Nesting = tfprotov6.SchemaObjectNestingModeSingle
+	case NestingModeList:
+		object.Nesting = tfprotov6.SchemaObjectNestingModeList
+	case NestingModeSet:
+		object.Nesting = tfprotov6.SchemaObjectNestingModeSet
+	case NestingModeMap:
+		object.Nesting = tfprotov6.SchemaObjectNestingModeMap
+	default:
+		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
+	}
+
+	for nestedName, nestedA := range a.Attributes.GetAttributes() {
+		nestedSchemaAttribute, err := nestedA.tfprotov6SchemaAttribute(ctx, nestedName, path.WithAttributeName(nestedName))
+
+		if err != nil {
+			return nil, err
+		}
+
+		object.Attributes = append(object.Attributes, nestedSchemaAttribute)
+	}
+
+	sort.Slice(object.Attributes, func(i, j int) bool {
+		if object.Attributes[i] == nil {
+			return true
+		}
+
+		if object.Attributes[j] == nil {
+			return false
+		}
+
+		return object.Attributes[i].Name < object.Attributes[j].Name
+	})
+
+	schemaAttribute.NestedType = object
+
+	return schemaAttribute, nil
 }

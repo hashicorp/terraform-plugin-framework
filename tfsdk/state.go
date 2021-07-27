@@ -34,6 +34,11 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 		return nil, fmt.Errorf("error walking state: %w", err)
 	}
 
+	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = attrTypeWithValidate.Validate(ctx, attrValue)
+	}
+
 	return attrType.ValueFromTerraform(ctx, attrValue)
 }
 
@@ -79,7 +84,14 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 
 	transformFunc := func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
 		if p.Equal(path) {
-			return tftypes.NewValue(attrType.TerraformType(ctx), newTfVal), nil
+			tfVal := tftypes.NewValue(attrType.TerraformType(ctx), newTfVal)
+
+			if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+				// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+				_ = attrTypeWithValidate.Validate(ctx, tfVal)
+			}
+
+			return tfVal, nil
 		}
 		return v, nil
 	}

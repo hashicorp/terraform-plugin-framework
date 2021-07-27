@@ -66,9 +66,19 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 //
 // It is meant to be called through OutOf, not directly.
 func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
+	tfType := typ.TerraformType(ctx)
+
 	if val.IsNil() {
-		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+		tfVal := tftypes.NewValue(tfType, nil)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+			_ = typeWithValidate.Validate(ctx, tfVal)
+		}
+
+		return typ.ValueFromTerraform(ctx, tfVal)
 	}
+
 	elemType := typ.ElementType()
 	tfElems := map[string]tftypes.Value{}
 	for _, key := range val.MapKeys() {
@@ -83,15 +93,35 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 		if err != nil {
 			return nil, path.NewError(err)
 		}
-		err = tftypes.ValidateValue(elemType.TerraformType(ctx), tfVal)
+
+		tfElemType := elemType.TerraformType(ctx)
+		err = tftypes.ValidateValue(tfElemType, tfVal)
+
 		if err != nil {
 			return nil, path.NewError(err)
 		}
-		tfElems[key.String()] = tftypes.NewValue(elemType.TerraformType(ctx), tfVal)
+
+		tfElemVal := tftypes.NewValue(tfElemType, tfVal)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+			_ = typeWithValidate.Validate(ctx, tfElemVal)
+		}
+
+		tfElems[key.String()] = tfElemVal
 	}
-	err := tftypes.ValidateValue(typ.TerraformType(ctx), tfElems)
+
+	err := tftypes.ValidateValue(tfType, tfElems)
 	if err != nil {
 		return nil, path.NewError(err)
 	}
-	return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tfElems))
+
+	tfVal := tftypes.NewValue(tfType, tfElems)
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfVal)
+	}
+
+	return typ.ValueFromTerraform(ctx, tfVal)
 }

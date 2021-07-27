@@ -139,12 +139,25 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		if err != nil {
 			return nil, path.NewError(err)
 		}
-		objValues[name] = tftypes.NewValue(objTypes[name], tfVal)
+
+		tfObjVal := tftypes.NewValue(objTypes[name], tfVal)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+			_ = typeWithValidate.Validate(ctx, tfObjVal)
+		}
+
+		objValues[name] = tfObjVal
 	}
 
 	tfVal := tftypes.NewValue(tftypes.Object{
 		AttributeTypes: objTypes,
 	}, objValues)
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfVal)
+	}
 
 	retType := typ.WithAttributeTypes(attrTypes)
 	ret, err := retType.ValueFromTerraform(ctx, tfVal)

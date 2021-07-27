@@ -68,7 +68,14 @@ func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *
 		return nil, path.NewErrorf("can't use type %s as a pointer", value.Type())
 	}
 	if value.IsNil() {
-		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+		tfVal := tftypes.NewValue(typ.TerraformType(ctx), nil)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+			_ = typeWithValidate.Validate(ctx, tfVal)
+		}
+
+		return typ.ValueFromTerraform(ctx, tfVal)
 	}
 	return FromValue(ctx, typ, value.Elem().Interface(), path)
 }

@@ -43,6 +43,11 @@ func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.At
 	}
 	tfStr := tftypes.NewValue(tftypes.String, val)
 
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfStr)
+	}
+
 	str, err := typ.ValueFromTerraform(ctx, tfStr)
 	if err != nil {
 		return nil, path.NewError(err)
@@ -60,6 +65,11 @@ func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.Attrib
 		return nil, path.NewError(err)
 	}
 	tfBool := tftypes.NewValue(tftypes.Bool, val)
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfBool)
+	}
 
 	b, err := typ.ValueFromTerraform(ctx, tfBool)
 	if err != nil {

@@ -69,9 +69,17 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 // It is meant to be called through OutOf, not directly.
 func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
 	// TODO: support tuples, which are attr.TypeWithElementTypes
+	tfType := typ.TerraformType(ctx)
 
 	if val.IsNil() {
-		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+		tfVal := tftypes.NewValue(tfType, nil)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+			_ = typeWithValidate.Validate(ctx, tfVal)
+		}
+
+		return typ.ValueFromTerraform(ctx, tfVal)
 	}
 
 	t, ok := typ.(attr.TypeWithElementType)
@@ -94,11 +102,28 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		if err != nil {
 			return nil, path.NewError(err)
 		}
-		tfElems = append(tfElems, tftypes.NewValue(elemType.TerraformType(ctx), tfVal))
+
+		tfElemVal := tftypes.NewValue(elemType.TerraformType(ctx), tfVal)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+			_ = typeWithValidate.Validate(ctx, tfElemVal)
+		}
+
+		tfElems = append(tfElems, tfElemVal)
 	}
-	err := tftypes.ValidateValue(typ.TerraformType(ctx), tfElems)
+
+	err := tftypes.ValidateValue(tfType, tfElems)
 	if err != nil {
 		return nil, path.NewError(err)
 	}
-	return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tfElems))
+
+	tfVal := tftypes.NewValue(tfType, tfElems)
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfVal)
+	}
+
+	return typ.ValueFromTerraform(ctx, tfVal)
 }

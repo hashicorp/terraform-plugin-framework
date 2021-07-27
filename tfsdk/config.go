@@ -34,6 +34,11 @@ func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (
 		return nil, fmt.Errorf("error walking config: %w", err)
 	}
 
+	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = attrTypeWithValidate.Validate(ctx, attrValue)
+	}
+
 	return attrType.ValueFromTerraform(ctx, attrValue)
 }
 

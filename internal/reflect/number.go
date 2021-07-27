@@ -200,6 +200,11 @@ func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.Attrib
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfNum)
+	}
+
 	num, err := typ.ValueFromTerraform(ctx, tfNum)
 	if err != nil {
 		return nil, err
@@ -217,6 +222,11 @@ func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.Attr
 		return nil, path.NewError(err)
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, val)
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfNum)
+	}
 
 	num, err := typ.ValueFromTerraform(ctx, tfNum)
 	if err != nil {
@@ -236,6 +246,11 @@ func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.At
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfNum)
+	}
+
 	num, err := typ.ValueFromTerraform(ctx, tfNum)
 	if err != nil {
 		return nil, err
@@ -253,6 +268,11 @@ func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tfty
 		return nil, path.NewError(err)
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, val)
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfNum)
+	}
 
 	num, err := typ.ValueFromTerraform(ctx, tfNum)
 	if err != nil {
@@ -272,6 +292,11 @@ func FromBigInt(ctx context.Context, typ attr.Type, val *big.Int, path *tftypes.
 		return nil, path.NewError(err)
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, fl)
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfNum)
+	}
 
 	num, err := typ.ValueFromTerraform(ctx, tfNum)
 	if err != nil {

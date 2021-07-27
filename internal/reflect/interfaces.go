@@ -44,7 +44,14 @@ func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, targe
 // It is meant to be called through OutOf, not directly.
 func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path *tftypes.AttributePath) (attr.Value, error) {
 	if val.GetUnknown(ctx) {
-		res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tftypes.UnknownValue))
+		tfVal := tftypes.NewValue(typ.TerraformType(ctx), tftypes.UnknownValue)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+			_ = typeWithValidate.Validate(ctx, tfVal)
+		}
+
+		res, err := typ.ValueFromTerraform(ctx, tfVal)
 		if err != nil {
 			return nil, path.NewError(err)
 		}
@@ -54,7 +61,15 @@ func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path *
 	if err != nil {
 		return nil, path.NewError(err)
 	}
-	res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx)))
+
+	tfVal := tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx))
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfVal)
+	}
+
+	res, err := typ.ValueFromTerraform(ctx, tfVal)
 	if err != nil {
 		return nil, path.NewError(err)
 	}
@@ -95,7 +110,14 @@ func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target r
 // It is meant to be called through OutOf, not directly.
 func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path *tftypes.AttributePath) (attr.Value, error) {
 	if val.GetNull(ctx) {
-		res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+		tfVal := tftypes.NewValue(typ.TerraformType(ctx), nil)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+			_ = typeWithValidate.Validate(ctx, tfVal)
+		}
+
+		res, err := typ.ValueFromTerraform(ctx, tfVal)
 		if err != nil {
 			return nil, path.NewError(err)
 		}
@@ -105,7 +127,15 @@ func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path *tftype
 	if err != nil {
 		return nil, path.NewError(err)
 	}
-	res, err := typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx)))
+
+	tfVal := tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx))
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfVal)
+	}
+
+	res, err := typ.ValueFromTerraform(ctx, tfVal)
 	if err != nil {
 		return nil, path.NewError(err)
 	}
@@ -146,6 +176,12 @@ func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreat
 		return nil, path.NewError(err)
 	}
 	tfVal := tftypes.NewValue(typ.TerraformType(ctx), raw)
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tfVal)
+	}
+
 	res, err := typ.ValueFromTerraform(ctx, tfVal)
 	if err != nil {
 		return nil, path.NewError(err)
@@ -159,6 +195,11 @@ func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreat
 //
 // It is meant to be called through Into, not directly.
 func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, val)
+	}
+
 	res, err := typ.ValueFromTerraform(ctx, val)
 	if err != nil {
 		return target, err
@@ -176,5 +217,17 @@ func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 //
 // It is meant to be called through OutOf, not directly.
 func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, path *tftypes.AttributePath) (attr.Value, error) {
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		tfType := typ.TerraformType(ctx)
+		tfVal, err := val.ToTerraformValue(ctx)
+
+		if err != nil {
+			return val, path.NewError(err)
+		}
+
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = typeWithValidate.Validate(ctx, tftypes.NewValue(tfType, tfVal))
+	}
+
 	return val, nil
 }

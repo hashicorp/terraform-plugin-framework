@@ -34,6 +34,11 @@ func (p Plan) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (at
 		return nil, fmt.Errorf("error walking plan: %w", err)
 	}
 
+	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+		// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+		_ = attrTypeWithValidate.Validate(ctx, attrValue)
+	}
+
 	return attrType.ValueFromTerraform(ctx, attrValue)
 }
 
@@ -76,7 +81,14 @@ func (p *Plan) SetAttribute(ctx context.Context, path *tftypes.AttributePath, va
 
 	transformFunc := func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
 		if p.Equal(path) {
-			return tftypes.NewValue(attrType.TerraformType(ctx), newTfVal), nil
+			tfVal := tftypes.NewValue(attrType.TerraformType(ctx), newTfVal)
+
+			if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+				// TODO: Diagnostics to error handling, e.g. go-multierror? Warning handling?
+				_ = attrTypeWithValidate.Validate(ctx, tfVal)
+			}
+
+			return tfVal, nil
 		}
 		return v, nil
 	}

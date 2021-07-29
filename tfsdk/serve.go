@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
-	"github.com/hashicorp/terraform-plugin-framework/schema"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	tf6server "github.com/hashicorp/terraform-plugin-go/tfprotov6/server"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -27,6 +25,14 @@ type ServeOpts struct {
 	// Name is the name of the provider, in full address form. For example:
 	// registry.terraform.io/hashicorp/random.
 	Name string
+}
+
+// NewProtocol6Server returns a tfprotov6.ProviderServer implementation based
+// on the passed Provider implementation.
+func NewProtocol6Server(p Provider) tfprotov6.ProviderServer {
+	return &server{
+		p: p,
+	}
 }
 
 // Serve serves a provider, blocking until the context is canceled.
@@ -111,7 +117,7 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 		}
 	}
 	// convert the provider schema to a *tfprotov6.Schema
-	provider6Schema, err := proto6.Schema(ctx, providerSchema)
+	provider6Schema, err := providerSchema.tfprotov6Schema(ctx)
 	if err != nil {
 		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 			Severity: tfprotov6.DiagnosticSeverityError,
@@ -136,7 +142,7 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 				return resp, nil
 			}
 		}
-		pm6Schema, err := proto6.Schema(ctx, providerMetaSchema)
+		pm6Schema, err := providerMetaSchema.tfprotov6Schema(ctx)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 				Severity: tfprotov6.DiagnosticSeverityError,
@@ -165,7 +171,7 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 				return resp, nil
 			}
 		}
-		schema6, err := proto6.Schema(ctx, schema)
+		schema6, err := schema.tfprotov6Schema(ctx)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 				Severity: tfprotov6.DiagnosticSeverityError,
@@ -194,7 +200,7 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 				return resp, nil
 			}
 		}
-		schema6, err := proto6.Schema(ctx, schema)
+		schema6, err := schema.tfprotov6Schema(ctx)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 				Severity: tfprotov6.DiagnosticSeverityError,
@@ -348,6 +354,7 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	}
 	readResp := ReadResourceResponse{
 		State: State{
+			Raw:    state,
 			Schema: resourceSchema,
 		},
 		Diagnostics: resp.Diagnostics,
@@ -370,14 +377,14 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	return resp, nil
 }
 
-func markComputedNilsAsUnknown(ctx context.Context, resourceSchema schema.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
+func markComputedNilsAsUnknown(ctx context.Context, resourceSchema Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
 	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
 		if !val.IsNull() {
 			return val, nil
 		}
 		attribute, err := resourceSchema.AttributeAtPath(path)
 		if err != nil {
-			if errors.Is(err, schema.ErrPathInsideAtomicAttribute) {
+			if errors.Is(err, ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
 				return val, nil
 			}
@@ -583,15 +590,12 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		createResp := CreateResourceResponse{
 			State: State{
 				Schema: resourceSchema,
+				Raw:    priorState,
 			},
 			Diagnostics: resp.Diagnostics,
 		}
 		resource.Create(ctx, createReq, &createResp)
 		resp.Diagnostics = createResp.Diagnostics
-		// TODO: set partial state before returning error
-		if diagsHasErrors(resp.Diagnostics) {
-			return resp, nil
-		}
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), createResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
@@ -647,15 +651,12 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		updateResp := UpdateResourceResponse{
 			State: State{
 				Schema: resourceSchema,
+				Raw:    priorState,
 			},
 			Diagnostics: resp.Diagnostics,
 		}
 		resource.Update(ctx, updateReq, &updateResp)
 		resp.Diagnostics = updateResp.Diagnostics
-		// TODO: set partial state before returning error
-		if diagsHasErrors(resp.Diagnostics) {
-			return resp, nil
-		}
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), updateResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
@@ -666,6 +667,7 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			return resp, nil
 		}
 		resp.NewState = &newState
+		return resp, nil
 	case !create && !update && destroy:
 		destroyReq := DeleteResourceRequest{
 			State: State{
@@ -702,15 +704,12 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		destroyResp := DeleteResourceResponse{
 			State: State{
 				Schema: resourceSchema,
+				Raw:    priorState,
 			},
 			Diagnostics: resp.Diagnostics,
 		}
 		resource.Delete(ctx, destroyReq, &destroyResp)
 		resp.Diagnostics = destroyResp.Diagnostics
-		// TODO: set partial state before returning error
-		if diagsHasErrors(resp.Diagnostics) {
-			return resp, nil
-		}
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), destroyResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
@@ -721,6 +720,7 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			return resp, nil
 		}
 		resp.NewState = &newState
+		return resp, nil
 	default:
 		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
 			Severity: tfprotov6.DiagnosticSeverityError,
@@ -729,7 +729,6 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		})
 		return resp, nil
 	}
-	return resp, nil
 }
 
 func (s *server) ImportResourceState(ctx context.Context, _ *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
@@ -811,6 +810,10 @@ func (s *server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 	readResp := ReadDataSourceResponse{
 		State: State{
 			Schema: dataSourceSchema,
+			// default to the config values
+			// they should be of the same type
+			// we just want SetAttribute to not find an empty value
+			Raw: config,
 		},
 		Diagnostics: resp.Diagnostics,
 	}

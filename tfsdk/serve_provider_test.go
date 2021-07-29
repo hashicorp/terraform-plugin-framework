@@ -4,9 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -14,14 +12,14 @@ import (
 type testServeProvider struct {
 	// configure
 	configuredVal       tftypes.Value
-	configuredSchema    schema.Schema
+	configuredSchema    Schema
 	configuredTFVersion string
 
 	// read resource request
 	readResourceCurrentStateValue  tftypes.Value
-	readResourceCurrentStateSchema schema.Schema
+	readResourceCurrentStateSchema Schema
 	readResourceProviderMetaValue  tftypes.Value
-	readResourceProviderMetaSchema schema.Schema
+	readResourceProviderMetaSchema Schema
 	readResourceImpl               func(context.Context, ReadResourceRequest, *ReadResourceResponse)
 	readResourceCalledResourceType string
 
@@ -29,31 +27,31 @@ type testServeProvider struct {
 	applyResourceChangeCalledResourceType string
 	applyResourceChangeCalledAction       string
 	applyResourceChangePriorStateValue    tftypes.Value
-	applyResourceChangePriorStateSchema   schema.Schema
+	applyResourceChangePriorStateSchema   Schema
 	applyResourceChangePlannedStateValue  tftypes.Value
-	applyResourceChangePlannedStateSchema schema.Schema
+	applyResourceChangePlannedStateSchema Schema
 	applyResourceChangeConfigValue        tftypes.Value
-	applyResourceChangeConfigSchema       schema.Schema
+	applyResourceChangeConfigSchema       Schema
 	applyResourceChangeProviderMetaValue  tftypes.Value
-	applyResourceChangeProviderMetaSchema schema.Schema
+	applyResourceChangeProviderMetaSchema Schema
 	createFunc                            func(context.Context, CreateResourceRequest, *CreateResourceResponse)
 	updateFunc                            func(context.Context, UpdateResourceRequest, *UpdateResourceResponse)
 	deleteFunc                            func(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
 
 	// read data source request
 	readDataSourceConfigValue          tftypes.Value
-	readDataSourceConfigSchema         schema.Schema
+	readDataSourceConfigSchema         Schema
 	readDataSourceProviderMetaValue    tftypes.Value
-	readDataSourceProviderMetaSchema   schema.Schema
+	readDataSourceProviderMetaSchema   Schema
 	readDataSourceImpl                 func(context.Context, ReadDataSourceRequest, *ReadDataSourceResponse)
 	readDataSourceCalledDataSourceType string
 }
 
-func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
-	return schema.Schema{
+func (t *testServeProvider) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+	return Schema{
 		Version:            1,
 		DeprecationMessage: "Deprecated in favor of other_resource",
-		Attributes: map[string]schema.Attribute{
+		Attributes: map[string]Attribute{
 			"required": {
 				Type:     types.StringType,
 				Required: true,
@@ -136,11 +134,14 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 				Type:     types.ObjectType{},
 				Optional: true,
 			},
-			// TODO: add maps when we support them
+			"map": {
+				Type:     types.MapType{ElemType: types.NumberType},
+				Optional: true,
+			},
 			// TODO: add sets when we support them
 			// TODO: add tuples when we support them
 			"single-nested-attributes": {
-				Attributes: schema.SingleNestedAttributes(map[string]schema.Attribute{
+				Attributes: SingleNestedAttributes(map[string]Attribute{
 					"foo": {
 						Type:     types.StringType,
 						Optional: true,
@@ -154,7 +155,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 				Optional: true,
 			},
 			"list-nested-attributes": {
-				Attributes: schema.ListNestedAttributes(map[string]schema.Attribute{
+				Attributes: ListNestedAttributes(map[string]Attribute{
 					"foo": {
 						Type:     types.StringType,
 						Optional: true,
@@ -164,7 +165,21 @@ func (t *testServeProvider) GetSchema(_ context.Context) (schema.Schema, []*tfpr
 						Type:     types.NumberType,
 						Required: true,
 					},
-				}, schema.ListNestedAttributesOptions{}),
+				}, ListNestedAttributesOptions{}),
+				Optional: true,
+			},
+			"map-nested-attributes": {
+				Attributes: MapNestedAttributes(map[string]Attribute{
+					"foo": {
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
+					},
+					"bar": {
+						Type:     types.NumberType,
+						Required: true,
+					},
+				}, MapNestedAttributesOptions{}),
 				Optional: true,
 			},
 		},
@@ -249,6 +264,33 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 				Optional: true,
 			},
 			{
+				Name: "map",
+				Type: tftypes.Map{
+					AttributeType: tftypes.Number,
+				},
+				Optional: true,
+			},
+			{
+				Name:     "map-nested-attributes",
+				Optional: true,
+				NestedType: &tfprotov6.SchemaObject{
+					Nesting: tfprotov6.SchemaObjectNestingModeMap,
+					Attributes: []*tfprotov6.SchemaAttribute{
+						{
+							Name:     "bar",
+							Type:     tftypes.Number,
+							Required: true,
+						},
+						{
+							Name:     "foo",
+							Type:     tftypes.String,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
+			{
 				Name:     "number",
 				Type:     tftypes.Number,
 				Optional: true,
@@ -314,7 +356,6 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 				Type:     tftypes.String,
 				Optional: true,
 			},
-			// TODO: add maps when we support them
 			// TODO: add sets when we support them
 			// TODO: add tuples when we support them
 		},
@@ -339,6 +380,7 @@ var testServeProviderProviderType = tftypes.Object{
 			"bar": tftypes.Bool,
 			"baz": tftypes.Number,
 		}}},
+		"map": tftypes.Map{AttributeType: tftypes.Number},
 		"object": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo":  tftypes.String,
 			"bar":  tftypes.Bool,
@@ -351,6 +393,10 @@ var testServeProviderProviderType = tftypes.Object{
 			"bar": tftypes.Number,
 		}},
 		"list-nested-attributes": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.Number,
+		}}},
+		"map-nested-attributes": tftypes.Map{AttributeType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo": tftypes.String,
 			"bar": tftypes.Number,
 		}}},
@@ -381,10 +427,10 @@ type testServeProviderWithMetaSchema struct {
 	*testServeProvider
 }
 
-func (t *testServeProviderWithMetaSchema) GetMetaSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
-	return schema.Schema{
+func (t *testServeProviderWithMetaSchema) GetMetaSchema(context.Context) (Schema, []*tfprotov6.Diagnostic) {
+	return Schema{
 		Version: 2,
-		Attributes: map[string]schema.Attribute{
+		Attributes: map[string]Attribute{
 			"foo": {
 				Type:                types.StringType,
 				Required:            true,

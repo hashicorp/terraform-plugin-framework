@@ -1098,7 +1098,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			s := &testServeProvider{}
+			s := &testServeProvider{
+				modifyPlanFunc: tc.modifyPlanFunc,
+			}
 			testServer := &server{
 				p: s,
 			}

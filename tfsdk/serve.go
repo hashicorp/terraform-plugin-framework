@@ -417,6 +417,16 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return resp, nil
 	}
 
+	config, err := req.Config.Unmarshal(resourceSchema.TerraformType(ctx))
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing configuration",
+			Detail:   "An unexpected error was encountered trying to parse the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
+	}
+
 	plan, err := req.ProposedNewState.Unmarshal(resourceSchema.TerraformType(ctx))
 	if err != nil {
 		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
@@ -427,19 +437,103 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return resp, nil
 	}
 
+	state, err := req.PriorState.Unmarshal(resourceSchema.TerraformType(ctx))
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing prior state",
+			Detail:   "An unexpected error was encountered trying to parse the prior state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
+	}
+
 	if plan.IsNull() || !plan.IsKnown() {
 		// on null or unknown plans, just bail, we can't do anything
 		resp.PlannedState = req.ProposedNewState
 		return resp, nil
 	}
-	modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, resourceSchema))
-	if err != nil {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-			Severity: tfprotov6.DiagnosticSeverityError,
-			Summary:  "Error modifying plan",
-			Detail:   "There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-		})
+
+	// create the resource instance, so we can call its methods and handle
+	// the request
+	resource, diags := resourceType.NewResource(ctx, s.p)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	if diagsHasErrors(resp.Diagnostics) {
 		return resp, nil
+	}
+
+	var modifiedPlan tftypes.Value
+
+	if resource, ok := resource.(ResourceWithModifyPlan); ok {
+		modifyPlanReq := ModifyResourcePlanRequest{
+			Config: Config{
+				Schema: resourceSchema,
+				Raw:    config,
+			},
+			State: State{
+				Schema: resourceSchema,
+				Raw:    state,
+			},
+			Plan: Plan{
+				Schema: resourceSchema,
+				Raw:    plan,
+			},
+		}
+		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			pmSchema, diags := pm.GetMetaSchema(ctx)
+			if diags != nil {
+				resp.Diagnostics = append(resp.Diagnostics, diags...)
+				if diagsHasErrors(resp.Diagnostics) {
+					return resp, nil
+				}
+			}
+			modifyPlanReq.ProviderMeta = Config{
+				Schema: pmSchema,
+				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+			}
+
+			if req.ProviderMeta != nil {
+				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				if err != nil {
+					resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Error parsing provider_meta",
+						Detail:   "There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n" + err.Error(),
+					})
+					return resp, nil
+				}
+				modifyPlanReq.ProviderMeta.Raw = pmValue
+			}
+		}
+
+		modifyPlanResp := ModifyResourcePlanResponse{
+			Plan: Plan{
+				Schema: resourceSchema,
+				Raw:    plan,
+			},
+			RequiresReplace: []*tftypes.AttributePath{},
+			Diagnostics:     resp.Diagnostics,
+		}
+		resource.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
+		resp.Diagnostics = modifyPlanResp.Diagnostics
+		modifiedPlan, err = tftypes.Transform(modifyPlanResp.Plan.Raw, markComputedNilsAsUnknown(ctx, resourceSchema))
+		if err != nil {
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error modifying plan",
+				Detail:   "There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+			return resp, nil
+		}
+	} else {
+		modifiedPlan, err = tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, resourceSchema))
+		if err != nil {
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error modifying plan",
+				Detail:   "There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+			return resp, nil
+		}
 	}
 
 	plannedState, err := tfprotov6.NewDynamicValue(modifiedPlan.Type(), modifiedPlan)
@@ -464,7 +558,7 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		NewState: req.PriorState,
 	}
 
-	// get the type of resource, so we can get its scheman and create an
+	// get the type of resource, so we can get its schema and create an
 	// instance
 	resourceType, diags := s.getResourceType(ctx, req.TypeName)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)

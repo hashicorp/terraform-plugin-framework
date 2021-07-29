@@ -290,6 +290,69 @@ func (r *DeleteResourceResponse) AddAttributeError(attributePath *tftypes.Attrib
 	})
 }
 
+// ModifyResourcePlanResponse represents a response to a
+// ModifyResourcePlanRequest. An instance of this response struct is supplied
+// as an argument to the resource's ModifyPlan function, in which the provider
+// should modify the Plan and populate the RequiresReplace field as appropriate.
+type ModifyResourcePlanResponse struct {
+	// Plan is the planned new state for the resource.
+	Plan Plan
+
+	// RequiresReplace is a list of tftypes.AttributePaths that require the
+	// resource to be replaced. They should point to the specific field
+	// that changed that requires the resource to be destroyed and
+	// recreated.
+	RequiresReplace []*tftypes.AttributePath
+
+	// Diagnostics report errors or warnings related to determining the
+	// planned state of the requested resource. Returning an empty slice
+	// indicates a successful validation with no warnings or errors
+	// generated.
+	Diagnostics []*tfprotov6.Diagnostic
+}
+
+// AddWarning appends a warning diagnostic to the response. If the warning
+// concerns a particular attribute, AddAttributeWarning should be used instead.
+func (r *ModifyResourcePlanResponse) AddWarning(summary, detail string) {
+	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
+		Summary:  summary,
+		Detail:   detail,
+		Severity: tfprotov6.DiagnosticSeverityWarning,
+	})
+}
+
+// AddAttributeWarning appends a warning diagnostic to the response and labels
+// it with a specific attribute.
+func (r *ModifyResourcePlanResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
+	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
+		Attribute: attributePath,
+		Summary:   summary,
+		Detail:    detail,
+		Severity:  tfprotov6.DiagnosticSeverityWarning,
+	})
+}
+
+// AddError appends an error diagnostic to the response. If the error concerns a
+// particular attribute, AddAttributeError should be used instead.
+func (r *ModifyResourcePlanResponse) AddError(summary, detail string) {
+	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
+		Summary:  summary,
+		Detail:   detail,
+		Severity: tfprotov6.DiagnosticSeverityError,
+	})
+}
+
+// AddAttributeError appends an error diagnostic to the response and labels it
+// with a specific attribute.
+func (r *ModifyResourcePlanResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
+	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
+		Attribute: attributePath,
+		Summary:   summary,
+		Detail:    detail,
+		Severity:  tfprotov6.DiagnosticSeverityError,
+	})
+}
+
 // ReadDataSourceResponse represents a response to a ReadDataSourceRequest. An
 // instance of this response struct is supplied as an argument to the data
 // source's Read function, in which the provider should set values on the
@@ -303,4 +366,46 @@ type ReadDataSourceResponse struct {
 	// source. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics []*tfprotov6.Diagnostic
+}
+
+// AddWarning appends a warning diagnostic to the response. If the warning
+// concerns a particular attribute, AddAttributeWarning should be used instead.
+func (r *ReadDataSourceResponse) AddWarning(summary, detail string) {
+	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
+		Summary:  summary,
+		Detail:   detail,
+		Severity: tfprotov6.DiagnosticSeverityWarning,
+	})
+}
+
+// AddAttributeWarning appends a warning diagnostic to the response and labels
+// it with a specific attribute.
+func (r *ReadDataSourceResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
+	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
+		Attribute: attributePath,
+		Summary:   summary,
+		Detail:    detail,
+		Severity:  tfprotov6.DiagnosticSeverityWarning,
+	})
+}
+
+// AddError appends an error diagnostic to the response. If the error concerns a
+// particular attribute, AddAttributeError should be used instead.
+func (r *ReadDataSourceResponse) AddError(summary, detail string) {
+	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
+		Summary:  summary,
+		Detail:   detail,
+		Severity: tfprotov6.DiagnosticSeverityError,
+	})
+}
+
+// AddAttributeError appends an error diagnostic to the response and labels it
+// with a specific attribute.
+func (r *ReadDataSourceResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
+	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
+		Attribute: attributePath,
+		Summary:   summary,
+		Detail:    detail,
+		Severity:  tfprotov6.DiagnosticSeverityError,
+	})
 }

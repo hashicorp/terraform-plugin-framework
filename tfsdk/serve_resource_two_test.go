@@ -154,3 +154,17 @@ func (r testServeResourceTwo) Delete(ctx context.Context, req DeleteResourceRequ
 	r.provider.applyResourceChangeCalledAction = "delete"
 	r.provider.deleteFunc(ctx, req, resp)
 }
+
+func (r testServeResourceTwo) ModifyPlan(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
+	r.provider.planResourceChangePriorStateValue = req.State.Raw
+	r.provider.planResourceChangePriorStateSchema = req.State.Schema
+	r.provider.planResourceChangeProposedNewStateValue = req.Plan.Raw
+	r.provider.planResourceChangeProposedNewStateSchema = req.Plan.Schema
+	r.provider.planResourceChangeConfigValue = req.Config.Raw
+	r.provider.planResourceChangeConfigSchema = req.Config.Schema
+	r.provider.planResourceChangeProviderMetaValue = req.ProviderMeta.Raw
+	r.provider.planResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
+	r.provider.planResourceChangeCalledResourceType = "test_two"
+	r.provider.planResourceChangeCalledAction = "modify_plan"
+	r.provider.modifyPlanFunc(ctx, req, resp)
+}

@@ -453,8 +453,6 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	}
 	resp.PlannedState = &plannedState
 
-	// TODO: implement customizable plan modifications later
-	// TODO: implement RequiresReplace behavior later
 	return resp, nil
 }
 

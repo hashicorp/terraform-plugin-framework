@@ -901,6 +901,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 		resource         string
 		resourceType     tftypes.Type
 
+		modifyPlanFunc func(context.Context, ModifyResourcePlanRequest, *ModifyResourcePlanResponse)
+
 		// response expectations
 		expectedPlannedState    tftypes.Value
 		expectedRequiresReplace []*tftypes.AttributePath
@@ -990,6 +992,103 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"favorite_colors":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
 				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
+		},
+		"two_modify_add_list_elem": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			resource:     "test_two",
+			resourceType: testServeResourceTypeTwoType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "auto-boot-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+			}),
+			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
+				resp.Plan.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+					"id": tftypes.NewValue(tftypes.String, "123456"),
+					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						}}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 10),
+							"boot":    tftypes.NewValue(tftypes.Bool, false),
+						}),
+						tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						}}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "auto-boot-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 1),
+							"boot":    tftypes.NewValue(tftypes.Bool, true),
+						}),
+					}),
+				})
+			},
 		},
 	}
 

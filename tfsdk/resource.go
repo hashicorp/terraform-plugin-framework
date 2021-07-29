@@ -3,7 +3,6 @@ package tfsdk
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
@@ -12,7 +11,7 @@ import (
 // instance of it in the map returned by Provider.GeResources.
 type ResourceType interface {
 	// GetSchema returns the schema for this resource.
-	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
+	GetSchema(context.Context) (Schema, []*tfprotov6.Diagnostic)
 
 	// NewResource instantiates a new Resource of this ResourceType.
 	NewResource(context.Context, Provider) (Resource, []*tfprotov6.Diagnostic)

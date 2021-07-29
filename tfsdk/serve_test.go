@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -57,8 +56,8 @@ func TestServerCancelInFlightContexts(t *testing.T) {
 func TestMarkComputedNilsAsUnknown(t *testing.T) {
 	t.Parallel()
 
-	s := schema.Schema{
-		Attributes: map[string]schema.Attribute{
+	s := Schema{
+		Attributes: map[string]Attribute{
 			// values should be left alone
 			"string-value": {
 				Type:     types.StringType,
@@ -114,7 +113,7 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 			},
 			// nil nested attributes should be unknown
 			"nested-nil-optional-computed": {
-				Attributes: schema.SingleNestedAttributes(map[string]schema.Attribute{
+				Attributes: SingleNestedAttributes(map[string]Attribute{
 					"string-nil": {
 						Type:     types.StringType,
 						Optional: true,
@@ -131,7 +130,7 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 			},
 			// non-nil nested attributes should be left alone on the top level
 			"nested-value-optional-computed": {
-				Attributes: schema.SingleNestedAttributes(map[string]schema.Attribute{
+				Attributes: SingleNestedAttributes(map[string]Attribute{
 					// nested computed attributes should be unknown
 					"string-nil": {
 						Type:     types.StringType,
@@ -801,7 +800,7 @@ func TestServerReadResource(t *testing.T) {
 			testServer := &server{
 				p: s,
 			}
-			var pmSchema schema.Schema
+			var pmSchema Schema
 			if tc.providerMeta.Type() != nil {
 				sWithMeta := &testServeProviderWithMetaSchema{s}
 				testServer.p = sWithMeta
@@ -2113,7 +2112,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 			testServer := &server{
 				p: s,
 			}
-			var pmSchema schema.Schema
+			var pmSchema Schema
 			if tc.providerMeta.Type() != nil {
 				sWithMeta := &testServeProviderWithMetaSchema{s}
 				testServer.p = sWithMeta
@@ -2409,7 +2408,7 @@ func TestServerReadDataSource(t *testing.T) {
 			testServer := &server{
 				p: s,
 			}
-			var pmSchema schema.Schema
+			var pmSchema Schema
 			if tc.providerMeta.Type() != nil {
 				sWithMeta := &testServeProviderWithMetaSchema{s}
 				testServer.p = sWithMeta

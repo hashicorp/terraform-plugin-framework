@@ -4,18 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type testServeResourceTypeTwo struct{}
 
-func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
-	return schema.Schema{
-		Attributes: map[string]schema.Attribute{
+func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+	return Schema{
+		Attributes: map[string]Attribute{
 			"id": {
 				Optional: true,
 				Computed: true,
@@ -24,7 +22,7 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (schema.Schema, 
 			"disks": {
 				Optional: true,
 				Computed: true,
-				Attributes: schema.ListNestedAttributes(map[string]schema.Attribute{
+				Attributes: ListNestedAttributes(map[string]Attribute{
 					"name": {
 						Required: true,
 						Type:     types.StringType,
@@ -37,7 +35,7 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (schema.Schema, 
 						Required: true,
 						Type:     types.BoolType,
 					},
-				}, schema.ListNestedAttributesOptions{}),
+				}, ListNestedAttributesOptions{}),
 			},
 		},
 	}, nil

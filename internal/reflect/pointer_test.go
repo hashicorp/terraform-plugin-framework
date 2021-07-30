@@ -16,9 +16,9 @@ func TestPointer_notAPointer(t *testing.T) {
 	t.Parallel()
 
 	var s string
-	_, err := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if expected := "can't dereference pointer, not a pointer, is a string (string)"; err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
+	_, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+	if expected := "cannot dereference pointer, not a pointer, is a string (string)"; !diagsContainsDetail(diags, expected) {
+		t.Errorf("Expected error to be %q, got %s", expected, diagsString(diags))
 	}
 }
 
@@ -26,9 +26,9 @@ func TestPointer_nilPointer(t *testing.T) {
 	t.Parallel()
 
 	var s *string
-	got, err := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
+	got, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+	if diagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagsString(diags))
 	}
 	if got.Interface() == nil {
 		t.Error("Expected \"hello\", got nil")
@@ -42,9 +42,9 @@ func TestPointer_simple(t *testing.T) {
 	t.Parallel()
 
 	var s string
-	got, err := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(&s), refl.Options{}, tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
+	got, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(&s), refl.Options{}, tftypes.NewAttributePath())
+	if diagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagsString(diags))
 	}
 	if got.Interface() == nil {
 		t.Error("Expected \"hello\", got nil")
@@ -58,9 +58,9 @@ func TestPointer_pointerPointer(t *testing.T) {
 	t.Parallel()
 
 	var s *string
-	got, err := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(&s), refl.Options{}, tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
+	got, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(&s), refl.Options{}, tftypes.NewAttributePath())
+	if diagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagsString(diags))
 	}
 	if got.Interface() == nil {
 		t.Error("Expected \"hello\", got nil")
@@ -74,9 +74,9 @@ func TestFromPointer_simple(t *testing.T) {
 	t.Parallel()
 
 	v := "hello, world"
-	got, err := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(&v), tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
+	got, diags := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(&v), tftypes.NewAttributePath())
+	if diagsHasErrors(diags) {
+		t.Errorf("unexpected error: %s", diagsString(diags))
 	}
 	expected := types.String{
 		Value: "hello, world",
@@ -90,9 +90,9 @@ func TestFromPointer_null(t *testing.T) {
 	t.Parallel()
 
 	var v *string
-	got, err := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(v), tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
+	got, diags := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(v), tftypes.NewAttributePath())
+	if diagsHasErrors(diags) {
+		t.Errorf("unexpected error: %s", diagsString(diags))
 	}
 	expected := types.String{
 		Null: true,

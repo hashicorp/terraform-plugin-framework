@@ -152,9 +152,9 @@ type testStateStructType struct {
 func TestStateGet(t *testing.T) {
 	testState := makeTestState()
 	var val testStateStructType
-	err := testState.Get(context.Background(), &val)
-	if err != nil {
-		t.Fatalf("Error running Get: %s", err)
+	diags := testState.Get(context.Background(), &val)
+	if diagsHasErrors(diags) {
+		t.Fatalf("Error running Get: %s", diagsString(diags))
 	}
 	expected := testStateStructType{
 		Name:        types.String{Value: "hello, world"},
@@ -200,9 +200,9 @@ func TestStateGet(t *testing.T) {
 
 func TestStateGetAttribute_primitive(t *testing.T) {
 	testState := makeTestState()
-	nameVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"))
-	if err != nil {
-		t.Errorf("Error running GetAttribute for name: %s", err)
+	nameVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"))
+	if diagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for name: %s", diagsString(diags))
 	}
 	name, ok := nameVal.(types.String)
 	if !ok {
@@ -221,9 +221,9 @@ func TestStateGetAttribute_primitive(t *testing.T) {
 
 func TestStateGetAttribute_list(t *testing.T) {
 	testState := makeTestState()
-	tagsVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags"))
-	if err != nil {
-		t.Errorf("Error running GetAttribute for tags: %s", err)
+	tagsVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags"))
+	if diagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for tags: %s", diagsString(diags))
 	}
 	tags, ok := tagsVal.(types.List)
 	if !ok {
@@ -248,9 +248,9 @@ func TestStateGetAttribute_list(t *testing.T) {
 		t.Errorf("Expected Tags's third element to be %q, got %q", "green", tags.Elems[2].(types.String).Value)
 	}
 
-	tags0Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(0))
-	if err != nil {
-		t.Errorf("Error running GetAttribute for tags[0]: %s", err)
+	tags0Val, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(0))
+	if diagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for tags[0]: %s", diagsString(diags))
 	}
 	tags0, ok := tags0Val.(types.String)
 	if !ok {
@@ -266,9 +266,9 @@ func TestStateGetAttribute_list(t *testing.T) {
 		t.Errorf("Expected tags[0] to be %q, got %q", "red", tags0.Value)
 	}
 
-	tags1Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(1))
-	if err != nil {
-		t.Errorf("Error running GetAttribute for tags[1]: %s", err)
+	tags1Val, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(1))
+	if diagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for tags[1]: %s", diagsString(diags))
 	}
 	tags1, ok := tags1Val.(types.String)
 	if !ok {
@@ -284,9 +284,9 @@ func TestStateGetAttribute_list(t *testing.T) {
 		t.Errorf("Expected tags[1] to be %q, got %q", "red", tags1.Value)
 	}
 
-	tags2Val, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(2))
-	if err != nil {
-		t.Errorf("Error running GetAttribute for tags[2]: %s", err)
+	tags2Val, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(2))
+	if diagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for tags[2]: %s", diagsString(diags))
 	}
 	tags2, ok := tags2Val.(types.String)
 	if !ok {
@@ -305,9 +305,9 @@ func TestStateGetAttribute_list(t *testing.T) {
 
 func TestStateGetAttribute_nestedlist(t *testing.T) {
 	testState := makeTestState()
-	disksVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("disks"))
-	if err != nil {
-		t.Errorf("Error running GetAttribute for name: %s", err)
+	disksVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("disks"))
+	if diagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for name: %s", diagsString(diags))
 	}
 
 	disks, ok := disksVal.(types.List)
@@ -377,9 +377,9 @@ func TestStateGetAttribute_nestedlist(t *testing.T) {
 
 func TestStateGetAttribute_nestedsingle(t *testing.T) {
 	testState := makeTestState()
-	bootDiskVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("boot_disk"))
-	if err != nil {
-		t.Errorf("Error running GetAttribute for name: %s", err)
+	bootDiskVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("boot_disk"))
+	if diagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for name: %s", diagsString(diags))
 	}
 
 	bootDisk, ok := bootDiskVal.(types.Object)
@@ -424,9 +424,9 @@ func TestStateGetAttribute_nestedsingle(t *testing.T) {
 
 func TestStateGetAttribute_object(t *testing.T) {
 	testState := makeTestState()
-	scratchDiskVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk"))
-	if err != nil {
-		t.Errorf("error running GetAttribute for scratch_disk: %s", err)
+	scratchDiskVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk"))
+	if diagsHasErrors(diags) {
+		t.Errorf("error running GetAttribute for scratch_disk: %s", diagsString(diags))
 	}
 	scratchDisk, ok := scratchDiskVal.(types.Object)
 	if !ok {
@@ -454,9 +454,9 @@ func TestStateGetAttribute_object(t *testing.T) {
 	}
 
 	// now get the value directly
-	sdInterfaceVal, err := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"))
-	if err != nil {
-		t.Errorf("error running GetAttribute for scratch_disk.interface: %s", err)
+	sdInterfaceVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"))
+	if diagsHasErrors(diags) {
+		t.Errorf("error running GetAttribute for scratch_disk.interface: %s", diagsString(diags))
 	}
 	sdInterface, ok := sdInterfaceVal.(types.String)
 	if !ok {
@@ -496,7 +496,7 @@ func TestStateSet(t *testing.T) {
 		} `tfsdk:"scratch_disk"`
 	}
 
-	err := state.Set(context.Background(), newStateType{
+	diags := state.Set(context.Background(), newStateType{
 		Name:        "hello, world",
 		MachineType: "e2-medium",
 		Tags:        []string{"red", "blue", "green"},
@@ -524,8 +524,8 @@ func TestStateSet(t *testing.T) {
 			Interface: "SCSI",
 		},
 	})
-	if err != nil {
-		t.Fatalf("error setting state: %s", err)
+	if diagsHasErrors(diags) {
+		t.Fatalf("error setting state: %s", diagsString(diags))
 	}
 
 	actual := state.Raw
@@ -541,18 +541,18 @@ func TestStateSet(t *testing.T) {
 func TestStateGetSetInverse(t *testing.T) {
 	testState := makeTestState()
 	var val testStateStructType
-	err := testState.Get(context.Background(), &val)
-	if err != nil {
-		t.Fatalf("Error running Get: %s", err)
+	diags := testState.Get(context.Background(), &val)
+	if diagsHasErrors(diags) {
+		t.Fatalf("Error running Get: %s", diagsString(diags))
 	}
 
 	newState := State{
 		Schema: testSchema,
 	}
 
-	err = newState.Set(context.Background(), val)
-	if err != nil {
-		t.Fatalf("error setting state: %s", err)
+	diags = newState.Set(context.Background(), val)
+	if diagsHasErrors(diags) {
+		t.Fatalf("error setting state: %s", diagsString(diags))
 	}
 
 	if diff := cmp.Diff(testState, newState, allowAllUnexported); diff != "" {
@@ -564,33 +564,33 @@ func TestStateSetAttribute(t *testing.T) {
 	testState := makeTestState()
 
 	// set a simple string attribute
-	err := testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"), "newname")
-	if err != nil {
-		t.Fatal(err)
+	diags := testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"), "newname")
+	if diagsHasErrors(diags) {
+		t.Fatalf("unexpected error: %s", diagsString(diags))
 	}
 
 	// set an entire list
-	err = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags"), []string{"one", "two"})
-	if err != nil {
-		t.Fatal(err)
+	diags = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags"), []string{"one", "two"})
+	if diagsHasErrors(diags) {
+		t.Fatalf("unexpected error: %s", diagsString(diags))
 	}
 
 	// set a list item
-	err = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(1), struct {
+	diags = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(1), struct {
 		ID                 string `tfsdk:"id"`
 		DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
 	}{
 		ID:                 "mynewdisk",
 		DeleteWithInstance: true,
 	})
-	if err != nil {
-		t.Fatal(err)
+	if diagsHasErrors(diags) {
+		t.Fatalf("unexpected error: %s", diagsString(diags))
 	}
 
 	// set an object attribute
-	err = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"), "NVME")
-	if err != nil {
-		t.Fatal(err)
+	diags = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"), "NVME")
+	if diagsHasErrors(diags) {
+		t.Fatalf("unexpected error: %s", diagsString(diags))
 	}
 
 	expectedRawState := tftypes.NewValue(tftypes.Object{

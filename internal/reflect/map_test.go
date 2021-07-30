@@ -21,7 +21,7 @@ func TestReflectMap_string(t *testing.T) {
 		"c": "green",
 	}
 
-	result, err := refl.Map(context.Background(), types.MapType{
+	result, diags := refl.Map(context.Background(), types.MapType{
 		ElemType: types.StringType,
 	}, tftypes.NewValue(tftypes.Map{
 		AttributeType: tftypes.String,
@@ -30,8 +30,8 @@ func TestReflectMap_string(t *testing.T) {
 		"b": tftypes.NewValue(tftypes.String, "blue"),
 		"c": tftypes.NewValue(tftypes.String, "green"),
 	}), reflect.ValueOf(m), refl.Options{}, tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
+	if diagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagsString(diags))
 	}
 	reflect.ValueOf(&m).Elem().Set(result)
 	for k, v := range expected {

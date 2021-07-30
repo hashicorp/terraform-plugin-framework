@@ -1,0 +1,11 @@
+```release-note:breaking-change
+Methods on the `tfsdk.Config`, `tfsdk.Plan`, and `tfsdk.State` types now return `[]*tfprotov6.Diagnostic` instead of `error`
+```
+
+```release-note:feature
+Support `attr.Type` validation
+```
+
+```release-note:enhancement
+Errors from methods on the `tfsdk.Config`, `tfsdk.Plan`, and `tfsdk.State` types now include rich diagnostic information
+```

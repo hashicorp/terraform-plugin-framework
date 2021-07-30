@@ -514,9 +514,9 @@ func TestObjectAs_struct(t *testing.T) {
 		},
 	}
 	var target myStruct
-	err := object.As(context.Background(), &target, ObjectAsOptions{})
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
+	diags := object.As(context.Background(), &target, ObjectAsOptions{})
+	if diagsHasErrors(diags) {
+		t.Errorf("unexpected error: %s", diagsString(diags))
 	}
 	expected := myStruct{
 		A: "hello",

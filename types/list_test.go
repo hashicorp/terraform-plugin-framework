@@ -235,14 +235,14 @@ func TestListElementsAs_stringSlice(t *testing.T) {
 	var stringSlice []string
 	expected := []string{"hello", "world"}
 
-	err := (List{
+	diags := (List{
 		ElemType: StringType,
 		Elems: []attr.Value{
 			String{Value: "hello"},
 			String{Value: "world"},
 		}}).ElementsAs(context.Background(), &stringSlice, false)
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
+	if diagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagsString(diags))
 	}
 	if diff := cmp.Diff(stringSlice, expected); diff != "" {
 		t.Errorf("Unexpected diff (-expected, +got): %s", diff)
@@ -258,14 +258,14 @@ func TestListElementsAs_attributeValueSlice(t *testing.T) {
 		{Value: "world"},
 	}
 
-	err := (List{
+	diags := (List{
 		ElemType: StringType,
 		Elems: []attr.Value{
 			String{Value: "hello"},
 			String{Value: "world"},
 		}}).ElementsAs(context.Background(), &stringSlice, false)
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
+	if diagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagsString(diags))
 	}
 	if diff := cmp.Diff(stringSlice, expected); diff != "" {
 		t.Errorf("Unexpected diff (-expected, +got): %s", diff)

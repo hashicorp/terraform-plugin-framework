@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -125,18 +125,32 @@ type Map struct {
 
 // ElementsAs populates `target` with the elements of the Map, throwing an
 // error if the elements cannot be stored in `target`.
-func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) error {
+func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) []*tfprotov6.Diagnostic {
 	// we need a tftypes.Value for this Map to be able to use it with our
 	// reflection code
 	values := make(map[string]tftypes.Value, len(m.Elems))
 	for key, elem := range m.Elems {
 		val, err := elem.ToTerraformValue(ctx)
 		if err != nil {
-			return fmt.Errorf("error getting Terraform value for element %q: %w", key, err)
+			err := fmt.Errorf("error getting Terraform value for element %q: %w", key, err)
+			return []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Map Element Conversion Error",
+					Detail:   "An unexpected error was encountered trying to convert map elements. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+				},
+			}
 		}
 		err = tftypes.ValidateValue(m.ElemType.TerraformType(ctx), val)
 		if err != nil {
-			return fmt.Errorf("error using created Terraform value for element %q: %w", key, err)
+			err := fmt.Errorf("error using created Terraform value for element %q: %w", key, err)
+			return []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Map Element Conversion Error",
+					Detail:   "An unexpected error was encountered trying to convert map elements. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+				},
+			}
 		}
 		values[key] = tftypes.NewValue(m.ElemType.TerraformType(ctx), val)
 	}

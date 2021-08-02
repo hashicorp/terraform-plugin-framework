@@ -385,6 +385,30 @@ func TestServerValidateProviderConfig(t *testing.T) {
 						"bar": tftypes.NewValue(tftypes.Number, 14554216),
 					}),
 				}),
+				"map": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Number}, map[string]tftypes.Value{
+					"foo": tftypes.NewValue(tftypes.Number, 123),
+					"bar": tftypes.NewValue(tftypes.Number, 456),
+					"baz": tftypes.NewValue(tftypes.Number, 789),
+				}),
+				"map-nested-attributes": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"bar": tftypes.Number,
+					"foo": tftypes.String,
+				}}}, map[string]tftypes.Value{
+					"hello": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"bar": tftypes.Number,
+						"foo": tftypes.String,
+					}}, map[string]tftypes.Value{
+						"bar": tftypes.NewValue(tftypes.Number, 123456),
+						"foo": tftypes.NewValue(tftypes.String, "world"),
+					}),
+					"goodnight": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"bar": tftypes.Number,
+						"foo": tftypes.String,
+					}}, map[string]tftypes.Value{
+						"bar": tftypes.NewValue(tftypes.Number, 56789),
+						"foo": tftypes.NewValue(tftypes.String, "moon"),
+					}),
+				}),
 			}),
 			provider:     &testServeProvider{},
 			providerType: testServeProviderProviderType,

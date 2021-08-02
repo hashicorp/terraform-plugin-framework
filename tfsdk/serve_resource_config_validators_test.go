@@ -4,18 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type testServeResourceTypeConfigValidators struct{}
 
-func (dt testServeResourceTypeConfigValidators) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
-	return schema.Schema{
-		Attributes: map[string]schema.Attribute{
+func (dt testServeResourceTypeConfigValidators) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+	return Schema{
+		Attributes: map[string]Attribute{
 			"string": {
 				Type:     types.StringType,
 				Optional: true,

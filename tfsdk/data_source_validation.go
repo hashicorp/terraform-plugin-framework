@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// DataSourceConfigValidator describes reusable DataSource configuration validation functionality.
+// DataSourceConfigValidator describes reusable data source configuration validation functionality.
 type DataSourceConfigValidator interface {
 	// Description describes the validation in plain text formatting.
 	Description(context.Context) string
@@ -20,7 +20,7 @@ type DataSourceConfigValidator interface {
 type DataSourceWithConfigValidators interface {
 	DataSource
 
-	// ConfigValidators returns a list of functions which will all be performed during validation.
+	// ConfigValidators returns a list of DataSourceConfigValidators. Each DataSourceConfigValidator's Validate method will be called when validating the data source.
 	ConfigValidators(context.Context) []DataSourceConfigValidator
 }
 

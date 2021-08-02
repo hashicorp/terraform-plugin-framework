@@ -269,10 +269,7 @@ func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 			vpcRes := &ValidateProviderConfigResponse{}
 
 			configValidator.Validate(ctx, vpcReq, vpcRes)
-
-			if vpcRes.Diagnostics != nil {
-				resp.Diagnostics = append(resp.Diagnostics, vpcRes.Diagnostics...)
-			}
+			resp.Diagnostics = append(resp.Diagnostics, vpcRes.Diagnostics...)
 		}
 	}
 
@@ -280,10 +277,7 @@ func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 		vpcRes := &ValidateProviderConfigResponse{}
 
 		provider.ValidateConfig(ctx, vpcReq, vpcRes)
-
-		if vpcRes.Diagnostics != nil {
-			resp.Diagnostics = append(resp.Diagnostics, vpcRes.Diagnostics...)
-		}
+		resp.Diagnostics = append(resp.Diagnostics, vpcRes.Diagnostics...)
 	}
 
 	// TODO: Walk schema for attribute validations
@@ -385,10 +379,7 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 			vrcRes := &ValidateResourceConfigResponse{}
 
 			configValidator.Validate(ctx, vrcReq, vrcRes)
-
-			if vrcRes.Diagnostics != nil {
-				resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
-			}
+			resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
 		}
 	}
 
@@ -396,10 +387,7 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 		vrcRes := &ValidateResourceConfigResponse{}
 
 		resource.ValidateConfig(ctx, vrcReq, vrcRes)
-
-		if vrcRes.Diagnostics != nil {
-			resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
-		}
+		resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
 	}
 
 	// TODO: Walk schema for attribute validations
@@ -921,10 +909,7 @@ func (s *server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.
 			vrcRes := &ValidateDataSourceConfigResponse{}
 
 			configValidator.Validate(ctx, vrcReq, vrcRes)
-
-			if vrcRes.Diagnostics != nil {
-				resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
-			}
+			resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
 		}
 	}
 
@@ -932,10 +917,7 @@ func (s *server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.
 		vrcRes := &ValidateDataSourceConfigResponse{}
 
 		dataSource.ValidateConfig(ctx, vrcReq, vrcRes)
-
-		if vrcRes.Diagnostics != nil {
-			resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
-		}
+		resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
 	}
 
 	// TODO: Walk schema for attribute validations

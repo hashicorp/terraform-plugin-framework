@@ -514,7 +514,7 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 			Diagnostics:     resp.Diagnostics,
 		}
 		resource.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
-		resp.Diagnostics = modifyPlanResp.Diagnostics
+		resp.Diagnostics = append(resp.Diagnostics, modifyPlanResp.Diagnostics...)
 		modifiedPlan, err = tftypes.Transform(modifyPlanResp.Plan.Raw, markComputedNilsAsUnknown(ctx, resourceSchema))
 		if err != nil {
 			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{

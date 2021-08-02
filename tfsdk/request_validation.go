@@ -11,9 +11,6 @@ type ValidateDataSourceConfigRequest struct {
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
 	Config Config
-
-	// TypeName is the data source type name.
-	TypeName string
 }
 
 // ValidateProviderConfigRequest represents a request to validate the
@@ -40,7 +37,4 @@ type ValidateResourceConfigRequest struct {
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
 	Config Config
-
-	// TypeName is the resource type name.
-	TypeName string
 }

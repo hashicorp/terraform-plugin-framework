@@ -7,9 +7,15 @@ import (
 // ProviderConfigValidator describes reusable Provider configuration validation functionality.
 type ProviderConfigValidator interface {
 	// Description describes the validation in plain text formatting.
+	//
+	// This information may be automatically added to provider plain text
+	// descriptions by external tooling.
 	Description(context.Context) string
 
 	// MarkdownDescription describes the validation in Markdown formatting.
+	//
+	// This information may be automatically added to provider Markdown
+	// descriptions by external tooling.
 	MarkdownDescription(context.Context) string
 
 	// Validate performs the validation.

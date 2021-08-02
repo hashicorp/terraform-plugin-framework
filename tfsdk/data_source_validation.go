@@ -7,9 +7,15 @@ import (
 // DataSourceConfigValidator describes reusable data source configuration validation functionality.
 type DataSourceConfigValidator interface {
 	// Description describes the validation in plain text formatting.
+	//
+	// This information may be automatically added to data source plain text
+	// descriptions by external tooling.
 	Description(context.Context) string
 
 	// MarkdownDescription describes the validation in Markdown formatting.
+	//
+	// This information may be automatically added to data source Markdown
+	// descriptions by external tooling.
 	MarkdownDescription(context.Context) string
 
 	// Validate performs the validation.

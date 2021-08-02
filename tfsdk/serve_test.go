@@ -1218,7 +1218,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
 			expectedDiags: []*tfprotov6.Diagnostic{
-				&tfprotov6.Diagnostic{
+				{
 					Severity: tfprotov6.DiagnosticSeverityWarning,
 					Summary:  "I'm warning you",
 					Detail:   "You have been warned",
@@ -1289,7 +1289,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
 			expectedDiags: []*tfprotov6.Diagnostic{
-				&tfprotov6.Diagnostic{
+				{
 					Severity: tfprotov6.DiagnosticSeverityError,
 					Summary:  "This is an error",
 					Detail:   "More details about the error",

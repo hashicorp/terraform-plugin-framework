@@ -462,7 +462,7 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	}
 
 	var modifiedPlan tftypes.Value
-
+	var modifyPlanResp ModifyResourcePlanResponse
 	if resource, ok := resource.(ResourceWithModifyPlan); ok {
 		modifyPlanReq := ModifyResourcePlanRequest{
 			Config: Config{
@@ -505,7 +505,7 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 			}
 		}
 
-		modifyPlanResp := ModifyResourcePlanResponse{
+		modifyPlanResp = ModifyResourcePlanResponse{
 			Plan: Plan{
 				Schema: resourceSchema,
 				Raw:    plan,
@@ -546,6 +546,7 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return resp, nil
 	}
 	resp.PlannedState = &plannedState
+	resp.RequiresReplace = modifyPlanResp.RequiresReplace
 
 	return resp, nil
 }

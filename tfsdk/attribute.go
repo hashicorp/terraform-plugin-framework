@@ -67,6 +67,9 @@ type Attribute struct {
 	// using this attribute, warning them that it is deprecated and
 	// instructing them on what upgrade steps to take.
 	DeprecationMessage string
+
+	// Validators defines validation functionality for the attribute.
+	Validators []AttributeValidator
 }
 
 // ApplyTerraform5AttributePathStep transparently calls
@@ -121,6 +124,65 @@ func (a Attribute) Equal(o Attribute) bool {
 		return false
 	}
 	return true
+}
+
+func (a Attribute) Validate(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	if (a.Attributes == nil || len(a.Attributes.GetAttributes()) == 0) && a.Type == nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Invalid Attribute Definition",
+			Detail:    "Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
+			Attribute: req.AttributePath,
+		})
+
+		return
+	}
+
+	if a.Attributes != nil && len(a.Attributes.GetAttributes()) > 0 && a.Type != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Invalid Attribute Definition",
+			Detail:    "Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
+			Attribute: req.AttributePath,
+		})
+
+		return
+	}
+
+	attributeConfig, err := req.Config.GetAttribute(ctx, req.AttributePath)
+
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Attribute Value Error",
+			Detail:    "Attribute validation cannot read configuration value. Report this to the provider developer:\n\n" + err.Error(),
+			Attribute: req.AttributePath,
+		})
+
+		return
+	}
+
+	req.AttributeConfig = attributeConfig
+
+	for _, validator := range a.Validators {
+		validator.Validate(ctx, req, resp)
+	}
+
+	if a.Attributes != nil {
+		for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+			nestedAttrReq := ValidateAttributeRequest{
+				AttributePath: req.AttributePath.WithAttributeName(nestedName),
+				Config:        req.Config,
+			}
+			nestedAttrResp := &ValidateAttributeResponse{}
+
+			nestedAttr.Validate(ctx, nestedAttrReq, nestedAttrResp)
+
+			resp.Diagnostics = append(resp.Diagnostics, nestedAttrResp.Diagnostics...)
+		}
+	}
+
+	return
 }
 
 // tfprotov6 returns the *tfprotov6.SchemaAttribute equivalent of an

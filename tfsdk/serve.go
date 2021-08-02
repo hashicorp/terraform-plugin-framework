@@ -280,7 +280,18 @@ func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 		resp.Diagnostics = append(resp.Diagnostics, vpcRes.Diagnostics...)
 	}
 
-	// TODO: Walk schema for attribute validations
+	// TODO: Add unit testing
+	validateSchemaReq := ValidateSchemaRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: schema,
+		},
+	}
+	validateSchemaResp := ValidateSchemaResponse{}
+
+	schema.Validate(ctx, validateSchemaReq, &validateSchemaResp)
+
+	resp.Diagnostics = append(resp.Diagnostics, validateSchemaResp.Diagnostics...)
 
 	return resp, nil
 }
@@ -390,7 +401,18 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 		resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
 	}
 
-	// TODO: Walk schema for attribute validations
+	// TODO: Add unit testing
+	validateSchemaReq := ValidateSchemaRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: resourceSchema,
+		},
+	}
+	validateSchemaResp := ValidateSchemaResponse{}
+
+	resourceSchema.Validate(ctx, validateSchemaReq, &validateSchemaResp)
+
+	resp.Diagnostics = append(resp.Diagnostics, validateSchemaResp.Diagnostics...)
 
 	return resp, nil
 }
@@ -920,7 +942,18 @@ func (s *server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.
 		resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
 	}
 
-	// TODO: Walk schema for attribute validations
+	// TODO: Add unit testing
+	validateSchemaReq := ValidateSchemaRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: dataSourceSchema,
+		},
+	}
+	validateSchemaResp := ValidateSchemaResponse{}
+
+	dataSourceSchema.Validate(ctx, validateSchemaReq, &validateSchemaResp)
+
+	resp.Diagnostics = append(resp.Diagnostics, validateSchemaResp.Diagnostics...)
 
 	return resp, nil
 }

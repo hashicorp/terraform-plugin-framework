@@ -461,7 +461,6 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return resp, nil
 	}
 
-	var modifiedPlan tftypes.Value
 	var modifyPlanResp ModifyResourcePlanResponse
 	if resource, ok := resource.(ResourceWithModifyPlan); ok {
 		modifyPlanReq := ModifyResourcePlanRequest{
@@ -515,25 +514,17 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		}
 		resource.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
 		resp.Diagnostics = append(resp.Diagnostics, modifyPlanResp.Diagnostics...)
-		modifiedPlan, err = tftypes.Transform(modifyPlanResp.Plan.Raw, markComputedNilsAsUnknown(ctx, resourceSchema))
-		if err != nil {
-			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-				Severity: tfprotov6.DiagnosticSeverityError,
-				Summary:  "Error modifying plan",
-				Detail:   "There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			})
-			return resp, nil
-		}
-	} else {
-		modifiedPlan, err = tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, resourceSchema))
-		if err != nil {
-			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-				Severity: tfprotov6.DiagnosticSeverityError,
-				Summary:  "Error modifying plan",
-				Detail:   "There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			})
-			return resp, nil
-		}
+		plan = modifyPlanResp.Plan.Raw
+	}
+
+	modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, resourceSchema))
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error modifying plan",
+			Detail:   "There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+		})
+		return resp, nil
 	}
 
 	plannedState, err := tfprotov6.NewDynamicValue(modifiedPlan.Type(), modifiedPlan)

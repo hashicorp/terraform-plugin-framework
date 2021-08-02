@@ -1,4 +1,4 @@
-package schema
+package tfsdk
 
 import (
 	"fmt"
@@ -349,8 +349,9 @@ func (m mapNestedAttributes) GetMaxItems() int64 {
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.
 func (m mapNestedAttributes) AttributeType() attr.Type {
-	// TODO fill in implementation when types.MapType is available
-	return nil
+	return types.MapType{
+		ElemType: m.nestedAttributes.AttributeType(),
+	}
 }
 
 func (m mapNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {

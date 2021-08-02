@@ -3,7 +3,6 @@ package tfsdk
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
@@ -12,7 +11,7 @@ import (
 // return an instance of it in the map returned by Provider.GetDataSources.
 type DataSourceType interface {
 	// GetSchema returns the schema for this data source.
-	GetSchema(context.Context) (schema.Schema, []*tfprotov6.Diagnostic)
+	GetSchema(context.Context) (Schema, []*tfprotov6.Diagnostic)
 
 	// NewDataSource instantiates a new DataSource of this DataSourceType.
 	NewDataSource(context.Context, Provider) (DataSource, []*tfprotov6.Diagnostic)

@@ -1,12 +1,14 @@
-package schema
+package tfsdk
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -125,4 +127,59 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 		return Attribute{}, fmt.Errorf("got unexpected type %T", res)
 	}
 	return a, nil
+}
+
+// tfprotov6Schema returns the *tfprotov6.Schema equivalent of a Schema. At least
+// one attribute must be set in the schema, or an error will be returned.
+func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) {
+	result := &tfprotov6.Schema{
+		Version: s.Version,
+	}
+
+	var attrs []*tfprotov6.SchemaAttribute
+
+	for name, attr := range s.Attributes {
+		a, err := attr.tfprotov6SchemaAttribute(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
+
+		if err != nil {
+			return nil, err
+		}
+
+		attrs = append(attrs, a)
+	}
+
+	sort.Slice(attrs, func(i, j int) bool {
+		if attrs[i] == nil {
+			return true
+		}
+
+		if attrs[j] == nil {
+			return false
+		}
+
+		return attrs[i].Name < attrs[j].Name
+	})
+
+	if len(attrs) < 1 {
+		return nil, errors.New("must have at least one attribute in the schema")
+	}
+
+	result.Block = &tfprotov6.SchemaBlock{
+		// core doesn't do anything with version, as far as I can tell,
+		// so let's not set it.
+		Attributes: attrs,
+		Deprecated: s.DeprecationMessage != "",
+	}
+
+	if s.Description != "" {
+		result.Block.Description = s.Description
+		result.Block.DescriptionKind = tfprotov6.StringKindPlain
+	}
+
+	if s.MarkdownDescription != "" {
+		result.Block.Description = s.MarkdownDescription
+		result.Block.DescriptionKind = tfprotov6.StringKindMarkdown
+	}
+
+	return result, nil
 }

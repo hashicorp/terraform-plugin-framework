@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -99,5 +100,33 @@ func TestFromPointer_null(t *testing.T) {
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromPointer_AttrTypeWithValidate_Error(t *testing.T) {
+	v := "hello, world"
+	_, diags := refl.FromPointer(context.Background(), testtypes.StringTypeWithValidateError{}, reflect.ValueOf(&v), tftypes.NewAttributePath())
+	if len(diags) == 0 {
+		t.Fatalf("expected diagnostics, got none")
+	}
+	if !reflect.DeepEqual(diags[0], testtypes.TestErrorDiagnostic) {
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
+	}
+}
+
+func TestFromPointer_AttrTypeWithValidate_Warning(t *testing.T) {
+	expectedVal := types.String{
+		Value: "hello, world",
+	}
+	v := "hello, world"
+	actualVal, diags := refl.FromPointer(context.Background(), testtypes.StringTypeWithValidateWarning{}, reflect.ValueOf(&v), tftypes.NewAttributePath())
+	if len(diags) == 0 {
+		t.Fatalf("expected diagnostics, got none")
+	}
+	if !reflect.DeepEqual(diags[0], testtypes.TestWarningDiagnostic) {
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
+	}
+	if !expectedVal.Equal(actualVal) {
+		t.Fatalf("unexpected value: got %+v, wanted %+v", actualVal, expectedVal)
 	}
 }

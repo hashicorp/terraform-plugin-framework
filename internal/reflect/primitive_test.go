@@ -7,8 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -87,33 +89,84 @@ func TestFromString(t *testing.T) {
 	}
 }
 
+func TestFromString_AttrTypeWithValidate_Error(t *testing.T) {
+	_, diags := refl.FromString(context.Background(), testtypes.StringTypeWithValidateError{}, "mystring", tftypes.NewAttributePath())
+	if len(diags) == 0 {
+		t.Fatalf("expected diagnostics, got none")
+	}
+	if !reflect.DeepEqual(diags[0], testtypes.TestErrorDiagnostic) {
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
+	}
+}
+
+func TestFromString_AttrTypeWithValidate_Warning(t *testing.T) {
+	expectedVal := types.String{
+		Value: "mystring",
+	}
+	actualVal, diags := refl.FromString(context.Background(), testtypes.StringTypeWithValidateWarning{}, "mystring", tftypes.NewAttributePath())
+	if len(diags) == 0 {
+		t.Fatalf("expected diagnostics, got none")
+	}
+	if !reflect.DeepEqual(diags[0], testtypes.TestWarningDiagnostic) {
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
+	}
+	if !expectedVal.Equal(actualVal) {
+		t.Fatalf("unexpected value: got %+v, wanted %+v", actualVal, expectedVal)
+	}
+}
+
 func TestFromBool(t *testing.T) {
 	// the rare exhaustive test
-	cases := []struct {
-		val      bool
-		expected attr.Value
+	cases := map[string]struct {
+		val          bool
+		typ          attr.Type
+		expected     attr.Value
+		expectedDiag *tfprotov6.Diagnostic
 	}{
-		{
-			true,
-			types.Bool{
+		"true": {
+			val: true,
+			typ: types.BoolType,
+			expected: types.Bool{
 				Value: true,
 			},
 		},
-		{
-			false,
-			types.Bool{
+		"false": {
+			val: false,
+			typ: types.BoolType,
+			expected: types.Bool{
 				Value: false,
 			},
+		},
+		"WithValidateWarning": {
+			val: true,
+			typ: testtypes.BoolTypeWithValidateWarning{},
+			expected: types.Bool{
+				Value: true,
+			},
+			expectedDiag: testtypes.TestWarningDiagnostic,
+		},
+		"WithValidateError": {
+			val:          true,
+			typ:          testtypes.BoolTypeWithValidateError{},
+			expectedDiag: testtypes.TestErrorDiagnostic,
 		},
 	}
 
 	for _, tc := range cases {
-		actualVal, diags := refl.FromBool(context.Background(), types.BoolType, tc.val, tftypes.NewAttributePath())
-		if diagsHasErrors(diags) {
+		actualVal, diags := refl.FromBool(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
+		if tc.expectedDiag == nil && diagsHasErrors(diags) {
 			t.Fatalf("Unexpected error: %s", diagsString(diags))
 		}
+		if tc.expectedDiag != nil {
+			if len(diags) == 0 {
+				t.Fatalf("Expected diagnostic, got none")
+			}
 
-		if !tc.expected.Equal(actualVal) {
+			if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+				t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
+			}
+		}
+		if !diagsHasErrors(diags) && !tc.expected.Equal(actualVal) {
 			t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
 		}
 	}

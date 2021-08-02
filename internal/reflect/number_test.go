@@ -10,8 +10,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -1067,10 +1069,10 @@ func TestFromInt(t *testing.T) {
 	t.Parallel()
 
 	cases := map[string]struct {
-		val         int64
-		typ         attr.Type
-		expected    attr.Value
-		expectedErr string
+		val          int64
+		typ          attr.Type
+		expected     attr.Value
+		expectedDiag *tfprotov6.Diagnostic
 	}{
 		"0": {
 			val: 0,
@@ -1086,6 +1088,19 @@ func TestFromInt(t *testing.T) {
 				Value: big.NewFloat(1),
 			},
 		},
+		"WithValidateWarning": {
+			val: 1,
+			typ: testtypes.NumberTypeWithValidateWarning{},
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+			expectedDiag: testtypes.TestWarningDiagnostic,
+		},
+		"WithValidateError": {
+			val:          1,
+			typ:          testtypes.NumberTypeWithValidateError{},
+			expectedDiag: testtypes.TestErrorDiagnostic,
+		},
 	}
 
 	for name, tc := range cases {
@@ -1093,11 +1108,19 @@ func TestFromInt(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromInt(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
-			if diagsHasErrors(diags) {
+			if tc.expectedDiag == nil && diagsHasErrors(diags) {
 				t.Fatalf("Unexpected error: %s", diagsString(diags))
 			}
+			if tc.expectedDiag != nil {
+				if len(diags) == 0 {
+					t.Fatalf("Expected diagnostic, got none")
+				}
 
-			if !tc.expected.Equal(actualVal) {
+				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
+				}
+			}
+			if !diagsHasErrors(diags) && !tc.expected.Equal(actualVal) {
 				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
 			}
 		})
@@ -1108,10 +1131,10 @@ func TestFromUint(t *testing.T) {
 	t.Parallel()
 
 	cases := map[string]struct {
-		val         uint64
-		typ         attr.Type
-		expected    attr.Value
-		expectedErr string
+		val          uint64
+		typ          attr.Type
+		expected     attr.Value
+		expectedDiag *tfprotov6.Diagnostic
 	}{
 		"0": {
 			val: 0,
@@ -1127,6 +1150,19 @@ func TestFromUint(t *testing.T) {
 				Value: big.NewFloat(1),
 			},
 		},
+		"WithValidateWarning": {
+			val: 1,
+			typ: testtypes.NumberTypeWithValidateWarning{},
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+			expectedDiag: testtypes.TestWarningDiagnostic,
+		},
+		"WithValidateError": {
+			val:          1,
+			typ:          testtypes.NumberTypeWithValidateError{},
+			expectedDiag: testtypes.TestErrorDiagnostic,
+		},
 	}
 
 	for name, tc := range cases {
@@ -1134,11 +1170,19 @@ func TestFromUint(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromUint(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
-			if diagsHasErrors(diags) {
+			if tc.expectedDiag == nil && diagsHasErrors(diags) {
 				t.Fatalf("Unexpected error: %s", diagsString(diags))
 			}
+			if tc.expectedDiag != nil {
+				if len(diags) == 0 {
+					t.Fatalf("Expected diagnostic, got none")
+				}
 
-			if !tc.expected.Equal(actualVal) {
+				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
+				}
+			}
+			if !diagsHasErrors(diags) && !tc.expected.Equal(actualVal) {
 				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
 			}
 		})
@@ -1149,10 +1193,10 @@ func TestFromFloat(t *testing.T) {
 	t.Parallel()
 
 	cases := map[string]struct {
-		val         float64
-		typ         attr.Type
-		expected    attr.Value
-		expectedErr string
+		val          float64
+		typ          attr.Type
+		expected     attr.Value
+		expectedDiag *tfprotov6.Diagnostic
 	}{
 		"0": {
 			val: 0,
@@ -1175,6 +1219,19 @@ func TestFromFloat(t *testing.T) {
 				Value: big.NewFloat(1.234),
 			},
 		},
+		"WithValidateWarning": {
+			val: 1,
+			typ: testtypes.NumberTypeWithValidateWarning{},
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+			expectedDiag: testtypes.TestWarningDiagnostic,
+		},
+		"WithValidateError": {
+			val:          1,
+			typ:          testtypes.NumberTypeWithValidateError{},
+			expectedDiag: testtypes.TestErrorDiagnostic,
+		},
 	}
 
 	for name, tc := range cases {
@@ -1182,11 +1239,19 @@ func TestFromFloat(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromFloat(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
-			if diagsHasErrors(diags) {
+			if tc.expectedDiag == nil && diagsHasErrors(diags) {
 				t.Fatalf("Unexpected error: %s", diagsString(diags))
 			}
+			if tc.expectedDiag != nil {
+				if len(diags) == 0 {
+					t.Fatalf("Expected diagnostic, got none")
+				}
 
-			if !tc.expected.Equal(actualVal) {
+				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
+				}
+			}
+			if !diagsHasErrors(diags) && !tc.expected.Equal(actualVal) {
 				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
 			}
 		})
@@ -1197,10 +1262,10 @@ func TestFromBigFloat(t *testing.T) {
 	t.Parallel()
 
 	cases := map[string]struct {
-		val         *big.Float
-		typ         attr.Type
-		expected    attr.Value
-		expectedErr string
+		val          *big.Float
+		typ          attr.Type
+		expected     attr.Value
+		expectedDiag *tfprotov6.Diagnostic
 	}{
 		"0": {
 			val: big.NewFloat(0),
@@ -1223,6 +1288,19 @@ func TestFromBigFloat(t *testing.T) {
 				Value: big.NewFloat(1.234),
 			},
 		},
+		"WithValidateWarning": {
+			val: big.NewFloat(1),
+			typ: testtypes.NumberTypeWithValidateWarning{},
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+			expectedDiag: testtypes.TestWarningDiagnostic,
+		},
+		"WithValidateError": {
+			val:          big.NewFloat(1),
+			typ:          testtypes.NumberTypeWithValidateError{},
+			expectedDiag: testtypes.TestErrorDiagnostic,
+		},
 	}
 
 	for name, tc := range cases {
@@ -1230,11 +1308,19 @@ func TestFromBigFloat(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromBigFloat(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
-			if diagsHasErrors(diags) {
+			if tc.expectedDiag == nil && diagsHasErrors(diags) {
 				t.Fatalf("Unexpected error: %s", diagsString(diags))
 			}
+			if tc.expectedDiag != nil {
+				if len(diags) == 0 {
+					t.Fatalf("Expected diagnostic, got none")
+				}
 
-			if !tc.expected.Equal(actualVal) {
+				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
+				}
+			}
+			if !diagsHasErrors(diags) && !tc.expected.Equal(actualVal) {
 				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
 			}
 		})
@@ -1245,10 +1331,10 @@ func TestFromBigInt(t *testing.T) {
 	t.Parallel()
 
 	cases := map[string]struct {
-		val         *big.Int
-		typ         attr.Type
-		expected    attr.Value
-		expectedErr string
+		val          *big.Int
+		typ          attr.Type
+		expected     attr.Value
+		expectedDiag *tfprotov6.Diagnostic
 	}{
 		"0": {
 			val: big.NewInt(0),
@@ -1264,6 +1350,19 @@ func TestFromBigInt(t *testing.T) {
 				Value: big.NewFloat(1),
 			},
 		},
+		"WithValidateWarning": {
+			val: big.NewInt(1),
+			typ: testtypes.NumberTypeWithValidateWarning{},
+			expected: types.Number{
+				Value: big.NewFloat(1),
+			},
+			expectedDiag: testtypes.TestWarningDiagnostic,
+		},
+		"WithValidateError": {
+			val:          big.NewInt(1),
+			typ:          testtypes.NumberTypeWithValidateError{},
+			expectedDiag: testtypes.TestErrorDiagnostic,
+		},
 	}
 
 	for name, tc := range cases {
@@ -1271,11 +1370,19 @@ func TestFromBigInt(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromBigInt(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
-			if diagsHasErrors(diags) {
+			if tc.expectedDiag == nil && diagsHasErrors(diags) {
 				t.Fatalf("Unexpected error: %s", diagsString(diags))
 			}
+			if tc.expectedDiag != nil {
+				if len(diags) == 0 {
+					t.Fatalf("Expected diagnostic, got none")
+				}
 
-			if !tc.expected.Equal(actualVal) {
+				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
+				}
+			}
+			if !diagsHasErrors(diags) && !tc.expected.Equal(actualVal) {
 				t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
 			}
 		})

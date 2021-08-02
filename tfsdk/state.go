@@ -165,7 +165,7 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 		})
 	}
 
-	return nil
+	return diags
 }
 
 // RemoveResource removes the entire resource from state.

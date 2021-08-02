@@ -38,7 +38,7 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 		return diags
 	}
 	v.Elem().Set(result)
-	return nil
+	return diags
 }
 
 // BuildValue constructs a reflect.Value of the same type as `target`,

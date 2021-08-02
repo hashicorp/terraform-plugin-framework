@@ -23,6 +23,13 @@ type DataSourceConfigValidator interface {
 }
 
 // DataSourceWithConfigValidators is an interface type that extends DataSource to include declarative validations.
+//
+// Declaring validation using this methodology simplifies implmentation of
+// reusable functionality. These also include descriptions, which can be used
+// for automating documentation.
+//
+// Validation will include ConfigValidators and ValidateConfig, if both are
+// implemented, in addition to any Attribute or Type validation.
 type DataSourceWithConfigValidators interface {
 	DataSource
 
@@ -31,6 +38,14 @@ type DataSourceWithConfigValidators interface {
 }
 
 // DataSourceWithValidateConfig is an interface type that extends DataSource to include imperative validation.
+//
+// Declaring validation using this methodology simplifies one-off
+// functionality that typically applies to a single data source. Any
+// documentation of this functionality must be manually added into schema
+// descriptions.
+//
+// Validation will include ConfigValidators and ValidateConfig, if both are
+// implemented, in addition to any Attribute or Type validation.
 type DataSourceWithValidateConfig interface {
 	DataSource
 

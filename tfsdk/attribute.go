@@ -73,7 +73,50 @@ type Attribute struct {
 
 	// Validators defines validation functionality for the attribute.
 	Validators []AttributeValidator
+
+	// PlanModifiers defines a sequence of modifiers for this attribute at
+	// plan time.
+	// Please note that plan modification only applies to resources, not
+	// data sources. Setting PlanModifiers on a data source attribute will
+	// have no effect.
+	PlanModifiers AttributePlanModifiers
 }
+
+// AttributePlanModifier represents a modifier for an attribute at plan time.
+// An AttributePlanModifier can only modify the planned value for the attribute
+// on which it is defined. For plan-time modifications that modify the values of
+// several attributes at once, please instead use the ResourceWithModifyPlan
+// interface by defining a ModifyPlan function on the resource.
+type AttributePlanModifier interface {
+	// Description is used in various tooling, like the language server, to
+	// give practitioners more information about what this modifier is,
+	// what it's for, and how it should be used. It should be written as
+	// plain text, with no special formatting.
+	Description(context.Context) string
+
+	// MarkdownDescription is used in various tooling, like the
+	// documentation generator, to give practitioners more information
+	// about what this modifier is, what it's for, and how it should be
+	// used. It should be formatted using Markdown.
+	MarkdownDescription(context.Context) string
+
+	// Modify is called when the provider has an opportunity to modify
+	// the plan: once during the plan phase when Terraform is determining
+	// the diff that should be shown to the user for approval, and once
+	// during the apply phase with any unknown values from configuration
+	// filled in with their final values.
+	// The Modify function has access to the config, state, and plan for
+	// both the attribute in question and the entire resource, but it can
+	// only modify the value of the one attribute.
+	//
+	// Please see the documentation for ResourceWithModifyPlan#ModifyPlan
+	// for further details.
+	Modify(context.Context, ModifyAttributePlanRequest, *ModifyAttributePlanResponse)
+}
+
+// AttributePlanModifiers represents a sequence of AttributePlanModifiers, in
+// order.
+type AttributePlanModifiers []AttributePlanModifier
 
 // ApplyTerraform5AttributePathStep transparently calls
 // ApplyTerraform5AttributePathStep on a.Type or a.Attributes, whichever is

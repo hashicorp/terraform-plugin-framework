@@ -27,13 +27,13 @@ type testServeProvider struct {
 	planResourceChangeCalledResourceType     string
 	planResourceChangeCalledAction           string
 	planResourceChangePriorStateValue        tftypes.Value
-	planResourceChangePriorStateSchema       schema.Schema
+	planResourceChangePriorStateSchema       Schema
 	planResourceChangeProposedNewStateValue  tftypes.Value
-	planResourceChangeProposedNewStateSchema schema.Schema
+	planResourceChangeProposedNewStateSchema Schema
 	planResourceChangeConfigValue            tftypes.Value
-	planResourceChangeConfigSchema           schema.Schema
+	planResourceChangeConfigSchema           Schema
 	planResourceChangeProviderMetaValue      tftypes.Value
-	planResourceChangeProviderMetaSchema     schema.Schema
+	planResourceChangeProviderMetaSchema     Schema
 	modifyPlanFunc                           func(context.Context, ModifyResourcePlanRequest, *ModifyResourcePlanResponse)
 
 	// apply resource change

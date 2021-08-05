@@ -42,3 +42,27 @@ type Resource interface {
 	// values may be read from the DeleteResourceRequest.
 	Delete(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
 }
+
+// ResourceWithModifyPlan represents a resource instance with a ModifyPlan
+// function.
+type ResourceWithModifyPlan interface {
+	Resource
+
+	// ModifyPlan is called when the provider has an opportunity to modify
+	// the plan: once during the plan phase when Terraform is determining
+	// the diff that should be shown to the user for approval, and once
+	// during the apply phase with any unknown values from configuration
+	// filled in with their final values.
+	//
+	// The planned new state is represented by
+	// ModifyResourcePlanResponse.Plan. It must meet the following
+	// constraints:
+	// 1. Any non-Computed attribute set in config must preserve the exact
+	// config value or return the corresponding attribute value from the
+	// prior state (ModifyResourcePlanRequest.State).
+	// 2. Any attribute with a known value must not have its value changed
+	// in subsequent calls to ModifyPlan or Create/Read/Update.
+	// 3. Any attribute with an unknown value may either remain unknown
+	// or take on any value of the expected type.
+	ModifyPlan(context.Context, ModifyResourcePlanRequest, *ModifyResourcePlanResponse)
+}

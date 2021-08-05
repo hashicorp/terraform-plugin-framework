@@ -17,7 +17,8 @@ type DataSourceType interface {
 	NewDataSource(context.Context, Provider) (DataSource, []*tfprotov6.Diagnostic)
 }
 
-// DataSource implements a data source instance.
+// DataSource represents a data source instance. This is the core interface that
+// all data sources must implement.
 type DataSource interface {
 	// Read is called when the provider must read data source values in
 	// order to update state. Config values should be read from the

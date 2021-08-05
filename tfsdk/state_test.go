@@ -152,6 +152,8 @@ type testStateStructType struct {
 }
 
 func TestStateGet(t *testing.T) {
+	t.Parallel()
+
 	testState := makeTestState()
 	var val testStateStructType
 	diags := testState.Get(context.Background(), &val)
@@ -201,6 +203,8 @@ func TestStateGet(t *testing.T) {
 }
 
 func TestStateGetAttribute_primitive(t *testing.T) {
+	t.Parallel()
+
 	testState := makeTestState()
 	nameVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"))
 	if diagnostics.DiagsHasErrors(diags) {
@@ -222,6 +226,8 @@ func TestStateGetAttribute_primitive(t *testing.T) {
 }
 
 func TestStateGetAttribute_list(t *testing.T) {
+	t.Parallel()
+
 	testState := makeTestState()
 	tagsVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags"))
 	if diagnostics.DiagsHasErrors(diags) {
@@ -306,6 +312,8 @@ func TestStateGetAttribute_list(t *testing.T) {
 }
 
 func TestStateGetAttribute_nestedlist(t *testing.T) {
+	t.Parallel()
+
 	testState := makeTestState()
 	disksVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("disks"))
 	if diagnostics.DiagsHasErrors(diags) {
@@ -378,6 +386,8 @@ func TestStateGetAttribute_nestedlist(t *testing.T) {
 }
 
 func TestStateGetAttribute_nestedsingle(t *testing.T) {
+	t.Parallel()
+
 	testState := makeTestState()
 	bootDiskVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("boot_disk"))
 	if diagnostics.DiagsHasErrors(diags) {
@@ -425,6 +435,8 @@ func TestStateGetAttribute_nestedsingle(t *testing.T) {
 }
 
 func TestStateGetAttribute_object(t *testing.T) {
+	t.Parallel()
+
 	testState := makeTestState()
 	scratchDiskVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk"))
 	if diagnostics.DiagsHasErrors(diags) {
@@ -476,6 +488,8 @@ func TestStateGetAttribute_object(t *testing.T) {
 }
 
 func TestStateGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
+	t.Parallel()
+
 	testState := State{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -510,6 +524,8 @@ func TestStateGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 }
 
 func TestStateGetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
+	t.Parallel()
+
 	testState := State{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -558,6 +574,8 @@ func TestStateGetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
 }
 
 func TestStateSet(t *testing.T) {
+	t.Parallel()
+
 	state := State{
 		Raw:    tftypes.Value{},
 		Schema: testSchema,
@@ -623,6 +641,8 @@ func TestStateSet(t *testing.T) {
 
 // test that Get and Set are inverses of each other
 func TestStateGetSetInverse(t *testing.T) {
+	t.Parallel()
+
 	testState := makeTestState()
 	var val testStateStructType
 	diags := testState.Get(context.Background(), &val)
@@ -645,6 +665,8 @@ func TestStateGetSetInverse(t *testing.T) {
 }
 
 func TestStateSetAttribute(t *testing.T) {
+	t.Parallel()
+
 	testState := makeTestState()
 
 	// set a simple string attribute
@@ -732,6 +754,8 @@ func TestStateSetAttribute(t *testing.T) {
 }
 
 func TestStateSetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
+	t.Parallel()
+
 	testState := State{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -774,6 +798,8 @@ func TestStateSetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 }
 
 func TestStateSetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
+	t.Parallel()
+
 	testState := State{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{

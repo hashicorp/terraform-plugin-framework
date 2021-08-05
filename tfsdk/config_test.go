@@ -12,6 +12,8 @@ import (
 )
 
 func TestConfigGet(t *testing.T) {
+	t.Parallel()
+
 	testConfig := Config{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -52,6 +54,8 @@ func TestConfigGet(t *testing.T) {
 }
 
 func TestConfigGet_AttrTypeWithValidate_Error(t *testing.T) {
+	t.Parallel()
+
 	testConfig := Config{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -96,6 +100,8 @@ func TestConfigGet_AttrTypeWithValidate_Error(t *testing.T) {
 }
 
 func TestConfigGet_AttrTypeWithValidate_Warning(t *testing.T) {
+	t.Parallel()
+
 	testConfig := Config{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -140,6 +146,8 @@ func TestConfigGet_AttrTypeWithValidate_Warning(t *testing.T) {
 }
 
 func TestConfigGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
+	t.Parallel()
+
 	testConfig := Config{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -174,6 +182,8 @@ func TestConfigGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 }
 
 func TestConfigGetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
+	t.Parallel()
+
 	testConfig := Config{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{

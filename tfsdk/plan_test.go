@@ -12,6 +12,8 @@ import (
 )
 
 func TestPlanGet(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -52,6 +54,8 @@ func TestPlanGet(t *testing.T) {
 }
 
 func TestPlanGet_AttrTypeWithValidate_Error(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -96,6 +100,8 @@ func TestPlanGet_AttrTypeWithValidate_Error(t *testing.T) {
 }
 
 func TestPlanGet_AttrTypeWithValidate_Warning(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -140,6 +146,8 @@ func TestPlanGet_AttrTypeWithValidate_Warning(t *testing.T) {
 }
 
 func TestPlanGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -174,6 +182,8 @@ func TestPlanGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 }
 
 func TestPlanGetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -222,6 +232,8 @@ func TestPlanGetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
 }
 
 func TestPlanSet(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.Value{},
 		Schema: Schema{
@@ -261,6 +273,8 @@ func TestPlanSet(t *testing.T) {
 }
 
 func TestPlanSet_AttrTypeWithValidate_Error(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.Value{},
 		Schema: Schema{
@@ -298,6 +312,8 @@ func TestPlanSet_AttrTypeWithValidate_Error(t *testing.T) {
 }
 
 func TestPlanSet_AttrTypeWithValidate_Warning(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.Value{},
 		Schema: Schema{
@@ -341,6 +357,8 @@ func TestPlanSet_AttrTypeWithValidate_Warning(t *testing.T) {
 }
 
 func TestPlanSetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -383,6 +401,8 @@ func TestPlanSetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 }
 
 func TestPlanSetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
+	t.Parallel()
+
 	testPlan := Plan{
 		Raw: tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{

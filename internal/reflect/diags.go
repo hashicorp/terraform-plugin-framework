@@ -5,20 +5,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// TODO: Replace with diagnostics abstraction
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/24
-func diagsHasErrors(in []*tfprotov6.Diagnostic) bool {
-	for _, diag := range in {
-		if diag == nil {
-			continue
-		}
-		if diag.Severity == tfprotov6.DiagnosticSeverityError {
-			return true
-		}
-	}
-	return false
-}
-
 func toTerraform5ValueErrorDiag(err error, path *tftypes.AttributePath) *tfprotov6.Diagnostic {
 	return &tfprotov6.Diagnostic{
 		Severity:  tfprotov6.DiagnosticSeverityError,

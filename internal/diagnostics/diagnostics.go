@@ -1,4 +1,4 @@
-package tfsdk
+package diagnostics
 
 import (
 	"fmt"
@@ -9,7 +9,36 @@ import (
 
 // TODO: Replace with diagnostics abstraction
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/24
-func diagsString(in []*tfprotov6.Diagnostic) string {
+func DiagsContainsDetail(in []*tfprotov6.Diagnostic, detail string) bool {
+	for _, diag := range in {
+		if diag == nil {
+			continue
+		}
+
+		if strings.Contains(diag.Detail, detail) {
+			return true
+		}
+	}
+	return false
+}
+
+// TODO: Replace with diagnostics abstraction
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/24
+func DiagsHasErrors(in []*tfprotov6.Diagnostic) bool {
+	for _, diag := range in {
+		if diag == nil {
+			continue
+		}
+		if diag.Severity == tfprotov6.DiagnosticSeverityError {
+			return true
+		}
+	}
+	return false
+}
+
+// TODO: Replace with diagnostics abstraction
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/24
+func DiagsString(in []*tfprotov6.Diagnostic) string {
 	var b strings.Builder
 
 	for _, diag := range in {
@@ -19,7 +48,7 @@ func diagsString(in []*tfprotov6.Diagnostic) string {
 
 		// Diagnostic does not have .String() method
 		b.WriteString("\n")
-		b.WriteString(diagString(diag))
+		b.WriteString(DiagString(diag))
 		b.WriteString("\n")
 	}
 
@@ -28,7 +57,7 @@ func diagsString(in []*tfprotov6.Diagnostic) string {
 
 // TODO: Replace with diagnostics abstraction
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/24
-func diagString(diag *tfprotov6.Diagnostic) string {
+func DiagString(diag *tfprotov6.Diagnostic) string {
 	var b strings.Builder
 
 	b.WriteString(fmt.Sprintf("Severity: %s\n", diag.Severity))

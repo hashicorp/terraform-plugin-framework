@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -37,8 +38,8 @@ func TestPlanGet(t *testing.T) {
 
 	diags := testPlan.Get(context.Background(), &val)
 
-	if diagsHasErrors(diags) {
-		t.Fatalf("unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 
 	expected := testPlanData{
@@ -82,7 +83,7 @@ func TestPlanGet_AttrTypeWithValidate_Error(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	expected := testPlanData{
@@ -126,7 +127,7 @@ func TestPlanGet_AttrTypeWithValidate_Warning(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	expected := testPlanData{
@@ -164,7 +165,7 @@ func TestPlanGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	if nameVal != nil {
@@ -198,7 +199,7 @@ func TestPlanGetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	name, ok := nameVal.(types.String)
@@ -241,8 +242,8 @@ func TestPlanSet(t *testing.T) {
 		Name: "newvalue",
 	})
 
-	if diagsHasErrors(diags) {
-		t.Fatalf("error setting plan: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("error setting plan: %s", diagnostics.DiagsString(diags))
 	}
 
 	actual := testPlan.Raw
@@ -285,7 +286,7 @@ func TestPlanSet_AttrTypeWithValidate_Error(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	actual := testPlan.Raw
@@ -322,7 +323,7 @@ func TestPlanSet_AttrTypeWithValidate_Warning(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	actual := testPlan.Raw
@@ -365,7 +366,7 @@ func TestPlanSetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	expectedRawState := tftypes.NewValue(tftypes.Object{
@@ -407,7 +408,7 @@ func TestPlanSetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	expectedRawState := tftypes.NewValue(tftypes.Object{

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -50,7 +51,7 @@ func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
 		diags = append(diags, attrTypeWithValidate.Validate(ctx, tfValue)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -515,8 +516,8 @@ func TestObjectAs_struct(t *testing.T) {
 	}
 	var target myStruct
 	diags := object.As(context.Background(), &target, ObjectAsOptions{})
-	if diagsHasErrors(diags) {
-		t.Errorf("unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	expected := myStruct{
 		A: "hello",

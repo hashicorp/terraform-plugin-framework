@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -248,7 +249,7 @@ func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.Attrib
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}
@@ -275,7 +276,7 @@ func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.Attr
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}
@@ -302,7 +303,7 @@ func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.At
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}
@@ -329,7 +330,7 @@ func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tfty
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}
@@ -357,7 +358,7 @@ func FromBigInt(ctx context.Context, typ attr.Type, val *big.Int, path *tftypes.
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}

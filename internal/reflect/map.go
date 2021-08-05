@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -79,7 +80,7 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 		result, elemDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, path)
 		diags = append(diags, elemDiags...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return target, diags
 		}
 
@@ -104,7 +105,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 			diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
 
-			if diagsHasErrors(diags) {
+			if diagnostics.DiagsHasErrors(diags) {
 				return nil, diags
 			}
 		}
@@ -138,7 +139,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 		val, valDiags := FromValue(ctx, elemType, val.MapIndex(key).Interface(), path.WithElementKeyString(key.String()))
 		diags = append(diags, valDiags...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 		tfVal, err := val.ToTerraformValue(ctx)
@@ -158,7 +159,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 			diags = append(diags, typeWithValidate.Validate(ctx, tfElemVal)...)
 
-			if diagsHasErrors(diags) {
+			if diagnostics.DiagsHasErrors(diags) {
 				return nil, diags
 			}
 		}
@@ -176,7 +177,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 		diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}

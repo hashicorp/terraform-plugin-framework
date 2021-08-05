@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -30,8 +31,8 @@ func TestReflectMap_string(t *testing.T) {
 		"b": tftypes.NewValue(tftypes.String, "blue"),
 		"c": tftypes.NewValue(tftypes.String, "green"),
 	}), reflect.ValueOf(m), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	reflect.ValueOf(&m).Elem().Set(result)
 	for k, v := range expected {

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -224,8 +225,8 @@ func TestNewUnknownable_known(t *testing.T) {
 		Unknown: true,
 	}
 	res, diags := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(*unknownableString)
 	if got.Unknown != false {
@@ -238,8 +239,8 @@ func TestNewUnknownable_unknown(t *testing.T) {
 
 	var unknownable *unknownableString
 	res, diags := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(*unknownableString)
 	if got.Unknown != true {
@@ -252,8 +253,8 @@ func TestNewUnknownable_error(t *testing.T) {
 
 	var unknownable *unknownableStringError
 	_, diags := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
-	if expected := "this is an error"; !diagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagsString(diags))
+	if expected := "this is an error"; !diagnostics.DiagsContainsDetail(diags, expected) {
+		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
 	}
 }
 
@@ -265,8 +266,8 @@ func TestFromUnknownable_unknown(t *testing.T) {
 	}
 	expected := types.String{Unknown: true}
 	got, diags := refl.FromUnknownable(context.Background(), types.StringType, foo, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -281,8 +282,8 @@ func TestFromUnknownable_value(t *testing.T) {
 	}
 	expected := types.String{Value: "hello, world"}
 	got, diags := refl.FromUnknownable(context.Background(), types.StringType, foo, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -296,8 +297,8 @@ func TestNewNullable_notNull(t *testing.T) {
 		Null: true,
 	}
 	res, diags := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(*nullableString)
 	if got.Null != false {
@@ -310,8 +311,8 @@ func TestNewNullable_null(t *testing.T) {
 
 	var nullable *nullableString
 	res, diags := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(*nullableString)
 	if got.Null != true {
@@ -324,8 +325,8 @@ func TestNewNullable_error(t *testing.T) {
 
 	var nullable *nullableStringError
 	_, diags := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
-	if expected := "this is an error"; !diagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagsString(diags))
+	if expected := "this is an error"; !diagnostics.DiagsContainsDetail(diags, expected) {
+		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
 	}
 }
 
@@ -337,8 +338,8 @@ func TestFromNullable_null(t *testing.T) {
 	}
 	expected := types.String{Null: true}
 	got, diags := refl.FromNullable(context.Background(), types.StringType, foo, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -353,8 +354,8 @@ func TestFromNullable_value(t *testing.T) {
 	}
 	expected := types.String{Value: "hello, world"}
 	got, diags := refl.FromNullable(context.Background(), types.StringType, foo, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -366,8 +367,8 @@ func TestNewAttributeValue_unknown(t *testing.T) {
 
 	var av types.String
 	res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(types.String)
 	expected := types.String{Unknown: true}
@@ -381,8 +382,8 @@ func TestNewAttributeValue_null(t *testing.T) {
 
 	var av types.String
 	res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(types.String)
 	expected := types.String{Null: true}
@@ -396,8 +397,8 @@ func TestFromAttributeValue_null(t *testing.T) {
 
 	expected := types.String{Null: true}
 	got, diags := refl.FromAttributeValue(context.Background(), types.StringType, expected, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -409,8 +410,8 @@ func TestFromAttributeValue_unknown(t *testing.T) {
 
 	expected := types.String{Unknown: true}
 	got, diags := refl.FromAttributeValue(context.Background(), types.StringType, expected, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -422,8 +423,8 @@ func TestFromAttributeValue_value(t *testing.T) {
 
 	expected := types.String{Value: "hello, world"}
 	got, diags := refl.FromAttributeValue(context.Background(), types.StringType, expected, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -435,8 +436,8 @@ func TestNewAttributeValue_value(t *testing.T) {
 
 	var av types.String
 	res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(types.String)
 	expected := types.String{Value: "hello"}
@@ -450,8 +451,8 @@ func TestNewValueConverter_unknown(t *testing.T) {
 
 	var vc *valueConverter
 	res, diags := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(*valueConverter)
 	expected := &valueConverter{unknown: true}
@@ -465,8 +466,8 @@ func TestNewValueConverter_null(t *testing.T) {
 
 	var vc *valueConverter
 	res, diags := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(*valueConverter)
 	expected := &valueConverter{null: true}
@@ -480,8 +481,8 @@ func TestNewValueConverter_value(t *testing.T) {
 
 	var vc *valueConverter
 	res, diags := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	got := res.Interface().(*valueConverter)
 	expected := &valueConverter{value: "hello"}
@@ -495,8 +496,8 @@ func TestNewValueConverter_error(t *testing.T) {
 
 	var vc *valueConverterError
 	_, diags := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
-	if expected := "this is an error"; !diagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagsString(diags))
+	if expected := "this is an error"; !diagnostics.DiagsContainsDetail(diags, expected) {
+		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
 	}
 }
 
@@ -508,8 +509,8 @@ func TestFromValueCreator_null(t *testing.T) {
 	}
 	expected := types.String{Null: true}
 	got, diags := refl.FromValueCreator(context.Background(), types.StringType, vc, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -524,8 +525,8 @@ func TestFromValueCreator_unknown(t *testing.T) {
 	}
 	expected := types.String{Unknown: true}
 	got, diags := refl.FromValueCreator(context.Background(), types.StringType, vc, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -540,8 +541,8 @@ func TestFromValueCreator_value(t *testing.T) {
 	}
 	expected := types.String{Value: "hello, world"}
 	got, diags := refl.FromValueCreator(context.Background(), types.StringType, vc, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)

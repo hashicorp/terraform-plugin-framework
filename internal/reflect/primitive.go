@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -67,7 +68,7 @@ func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.At
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 		diags = append(diags, typeWithValidate.Validate(ctx, tfStr)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}
@@ -94,7 +95,7 @@ func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.Attrib
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 		diags = append(diags, typeWithValidate.Validate(ctx, tfBool)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}

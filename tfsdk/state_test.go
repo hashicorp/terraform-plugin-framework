@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -154,8 +155,8 @@ func TestStateGet(t *testing.T) {
 	testState := makeTestState()
 	var val testStateStructType
 	diags := testState.Get(context.Background(), &val)
-	if diagsHasErrors(diags) {
-		t.Fatalf("Error running Get: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("Error running Get: %s", diagnostics.DiagsString(diags))
 	}
 	expected := testStateStructType{
 		Name:        types.String{Value: "hello, world"},
@@ -202,8 +203,8 @@ func TestStateGet(t *testing.T) {
 func TestStateGetAttribute_primitive(t *testing.T) {
 	testState := makeTestState()
 	nameVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"))
-	if diagsHasErrors(diags) {
-		t.Errorf("Error running GetAttribute for name: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for name: %s", diagnostics.DiagsString(diags))
 	}
 	name, ok := nameVal.(types.String)
 	if !ok {
@@ -223,8 +224,8 @@ func TestStateGetAttribute_primitive(t *testing.T) {
 func TestStateGetAttribute_list(t *testing.T) {
 	testState := makeTestState()
 	tagsVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags"))
-	if diagsHasErrors(diags) {
-		t.Errorf("Error running GetAttribute for tags: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for tags: %s", diagnostics.DiagsString(diags))
 	}
 	tags, ok := tagsVal.(types.List)
 	if !ok {
@@ -250,8 +251,8 @@ func TestStateGetAttribute_list(t *testing.T) {
 	}
 
 	tags0Val, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(0))
-	if diagsHasErrors(diags) {
-		t.Errorf("Error running GetAttribute for tags[0]: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for tags[0]: %s", diagnostics.DiagsString(diags))
 	}
 	tags0, ok := tags0Val.(types.String)
 	if !ok {
@@ -268,8 +269,8 @@ func TestStateGetAttribute_list(t *testing.T) {
 	}
 
 	tags1Val, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(1))
-	if diagsHasErrors(diags) {
-		t.Errorf("Error running GetAttribute for tags[1]: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for tags[1]: %s", diagnostics.DiagsString(diags))
 	}
 	tags1, ok := tags1Val.(types.String)
 	if !ok {
@@ -286,8 +287,8 @@ func TestStateGetAttribute_list(t *testing.T) {
 	}
 
 	tags2Val, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyInt(2))
-	if diagsHasErrors(diags) {
-		t.Errorf("Error running GetAttribute for tags[2]: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for tags[2]: %s", diagnostics.DiagsString(diags))
 	}
 	tags2, ok := tags2Val.(types.String)
 	if !ok {
@@ -307,8 +308,8 @@ func TestStateGetAttribute_list(t *testing.T) {
 func TestStateGetAttribute_nestedlist(t *testing.T) {
 	testState := makeTestState()
 	disksVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("disks"))
-	if diagsHasErrors(diags) {
-		t.Errorf("Error running GetAttribute for name: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for name: %s", diagnostics.DiagsString(diags))
 	}
 
 	disks, ok := disksVal.(types.List)
@@ -379,8 +380,8 @@ func TestStateGetAttribute_nestedlist(t *testing.T) {
 func TestStateGetAttribute_nestedsingle(t *testing.T) {
 	testState := makeTestState()
 	bootDiskVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("boot_disk"))
-	if diagsHasErrors(diags) {
-		t.Errorf("Error running GetAttribute for name: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Error running GetAttribute for name: %s", diagnostics.DiagsString(diags))
 	}
 
 	bootDisk, ok := bootDiskVal.(types.Object)
@@ -426,8 +427,8 @@ func TestStateGetAttribute_nestedsingle(t *testing.T) {
 func TestStateGetAttribute_object(t *testing.T) {
 	testState := makeTestState()
 	scratchDiskVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk"))
-	if diagsHasErrors(diags) {
-		t.Errorf("error running GetAttribute for scratch_disk: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("error running GetAttribute for scratch_disk: %s", diagnostics.DiagsString(diags))
 	}
 	scratchDisk, ok := scratchDiskVal.(types.Object)
 	if !ok {
@@ -456,8 +457,8 @@ func TestStateGetAttribute_object(t *testing.T) {
 
 	// now get the value directly
 	sdInterfaceVal, diags := testState.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"))
-	if diagsHasErrors(diags) {
-		t.Errorf("error running GetAttribute for scratch_disk.interface: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("error running GetAttribute for scratch_disk.interface: %s", diagnostics.DiagsString(diags))
 	}
 	sdInterface, ok := sdInterfaceVal.(types.String)
 	if !ok {
@@ -500,7 +501,7 @@ func TestStateGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	if nameVal != nil {
@@ -534,7 +535,7 @@ func TestStateGetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	name, ok := nameVal.(types.String)
@@ -607,8 +608,8 @@ func TestStateSet(t *testing.T) {
 			Interface: "SCSI",
 		},
 	})
-	if diagsHasErrors(diags) {
-		t.Fatalf("error setting state: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("error setting state: %s", diagnostics.DiagsString(diags))
 	}
 
 	actual := state.Raw
@@ -625,8 +626,8 @@ func TestStateGetSetInverse(t *testing.T) {
 	testState := makeTestState()
 	var val testStateStructType
 	diags := testState.Get(context.Background(), &val)
-	if diagsHasErrors(diags) {
-		t.Fatalf("Error running Get: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("Error running Get: %s", diagnostics.DiagsString(diags))
 	}
 
 	newState := State{
@@ -634,8 +635,8 @@ func TestStateGetSetInverse(t *testing.T) {
 	}
 
 	diags = newState.Set(context.Background(), val)
-	if diagsHasErrors(diags) {
-		t.Fatalf("error setting state: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("error setting state: %s", diagnostics.DiagsString(diags))
 	}
 
 	if diff := cmp.Diff(testState, newState, allowAllUnexported); diff != "" {
@@ -648,14 +649,14 @@ func TestStateSetAttribute(t *testing.T) {
 
 	// set a simple string attribute
 	diags := testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"), "newname")
-	if diagsHasErrors(diags) {
-		t.Fatalf("unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 
 	// set an entire list
 	diags = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("tags"), []string{"one", "two"})
-	if diagsHasErrors(diags) {
-		t.Fatalf("unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 
 	// set a list item
@@ -666,14 +667,14 @@ func TestStateSetAttribute(t *testing.T) {
 		ID:                 "mynewdisk",
 		DeleteWithInstance: true,
 	})
-	if diagsHasErrors(diags) {
-		t.Fatalf("unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 
 	// set an object attribute
 	diags = testState.SetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"), "NVME")
-	if diagsHasErrors(diags) {
-		t.Fatalf("unexpected error: %s", diagsString(diags))
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 
 	expectedRawState := tftypes.NewValue(tftypes.Object{
@@ -756,7 +757,7 @@ func TestStateSetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	expectedRawState := tftypes.NewValue(tftypes.Object{
@@ -798,7 +799,7 @@ func TestStateSetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
 	}
 
 	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
 	}
 
 	expectedRawState := tftypes.NewValue(tftypes.Object{

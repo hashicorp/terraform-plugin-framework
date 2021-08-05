@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -33,7 +34,7 @@ func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target refle
 	pointed, pointedDiags := BuildValue(ctx, typ, val, pointer.Elem(), opts, path)
 	diags = append(diags, pointedDiags...)
 
-	if diagsHasErrors(diags) {
+	if diagnostics.DiagsHasErrors(diags) {
 		return target, diags
 	}
 	// to be able to set the pointer to our new pointer, we need to create
@@ -92,7 +93,7 @@ func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 			diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
 
-			if diagsHasErrors(diags) {
+			if diagnostics.DiagsHasErrors(diags) {
 				return nil, diags
 			}
 		}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -51,7 +52,7 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
 		diags = append(diags, attrTypeWithValidate.Validate(ctx, tfValue)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}
@@ -85,7 +86,7 @@ func (s *State) Set(ctx context.Context, val interface{}) []*tfprotov6.Diagnosti
 		}
 	}
 	newStateAttrValue, diags := reflect.OutOf(ctx, s.Schema.AttributeType(), val)
-	if diagsHasErrors(diags) {
+	if diagnostics.DiagsHasErrors(diags) {
 		return diags
 	}
 
@@ -123,7 +124,7 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 	newVal, newValDiags := reflect.OutOf(ctx, attrType, val)
 	diags = append(diags, newValDiags...)
 
-	if diagsHasErrors(diags) {
+	if diagnostics.DiagsHasErrors(diags) {
 		return diags
 	}
 
@@ -145,7 +146,7 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 			if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
 				diags = append(diags, attrTypeWithValidate.Validate(ctx, tfVal)...)
 
-				if diagsHasErrors(diags) {
+				if diagnostics.DiagsHasErrors(diags) {
 					return v, nil
 				}
 			}

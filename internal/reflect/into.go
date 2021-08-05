@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -34,7 +35,7 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 		}
 	}
 	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, tftypes.NewAttributePath())
-	if diagsHasErrors(diags) {
+	if diagnostics.DiagsHasErrors(diags) {
 		return diags
 	}
 	v.Elem().Set(result)
@@ -75,7 +76,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	if target.Type().Implements(reflect.TypeOf((*Unknownable)(nil)).Elem()) {
 		res, unknownableDiags := NewUnknownable(ctx, typ, val, target, opts, path)
 		diags = append(diags, unknownableDiags...)
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return target, diags
 		}
 		target = res
@@ -90,7 +91,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	if target.Type().Implements(reflect.TypeOf((*Nullable)(nil)).Elem()) {
 		res, nullableDiags := NewNullable(ctx, typ, val, target, opts, path)
 		diags = append(diags, nullableDiags...)
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return target, diags
 		}
 		target = res

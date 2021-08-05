@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -134,7 +135,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.WithAttributeName(field))
 		diags = append(diags, fieldValDiags...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return target, diags
 		}
 		structField.Set(fieldVal)
@@ -175,7 +176,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		attrVal, attrValDiags := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)
 		diags = append(diags, attrValDiags...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 
@@ -206,7 +207,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 			diags = append(diags, typeWithValidate.Validate(ctx, tfObjVal)...)
 
-			if diagsHasErrors(diags) {
+			if diagnostics.DiagsHasErrors(diags) {
 				return nil, diags
 			}
 		}
@@ -221,7 +222,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 		diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
 
-		if diagsHasErrors(diags) {
+		if diagnostics.DiagsHasErrors(diags) {
 			return nil, diags
 		}
 	}

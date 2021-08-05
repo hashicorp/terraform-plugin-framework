@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -1116,7 +1116,7 @@ func TestFromInt(t *testing.T) {
 					t.Fatalf("Expected diagnostic, got none")
 				}
 
-				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+				if !cmp.Equal(tc.expectedDiag, diags[0]) {
 					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
 				}
 			}
@@ -1178,7 +1178,7 @@ func TestFromUint(t *testing.T) {
 					t.Fatalf("Expected diagnostic, got none")
 				}
 
-				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+				if !cmp.Equal(tc.expectedDiag, diags[0]) {
 					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
 				}
 			}
@@ -1247,7 +1247,7 @@ func TestFromFloat(t *testing.T) {
 					t.Fatalf("Expected diagnostic, got none")
 				}
 
-				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+				if !cmp.Equal(tc.expectedDiag, diags[0]) {
 					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
 				}
 			}
@@ -1316,7 +1316,7 @@ func TestFromBigFloat(t *testing.T) {
 					t.Fatalf("Expected diagnostic, got none")
 				}
 
-				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+				if !cmp.Equal(tc.expectedDiag, diags[0]) {
 					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
 				}
 			}
@@ -1378,7 +1378,7 @@ func TestFromBigInt(t *testing.T) {
 					t.Fatalf("Expected diagnostic, got none")
 				}
 
-				if !reflect.DeepEqual(tc.expectedDiag, diags[0]) {
+				if !cmp.Equal(tc.expectedDiag, diags[0]) {
 					t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagString(tc.expectedDiag), diagString(diags[0]))
 				}
 			}

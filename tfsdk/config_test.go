@@ -2,7 +2,6 @@ package tfsdk
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -82,7 +81,7 @@ func TestConfigGet_AttrTypeWithValidate_Error(t *testing.T) {
 		t.Fatalf("expected diagnostics, got none")
 	}
 
-	if !reflect.DeepEqual(diags[0], testtypes.TestErrorDiagnostic) {
+	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
 		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
 	}
 
@@ -126,7 +125,7 @@ func TestConfigGet_AttrTypeWithValidate_Warning(t *testing.T) {
 		t.Fatalf("expected diagnostics, got none")
 	}
 
-	if !reflect.DeepEqual(diags[0], testtypes.TestWarningDiagnostic) {
+	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
 		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
 	}
 
@@ -164,7 +163,7 @@ func TestConfigGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
 		t.Fatalf("expected diagnostics, got none")
 	}
 
-	if !reflect.DeepEqual(diags[0], testtypes.TestErrorDiagnostic) {
+	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
 		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestErrorDiagnostic), diagString(diags[0]))
 	}
 
@@ -198,7 +197,7 @@ func TestConfigGetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
 		t.Fatalf("expected diagnostics, got none")
 	}
 
-	if !reflect.DeepEqual(diags[0], testtypes.TestWarningDiagnostic) {
+	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
 		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagString(testtypes.TestWarningDiagnostic), diagString(diags[0]))
 	}
 

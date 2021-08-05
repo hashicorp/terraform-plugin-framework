@@ -83,6 +83,26 @@ type DeleteResourceRequest struct {
 	ProviderMeta Config
 }
 
+// ModifyResourcePlanRequest represents a request for the provider to modify the
+// planned new state that Terraform has generated for the resource.
+type ModifyResourcePlanRequest struct {
+	// Config is the configuration the user supplied for the resource.
+	//
+	// This configuration may contain unknown values if a user uses
+	// interpolation or other functionality that would prevent Terraform
+	// from knowing the value at request time.
+	Config Config
+
+	// State is the current state of the resource.
+	State State
+
+	// Plan is the planned new state for the resource.
+	Plan Plan
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta Config
+}
+
 // ReadDataSourceRequest represents a request for the provider to read a data
 // source, i.e., update values in state according to the real state of the
 // data source. An instance of this request struct is supplied as an argument

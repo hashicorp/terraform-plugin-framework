@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -1437,6 +1438,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 		resource         string
 		resourceType     tftypes.Type
 
+		modifyPlanFunc func(context.Context, ModifyResourcePlanRequest, *ModifyResourcePlanResponse)
+
 		// response expectations
 		expectedPlannedState    tftypes.Value
 		expectedRequiresReplace []*tftypes.AttributePath
@@ -1527,6 +1530,308 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
 		},
+		"two_modify_add_list_elem": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			resource:     "test_two",
+			resourceType: testServeResourceTypeTwoType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "auto-boot-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 1),
+						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+			}),
+			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
+				resp.Plan.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+					"id": tftypes.NewValue(tftypes.String, "123456"),
+					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						}}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 10),
+							"boot":    tftypes.NewValue(tftypes.Bool, false),
+						}),
+						tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+							"name":    tftypes.String,
+							"size_gb": tftypes.Number,
+							"boot":    tftypes.Bool,
+						}}, map[string]tftypes.Value{
+							"name":    tftypes.NewValue(tftypes.String, "auto-boot-disk"),
+							"size_gb": tftypes.NewValue(tftypes.Number, 1),
+							"boot":    tftypes.NewValue(tftypes.Bool, true),
+						}),
+					}),
+				})
+			},
+		},
+		"two_modify_requires_replace": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			resource:     "test_two",
+			resourceType: testServeResourceTypeTwoType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
+				resp.RequiresReplace = []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")}
+			},
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
+		},
+		"two_modify_diags_warning": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			resource:     "test_two",
+			resourceType: testServeResourceTypeTwoType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
+				resp.RequiresReplace = []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")}
+				resp.AddWarning("I'm warning you", "You have been warned")
+			},
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "I'm warning you",
+					Detail:   "You have been warned",
+				},
+			},
+		},
+		"two_modify_diags_error": {
+			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			resource:     "test_two",
+			resourceType: testServeResourceTypeTwoType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
+				resp.RequiresReplace = []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")}
+				resp.AddError("This is an error", "More details about the error")
+			},
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "This is an error",
+					Detail:   "More details about the error",
+				},
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -1535,7 +1840,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			s := &testServeProvider{}
+			s := &testServeProvider{
+				modifyPlanFunc: tc.modifyPlanFunc,
+			}
 			testServer := &server{
 				p: s,
 			}
@@ -1591,7 +1898,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				t.Errorf("Expected planned private to be %q, got %q", tc.expectedPlannedPrivate, got.PlannedPrivate)
 				return
 			}
-			if diff := cmp.Diff(got.RequiresReplace, tc.expectedRequiresReplace); diff != "" {
+			if diff := cmp.Diff(got.RequiresReplace, tc.expectedRequiresReplace, cmpopts.EquateEmpty()); diff != "" {
 				t.Errorf("Unexpected diff in requires replace (+wanted, -got): %s", diff)
 				return
 			}

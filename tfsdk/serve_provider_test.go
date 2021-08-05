@@ -30,6 +30,19 @@ type testServeProvider struct {
 	readResourceImpl               func(context.Context, ReadResourceRequest, *ReadResourceResponse)
 	readResourceCalledResourceType string
 
+	// plan resource change
+	planResourceChangeCalledResourceType     string
+	planResourceChangeCalledAction           string
+	planResourceChangePriorStateValue        tftypes.Value
+	planResourceChangePriorStateSchema       Schema
+	planResourceChangeProposedNewStateValue  tftypes.Value
+	planResourceChangeProposedNewStateSchema Schema
+	planResourceChangeConfigValue            tftypes.Value
+	planResourceChangeConfigSchema           Schema
+	planResourceChangeProviderMetaValue      tftypes.Value
+	planResourceChangeProviderMetaSchema     Schema
+	modifyPlanFunc                           func(context.Context, ModifyResourcePlanRequest, *ModifyResourcePlanResponse)
+
 	// apply resource change
 	applyResourceChangeCalledResourceType string
 	applyResourceChangeCalledAction       string

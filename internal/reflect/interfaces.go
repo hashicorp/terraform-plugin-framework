@@ -47,7 +47,7 @@ func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, targe
 		case error:
 			underlyingErr = e
 		default:
-			underlyingErr = fmt.Errorf("unknown error type: %T", e)
+			underlyingErr = fmt.Errorf("unknown error type %T: %v", e, e)
 		}
 		underlyingErr = fmt.Errorf("reflection error: %w", underlyingErr)
 		return target, append(diags, &tfprotov6.Diagnostic{

@@ -191,10 +191,12 @@ func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *V
 			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
 			Config:        req.Config,
 		}
-		attributeResp := &ValidateAttributeResponse{}
+		attributeResp := &ValidateAttributeResponse{
+			Diagnostics: resp.Diagnostics,
+		}
 
 		attribute.validate(ctx, attributeReq, attributeResp)
 
-		resp.Diagnostics = append(resp.Diagnostics, attributeResp.Diagnostics...)
+		resp.Diagnostics = attributeResp.Diagnostics
 	}
 }

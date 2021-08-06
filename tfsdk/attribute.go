@@ -280,11 +280,13 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 						AttributePath: req.AttributePath.WithElementKeyInt(int64(idx)).WithAttributeName(nestedName),
 						Config:        req.Config,
 					}
-					nestedAttrResp := &ValidateAttributeResponse{}
+					nestedAttrResp := &ValidateAttributeResponse{
+						Diagnostics: resp.Diagnostics,
+					}
 
 					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
 
-					resp.Diagnostics = append(resp.Diagnostics, nestedAttrResp.Diagnostics...)
+					resp.Diagnostics = nestedAttrResp.Diagnostics
 				}
 			}
 		case NestingModeSet:
@@ -311,11 +313,13 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 						AttributePath: req.AttributePath.WithElementKeyString(key).WithAttributeName(nestedName),
 						Config:        req.Config,
 					}
-					nestedAttrResp := &ValidateAttributeResponse{}
+					nestedAttrResp := &ValidateAttributeResponse{
+						Diagnostics: resp.Diagnostics,
+					}
 
 					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
 
-					resp.Diagnostics = append(resp.Diagnostics, nestedAttrResp.Diagnostics...)
+					resp.Diagnostics = nestedAttrResp.Diagnostics
 				}
 			}
 		case NestingModeSingle:
@@ -324,11 +328,13 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 					AttributePath: req.AttributePath.WithAttributeName(nestedName),
 					Config:        req.Config,
 				}
-				nestedAttrResp := &ValidateAttributeResponse{}
+				nestedAttrResp := &ValidateAttributeResponse{
+					Diagnostics: resp.Diagnostics,
+				}
 
 				nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
 
-				resp.Diagnostics = append(resp.Diagnostics, nestedAttrResp.Diagnostics...)
+				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		default:
 			err := fmt.Errorf("unknown attribute validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)

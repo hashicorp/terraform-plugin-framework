@@ -185,7 +185,10 @@ func (l List) Equal(o attr.Value) bool {
 	if l.Null != other.Null {
 		return false
 	}
-	if !l.ElemType.Equal(other.ElemType) {
+	if l.ElemType == nil && other.ElemType != nil {
+		return false
+	}
+	if l.ElemType != nil && !l.ElemType.Equal(other.ElemType) {
 		return false
 	}
 	if len(l.Elems) != len(other.Elems) {

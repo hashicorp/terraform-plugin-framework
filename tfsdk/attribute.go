@@ -3,9 +3,11 @@ package tfsdk
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -255,16 +257,89 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 	}
 
 	if a.Attributes != nil {
-		for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-			nestedAttrReq := ValidateAttributeRequest{
-				AttributePath: req.AttributePath.WithAttributeName(nestedName),
-				Config:        req.Config,
+		nm := a.Attributes.GetNestingMode()
+		switch nm {
+		case NestingModeList:
+			l, ok := req.AttributeConfig.(types.List)
+
+			if !ok {
+				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityError,
+					Summary:   "Attribute Validation Error",
+					Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+					Attribute: req.AttributePath,
+				})
+
+				return
 			}
-			nestedAttrResp := &ValidateAttributeResponse{}
 
-			nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+			for idx := range l.Elems {
+				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+					nestedAttrReq := ValidateAttributeRequest{
+						AttributePath: req.AttributePath.WithElementKeyInt(int64(idx)).WithAttributeName(nestedName),
+						Config:        req.Config,
+					}
+					nestedAttrResp := &ValidateAttributeResponse{}
 
-			resp.Diagnostics = append(resp.Diagnostics, nestedAttrResp.Diagnostics...)
+					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+					resp.Diagnostics = append(resp.Diagnostics, nestedAttrResp.Diagnostics...)
+				}
+			}
+		case NestingModeSet:
+			// TODO: Set implementation
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/53
+		case NestingModeMap:
+			m, ok := req.AttributeConfig.(types.Map)
+
+			if !ok {
+				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityError,
+					Summary:   "Attribute Validation Error",
+					Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+					Attribute: req.AttributePath,
+				})
+
+				return
+			}
+
+			for key := range m.Elems {
+				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+					nestedAttrReq := ValidateAttributeRequest{
+						AttributePath: req.AttributePath.WithElementKeyString(key).WithAttributeName(nestedName),
+						Config:        req.Config,
+					}
+					nestedAttrResp := &ValidateAttributeResponse{}
+
+					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+					resp.Diagnostics = append(resp.Diagnostics, nestedAttrResp.Diagnostics...)
+				}
+			}
+		case NestingModeSingle:
+			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+				nestedAttrReq := ValidateAttributeRequest{
+					AttributePath: req.AttributePath.WithAttributeName(nestedName),
+					Config:        req.Config,
+				}
+				nestedAttrResp := &ValidateAttributeResponse{}
+
+				nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+				resp.Diagnostics = append(resp.Diagnostics, nestedAttrResp.Diagnostics...)
+			}
+		default:
+			err := fmt.Errorf("unknown attribute validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityError,
+				Summary:   "Attribute Validation Error",
+				Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+				Attribute: req.AttributePath,
+			})
+
+			return
 		}
 	}
 }

@@ -103,7 +103,7 @@ func (s *State) Set(ctx context.Context, val interface{}) []*tfprotov6.Diagnosti
 	newState := tftypes.NewValue(s.Schema.AttributeType().TerraformType(ctx), newStateVal)
 
 	s.Raw = newState
-	return nil
+	return diags
 }
 
 // SetAttribute sets the attribute at `path` using the supplied Go value.

@@ -5,228 +5,205 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestConfigGet(t *testing.T) {
 	t.Parallel()
 
-	testConfig := Config{
-		Raw: tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"name": tftypes.String,
-			},
-		}, map[string]tftypes.Value{
-			"name": tftypes.NewValue(tftypes.String, "namevalue"),
-		}),
-		Schema: Schema{
-			Attributes: map[string]Attribute{
-				"name": {
-					Type:     types.StringType,
-					Required: true,
-				},
-			},
-		},
-	}
-
 	type testConfigGetData struct {
 		Name types.String `tfsdk:"name"`
 	}
 
-	var val testConfigGetData
-
-	diags := testConfig.Get(context.Background(), &val)
-
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Fatalf("unexpected error: %s", diagnostics.DiagsString(diags))
+	type testCase struct {
+		config        Config
+		expected      testConfigGetData
+		expectedDiags []*tfprotov6.Diagnostic
 	}
 
-	expected := testConfigGetData{
-		Name: types.String{Value: "namevalue"},
-	}
-
-	if diff := cmp.Diff(val, expected); diff != "" {
-		t.Errorf("unexpected diff (+wanted, -got): %s", diff)
-	}
-}
-
-func TestConfigGet_AttrTypeWithValidate_Error(t *testing.T) {
-	t.Parallel()
-
-	testConfig := Config{
-		Raw: tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"name": tftypes.String,
-			},
-		}, map[string]tftypes.Value{
-			"name": tftypes.NewValue(tftypes.String, "namevalue"),
-		}),
-		Schema: Schema{
-			Attributes: map[string]Attribute{
-				"name": {
-					Type:     testtypes.StringTypeWithValidateError{},
-					Required: true,
+	testCases := map[string]testCase{
+		"basic": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
 				},
 			},
+			expected: testConfigGetData{
+				Name: types.String{Value: "namevalue"},
+			},
+		},
+		"AttrTypeWithValidateError": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateError{},
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: testConfigGetData{
+				Name: types.String{Value: ""},
+			},
+			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+		},
+		"AttrTypeWithValidateWarning": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateWarning{},
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: testConfigGetData{
+				Name: types.String{Value: "namevalue"},
+			},
+			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
 		},
 	}
 
-	type testConfigGetData struct {
-		Name types.String `tfsdk:"name"`
-	}
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	var val testConfigGetData
+			var val testConfigGetData
 
-	diags := testConfig.Get(context.Background(), &val)
+			diags := tc.config.Get(context.Background(), &val)
 
-	if len(diags) == 0 {
-		t.Fatalf("expected diagnostics, got none")
-	}
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
 
-	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
-	}
-
-	expected := testConfigGetData{
-		Name: types.String{Value: ""},
-	}
-
-	if diff := cmp.Diff(val, expected); diff != "" {
-		t.Errorf("unexpected diff (+wanted, -got): %s", diff)
+			if diff := cmp.Diff(val, tc.expected); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }
 
-func TestConfigGet_AttrTypeWithValidate_Warning(t *testing.T) {
+func TestConfigGetAttribute(t *testing.T) {
 	t.Parallel()
 
-	testConfig := Config{
-		Raw: tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"name": tftypes.String,
-			},
-		}, map[string]tftypes.Value{
-			"name": tftypes.NewValue(tftypes.String, "namevalue"),
-		}),
-		Schema: Schema{
-			Attributes: map[string]Attribute{
-				"name": {
-					Type:     testtypes.StringTypeWithValidateWarning{},
-					Required: true,
+	type testCase struct {
+		config        Config
+		expected      attr.Value
+		expectedDiags []*tfprotov6.Diagnostic
+	}
+
+	testCases := map[string]testCase{
+		"basic": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
 				},
 			},
+			expected: types.String{Value: "namevalue"},
+		},
+		"AttrTypeWithValidateError": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateError{},
+							Required: true,
+						},
+					},
+				},
+			},
+			expected:      nil,
+			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+		},
+		"AttrTypeWithValidateWarning": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateWarning{},
+							Required: true,
+						},
+					},
+				},
+			},
+			expected:      types.String{Value: "namevalue"},
+			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
 		},
 	}
 
-	type testConfigGetData struct {
-		Name types.String `tfsdk:"name"`
-	}
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	var val testConfigGetData
+			val, diags := tc.config.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"))
 
-	diags := testConfig.Get(context.Background(), &val)
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
 
-	if len(diags) == 0 {
-		t.Fatalf("expected diagnostics, got none")
-	}
-
-	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
-	}
-
-	expected := testConfigGetData{
-		Name: types.String{Value: "namevalue"},
-	}
-
-	if diff := cmp.Diff(val, expected); diff != "" {
-		t.Errorf("unexpected diff (+wanted, -got): %s", diff)
-	}
-}
-
-func TestConfigGetAttribute_AttrTypeWithValidate_Error(t *testing.T) {
-	t.Parallel()
-
-	testConfig := Config{
-		Raw: tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"name": tftypes.String,
-			},
-		}, map[string]tftypes.Value{
-			"name": tftypes.NewValue(tftypes.String, "namevalue"),
-		}),
-		Schema: Schema{
-			Attributes: map[string]Attribute{
-				"name": {
-					Type:     testtypes.StringTypeWithValidateError{},
-					Required: true,
-				},
-			},
-		},
-	}
-
-	nameVal, diags := testConfig.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"))
-
-	if len(diags) == 0 {
-		t.Fatalf("expected diagnostics, got none")
-	}
-
-	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
-	}
-
-	if nameVal != nil {
-		t.Fatal("expected name to be nil")
-	}
-}
-
-func TestConfigGetAttribute_AttrTypeWithValidate_Warning(t *testing.T) {
-	t.Parallel()
-
-	testConfig := Config{
-		Raw: tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"name": tftypes.String,
-			},
-		}, map[string]tftypes.Value{
-			"name": tftypes.NewValue(tftypes.String, "namevalue"),
-		}),
-		Schema: Schema{
-			Attributes: map[string]Attribute{
-				"name": {
-					Type:     testtypes.StringTypeWithValidateWarning{},
-					Required: true,
-				},
-			},
-		},
-	}
-
-	nameVal, diags := testConfig.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"))
-
-	if len(diags) == 0 {
-		t.Fatalf("expected diagnostics, got none")
-	}
-
-	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
-	}
-
-	name, ok := nameVal.(types.String)
-
-	if !ok {
-		t.Errorf("expected name to have type String, but it was %T", nameVal)
-	}
-
-	if name.Unknown {
-		t.Error("Expected Name to be known")
-	}
-
-	if name.Null {
-		t.Error("Expected Name to be non-null")
-	}
-
-	if expected := "namevalue"; name.Value != expected {
-		t.Errorf("Expected Name to be %q, got %q", expected, name.Value)
+			if diff := cmp.Diff(val, tc.expected); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }

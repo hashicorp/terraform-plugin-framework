@@ -267,6 +267,4 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 			resp.Diagnostics = append(resp.Diagnostics, nestedAttrResp.Diagnostics...)
 		}
 	}
-
-	return
 }

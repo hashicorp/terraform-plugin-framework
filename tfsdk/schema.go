@@ -197,6 +197,4 @@ func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *V
 
 		resp.Diagnostics = append(resp.Diagnostics, attributeResp.Diagnostics...)
 	}
-
-	return
 }

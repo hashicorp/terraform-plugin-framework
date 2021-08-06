@@ -266,32 +266,39 @@ func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 
 	if provider, ok := s.p.(ProviderWithConfigValidators); ok {
 		for _, configValidator := range provider.ConfigValidators(ctx) {
-			vpcRes := &ValidateProviderConfigResponse{}
+			vpcRes := &ValidateProviderConfigResponse{
+				Diagnostics: resp.Diagnostics,
+			}
 
 			configValidator.Validate(ctx, vpcReq, vpcRes)
-			resp.Diagnostics = append(resp.Diagnostics, vpcRes.Diagnostics...)
+
+			resp.Diagnostics = vpcRes.Diagnostics
 		}
 	}
 
 	if provider, ok := s.p.(ProviderWithValidateConfig); ok {
-		vpcRes := &ValidateProviderConfigResponse{}
+		vpcRes := &ValidateProviderConfigResponse{
+			Diagnostics: resp.Diagnostics,
+		}
 
 		provider.ValidateConfig(ctx, vpcReq, vpcRes)
-		resp.Diagnostics = append(resp.Diagnostics, vpcRes.Diagnostics...)
+
+		resp.Diagnostics = vpcRes.Diagnostics
 	}
 
-	// TODO: Add unit testing
 	validateSchemaReq := ValidateSchemaRequest{
 		Config: Config{
 			Raw:    config,
 			Schema: schema,
 		},
 	}
-	validateSchemaResp := ValidateSchemaResponse{}
+	validateSchemaResp := ValidateSchemaResponse{
+		Diagnostics: resp.Diagnostics,
+	}
 
 	schema.validate(ctx, validateSchemaReq, &validateSchemaResp)
 
-	resp.Diagnostics = append(resp.Diagnostics, validateSchemaResp.Diagnostics...)
+	resp.Diagnostics = validateSchemaResp.Diagnostics
 
 	return resp, nil
 }
@@ -387,32 +394,39 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 
 	if resource, ok := resource.(ResourceWithConfigValidators); ok {
 		for _, configValidator := range resource.ConfigValidators(ctx) {
-			vrcRes := &ValidateResourceConfigResponse{}
+			vrcRes := &ValidateResourceConfigResponse{
+				Diagnostics: resp.Diagnostics,
+			}
 
 			configValidator.Validate(ctx, vrcReq, vrcRes)
-			resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
+
+			resp.Diagnostics = vrcRes.Diagnostics
 		}
 	}
 
 	if resource, ok := resource.(ResourceWithValidateConfig); ok {
-		vrcRes := &ValidateResourceConfigResponse{}
+		vrcRes := &ValidateResourceConfigResponse{
+			Diagnostics: resp.Diagnostics,
+		}
 
 		resource.ValidateConfig(ctx, vrcReq, vrcRes)
-		resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
+
+		resp.Diagnostics = vrcRes.Diagnostics
 	}
 
-	// TODO: Add unit testing
 	validateSchemaReq := ValidateSchemaRequest{
 		Config: Config{
 			Raw:    config,
 			Schema: resourceSchema,
 		},
 	}
-	validateSchemaResp := ValidateSchemaResponse{}
+	validateSchemaResp := ValidateSchemaResponse{
+		Diagnostics: resp.Diagnostics,
+	}
 
 	resourceSchema.validate(ctx, validateSchemaReq, &validateSchemaResp)
 
-	resp.Diagnostics = append(resp.Diagnostics, validateSchemaResp.Diagnostics...)
+	resp.Diagnostics = validateSchemaResp.Diagnostics
 
 	return resp, nil
 }
@@ -1012,32 +1026,39 @@ func (s *server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.
 
 	if dataSource, ok := dataSource.(DataSourceWithConfigValidators); ok {
 		for _, configValidator := range dataSource.ConfigValidators(ctx) {
-			vrcRes := &ValidateDataSourceConfigResponse{}
+			vrcRes := &ValidateDataSourceConfigResponse{
+				Diagnostics: resp.Diagnostics,
+			}
 
 			configValidator.Validate(ctx, vrcReq, vrcRes)
-			resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
+
+			resp.Diagnostics = vrcRes.Diagnostics
 		}
 	}
 
 	if dataSource, ok := dataSource.(DataSourceWithValidateConfig); ok {
-		vrcRes := &ValidateDataSourceConfigResponse{}
+		vrcRes := &ValidateDataSourceConfigResponse{
+			Diagnostics: resp.Diagnostics,
+		}
 
 		dataSource.ValidateConfig(ctx, vrcReq, vrcRes)
-		resp.Diagnostics = append(resp.Diagnostics, vrcRes.Diagnostics...)
+
+		resp.Diagnostics = vrcRes.Diagnostics
 	}
 
-	// TODO: Add unit testing
 	validateSchemaReq := ValidateSchemaRequest{
 		Config: Config{
 			Raw:    config,
 			Schema: dataSourceSchema,
 		},
 	}
-	validateSchemaResp := ValidateSchemaResponse{}
+	validateSchemaResp := ValidateSchemaResponse{
+		Diagnostics: resp.Diagnostics,
+	}
 
 	dataSourceSchema.validate(ctx, validateSchemaReq, &validateSchemaResp)
 
-	resp.Diagnostics = append(resp.Diagnostics, validateSchemaResp.Diagnostics...)
+	resp.Diagnostics = validateSchemaResp.Diagnostics
 
 	return resp, nil
 }

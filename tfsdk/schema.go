@@ -129,23 +129,6 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 	return a, nil
 }
 
-// Validate performs all Attribute validation.
-func (s Schema) Validate(ctx context.Context, req ValidateSchemaRequest, resp *ValidateSchemaResponse) {
-	for name, attribute := range s.Attributes {
-		attributeReq := ValidateAttributeRequest{
-			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
-			Config:        req.Config,
-		}
-		attributeResp := &ValidateAttributeResponse{}
-
-		attribute.Validate(ctx, attributeReq, attributeResp)
-
-		resp.Diagnostics = append(resp.Diagnostics, attributeResp.Diagnostics...)
-	}
-
-	return
-}
-
 // tfprotov6Schema returns the *tfprotov6.Schema equivalent of a Schema. At least
 // one attribute must be set in the schema, or an error will be returned.
 func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) {
@@ -199,4 +182,21 @@ func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) 
 	}
 
 	return result, nil
+}
+
+// validate performs all Attribute validation.
+func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *ValidateSchemaResponse) {
+	for name, attribute := range s.Attributes {
+		attributeReq := ValidateAttributeRequest{
+			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
+			Config:        req.Config,
+		}
+		attributeResp := &ValidateAttributeResponse{}
+
+		attribute.validate(ctx, attributeReq, attributeResp)
+
+		resp.Diagnostics = append(resp.Diagnostics, attributeResp.Diagnostics...)
+	}
+
+	return
 }

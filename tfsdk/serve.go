@@ -289,7 +289,7 @@ func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 	}
 	validateSchemaResp := ValidateSchemaResponse{}
 
-	schema.Validate(ctx, validateSchemaReq, &validateSchemaResp)
+	schema.validate(ctx, validateSchemaReq, &validateSchemaResp)
 
 	resp.Diagnostics = append(resp.Diagnostics, validateSchemaResp.Diagnostics...)
 
@@ -410,7 +410,7 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 	}
 	validateSchemaResp := ValidateSchemaResponse{}
 
-	resourceSchema.Validate(ctx, validateSchemaReq, &validateSchemaResp)
+	resourceSchema.validate(ctx, validateSchemaReq, &validateSchemaResp)
 
 	resp.Diagnostics = append(resp.Diagnostics, validateSchemaResp.Diagnostics...)
 
@@ -1035,7 +1035,7 @@ func (s *server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.
 	}
 	validateSchemaResp := ValidateSchemaResponse{}
 
-	dataSourceSchema.Validate(ctx, validateSchemaReq, &validateSchemaResp)
+	dataSourceSchema.validate(ctx, validateSchemaReq, &validateSchemaResp)
 
 	resp.Diagnostics = append(resp.Diagnostics, validateSchemaResp.Diagnostics...)
 

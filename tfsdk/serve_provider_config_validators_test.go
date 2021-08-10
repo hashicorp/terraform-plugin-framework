@@ -32,6 +32,8 @@ var testServeProviderWithConfigValidatorsType = tftypes.Object{
 func (p testServeProviderWithConfigValidators) ConfigValidators(ctx context.Context) []ProviderConfigValidator {
 	return []ProviderConfigValidator{
 		newTestProviderConfigValidator(p.validateProviderConfigImpl),
+		// Verify multiple validators
+		newTestProviderConfigValidator(p.validateProviderConfigImpl),
 	}
 }
 

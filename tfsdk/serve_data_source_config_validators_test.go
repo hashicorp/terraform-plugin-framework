@@ -66,6 +66,8 @@ func (r testServeDataSourceConfigValidators) ConfigValidators(ctx context.Contex
 
 	return []DataSourceConfigValidator{
 		newTestDataSourceConfigValidator(r.provider.validateDataSourceConfigImpl),
+		// Verify multiple validators
+		newTestDataSourceConfigValidator(r.provider.validateDataSourceConfigImpl),
 	}
 }
 

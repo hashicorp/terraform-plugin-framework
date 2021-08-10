@@ -432,19 +432,23 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			provider: &testServeProviderWithConfigValidators{
 				&testServeProvider{
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
-						resp.Diagnostics = []*tfprotov6.Diagnostic{
-							{
-								Summary:  "This is an error",
-								Severity: tfprotov6.DiagnosticSeverityError,
-								Detail:   "Oops.",
-							},
-						}
+						resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+							Summary:  "This is an error",
+							Severity: tfprotov6.DiagnosticSeverityError,
+							Detail:   "Oops.",
+						})
 					},
 				},
 			},
 			providerType: testServeProviderWithConfigValidatorsType,
 
 			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
 				{
 					Summary:  "This is an error",
 					Severity: tfprotov6.DiagnosticSeverityError,
@@ -459,7 +463,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			provider: &testServeProviderWithConfigValidators{
 				&testServeProvider{
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
-						resp.Diagnostics = []*tfprotov6.Diagnostic{
+						resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
 							{
 								Summary:   "This is a warning",
 								Severity:  tfprotov6.DiagnosticSeverityWarning,
@@ -471,13 +475,25 @@ func TestServerValidateProviderConfig(t *testing.T) {
 								Severity: tfprotov6.DiagnosticSeverityError,
 								Detail:   "Oops.",
 							},
-						}
+						}...)
 					},
 				},
 			},
 			providerType: testServeProviderWithConfigValidatorsType,
 
 			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
 				{
 					Summary:   "This is a warning",
 					Severity:  tfprotov6.DiagnosticSeverityWarning,
@@ -509,13 +525,11 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			provider: &testServeProviderWithValidateConfig{
 				&testServeProvider{
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
-						resp.Diagnostics = []*tfprotov6.Diagnostic{
-							{
-								Summary:  "This is an error",
-								Severity: tfprotov6.DiagnosticSeverityError,
-								Detail:   "Oops.",
-							},
-						}
+						resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+							Summary:  "This is an error",
+							Severity: tfprotov6.DiagnosticSeverityError,
+							Detail:   "Oops.",
+						})
 					},
 				},
 			},
@@ -536,7 +550,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			provider: &testServeProviderWithValidateConfig{
 				&testServeProvider{
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
-						resp.Diagnostics = []*tfprotov6.Diagnostic{
+						resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
 							{
 								Summary:   "This is a warning",
 								Severity:  tfprotov6.DiagnosticSeverityWarning,
@@ -548,7 +562,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 								Severity: tfprotov6.DiagnosticSeverityError,
 								Detail:   "Oops.",
 							},
-						}
+						}...)
 					},
 				},
 			},
@@ -892,16 +906,20 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			resourceType: testServeResourceTypeConfigValidatorsType,
 
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				})
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
 				{
 					Summary:  "This is an error",
 					Severity: tfprotov6.DiagnosticSeverityError,
@@ -917,7 +935,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			resourceType: testServeResourceTypeConfigValidatorsType,
 
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
+				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
 					{
 						Summary:   "This is a warning",
 						Severity:  tfprotov6.DiagnosticSeverityWarning,
@@ -929,10 +947,22 @@ func TestServerValidateResourceConfig(t *testing.T) {
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Detail:   "Oops.",
 					},
-				}
+				}...)
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
 				{
 					Summary:   "This is a warning",
 					Severity:  tfprotov6.DiagnosticSeverityWarning,
@@ -963,13 +993,11 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			resourceType: testServeResourceTypeValidateConfigType,
 
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				})
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -988,7 +1016,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			resourceType: testServeResourceTypeValidateConfigType,
 
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
+				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
 					{
 						Summary:   "This is a warning",
 						Severity:  tfprotov6.DiagnosticSeverityWarning,
@@ -1000,7 +1028,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Detail:   "Oops.",
 					},
-				}
+				}...)
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -3123,16 +3151,20 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			dataSourceType: testServeDataSourceTypeConfigValidatorsType,
 
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				})
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
 				{
 					Summary:  "This is an error",
 					Severity: tfprotov6.DiagnosticSeverityError,
@@ -3148,7 +3180,7 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			dataSourceType: testServeDataSourceTypeConfigValidatorsType,
 
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
+				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
 					{
 						Summary:   "This is a warning",
 						Severity:  tfprotov6.DiagnosticSeverityWarning,
@@ -3160,10 +3192,22 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Detail:   "Oops.",
 					},
-				}
+				}...)
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
 				{
 					Summary:   "This is a warning",
 					Severity:  tfprotov6.DiagnosticSeverityWarning,
@@ -3194,13 +3238,11 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			dataSourceType: testServeDataSourceTypeValidateConfigType,
 
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				})
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -3219,7 +3261,7 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			dataSourceType: testServeDataSourceTypeValidateConfigType,
 
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
+				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
 					{
 						Summary:   "This is a warning",
 						Severity:  tfprotov6.DiagnosticSeverityWarning,
@@ -3231,7 +3273,7 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Detail:   "Oops.",
 					},
-				}
+				}...)
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{

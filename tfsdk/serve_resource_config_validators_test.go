@@ -72,6 +72,8 @@ func (r testServeResourceConfigValidators) ConfigValidators(ctx context.Context)
 
 	return []ResourceConfigValidator{
 		newTestResourceConfigValidator(r.provider.validateResourceConfigImpl),
+		// Verify multiple validators
+		newTestResourceConfigValidator(r.provider.validateResourceConfigImpl),
 	}
 }
 

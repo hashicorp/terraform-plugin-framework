@@ -2,28 +2,49 @@ package reflect
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Map creates a map value that matches the type of `target`, and populates it
 // with the contents of `val`.
-func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, []*tfprotov6.Diagnostic) {
+	var diags []*tfprotov6.Diagnostic
 	underlyingValue := trueReflectValue(target)
 
 	// this only works with maps, so check that out first
 	if underlyingValue.Kind() != reflect.Map {
-		return target, path.NewErrorf("expected a map type, got %s", target.Type())
+		err := fmt.Errorf("expected a map type, got %s", target.Type())
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 	if !val.Type().Is(tftypes.Map{}) {
-		return target, path.NewErrorf("can't reflect %s into a map, must be a map", val.Type().String())
+		err := fmt.Errorf("cannot reflect %s into a map, must be a map", val.Type().String())
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 	elemTyper, ok := typ.(attr.TypeWithElementType)
 	if !ok {
-		return target, path.NewErrorf("can't reflect map using type information provided by %T, %T must be an attr.TypeWithElementType", typ, typ)
+		err := fmt.Errorf("cannot reflect map using type information provided by %T, %T must be an attr.TypeWithElementType", typ, typ)
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 
 	// we need our value to become a map of values so we can iterate over
@@ -31,7 +52,12 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 	values := map[string]tftypes.Value{}
 	err := val.As(&values)
 	if err != nil {
-		return target, path.NewError(err)
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 
 	// we need to know the type the slice is wrapping
@@ -51,13 +77,17 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 		path := path.WithElementKeyString(key)
 
 		// reflect the value into our new target
-		result, err := BuildValue(ctx, elemAttrType, value, targetValue, opts, path)
-		if err != nil {
-			return target, err
+		result, elemDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, path)
+		diags = append(diags, elemDiags...)
+
+		if diagnostics.DiagsHasErrors(diags) {
+			return target, diags
 		}
+
 		m.SetMapIndex(reflect.ValueOf(key), result)
 	}
-	return m, nil
+
+	return m, diags
 }
 
 // FromMap returns an attr.Value representing the data contained in `val`.
@@ -65,33 +95,103 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 // will be of the type produced by `typ`.
 //
 // It is meant to be called through OutOf, not directly.
-func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
+func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
+	var diags []*tfprotov6.Diagnostic
+	tfType := typ.TerraformType(ctx)
+
 	if val.IsNil() {
-		return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), nil))
+		tfVal := tftypes.NewValue(tfType, nil)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
+
+			if diagnostics.DiagsHasErrors(diags) {
+				return nil, diags
+			}
+		}
+
+		attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
+
+		if err != nil {
+			return nil, append(diags, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityError,
+				Summary:   "Value Conversion Error",
+				Detail:    "An unexpected error was encountered trying to convert from map value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+				Attribute: path,
+			})
+		}
+
+		return attrVal, nil
 	}
+
 	elemType := typ.ElementType()
 	tfElems := map[string]tftypes.Value{}
 	for _, key := range val.MapKeys() {
 		if key.Kind() != reflect.String {
-			return nil, path.NewErrorf("map keys must be strings, got %s", key.Type())
+			err := fmt.Errorf("map keys must be strings, got %s", key.Type())
+			return nil, append(diags, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityError,
+				Summary:   "Value Conversion Error",
+				Detail:    "An unexpected error was encountered trying to convert into a Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+				Attribute: path,
+			})
 		}
-		val, err := FromValue(ctx, elemType, val.MapIndex(key).Interface(), path.WithElementKeyString(key.String()))
-		if err != nil {
-			return nil, err
+		val, valDiags := FromValue(ctx, elemType, val.MapIndex(key).Interface(), path.WithElementKeyString(key.String()))
+		diags = append(diags, valDiags...)
+
+		if diagnostics.DiagsHasErrors(diags) {
+			return nil, diags
 		}
 		tfVal, err := val.ToTerraformValue(ctx)
 		if err != nil {
-			return nil, path.NewError(err)
+			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
-		err = tftypes.ValidateValue(elemType.TerraformType(ctx), tfVal)
+
+		tfElemType := elemType.TerraformType(ctx)
+		err = tftypes.ValidateValue(tfElemType, tfVal)
+
 		if err != nil {
-			return nil, path.NewError(err)
+			return nil, append(diags, validateValueErrorDiag(err, path))
 		}
-		tfElems[key.String()] = tftypes.NewValue(elemType.TerraformType(ctx), tfVal)
+
+		tfElemVal := tftypes.NewValue(tfElemType, tfVal)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			diags = append(diags, typeWithValidate.Validate(ctx, tfElemVal)...)
+
+			if diagnostics.DiagsHasErrors(diags) {
+				return nil, diags
+			}
+		}
+
+		tfElems[key.String()] = tfElemVal
 	}
-	err := tftypes.ValidateValue(typ.TerraformType(ctx), tfElems)
+
+	err := tftypes.ValidateValue(tfType, tfElems)
 	if err != nil {
-		return nil, path.NewError(err)
+		return nil, append(diags, validateValueErrorDiag(err, path))
 	}
-	return typ.ValueFromTerraform(ctx, tftypes.NewValue(typ.TerraformType(ctx), tfElems))
+
+	tfVal := tftypes.NewValue(tfType, tfElems)
+
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
+
+		if diagnostics.DiagsHasErrors(diags) {
+			return nil, diags
+		}
+	}
+
+	attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
+
+	if err != nil {
+		return nil, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
+	}
+
+	return attrVal, diags
 }

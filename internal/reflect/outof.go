@@ -2,10 +2,12 @@ package reflect
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -13,7 +15,7 @@ import (
 // into an attr.Value using the attr.Type supplied. `val` will first be
 // transformed into a tftypes.Value, then passed to `typ`'s ValueFromTerraform
 // method.
-func OutOf(ctx context.Context, typ attr.Type, val interface{}) (attr.Value, error) {
+func OutOf(ctx context.Context, typ attr.Type, val interface{}) (attr.Value, []*tfprotov6.Diagnostic) {
 	return FromValue(ctx, typ, val, tftypes.NewAttributePath())
 }
 
@@ -21,7 +23,9 @@ func OutOf(ctx context.Context, typ attr.Type, val interface{}) (attr.Value, err
 // `typ`.
 //
 // It is meant to be called through OutOf, not directly.
-func FromValue(ctx context.Context, typ attr.Type, val interface{}, path *tftypes.AttributePath) (attr.Value, error) {
+func FromValue(ctx context.Context, typ attr.Type, val interface{}, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
+	var diags []*tfprotov6.Diagnostic
+
 	if v, ok := val.(attr.Value); ok {
 		return FromAttributeValue(ctx, typ, v, path)
 	}
@@ -46,7 +50,13 @@ func FromValue(ctx context.Context, typ attr.Type, val interface{}, path *tftype
 	case reflect.Struct:
 		t, ok := typ.(attr.TypeWithAttributeTypes)
 		if !ok {
-			return nil, path.NewErrorf("can't use type %T as schema type %T; %T must be an attr.TypeWithAttributeTypes to hold %T", val, typ, typ, val)
+			err := fmt.Errorf("cannot use type %T as schema type %T; %T must be an attr.TypeWithAttributeTypes to hold %T", val, typ, typ, val)
+			return nil, append(diags, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityError,
+				Summary:   "Value Conversion Error",
+				Detail:    "An unexpected error was encountered trying to convert from value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+				Attribute: path,
+			})
 		}
 		return FromStruct(ctx, t, value, path)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
@@ -66,12 +76,24 @@ func FromValue(ctx context.Context, typ attr.Type, val interface{}, path *tftype
 	case reflect.Map:
 		t, ok := typ.(attr.TypeWithElementType)
 		if !ok {
-			return nil, path.NewErrorf("can't use type %T as schema type %T; %T must be an attr.TypeWithElementType to hold %T", val, typ, typ, val)
+			err := fmt.Errorf("cannot use type %T as schema type %T; %T must be an attr.TypeWithElementType to hold %T", val, typ, typ, val)
+			return nil, append(diags, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityError,
+				Summary:   "Value Conversion Error",
+				Detail:    "An unexpected error was encountered trying to convert from value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+				Attribute: path,
+			})
 		}
 		return FromMap(ctx, t, value, path)
 	case reflect.Ptr:
 		return FromPointer(ctx, typ, value, path)
 	default:
-		return nil, path.NewErrorf("don't know how to construct attr.Type from %T (%s)", val, kind)
+		err := fmt.Errorf("cannot construct attr.Type from %T (%s)", val, kind)
+		return nil, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert from value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 }

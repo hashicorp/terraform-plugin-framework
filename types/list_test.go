@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -235,14 +236,14 @@ func TestListElementsAs_stringSlice(t *testing.T) {
 	var stringSlice []string
 	expected := []string{"hello", "world"}
 
-	err := (List{
+	diags := (List{
 		ElemType: StringType,
 		Elems: []attr.Value{
 			String{Value: "hello"},
 			String{Value: "world"},
 		}}).ElementsAs(context.Background(), &stringSlice, false)
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(stringSlice, expected); diff != "" {
 		t.Errorf("Unexpected diff (-expected, +got): %s", diff)
@@ -258,14 +259,14 @@ func TestListElementsAs_attributeValueSlice(t *testing.T) {
 		{Value: "world"},
 	}
 
-	err := (List{
+	diags := (List{
 		ElemType: StringType,
 		Elems: []attr.Value{
 			String{Value: "hello"},
 			String{Value: "world"},
 		}}).ElementsAs(context.Background(), &stringSlice, false)
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if diff := cmp.Diff(stringSlice, expected); diff != "" {
 		t.Errorf("Unexpected diff (-expected, +got): %s", diff)

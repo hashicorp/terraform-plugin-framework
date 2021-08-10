@@ -5,10 +5,13 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -17,9 +20,9 @@ func TestPrimitive_string(t *testing.T) {
 
 	var s string
 
-	result, err := refl.Primitive(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
+	result, diags := refl.Primitive(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), tftypes.NewAttributePath())
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	reflect.ValueOf(&s).Elem().Set(result)
 	if s != "hello" {
@@ -33,9 +36,9 @@ func TestPrimitive_stringAlias(t *testing.T) {
 	type testString string
 	var s testString
 
-	result, err := refl.Primitive(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
+	result, diags := refl.Primitive(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), tftypes.NewAttributePath())
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	reflect.ValueOf(&s).Elem().Set(result)
 	if s != "hello" {
@@ -48,9 +51,9 @@ func TestPrimitive_bool(t *testing.T) {
 
 	var b bool
 
-	result, err := refl.Primitive(context.Background(), types.BoolType, tftypes.NewValue(tftypes.Bool, true), reflect.ValueOf(b), tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
+	result, diags := refl.Primitive(context.Background(), types.BoolType, tftypes.NewValue(tftypes.Bool, true), reflect.ValueOf(b), tftypes.NewAttributePath())
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	reflect.ValueOf(&b).Elem().Set(result)
 	if b != true {
@@ -64,9 +67,9 @@ func TestPrimitive_boolAlias(t *testing.T) {
 	type testBool bool
 	var b testBool
 
-	result, err := refl.Primitive(context.Background(), types.BoolType, tftypes.NewValue(tftypes.Bool, true), reflect.ValueOf(b), tftypes.NewAttributePath())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
+	result, diags := refl.Primitive(context.Background(), types.BoolType, tftypes.NewValue(tftypes.Bool, true), reflect.ValueOf(b), tftypes.NewAttributePath())
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	reflect.ValueOf(&b).Elem().Set(result)
 	if b != true {
@@ -78,42 +81,93 @@ func TestFromString(t *testing.T) {
 	expectedVal := types.String{
 		Value: "mystring",
 	}
-	actualVal, err := refl.FromString(context.Background(), types.StringType, "mystring", tftypes.NewAttributePath())
-	if err != nil {
-		t.Fatal(err)
+	actualVal, diags := refl.FromString(context.Background(), types.StringType, "mystring", tftypes.NewAttributePath())
+	if diagnostics.DiagsHasErrors(diags) {
+		t.Fatalf("Unexpected error: %s", diagnostics.DiagsString(diags))
 	}
 	if !expectedVal.Equal(actualVal) {
 		t.Fatalf("fail: got %+v, wanted %+v", actualVal, expectedVal)
 	}
 }
 
+func TestFromString_AttrTypeWithValidate_Error(t *testing.T) {
+	_, diags := refl.FromString(context.Background(), testtypes.StringTypeWithValidateError{}, "mystring", tftypes.NewAttributePath())
+	if len(diags) == 0 {
+		t.Fatalf("expected diagnostics, got none")
+	}
+	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
+	}
+}
+
+func TestFromString_AttrTypeWithValidate_Warning(t *testing.T) {
+	expectedVal := types.String{
+		Value: "mystring",
+	}
+	actualVal, diags := refl.FromString(context.Background(), testtypes.StringTypeWithValidateWarning{}, "mystring", tftypes.NewAttributePath())
+	if len(diags) == 0 {
+		t.Fatalf("expected diagnostics, got none")
+	}
+	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
+		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
+	}
+	if !expectedVal.Equal(actualVal) {
+		t.Fatalf("unexpected value: got %+v, wanted %+v", actualVal, expectedVal)
+	}
+}
+
 func TestFromBool(t *testing.T) {
 	// the rare exhaustive test
-	cases := []struct {
-		val      bool
-		expected attr.Value
+	cases := map[string]struct {
+		val          bool
+		typ          attr.Type
+		expected     attr.Value
+		expectedDiag *tfprotov6.Diagnostic
 	}{
-		{
-			true,
-			types.Bool{
+		"true": {
+			val: true,
+			typ: types.BoolType,
+			expected: types.Bool{
 				Value: true,
 			},
 		},
-		{
-			false,
-			types.Bool{
+		"false": {
+			val: false,
+			typ: types.BoolType,
+			expected: types.Bool{
 				Value: false,
 			},
+		},
+		"WithValidateWarning": {
+			val: true,
+			typ: testtypes.BoolTypeWithValidateWarning{},
+			expected: types.Bool{
+				Value: true,
+			},
+			expectedDiag: testtypes.TestWarningDiagnostic,
+		},
+		"WithValidateError": {
+			val:          true,
+			typ:          testtypes.BoolTypeWithValidateError{},
+			expectedDiag: testtypes.TestErrorDiagnostic,
 		},
 	}
 
 	for _, tc := range cases {
-		actualVal, err := refl.FromBool(context.Background(), types.BoolType, tc.val, tftypes.NewAttributePath())
-		if err != nil {
-			t.Fatal(err)
+		actualVal, diags := refl.FromBool(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
+		if tc.expectedDiag == nil && diagnostics.DiagsHasErrors(diags) {
+			t.Fatalf("Unexpected error: %s", diagnostics.DiagsString(diags))
 		}
+		if tc.expectedDiag != nil {
+			if len(diags) == 0 {
+				t.Fatalf("Expected diagnostic, got none")
+			}
 
-		if !tc.expected.Equal(actualVal) {
+			if !cmp.Equal(tc.expectedDiag, diags[0]) {
+				t.Fatalf("Expected diagnostic:\n\n%s\n\nGot diagnostic:\n\n%s\n\n", diagnostics.DiagString(tc.expectedDiag), diagnostics.DiagString(diags[0]))
+			}
+		}
+		if !diagnostics.DiagsHasErrors(diags) && !tc.expected.Equal(actualVal) {
 			t.Fatalf("fail: got %+v, wanted %+v", actualVal, tc.expected)
 		}
 	}

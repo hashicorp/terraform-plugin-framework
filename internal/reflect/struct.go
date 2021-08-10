@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -23,32 +25,63 @@ import (
 // and other mistakes early.
 //
 // Struct is meant to be called from Into, not directly.
-func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, error) {
+func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, []*tfprotov6.Diagnostic) {
+	var diags []*tfprotov6.Diagnostic
+
 	// this only works with object values, so make sure that constraint is
 	// met
 	if target.Kind() != reflect.Struct {
-		return target, path.NewErrorf("expected a struct type, got %s", target.Type())
+		err := fmt.Errorf("expected a struct type, got %s", target.Type())
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 	if !object.Type().Is(tftypes.Object{}) {
-		return target, path.NewErrorf("can't reflect %s into a struct, must be an object", object.Type().String())
+		err := fmt.Errorf("cannot reflect %s into a struct, must be an object", object.Type().String())
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 	attrsType, ok := typ.(attr.TypeWithAttributeTypes)
 	if !ok {
-		return target, path.NewErrorf("can't reflect object using type information provided by %T, %T must be an attr.TypeWithAttributeTypes", typ, typ)
+		err := fmt.Errorf("cannot reflect object using type information provided by %T, %T must be an attr.TypeWithAttributeTypes", typ, typ)
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 
 	// collect a map of fields that are in the object passed in
 	var objectFields map[string]tftypes.Value
 	err := object.As(&objectFields)
 	if err != nil {
-		return target, path.NewErrorf("unexpected error converting object: %w", err)
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
 	targetFields, err := getStructTags(ctx, target, path)
 	if err != nil {
-		return target, fmt.Errorf("error retrieving field names from struct tags: %w", err)
+		err = fmt.Errorf("error retrieving field names from struct tags: %w", err)
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 
 	// we require an exact, 1:1 match of these fields to avoid typos
@@ -73,7 +106,13 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 		if len(targetMissing) > 0 {
 			missing = append(missing, fmt.Sprintf("Object defines fields not found in struct: %s.", commaSeparatedString(targetMissing)))
 		}
-		return target, path.NewErrorf("mismatch between struct and object: %s", strings.Join(missing, " "))
+		err := fmt.Errorf("mismatch between struct and object: %s", strings.Join(missing, " "))
+		return target, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 
 	attrTypes := attrsType.AttributeTypes()
@@ -84,16 +123,24 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	for field, structFieldPos := range targetFields {
 		attrType, ok := attrTypes[field]
 		if !ok {
-			return target, path.WithAttributeName(field).NewErrorf("couldn't find type information for attribute in supplied attr.Type %T", typ)
+			err := fmt.Errorf("could not find type information for attribute in supplied attr.Type %T", typ)
+			return target, append(diags, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityError,
+				Summary:   "Value Conversion Error",
+				Detail:    "An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+				Attribute: path.WithAttributeName(field),
+			})
 		}
 		structField := result.Field(structFieldPos)
-		fieldVal, err := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.WithAttributeName(field))
-		if err != nil {
-			return target, err
+		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.WithAttributeName(field))
+		diags = append(diags, fieldValDiags...)
+
+		if diagnostics.DiagsHasErrors(diags) {
+			return target, diags
 		}
 		structField.Set(fieldVal)
 	}
-	return result, nil
+	return result, diags
 }
 
 // FromStruct builds an attr.Value as produced by `typ` from the data in `val`.
@@ -103,7 +150,8 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 // reported by `typ`.
 //
 // It is meant to be called through OutOf, not directly.
-func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path *tftypes.AttributePath) (attr.Value, error) {
+func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
+	var diags []*tfprotov6.Diagnostic
 	objTypes := map[string]tftypes.Type{}
 	objValues := map[string]tftypes.Value{}
 
@@ -111,7 +159,13 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 	// passed in
 	targetFields, err := getStructTags(ctx, val, path)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving field names from struct tags: %w", err)
+		err = fmt.Errorf("error retrieving field names from struct tags: %w", err)
+		return nil, append(diags, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Value Conversion Error",
+			Detail:    "An unexpected error was encountered trying to convert from struct value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			Attribute: path,
+		})
 	}
 
 	attrTypes := typ.AttributeTypes()
@@ -119,38 +173,65 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		path := path.WithAttributeName(name)
 		fieldValue := val.Field(fieldNo)
 
-		attrVal, err := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)
-		if err != nil {
-			return nil, err
+		attrVal, attrValDiags := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)
+		diags = append(diags, attrValDiags...)
+
+		if diagnostics.DiagsHasErrors(diags) {
+			return nil, diags
 		}
 
 		attrType, ok := attrTypes[name]
 		if !ok || attrType == nil {
-			return nil, path.NewErrorf("couldn't find type information for attribute in supplied attr.Type %T", typ)
+			err := fmt.Errorf("couldn't find type information for attribute in supplied attr.Type %T", typ)
+			return nil, append(diags, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityError,
+				Summary:   "Value Conversion Error",
+				Detail:    "An unexpected error was encountered trying to convert from struct value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+				Attribute: path,
+			})
 		}
 
 		objTypes[name] = attrType.TerraformType(ctx)
 
 		tfVal, err := attrVal.ToTerraformValue(ctx)
 		if err != nil {
-			return nil, path.NewError(err)
+			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 		err = tftypes.ValidateValue(objTypes[name], tfVal)
 		if err != nil {
-			return nil, path.NewError(err)
+			return nil, append(diags, validateValueErrorDiag(err, path))
 		}
-		objValues[name] = tftypes.NewValue(objTypes[name], tfVal)
+
+		tfObjVal := tftypes.NewValue(objTypes[name], tfVal)
+
+		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+			diags = append(diags, typeWithValidate.Validate(ctx, tfObjVal)...)
+
+			if diagnostics.DiagsHasErrors(diags) {
+				return nil, diags
+			}
+		}
+
+		objValues[name] = tfObjVal
 	}
 
 	tfVal := tftypes.NewValue(tftypes.Object{
 		AttributeTypes: objTypes,
 	}, objValues)
 
+	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
+
+		if diagnostics.DiagsHasErrors(diags) {
+			return nil, diags
+		}
+	}
+
 	retType := typ.WithAttributeTypes(attrTypes)
 	ret, err := retType.ValueFromTerraform(ctx, tfVal)
 	if err != nil {
-		return nil, err
+		return nil, append(diags, valueFromTerraformErrorDiag(err, path))
 	}
 
-	return ret, nil
+	return ret, diags
 }

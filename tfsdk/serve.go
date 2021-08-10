@@ -211,15 +211,85 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 }
 
 func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.ValidateProviderConfigRequest) (*tfprotov6.ValidateProviderConfigResponse, error) {
-	// uncomment when we implement this function
-	// ctx = s.registerContext(ctx)
-
-	// We don't actually do anything as part of this. In theory, we could
-	// validate the configuration for the provider block? Need to check in
-	// again with the core team about the goal of this RPC.
-	return &tfprotov6.ValidateProviderConfigResponse{
+	ctx = s.registerContext(ctx)
+	resp := &tfprotov6.ValidateProviderConfigResponse{
+		// This RPC allows a modified configuration to be returned. This was
+		// previously used to allow a "required" provider attribute (as defined
+		// by a schema) to still be "optional" with a default value, typically
+		// through an environment variable. Other tooling based on the provider
+		// schema information could not determine this implementation detail.
+		// To ensure accuracy going forward, this implementation is opinionated
+		// towards accurate provider schema definitions and optional values
+		// can be filled in or return errors during ConfigureProvider().
 		PreparedConfig: req.Config,
-	}, nil
+	}
+
+	schema, diags := s.p.GetSchema(ctx)
+
+	if diags != nil {
+		resp.Diagnostics = append(resp.Diagnostics, diags...)
+
+		if diagsHasErrors(resp.Diagnostics) {
+			return resp, nil
+		}
+	}
+
+	config, err := req.Config.Unmarshal(schema.TerraformType(ctx))
+
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing config",
+			Detail:   "The provider had a problem parsing the config. Report this to the provider developer:\n\n" + err.Error(),
+		})
+
+		return resp, nil
+	}
+
+	vpcReq := ValidateProviderConfigRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: schema,
+		},
+	}
+
+	if provider, ok := s.p.(ProviderWithConfigValidators); ok {
+		for _, configValidator := range provider.ConfigValidators(ctx) {
+			vpcRes := &ValidateProviderConfigResponse{
+				Diagnostics: resp.Diagnostics,
+			}
+
+			configValidator.Validate(ctx, vpcReq, vpcRes)
+
+			resp.Diagnostics = vpcRes.Diagnostics
+		}
+	}
+
+	if provider, ok := s.p.(ProviderWithValidateConfig); ok {
+		vpcRes := &ValidateProviderConfigResponse{
+			Diagnostics: resp.Diagnostics,
+		}
+
+		provider.ValidateConfig(ctx, vpcReq, vpcRes)
+
+		resp.Diagnostics = vpcRes.Diagnostics
+	}
+
+	validateSchemaReq := ValidateSchemaRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: schema,
+		},
+	}
+	validateSchemaResp := ValidateSchemaResponse{
+		Diagnostics: resp.Diagnostics,
+	}
+
+	schema.validate(ctx, validateSchemaReq, &validateSchemaResp)
+
+	resp.Diagnostics = validateSchemaResp.Diagnostics
+
+	return resp, nil
 }
 
 func (s *server) ConfigureProvider(ctx context.Context, req *tfprotov6.ConfigureProviderRequest) (*tfprotov6.ConfigureProviderResponse, error) {
@@ -261,12 +331,93 @@ func (s *server) StopProvider(ctx context.Context, _ *tfprotov6.StopProviderRequ
 	return &tfprotov6.StopProviderResponse{}, nil
 }
 
-func (s *server) ValidateResourceConfig(ctx context.Context, _ *tfprotov6.ValidateResourceConfigRequest) (*tfprotov6.ValidateResourceConfigResponse, error) {
-	// uncomment when we implement this function
-	//ctx = s.registerContext(ctx)
+func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.ValidateResourceConfigRequest) (*tfprotov6.ValidateResourceConfigResponse, error) {
+	ctx = s.registerContext(ctx)
+	resp := &tfprotov6.ValidateResourceConfigResponse{}
 
-	// TODO: support validation
-	return &tfprotov6.ValidateResourceConfigResponse{}, nil
+	// Get the type of resource, so we can get its schema and create an
+	// instance
+	resourceType, diags := s.getResourceType(ctx, req.TypeName)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
+
+	// Get the schema from the resource type, so we can embed it in the
+	// config
+	resourceSchema, diags := resourceType.GetSchema(ctx)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
+
+	// Create the resource instance, so we can call its methods and handle
+	// the request
+	resource, diags := resourceType.NewResource(ctx, s.p)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
+
+	config, err := req.Config.Unmarshal(resourceSchema.TerraformType(ctx))
+
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing config",
+			Detail:   "The provider had a problem parsing the config. Report this to the provider developer:\n\n" + err.Error(),
+		})
+
+		return resp, nil
+	}
+
+	vrcReq := ValidateResourceConfigRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: resourceSchema,
+		},
+	}
+
+	if resource, ok := resource.(ResourceWithConfigValidators); ok {
+		for _, configValidator := range resource.ConfigValidators(ctx) {
+			vrcRes := &ValidateResourceConfigResponse{
+				Diagnostics: resp.Diagnostics,
+			}
+
+			configValidator.Validate(ctx, vrcReq, vrcRes)
+
+			resp.Diagnostics = vrcRes.Diagnostics
+		}
+	}
+
+	if resource, ok := resource.(ResourceWithValidateConfig); ok {
+		vrcRes := &ValidateResourceConfigResponse{
+			Diagnostics: resp.Diagnostics,
+		}
+
+		resource.ValidateConfig(ctx, vrcReq, vrcRes)
+
+		resp.Diagnostics = vrcRes.Diagnostics
+	}
+
+	validateSchemaReq := ValidateSchemaRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: resourceSchema,
+		},
+	}
+	validateSchemaResp := ValidateSchemaResponse{
+		Diagnostics: resp.Diagnostics,
+	}
+
+	resourceSchema.validate(ctx, validateSchemaReq, &validateSchemaResp)
+
+	resp.Diagnostics = validateSchemaResp.Diagnostics
+
+	return resp, nil
 }
 
 func (s *server) UpgradeResourceState(ctx context.Context, req *tfprotov6.UpgradeResourceStateRequest) (*tfprotov6.UpgradeResourceStateResponse, error) {
@@ -812,12 +963,93 @@ func (s *server) ImportResourceState(ctx context.Context, _ *tfprotov6.ImportRes
 	return &tfprotov6.ImportResourceStateResponse{}, nil
 }
 
-func (s *server) ValidateDataResourceConfig(ctx context.Context, _ *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {
-	// uncomment when we implement this function
-	// ctx = s.registerContext(ctx)
+func (s *server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {
+	ctx = s.registerContext(ctx)
+	resp := &tfprotov6.ValidateDataResourceConfigResponse{}
 
-	// TODO: support validation
-	return &tfprotov6.ValidateDataResourceConfigResponse{}, nil
+	// Get the type of data source, so we can get its schema and create an
+	// instance
+	dataSourceType, diags := s.getDataSourceType(ctx, req.TypeName)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
+
+	// Get the schema from the data source type, so we can embed it in the
+	// config
+	dataSourceSchema, diags := dataSourceType.GetSchema(ctx)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
+
+	// Create the data source instance, so we can call its methods and handle
+	// the request
+	dataSource, diags := dataSourceType.NewDataSource(ctx, s.p)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+
+	if diagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
+
+	config, err := req.Config.Unmarshal(dataSourceSchema.TerraformType(ctx))
+
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityError,
+			Summary:  "Error parsing config",
+			Detail:   "The provider had a problem parsing the config. Report this to the provider developer:\n\n" + err.Error(),
+		})
+
+		return resp, nil
+	}
+
+	vrcReq := ValidateDataSourceConfigRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: dataSourceSchema,
+		},
+	}
+
+	if dataSource, ok := dataSource.(DataSourceWithConfigValidators); ok {
+		for _, configValidator := range dataSource.ConfigValidators(ctx) {
+			vrcRes := &ValidateDataSourceConfigResponse{
+				Diagnostics: resp.Diagnostics,
+			}
+
+			configValidator.Validate(ctx, vrcReq, vrcRes)
+
+			resp.Diagnostics = vrcRes.Diagnostics
+		}
+	}
+
+	if dataSource, ok := dataSource.(DataSourceWithValidateConfig); ok {
+		vrcRes := &ValidateDataSourceConfigResponse{
+			Diagnostics: resp.Diagnostics,
+		}
+
+		dataSource.ValidateConfig(ctx, vrcReq, vrcRes)
+
+		resp.Diagnostics = vrcRes.Diagnostics
+	}
+
+	validateSchemaReq := ValidateSchemaRequest{
+		Config: Config{
+			Raw:    config,
+			Schema: dataSourceSchema,
+		},
+	}
+	validateSchemaResp := ValidateSchemaResponse{
+		Diagnostics: resp.Diagnostics,
+	}
+
+	dataSourceSchema.validate(ctx, validateSchemaReq, &validateSchemaResp)
+
+	resp.Diagnostics = validateSchemaResp.Diagnostics
+
+	return resp, nil
 }
 
 func (s *server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSourceRequest) (*tfprotov6.ReadDataSourceResponse, error) {

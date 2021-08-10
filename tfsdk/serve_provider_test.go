@@ -10,10 +10,17 @@ import (
 )
 
 type testServeProvider struct {
+	// validate provider config request
+	validateProviderConfigImpl func(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
+
 	// configure
 	configuredVal       tftypes.Value
 	configuredSchema    Schema
 	configuredTFVersion string
+
+	// validate resource config request
+	validateResourceConfigCalledResourceType string
+	validateResourceConfigImpl               func(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 
 	// read resource request
 	readResourceCurrentStateValue  tftypes.Value
@@ -50,6 +57,10 @@ type testServeProvider struct {
 	createFunc                            func(context.Context, CreateResourceRequest, *CreateResourceResponse)
 	updateFunc                            func(context.Context, UpdateResourceRequest, *UpdateResourceResponse)
 	deleteFunc                            func(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
+
+	// validate data source config request
+	validateDataSourceConfigCalledDataSourceType string
+	validateDataSourceConfigImpl                 func(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
 
 	// read data source request
 	readDataSourceConfigValue          tftypes.Value
@@ -418,15 +429,19 @@ var testServeProviderProviderType = tftypes.Object{
 
 func (t *testServeProvider) GetResources(_ context.Context) (map[string]ResourceType, []*tfprotov6.Diagnostic) {
 	return map[string]ResourceType{
-		"test_one": testServeResourceTypeOne{},
-		"test_two": testServeResourceTypeTwo{},
+		"test_one":               testServeResourceTypeOne{},
+		"test_two":               testServeResourceTypeTwo{},
+		"test_config_validators": testServeResourceTypeConfigValidators{},
+		"test_validate_config":   testServeResourceTypeValidateConfig{},
 	}, nil
 }
 
 func (t *testServeProvider) GetDataSources(_ context.Context) (map[string]DataSourceType, []*tfprotov6.Diagnostic) {
 	return map[string]DataSourceType{
-		"test_one": testServeDataSourceTypeOne{},
-		"test_two": testServeDataSourceTypeTwo{},
+		"test_one":               testServeDataSourceTypeOne{},
+		"test_two":               testServeDataSourceTypeTwo{},
+		"test_config_validators": testServeDataSourceTypeConfigValidators{},
+		"test_validate_config":   testServeDataSourceTypeValidateConfig{},
 	}, nil
 }
 

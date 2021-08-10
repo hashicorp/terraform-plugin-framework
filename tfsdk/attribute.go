@@ -3,9 +3,11 @@ package tfsdk
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -67,6 +69,9 @@ type Attribute struct {
 	// using this attribute, warning them that it is deprecated and
 	// instructing them on what upgrade steps to take.
 	DeprecationMessage string
+
+	// Validators defines validation functionality for the attribute.
+	Validators []AttributeValidator
 }
 
 // ApplyTerraform5AttributePathStep transparently calls
@@ -206,4 +211,141 @@ func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, pa
 	schemaAttribute.NestedType = object
 
 	return schemaAttribute, nil
+}
+
+// validate performs all Attribute validation.
+func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	if (a.Attributes == nil || len(a.Attributes.GetAttributes()) == 0) && a.Type == nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Invalid Attribute Definition",
+			Detail:    "Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
+			Attribute: req.AttributePath,
+		})
+
+		return
+	}
+
+	if a.Attributes != nil && len(a.Attributes.GetAttributes()) > 0 && a.Type != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Invalid Attribute Definition",
+			Detail:    "Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
+			Attribute: req.AttributePath,
+		})
+
+		return
+	}
+
+	attributeConfig, err := req.Config.GetAttribute(ctx, req.AttributePath)
+
+	if err != nil {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Attribute Value Error",
+			Detail:    "Attribute validation cannot read configuration value. Report this to the provider developer:\n\n" + err.Error(),
+			Attribute: req.AttributePath,
+		})
+
+		return
+	}
+
+	req.AttributeConfig = attributeConfig
+
+	for _, validator := range a.Validators {
+		validator.Validate(ctx, req, resp)
+	}
+
+	if a.Attributes != nil {
+		nm := a.Attributes.GetNestingMode()
+		switch nm {
+		case NestingModeList:
+			l, ok := req.AttributeConfig.(types.List)
+
+			if !ok {
+				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityError,
+					Summary:   "Attribute Validation Error",
+					Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+					Attribute: req.AttributePath,
+				})
+
+				return
+			}
+
+			for idx := range l.Elems {
+				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+					nestedAttrReq := ValidateAttributeRequest{
+						AttributePath: req.AttributePath.WithElementKeyInt(int64(idx)).WithAttributeName(nestedName),
+						Config:        req.Config,
+					}
+					nestedAttrResp := &ValidateAttributeResponse{
+						Diagnostics: resp.Diagnostics,
+					}
+
+					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+					resp.Diagnostics = nestedAttrResp.Diagnostics
+				}
+			}
+		case NestingModeSet:
+			// TODO: Set implementation
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/53
+		case NestingModeMap:
+			m, ok := req.AttributeConfig.(types.Map)
+
+			if !ok {
+				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityError,
+					Summary:   "Attribute Validation Error",
+					Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+					Attribute: req.AttributePath,
+				})
+
+				return
+			}
+
+			for key := range m.Elems {
+				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+					nestedAttrReq := ValidateAttributeRequest{
+						AttributePath: req.AttributePath.WithElementKeyString(key).WithAttributeName(nestedName),
+						Config:        req.Config,
+					}
+					nestedAttrResp := &ValidateAttributeResponse{
+						Diagnostics: resp.Diagnostics,
+					}
+
+					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+					resp.Diagnostics = nestedAttrResp.Diagnostics
+				}
+			}
+		case NestingModeSingle:
+			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+				nestedAttrReq := ValidateAttributeRequest{
+					AttributePath: req.AttributePath.WithAttributeName(nestedName),
+					Config:        req.Config,
+				}
+				nestedAttrResp := &ValidateAttributeResponse{
+					Diagnostics: resp.Diagnostics,
+				}
+
+				nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+				resp.Diagnostics = nestedAttrResp.Diagnostics
+			}
+		default:
+			err := fmt.Errorf("unknown attribute validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityError,
+				Summary:   "Attribute Validation Error",
+				Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+				Attribute: req.AttributePath,
+			})
+
+			return
+		}
+	}
 }

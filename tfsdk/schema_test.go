@@ -520,3 +520,133 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 		})
 	}
 }
+
+func TestSchemaValidate(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		req  ValidateSchemaRequest
+		resp ValidateSchemaResponse
+	}{
+		"no-validation": {
+			req: ValidateSchemaRequest{
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"attr1": tftypes.String,
+							"attr2": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"attr1": tftypes.NewValue(tftypes.String, "attr1value"),
+						"attr2": tftypes.NewValue(tftypes.String, "attr2value"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"attr1": {
+								Type:     types.StringType,
+								Required: true,
+							},
+							"attr2": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateSchemaResponse{},
+		},
+		"warnings": {
+			req: ValidateSchemaRequest{
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"attr1": tftypes.String,
+							"attr2": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"attr1": tftypes.NewValue(tftypes.String, "attr1value"),
+						"attr2": tftypes.NewValue(tftypes.String, "attr2value"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"attr1": {
+								Type:     types.StringType,
+								Required: true,
+								Validators: []AttributeValidator{
+									testWarningAttributeValidator{},
+								},
+							},
+							"attr2": {
+								Type:     types.StringType,
+								Required: true,
+								Validators: []AttributeValidator{
+									testWarningAttributeValidator{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateSchemaResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					testWarningDiagnostic,
+					testWarningDiagnostic,
+				},
+			},
+		},
+		"errors": {
+			req: ValidateSchemaRequest{
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"attr1": tftypes.String,
+							"attr2": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"attr1": tftypes.NewValue(tftypes.String, "attr1value"),
+						"attr2": tftypes.NewValue(tftypes.String, "attr2value"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"attr1": {
+								Type:     types.StringType,
+								Required: true,
+								Validators: []AttributeValidator{
+									testErrorAttributeValidator{},
+								},
+							},
+							"attr2": {
+								Type:     types.StringType,
+								Required: true,
+								Validators: []AttributeValidator{
+									testErrorAttributeValidator{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateSchemaResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					testErrorDiagnostic,
+					testErrorDiagnostic,
+				},
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var got ValidateSchemaResponse
+			tc.req.Config.Schema.validate(context.Background(), tc.req, &got)
+
+			if diff := cmp.Diff(got, tc.resp); diff != "" {
+				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}

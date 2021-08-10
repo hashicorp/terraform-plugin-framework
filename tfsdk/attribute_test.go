@@ -671,3 +671,557 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		})
 	}
 }
+
+func TestAttributeValidate(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		req  ValidateAttributeRequest
+		resp ValidateAttributeResponse
+	}{
+		"no-attributes-or-type": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity:  tfprotov6.DiagnosticSeverityError,
+						Summary:   "Invalid Attribute Definition",
+						Detail:    "Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
+					},
+				},
+			},
+		},
+		"both-attributes-and-type": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Attributes: SingleNestedAttributes(map[string]Attribute{
+									"testing": {
+										Type:     types.StringType,
+										Optional: true,
+									},
+								}),
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity:  tfprotov6.DiagnosticSeverityError,
+						Summary:   "Invalid Attribute Definition",
+						Detail:    "Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
+					},
+				},
+			},
+		},
+		"config-error": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nottest": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity:  tfprotov6.DiagnosticSeverityError,
+						Summary:   "Attribute Value Error",
+						Detail:    "Attribute validation cannot read configuration value. Report this to the provider developer:\n\nerror walking config: AttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
+					},
+				},
+			},
+		},
+		"no-validation": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"warnings": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								Validators: []AttributeValidator{
+									testWarningAttributeValidator{},
+									testWarningAttributeValidator{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					testWarningDiagnostic,
+					testWarningDiagnostic,
+				},
+			},
+		},
+		"errors": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								Validators: []AttributeValidator{
+									testErrorAttributeValidator{},
+									testErrorAttributeValidator{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					testErrorDiagnostic,
+					testErrorDiagnostic,
+				},
+			},
+		},
+		"nested-attr-list-no-validation": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Attributes: ListNestedAttributes(map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+									},
+								}, ListNestedAttributesOptions{}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"nested-attr-list-validation": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Attributes: ListNestedAttributes(map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										Validators: []AttributeValidator{
+											testErrorAttributeValidator{},
+										},
+									},
+								}, ListNestedAttributesOptions{}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					testErrorDiagnostic,
+				},
+			},
+		},
+		"nested-attr-map-no-validation": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									AttributeType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									AttributeType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Attributes: MapNestedAttributes(map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+									},
+								}, MapNestedAttributesOptions{}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"nested-attr-map-validation": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									AttributeType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									AttributeType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Attributes: MapNestedAttributes(map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										Validators: []AttributeValidator{
+											testErrorAttributeValidator{},
+										},
+									},
+								}, MapNestedAttributesOptions{}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					testErrorDiagnostic,
+				},
+			},
+		},
+		"nested-attr-single-no-validation": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Attributes: SingleNestedAttributes(map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+									},
+								}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"nested-attr-single-validation": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Attributes: SingleNestedAttributes(map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										Validators: []AttributeValidator{
+											testErrorAttributeValidator{},
+										},
+									},
+								}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					testErrorDiagnostic,
+				},
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var got ValidateAttributeResponse
+			attribute, err := tc.req.Config.Schema.AttributeAtPath(tc.req.AttributePath)
+
+			if err != nil {
+				t.Fatalf("Unexpected error getting Attribute: %s", err)
+			}
+
+			attribute.validate(context.Background(), tc.req, &got)
+
+			if diff := cmp.Diff(got, tc.resp); diff != "" {
+				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}

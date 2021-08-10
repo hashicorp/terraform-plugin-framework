@@ -183,3 +183,20 @@ func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) 
 
 	return result, nil
 }
+
+// validate performs all Attribute validation.
+func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *ValidateSchemaResponse) {
+	for name, attribute := range s.Attributes {
+		attributeReq := ValidateAttributeRequest{
+			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
+			Config:        req.Config,
+		}
+		attributeResp := &ValidateAttributeResponse{
+			Diagnostics: resp.Diagnostics,
+		}
+
+		attribute.validate(ctx, attributeReq, attributeResp)
+
+		resp.Diagnostics = attributeResp.Diagnostics
+	}
+}

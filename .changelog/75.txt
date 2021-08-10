@@ -1,0 +1,3 @@
+```release-note:feature
+tfsdk: Attributes, Data Sources, Providers, and Resources now support configuration validation
+```

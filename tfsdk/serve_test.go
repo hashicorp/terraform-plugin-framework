@@ -216,12 +216,16 @@ func TestServerGetProviderSchema(t *testing.T) {
 	expected := &tfprotov6.GetProviderSchemaResponse{
 		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_one": testServeResourceTypeOneSchema,
-			"test_two": testServeResourceTypeTwoSchema,
+			"test_one":               testServeResourceTypeOneSchema,
+			"test_two":               testServeResourceTypeTwoSchema,
+			"test_config_validators": testServeResourceTypeConfigValidatorsSchema,
+			"test_validate_config":   testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
-			"test_one": testServeDataSourceTypeOneSchema,
-			"test_two": testServeDataSourceTypeTwoSchema,
+			"test_one":               testServeDataSourceTypeOneSchema,
+			"test_two":               testServeDataSourceTypeTwoSchema,
+			"test_config_validators": testServeDataSourceTypeConfigValidatorsSchema,
+			"test_validate_config":   testServeDataSourceTypeValidateConfigSchema,
 		},
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
@@ -244,12 +248,16 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 	expected := &tfprotov6.GetProviderSchemaResponse{
 		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_one": testServeResourceTypeOneSchema,
-			"test_two": testServeResourceTypeTwoSchema,
+			"test_one":               testServeResourceTypeOneSchema,
+			"test_two":               testServeResourceTypeTwoSchema,
+			"test_config_validators": testServeResourceTypeConfigValidatorsSchema,
+			"test_validate_config":   testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
-			"test_one": testServeDataSourceTypeOneSchema,
-			"test_two": testServeDataSourceTypeTwoSchema,
+			"test_one":               testServeDataSourceTypeOneSchema,
+			"test_two":               testServeDataSourceTypeTwoSchema,
+			"test_config_validators": testServeDataSourceTypeConfigValidatorsSchema,
+			"test_validate_config":   testServeDataSourceTypeValidateConfigSchema,
 		},
 		ProviderMeta: &tfprotov6.Schema{
 			Version: 2,
@@ -268,6 +276,341 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (-wanted, +got): %s", diff)
+	}
+}
+
+func TestServerValidateProviderConfig(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		// request input
+		config       tftypes.Value
+		provider     Provider
+		providerType tftypes.Type
+
+		// response expectations
+		expectedDiags []*tfprotov6.Diagnostic
+	}
+
+	tests := map[string]testCase{
+		"no_validation": {
+			config: tftypes.NewValue(testServeProviderProviderType, map[string]tftypes.Value{
+				"required":          tftypes.NewValue(tftypes.String, "this is a required value"),
+				"optional":          tftypes.NewValue(tftypes.String, nil),
+				"computed":          tftypes.NewValue(tftypes.String, nil),
+				"optional_computed": tftypes.NewValue(tftypes.String, "they filled this one out"),
+				"sensitive":         tftypes.NewValue(tftypes.String, "hunter42"),
+				"deprecated":        tftypes.NewValue(tftypes.String, "oops"),
+				"string":            tftypes.NewValue(tftypes.String, "a new string value"),
+				"number":            tftypes.NewValue(tftypes.Number, 1234),
+				"bool":              tftypes.NewValue(tftypes.Bool, true),
+				"list-string": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"list-list-string": tftypes.NewValue(tftypes.List{ElementType: tftypes.List{ElementType: tftypes.String}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
+					tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "rojo"),
+						tftypes.NewValue(tftypes.String, "azul"),
+						tftypes.NewValue(tftypes.String, "verde"),
+					}),
+				}),
+				"list-object": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Bool,
+					"baz": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Bool,
+						"baz": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "hello, world"),
+						"bar": tftypes.NewValue(tftypes.Bool, true),
+						"baz": tftypes.NewValue(tftypes.Number, 4567),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Bool,
+						"baz": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "goodnight, moon"),
+						"bar": tftypes.NewValue(tftypes.Bool, false),
+						"baz": tftypes.NewValue(tftypes.Number, 8675309),
+					}),
+				}),
+				"object": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo":  tftypes.String,
+					"bar":  tftypes.Bool,
+					"baz":  tftypes.Number,
+					"quux": tftypes.List{ElementType: tftypes.String},
+				}}, map[string]tftypes.Value{
+					"foo": tftypes.NewValue(tftypes.String, "testing123"),
+					"bar": tftypes.NewValue(tftypes.Bool, true),
+					"baz": tftypes.NewValue(tftypes.Number, 123),
+					"quux": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
+				}),
+				"empty-object": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{}),
+				"single-nested-attributes": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}, map[string]tftypes.Value{
+					"foo": tftypes.NewValue(tftypes.String, "almost done"),
+					"bar": tftypes.NewValue(tftypes.Number, 12),
+				}),
+				"list-nested-attributes": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "let's do the math"),
+						"bar": tftypes.NewValue(tftypes.Number, 18973),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "this is why we can't have nice things"),
+						"bar": tftypes.NewValue(tftypes.Number, 14554216),
+					}),
+				}),
+				"map": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Number}, map[string]tftypes.Value{
+					"foo": tftypes.NewValue(tftypes.Number, 123),
+					"bar": tftypes.NewValue(tftypes.Number, 456),
+					"baz": tftypes.NewValue(tftypes.Number, 789),
+				}),
+				"map-nested-attributes": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"bar": tftypes.Number,
+					"foo": tftypes.String,
+				}}}, map[string]tftypes.Value{
+					"hello": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"bar": tftypes.Number,
+						"foo": tftypes.String,
+					}}, map[string]tftypes.Value{
+						"bar": tftypes.NewValue(tftypes.Number, 123456),
+						"foo": tftypes.NewValue(tftypes.String, "world"),
+					}),
+					"goodnight": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"bar": tftypes.Number,
+						"foo": tftypes.String,
+					}}, map[string]tftypes.Value{
+						"bar": tftypes.NewValue(tftypes.Number, 56789),
+						"foo": tftypes.NewValue(tftypes.String, "moon"),
+					}),
+				}),
+			}),
+			provider:     &testServeProvider{},
+			providerType: testServeProviderProviderType,
+		},
+		"config_validators_no_diags": {
+			config: tftypes.NewValue(testServeResourceTypeConfigValidatorsType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			provider: &testServeProviderWithConfigValidators{
+				&testServeProvider{
+					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {},
+				},
+			},
+			providerType: testServeProviderWithConfigValidatorsType,
+		},
+		"config_validators_one_diag": {
+			config: tftypes.NewValue(testServeResourceTypeConfigValidatorsType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			provider: &testServeProviderWithConfigValidators{
+				&testServeProvider{
+					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
+						resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+							Summary:  "This is an error",
+							Severity: tfprotov6.DiagnosticSeverityError,
+							Detail:   "Oops.",
+						})
+					},
+				},
+			},
+			providerType: testServeProviderWithConfigValidatorsType,
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+		"config_validators_two_diags": {
+			config: tftypes.NewValue(testServeResourceTypeConfigValidatorsType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			provider: &testServeProviderWithConfigValidators{
+				&testServeProvider{
+					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
+						resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
+							{
+								Summary:   "This is a warning",
+								Severity:  tfprotov6.DiagnosticSeverityWarning,
+								Detail:    "This is your final warning",
+								Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+							},
+							{
+								Summary:  "This is an error",
+								Severity: tfprotov6.DiagnosticSeverityError,
+								Detail:   "Oops.",
+							},
+						}...)
+					},
+				},
+			},
+			providerType: testServeProviderWithConfigValidatorsType,
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+		"validate_config_no_diags": {
+			config: tftypes.NewValue(testServeResourceTypeValidateConfigType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			provider: &testServeProviderWithValidateConfig{
+				&testServeProvider{
+					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {},
+				},
+			},
+			providerType: testServeProviderWithValidateConfigType,
+		},
+		"validate_config_one_diag": {
+			config: tftypes.NewValue(testServeResourceTypeValidateConfigType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			provider: &testServeProviderWithValidateConfig{
+				&testServeProvider{
+					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
+						resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+							Summary:  "This is an error",
+							Severity: tfprotov6.DiagnosticSeverityError,
+							Detail:   "Oops.",
+						})
+					},
+				},
+			},
+			providerType: testServeProviderWithValidateConfigType,
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+		"validate_config_two_diags": {
+			config: tftypes.NewValue(testServeResourceTypeValidateConfigType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			provider: &testServeProviderWithValidateConfig{
+				&testServeProvider{
+					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
+						resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
+							{
+								Summary:   "This is a warning",
+								Severity:  tfprotov6.DiagnosticSeverityWarning,
+								Detail:    "This is your final warning",
+								Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+							},
+							{
+								Summary:  "This is an error",
+								Severity: tfprotov6.DiagnosticSeverityError,
+								Detail:   "Oops.",
+							},
+						}...)
+					},
+				},
+			},
+			providerType: testServeProviderWithValidateConfigType,
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		name, tc := name, tc
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			testServer := &server{
+				p: tc.provider,
+			}
+
+			dv, err := tfprotov6.NewDynamicValue(tc.providerType, tc.config)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			req := &tfprotov6.ValidateProviderConfigRequest{
+				Config: &dv,
+			}
+			got, err := testServer.ValidateProviderConfig(context.Background(), req)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }
 
@@ -516,6 +859,227 @@ func TestServerConfigureProvider(t *testing.T) {
 			if diff := cmp.Diff(s.configuredSchema, providerSchema); diff != "" {
 				t.Errorf("Unexpected diff in schema (+wanted, -got): %s", diff)
 				return
+			}
+		})
+	}
+}
+
+func TestServerValidateResourceConfig(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		// request input
+		config       tftypes.Value
+		resource     string
+		resourceType tftypes.Type
+
+		impl func(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+
+		// response expectations
+		expectedDiags []*tfprotov6.Diagnostic
+	}
+
+	tests := map[string]testCase{
+		"no_validation": {
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name":              tftypes.NewValue(tftypes.String, ""),
+				"favorite_colors":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+				"created_timestamp": tftypes.NewValue(tftypes.String, ""),
+			}),
+			resource:     "test_one",
+			resourceType: testServeResourceTypeOneType,
+		},
+		"config_validators_no_diags": {
+			config: tftypes.NewValue(testServeResourceTypeConfigValidatorsType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_config_validators",
+			resourceType: testServeResourceTypeConfigValidatorsType,
+
+			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {},
+		},
+		"config_validators_one_diag": {
+			config: tftypes.NewValue(testServeResourceTypeConfigValidatorsType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_config_validators",
+			resourceType: testServeResourceTypeConfigValidatorsType,
+
+			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				})
+			},
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+		"config_validators_two_diags": {
+			config: tftypes.NewValue(testServeResourceTypeConfigValidatorsType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_config_validators",
+			resourceType: testServeResourceTypeConfigValidatorsType,
+
+			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
+				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
+					{
+						Summary:   "This is a warning",
+						Severity:  tfprotov6.DiagnosticSeverityWarning,
+						Detail:    "This is your final warning",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					},
+					{
+						Summary:  "This is an error",
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Detail:   "Oops.",
+					},
+				}...)
+			},
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+		"validate_config_no_diags": {
+			config: tftypes.NewValue(testServeResourceTypeValidateConfigType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_validate_config",
+			resourceType: testServeResourceTypeValidateConfigType,
+
+			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {},
+		},
+		"validate_config_one_diag": {
+			config: tftypes.NewValue(testServeResourceTypeValidateConfigType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_validate_config",
+			resourceType: testServeResourceTypeValidateConfigType,
+
+			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				})
+			},
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+		"validate_config_two_diags": {
+			config: tftypes.NewValue(testServeResourceTypeValidateConfigType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_validate_config",
+			resourceType: testServeResourceTypeValidateConfigType,
+
+			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
+				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
+					{
+						Summary:   "This is a warning",
+						Severity:  tfprotov6.DiagnosticSeverityWarning,
+						Detail:    "This is your final warning",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					},
+					{
+						Summary:  "This is an error",
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Detail:   "Oops.",
+					},
+				}...)
+			},
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		name, tc := name, tc
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			s := &testServeProvider{
+				validateResourceConfigImpl: tc.impl,
+			}
+			testServer := &server{
+				p: s,
+			}
+
+			dv, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.config)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			req := &tfprotov6.ValidateResourceConfigRequest{
+				TypeName: tc.resource,
+				Config:   &dv,
+			}
+			got, err := testServer.ValidateResourceConfig(context.Background(), req)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			if s.validateResourceConfigCalledResourceType != tc.resource && !(tc.resource == "test_one" && s.validateResourceConfigCalledResourceType == "") {
+				t.Errorf("Called wrong resource. Expected to call %q, actually called %q", tc.resource, s.readDataSourceCalledDataSourceType)
+				return
+			}
+			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 		})
 	}
@@ -2540,6 +3104,227 @@ func TestServerApplyResourceChange(t *testing.T) {
 			if string(got.Private) != string(tc.expectedPrivate) {
 				t.Errorf("Expected private to be %q, got %q", tc.expectedPrivate, got.Private)
 				return
+			}
+		})
+	}
+}
+
+func TestServerValidateDataResourceConfig(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		// request input
+		config         tftypes.Value
+		dataSource     string
+		dataSourceType tftypes.Type
+
+		impl func(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+
+		// response expectations
+		expectedDiags []*tfprotov6.Diagnostic
+	}
+
+	tests := map[string]testCase{
+		"no_validation": {
+			config: tftypes.NewValue(testServeDataSourceTypeOneType, map[string]tftypes.Value{
+				"current_date": tftypes.NewValue(tftypes.String, nil),
+				"current_time": tftypes.NewValue(tftypes.String, nil),
+				"is_dst":       tftypes.NewValue(tftypes.Bool, nil),
+			}),
+			dataSource:     "test_one",
+			dataSourceType: testServeDataSourceTypeOneType,
+		},
+		"config_validators_no_diags": {
+			config: tftypes.NewValue(testServeDataSourceTypeConfigValidatorsType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			dataSource:     "test_config_validators",
+			dataSourceType: testServeDataSourceTypeConfigValidatorsType,
+
+			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {},
+		},
+		"config_validators_one_diag": {
+			config: tftypes.NewValue(testServeDataSourceTypeConfigValidatorsType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			dataSource:     "test_config_validators",
+			dataSourceType: testServeDataSourceTypeConfigValidatorsType,
+
+			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				})
+			},
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+		"config_validators_two_diags": {
+			config: tftypes.NewValue(testServeDataSourceTypeConfigValidatorsType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			dataSource:     "test_config_validators",
+			dataSourceType: testServeDataSourceTypeConfigValidatorsType,
+
+			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
+				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
+					{
+						Summary:   "This is a warning",
+						Severity:  tfprotov6.DiagnosticSeverityWarning,
+						Detail:    "This is your final warning",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					},
+					{
+						Summary:  "This is an error",
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Detail:   "Oops.",
+					},
+				}...)
+			},
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+				// ConfigValidators includes multiple calls
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+		"validate_config_no_diags": {
+			config: tftypes.NewValue(testServeDataSourceTypeValidateConfigType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			dataSource:     "test_validate_config",
+			dataSourceType: testServeDataSourceTypeValidateConfigType,
+
+			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {},
+		},
+		"validate_config_one_diag": {
+			config: tftypes.NewValue(testServeDataSourceTypeValidateConfigType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			dataSource:     "test_validate_config",
+			dataSourceType: testServeDataSourceTypeValidateConfigType,
+
+			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				})
+			},
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+		"validate_config_two_diags": {
+			config: tftypes.NewValue(testServeDataSourceTypeValidateConfigType, map[string]tftypes.Value{
+				"string": tftypes.NewValue(tftypes.String, nil),
+			}),
+			dataSource:     "test_validate_config",
+			dataSourceType: testServeDataSourceTypeValidateConfigType,
+
+			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
+				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
+					{
+						Summary:   "This is a warning",
+						Severity:  tfprotov6.DiagnosticSeverityWarning,
+						Detail:    "This is your final warning",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					},
+					{
+						Summary:  "This is an error",
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Detail:   "Oops.",
+					},
+				}...)
+			},
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Summary:   "This is a warning",
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Detail:    "This is your final warning",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+				},
+				{
+					Summary:  "This is an error",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Detail:   "Oops.",
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		name, tc := name, tc
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			s := &testServeProvider{
+				validateDataSourceConfigImpl: tc.impl,
+			}
+			testServer := &server{
+				p: s,
+			}
+
+			dv, err := tfprotov6.NewDynamicValue(tc.dataSourceType, tc.config)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			req := &tfprotov6.ValidateDataResourceConfigRequest{
+				TypeName: tc.dataSource,
+				Config:   &dv,
+			}
+			got, err := testServer.ValidateDataResourceConfig(context.Background(), req)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+				return
+			}
+			if s.validateDataSourceConfigCalledDataSourceType != tc.dataSource && !(tc.dataSource == "test_one" && s.validateDataSourceConfigCalledDataSourceType == "") {
+				t.Errorf("Called wrong data source. Expected to call %q, actually called %q", tc.dataSource, s.readDataSourceCalledDataSourceType)
+				return
+			}
+			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 		})
 	}

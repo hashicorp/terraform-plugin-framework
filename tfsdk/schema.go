@@ -199,4 +199,12 @@ func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *V
 
 		resp.Diagnostics = attributeResp.Diagnostics
 	}
+
+	if s.DeprecationMessage != "" {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity: tfprotov6.DiagnosticSeverityWarning,
+			Summary:  "Deprecated",
+			Detail:   s.DeprecationMessage,
+		})
+	}
 }

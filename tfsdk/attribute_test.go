@@ -803,6 +803,39 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: ValidateAttributeResponse{},
 		},
+		"deprecation-message": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:               types.StringType,
+								Required:           true,
+								DeprecationMessage: "Use something else instead.",
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity:  tfprotov6.DiagnosticSeverityWarning,
+						Summary:   "Attribute Deprecated",
+						Detail:    "Use something else instead.",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
+					},
+				},
+			},
+		},
 		"warnings": {
 			req: ValidateAttributeRequest{
 				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),

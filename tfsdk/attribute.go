@@ -344,4 +344,13 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 			return
 		}
 	}
+
+	if a.DeprecationMessage != "" {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityWarning,
+			Summary:   "Attribute Deprecated",
+			Detail:    a.DeprecationMessage,
+			Attribute: req.AttributePath,
+		})
+	}
 }

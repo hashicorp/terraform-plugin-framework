@@ -15,34 +15,33 @@ func TestSchemaAttributeType(t *testing.T) {
 	testSchema := Schema{
 		Attributes: map[string]Attribute{
 			"foo": {
-				Type:     types.StringType,
-				Required: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationRequired,
 			},
 			"bar": {
 				Type: types.ListType{
 					ElemType: types.StringType,
 				},
-				Required: true,
+				Configuration: AttributeConfigurationRequired,
 			},
 			"disks": {
 				Attributes: ListNestedAttributes(map[string]Attribute{
 					"id": {
-						Type:     types.StringType,
-						Required: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationRequired,
 					},
 					"delete_with_instance": {
-						Type:     types.BoolType,
-						Optional: true,
+						Type:          types.BoolType,
+						Configuration: AttributeConfigurationOptional,
 					},
 				}, ListNestedAttributesOptions{}),
-				Optional: true,
-				Computed: true,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			"boot_disk": {
 				Attributes: SingleNestedAttributes(map[string]Attribute{
 					"id": {
-						Type:     types.StringType,
-						Required: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationRequired,
 					},
 					"delete_with_instance": {
 						Type: types.BoolType,
@@ -101,16 +100,16 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 				Version: 1,
 				Attributes: map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Required: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationRequired,
 					},
 					"number": {
-						Type:     types.NumberType,
-						Optional: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"bool": {
-						Type:     types.BoolType,
-						Computed: true,
+						Type:          types.BoolType,
+						Configuration: AttributeConfigurationComputed,
 					},
 				},
 			},
@@ -142,8 +141,8 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 				Version: 2,
 				Attributes: map[string]Attribute{
 					"list": {
-						Type:     types.ListType{ElemType: types.StringType},
-						Required: true,
+						Type:          types.ListType{ElemType: types.StringType},
+						Configuration: AttributeConfigurationRequired,
 					},
 					"object": {
 						Type: types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -151,11 +150,11 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 							"number": types.NumberType,
 							"bool":   types.BoolType,
 						}},
-						Optional: true,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"map": {
-						Type:     types.MapType{ElemType: types.NumberType},
-						Computed: true,
+						Type:          types.MapType{ElemType: types.NumberType},
+						Configuration: AttributeConfigurationComputed,
 					},
 					// TODO: add tuple support when it lands
 					// TODO: add set support when it lands
@@ -195,91 +194,86 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 					"single": {
 						Attributes: SingleNestedAttributes(map[string]Attribute{
 							"string": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 							},
 							"number": {
-								Type:     types.NumberType,
-								Optional: true,
+								Type:          types.NumberType,
+								Configuration: AttributeConfigurationOptional,
 							},
 							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
+								Type:          types.BoolType,
+								Configuration: AttributeConfigurationComputed,
 							},
 							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
+								Type:          types.ListType{ElemType: types.StringType},
+								Configuration: AttributeConfigurationOptionalComputed,
 							},
 						}),
-						Required: true,
+						Configuration: AttributeConfigurationRequired,
 					},
 					"list": {
 						Attributes: ListNestedAttributes(map[string]Attribute{
 							"string": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 							},
 							"number": {
-								Type:     types.NumberType,
-								Optional: true,
+								Type:          types.NumberType,
+								Configuration: AttributeConfigurationOptional,
 							},
 							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
+								Type:          types.BoolType,
+								Configuration: AttributeConfigurationComputed,
 							},
 							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
+								Type:          types.ListType{ElemType: types.StringType},
+								Configuration: AttributeConfigurationOptionalComputed,
 							},
 						}, ListNestedAttributesOptions{}),
-						Optional: true,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"set": {
 						Attributes: SetNestedAttributes(map[string]Attribute{
 							"string": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 							},
 							"number": {
-								Type:     types.NumberType,
-								Optional: true,
+								Type:          types.NumberType,
+								Configuration: AttributeConfigurationOptional,
 							},
 							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
+								Type:          types.BoolType,
+								Configuration: AttributeConfigurationComputed,
 							},
 							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
+								Type:          types.ListType{ElemType: types.StringType},
+								Configuration: AttributeConfigurationOptionalComputed,
 							},
 						}, SetNestedAttributesOptions{}),
-						Computed: true,
+						Configuration: AttributeConfigurationComputed,
 					},
 					"map": {
 						Attributes: MapNestedAttributes(map[string]Attribute{
 							"string": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 							},
 							"number": {
-								Type:     types.NumberType,
-								Optional: true,
+								Type:          types.NumberType,
+								Configuration: AttributeConfigurationOptional,
 							},
 							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
+								Type:          types.BoolType,
+								Configuration: AttributeConfigurationComputed,
 							},
 							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
+								Type:          types.ListType{ElemType: types.StringType},
+								Configuration: AttributeConfigurationOptionalComputed,
 							},
 						}, MapNestedAttributesOptions{}),
-						Optional: true,
-						Computed: true,
+						Configuration: AttributeConfigurationOptionalComputed,
 					},
 				},
 			},
@@ -417,8 +411,8 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 				Version: 1,
 				Attributes: map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Required: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationRequired,
 					},
 				},
 				MarkdownDescription: "a test resource",
@@ -443,8 +437,8 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 				Version: 1,
 				Attributes: map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Required: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationRequired,
 					},
 				},
 				Description: "a test resource",
@@ -469,8 +463,8 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 				Version: 1,
 				Attributes: map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Required: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationRequired,
 					},
 				},
 				DeprecationMessage: "deprecated, use other_resource instead",
@@ -543,12 +537,12 @@ func TestSchemaValidate(t *testing.T) {
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"attr1": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 							},
 							"attr2": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -571,15 +565,15 @@ func TestSchemaValidate(t *testing.T) {
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"attr1": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 								Validators: []AttributeValidator{
 									testWarningAttributeValidator{},
 								},
 							},
 							"attr2": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 								Validators: []AttributeValidator{
 									testWarningAttributeValidator{},
 								},
@@ -610,15 +604,15 @@ func TestSchemaValidate(t *testing.T) {
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"attr1": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 								Validators: []AttributeValidator{
 									testErrorAttributeValidator{},
 								},
 							},
 							"attr2": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 								Validators: []AttributeValidator{
 									testErrorAttributeValidator{},
 								},

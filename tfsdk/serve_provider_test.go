@@ -77,49 +77,48 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, []*tfprotov6.D
 		DeprecationMessage: "Deprecated in favor of other_resource",
 		Attributes: map[string]Attribute{
 			"required": {
-				Type:     types.StringType,
-				Required: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationRequired,
 			},
 			"optional": {
-				Type:     types.StringType,
-				Optional: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"computed": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationComputed,
 			},
 			"optional_computed": {
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			"sensitive": {
-				Type:      types.StringType,
-				Optional:  true,
-				Sensitive: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptional,
+				Sensitive:     true,
 			},
 			"deprecated": {
 				Type:               types.StringType,
-				Optional:           true,
+				Configuration:      AttributeConfigurationOptional,
 				DeprecationMessage: "Deprecated, please use \"optional\" instead",
 			},
 			"string": {
-				Type:     types.StringType,
-				Optional: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"number": {
-				Type:     types.NumberType,
-				Optional: true,
+				Type:          types.NumberType,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"bool": {
-				Type:     types.BoolType,
-				Optional: true,
+				Type:          types.BoolType,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"list-string": {
 				Type: types.ListType{
 					ElemType: types.StringType,
 				},
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"list-list-string": {
 				Type: types.ListType{
@@ -127,7 +126,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, []*tfprotov6.D
 						ElemType: types.StringType,
 					},
 				},
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"list-object": {
 				Type: types.ListType{
@@ -139,7 +138,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, []*tfprotov6.D
 						},
 					},
 				},
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"object": {
 				Type: types.ObjectType{
@@ -152,59 +151,56 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, []*tfprotov6.D
 						},
 					},
 				},
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"empty-object": {
-				Type:     types.ObjectType{},
-				Optional: true,
+				Type:          types.ObjectType{},
+				Configuration: AttributeConfigurationOptional,
 			},
 			"map": {
-				Type:     types.MapType{ElemType: types.NumberType},
-				Optional: true,
+				Type:          types.MapType{ElemType: types.NumberType},
+				Configuration: AttributeConfigurationOptional,
 			},
 			// TODO: add sets when we support them
 			// TODO: add tuples when we support them
 			"single-nested-attributes": {
 				Attributes: SingleNestedAttributes(map[string]Attribute{
 					"foo": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptionalComputed,
 					},
 					"bar": {
-						Type:     types.NumberType,
-						Required: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationRequired,
 					},
 				}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"list-nested-attributes": {
 				Attributes: ListNestedAttributes(map[string]Attribute{
 					"foo": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptionalComputed,
 					},
 					"bar": {
-						Type:     types.NumberType,
-						Required: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationRequired,
 					},
 				}, ListNestedAttributesOptions{}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			"map-nested-attributes": {
 				Attributes: MapNestedAttributes(map[string]Attribute{
 					"foo": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptionalComputed,
 					},
 					"bar": {
-						Type:     types.NumberType,
-						Required: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationRequired,
 					},
 				}, MapNestedAttributesOptions{}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 		},
 	}, nil
@@ -461,7 +457,7 @@ func (t *testServeProviderWithMetaSchema) GetMetaSchema(context.Context) (Schema
 		Attributes: map[string]Attribute{
 			"foo": {
 				Type:                types.StringType,
-				Required:            true,
+				Configuration:       AttributeConfigurationRequired,
 				Description:         "A string",
 				MarkdownDescription: "A **string**",
 			},

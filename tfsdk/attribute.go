@@ -30,6 +30,12 @@ type Attribute struct {
 	// If Attributes is set, Type cannot be.
 	Attributes NestedAttributes
 
+	// Configuration describes attribute value behaviors, such as whether the
+	// value must be configured by the practitioner. Must be defined.
+	//
+	// See AttributeConfiguration descriptions for additional information.
+	Configuration AttributeConfiguration
+
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this attribute is,
 	// what it's for, and how it should be used. It should be written as
@@ -41,23 +47,6 @@ type Attribute struct {
 	// about what this attribute is, what it's for, and how it should be
 	// used. It should be formatted using Markdown.
 	MarkdownDescription string
-
-	// Required indicates whether the practitioner must enter a value for
-	// this attribute or not. Required and Optional cannot both be true,
-	// and Required and Computed cannot both be true.
-	Required bool
-
-	// Optional indicates whether the practitioner can choose not to enter
-	// a value for this attribute or not. Optional and Required cannot both
-	// be true.
-	Optional bool
-
-	// Computed indicates whether the provider may return its own value for
-	// this attribute or not. Required and Computed cannot both be true. If
-	// Required and Optional are both false, Computed must be true, and the
-	// attribute will be considered "read only" for the practitioner, with
-	// only the provider able to set its value.
-	Computed bool
 
 	// Sensitive indicates whether the value of this attribute should be
 	// considered sensitive data. Setting it to true will obscure the value
@@ -111,13 +100,7 @@ func (a Attribute) Equal(o Attribute) bool {
 	if a.MarkdownDescription != o.MarkdownDescription {
 		return false
 	}
-	if a.Required != o.Required {
-		return false
-	}
-	if a.Optional != o.Optional {
-		return false
-	}
-	if a.Computed != o.Computed {
+	if a.Configuration != o.Configuration {
 		return false
 	}
 	if a.Sensitive != o.Sensitive {
@@ -135,10 +118,21 @@ func (a Attribute) Equal(o Attribute) bool {
 func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath) (*tfprotov6.SchemaAttribute, error) {
 	schemaAttribute := &tfprotov6.SchemaAttribute{
 		Name:      name,
-		Required:  a.Required,
-		Optional:  a.Optional,
-		Computed:  a.Computed,
 		Sensitive: a.Sensitive,
+	}
+
+	switch a.Configuration {
+	case AttributeConfigurationRequired:
+		schemaAttribute.Required = true
+	case AttributeConfigurationOptional:
+		schemaAttribute.Optional = true
+	case AttributeConfigurationOptionalComputed:
+		schemaAttribute.Optional = true
+		schemaAttribute.Computed = true
+	case AttributeConfigurationComputed:
+		schemaAttribute.Computed = true
+	default:
+		return nil, path.NewErrorf("must configure Configuration")
 	}
 
 	if a.DeprecationMessage != "" {
@@ -232,6 +226,17 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 			Severity:  tfprotov6.DiagnosticSeverityError,
 			Summary:   "Invalid Attribute Definition",
 			Detail:    "Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
+			Attribute: req.AttributePath,
+		})
+
+		return
+	}
+
+	if a.Configuration == AttributeConfigurationUnknown {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Invalid Attribute Definition",
+			Detail:    "Attribute missing Configuration definition. This is always a problem with the provider and should be reported to the provider developer.",
 			Attribute: req.AttributePath,
 		})
 

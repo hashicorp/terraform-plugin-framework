@@ -38,8 +38,8 @@ func TestPlanGet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -60,8 +60,8 @@ func TestPlanGet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateError{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -83,8 +83,8 @@ func TestPlanGet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateWarning{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -138,8 +138,8 @@ func TestPlanGetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -158,8 +158,8 @@ func TestPlanGetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateError{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -179,8 +179,8 @@ func TestPlanGetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateWarning{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -231,8 +231,8 @@ func TestPlanSet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -256,8 +256,8 @@ func TestPlanSet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -281,8 +281,8 @@ func TestPlanSet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateError{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -301,8 +301,8 @@ func TestPlanSet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateWarning{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -365,8 +365,8 @@ func TestPlanSetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -393,8 +393,8 @@ func TestPlanSetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateError{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -422,8 +422,8 @@ func TestPlanSetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateWarning{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},

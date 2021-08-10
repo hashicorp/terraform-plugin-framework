@@ -15,18 +15,16 @@ func (dt testServeDataSourceTypeTwo) GetSchema(_ context.Context) (Schema, []*tf
 	return Schema{
 		Attributes: map[string]Attribute{
 			"family": {
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			"name": {
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			"id": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationComputed,
 			},
 		},
 	}, nil

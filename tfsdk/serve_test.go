@@ -61,30 +61,28 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 		Attributes: map[string]Attribute{
 			// values should be left alone
 			"string-value": {
-				Type:     types.StringType,
-				Required: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationRequired,
 			},
 			// nil, uncomputed values should be left alone
 			"string-nil": {
-				Type:     types.StringType,
-				Optional: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptional,
 			},
 			// nil computed values should be turned into unknown
 			"string-nil-computed": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationComputed,
 			},
 			// nil computed values should be turned into unknown
 			"string-nil-optional-computed": {
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			// non-nil computed values should be left alone
 			"string-value-optional-computed": {
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			// nil objects should be unknown
 			"object-nil-optional-computed": {
@@ -94,8 +92,7 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 						"string-set": types.StringType,
 					},
 				},
-				Optional: true,
-				Computed: true,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			// non-nil objects should be left alone
 			"object-value-optional-computed": {
@@ -109,44 +106,37 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 						"string-set": types.StringType,
 					},
 				},
-				Optional: true,
-				Computed: true,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			// nil nested attributes should be unknown
 			"nested-nil-optional-computed": {
 				Attributes: SingleNestedAttributes(map[string]Attribute{
 					"string-nil": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptionalComputed,
 					},
 					"string-set": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptionalComputed,
 					},
 				}),
-				Optional: true,
-				Computed: true,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			// non-nil nested attributes should be left alone on the top level
 			"nested-value-optional-computed": {
 				Attributes: SingleNestedAttributes(map[string]Attribute{
 					// nested computed attributes should be unknown
 					"string-nil": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptionalComputed,
 					},
 					// nested non-nil computed attributes should be left alone
 					"string-set": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptionalComputed,
 					},
 				}),
-				Optional: true,
-				Computed: true,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 		},
 	}

@@ -123,8 +123,8 @@ func TestStateGet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 						"machine_type": {
 							Type: types.StringType,
@@ -133,27 +133,26 @@ func TestStateGet(t *testing.T) {
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
-							Required: true,
+							Configuration: AttributeConfigurationRequired,
 						},
 						"disks": {
 							Attributes: ListNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
+									Type:          types.BoolType,
+									Configuration: AttributeConfigurationOptional,
 								},
 							}, ListNestedAttributesOptions{}),
-							Optional: true,
-							Computed: true,
+							Configuration: AttributeConfigurationOptionalComputed,
 						},
 						"boot_disk": {
 							Attributes: SingleNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
 									Type: types.BoolType,
@@ -166,7 +165,7 @@ func TestStateGet(t *testing.T) {
 									"interface": types.StringType,
 								},
 							},
-							Optional: true,
+							Configuration: AttributeConfigurationOptional,
 						},
 					},
 				},
@@ -293,8 +292,8 @@ func TestStateGet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateError{},
+							Configuration: AttributeConfigurationRequired,
 						},
 						"machine_type": {
 							Type: types.StringType,
@@ -303,27 +302,26 @@ func TestStateGet(t *testing.T) {
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
-							Required: true,
+							Configuration: AttributeConfigurationRequired,
 						},
 						"disks": {
 							Attributes: ListNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
+									Type:          types.BoolType,
+									Configuration: AttributeConfigurationOptional,
 								},
 							}, ListNestedAttributesOptions{}),
-							Optional: true,
-							Computed: true,
+							Configuration: AttributeConfigurationOptionalComputed,
 						},
 						"boot_disk": {
 							Attributes: SingleNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
 									Type: types.BoolType,
@@ -336,7 +334,7 @@ func TestStateGet(t *testing.T) {
 									"interface": types.StringType,
 								},
 							},
-							Optional: true,
+							Configuration: AttributeConfigurationOptional,
 						},
 					},
 				},
@@ -445,8 +443,8 @@ func TestStateGet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateWarning{},
+							Configuration: AttributeConfigurationRequired,
 						},
 						"machine_type": {
 							Type: types.StringType,
@@ -455,27 +453,26 @@ func TestStateGet(t *testing.T) {
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
-							Required: true,
+							Configuration: AttributeConfigurationRequired,
 						},
 						"disks": {
 							Attributes: ListNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
+									Type:          types.BoolType,
+									Configuration: AttributeConfigurationOptional,
 								},
 							}, ListNestedAttributesOptions{}),
-							Optional: true,
-							Computed: true,
+							Configuration: AttributeConfigurationOptionalComputed,
 						},
 						"boot_disk": {
 							Attributes: SingleNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
 									Type: types.BoolType,
@@ -488,7 +485,7 @@ func TestStateGet(t *testing.T) {
 									"interface": types.StringType,
 								},
 							},
-							Optional: true,
+							Configuration: AttributeConfigurationOptional,
 						},
 					},
 				},
@@ -577,8 +574,8 @@ func TestStateGetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -607,7 +604,7 @@ func TestStateGetAttribute(t *testing.T) {
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
-							Required: true,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -669,16 +666,15 @@ func TestStateGetAttribute(t *testing.T) {
 						"disks": {
 							Attributes: ListNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
+									Type:          types.BoolType,
+									Configuration: AttributeConfigurationOptional,
 								},
 							}, ListNestedAttributesOptions{}),
-							Optional: true,
-							Computed: true,
+							Configuration: AttributeConfigurationOptionalComputed,
 						},
 					},
 				},
@@ -742,8 +738,8 @@ func TestStateGetAttribute(t *testing.T) {
 						"boot_disk": {
 							Attributes: SingleNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
 									Type: types.BoolType,
@@ -792,7 +788,7 @@ func TestStateGetAttribute(t *testing.T) {
 									"interface": types.StringType,
 								},
 							},
-							Optional: true,
+							Configuration: AttributeConfigurationOptional,
 						},
 					},
 				},
@@ -819,8 +815,8 @@ func TestStateGetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateError{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -841,8 +837,8 @@ func TestStateGetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateWarning{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -888,12 +884,12 @@ func TestStateSet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"machine_type": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -929,12 +925,12 @@ func TestStateSet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"machine_type": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -965,7 +961,7 @@ func TestStateSet(t *testing.T) {
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
-							Required: true,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -997,16 +993,15 @@ func TestStateSet(t *testing.T) {
 						"disks": {
 							Attributes: ListNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
+									Type:          types.BoolType,
+									Configuration: AttributeConfigurationOptional,
 								},
 							}, ListNestedAttributesOptions{}),
-							Optional: true,
-							Computed: true,
+							Configuration: AttributeConfigurationOptionalComputed,
 						},
 					},
 				},
@@ -1080,8 +1075,8 @@ func TestStateSet(t *testing.T) {
 						"boot_disk": {
 							Attributes: SingleNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
 									Type: types.BoolType,
@@ -1137,7 +1132,7 @@ func TestStateSet(t *testing.T) {
 									"interface": types.StringType,
 								},
 							},
-							Optional: true,
+							Configuration: AttributeConfigurationOptional,
 						},
 					},
 				},
@@ -1177,8 +1172,8 @@ func TestStateSet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateError{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -1197,8 +1192,8 @@ func TestStateSet(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateWarning{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -1263,12 +1258,12 @@ func TestStateSetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 						"other": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -1308,11 +1303,11 @@ func TestStateSetAttribute(t *testing.T) {
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
-							Required: true,
+							Configuration: AttributeConfigurationRequired,
 						},
 						"other": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -1383,20 +1378,19 @@ func TestStateSetAttribute(t *testing.T) {
 						"disks": {
 							Attributes: ListNestedAttributes(map[string]Attribute{
 								"id": {
-									Type:     types.StringType,
-									Required: true,
+									Type:          types.StringType,
+									Configuration: AttributeConfigurationRequired,
 								},
 								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
+									Type:          types.BoolType,
+									Configuration: AttributeConfigurationOptional,
 								},
 							}, ListNestedAttributesOptions{}),
-							Optional: true,
-							Computed: true,
+							Configuration: AttributeConfigurationOptionalComputed,
 						},
 						"other": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -1481,11 +1475,11 @@ func TestStateSetAttribute(t *testing.T) {
 									"interface": types.StringType,
 								},
 							},
-							Optional: true,
+							Configuration: AttributeConfigurationOptional,
 						},
 						"other": {
-							Type:     types.StringType,
-							Required: true,
+							Type:          types.StringType,
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -1524,8 +1518,8 @@ func TestStateSetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateError{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},
@@ -1553,8 +1547,8 @@ func TestStateSetAttribute(t *testing.T) {
 				Schema: Schema{
 					Attributes: map[string]Attribute{
 						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
+							Type:          testtypes.StringTypeWithValidateWarning{},
+							Configuration: AttributeConfigurationRequired,
 						},
 					},
 				},

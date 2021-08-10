@@ -15,16 +15,16 @@ func (dt testServeDataSourceTypeOne) GetSchema(_ context.Context) (Schema, []*tf
 	return Schema{
 		Attributes: map[string]Attribute{
 			"current_time": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationComputed,
 			},
 			"current_date": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationComputed,
 			},
 			"is_dst": {
-				Type:     types.BoolType,
-				Computed: true,
+				Type:          types.BoolType,
+				Configuration: AttributeConfigurationComputed,
 			},
 		},
 	}, nil

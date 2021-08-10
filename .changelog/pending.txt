@@ -1,0 +1,7 @@
+```release-note:breaking-change
+tfsdk: The `Attribute` type `Computed`, `Optional`, and `Required` fields have been replaced by `Configuration`.
+```
+
+```release-note:enhancement
+tfsdk: Prevent `Attribute` misconfiguration by consolidating `Computed`, `Optional`, and `Required` fields into a single `Configuration` field.
+```

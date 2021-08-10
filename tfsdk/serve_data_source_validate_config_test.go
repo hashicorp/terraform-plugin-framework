@@ -15,8 +15,8 @@ func (dt testServeDataSourceTypeValidateConfig) GetSchema(_ context.Context) (Sc
 	return Schema{
 		Attributes: map[string]Attribute{
 			"string": {
-				Type:     types.StringType,
-				Optional: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptional,
 			},
 		},
 	}, nil

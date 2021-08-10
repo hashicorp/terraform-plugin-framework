@@ -27,7 +27,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			name: "string",
 			attr: Attribute{
 				Type:               types.StringType,
-				Optional:           true,
+				Configuration:      AttributeConfigurationOptional,
 				DeprecationMessage: "deprecated, use new_string instead",
 			},
 			path: tftypes.NewAttributePath(),
@@ -41,9 +41,9 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"description-plain": {
 			name: "string",
 			attr: Attribute{
-				Type:        types.StringType,
-				Optional:    true,
-				Description: "A string attribute",
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptional,
+				Description:   "A string attribute",
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -58,7 +58,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			name: "string",
 			attr: Attribute{
 				Type:                types.StringType,
-				Optional:            true,
+				Configuration:       AttributeConfigurationOptional,
 				MarkdownDescription: "A string attribute",
 			},
 			path: tftypes.NewAttributePath(),
@@ -74,7 +74,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			name: "string",
 			attr: Attribute{
 				Type:                types.StringType,
-				Optional:            true,
+				Configuration:       AttributeConfigurationOptional,
 				Description:         "A string attribute",
 				MarkdownDescription: "A string attribute (markdown)",
 			},
@@ -90,8 +90,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"attr-string": {
 			name: "string",
 			attr: Attribute{
-				Type:     types.StringType,
-				Optional: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -103,8 +103,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"attr-bool": {
 			name: "bool",
 			attr: Attribute{
-				Type:     types.BoolType,
-				Optional: true,
+				Type:          types.BoolType,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -116,8 +116,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"attr-number": {
 			name: "number",
 			attr: Attribute{
-				Type:     types.NumberType,
-				Optional: true,
+				Type:          types.NumberType,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -129,8 +129,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"attr-list": {
 			name: "list",
 			attr: Attribute{
-				Type:     types.ListType{ElemType: types.NumberType},
-				Optional: true,
+				Type:          types.ListType{ElemType: types.NumberType},
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -142,8 +142,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"attr-map": {
 			name: "map",
 			attr: Attribute{
-				Type:     types.MapType{ElemType: types.StringType},
-				Optional: true,
+				Type:          types.MapType{ElemType: types.StringType},
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -160,7 +160,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 					"bar": types.NumberType,
 					"baz": types.BoolType,
 				}},
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -178,8 +178,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"required": {
 			name: "string",
 			attr: Attribute{
-				Type:     types.StringType,
-				Required: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationRequired,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -191,8 +191,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"optional": {
 			name: "string",
 			attr: Attribute{
-				Type:     types.StringType,
-				Optional: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -204,8 +204,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"computed": {
 			name: "string",
 			attr: Attribute{
-				Type:     types.StringType,
-				Computed: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationComputed,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -217,9 +217,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"optional-computed": {
 			name: "string",
 			attr: Attribute{
-				Type:     types.StringType,
-				Computed: true,
-				Optional: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptionalComputed,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -232,9 +231,9 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"sensitive": {
 			name: "string",
 			attr: Attribute{
-				Type:      types.StringType,
-				Optional:  true,
-				Sensitive: true,
+				Type:          types.StringType,
+				Configuration: AttributeConfigurationOptional,
+				Sensitive:     true,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -249,16 +248,16 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Attributes: SingleNestedAttributes(map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationComputed,
+						Sensitive:     true,
 					},
 				}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -287,16 +286,16 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Attributes: ListNestedAttributes(map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationComputed,
+						Sensitive:     true,
 					},
 				}, ListNestedAttributesOptions{}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -325,18 +324,18 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Attributes: ListNestedAttributes(map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationComputed,
+						Sensitive:     true,
 					},
 				}, ListNestedAttributesOptions{
 					MinItems: 1,
 				}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -366,18 +365,18 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Attributes: ListNestedAttributes(map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationComputed,
+						Sensitive:     true,
 					},
 				}, ListNestedAttributesOptions{
 					MaxItems: 1,
 				}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -407,19 +406,19 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Attributes: ListNestedAttributes(map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationComputed,
+						Sensitive:     true,
 					},
 				}, ListNestedAttributesOptions{
 					MinItems: 1,
 					MaxItems: 10,
 				}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -450,16 +449,16 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Attributes: SetNestedAttributes(map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationComputed,
+						Sensitive:     true,
 					},
 				}, SetNestedAttributesOptions{}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -488,18 +487,18 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Attributes: SetNestedAttributes(map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationComputed,
+						Sensitive:     true,
 					},
 				}, SetNestedAttributesOptions{
 					MinItems: 1,
 				}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -529,18 +528,18 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Attributes: SetNestedAttributes(map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationComputed,
+						Sensitive:     true,
 					},
 				}, SetNestedAttributesOptions{
 					MaxItems: 1,
 				}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -570,19 +569,19 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Attributes: SetNestedAttributes(map[string]Attribute{
 					"string": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+						Type:          types.NumberType,
+						Configuration: AttributeConfigurationComputed,
+						Sensitive:     true,
 					},
 				}, SetNestedAttributesOptions{
 					MinItems: 1,
 					MaxItems: 10,
 				}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
@@ -614,11 +613,11 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type: types.StringType,
 				Attributes: SingleNestedAttributes(map[string]Attribute{
 					"testing": {
-						Type:     types.StringType,
-						Optional: true,
+						Type:          types.StringType,
+						Configuration: AttributeConfigurationOptional,
 					},
 				}),
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path:        tftypes.NewAttributePath(),
 			expectedErr: "can't have both Attributes and Type set",
@@ -626,7 +625,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"attr-and-nested-attr-unset": {
 			name: "whoops",
 			attr: Attribute{
-				Optional: true,
+				Configuration: AttributeConfigurationOptional,
 			},
 			path:        tftypes.NewAttributePath(),
 			expectedErr: "must have Attributes or Type set",
@@ -634,8 +633,8 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 		"attr-and-nested-attr-empty": {
 			name: "whoops",
 			attr: Attribute{
-				Optional:   true,
-				Attributes: SingleNestedAttributes(map[string]Attribute{}),
+				Configuration: AttributeConfigurationOptional,
+				Attributes:    SingleNestedAttributes(map[string]Attribute{}),
 			},
 			path:        tftypes.NewAttributePath(),
 			expectedErr: "must have Attributes or Type set",
@@ -693,7 +692,7 @@ func TestAttributeValidate(t *testing.T) {
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"test": {
-								Required: true,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -726,12 +725,12 @@ func TestAttributeValidate(t *testing.T) {
 							"test": {
 								Attributes: SingleNestedAttributes(map[string]Attribute{
 									"testing": {
-										Type:     types.StringType,
-										Optional: true,
+										Type:          types.StringType,
+										Configuration: AttributeConfigurationOptional,
 									},
 								}),
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -762,8 +761,8 @@ func TestAttributeValidate(t *testing.T) {
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"test": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -794,8 +793,8 @@ func TestAttributeValidate(t *testing.T) {
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"test": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -817,8 +816,8 @@ func TestAttributeValidate(t *testing.T) {
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"test": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 								Validators: []AttributeValidator{
 									testWarningAttributeValidator{},
 									testWarningAttributeValidator{},
@@ -849,8 +848,8 @@ func TestAttributeValidate(t *testing.T) {
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"test": {
-								Type:     types.StringType,
-								Required: true,
+								Type:          types.StringType,
+								Configuration: AttributeConfigurationRequired,
 								Validators: []AttributeValidator{
 									testErrorAttributeValidator{},
 									testErrorAttributeValidator{},
@@ -912,11 +911,11 @@ func TestAttributeValidate(t *testing.T) {
 							"test": {
 								Attributes: ListNestedAttributes(map[string]Attribute{
 									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+										Type:          types.StringType,
+										Configuration: AttributeConfigurationRequired,
 									},
 								}, ListNestedAttributesOptions{}),
-								Required: true,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -969,14 +968,14 @@ func TestAttributeValidate(t *testing.T) {
 							"test": {
 								Attributes: ListNestedAttributes(map[string]Attribute{
 									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+										Type:          types.StringType,
+										Configuration: AttributeConfigurationRequired,
 										Validators: []AttributeValidator{
 											testErrorAttributeValidator{},
 										},
 									},
 								}, ListNestedAttributesOptions{}),
-								Required: true,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -1033,11 +1032,11 @@ func TestAttributeValidate(t *testing.T) {
 							"test": {
 								Attributes: MapNestedAttributes(map[string]Attribute{
 									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+										Type:          types.StringType,
+										Configuration: AttributeConfigurationRequired,
 									},
 								}, MapNestedAttributesOptions{}),
-								Required: true,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -1090,14 +1089,14 @@ func TestAttributeValidate(t *testing.T) {
 							"test": {
 								Attributes: MapNestedAttributes(map[string]Attribute{
 									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+										Type:          types.StringType,
+										Configuration: AttributeConfigurationRequired,
 										Validators: []AttributeValidator{
 											testErrorAttributeValidator{},
 										},
 									},
 								}, MapNestedAttributesOptions{}),
-								Required: true,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -1141,11 +1140,11 @@ func TestAttributeValidate(t *testing.T) {
 							"test": {
 								Attributes: SingleNestedAttributes(map[string]Attribute{
 									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+										Type:          types.StringType,
+										Configuration: AttributeConfigurationRequired,
 									},
 								}),
-								Required: true,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},
@@ -1184,14 +1183,14 @@ func TestAttributeValidate(t *testing.T) {
 							"test": {
 								Attributes: SingleNestedAttributes(map[string]Attribute{
 									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+										Type:          types.StringType,
+										Configuration: AttributeConfigurationRequired,
 										Validators: []AttributeValidator{
 											testErrorAttributeValidator{},
 										},
 									},
 								}),
-								Required: true,
+								Configuration: AttributeConfigurationRequired,
 							},
 						},
 					},

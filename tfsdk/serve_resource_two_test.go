@@ -15,25 +15,23 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (Schema, []*tfpr
 	return Schema{
 		Attributes: map[string]Attribute{
 			"id": {
-				Optional: true,
-				Computed: true,
-				Type:     types.StringType,
+				Configuration: AttributeConfigurationOptionalComputed,
+				Type:          types.StringType,
 			},
 			"disks": {
-				Optional: true,
-				Computed: true,
+				Configuration: AttributeConfigurationOptionalComputed,
 				Attributes: ListNestedAttributes(map[string]Attribute{
 					"name": {
-						Required: true,
-						Type:     types.StringType,
+						Configuration: AttributeConfigurationRequired,
+						Type:          types.StringType,
 					},
 					"size_gb": {
-						Required: true,
-						Type:     types.NumberType,
+						Configuration: AttributeConfigurationRequired,
+						Type:          types.NumberType,
 					},
 					"boot": {
-						Required: true,
-						Type:     types.BoolType,
+						Configuration: AttributeConfigurationRequired,
+						Type:          types.BoolType,
 					},
 				}, ListNestedAttributesOptions{}),
 			},

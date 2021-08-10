@@ -16,16 +16,16 @@ func (rt testServeResourceTypeOne) GetSchema(_ context.Context) (Schema, []*tfpr
 		Version: 1,
 		Attributes: map[string]Attribute{
 			"name": {
-				Required: true,
-				Type:     types.StringType,
+				Configuration: AttributeConfigurationRequired,
+				Type:          types.StringType,
 			},
 			"favorite_colors": {
-				Optional: true,
-				Type:     types.ListType{ElemType: types.StringType},
+				Configuration: AttributeConfigurationOptional,
+				Type:          types.ListType{ElemType: types.StringType},
 			},
 			"created_timestamp": {
-				Computed: true,
-				Type:     types.StringType,
+				Configuration: AttributeConfigurationComputed,
+				Type:          types.StringType,
 			},
 		},
 	}, nil

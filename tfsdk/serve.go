@@ -527,7 +527,7 @@ func markComputedNilsAsUnknown(ctx context.Context, resourceSchema Schema) func(
 			}
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
-		if !attribute.Computed {
+		if attribute.Configuration == AttributeConfigurationRequired || attribute.Configuration == AttributeConfigurationOptional {
 			return val, nil
 		}
 		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil

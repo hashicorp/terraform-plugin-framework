@@ -225,13 +225,10 @@ func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 	}
 
 	schema, diags := s.p.GetSchema(ctx)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
 
-	if diags != nil {
-		resp.Diagnostics = append(resp.Diagnostics, diags...)
-
-		if diagsHasErrors(resp.Diagnostics) {
-			return resp, nil
-		}
+	if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+		return resp, nil
 	}
 
 	config, err := req.Config.Unmarshal(schema.TerraformType(ctx))
@@ -340,7 +337,7 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 	resourceType, diags := s.getResourceType(ctx, req.TypeName)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 
-	if diagsHasErrors(resp.Diagnostics) {
+	if diagnostics.DiagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
 
@@ -349,7 +346,7 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 	resourceSchema, diags := resourceType.GetSchema(ctx)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 
-	if diagsHasErrors(resp.Diagnostics) {
+	if diagnostics.DiagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
 
@@ -358,7 +355,7 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 	resource, diags := resourceType.NewResource(ctx, s.p)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 
-	if diagsHasErrors(resp.Diagnostics) {
+	if diagnostics.DiagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
 
@@ -972,7 +969,7 @@ func (s *server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.
 	dataSourceType, diags := s.getDataSourceType(ctx, req.TypeName)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 
-	if diagsHasErrors(resp.Diagnostics) {
+	if diagnostics.DiagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
 
@@ -981,7 +978,7 @@ func (s *server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.
 	dataSourceSchema, diags := dataSourceType.GetSchema(ctx)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 
-	if diagsHasErrors(resp.Diagnostics) {
+	if diagnostics.DiagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
 
@@ -990,7 +987,7 @@ func (s *server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.
 	dataSource, diags := dataSourceType.NewDataSource(ctx, s.p)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 
-	if diagsHasErrors(resp.Diagnostics) {
+	if diagnostics.DiagsHasErrors(resp.Diagnostics) {
 		return resp, nil
 	}
 

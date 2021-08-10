@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -237,16 +238,11 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 		return
 	}
 
-	attributeConfig, err := req.Config.GetAttribute(ctx, req.AttributePath)
+	attributeConfig, diags := req.Config.GetAttribute(ctx, req.AttributePath)
 
-	if err != nil {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Attribute Value Error",
-			Detail:    "Attribute validation cannot read configuration value. Report this to the provider developer:\n\n" + err.Error(),
-			Attribute: req.AttributePath,
-		})
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
 
+	if diagnostics.DiagsHasErrors(diags) {
 		return
 	}
 

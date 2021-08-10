@@ -773,8 +773,8 @@ func TestAttributeValidate(t *testing.T) {
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity:  tfprotov6.DiagnosticSeverityError,
-						Summary:   "Attribute Value Error",
-						Detail:    "Attribute validation cannot read configuration value. Report this to the provider developer:\n\nerror walking config: AttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+						Summary:   "Configuration Read Error",
+						Detail:    "An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
 						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
 					},
 				},

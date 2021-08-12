@@ -118,6 +118,61 @@ type AttributePlanModifier interface {
 // order.
 type AttributePlanModifiers []AttributePlanModifier
 
+// RequiresReplace returns AttributePlanModifiers specifying the attribute as
+// requiring replacement. This behaviour is identical to the ForceNew behaviour
+// in terraform-plugin-sdk.
+func RequiresReplace() AttributePlanModifiers {
+	return []AttributePlanModifier{RequiresReplaceModifier{}}
+}
+
+// RequiresReplaceModifier is an AttributePlanModifier that sets RequiresReplace
+// on the attribute.
+type RequiresReplaceModifier struct{}
+
+func (r RequiresReplaceModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	resp.RequiresReplace = true
+}
+
+func (r RequiresReplaceModifier) Description(ctx context.Context) string {
+	return "If the value of this attribute changes, Terraform will destroy and recreate the resource."
+}
+
+func (r RequiresReplaceModifier) MarkdownDescription(ctx context.Context) string {
+	return "If the value of this attribute changes, Terraform will destroy and recreate the resource."
+}
+
+func RequiresReplaceIf(f RequiresReplaceIfFunc, description, markdownDescription string) AttributePlanModifier {
+	return RequiresReplaceIfModifier{
+		f:                   f,
+		description:         description,
+		markdownDescription: markdownDescription,
+	}
+}
+
+type RequiresReplaceIfFunc func(ctx context.Context, state, config attr.Value) (bool, error)
+
+type RequiresReplaceIfModifier struct {
+	f                   RequiresReplaceIfFunc
+	description         string
+	markdownDescription string
+}
+
+func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	res, err := r.f(ctx, req.State, req.Config)
+	if err != nil {
+		resp.AddError("Error running RequiresReplaceIf func for attribute", err.Error())
+	}
+	resp.RequiresReplace = res
+}
+
+func (r RequiresReplaceIfModifier) Description(ctx context.Context) string {
+	return r.description
+}
+
+func (r RequiresReplaceIfModifier) MarkdownDescription(ctx context.Context) string {
+	return r.markdownDescription
+}
+
 // ApplyTerraform5AttributePathStep transparently calls
 // ApplyTerraform5AttributePathStep on a.Type or a.Attributes, whichever is
 // non-nil. It allows Attributes to be walked using tftypes.Walk and

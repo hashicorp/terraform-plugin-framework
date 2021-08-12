@@ -20,8 +20,9 @@ func (rt testServeResourceTypeOne) GetSchema(_ context.Context) (Schema, []*tfpr
 				Type:     types.StringType,
 			},
 			"favorite_colors": {
-				Optional: true,
-				Type:     types.ListType{ElemType: types.StringType},
+				Optional:      true,
+				Type:          types.ListType{ElemType: types.StringType},
+				PlanModifiers: RequiresReplace(),
 			},
 			"created_timestamp": {
 				Computed: true,

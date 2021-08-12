@@ -1588,6 +1588,46 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
 		},
+		"one_attr_requiresreplace": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
+			}),
+			resource:     "test_one",
+			resourceType: testServeResourceTypeOneType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "orange"),
+					tftypes.NewValue(tftypes.String, "yellow"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
+			}),
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("favorite_colors")},
+		},
 		"two_modify_add_list_elem": {
 			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),

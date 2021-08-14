@@ -39,6 +39,11 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 		})
 	}
 
+	// if the whole state is nil, the value of a valid attribute is also nil
+	if s.Raw.IsNull() {
+		return nil, nil
+	}
+
 	tfValue, err := s.terraformValueAtPath(path)
 	if err != nil {
 		return nil, append(diags, &tfprotov6.Diagnostic{

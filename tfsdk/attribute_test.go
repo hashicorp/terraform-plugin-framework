@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -954,6 +955,60 @@ func TestAttributeValidate(t *testing.T) {
 				Diagnostics: []*tfprotov6.Diagnostic{
 					testErrorDiagnostic,
 					testErrorDiagnostic,
+				},
+			},
+		},
+		"type-with-validate-error": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     testtypes.StringTypeWithValidateError{},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					testtypes.TestErrorDiagnostic,
+				},
+			},
+		},
+		"type-with-validate-warning": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     testtypes.StringTypeWithValidateWarning{},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					testtypes.TestWarningDiagnostic,
 				},
 			},
 		},

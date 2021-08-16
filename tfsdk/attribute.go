@@ -345,12 +345,27 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 		}
 	}
 
-	if a.DeprecationMessage != "" {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityWarning,
-			Summary:   "Attribute Deprecated",
-			Detail:    a.DeprecationMessage,
-			Attribute: req.AttributePath,
-		})
+	if a.DeprecationMessage != "" && attributeConfig != nil {
+		tfValue, err := attributeConfig.ToTerraformValue(ctx)
+
+		if err != nil {
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityError,
+				Summary:   "Attribute Validation Error",
+				Detail:    "Attribute validation cannot convert value. Report this to the provider developer:\n\n" + err.Error(),
+				Attribute: req.AttributePath,
+			})
+
+			return
+		}
+
+		if tfValue != nil {
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity:  tfprotov6.DiagnosticSeverityWarning,
+				Summary:   "Attribute Deprecated",
+				Detail:    a.DeprecationMessage,
+				Attribute: req.AttributePath,
+			})
+		}
 	}
 }

@@ -584,9 +584,10 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return resp, nil
 	}
 
+	resp.PlannedState = req.ProposedNewState
+
 	if plan.IsNull() || !plan.IsKnown() {
 		// on null or unknown plans, just bail, we can't do anything
-		resp.PlannedState = req.ProposedNewState
 		return resp, nil
 	}
 
@@ -598,6 +599,65 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return resp, nil
 	}
 
+	// first, execute any AttributePlanModifiers
+	modifySchemaPlanReq := ModifySchemaPlanRequest{
+		Config: Config{
+			Schema: resourceSchema,
+			Raw:    config,
+		},
+		State: State{
+			Schema: resourceSchema,
+			Raw:    state,
+		},
+		Plan: Plan{
+			Schema: resourceSchema,
+			Raw:    plan,
+		},
+	}
+	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+		pmSchema, diags := pm.GetMetaSchema(ctx)
+		if diags != nil {
+			resp.Diagnostics = append(resp.Diagnostics, diags...)
+			if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+				return resp, nil
+			}
+		}
+		modifySchemaPlanReq.ProviderMeta = Config{
+			Schema: pmSchema,
+			Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+		}
+
+		if req.ProviderMeta != nil {
+			pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+			if err != nil {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Error parsing provider_meta",
+					Detail:   "There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n" + err.Error(),
+				})
+				return resp, nil
+			}
+			modifySchemaPlanReq.ProviderMeta.Raw = pmValue
+		}
+	}
+
+	modifySchemaPlanResp := ModifySchemaPlanResponse{
+		Plan: Plan{
+			Schema: resourceSchema,
+			Raw:    plan,
+		},
+		Diagnostics: resp.Diagnostics,
+	}
+
+	resourceSchema.modifyAttributePlans(ctx, modifySchemaPlanReq, &modifySchemaPlanResp)
+	resp.RequiresReplace = modifySchemaPlanResp.RequiresReplace
+	plan = modifySchemaPlanResp.Plan.Raw
+	resp.Diagnostics = modifySchemaPlanResp.Diagnostics
+	if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+		return resp, nil
+	}
+
+	// second, execute any ModifyPlan func
 	var modifyPlanResp ModifyResourcePlanResponse
 	if resource, ok := resource.(ResourceWithModifyPlan); ok {
 		modifyPlanReq := ModifyResourcePlanRequest{
@@ -650,7 +710,7 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 			Diagnostics:     resp.Diagnostics,
 		}
 		resource.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
-		resp.Diagnostics = append(resp.Diagnostics, modifyPlanResp.Diagnostics...)
+		resp.Diagnostics = modifyPlanResp.Diagnostics
 		plan = modifyPlanResp.Plan.Raw
 	}
 
@@ -674,7 +734,7 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return resp, nil
 	}
 	resp.PlannedState = &plannedState
-	resp.RequiresReplace = modifyPlanResp.RequiresReplace
+	resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 
 	return resp, nil
 }

@@ -1,7 +1,6 @@
 package tfsdk
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -307,7 +306,7 @@ type ModifyResourcePlanResponse struct {
 
 	// Diagnostics report errors or warnings related to determining the
 	// planned state of the requested resource. Returning an empty slice
-	// indicates a successful validation with no warnings or errors
+	// indicates a successful plan modification with no warnings or errors
 	// generated.
 	Diagnostics []*tfprotov6.Diagnostic
 }
@@ -403,66 +402,6 @@ func (r *ReadDataSourceResponse) AddError(summary, detail string) {
 // AddAttributeError appends an error diagnostic to the response and labels it
 // with a specific attribute.
 func (r *ReadDataSourceResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Attribute: attributePath,
-		Summary:   summary,
-		Detail:    detail,
-		Severity:  tfprotov6.DiagnosticSeverityError,
-	})
-}
-
-// ModifyAttributePlanResponse represents a response to a
-// ModifyAttributePlanRequest. An instance of this response struct is supplied
-// as an argument to the Modify function of an attribute's plan modifier(s).
-type ModifyAttributePlanResponse struct {
-	// Plan is the planned new state for the attribute.
-	Plan attr.Value
-
-	// RequiresReplace indicates whether a change in the attribute
-	// requires replacement of the whole resource.
-	RequiresReplace bool
-
-	// Diagnostics report errors or warnings related to determining the
-	// planned state of the requested resource. Returning an empty slice
-	// indicates a successful validation with no warnings or errors
-	// generated.
-	Diagnostics []*tfprotov6.Diagnostic
-}
-
-// AddWarning appends a warning diagnostic to the response. If the warning
-// concerns a particular attribute, AddAttributeWarning should be used instead.
-func (r *ModifyAttributePlanResponse) AddWarning(summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Summary:  summary,
-		Detail:   detail,
-		Severity: tfprotov6.DiagnosticSeverityWarning,
-	})
-}
-
-// AddAttributeWarning appends a warning diagnostic to the response and labels
-// it with a specific attribute.
-func (r *ModifyAttributePlanResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Attribute: attributePath,
-		Summary:   summary,
-		Detail:    detail,
-		Severity:  tfprotov6.DiagnosticSeverityWarning,
-	})
-}
-
-// AddError appends an error diagnostic to the response. If the error concerns a
-// particular attribute, AddAttributeError should be used instead.
-func (r *ModifyAttributePlanResponse) AddError(summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Summary:  summary,
-		Detail:   detail,
-		Severity: tfprotov6.DiagnosticSeverityError,
-	})
-}
-
-// AddAttributeError appends an error diagnostic to the response and labels it
-// with a specific attribute.
-func (r *ModifyAttributePlanResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
 	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
 		Attribute: attributePath,
 		Summary:   summary,

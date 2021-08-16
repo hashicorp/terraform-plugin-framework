@@ -1,9 +1,5 @@
 package tfsdk
 
-import (
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-)
-
 // ConfigureProviderRequest represents a request containing the values the user
 // specified for the provider configuration block, along with other runtime
 // information from Terraform or the Plugin SDK. An instance of this request
@@ -118,33 +114,6 @@ type ReadDataSourceRequest struct {
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
 	Config Config
-
-	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
-}
-
-// ModifyAttributePlanRequest represents a request for the provider to modify an
-// attribute value, or mark it as requiring replacement, at plan time. An
-// instance of this request struct is supplied as an argument to the Modify
-// function of an attribute's plan modifier(s).
-type ModifyAttributePlanRequest struct {
-	// ResourceConfig is the configuration the user supplied for the resource.
-	ResourceConfig Config
-
-	// ResourceState is the current state of the resource.
-	ResourceState State
-
-	// ResourcePlan is the planned new state for the resource.
-	ResourcePlan Plan
-
-	// Config is the configuration the user supplied for the attribute.
-	Config attr.Value
-
-	// State is the current state of the attribute.
-	State attr.Value
-
-	// Plan is the planned new state for the attribute.
-	Plan attr.Value
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta Config

@@ -216,8 +216,10 @@ func TestServerGetProviderSchema(t *testing.T) {
 	expected := &tfprotov6.GetProviderSchemaResponse{
 		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_one":               testServeResourceTypeOneSchema,
-			"test_two":               testServeResourceTypeTwoSchema,
+			"test_one":   testServeResourceTypeOneSchema,
+			"test_two":   testServeResourceTypeTwoSchema,
+			"test_three": testServeResourceTypeThreeSchema,
+
 			"test_config_validators": testServeResourceTypeConfigValidatorsSchema,
 			"test_validate_config":   testServeResourceTypeValidateConfigSchema,
 		},
@@ -250,6 +252,7 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 		ResourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one":               testServeResourceTypeOneSchema,
 			"test_two":               testServeResourceTypeTwoSchema,
+			"test_three":             testServeResourceTypeThreeSchema,
 			"test_config_validators": testServeResourceTypeConfigValidatorsSchema,
 			"test_validate_config":   testServeResourceTypeValidateConfigSchema,
 		},
@@ -1468,8 +1471,6 @@ func TestServerReadResource(t *testing.T) {
 }
 
 func TestServerPlanResourceChange(t *testing.T) {
-	t.Parallel()
-
 	type testCase struct {
 		// request input
 		priorState       tftypes.Value
@@ -1536,12 +1537,20 @@ func TestServerPlanResourceChange(t *testing.T) {
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeOneType, nil),
 		},
 		"two_nil_state_and_config": {
-			priorState:           tftypes.NewValue(testServeResourceTypeOneType, nil),
-			proposedNewState:     tftypes.NewValue(testServeResourceTypeOneType, nil),
-			config:               tftypes.NewValue(testServeResourceTypeOneType, nil),
+			priorState:           tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			proposedNewState:     tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			config:               tftypes.NewValue(testServeResourceTypeTwoType, nil),
 			resource:             "test_two",
-			resourceType:         testServeResourceTypeOneType,
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			resourceType:         testServeResourceTypeTwoType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+		},
+		"three_nil_state_and_config": {
+			priorState:           tftypes.NewValue(testServeResourceTypeThreeType, nil),
+			proposedNewState:     tftypes.NewValue(testServeResourceTypeThreeType, nil),
+			config:               tftypes.NewValue(testServeResourceTypeThreeType, nil),
+			resource:             "test_three",
+			resourceType:         testServeResourceTypeThreeType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, nil),
 		},
 		"two_delete": {
 			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
@@ -1588,47 +1597,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
 		},
-		"one_attr_requiresreplace": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
-			}),
-			proposedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
-			}),
-			resource:     "test_one",
-			resourceType: testServeResourceTypeOneType,
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
-			}),
-			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("favorite_colors")},
-		},
-		"two_modify_add_list_elem": {
+		"two_modifyplan_add_list_elem": {
 			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),
 				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -1725,7 +1694,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				})
 			},
 		},
-		"two_modify_requires_replace": {
+		"two_modifyplan_requires_replace": {
 			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),
 				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -1788,7 +1757,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
 		},
-		"two_modify_diags_warning": {
+		"two_modifyplan_diags_warning": {
 			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),
 				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -1859,7 +1828,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 			},
 		},
-		"two_modify_diags_error": {
+		"two_modifyplan_diags_error": {
 			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),
 				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -1930,14 +1899,318 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 			},
 		},
+		"three_attrplanmodifiers_requiresreplace": {
+			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "something-else"),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "something-else"),
+				}),
+			}),
+			resource:     "test_three",
+			resourceType: testServeResourceTypeThreeType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "something-else"),
+				}),
+			}),
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
+		},
+		"three_attrplanmodifiers_requiresreplaceif_true": {
+			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 999),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 999),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			resource:     "test_three",
+			resourceType: testServeResourceTypeThreeType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 999),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("size"), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
+		},
+		"three_attrplanmodifies_requiresreplaceif_false": {
+			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 1),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 1),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			resource:     "test_three",
+			resourceType: testServeResourceTypeThreeType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 1),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
+		},
+		"three_attrplanmodifiers_diags": {
+			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			resource:     "test_three",
+			resourceType: testServeResourceTypeThreeType,
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "Warning diag",
+					Detail:   "This is a warning",
+				},
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Error diag",
+					Detail:   "This is an error",
+				},
+			},
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
+		},
+		"three_attrplanmodifiers_chained_modifiers": {
+			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "MODIFIED_TWO"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			resource:                "test_three",
+			resourceType:            testServeResourceTypeThreeType,
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
+		},
+		"three_attrplanmodifiers_nested_modifier": {
+			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "TESTATTRTWO"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "TESTATTRTWO"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "name1"),
+				"size": tftypes.NewValue(tftypes.Number, 3),
+				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"id":        tftypes.String,
+					"interface": tftypes.String,
+				}}, map[string]tftypes.Value{
+					"id":        tftypes.NewValue(tftypes.String, "MODIFIED_TWO"),
+					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+				}),
+			}),
+			resource:                "test_three",
+			resourceType:            testServeResourceTypeThreeType,
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
+		},
 	}
 
 	for name, tc := range tests {
 		name, tc := name, tc
 
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
 			s := &testServeProvider{
 				modifyPlanFunc: tc.modifyPlanFunc,
 			}
@@ -1996,7 +2269,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 				t.Errorf("Expected planned private to be %q, got %q", tc.expectedPlannedPrivate, got.PlannedPrivate)
 				return
 			}
-			if diff := cmp.Diff(got.RequiresReplace, tc.expectedRequiresReplace, cmpopts.EquateEmpty()); diff != "" {
+			if diff := cmp.Diff(got.RequiresReplace, tc.expectedRequiresReplace, cmpopts.EquateEmpty(), cmpopts.SortSlices(func(x, y *tftypes.AttributePath) bool {
+				return x.String() < y.String()
+			})); diff != "" {
 				t.Errorf("Unexpected diff in requires replace (+wanted, -got): %s", diff)
 				return
 			}
@@ -3144,8 +3419,6 @@ func TestServerApplyResourceChange(t *testing.T) {
 			}
 			if tc.config.Type() != nil {
 				if diff := cmp.Diff(s.applyResourceChangeConfigValue, tc.config); diff != "" {
-					t.Errorf("Unexpected diff in config (+wanted, -got): %s", diff)
-					return
 				}
 				if diff := cmp.Diff(s.applyResourceChangeConfigSchema, schema); diff != "" {
 					t.Errorf("Unexpected diff in config schema (+wanted, -got): %s", diff)

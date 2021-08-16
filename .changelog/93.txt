@@ -1,0 +1,3 @@
+```release-note:bug
+tfsdk: Return warning diagnostic when using `Attribute` or `Schema` type `DeprecationMessage` field
+```

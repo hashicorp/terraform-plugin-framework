@@ -804,6 +804,96 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: ValidateAttributeResponse{},
 		},
+		"deprecation-message-known": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:               types.StringType,
+								Optional:           true,
+								DeprecationMessage: "Use something else instead.",
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity:  tfprotov6.DiagnosticSeverityWarning,
+						Summary:   "Attribute Deprecated",
+						Detail:    "Use something else instead.",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
+					},
+				},
+			},
+		},
+		"deprecation-message-null": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:               types.StringType,
+								Optional:           true,
+								DeprecationMessage: "Use something else instead.",
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"deprecation-message-unknown": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:               types.StringType,
+								Optional:           true,
+								DeprecationMessage: "Use something else instead.",
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity:  tfprotov6.DiagnosticSeverityWarning,
+						Summary:   "Attribute Deprecated",
+						Detail:    "Use something else instead.",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
+					},
+				},
+			},
+		},
 		"warnings": {
 			req: ValidateAttributeRequest{
 				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),

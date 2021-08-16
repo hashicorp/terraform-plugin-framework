@@ -556,6 +556,43 @@ func TestSchemaValidate(t *testing.T) {
 			},
 			resp: ValidateSchemaResponse{},
 		},
+		"deprecation-message": {
+			req: ValidateSchemaRequest{
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"attr1": tftypes.String,
+							"attr2": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"attr1": tftypes.NewValue(tftypes.String, "attr1value"),
+						"attr2": tftypes.NewValue(tftypes.String, "attr2value"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"attr1": {
+								Type:     types.StringType,
+								Required: true,
+							},
+							"attr2": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						DeprecationMessage: "Use something else instead.",
+					},
+				},
+			},
+			resp: ValidateSchemaResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityWarning,
+						Summary:  "Deprecated",
+						Detail:   "Use something else instead.",
+					},
+				},
+			},
+		},
 		"warnings": {
 			req: ValidateSchemaRequest{
 				Config: Config{

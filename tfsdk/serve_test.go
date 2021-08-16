@@ -413,6 +413,20 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			}),
 			provider:     &testServeProvider{},
 			providerType: testServeProviderProviderType,
+
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Summary:   "Attribute Deprecated",
+					Detail:    `Deprecated, please use "optional" instead`,
+					Attribute: tftypes.NewAttributePath().WithAttributeName("deprecated"),
+				},
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "Deprecated",
+					Detail:   "Deprecated in favor of other_resource",
+				},
+			},
 		},
 		"config_validators_no_diags": {
 			config: tftypes.NewValue(testServeResourceTypeConfigValidatorsType, map[string]tftypes.Value{

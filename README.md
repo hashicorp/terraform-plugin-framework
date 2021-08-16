@@ -20,7 +20,7 @@ We welcome and appreciate issues and PRs discussing both the design and implemen
 
 ## Terraform CLI Compatibility
 
-Plugins built with this framework are only compatible with Terraform versions above v0.15.0. Terraform v0.15.4 or higher is needed to run acceptance tests for providers built with this framework.
+Plugins built with this framework are only compatible with Terraform versions above v1.0.3.
 
 ## Go Compatibility
 

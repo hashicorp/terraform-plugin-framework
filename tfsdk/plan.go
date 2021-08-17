@@ -39,6 +39,11 @@ func (p Plan) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (at
 		})
 	}
 
+	// if the whole plan is nil, the value of a valid attribute is also nil
+	if p.Raw.IsNull() {
+		return nil, nil
+	}
+
 	tfValue, err := p.terraformValueAtPath(path)
 	if err != nil {
 		return nil, append(diags, &tfprotov6.Diagnostic{

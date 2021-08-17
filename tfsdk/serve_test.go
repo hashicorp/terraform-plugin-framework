@@ -1527,6 +1527,22 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
 			}),
 		},
+		"one_nil_state_and_config": {
+			priorState:           tftypes.NewValue(testServeResourceTypeOneType, nil),
+			proposedNewState:     tftypes.NewValue(testServeResourceTypeOneType, nil),
+			config:               tftypes.NewValue(testServeResourceTypeOneType, nil),
+			resource:             "test_one",
+			resourceType:         testServeResourceTypeOneType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+		},
+		"two_nil_state_and_config": {
+			priorState:           tftypes.NewValue(testServeResourceTypeOneType, nil),
+			proposedNewState:     tftypes.NewValue(testServeResourceTypeOneType, nil),
+			config:               tftypes.NewValue(testServeResourceTypeOneType, nil),
+			resource:             "test_two",
+			resourceType:         testServeResourceTypeOneType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+		},
 		"two_delete": {
 			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),

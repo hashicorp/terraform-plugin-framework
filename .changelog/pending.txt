@@ -1,0 +1,7 @@
+```release-note:breaking-change
+All `[]*tfprotov6.Diagnostic` handling has been converted to `diag.Diagnostics` except where interfacing directly with the underlying protocol type.
+```
+
+```release-note:feature
+Introduced first-class diagnostics (`diag` package).
+```

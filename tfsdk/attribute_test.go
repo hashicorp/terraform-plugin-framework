@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -709,13 +710,12 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity:  tfprotov6.DiagnosticSeverityError,
-						Summary:   "Invalid Attribute Definition",
-						Detail:    "Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
-					},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Invalid Attribute Definition",
+						"Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
+					),
 				},
 			},
 		},
@@ -747,13 +747,12 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity:  tfprotov6.DiagnosticSeverityError,
-						Summary:   "Invalid Attribute Definition",
-						Detail:    "Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
-					},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Invalid Attribute Definition",
+						"Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
+					),
 				},
 			},
 		},
@@ -810,13 +809,12 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity:  tfprotov6.DiagnosticSeverityError,
-						Summary:   "Configuration Read Error",
-						Detail:    "An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
-					},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Configuration Read Error",
+						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+					),
 				},
 			},
 		},
@@ -866,13 +864,12 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity:  tfprotov6.DiagnosticSeverityWarning,
-						Summary:   "Attribute Deprecated",
-						Detail:    "Use something else instead.",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
-					},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Attribute Deprecated",
+						"Use something else instead.",
+					),
 				},
 			},
 		},
@@ -923,13 +920,12 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity:  tfprotov6.DiagnosticSeverityWarning,
-						Summary:   "Attribute Deprecated",
-						Detail:    "Use something else instead.",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
-					},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Attribute Deprecated",
+						"Use something else instead.",
+					),
 				},
 			},
 		},
@@ -959,9 +955,9 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					testWarningDiagnostic,
-					testWarningDiagnostic,
+				Diagnostics: diag.Diagnostics{
+					testWarningDiagnostic1,
+					testWarningDiagnostic2,
 				},
 			},
 		},
@@ -991,9 +987,9 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					testErrorDiagnostic,
-					testErrorDiagnostic,
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+					testErrorDiagnostic2,
 				},
 			},
 		},
@@ -1019,7 +1015,7 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
+				Diagnostics: diag.Diagnostics{
 					testtypes.TestErrorDiagnostic,
 				},
 			},
@@ -1046,7 +1042,7 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
+				Diagnostics: diag.Diagnostics{
 					testtypes.TestWarningDiagnostic,
 				},
 			},
@@ -1167,8 +1163,8 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					testErrorDiagnostic,
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
 				},
 			},
 		},
@@ -1288,8 +1284,8 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					testErrorDiagnostic,
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
 				},
 			},
 		},
@@ -1382,8 +1378,8 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					testErrorDiagnostic,
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
 				},
 			},
 		},
@@ -1398,7 +1394,7 @@ func TestAttributeValidate(t *testing.T) {
 			attribute, err := tc.req.Config.Schema.AttributeAtPath(tc.req.AttributePath)
 
 			if err != nil {
-				t.Fatalf("Unexpected error getting Attribute: %s", err)
+				t.Fatalf("Unexpected error getting %s", err)
 			}
 
 			attribute.validate(context.Background(), tc.req, &got)

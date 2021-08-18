@@ -1,18 +1,16 @@
 package types
 
 import (
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 var (
-	TestErrorDiagnostic = &tfprotov6.Diagnostic{
-		Severity: tfprotov6.DiagnosticSeverityError,
-		Summary:  "Error Diagnostic",
-		Detail:   "This is an error.",
-	}
-	TestWarningDiagnostic = &tfprotov6.Diagnostic{
-		Severity: tfprotov6.DiagnosticSeverityWarning,
-		Summary:  "Warning Diagnostic",
-		Detail:   "This is a warning.",
-	}
+	TestErrorDiagnostic = diag.NewErrorDiagnostic(
+		"Error Diagnostic",
+		"This is an error.",
+	)
+	TestWarningDiagnostic = diag.NewWarningDiagnostic(
+		"Warning Diagnostic",
+		"This is a warning.",
+	)
 )

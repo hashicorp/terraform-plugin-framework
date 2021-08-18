@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -11,7 +12,7 @@ import (
 
 type testServeDataSourceTypeOne struct{}
 
-func (dt testServeDataSourceTypeOne) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+func (dt testServeDataSourceTypeOne) GetSchema(_ context.Context) (Schema, diag.Diagnostics) {
 	return Schema{
 		Attributes: map[string]Attribute{
 			"current_time": {
@@ -30,7 +31,7 @@ func (dt testServeDataSourceTypeOne) GetSchema(_ context.Context) (Schema, []*tf
 	}, nil
 }
 
-func (dt testServeDataSourceTypeOne) NewDataSource(_ context.Context, p Provider) (DataSource, []*tfprotov6.Diagnostic) {
+func (dt testServeDataSourceTypeOne) NewDataSource(_ context.Context, p Provider) (DataSource, diag.Diagnostics) {
 	provider, ok := p.(*testServeProvider)
 	if !ok {
 		prov, ok := p.(*testServeProviderWithMetaSchema)

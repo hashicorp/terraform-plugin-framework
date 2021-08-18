@@ -507,11 +507,17 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			provider: &testServeProviderWithConfigValidators{
 				&testServeProvider{
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
-						resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-							Summary:  "This is an error",
-							Severity: tfprotov6.DiagnosticSeverityError,
-							Detail:   "Oops.",
-						})
+						if len(resp.Diagnostics) == 0 {
+							resp.Diagnostics.AddError(
+								"This is an error",
+								"Oops.",
+							)
+						} else {
+							resp.Diagnostics.AddError(
+								"This is another error",
+								"Oops again.",
+							)
+						}
 					},
 				},
 			},
@@ -525,9 +531,9 @@ func TestServerValidateProviderConfig(t *testing.T) {
 				},
 				// ConfigValidators includes multiple calls
 				{
-					Summary:  "This is an error",
+					Summary:  "This is another error",
 					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
+					Detail:   "Oops again.",
 				},
 			},
 		},
@@ -538,19 +544,27 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			provider: &testServeProviderWithConfigValidators{
 				&testServeProvider{
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
-						resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
-							{
-								Summary:   "This is a warning",
-								Severity:  tfprotov6.DiagnosticSeverityWarning,
-								Detail:    "This is your final warning",
-								Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-							},
-							{
-								Summary:  "This is an error",
-								Severity: tfprotov6.DiagnosticSeverityError,
-								Detail:   "Oops.",
-							},
-						}...)
+						if len(resp.Diagnostics) == 0 {
+							resp.Diagnostics.AddAttributeWarning(
+								tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+								"This is a warning",
+								"This is your final warning",
+							)
+							resp.Diagnostics.AddError(
+								"This is an error",
+								"Oops.",
+							)
+						} else {
+							resp.Diagnostics.AddAttributeWarning(
+								tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+								"This is another warning",
+								"This is really your final warning",
+							)
+							resp.Diagnostics.AddError(
+								"This is another error",
+								"Oops again.",
+							)
+						}
 					},
 				},
 			},
@@ -570,15 +584,15 @@ func TestServerValidateProviderConfig(t *testing.T) {
 				},
 				// ConfigValidators includes multiple calls
 				{
-					Summary:   "This is a warning",
+					Summary:   "This is another warning",
 					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Detail:    "This is your final warning",
+					Detail:    "This is really your final warning",
 					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
 				},
 				{
-					Summary:  "This is an error",
+					Summary:  "This is another error",
 					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
+					Detail:   "Oops again.",
 				},
 			},
 		},
@@ -600,11 +614,10 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			provider: &testServeProviderWithValidateConfig{
 				&testServeProvider{
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
-						resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-							Summary:  "This is an error",
-							Severity: tfprotov6.DiagnosticSeverityError,
-							Detail:   "Oops.",
-						})
+						resp.Diagnostics.AddError(
+							"This is an error",
+							"Oops.",
+						)
 					},
 				},
 			},
@@ -625,19 +638,15 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			provider: &testServeProviderWithValidateConfig{
 				&testServeProvider{
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
-						resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
-							{
-								Summary:   "This is a warning",
-								Severity:  tfprotov6.DiagnosticSeverityWarning,
-								Detail:    "This is your final warning",
-								Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-							},
-							{
-								Summary:  "This is an error",
-								Severity: tfprotov6.DiagnosticSeverityError,
-								Detail:   "Oops.",
-							},
-						}...)
+						resp.Diagnostics.AddAttributeWarning(
+							tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+							"This is a warning",
+							"This is your final warning",
+						)
+						resp.Diagnostics.AddError(
+							"This is an error",
+							"Oops.",
+						)
 					},
 				},
 			},
@@ -981,11 +990,17 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			resourceType: testServeResourceTypeConfigValidatorsType,
 
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Summary:  "This is an error",
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
-				})
+				if len(resp.Diagnostics) == 0 {
+					resp.Diagnostics.AddError(
+						"This is an error",
+						"Oops.",
+					)
+				} else {
+					resp.Diagnostics.AddError(
+						"This is another error",
+						"Oops again.",
+					)
+				}
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -996,9 +1011,9 @@ func TestServerValidateResourceConfig(t *testing.T) {
 				},
 				// ConfigValidators includes multiple calls
 				{
-					Summary:  "This is an error",
+					Summary:  "This is another error",
 					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
+					Detail:   "Oops again.",
 				},
 			},
 		},
@@ -1010,19 +1025,27 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			resourceType: testServeResourceTypeConfigValidatorsType,
 
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
-				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
-					{
-						Summary:   "This is a warning",
-						Severity:  tfprotov6.DiagnosticSeverityWarning,
-						Detail:    "This is your final warning",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-					},
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}...)
+				if len(resp.Diagnostics) == 0 {
+					resp.Diagnostics.AddAttributeWarning(
+						tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+						"This is a warning",
+						"This is your final warning",
+					)
+					resp.Diagnostics.AddError(
+						"This is an error",
+						"Oops.",
+					)
+				} else {
+					resp.Diagnostics.AddAttributeWarning(
+						tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+						"This is another warning",
+						"This is really your final warning",
+					)
+					resp.Diagnostics.AddError(
+						"This is another error",
+						"Oops again.",
+					)
+				}
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -1039,15 +1062,15 @@ func TestServerValidateResourceConfig(t *testing.T) {
 				},
 				// ConfigValidators includes multiple calls
 				{
-					Summary:   "This is a warning",
+					Summary:   "This is another warning",
 					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Detail:    "This is your final warning",
+					Detail:    "This is really your final warning",
 					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
 				},
 				{
-					Summary:  "This is an error",
+					Summary:  "This is another error",
 					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
+					Detail:   "Oops again.",
 				},
 			},
 		},
@@ -1068,11 +1091,10 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			resourceType: testServeResourceTypeValidateConfigType,
 
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Summary:  "This is an error",
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
-				})
+				resp.Diagnostics.AddError(
+					"This is an error",
+					"Oops.",
+				)
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -1091,19 +1113,15 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			resourceType: testServeResourceTypeValidateConfigType,
 
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
-				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
-					{
-						Summary:   "This is a warning",
-						Severity:  tfprotov6.DiagnosticSeverityWarning,
-						Detail:    "This is your final warning",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-					},
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}...)
+				resp.Diagnostics.AddAttributeWarning(
+					tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					"This is a warning",
+					"This is your final warning",
+				)
+				resp.Diagnostics.AddError(
+					"This is an error",
+					"Oops.",
+				)
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -1372,19 +1390,15 @@ func TestServerReadResource(t *testing.T) {
 						}),
 					}),
 				})
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
-					{
-						Summary:   "This is a warning",
-						Severity:  tfprotov6.DiagnosticSeverityWarning,
-						Detail:    "This is your final warning",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-					},
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}
+				resp.Diagnostics.AddAttributeWarning(
+					tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					"This is a warning",
+					"This is your final warning",
+				)
+				resp.Diagnostics.AddError(
+					"This is an error",
+					"Oops.",
+				)
 			},
 
 			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
@@ -2325,7 +2339,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Detail:   "This is an error",
 				},
 			},
-			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
 		"attr_plan_modifiers_chained_modifiers": {
 			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
@@ -2744,12 +2757,11 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
 				})
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Summary:   "This is a warning",
-					Detail:    "I'm warning you",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("favorite_colors").WithElementKeyInt(0),
-				})
+				resp.Diagnostics.AddAttributeWarning(
+					tftypes.NewAttributePath().WithAttributeName("favorite_colors").WithElementKeyInt(0),
+					"This is a warning",
+					"I'm warning you",
+				)
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "hello, world"),
@@ -2856,12 +2868,11 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
 				})
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Summary:   "I'm warning you...",
-					Detail:    "This is a warning!",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("name"),
-				})
+				resp.Diagnostics.AddAttributeWarning(
+					tftypes.NewAttributePath().WithAttributeName("name"),
+					"I'm warning you...",
+					"This is a warning!",
+				)
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "hello, world"),
@@ -2920,12 +2931,11 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
 				})
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Severity:  tfprotov6.DiagnosticSeverityError,
-					Summary:   "Oops!",
-					Detail:    "This is an error! Don't update the state!",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("name"),
-				})
+				resp.Diagnostics.AddAttributeError(
+					tftypes.NewAttributePath().WithAttributeName("name"),
+					"Oops!",
+					"This is an error! Don't update the state!",
+				)
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "hello, world"),
@@ -2974,12 +2984,11 @@ func TestServerApplyResourceChange(t *testing.T) {
 			resourceType: testServeResourceTypeOneType,
 			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
 				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Summary:   "This is a warning",
-					Detail:    "just a warning diagnostic, no behavior changes",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
-				})
+				resp.Diagnostics.AddAttributeWarning(
+					tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
+					"This is a warning",
+					"just a warning diagnostic, no behavior changes",
+				)
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -3003,11 +3012,10 @@ func TestServerApplyResourceChange(t *testing.T) {
 			action:       "delete",
 			resourceType: testServeResourceTypeOneType,
 			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Summary:  "This is an error",
-					Detail:   "Something went wrong, keep the old state around",
-				})
+				resp.Diagnostics.AddError(
+					"This is an error",
+					"Something went wrong, keep the old state around",
+				)
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "hello, world"),
@@ -3875,11 +3883,17 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			dataSourceType: testServeDataSourceTypeConfigValidatorsType,
 
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Summary:  "This is an error",
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
-				})
+				if len(resp.Diagnostics) == 0 {
+					resp.Diagnostics.AddError(
+						"This is an error",
+						"Oops.",
+					)
+				} else {
+					resp.Diagnostics.AddError(
+						"This is another error",
+						"Oops again.",
+					)
+				}
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -3890,9 +3904,9 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 				},
 				// ConfigValidators includes multiple calls
 				{
-					Summary:  "This is an error",
+					Summary:  "This is another error",
 					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
+					Detail:   "Oops again.",
 				},
 			},
 		},
@@ -3904,19 +3918,27 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			dataSourceType: testServeDataSourceTypeConfigValidatorsType,
 
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
-				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
-					{
-						Summary:   "This is a warning",
-						Severity:  tfprotov6.DiagnosticSeverityWarning,
-						Detail:    "This is your final warning",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-					},
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}...)
+				if len(resp.Diagnostics) == 0 {
+					resp.Diagnostics.AddAttributeWarning(
+						tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+						"This is a warning",
+						"This is your final warning",
+					)
+					resp.Diagnostics.AddError(
+						"This is an error",
+						"Oops.",
+					)
+				} else {
+					resp.Diagnostics.AddAttributeWarning(
+						tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+						"This is another warning",
+						"This is really your final warning",
+					)
+					resp.Diagnostics.AddError(
+						"This is another error",
+						"Oops again.",
+					)
+				}
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -3933,15 +3955,15 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 				},
 				// ConfigValidators includes multiple calls
 				{
-					Summary:   "This is a warning",
+					Summary:   "This is another warning",
 					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Detail:    "This is your final warning",
+					Detail:    "This is really your final warning",
 					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
 				},
 				{
-					Summary:  "This is an error",
+					Summary:  "This is another error",
 					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
+					Detail:   "Oops again.",
 				},
 			},
 		},
@@ -3962,11 +3984,10 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			dataSourceType: testServeDataSourceTypeValidateConfigType,
 
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Summary:  "This is an error",
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
-				})
+				resp.Diagnostics.AddError(
+					"This is an error",
+					"Oops.",
+				)
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -3985,19 +4006,15 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			dataSourceType: testServeDataSourceTypeValidateConfigType,
 
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
-				resp.Diagnostics = append(resp.Diagnostics, []*tfprotov6.Diagnostic{
-					{
-						Summary:   "This is a warning",
-						Severity:  tfprotov6.DiagnosticSeverityWarning,
-						Detail:    "This is your final warning",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-					},
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}...)
+				resp.Diagnostics.AddAttributeWarning(
+					tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					"This is a warning",
+					"This is your final warning",
+				)
+				resp.Diagnostics.AddError(
+					"This is an error",
+					"Oops.",
+				)
 			},
 
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -4175,19 +4192,15 @@ func TestServerReadDataSource(t *testing.T) {
 					"name":   tftypes.NewValue(tftypes.String, "123foo-askjgsio"),
 					"id":     tftypes.NewValue(tftypes.String, "a random id or something I dunno"),
 				})
-				resp.Diagnostics = []*tfprotov6.Diagnostic{
-					{
-						Summary:   "This is a warning",
-						Severity:  tfprotov6.DiagnosticSeverityWarning,
-						Detail:    "This is your final warning",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-					},
-					{
-						Summary:  "This is an error",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "Oops.",
-					},
-				}
+				resp.Diagnostics.AddAttributeWarning(
+					tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					"This is a warning",
+					"This is your final warning",
+				)
+				resp.Diagnostics.AddError(
+					"This is an error",
+					"Oops.",
+				)
 			},
 
 			expectedNewState: tftypes.NewValue(testServeDataSourceTypeTwoType, map[string]tftypes.Value{

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -45,5 +45,5 @@ type ValidateAttributeResponse struct {
 	// Diagnostics report errors or warnings related to validating the data
 	// source configuration. An empty slice indicates success, with no warnings
 	// or errors generated.
-	Diagnostics []*tfprotov6.Diagnostic
+	Diagnostics diag.Diagnostics
 }

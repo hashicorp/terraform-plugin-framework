@@ -3,8 +3,8 @@ package tfsdk
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -12,7 +12,7 @@ type testServeProviderWithValidateConfig struct {
 	*testServeProvider
 }
 
-func (t *testServeProviderWithValidateConfig) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+func (t *testServeProviderWithValidateConfig) GetSchema(_ context.Context) (Schema, diag.Diagnostics) {
 	return Schema{
 		Attributes: map[string]Attribute{
 			"string": {

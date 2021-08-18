@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -127,17 +127,16 @@ type List struct {
 
 // ElementsAs populates `target` with the elements of the List, throwing an
 // error if the elements cannot be stored in `target`.
-func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) []*tfprotov6.Diagnostic {
+func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
 	// we need a tftypes.Value for this List to be able to use it with our
 	// reflection code
 	values, err := l.ToTerraformValue(ctx)
 	if err != nil {
-		return []*tfprotov6.Diagnostic{
-			{
-				Severity: tfprotov6.DiagnosticSeverityError,
-				Summary:  "List Element Conversion Error",
-				Detail:   "An unexpected error was encountered trying to convert list elements. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			},
+		return diag.Diagnostics{
+			diag.NewErrorDiagnostic(
+				"List Element Conversion Error",
+				"An unexpected error was encountered trying to convert list elements. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			),
 		}
 	}
 	return reflect.Into(ctx, ListType{ElemType: l.ElemType}, tftypes.NewValue(tftypes.List{

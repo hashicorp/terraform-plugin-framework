@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -150,29 +150,27 @@ type ObjectAsOptions struct {
 
 // As populates `target` with the data in the Object, throwing an error if the
 // data cannot be stored in `target`.
-func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions) []*tfprotov6.Diagnostic {
+func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions) diag.Diagnostics {
 	// we need a tftypes.Value for this Object to be able to use it with
 	// our reflection code
 	obj := ObjectType{AttrTypes: o.AttrTypes}
 	typ := obj.TerraformType(ctx)
 	val, err := o.ToTerraformValue(ctx)
 	if err != nil {
-		return []*tfprotov6.Diagnostic{
-			{
-				Severity: tfprotov6.DiagnosticSeverityError,
-				Summary:  "Object Conversion Error",
-				Detail:   "An unexpected error was encountered trying to convert object. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			},
+		return diag.Diagnostics{
+			diag.NewErrorDiagnostic(
+				"Object Conversion Error",
+				"An unexpected error was encountered trying to convert object. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			),
 		}
 	}
 	err = tftypes.ValidateValue(typ, val)
 	if err != nil {
-		return []*tfprotov6.Diagnostic{
-			{
-				Severity: tfprotov6.DiagnosticSeverityError,
-				Summary:  "Object Conversion Error",
-				Detail:   "An unexpected error was encountered trying to convert object. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			},
+		return diag.Diagnostics{
+			diag.NewErrorDiagnostic(
+				"Object Conversion Error",
+				"An unexpected error was encountered trying to convert object. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			),
 		}
 	}
 	return reflect.Into(ctx, obj, tftypes.NewValue(typ, val), target, reflect.Options{

@@ -3,14 +3,14 @@ package tfsdk
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 // Provider is the core interface that all Terraform providers must implement.
 type Provider interface {
 	// GetSchema returns the schema for this provider's configuration. If
 	// this provider has no configuration, return an empty schema.Schema.
-	GetSchema(context.Context) (Schema, []*tfprotov6.Diagnostic)
+	GetSchema(context.Context) (Schema, diag.Diagnostics)
 
 	// Configure is called at the beginning of the provider lifecycle, when
 	// Terraform sends to the provider the values the user specified in the
@@ -23,11 +23,11 @@ type Provider interface {
 
 	// GetResources returns a map of the resource types this provider
 	// supports.
-	GetResources(context.Context) (map[string]ResourceType, []*tfprotov6.Diagnostic)
+	GetResources(context.Context) (map[string]ResourceType, diag.Diagnostics)
 
 	// GetDataSources returns a map of the data source types this provider
 	// supports.
-	GetDataSources(context.Context) (map[string]DataSourceType, []*tfprotov6.Diagnostic)
+	GetDataSources(context.Context) (map[string]DataSourceType, diag.Diagnostics)
 }
 
 // ProviderWithProviderMeta is a provider with a provider meta schema.
@@ -37,5 +37,5 @@ type Provider interface {
 type ProviderWithProviderMeta interface {
 	Provider
 	// GetMetaSchema returns the provider meta schema.
-	GetMetaSchema(context.Context) (Schema, []*tfprotov6.Diagnostic)
+	GetMetaSchema(context.Context) (Schema, diag.Diagnostics)
 }

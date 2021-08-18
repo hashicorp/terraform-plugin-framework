@@ -7,8 +7,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -22,20 +21,20 @@ import (
 // in the tftypes.Value must have a corresponding property in the struct. Into
 // will be called for each struct field. Slices will have Into called for each
 // element.
-func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interface{}, opts Options) []*tfprotov6.Diagnostic {
+func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interface{}, opts Options) diag.Diagnostics {
+	var diags diag.Diagnostics
+
 	v := reflect.ValueOf(target)
 	if v.Kind() != reflect.Ptr {
 		err := fmt.Errorf("target must be a pointer, got %T, which is a %s", target, v.Kind())
-		return []*tfprotov6.Diagnostic{
-			{
-				Severity: tfprotov6.DiagnosticSeverityError,
-				Summary:  "Value Conversion Error",
-				Detail:   "An unexpected error was encountered trying to convert the value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			},
-		}
+		diags.AddError(
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert the value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
 	}
 	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
+	if diags.HasError() {
 		return diags
 	}
 	v.Elem().Set(result)
@@ -47,19 +46,18 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 // to set, making it safe for use with pointer types which may be nil. It tries
 // to give consumers the ability to override its default behaviors wherever
 // possible.
-func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
 	// if this isn't a valid reflect.Value, bail before we accidentally
 	// panic
 	if !target.IsValid() {
 		err := fmt.Errorf("invalid target")
-		diags = append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
 		return target, diags
 	}
 	// if this is an attr.Value, build the type from that
@@ -75,8 +73,8 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	// if this can explicitly be set to unknown, do that
 	if target.Type().Implements(reflect.TypeOf((*Unknownable)(nil)).Elem()) {
 		res, unknownableDiags := NewUnknownable(ctx, typ, val, target, opts, path)
-		diags = append(diags, unknownableDiags...)
-		if diagnostics.DiagsHasErrors(diags) {
+		diags.Append(unknownableDiags...)
+		if diags.HasError() {
 			return target, diags
 		}
 		target = res
@@ -90,8 +88,8 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	// if this can explicitly be set to null, do that
 	if target.Type().Implements(reflect.TypeOf((*Nullable)(nil)).Elem()) {
 		res, nullableDiags := NewNullable(ctx, typ, val, target, opts, path)
-		diags = append(diags, nullableDiags...)
-		if diagnostics.DiagsHasErrors(diags) {
+		diags.Append(nullableDiags...)
+		if diags.HasError() {
 			return target, diags
 		}
 		target = res
@@ -111,12 +109,11 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		// throw an error, depending on what's in opts
 		if !opts.UnhandledUnknownAsEmpty {
 			err := fmt.Errorf("unhandled unknown value")
-			diags = append(diags, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityError,
-				Summary:   "Value Conversion Error",
-				Detail:    "An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-				Attribute: path,
-			})
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
 			return target, diags
 		}
 		// we want to set unhandled unknowns to the empty value
@@ -135,12 +132,11 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		}
 
 		err := fmt.Errorf("unhandled null value")
-		diags = append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
 		return target, diags
 	}
 	// *big.Float and *big.Int are technically pointers, but we want them
@@ -151,10 +147,12 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	switch target.Kind() {
 	case reflect.Struct:
 		val, valDiags := Struct(ctx, typ, val, target, opts, path)
-		return val, append(diags, valDiags...)
+		diags.Append(valDiags...)
+		return val, diags
 	case reflect.Bool, reflect.String:
 		val, valDiags := Primitive(ctx, typ, val, target, path)
-		return val, append(diags, valDiags...)
+		diags.Append(valDiags...)
+		return val, diags
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16,
 		reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
@@ -165,23 +163,27 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		// as a special case, so let's just special case numbers and
 		// let people use the types they want
 		val, valDiags := Number(ctx, typ, val, target, opts, path)
-		return val, append(diags, valDiags...)
+		diags.Append(valDiags...)
+		return val, diags
 	case reflect.Slice:
 		val, valDiags := reflectSlice(ctx, typ, val, target, opts, path)
-		return val, append(diags, valDiags...)
+		diags.Append(valDiags...)
+		return val, diags
 	case reflect.Map:
 		val, valDiags := Map(ctx, typ, val, target, opts, path)
-		return val, append(diags, valDiags...)
+		diags.Append(valDiags...)
+		return val, diags
 	case reflect.Ptr:
 		val, valDiags := Pointer(ctx, typ, val, target, opts, path)
-		return val, append(diags, valDiags...)
+		diags.Append(valDiags...)
+		return val, diags
 	default:
 		err := fmt.Errorf("don't know how to reflect %s into %s", val.Type(), target.Type())
-		return target, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return target, diags
 	}
 }

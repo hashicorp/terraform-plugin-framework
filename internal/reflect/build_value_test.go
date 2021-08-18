@@ -5,34 +5,53 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
+	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestBuildValue_unhandledNull(t *testing.T) {
+func TestBuildValue(t *testing.T) {
 	t.Parallel()
 
-	var s string
-	_, diags := refl.BuildValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if !diagnostics.DiagsHasErrors(diags) {
-		t.Error("Expected error, didn't get one")
+	testCases := map[string]struct {
+		tfValue       tftypes.Value
+		expectedDiags diag.Diagnostics
+	}{
+		"unhandled-null": {
+			tfValue: tftypes.NewValue(tftypes.String, nil),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\nunhandled null value",
+				),
+			},
+		},
+		"unhandled-unknown": {
+			tfValue: tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\nunhandled unknown value",
+				),
+			},
+		},
 	}
-	if expected := `unhandled null value`; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
-	}
-}
 
-func TestBuildValue_unhandledUnknown(t *testing.T) {
-	t.Parallel()
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	var s string
-	_, diags := refl.BuildValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if !diagnostics.DiagsHasErrors(diags) {
-		t.Error("Expected error, didn't get one")
-	}
-	if expected := `unhandled unknown value`; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
+			var s string
+			_, diags := refl.BuildValue(context.Background(), types.StringType, tc.tfValue, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }

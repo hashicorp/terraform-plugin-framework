@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -242,8 +241,8 @@ func TestListElementsAs_stringSlice(t *testing.T) {
 			String{Value: "hello"},
 			String{Value: "world"},
 		}}).ElementsAs(context.Background(), &stringSlice, false)
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
 	}
 	if diff := cmp.Diff(stringSlice, expected); diff != "" {
 		t.Errorf("Unexpected diff (-expected, +got): %s", diff)
@@ -265,8 +264,8 @@ func TestListElementsAs_attributeValueSlice(t *testing.T) {
 			String{Value: "hello"},
 			String{Value: "world"},
 		}}).ElementsAs(context.Background(), &stringSlice, false)
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
 	}
 	if diff := cmp.Diff(stringSlice, expected); diff != "" {
 		t.Errorf("Unexpected diff (-expected, +got): %s", diff)

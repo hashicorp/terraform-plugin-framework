@@ -542,11 +542,9 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	}
 	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
 		pmSchema, diags := pm.GetMetaSchema(ctx)
-		if diags != nil {
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
 		}
 		readReq.ProviderMeta = Config{
 			Schema: pmSchema,
@@ -769,11 +767,9 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		}
 		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
 			pmSchema, diags := pm.GetMetaSchema(ctx)
-			if diags != nil {
-				resp.Diagnostics.Append(diags...)
-				if resp.Diagnostics.HasError() {
-					return
-				}
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
 			}
 			modifyPlanReq.ProviderMeta = Config{
 				Schema: pmSchema,
@@ -977,11 +973,9 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		}
 		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
 			pmSchema, diags := pm.GetMetaSchema(ctx)
-			if diags != nil {
-				resp.Diagnostics.Append(diags...)
-				if resp.Diagnostics.HasError() {
-					return
-				}
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
 			}
 			createReq.ProviderMeta = Config{
 				Schema: pmSchema,
@@ -1035,11 +1029,9 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		}
 		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
 			pmSchema, diags := pm.GetMetaSchema(ctx)
-			if diags != nil {
-				resp.Diagnostics.Append(diags...)
-				if resp.Diagnostics.HasError() {
-					return
-				}
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
 			}
 			updateReq.ProviderMeta = Config{
 				Schema: pmSchema,
@@ -1085,11 +1077,9 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		}
 		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
 			pmSchema, diags := pm.GetMetaSchema(ctx)
-			if diags != nil {
-				resp.Diagnostics.Append(diags...)
-				if resp.Diagnostics.HasError() {
-					return
-				}
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
 			}
 			destroyReq.ProviderMeta = Config{
 				Schema: pmSchema,
@@ -1300,11 +1290,9 @@ func (s *server) readDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 	}
 	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
 		pmSchema, diags := pm.GetMetaSchema(ctx)
-		if diags != nil {
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
 		}
 		readReq.ProviderMeta = Config{
 			Schema: pmSchema,

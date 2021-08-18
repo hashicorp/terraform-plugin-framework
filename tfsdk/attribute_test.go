@@ -641,6 +641,14 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			path:        tftypes.NewAttributePath(),
 			expectedErr: "must have Attributes or Type set",
 		},
+		"missing-required-optional-and-computed": {
+			name: "whoops",
+			attr: Attribute{
+				Type: types.StringType,
+			},
+			path:        tftypes.NewAttributePath(),
+			expectedErr: "must have Required, Optional, or Computed set",
+		},
 	}
 
 	for name, tc := range tests {
@@ -744,6 +752,37 @@ func TestAttributeValidate(t *testing.T) {
 						Severity:  tfprotov6.DiagnosticSeverityError,
 						Summary:   "Invalid Attribute Definition",
 						Detail:    "Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
+						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
+					},
+				},
+			},
+		},
+		"missing-required-optional-and-computed": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type: types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity:  tfprotov6.DiagnosticSeverityError,
+						Summary:   "Invalid Attribute Definition",
+						Detail:    "Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
 						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
 					},
 				},

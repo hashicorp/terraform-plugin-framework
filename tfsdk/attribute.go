@@ -141,6 +141,10 @@ func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, pa
 		Sensitive: a.Sensitive,
 	}
 
+	if !a.Required && !a.Optional && !a.Computed {
+		return nil, path.NewErrorf("must have Required, Optional, or Computed set")
+	}
+
 	if a.DeprecationMessage != "" {
 		schemaAttribute.Deprecated = true
 	}
@@ -232,6 +236,17 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 			Severity:  tfprotov6.DiagnosticSeverityError,
 			Summary:   "Invalid Attribute Definition",
 			Detail:    "Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
+			Attribute: req.AttributePath,
+		})
+
+		return
+	}
+
+	if !a.Required && !a.Optional && !a.Computed {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Invalid Attribute Definition",
+			Detail:    "Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
 			Attribute: req.AttributePath,
 		})
 

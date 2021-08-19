@@ -341,18 +341,34 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 				}
 			}
 		case NestingModeSingle:
-			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithAttributeName(nestedName),
-					Config:        req.Config,
-				}
-				nestedAttrResp := &ValidateAttributeResponse{
-					Diagnostics: resp.Diagnostics,
-				}
+			o, ok := req.AttributeConfig.(types.Object)
 
-				nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+			if !ok {
+				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityError,
+					Summary:   "Attribute Validation Error",
+					Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+					Attribute: req.AttributePath,
+				})
 
-				resp.Diagnostics = nestedAttrResp.Diagnostics
+				return
+			}
+
+			if len(o.Attrs) > 0 {
+				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+					nestedAttrReq := ValidateAttributeRequest{
+						AttributePath: req.AttributePath.WithAttributeName(nestedName),
+						Config:        req.Config,
+					}
+					nestedAttrResp := &ValidateAttributeResponse{
+						Diagnostics: resp.Diagnostics,
+					}
+
+					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+					resp.Diagnostics = nestedAttrResp.Diagnostics
+				}
 			}
 		default:
 			err := fmt.Errorf("unknown attribute validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)

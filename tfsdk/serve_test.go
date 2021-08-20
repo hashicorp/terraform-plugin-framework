@@ -1471,6 +1471,8 @@ func TestServerReadResource(t *testing.T) {
 }
 
 func TestServerPlanResourceChange(t *testing.T) {
+	t.Parallel()
+
 	type testCase struct {
 		// request input
 		priorState       tftypes.Value
@@ -2211,6 +2213,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 		name, tc := name, tc
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			s := &testServeProvider{
 				modifyPlanFunc: tc.modifyPlanFunc,
 			}
@@ -3419,6 +3422,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 			}
 			if tc.config.Type() != nil {
 				if diff := cmp.Diff(s.applyResourceChangeConfigValue, tc.config); diff != "" {
+					t.Errorf("Unexpected diff in config (+wanted, -got): %s", diff)
+					return
 				}
 				if diff := cmp.Diff(s.applyResourceChangeConfigSchema, schema); diff != "" {
 					t.Errorf("Unexpected diff in config schema (+wanted, -got): %s", diff)

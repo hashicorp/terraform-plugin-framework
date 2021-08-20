@@ -1997,7 +1997,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
 				}),
 			}),
-			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("size"), tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"), tftypes.NewAttributePath().WithAttributeName("size")},
 		},
 		"three_attrplanmodifies_requiresreplaceif_false": {
 			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
@@ -2272,9 +2272,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				t.Errorf("Expected planned private to be %q, got %q", tc.expectedPlannedPrivate, got.PlannedPrivate)
 				return
 			}
-			if diff := cmp.Diff(got.RequiresReplace, tc.expectedRequiresReplace, cmpopts.EquateEmpty(), cmpopts.SortSlices(func(x, y *tftypes.AttributePath) bool {
-				return x.String() < y.String()
-			})); diff != "" {
+			if diff := cmp.Diff(got.RequiresReplace, tc.expectedRequiresReplace, cmpopts.EquateEmpty()); diff != "" {
 				t.Errorf("Unexpected diff in requires replace (+wanted, -got): %s", diff)
 				return
 			}

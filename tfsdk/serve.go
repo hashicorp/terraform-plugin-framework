@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
@@ -735,6 +736,11 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	}
 	resp.PlannedState = &plannedState
 	resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
+
+	// sort the RequiresReplace slice so response is deterministic
+	sort.Slice(resp.RequiresReplace, func(i, j int) bool {
+		return resp.RequiresReplace[i].String() < resp.RequiresReplace[j].String()
+	})
 
 	return resp, nil
 }

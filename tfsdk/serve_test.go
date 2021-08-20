@@ -201,6 +201,63 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 	}
 }
 
+func TestNormaliseRequiresReplace(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input    []*tftypes.AttributePath
+		expected []*tftypes.AttributePath
+	}
+
+	tests := map[string]testCase{
+		"nil": {
+			input:    nil,
+			expected: nil,
+		},
+		"no-duplicates": {
+			input: []*tftypes.AttributePath{
+				tftypes.NewAttributePath().WithAttributeName("name2"),
+				tftypes.NewAttributePath().WithAttributeName("name1"),
+				tftypes.NewAttributePath().WithElementKeyInt(1234),
+				tftypes.NewAttributePath().WithAttributeName("name1").WithElementKeyString("elementkey"),
+			},
+			expected: []*tftypes.AttributePath{
+				tftypes.NewAttributePath().WithAttributeName("name1"),
+				tftypes.NewAttributePath().WithAttributeName("name1").WithElementKeyString("elementkey"),
+				tftypes.NewAttributePath().WithAttributeName("name2"),
+				tftypes.NewAttributePath().WithElementKeyInt(1234),
+			},
+		},
+		"duplicates": {
+			input: []*tftypes.AttributePath{
+				tftypes.NewAttributePath().WithAttributeName("name1"),
+				tftypes.NewAttributePath().WithAttributeName("name1"),
+				tftypes.NewAttributePath().WithElementKeyInt(1234),
+				tftypes.NewAttributePath().WithElementKeyInt(1234),
+			},
+			expected: []*tftypes.AttributePath{
+				tftypes.NewAttributePath().WithAttributeName("name1"),
+				tftypes.NewAttributePath().WithElementKeyInt(1234),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		name, tc := name, tc
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := normaliseRequiresReplace(tc.input)
+
+			if diff := cmp.Diff(actual, tc.expected, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+				return
+			}
+		})
+	}
+}
+
 func TestServerGetProviderSchema(t *testing.T) {
 	t.Parallel()
 

@@ -737,12 +737,37 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	resp.PlannedState = &plannedState
 	resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 
-	// sort the RequiresReplace slice so response is deterministic
-	sort.Slice(resp.RequiresReplace, func(i, j int) bool {
-		return resp.RequiresReplace[i].String() < resp.RequiresReplace[j].String()
-	})
+	// ensure deterministic RequiresReplace by sorting and deduplicating
+	resp.RequiresReplace = normaliseRequiresReplace(resp.RequiresReplace)
 
 	return resp, nil
+}
+
+// normaliseRequiresReplace sorts and deduplicates the slice of AttributePaths
+// used in the RequiresReplace response field.
+// Sorting is lexical based on the string representation of each AttributePath.
+func normaliseRequiresReplace(rs []*tftypes.AttributePath) []*tftypes.AttributePath {
+	if len(rs) < 2 {
+		return rs
+	}
+
+	sort.Slice(rs, func(i, j int) bool {
+		return rs[i].String() < rs[j].String()
+	})
+
+	ret := make([]*tftypes.AttributePath, len(rs))
+	ret[0] = rs[0]
+
+	// deduplicate
+	j := 1
+	for i := 1; i < len(rs); i++ {
+		if rs[i].Equal(ret[j-1]) {
+			continue
+		}
+		ret[j] = rs[i]
+		j++
+	}
+	return ret[:j]
 }
 
 func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest) (*tfprotov6.ApplyResourceChangeResponse, error) {

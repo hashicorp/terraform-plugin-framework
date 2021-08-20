@@ -19,6 +19,7 @@ func (rt testServeResourceTypeThree) GetSchema(_ context.Context) (Schema, []*tf
 				Type:     types.StringType,
 				// For the purposes of testing, these plan modifiers behave
 				// differently for certain values of the attribute.
+				// By default, they do nothing.
 				PlanModifiers: []AttributePlanModifier{
 					testWarningDiagModifier{},
 					testErrorDiagModifier{},
@@ -64,6 +65,11 @@ func (rt testServeResourceTypeThree) GetSchema(_ context.Context) (Schema, []*tf
 					},
 				}),
 			},
+			"region": {
+				Optional:      true,
+				Type:          types.StringType,
+				PlanModifiers: []AttributePlanModifier{testAttrDefaultValueModifier{}},
+			},
 		},
 	}, nil
 }
@@ -89,6 +95,11 @@ var testServeResourceTypeThreeSchema = &tfprotov6.Schema{
 			{
 				Name:     "name",
 				Required: true,
+				Type:     tftypes.String,
+			},
+			{
+				Name:     "region",
+				Optional: true,
 				Type:     tftypes.String,
 			},
 			{
@@ -129,6 +140,7 @@ var testServeResourceTypeThreeType = tftypes.Object{
 				"interface": tftypes.String,
 			},
 		},
+		"region": tftypes.String,
 	},
 }
 
@@ -235,6 +247,28 @@ func (t testAttrPlanValueModifierTwo) Description(ctx context.Context) string {
 }
 
 func (t testAttrPlanValueModifierTwo) MarkdownDescription(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+type testAttrDefaultValueModifier struct{}
+
+func (t testAttrDefaultValueModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	if req.AttributeState == nil && req.AttributeConfig == nil {
+		return
+	}
+
+	configVal := req.AttributeConfig.(types.String)
+
+	if configVal.Null {
+		resp.AttributePlan = types.String{Value: "DEFAULTVALUE"}
+	}
+}
+
+func (t testAttrDefaultValueModifier) Description(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+func (t testAttrDefaultValueModifier) MarkdownDescription(ctx context.Context) string {
 	return "This plan modifier is for use during testing only"
 }
 

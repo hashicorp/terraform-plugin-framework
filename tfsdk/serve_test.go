@@ -273,9 +273,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 	expected := &tfprotov6.GetProviderSchemaResponse{
 		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_one":   testServeResourceTypeOneSchema,
-			"test_two":   testServeResourceTypeTwoSchema,
-			"test_three": testServeResourceTypeThreeSchema,
+			"test_one":                      testServeResourceTypeOneSchema,
+			"test_two":                      testServeResourceTypeTwoSchema,
+			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 
 			"test_config_validators": testServeResourceTypeConfigValidatorsSchema,
 			"test_validate_config":   testServeResourceTypeValidateConfigSchema,
@@ -307,11 +307,11 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 	expected := &tfprotov6.GetProviderSchemaResponse{
 		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_one":               testServeResourceTypeOneSchema,
-			"test_two":               testServeResourceTypeTwoSchema,
-			"test_three":             testServeResourceTypeThreeSchema,
-			"test_config_validators": testServeResourceTypeConfigValidatorsSchema,
-			"test_validate_config":   testServeResourceTypeValidateConfigSchema,
+			"test_one":                      testServeResourceTypeOneSchema,
+			"test_two":                      testServeResourceTypeTwoSchema,
+			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
+			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
+			"test_validate_config":          testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one":               testServeDataSourceTypeOneSchema,
@@ -1603,14 +1603,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 			resourceType:         testServeResourceTypeTwoType,
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
 		},
-		"three_nil_state_and_config": {
-			priorState:           tftypes.NewValue(testServeResourceTypeThreeType, nil),
-			proposedNewState:     tftypes.NewValue(testServeResourceTypeThreeType, nil),
-			config:               tftypes.NewValue(testServeResourceTypeThreeType, nil),
-			resource:             "test_three",
-			resourceType:         testServeResourceTypeThreeType,
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, nil),
-		},
 		"two_delete": {
 			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),
@@ -1958,8 +1950,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 			},
 		},
-		"three_attrplanmodifiers_requiresreplace": {
-			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+		"attr_plan_modifiers_nil_state_and_config": {
+			priorState:           tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, nil),
+			proposedNewState:     tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, nil),
+			config:               tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, nil),
+			resource:             "test_attribute_plan_modifiers",
+			resourceType:         testServeResourceTypeAttributePlanModifiersType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, nil),
+		},
+		"attr_plan_modifiers_requiresreplace": {
+			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -1971,7 +1971,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			proposedNewState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -1983,7 +1983,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			config: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -1995,9 +1995,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			resource:     "test_three",
-			resourceType: testServeResourceTypeThreeType,
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			resource:     "test_attribute_plan_modifiers",
+			resourceType: testServeResourceTypeAttributePlanModifiersType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2011,8 +2011,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}),
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
-		"three_attrplanmodifiers_requiresreplaceif_true": {
-			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+		"attr_plan_modifiers_requiresreplaceif_true": {
+			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2024,7 +2024,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			proposedNewState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 999),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2036,7 +2036,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			config: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 999),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2048,9 +2048,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			resource:     "test_three",
-			resourceType: testServeResourceTypeThreeType,
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			resource:     "test_attribute_plan_modifiers",
+			resourceType: testServeResourceTypeAttributePlanModifiersType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 999),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2064,8 +2064,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}),
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"), tftypes.NewAttributePath().WithAttributeName("size")},
 		},
-		"three_attrplanmodifies_requiresreplaceif_false": {
-			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+		"attr_plan_modifiers_requiresreplaceif_false": {
+			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2077,7 +2077,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			proposedNewState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 1),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2089,7 +2089,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			config: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 1),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2101,9 +2101,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			resource:     "test_three",
-			resourceType: testServeResourceTypeThreeType,
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			resource:     "test_attribute_plan_modifiers",
+			resourceType: testServeResourceTypeAttributePlanModifiersType,
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 1),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2117,8 +2117,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}),
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
-		"three_attrplanmodifiers_diags": {
-			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+		"attr_plan_modifiers_diags": {
+			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2130,7 +2130,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			proposedNewState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2142,7 +2142,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			config: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2154,7 +2154,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2166,8 +2166,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			resource:     "test_three",
-			resourceType: testServeResourceTypeThreeType,
+			resource:     "test_attribute_plan_modifiers",
+			resourceType: testServeResourceTypeAttributePlanModifiersType,
 			expectedDiags: []*tfprotov6.Diagnostic{
 				{
 					Severity: tfprotov6.DiagnosticSeverityWarning,
@@ -2182,8 +2182,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
-		"three_attrplanmodifiers_chained_modifiers": {
-			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+		"attr_plan_modifiers_chained_modifiers": {
+			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2195,7 +2195,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			proposedNewState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2207,7 +2207,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			config: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2219,7 +2219,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "MODIFIED_TWO"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2231,12 +2231,12 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			resource:                "test_three",
-			resourceType:            testServeResourceTypeThreeType,
+			resource:                "test_attribute_plan_modifiers",
+			resourceType:            testServeResourceTypeAttributePlanModifiersType,
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
-		"three_attrplanmodifiers_default_value_modifier": {
-			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+		"attr_plan_modifiers_default_value_modifier": {
+			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2248,7 +2248,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, nil),
 			}),
-			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			proposedNewState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2260,7 +2260,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, nil),
 			}),
-			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			config: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2272,7 +2272,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, nil),
 			}),
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "MODIFIED_TWO"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2284,12 +2284,12 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "DEFAULTVALUE"),
 			}),
-			resource:                "test_three",
-			resourceType:            testServeResourceTypeThreeType,
+			resource:                "test_attribute_plan_modifiers",
+			resourceType:            testServeResourceTypeAttributePlanModifiersType,
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
-		"three_attrplanmodifiers_nested_modifier": {
-			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+		"attr_plan_modifiers_nested_modifier": {
+			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2301,7 +2301,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			proposedNewState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2313,7 +2313,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			config: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2325,7 +2325,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "name1"),
 				"size": tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -2337,8 +2337,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			resource:                "test_three",
-			resourceType:            testServeResourceTypeThreeType,
+			resource:                "test_attribute_plan_modifiers",
+			resourceType:            testServeResourceTypeAttributePlanModifiersType,
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
 	}

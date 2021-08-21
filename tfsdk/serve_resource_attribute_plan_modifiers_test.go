@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func (rt testServeResourceTypeThree) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
 	return Schema{
 		Version: 1,
 		Attributes: map[string]Attribute{
@@ -74,7 +74,7 @@ func (rt testServeResourceTypeThree) GetSchema(_ context.Context) (Schema, []*tf
 	}, nil
 }
 
-func (rt testServeResourceTypeThree) NewResource(_ context.Context, p Provider) (Resource, []*tfprotov6.Diagnostic) {
+func (rt testServeResourceTypeAttributePlanModifiers) NewResource(_ context.Context, p Provider) (Resource, []*tfprotov6.Diagnostic) {
 	provider, ok := p.(*testServeProvider)
 	if !ok {
 		prov, ok := p.(*testServeProviderWithMetaSchema)
@@ -83,12 +83,12 @@ func (rt testServeResourceTypeThree) NewResource(_ context.Context, p Provider) 
 		}
 		provider = prov.testServeProvider
 	}
-	return testServeResourceThree{
+	return testServeAttributePlanModifiers{
 		provider: provider,
 	}, nil
 }
 
-var testServeResourceTypeThreeSchema = &tfprotov6.Schema{
+var testServeResourceTypeAttributePlanModifiersSchema = &tfprotov6.Schema{
 	Version: 1,
 	Block: &tfprotov6.SchemaBlock{
 		Attributes: []*tfprotov6.SchemaAttribute{
@@ -130,7 +130,7 @@ var testServeResourceTypeThreeSchema = &tfprotov6.Schema{
 	},
 }
 
-var testServeResourceTypeThreeType = tftypes.Object{
+var testServeResourceTypeAttributePlanModifiersType = tftypes.Object{
 	AttributeTypes: map[string]tftypes.Type{
 		"name": tftypes.String,
 		"size": tftypes.Number,
@@ -144,11 +144,11 @@ var testServeResourceTypeThreeType = tftypes.Object{
 	},
 }
 
-type testServeResourceThree struct {
+type testServeAttributePlanModifiers struct {
 	provider *testServeProvider
 }
 
-type testServeResourceTypeThree struct{}
+type testServeResourceTypeAttributePlanModifiers struct{}
 
 type testWarningDiagModifier struct{}
 
@@ -272,28 +272,28 @@ func (t testAttrDefaultValueModifier) MarkdownDescription(ctx context.Context) s
 	return "This plan modifier is for use during testing only"
 }
 
-func (r testServeResourceThree) Create(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+func (r testServeAttributePlanModifiers) Create(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
 	r.provider.applyResourceChangePlannedStateValue = req.Plan.Raw
 	r.provider.applyResourceChangePlannedStateSchema = req.Plan.Schema
 	r.provider.applyResourceChangeConfigValue = req.Config.Raw
 	r.provider.applyResourceChangeConfigSchema = req.Config.Schema
 	r.provider.applyResourceChangeProviderMetaValue = req.ProviderMeta.Raw
 	r.provider.applyResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
-	r.provider.applyResourceChangeCalledResourceType = "test_three"
+	r.provider.applyResourceChangeCalledResourceType = "test_attribute_plan_modifiers"
 	r.provider.applyResourceChangeCalledAction = "create"
 	r.provider.createFunc(ctx, req, resp)
 }
 
-func (r testServeResourceThree) Read(ctx context.Context, req ReadResourceRequest, resp *ReadResourceResponse) {
+func (r testServeAttributePlanModifiers) Read(ctx context.Context, req ReadResourceRequest, resp *ReadResourceResponse) {
 	r.provider.readResourceCurrentStateValue = req.State.Raw
 	r.provider.readResourceCurrentStateSchema = req.State.Schema
 	r.provider.readResourceProviderMetaValue = req.ProviderMeta.Raw
 	r.provider.readResourceProviderMetaSchema = req.ProviderMeta.Schema
-	r.provider.readResourceCalledResourceType = "test_three"
+	r.provider.readResourceCalledResourceType = "test_attribute_plan_modifiers"
 	r.provider.readResourceImpl(ctx, req, resp)
 }
 
-func (r testServeResourceThree) Update(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+func (r testServeAttributePlanModifiers) Update(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
 	r.provider.applyResourceChangePriorStateValue = req.State.Raw
 	r.provider.applyResourceChangePriorStateSchema = req.State.Schema
 	r.provider.applyResourceChangePlannedStateValue = req.Plan.Raw
@@ -302,17 +302,17 @@ func (r testServeResourceThree) Update(ctx context.Context, req UpdateResourceRe
 	r.provider.applyResourceChangeConfigSchema = req.Config.Schema
 	r.provider.applyResourceChangeProviderMetaValue = req.ProviderMeta.Raw
 	r.provider.applyResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
-	r.provider.applyResourceChangeCalledResourceType = "test_three"
+	r.provider.applyResourceChangeCalledResourceType = "test_attribute_plan_modifiers"
 	r.provider.applyResourceChangeCalledAction = "update"
 	r.provider.updateFunc(ctx, req, resp)
 }
 
-func (r testServeResourceThree) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+func (r testServeAttributePlanModifiers) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
 	r.provider.applyResourceChangePriorStateValue = req.State.Raw
 	r.provider.applyResourceChangePriorStateSchema = req.State.Schema
 	r.provider.applyResourceChangeProviderMetaValue = req.ProviderMeta.Raw
 	r.provider.applyResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
-	r.provider.applyResourceChangeCalledResourceType = "test_three"
+	r.provider.applyResourceChangeCalledResourceType = "test_attribute_plan_modifiers"
 	r.provider.applyResourceChangeCalledAction = "delete"
 	r.provider.deleteFunc(ctx, req, resp)
 }

@@ -213,43 +213,43 @@ func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *V
 
 // modifyAttributePlans runs all AttributePlanModifiers in all schema attributes
 func (s Schema) modifyAttributePlans(ctx context.Context, req ModifySchemaPlanRequest, resp *ModifySchemaPlanResponse) {
-	for name, a := range s.Attributes {
-		attrPath := tftypes.NewAttributePath().WithAttributeName(name)
+	modifyAttributesPlans(ctx, s.Attributes, tftypes.NewAttributePath(), req, resp)
+}
 
+func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path *tftypes.AttributePath, req ModifySchemaPlanRequest, resp *ModifySchemaPlanResponse) {
+	for name, nestedAttr := range attrs {
+		attrPath := path.WithAttributeName(name)
 		attrPlan, diags := req.Plan.GetAttribute(ctx, attrPath)
 		resp.Diagnostics = append(resp.Diagnostics, diags...)
 		if diagnostics.DiagsHasErrors(diags) {
 			return
 		}
-
-		attributeReq := ModifyAttributePlanRequest{
+		nestedAttrReq := ModifyAttributePlanRequest{
 			AttributePath: attrPath,
 			Config:        req.Config,
 			State:         req.State,
 			Plan:          req.Plan,
 			ProviderMeta:  req.ProviderMeta,
 		}
-
-		attributeResp := &ModifyAttributePlanResponse{
+		nestedAttrResp := &ModifyAttributePlanResponse{
 			AttributePlan: attrPlan,
+			Diagnostics:   resp.Diagnostics,
 		}
 
-		a.modifyPlan(ctx, attributeReq, attributeResp)
-
-		if attributeResp.RequiresReplace {
+		nestedAttr.modifyPlan(ctx, nestedAttrReq, nestedAttrResp)
+		if nestedAttrResp.RequiresReplace {
 			resp.RequiresReplace = append(resp.RequiresReplace, attrPath)
 		}
 
-		resp.Diagnostics = append(resp.Diagnostics, attributeResp.Diagnostics...)
-
-		setAttrDiags := resp.Plan.SetAttribute(ctx, attrPath, attributeResp.AttributePlan)
+		setAttrDiags := resp.Plan.SetAttribute(ctx, attrPath, nestedAttrResp.AttributePlan)
 		resp.Diagnostics = append(resp.Diagnostics, setAttrDiags...)
 		if diagnostics.DiagsHasErrors(setAttrDiags) {
 			return
 		}
+		resp.Diagnostics = nestedAttrResp.Diagnostics
 
-		if a.Attributes != nil {
-			nm := a.Attributes.GetNestingMode()
+		if nestedAttr.Attributes != nil {
+			nm := nestedAttr.Attributes.GetNestingMode()
 			switch nm {
 			case NestingModeList:
 				l, ok := attrPlan.(types.List)
@@ -267,36 +267,9 @@ func (s Schema) modifyAttributePlans(ctx context.Context, req ModifySchemaPlanRe
 				}
 
 				for idx := range l.Elems {
-					for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-						nestedAttrPath := attrPath.WithElementKeyInt(int64(idx)).WithAttributeName(nestedName)
-						nestedAttrPlan, diags := req.Plan.GetAttribute(ctx, nestedAttrPath)
-						resp.Diagnostics = append(resp.Diagnostics, diags...)
-						if diagnostics.DiagsHasErrors(diags) {
-							return
-						}
-						nestedAttrReq := ModifyAttributePlanRequest{
-							AttributePath: nestedAttrPath,
-							Config:        req.Config,
-							State:         req.State,
-							Plan:          req.Plan,
-							ProviderMeta:  req.ProviderMeta,
-						}
-						nestedAttrResp := &ModifyAttributePlanResponse{
-							AttributePlan: nestedAttrPlan,
-							Diagnostics:   resp.Diagnostics,
-						}
-
-						nestedAttr.modifyPlan(ctx, nestedAttrReq, nestedAttrResp)
-						if nestedAttrResp.RequiresReplace {
-							resp.RequiresReplace = append(resp.RequiresReplace, nestedAttrPath)
-						}
-
-						setAttrDiags := resp.Plan.SetAttribute(ctx, nestedAttrPath, nestedAttrResp.AttributePlan)
-						resp.Diagnostics = append(resp.Diagnostics, setAttrDiags...)
-						if diagnostics.DiagsHasErrors(setAttrDiags) {
-							return
-						}
-						resp.Diagnostics = nestedAttrResp.Diagnostics
+					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyInt(int64(idx)), req, resp)
+					if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+						return
 					}
 				}
 			case NestingModeSet:
@@ -318,69 +291,27 @@ func (s Schema) modifyAttributePlans(ctx context.Context, req ModifySchemaPlanRe
 				}
 
 				for key := range m.Elems {
-					for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-						nestedAttrPath := attrPath.WithElementKeyString(key).WithAttributeName(nestedName)
-						nestedAttrPlan, diags := req.Plan.GetAttribute(ctx, nestedAttrPath)
-						resp.Diagnostics = append(resp.Diagnostics, diags...)
-						if diagnostics.DiagsHasErrors(diags) {
-							return
-						}
-						nestedAttrReq := ModifyAttributePlanRequest{
-							AttributePath: nestedAttrPath,
-							Config:        req.Config,
-							State:         req.State,
-							Plan:          req.Plan,
-							ProviderMeta:  req.ProviderMeta,
-						}
-						nestedAttrResp := &ModifyAttributePlanResponse{
-							AttributePlan: nestedAttrPlan,
-							Diagnostics:   resp.Diagnostics,
-						}
-
-						nestedAttr.modifyPlan(ctx, nestedAttrReq, nestedAttrResp)
-
-						if nestedAttrResp.RequiresReplace {
-							resp.RequiresReplace = append(resp.RequiresReplace, nestedAttrPath)
-						}
-						setAttrDiags := resp.Plan.SetAttribute(ctx, nestedAttrPath, nestedAttrResp.AttributePlan)
-						resp.Diagnostics = append(resp.Diagnostics, setAttrDiags...)
-						if diagnostics.DiagsHasErrors(setAttrDiags) {
-							return
-						}
-						resp.Diagnostics = nestedAttrResp.Diagnostics
+					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyString(key), req, resp)
+					if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+						return
 					}
 				}
 			case NestingModeSingle:
-				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-					nestedAttrPath := attrPath.WithAttributeName(nestedName)
-					nestedAttrPlan, diags := req.Plan.GetAttribute(ctx, nestedAttrPath)
-					resp.Diagnostics = append(resp.Diagnostics, diags...)
-					if diagnostics.DiagsHasErrors(diags) {
-						return
-					}
-					nestedAttrReq := ModifyAttributePlanRequest{
-						AttributePath: nestedAttrPath,
-						Config:        req.Config,
-						State:         req.State,
-						Plan:          req.Plan,
-						ProviderMeta:  req.ProviderMeta,
-					}
-					nestedAttrResp := &ModifyAttributePlanResponse{
-						AttributePlan: nestedAttrPlan,
-						Diagnostics:   resp.Diagnostics,
-					}
+				o, ok := attrPlan.(types.Object)
 
-					nestedAttr.modifyPlan(ctx, nestedAttrReq, nestedAttrResp)
+				if !ok {
+					err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", attrPlan, nm, attrPath)
+					resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+						Severity:  tfprotov6.DiagnosticSeverityError,
+						Summary:   "Attribute Validation Error",
+						Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+						Attribute: attrPath,
+					})
 
-					if nestedAttrResp.RequiresReplace {
-						resp.RequiresReplace = append(resp.RequiresReplace, nestedAttrPath)
-					}
-					setAttrDiags := resp.Plan.SetAttribute(ctx, nestedAttrPath, nestedAttrResp.AttributePlan)
-					resp.Diagnostics = append(resp.Diagnostics, setAttrDiags...)
-					if diagnostics.DiagsHasErrors(setAttrDiags) {
-						return
-					}
-					resp.Diagnostics = nestedAttrResp.Diagnostics
+					return
+				}
+				if len(o.Attrs) > 0 {
+					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath, req, resp)
 				}
 			default:
 				err := fmt.Errorf("unknown attribute nesting mode (%T: %v) at path: %s", nm, nm, attrPath)

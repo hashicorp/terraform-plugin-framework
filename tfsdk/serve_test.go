@@ -2053,7 +2053,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
+			expectedRequiresReplace: []*tftypes.AttributePath{
+
+				tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("filesystem").WithAttributeName("format"),
+				tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"),
+			},
 		},
 		"attr_plan_modifiers_requiresreplaceif_true": {
 			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{

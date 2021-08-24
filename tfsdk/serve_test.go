@@ -1965,9 +1965,20 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, map[string]tftypes.Value{
+						"size":   tftypes.NewValue(tftypes.Number, 1),
+						"format": tftypes.NewValue(tftypes.String, "ext4"),
+					}),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -1977,9 +1988,20 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "something-else"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, map[string]tftypes.Value{
+						"size":   tftypes.NewValue(tftypes.Number, 1),
+						"format": tftypes.NewValue(tftypes.String, "ext4"),
+					}),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -1989,9 +2011,20 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "something-else"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, map[string]tftypes.Value{
+						"size":   tftypes.NewValue(tftypes.Number, 1),
+						"format": tftypes.NewValue(tftypes.String, "ext4"),
+					}),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2003,9 +2036,20 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "something-else"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, map[string]tftypes.Value{
+						"size":   tftypes.NewValue(tftypes.Number, 1),
+						"format": tftypes.NewValue(tftypes.String, "ext4"),
+					}),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2018,9 +2062,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2030,9 +2082,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2042,9 +2102,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2056,9 +2124,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2071,9 +2147,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2083,9 +2167,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2095,9 +2187,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2109,9 +2209,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2124,9 +2232,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2136,9 +2252,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2148,9 +2272,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2160,9 +2292,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2189,9 +2329,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2201,9 +2349,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2213,9 +2369,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2225,9 +2389,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2242,9 +2414,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, nil),
 			}),
@@ -2254,9 +2434,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, nil),
 			}),
@@ -2266,9 +2454,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, nil),
 			}),
@@ -2278,9 +2474,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "DEFAULTVALUE"),
 			}),
@@ -2295,9 +2499,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2307,9 +2519,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "TESTATTRTWO"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2319,9 +2539,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "TESTATTRTWO"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
@@ -2331,9 +2559,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"id":        tftypes.String,
 					"interface": tftypes.String,
+					"filesystem": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "MODIFIED_TWO"),
 					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					}}, nil),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),

@@ -63,6 +63,20 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 						Type:          types.StringType,
 						PlanModifiers: []AttributePlanModifier{RequiresReplace()},
 					},
+					"filesystem": {
+						Optional: true,
+						Attributes: SingleNestedAttributes(map[string]Attribute{
+							"size": {
+								Optional: true,
+								Type:     types.NumberType,
+							},
+							"format": {
+								Optional:      true,
+								Type:          types.StringType,
+								PlanModifiers: []AttributePlanModifier{RequiresReplace()},
+							},
+						}),
+					},
 				}),
 			},
 			"region": {
@@ -108,6 +122,25 @@ var testServeResourceTypeAttributePlanModifiersSchema = &tfprotov6.Schema{
 				NestedType: &tfprotov6.SchemaObject{
 					Attributes: []*tfprotov6.SchemaAttribute{
 						{
+							Name:     "filesystem",
+							Optional: true,
+							NestedType: &tfprotov6.SchemaObject{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name:     "format",
+										Optional: true,
+										Type:     tftypes.String,
+									},
+									{
+										Name:     "size",
+										Optional: true,
+										Type:     tftypes.Number,
+									},
+								},
+								Nesting: tfprotov6.SchemaObjectNestingModeSingle,
+							},
+						},
+						{
 							Name:     "id",
 							Required: true,
 							Type:     tftypes.String,
@@ -138,6 +171,12 @@ var testServeResourceTypeAttributePlanModifiersType = tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
 				"id":        tftypes.String,
 				"interface": tftypes.String,
+				"filesystem": tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"size":   tftypes.Number,
+						"format": tftypes.String,
+					},
+				},
 			},
 		},
 		"region": tftypes.String,

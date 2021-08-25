@@ -413,5 +413,8 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 	for _, planModifier := range a.PlanModifiers {
 		planModifier.Modify(ctx, modifyReq, resp)
 		modifyReq.AttributePlan = resp.AttributePlan
+		if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+			return
+		}
 	}
 }

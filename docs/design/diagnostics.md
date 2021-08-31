@@ -101,6 +101,20 @@ These types include no helper methods or slice type alias.
 
 ## Prior Implementations
 
+### HCL and Terraform
+
+This context is transcribed from [this comment](https://github.com/hashicorp/terraform-plugin-framework/pull/108#discussion_r691409060).
+
+HCL's `hcl.Diagnostics` implements the `Error` interface, but it's at the level of the group of diagnostics rather than at the level of a single diagnostic so that a group of diagnostics can return together as a single `error` value.
+
+While this worked okay for the internals of HCL where everything was generally in agreement about how diagnostics work, it ended up causing friction once we started using diagnostics in Terraform where there's more of a blend of native diagnostics handling and traditional `error` handling. In particular, we got caught out a few times by the fact that a `hcl.Diagnostics` which contains only `hcl.DiagWarning` diagnostics appears as a non-`nil` `error`, even though it's not actually describing an error condition.
+
+In response to those problems, we created [Terraform's own `tfdiags` package](https://pkg.go.dev/github.com/hashicorp/terraform/internal/tfdiags), which has [`tfdiags.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform/internal/tfdiags#Diagnostics) as a more general analog to `hcl.Diagnostics`. Part of that design was to intentionally make `tfdiags.Diagnostics` _not_ implement `error`, and instead it has a method [`Err`](https://pkg.go.dev/github.com/hashicorp/terraform/internal/tfdiags#Diagnostics.Err) which returns an `error` which is `nil` unless `diags.HasErrors()`, thus preserving the usual meaning of a non-`nil` error at the expense of then losing track of warnings that aren't accompanied by an error (because there's nowhere to put them in an `error` value).
+
+For some particularly gnarly cases we also have [`ErrWithWarnings`](https://pkg.go.dev/github.com/hashicorp/terraform/internal/tfdiags#Diagnostics.ErrWithWarnings) which essentially recovers the HCL approach of potentially returning a weird `error` that might actually only be reporting warnings. In the few cases where we use that the caller needs to be careful to check whether the `error` value has the type [`NonFatalError`](https://pkg.go.dev/github.com/hashicorp/terraform/internal/tfdiags#NonFatalError) and treat it as warnings only in that case.
+
+Tangentially, we also made [the `Append` method of `Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform/internal/tfdiags#Diagnostics) able to accept naked `error` values and turn them into (often lower-quality) diagnostic errors. It also recognizes `error` values previously returned from `Diagnostics.Err` or `Diagnostics.NonFatalErr` and recovers the original diagnostics from them, which allows losslessly(-ish) sending diagnostics through a function that returns `error` because e.g. it needs to interact with other typical Go error-handling patterns.
+
 ### terraform-plugin-sdk
 
 The previous framework provided a thin abstraction layer in the [`diag` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/diag):

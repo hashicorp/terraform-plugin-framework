@@ -220,9 +220,11 @@ type Diagnostic interface {
   Equal(other Diagnostic) bool
 }
 
+// DiagnosticWithLogger is an optional example framework extension to Diagnostic.
 type DiagnosticWithLogger interface {
   Diagnostic
 
+  // Log emits the Diagnostic as a log entry with a log level matching the severity.
   Log(ctx context.Context)
 }
 

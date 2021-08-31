@@ -276,7 +276,7 @@ func (d ValidationErrorDiagnostic) Equal(other Diagnostic) bool {
 }
 ```
 
-It then becomes possible to distinguish between diagnostic types (in this case the "source" of a diagnostic) while still supporting additional functionality defined by the interface. These extended diagnostics can also implement other framework-defined capabilities, such as implementing the example `Log()` method in this situation.
+It then becomes possible to distinguish between kinds of diagnostics while still supporting additional functionality defined by the interface. These extended diagnostics can also implement other framework-defined capabilities, such as implementing the example `Log()` method in this situation.
 
 ### Error Interface
 

@@ -26,7 +26,7 @@ Plugins built with this framework are only compatible with Terraform versions ab
 
 Prior to its 1.0 release, this module will only support the latest released version of Go, and may use features and functionality introduced in that version of Go.
 
-Currently that means Go **1.16** must be used when building a provider with this framework.
+Currently that means Go **1.17** must be used when building a provider with this framework.
 
 ## Getting Started
 

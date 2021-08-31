@@ -41,7 +41,7 @@ type Diagnostic interface {
 type DiagnosticWithPath interface {
 	Diagnostic
 
-	// Path represents the location of the attribute within a schema.
+	// Path points to a specific value within an aggregate value.
 	//
 	// If present, this enables the display of source configuration context for
 	// supporting implementations such as Terraform CLI commands.

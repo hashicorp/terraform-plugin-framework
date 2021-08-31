@@ -193,7 +193,9 @@ func NewWarningDiagnostic(summary string, detail string, attribute *tftypes.Attr
 
 This type of implementation will still be difficult to extend or change.
 
-As another extensibility example, as `Diagnostics` pass through various functions across subsystems, determining the "source" or "cause" of a diagnostic must be done by `Summary` and/or `Detail` value. Extending the `Diagnostic` type is possible to add other identifying fields or creating new types, e.g.
+As another extensibility example, as `Diagnostics` pass through various functions across subsystems, determining the "source" or "cause" of a diagnostic must be done by `Summary` and/or `Detail` value.
+
+It is not possible to further extend the `Diagnostic` type, e.g.
 
 ```go
 type ValidationDiagnostic struct {
@@ -201,7 +203,7 @@ type ValidationDiagnostic struct {
 }
 ```
 
-However, the implementation for diagnostics then differs from other design choices in the framework where interfaces are preferred. For example, it becomes difficult to implement equality and future enhancements for diagnostics since the interface is not strongly defined for extensions.
+As this new type would not be acceptable in code requiring the `Diagnostic` type.
 
 ### Basic Interface
 

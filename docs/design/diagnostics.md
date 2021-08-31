@@ -176,7 +176,7 @@ func (d Diagnostics) HasError() bool
 func (d Diagnostics) toTfprotov6Diagnostics() []*tfprotov6.Diagnostic
 ```
 
-This solves many requirements, allowing the framework to own the abstraction and provide ergonomic methods. However, this implementation is tightly coupled to the underlying implementation and does not introduce protections against backwards compatibility issues. Since the data fields are strongly associated with the type, implementors inside and outside the framework are bound to the initial implementation details. If those details are not exported and instead hidden behind a constructor function, e.g.
+This solves many requirements, allowing the framework to own the abstraction and provide ergonomic methods. The `Diagnostic` field could also not be exported and instead hidden behind constructor function(s), e.g.
 
 ```go
 type Diagnostic struct {
@@ -191,11 +191,7 @@ func NewErrorDiagnostic(summary string, detail string, attribute *tftypes.Attrib
 func NewWarningDiagnostic(summary string, detail string, attribute *tftypes.AttributePath) Diagnostic
 ```
 
-This type of implementation will still be difficult to extend or change.
-
-As another extensibility example, as `Diagnostics` pass through various functions across subsystems, determining the "source" or "cause" of a diagnostic must be done by `Summary` and/or `Detail` value.
-
-It is not possible to further extend the `Diagnostic` type, e.g.
+However, it is not possible to further extend the `Diagnostic` type, e.g.
 
 ```go
 type ValidationDiagnostic struct {
@@ -203,7 +199,7 @@ type ValidationDiagnostic struct {
 }
 ```
 
-As this new type would not be acceptable in code requiring the `Diagnostic` type.
+As this new type would not be acceptable in code requiring the `Diagnostic` type. As such, programatically determining the type of a diagnostic must be done by comparing `Summary` and/or `Detail` values, which is a brittle implementation over checking against different types.
 
 ### Basic Interface
 

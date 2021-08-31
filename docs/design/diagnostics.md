@@ -193,7 +193,7 @@ func NewWarningDiagnostic(summary string, detail string, attribute *tftypes.Attr
 
 This type of implementation will still be difficult to extend or change.
 
-As another extensibility example, as `Diagnostics` pass through various functions across subsystems, determining the "source" or "cause" of a diagnostic must be done by `Summary` and/or `Detail` value similar to checking Go `error` types by value using `(error).Is()`. Extending the `Diagnostic` type is possible to add other identifying fields or creating new types, e.g.
+As another extensibility example, as `Diagnostics` pass through various functions across subsystems, determining the "source" or "cause" of a diagnostic must be done by `Summary` and/or `Detail` value. Extending the `Diagnostic` type is possible to add other identifying fields or creating new types, e.g.
 
 ```go
 type ValidationDiagnostic struct {

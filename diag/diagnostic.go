@@ -18,7 +18,7 @@ type Diagnostic interface {
 
 	// Summary is a short description for the diagnostic.
 	//
-	// Typically this is implemented as a title, such as "Example Error",
+	// Typically this is implemented as a title, such as "Invalid Resource Name",
 	// or single line sentence.
 	Summary() string
 

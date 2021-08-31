@@ -21,7 +21,11 @@ func (d AttributeErrorDiagnostic) Equal(other Diagnostic) bool {
 		return false
 	}
 
-	return aed.Summary() == d.Summary() && aed.Detail() == d.Detail() && aed.Path().Equal(d.Path())
+	if !aed.Path().Equal(d.Path()) {
+		return false
+	}
+
+	return aed.ErrorDiagnostic.Equal(d.ErrorDiagnostic)
 }
 
 // Path returns the diagnostic path.

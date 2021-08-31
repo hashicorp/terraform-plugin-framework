@@ -15,13 +15,17 @@ type AttributeWarningDiagnostic struct {
 
 // Equal returns true if the other diagnostic is wholly equivalent.
 func (d AttributeWarningDiagnostic) Equal(other Diagnostic) bool {
-	aed, ok := other.(AttributeWarningDiagnostic)
+	awd, ok := other.(AttributeWarningDiagnostic)
 
 	if !ok {
 		return false
 	}
 
-	return aed.Summary() == d.Summary() && aed.Detail() == d.Detail() && aed.Path().Equal(d.Path())
+	if !awd.Path().Equal(d.Path()) {
+		return false
+	}
+
+	return awd.WarningDiagnostic.Equal(d.WarningDiagnostic)
 }
 
 // Path returns the diagnostic path.

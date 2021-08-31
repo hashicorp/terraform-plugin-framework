@@ -80,7 +80,7 @@ message ValidateProviderConfig {
 }
 ```
 
-All RPCs except `StopProvider` include diagnostics support.
+All RPCs except `StopProvider`, which never surfaces practitioner errors, include diagnostics support.
 
 ### terraform-plugin-go
 

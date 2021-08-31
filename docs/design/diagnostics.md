@@ -143,7 +143,7 @@ func FromErr(err error) Diagnostics
 Diagnostics in this framework should be:
 
 - Able to natively support warning and error diagnostics.
-- Implementable by provider developers.
+- Available as exported functionality for provider developers.
 - Abstracted from terraform-plugin-go and convertable into those types to separate implementation concerns.
 - Ergonomic to create, read, and delete in Go code (e.g. have helper methods for common use cases).
 

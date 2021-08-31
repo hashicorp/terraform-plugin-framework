@@ -36,7 +36,7 @@ type Diagnostic interface {
 
 // DiagnosticWithPath is a diagnostic associated with an attribute path.
 //
-// This attribute information used to display contextual source configuration
+// This attribute information is used to display contextual source configuration
 // to practitioners.
 type DiagnosticWithPath interface {
 	Diagnostic

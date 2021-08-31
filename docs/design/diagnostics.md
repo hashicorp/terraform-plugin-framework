@@ -149,8 +149,9 @@ Diagnostics in this framework should be:
 
 Additional consideration should be given to:
 
-- Extensibility and additional data storage (e.g. distinguishing between types of diagnostics or what generated an error).
-- The ability to deduplicate or manipulate diagnostics.
+- Extensibility (e.g. supporting additional data storage for provider developers).
+- Programatically distinguishing between equality of diagnostics (e.g. supporting deduplication).
+- Programatically distinguishing between types of diagnostics (e.g. determine a diagnostic was a specific condition).
 
 ## Proposals
 

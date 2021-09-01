@@ -247,12 +247,11 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 	}
 
 	if !a.Required && !a.Optional && !a.Computed {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Invalid Attribute Definition",
-			Detail:    "Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
-			Attribute: req.AttributePath,
-		})
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Attribute Definition",
+			"Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
+		)
 
 		return
 	}

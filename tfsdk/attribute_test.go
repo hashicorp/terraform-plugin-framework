@@ -777,13 +777,12 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity:  tfprotov6.DiagnosticSeverityError,
-						Summary:   "Invalid Attribute Definition",
-						Detail:    "Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
-						Attribute: tftypes.NewAttributePath().WithAttributeName("test"),
-					},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Invalid Attribute Definition",
+						"Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
+					),
 				},
 			},
 		},

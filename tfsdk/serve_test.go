@@ -2339,6 +2339,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Detail:   "This is an error",
 				},
 			},
+			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
 		"attr_plan_modifiers_chained_modifiers": {
 			priorState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{

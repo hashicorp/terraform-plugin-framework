@@ -1,0 +1,3 @@
+```release-note:enhancement
+tfsdk: Validate `Attribute` defines at least one of `Required`, `Optional`, or `Computed`
+```

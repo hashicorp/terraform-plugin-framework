@@ -391,21 +391,21 @@ func RequiresReplace() AttributePlanModifier {
 
 type RequiresReplaceModifier struct{}
 
-func (r RequiresReplace) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func (r RequiresReplaceModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
   resp.RequiresReplace = true
 }
 
-func (r RequiresReplace) Description(ctx context.Context) string {
+func (r RequiresReplaceModifier) Description(ctx context.Context) string {
   // ...
 }
 
-func (r RequiresReplace) MarkdownDescription(ctx context.Context) string {
+func (r RequiresReplaceModifier) MarkdownDescription(ctx context.Context) string {
   // ...
 }
 ```
 
 ```go
-func RequiresReplaceIf(f RequiresReplaceIfFunc, description markdownDescription string) AttributePlanModifier {
+func RequiresReplaceIf(f RequiresReplaceIfFunc, description, markdownDescription string) AttributePlanModifier {
   return RequiresReplaceIfModifier{
     f: f, 
     description: description, 
@@ -413,7 +413,7 @@ func RequiresReplaceIf(f RequiresReplaceIfFunc, description markdownDescription 
   }
 }
 
-type RequiresReplaceIfFunc func(context.Context, state, config attr.Value) (bool, error)
+type RequiresReplaceIfFunc func(ctx context.Context, state, config attr.Value) (bool, error)
 
 type RequiresReplaceIfModifier struct {
   f RequiresReplaceIfFunc

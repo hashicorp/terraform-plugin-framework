@@ -17,12 +17,32 @@ type BoolTypeWithValidateError struct {
 	BoolType
 }
 
+func (b BoolTypeWithValidateError) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	res, err := b.BoolType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	newBool := res.(Bool)
+	newBool.CreatedBy = b
+	return newBool, nil
+}
+
 type BoolTypeWithValidateWarning struct {
 	BoolType
 }
 
+func (b BoolTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	res, err := b.BoolType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	newBool := res.(Bool)
+	newBool.CreatedBy = b
+	return newBool, nil
+}
+
 func (t BoolTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
-	return diag.Diagnostics{TestErrorDiagnostic(path)}
+	return diag.Diagnostics{TestErrorDiagnostic}
 }
 
 func (t BoolTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {

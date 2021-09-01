@@ -179,6 +179,11 @@ func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions
 	})
 }
 
+// Type returns an ObjectType with the same attribute types as `o`.
+func (o Object) Type(_ context.Context) attr.Type {
+	return ObjectType{AttrTypes: o.AttrTypes}
+}
+
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a Go type that tftypes.NewValue will accept.
 func (o Object) ToTerraformValue(ctx context.Context) (interface{}, error) {

@@ -95,8 +95,11 @@ func TestFromString(t *testing.T) {
 		"WithValidateWarning": {
 			val: "mystring",
 			typ: testtypes.StringTypeWithValidateWarning{},
-			expected: types.String{
-				Value: "mystring",
+			expected: testtypes.String{
+				String: types.String{
+					Value: "mystring",
+				},
+				CreatedBy: testtypes.StringTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
@@ -155,8 +158,11 @@ func TestFromBool(t *testing.T) {
 		"WithValidateWarning": {
 			val: true,
 			typ: testtypes.BoolTypeWithValidateWarning{},
-			expected: types.Bool{
-				Value: true,
+			expected: testtypes.Bool{
+				Bool: types.Bool{
+					Value: true,
+				},
+				CreatedBy: testtypes.BoolTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),

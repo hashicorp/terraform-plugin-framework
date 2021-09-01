@@ -40,15 +40,42 @@ func (t NumberType) TerraformType(_ context.Context) tftypes.Type {
 
 func (t NumberType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return types.Number{Unknown: true}, nil
+		return Number{
+			Number:    types.Number{Unknown: true},
+			CreatedBy: t,
+		}, nil
 	}
 	if in.IsNull() {
-		return types.Number{Null: true}, nil
+		return Number{
+			Number:    types.Number{Null: true},
+			CreatedBy: t,
+		}, nil
 	}
 	n := big.NewFloat(0)
 	err := in.As(&n)
 	if err != nil {
 		return nil, err
 	}
-	return types.Number{Value: n}, nil
+	return Number{
+		Number:    types.Number{Value: n},
+		CreatedBy: t,
+	}, nil
+}
+
+type Number struct {
+	types.Number
+
+	CreatedBy attr.Type
+}
+
+func (n Number) Type(_ context.Context) attr.Type {
+	return n.CreatedBy
+}
+
+func (n Number) Equal(o attr.Value) bool {
+	on, ok := o.(Number)
+	if !ok {
+		return false
+	}
+	return n.Number.Equal(on.Number)
 }

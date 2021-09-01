@@ -115,8 +115,11 @@ func TestFromPointer(t *testing.T) {
 		"WithValidateWarning": {
 			typ: testtypes.StringTypeWithValidateWarning{},
 			val: reflect.ValueOf(strPtr("hello, world")),
-			expected: types.String{
-				Value: "hello, world",
+			expected: testtypes.String{
+				String: types.String{
+					Value: "hello, world",
+				},
+				CreatedBy: testtypes.StringTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),

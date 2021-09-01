@@ -48,6 +48,42 @@ func TestConfigGet(t *testing.T) {
 				Name: types.String{Value: "namevalue"},
 			},
 		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var val testConfigGetData
+
+			diags := tc.config.Get(context.Background(), &val)
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(val, tc.expected); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestConfigGet_testTypes(t *testing.T) {
+	t.Parallel()
+
+	type testConfigGetData struct {
+		Name testtypes.String `tfsdk:"name"`
+	}
+
+	type testCase struct {
+		config        Config
+		expected      testConfigGetData
+		expectedDiags diag.Diagnostics
+	}
+
+	testCases := map[string]testCase{
 		"AttrTypeWithValidateError": {
 			config: Config{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -67,7 +103,7 @@ func TestConfigGet(t *testing.T) {
 				},
 			},
 			expected: testConfigGetData{
-				Name: types.String{Value: ""},
+				Name: testtypes.String{String: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 			},
 			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
@@ -90,7 +126,7 @@ func TestConfigGet(t *testing.T) {
 				},
 			},
 			expected: testConfigGetData{
-				Name: types.String{Value: "namevalue"},
+				Name: testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
@@ -185,7 +221,7 @@ func TestConfigGetAttribute(t *testing.T) {
 					},
 				},
 			},
-			expected:      types.String{Value: "namevalue"},
+			expected:      testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}

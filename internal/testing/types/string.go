@@ -39,15 +39,41 @@ func (t StringType) TerraformType(_ context.Context) tftypes.Type {
 
 func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return types.String{Unknown: true}, nil
+		return String{
+			String:    types.String{Unknown: true},
+			CreatedBy: t,
+		}, nil
 	}
 	if in.IsNull() {
-		return types.String{Null: true}, nil
+		return String{
+			String:    types.String{Null: true},
+			CreatedBy: t,
+		}, nil
 	}
 	var s string
 	err := in.As(&s)
 	if err != nil {
 		return nil, err
 	}
-	return types.String{Value: s}, nil
+	return String{
+		String:    types.String{Value: s},
+		CreatedBy: t,
+	}, nil
+}
+
+type String struct {
+	types.String
+	CreatedBy attr.Type
+}
+
+func (s String) Type(_ context.Context) attr.Type {
+	return s.CreatedBy
+}
+
+func (s String) Equal(o attr.Value) bool {
+	os, ok := o.(String)
+	if !ok {
+		return false
+	}
+	return s.String.Equal(os.String)
 }

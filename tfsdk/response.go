@@ -306,7 +306,7 @@ type ModifyResourcePlanResponse struct {
 
 	// Diagnostics report errors or warnings related to determining the
 	// planned state of the requested resource. Returning an empty slice
-	// indicates a successful validation with no warnings or errors
+	// indicates a successful plan modification with no warnings or errors
 	// generated.
 	Diagnostics []*tfprotov6.Diagnostic
 }

@@ -429,10 +429,11 @@ var testServeProviderProviderType = tftypes.Object{
 
 func (t *testServeProvider) GetResources(_ context.Context) (map[string]ResourceType, []*tfprotov6.Diagnostic) {
 	return map[string]ResourceType{
-		"test_one":               testServeResourceTypeOne{},
-		"test_two":               testServeResourceTypeTwo{},
-		"test_config_validators": testServeResourceTypeConfigValidators{},
-		"test_validate_config":   testServeResourceTypeValidateConfig{},
+		"test_one":                      testServeResourceTypeOne{},
+		"test_two":                      testServeResourceTypeTwo{},
+		"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiers{},
+		"test_config_validators":        testServeResourceTypeConfigValidators{},
+		"test_validate_config":          testServeResourceTypeValidateConfig{},
 	}, nil
 }
 

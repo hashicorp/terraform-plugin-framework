@@ -9,7 +9,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -2633,9 +2632,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
-			}
-			if diagnostics.DiagsHasErrors(got.Diagnostics) {
-				return
 			}
 			gotPlannedState, err := got.PlannedState.Unmarshal(tc.resourceType)
 			if err != nil {

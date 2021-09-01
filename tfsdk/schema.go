@@ -222,7 +222,7 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 		attrPlan, diags := req.Plan.GetAttribute(ctx, attrPath)
 		resp.Diagnostics = append(resp.Diagnostics, diags...)
 		if diagnostics.DiagsHasErrors(diags) {
-			return
+			continue
 		}
 		nestedAttrReq := ModifyAttributePlanRequest{
 			AttributePath: attrPath,
@@ -244,7 +244,7 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 		setAttrDiags := resp.Plan.SetAttribute(ctx, attrPath, nestedAttrResp.AttributePlan)
 		resp.Diagnostics = append(resp.Diagnostics, setAttrDiags...)
 		if diagnostics.DiagsHasErrors(setAttrDiags) {
-			return
+			continue
 		}
 		resp.Diagnostics = nestedAttrResp.Diagnostics
 
@@ -263,14 +263,11 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 						Attribute: attrPath,
 					})
 
-					return
+					continue
 				}
 
 				for idx := range l.Elems {
 					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyInt(int64(idx)), req, resp)
-					if diagnostics.DiagsHasErrors(resp.Diagnostics) {
-						return
-					}
 				}
 			case NestingModeSet:
 				// TODO: Set implementation
@@ -287,14 +284,11 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 						Attribute: attrPath,
 					})
 
-					return
+					continue
 				}
 
 				for key := range m.Elems {
 					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyString(key), req, resp)
-					if diagnostics.DiagsHasErrors(resp.Diagnostics) {
-						return
-					}
 				}
 			case NestingModeSingle:
 				o, ok := attrPlan.(types.Object)
@@ -308,7 +302,7 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 						Attribute: attrPath,
 					})
 
-					return
+					continue
 				}
 				if len(o.Attrs) > 0 {
 					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath, req, resp)
@@ -322,7 +316,7 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 					Attribute: attrPath,
 				})
 
-				return
+				continue
 			}
 		}
 	}

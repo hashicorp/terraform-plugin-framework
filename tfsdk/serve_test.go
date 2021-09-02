@@ -419,6 +419,46 @@ func TestServerValidateProviderConfig(t *testing.T) {
 						tftypes.NewValue(tftypes.String, "green"),
 					}),
 				}),
+				"set-string": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"set-set-string": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Set{ElementType: tftypes.String}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
+					tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "rojo"),
+						tftypes.NewValue(tftypes.String, "azul"),
+						tftypes.NewValue(tftypes.String, "verde"),
+					}),
+				}),
+				"set-object": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Bool,
+					"baz": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Bool,
+						"baz": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "hello, world"),
+						"bar": tftypes.NewValue(tftypes.Bool, true),
+						"baz": tftypes.NewValue(tftypes.Number, 4567),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Bool,
+						"baz": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "goodnight, moon"),
+						"bar": tftypes.NewValue(tftypes.Bool, false),
+						"baz": tftypes.NewValue(tftypes.Number, 8675309),
+					}),
+				}),
 				"empty-object": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{}),
 				"single-nested-attributes": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"foo": tftypes.String,
@@ -468,6 +508,25 @@ func TestServerValidateProviderConfig(t *testing.T) {
 					}}, map[string]tftypes.Value{
 						"bar": tftypes.NewValue(tftypes.Number, 56789),
 						"foo": tftypes.NewValue(tftypes.String, "moon"),
+					}),
+				}),
+				"set-nested-attributes": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "let's do the math"),
+						"bar": tftypes.NewValue(tftypes.Number, 18973),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "this is why we can't have nice things"),
+						"bar": tftypes.NewValue(tftypes.Number, 14554216),
 					}),
 				}),
 			}),
@@ -798,6 +857,46 @@ func TestServerConfigureProvider(t *testing.T) {
 						tftypes.NewValue(tftypes.String, "green"),
 					}),
 				}),
+				"set-string": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"set-set-string": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Set{ElementType: tftypes.String}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
+					tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "rojo"),
+						tftypes.NewValue(tftypes.String, "azul"),
+						tftypes.NewValue(tftypes.String, "verde"),
+					}),
+				}),
+				"set-object": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Bool,
+					"baz": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Bool,
+						"baz": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "hello, world"),
+						"bar": tftypes.NewValue(tftypes.Bool, true),
+						"baz": tftypes.NewValue(tftypes.Number, 4567),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Bool,
+						"baz": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "goodnight, moon"),
+						"bar": tftypes.NewValue(tftypes.Bool, false),
+						"baz": tftypes.NewValue(tftypes.Number, 8675309),
+					}),
+				}),
 				"empty-object": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{}),
 				"single-nested-attributes": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"foo": tftypes.String,
@@ -807,6 +906,25 @@ func TestServerConfigureProvider(t *testing.T) {
 					"bar": tftypes.NewValue(tftypes.Number, 12),
 				}),
 				"list-nested-attributes": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "let's do the math"),
+						"bar": tftypes.NewValue(tftypes.Number, 18973),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "this is why we can't have nice things"),
+						"bar": tftypes.NewValue(tftypes.Number, 14554216),
+					}),
+				}),
+				"set-nested-attributes": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"foo": tftypes.String,
 					"bar": tftypes.Number,
 				}}}, []tftypes.Value{
@@ -860,6 +978,16 @@ func TestServerConfigureProvider(t *testing.T) {
 					"baz":  tftypes.NewValue(tftypes.Number, 123),
 					"quux": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
 				}),
+				"set-string": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"set-set-string": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Set{ElementType: tftypes.String}}, tftypes.UnknownValue),
+				"set-object": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Bool,
+					"baz": tftypes.Number,
+				}}}, tftypes.UnknownValue),
 				"empty-object": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{}),
 				"single-nested-attributes": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"foo": tftypes.String,
@@ -896,6 +1024,10 @@ func TestServerConfigureProvider(t *testing.T) {
 						"foo": tftypes.NewValue(tftypes.String, "moon"),
 					}),
 				}),
+				"set-nested-attributes": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, tftypes.UnknownValue),
 			}),
 		},
 	}

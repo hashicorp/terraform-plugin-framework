@@ -175,7 +175,19 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Optional: true,
 			},
 		},
-		// TODO: add set attribute when we support it
+		"attr-set": {
+			name: "set",
+			attr: Attribute{
+				Type:     types.SetType{ElemType: types.NumberType},
+				Optional: true,
+			},
+			path: tftypes.NewAttributePath(),
+			expected: &tfprotov6.SchemaAttribute{
+				Name:     "set",
+				Type:     tftypes.Set{ElementType: tftypes.Number},
+				Optional: true,
+			},
+		},
 		// TODO: add tuple attribute when we support it
 		"required": {
 			name: "string",
@@ -2623,6 +2635,127 @@ func TestAttributeValidate(t *testing.T) {
 										},
 									},
 								}, MapNestedAttributesOptions{}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
+		"nested-attr-set-no-validation": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Attributes: SetNestedAttributes(map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+									},
+								}, SetNestedAttributesOptions{}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"nested-attr-set-validation": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Attributes: SetNestedAttributes(map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										Validators: []AttributeValidator{
+											testErrorAttributeValidator{},
+										},
+									},
+								}, SetNestedAttributesOptions{}),
 								Required: true,
 							},
 						},

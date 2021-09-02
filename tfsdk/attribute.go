@@ -309,8 +309,49 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 				}
 			}
 		case NestingModeSet:
-			// TODO: Set implementation
-			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/53
+			s, ok := req.AttributeConfig.(types.Set)
+
+			if !ok {
+				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+				resp.Diagnostics.AddAttributeError(
+					req.AttributePath,
+					"Attribute Validation Error",
+					"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				)
+
+				return
+			}
+
+			for _, value := range s.Elems {
+				tfValueRaw, err := value.ToTerraformValue(ctx)
+
+				if err != nil {
+					err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
+					resp.Diagnostics.AddAttributeError(
+						req.AttributePath,
+						"Attribute Validation Error",
+						"Attribute validation cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
+					)
+
+					return
+				}
+
+				tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
+
+				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+					nestedAttrReq := ValidateAttributeRequest{
+						AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(nestedName),
+						Config:        req.Config,
+					}
+					nestedAttrResp := &ValidateAttributeResponse{
+						Diagnostics: resp.Diagnostics,
+					}
+
+					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+					resp.Diagnostics = nestedAttrResp.Diagnostics
+				}
+			}
 		case NestingModeMap:
 			m, ok := req.AttributeConfig.(types.Map)
 

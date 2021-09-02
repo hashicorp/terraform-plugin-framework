@@ -205,11 +205,16 @@ func TestNewStruct_complex(t *testing.T) {
 	t.Parallel()
 
 	type myStruct struct {
-		Slice          []string `tfsdk:"slice"`
-		SliceOfStructs []struct {
+		ListSlice          []string `tfsdk:"list_slice"`
+		ListSliceOfStructs []struct {
 			A string `tfsdk:"a"`
 			B int    `tfsdk:"b"`
-		} `tfsdk:"slice_of_structs"`
+		} `tfsdk:"list_slice_of_structs"`
+		SetSlice          []string `tfsdk:"set_slice"`
+		SetSliceOfStructs []struct {
+			A string `tfsdk:"a"`
+			B int    `tfsdk:"b"`
+		} `tfsdk:"set_slice_of_structs"`
 		Struct struct {
 			A     bool      `tfsdk:"a"`
 			Slice []float64 `tfsdk:"slice"`
@@ -226,10 +231,21 @@ func TestNewStruct_complex(t *testing.T) {
 	var s myStruct
 	result, diags := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
-			"slice": types.ListType{
+			"list_slice": types.ListType{
 				ElemType: types.StringType,
 			},
-			"slice_of_structs": types.ListType{
+			"list_slice_of_structs": types.ListType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"a": types.StringType,
+						"b": types.NumberType,
+					},
+				},
+			},
+			"set_slice": types.SetType{
+				ElemType: types.StringType,
+			},
+			"set_slice_of_structs": types.SetType{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"a": types.StringType,
@@ -260,10 +276,21 @@ func TestNewStruct_complex(t *testing.T) {
 		},
 	}, tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
-			"slice": tftypes.List{
+			"list_slice": tftypes.List{
 				ElementType: tftypes.String,
 			},
-			"slice_of_structs": tftypes.List{
+			"list_slice_of_structs": tftypes.List{
+				ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"a": tftypes.String,
+						"b": tftypes.Number,
+					},
+				},
+			},
+			"set_slice": tftypes.Set{
+				ElementType: tftypes.String,
+			},
+			"set_slice_of_structs": tftypes.Set{
 				ElementType: tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"a": tftypes.String,
@@ -293,14 +320,48 @@ func TestNewStruct_complex(t *testing.T) {
 			"unhandled_unknown": tftypes.String,
 		},
 	}, map[string]tftypes.Value{
-		"slice": tftypes.NewValue(tftypes.List{
+		"list_slice": tftypes.NewValue(tftypes.List{
 			ElementType: tftypes.String,
 		}, []tftypes.Value{
 			tftypes.NewValue(tftypes.String, "red"),
 			tftypes.NewValue(tftypes.String, "blue"),
 			tftypes.NewValue(tftypes.String, "green"),
 		}),
-		"slice_of_structs": tftypes.NewValue(tftypes.List{
+		"list_slice_of_structs": tftypes.NewValue(tftypes.List{
+			ElementType: tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+					"b": tftypes.Number,
+				},
+			},
+		}, []tftypes.Value{
+			tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+					"b": tftypes.Number,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello, world"),
+				"b": tftypes.NewValue(tftypes.Number, 123),
+			}),
+			tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+					"b": tftypes.Number,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "goodnight, moon"),
+				"b": tftypes.NewValue(tftypes.Number, 456),
+			}),
+		}),
+		"set_slice": tftypes.NewValue(tftypes.Set{
+			ElementType: tftypes.String,
+		}, []tftypes.Value{
+			tftypes.NewValue(tftypes.String, "red"),
+			tftypes.NewValue(tftypes.String, "blue"),
+			tftypes.NewValue(tftypes.String, "green"),
+		}),
+		"set_slice_of_structs": tftypes.NewValue(tftypes.Set{
 			ElementType: tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"a": tftypes.String,
@@ -380,8 +441,22 @@ func TestNewStruct_complex(t *testing.T) {
 	}
 	str := "pointed"
 	expected := myStruct{
-		Slice: []string{"red", "blue", "green"},
-		SliceOfStructs: []struct {
+		ListSlice: []string{"red", "blue", "green"},
+		ListSliceOfStructs: []struct {
+			A string `tfsdk:"a"`
+			B int    `tfsdk:"b"`
+		}{
+			{
+				A: "hello, world",
+				B: 123,
+			},
+			{
+				A: "goodnight, moon",
+				B: 456,
+			},
+		},
+		SetSlice: []string{"red", "blue", "green"},
+		SetSliceOfStructs: []struct {
 			A string `tfsdk:"a"`
 			B int    `tfsdk:"b"`
 		}{
@@ -471,11 +546,16 @@ func TestFromStruct_complex(t *testing.T) {
 	t.Parallel()
 
 	type myStruct struct {
-		Slice          []string `tfsdk:"slice"`
-		SliceOfStructs []struct {
+		ListSlice          []string `tfsdk:"list_slice"`
+		ListSliceOfStructs []struct {
 			A string `tfsdk:"a"`
 			B int    `tfsdk:"b"`
-		} `tfsdk:"slice_of_structs"`
+		} `tfsdk:"list_slice_of_structs"`
+		SetSlice          []string `tfsdk:"set_slice"`
+		SetSliceOfStructs []struct {
+			A string `tfsdk:"a"`
+			B int    `tfsdk:"b"`
+		} `tfsdk:"set_slice_of_structs"`
 		Struct struct {
 			A     bool      `tfsdk:"a"`
 			Slice []float64 `tfsdk:"slice"`
@@ -492,8 +572,22 @@ func TestFromStruct_complex(t *testing.T) {
 	}
 	str := "pointed"
 	s := myStruct{
-		Slice: []string{"red", "blue", "green"},
-		SliceOfStructs: []struct {
+		ListSlice: []string{"red", "blue", "green"},
+		ListSliceOfStructs: []struct {
+			A string `tfsdk:"a"`
+			B int    `tfsdk:"b"`
+		}{
+			{
+				A: "hello, world",
+				B: 123,
+			},
+			{
+				A: "goodnight, moon",
+				B: 456,
+			},
+		},
+		SetSlice: []string{"red", "blue", "green"},
+		SetSliceOfStructs: []struct {
 			A string `tfsdk:"a"`
 			B int    `tfsdk:"b"`
 		}{
@@ -536,10 +630,21 @@ func TestFromStruct_complex(t *testing.T) {
 	}
 	result, diags := refl.FromStruct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
-			"slice": types.ListType{
+			"list_slice": types.ListType{
 				ElemType: types.StringType,
 			},
-			"slice_of_structs": types.ListType{
+			"list_slice_of_structs": types.ListType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"a": types.StringType,
+						"b": types.NumberType,
+					},
+				},
+			},
+			"set_slice": types.SetType{
+				ElemType: types.StringType,
+			},
+			"set_slice_of_structs": types.SetType{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"a": types.StringType,
@@ -575,10 +680,21 @@ func TestFromStruct_complex(t *testing.T) {
 	}
 	expected := types.Object{
 		AttrTypes: map[string]attr.Type{
-			"slice": types.ListType{
+			"list_slice": types.ListType{
 				ElemType: types.StringType,
 			},
-			"slice_of_structs": types.ListType{
+			"list_slice_of_structs": types.ListType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"a": types.StringType,
+						"b": types.NumberType,
+					},
+				},
+			},
+			"set_slice": types.SetType{
+				ElemType: types.StringType,
+			},
+			"set_slice_of_structs": types.SetType{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"a": types.StringType,
@@ -609,7 +725,7 @@ func TestFromStruct_complex(t *testing.T) {
 			"uint":            types.NumberType,
 		},
 		Attrs: map[string]attr.Value{
-			"slice": types.List{
+			"list_slice": types.List{
 				ElemType: types.StringType,
 				Elems: []attr.Value{
 					types.String{Value: "red"},
@@ -617,7 +733,45 @@ func TestFromStruct_complex(t *testing.T) {
 					types.String{Value: "green"},
 				},
 			},
-			"slice_of_structs": types.List{
+			"list_slice_of_structs": types.List{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"a": types.StringType,
+						"b": types.NumberType,
+					},
+				},
+				Elems: []attr.Value{
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"a": types.StringType,
+							"b": types.NumberType,
+						},
+						Attrs: map[string]attr.Value{
+							"a": types.String{Value: "hello, world"},
+							"b": types.Number{Value: big.NewFloat(123)},
+						},
+					},
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"a": types.StringType,
+							"b": types.NumberType,
+						},
+						Attrs: map[string]attr.Value{
+							"a": types.String{Value: "goodnight, moon"},
+							"b": types.Number{Value: big.NewFloat(456)},
+						},
+					},
+				},
+			},
+			"set_slice": types.Set{
+				ElemType: types.StringType,
+				Elems: []attr.Value{
+					types.String{Value: "red"},
+					types.String{Value: "blue"},
+					types.String{Value: "green"},
+				},
+			},
+			"set_slice_of_structs": types.Set{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"a": types.StringType,

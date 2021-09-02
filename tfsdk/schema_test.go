@@ -158,8 +158,11 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 						Type:     types.MapType{ElemType: types.NumberType},
 						Computed: true,
 					},
+					"set": {
+						Type:     types.SetType{ElemType: types.StringType},
+						Required: true,
+					},
 					// TODO: add tuple support when it lands
-					// TODO: add set support when it lands
 				},
 			},
 			expected: &tfprotov6.Schema{
@@ -184,6 +187,11 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 								"bool":   tftypes.Bool,
 							}},
 							Optional: true,
+						},
+						{
+							Name:     "set",
+							Type:     tftypes.Set{ElementType: tftypes.String},
+							Required: true,
 						},
 					},
 				},

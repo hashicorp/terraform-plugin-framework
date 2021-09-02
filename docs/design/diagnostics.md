@@ -11,7 +11,7 @@ There are many pieces of framework functionality that warrant enhanced practitio
 - [Plan Modification](./plan-modification.md)
 - [Validation](./validation.md)
 
-This design documentation will walkthrough and recommend options for abstracted diagnostics handling and extensibility in the framework.
+This design documentation will walk through and recommend options for abstracted diagnostics handling and extensibility in the framework.
 
 ## Background
 
@@ -80,7 +80,7 @@ message ValidateProviderConfig {
 }
 ```
 
-All RPCs except `StopProvider`, which never surfaces practitioner errors, include diagnostics support.
+All RPCs except `StopProvider`, which never surfaces errors to the practitioner, include diagnostics support.
 
 ### terraform-plugin-go
 

@@ -355,7 +355,7 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 				return
 			}
 
-			if len(o.Attrs) > 0 {
+			if !o.Null {
 				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 					nestedAttrReq := ValidateAttributeRequest{
 						AttributePath: req.AttributePath.WithAttributeName(nestedName),

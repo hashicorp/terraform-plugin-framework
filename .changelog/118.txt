@@ -1,0 +1,3 @@
+```release-note:bug
+tfsdk: Don't attempt validation on a Null-valued `SingleNestedAttribute`
+```

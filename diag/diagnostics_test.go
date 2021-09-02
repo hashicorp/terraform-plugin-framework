@@ -284,6 +284,38 @@ func TestDiagnosticsAppend(t *testing.T) {
 				diag.NewWarningDiagnostic("four summary", "four detail"),
 			},
 		},
+		"append-less-specific": {
+			diags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+			},
+			in: diag.Diagnostics{
+				diag.NewErrorDiagnostic("one summary", "one detail"),
+				diag.NewWarningDiagnostic("two summary", "two detail"),
+			},
+			expected: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+				diag.NewErrorDiagnostic("one summary", "one detail"),
+				diag.NewWarningDiagnostic("two summary", "two detail"),
+			},
+		},
+		"append-more-specific": {
+			diags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("one summary", "one detail"),
+				diag.NewWarningDiagnostic("two summary", "two detail"),
+			},
+			in: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic("one summary", "one detail"),
+				diag.NewWarningDiagnostic("two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+			},
+		},
 		"empty-diagnostics": {
 			diags: diag.Diagnostics{
 				diag.NewErrorDiagnostic("one summary", "one detail"),
@@ -347,12 +379,20 @@ func TestDiagnosticsContains(t *testing.T) {
 		in       diag.Diagnostic
 		expected bool
 	}{
-		"matching": {
+		"matching-basic": {
 			diags: diag.Diagnostics{
 				diag.NewErrorDiagnostic("one summary", "one detail"),
 				diag.NewWarningDiagnostic("two summary", "two detail"),
 			},
 			in:       diag.NewWarningDiagnostic("two summary", "two detail"),
+			expected: true,
+		},
+		"matching-attribute-path": {
+			diags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+			},
+			in:       diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
 			expected: true,
 		},
 		"nil-diagnostics": {
@@ -366,6 +406,14 @@ func TestDiagnosticsContains(t *testing.T) {
 				diag.NewWarningDiagnostic("two summary", "two detail"),
 			},
 			in:       nil,
+			expected: false,
+		},
+		"different-attribute-path": {
+			diags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+			},
+			in:       diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("different"), "two summary", "two detail"),
 			expected: false,
 		},
 		"different-detail": {
@@ -392,6 +440,22 @@ func TestDiagnosticsContains(t *testing.T) {
 			in:       diag.NewWarningDiagnostic("different summary", "two detail"),
 			expected: false,
 		},
+		"different-type-less-specific": {
+			diags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+			},
+			in:       diag.NewWarningDiagnostic("two summary", "two detail"),
+			expected: false,
+		},
+		"different-type-more-specific": {
+			diags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("one summary", "one detail"),
+				diag.NewWarningDiagnostic("two summary", "two detail"),
+			},
+			in:       diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+			expected: false,
+		},
 	}
 
 	for name, tc := range testCases {
@@ -415,10 +479,17 @@ func TestDiagnosticsHasError(t *testing.T) {
 		diags    diag.Diagnostics
 		expected bool
 	}{
-		"matching": {
+		"matching-basic": {
 			diags: diag.Diagnostics{
 				diag.NewWarningDiagnostic("one summary", "one detail"),
 				diag.NewErrorDiagnostic("two summary", "two detail"),
+			},
+			expected: true,
+		},
+		"matching-attribute-path": {
+			diags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
 			},
 			expected: true,
 		},

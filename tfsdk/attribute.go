@@ -73,6 +73,13 @@ type Attribute struct {
 
 	// Validators defines validation functionality for the attribute.
 	Validators []AttributeValidator
+
+	// PlanModifiers defines a sequence of modifiers for this attribute at
+	// plan time.
+	// Please note that plan modification only applies to resources, not
+	// data sources. Setting PlanModifiers on a data source attribute will
+	// have no effect.
+	PlanModifiers AttributePlanModifiers
 }
 
 // ApplyTerraform5AttributePathStep transparently calls
@@ -139,6 +146,10 @@ func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, pa
 		Optional:  a.Optional,
 		Computed:  a.Computed,
 		Sensitive: a.Sensitive,
+	}
+
+	if !a.Required && !a.Optional && !a.Computed {
+		return nil, path.NewErrorf("must have Required, Optional, or Computed set")
 	}
 
 	if a.DeprecationMessage != "" {
@@ -232,6 +243,17 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 			Severity:  tfprotov6.DiagnosticSeverityError,
 			Summary:   "Invalid Attribute Definition",
 			Detail:    "Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
+			Attribute: req.AttributePath,
+		})
+
+		return
+	}
+
+	if !a.Required && !a.Optional && !a.Computed {
+		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+			Severity:  tfprotov6.DiagnosticSeverityError,
+			Summary:   "Invalid Attribute Definition",
+			Detail:    "Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
 			Attribute: req.AttributePath,
 		})
 
@@ -366,6 +388,48 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 				Detail:    a.DeprecationMessage,
 				Attribute: req.AttributePath,
 			})
+		}
+	}
+}
+
+// modifyPlan runs all AttributePlanModifiers
+func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	attrConfig, diags := req.Config.GetAttribute(ctx, req.AttributePath)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	if diagnostics.DiagsHasErrors(diags) {
+		return
+	}
+	req.AttributeConfig = attrConfig
+
+	attrState, diags := req.State.GetAttribute(ctx, req.AttributePath)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	if diagnostics.DiagsHasErrors(diags) {
+		return
+	}
+	req.AttributeState = attrState
+
+	attrPlan, diags := req.Plan.GetAttribute(ctx, req.AttributePath)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	if diagnostics.DiagsHasErrors(diags) {
+		return
+	}
+	req.AttributePlan = attrPlan
+
+	modifyReq := ModifyAttributePlanRequest{
+		AttributePath:   req.AttributePath,
+		Config:          req.Config,
+		State:           req.State,
+		Plan:            req.Plan,
+		AttributeConfig: req.AttributeConfig,
+		AttributeState:  req.AttributeState,
+		AttributePlan:   req.AttributePlan,
+		ProviderMeta:    req.ProviderMeta,
+	}
+	for _, planModifier := range a.PlanModifiers {
+		planModifier.Modify(ctx, modifyReq, resp)
+		modifyReq.AttributePlan = resp.AttributePlan
+		if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+			return
 		}
 	}
 }

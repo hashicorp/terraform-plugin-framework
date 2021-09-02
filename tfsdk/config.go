@@ -38,6 +38,12 @@ func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (
 		})
 	}
 
+	// if the whole config is nil, the value of a valid attribute is also
+	// nil
+	if c.Raw.IsNull() {
+		return nil, nil
+	}
+
 	tfValue, err := c.terraformValueAtPath(path)
 	if err != nil {
 		return nil, append(diags, &tfprotov6.Diagnostic{

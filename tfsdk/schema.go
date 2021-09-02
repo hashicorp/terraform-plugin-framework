@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -187,6 +188,7 @@ func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) 
 // validate performs all Attribute validation.
 func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *ValidateSchemaResponse) {
 	for name, attribute := range s.Attributes {
+
 		attributeReq := ValidateAttributeRequest{
 			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
 			Config:        req.Config,
@@ -206,5 +208,122 @@ func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *V
 			Summary:  "Deprecated",
 			Detail:   s.DeprecationMessage,
 		})
+	}
+}
+
+// modifyAttributePlans runs all AttributePlanModifiers in all schema attributes
+func (s Schema) modifyAttributePlans(ctx context.Context, req ModifySchemaPlanRequest, resp *ModifySchemaPlanResponse) {
+	modifyAttributesPlans(ctx, s.Attributes, tftypes.NewAttributePath(), req, resp)
+}
+
+func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path *tftypes.AttributePath, req ModifySchemaPlanRequest, resp *ModifySchemaPlanResponse) {
+	for name, nestedAttr := range attrs {
+		attrPath := path.WithAttributeName(name)
+		attrPlan, diags := req.Plan.GetAttribute(ctx, attrPath)
+		resp.Diagnostics = append(resp.Diagnostics, diags...)
+		if diagnostics.DiagsHasErrors(diags) {
+			return
+		}
+		nestedAttrReq := ModifyAttributePlanRequest{
+			AttributePath: attrPath,
+			Config:        req.Config,
+			State:         req.State,
+			Plan:          req.Plan,
+			ProviderMeta:  req.ProviderMeta,
+		}
+		nestedAttrResp := &ModifyAttributePlanResponse{
+			AttributePlan: attrPlan,
+			Diagnostics:   resp.Diagnostics,
+		}
+
+		nestedAttr.modifyPlan(ctx, nestedAttrReq, nestedAttrResp)
+		if nestedAttrResp.RequiresReplace {
+			resp.RequiresReplace = append(resp.RequiresReplace, attrPath)
+		}
+
+		setAttrDiags := resp.Plan.SetAttribute(ctx, attrPath, nestedAttrResp.AttributePlan)
+		resp.Diagnostics = append(resp.Diagnostics, setAttrDiags...)
+		if diagnostics.DiagsHasErrors(setAttrDiags) {
+			return
+		}
+		resp.Diagnostics = nestedAttrResp.Diagnostics
+
+		if nestedAttr.Attributes != nil {
+			nm := nestedAttr.Attributes.GetNestingMode()
+			switch nm {
+			case NestingModeList:
+				l, ok := attrPlan.(types.List)
+
+				if !ok {
+					err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", attrPlan, nm, attrPath)
+					resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+						Severity:  tfprotov6.DiagnosticSeverityError,
+						Summary:   "Attribute Plan Modification Error",
+						Detail:    "Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+						Attribute: attrPath,
+					})
+
+					return
+				}
+
+				for idx := range l.Elems {
+					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyInt(int64(idx)), req, resp)
+					if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+						return
+					}
+				}
+			case NestingModeSet:
+				// TODO: Set implementation
+				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/53
+			case NestingModeMap:
+				m, ok := attrPlan.(types.Map)
+
+				if !ok {
+					err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", attrPlan, nm, attrPath)
+					resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+						Severity:  tfprotov6.DiagnosticSeverityError,
+						Summary:   "Attribute Plan Modification Error",
+						Detail:    "Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+						Attribute: attrPath,
+					})
+
+					return
+				}
+
+				for key := range m.Elems {
+					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyString(key), req, resp)
+					if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+						return
+					}
+				}
+			case NestingModeSingle:
+				o, ok := attrPlan.(types.Object)
+
+				if !ok {
+					err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", attrPlan, nm, attrPath)
+					resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+						Severity:  tfprotov6.DiagnosticSeverityError,
+						Summary:   "Attribute Validation Error",
+						Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+						Attribute: attrPath,
+					})
+
+					return
+				}
+				if len(o.Attrs) > 0 {
+					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath, req, resp)
+				}
+			default:
+				err := fmt.Errorf("unknown attribute nesting mode (%T: %v) at path: %s", nm, nm, attrPath)
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+					Severity:  tfprotov6.DiagnosticSeverityError,
+					Summary:   "Attribute Plan Modification Error",
+					Detail:    "Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
+					Attribute: attrPath,
+				})
+
+				return
+			}
+		}
 	}
 }

@@ -14,24 +14,24 @@ commands:
             - "/go/pkg/mod"
 
 jobs:
-  "docker-go116 release":
+  "docker-go117 release":
     docker:
-      - image: docker.mirror.hashicorp.services/circleci/golang:1.16
+      - image: docker.mirror.hashicorp.services/circleci/golang:1.17
     steps:
       - add_ssh_keys:
           fingerprints:
             - "7d:8b:b0:21:72:1d:36:cf:47:20:7b:a4:f2:b0:d0:fe"
       - get_dependencies
       - run: ./scripts/release/release.sh
-  "docker-go116 build":
+  "docker-go117 build":
     docker:
-      - image: docker.mirror.hashicorp.services/circleci/golang:1.16
+      - image: docker.mirror.hashicorp.services/circleci/golang:1.17
     steps:
       - get_dependencies
       - run: go build ./...
-  "docker-go116 test":
+  "docker-go117 test":
     docker:
-      - image: docker.mirror.hashicorp.services/circleci/golang:1.16
+      - image: docker.mirror.hashicorp.services/circleci/golang:1.17
         environment:
           TF_ACC_TERRAFORM_VERSION: "0.12.26"
     parameters:
@@ -51,15 +51,15 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: << parameters.test_results >>
-  "docker-go116 vet":
+  "docker-go117 vet":
     docker:
-      - image: docker.mirror.hashicorp.services/circleci/golang:1.16
+      - image: docker.mirror.hashicorp.services/circleci/golang:1.17
     steps:
       - get_dependencies
       - run: go vet ./...
-  "docker-go116 gofmt":
+  "docker-go117 gofmt":
     docker:
-      - image: docker.mirror.hashicorp.services/circleci/golang:1.16
+      - image: docker.mirror.hashicorp.services/circleci/golang:1.17
     steps:
       - get_dependencies
       - run: ./scripts/gofmtcheck.sh
@@ -68,41 +68,41 @@ workflows:
   version: 2
   pr:
     jobs:
-      - "docker-go116 build"
-      - "docker-go116 test":
+      - "docker-go117 build"
+      - "docker-go117 test":
           requires:
-            - "docker-go116 build"
-      - "docker-go116 vet":
+            - "docker-go117 build"
+      - "docker-go117 vet":
           requires:
-            - "docker-go116 build"
-      - "docker-go116 gofmt":
+            - "docker-go117 build"
+      - "docker-go117 gofmt":
           requires:
-            - "docker-go116 build"
+            - "docker-go117 build"
   release:
     jobs:
-      - "docker-go116 build"
-      - "docker-go116 test":
+      - "docker-go117 build"
+      - "docker-go117 test":
           requires:
-            - "docker-go116 build"
-      - "docker-go116 vet":
+            - "docker-go117 build"
+      - "docker-go117 vet":
           requires:
-            - "docker-go116 build"
-      - "docker-go116 gofmt":
+            - "docker-go117 build"
+      - "docker-go117 gofmt":
           requires:
-            - "docker-go116 build"
+            - "docker-go117 build"
       - trigger-release:
           filters:
             branches:
               only:
                 - main
           type: approval
-      - "docker-go116 release":
+      - "docker-go117 release":
           filters:
             branches:
               only:
                 - main
           requires:
             - trigger-release
-            - "docker-go116 test"
-            - "docker-go116 vet"
-            - "docker-go116 gofmt"
+            - "docker-go117 test"
+            - "docker-go117 vet"
+            - "docker-go117 gofmt"

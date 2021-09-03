@@ -1015,7 +1015,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestErrorDiagnostic,
+					testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
 				},
 			},
 		},
@@ -1042,7 +1042,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestWarningDiagnostic,
+					testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
 				},
 			},
 		},

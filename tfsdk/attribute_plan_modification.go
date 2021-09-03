@@ -31,9 +31,16 @@ type AttributePlanModifier interface {
 	// the diff that should be shown to the user for approval, and once
 	// during the apply phase with any unknown values from configuration
 	// filled in with their final values.
+	//
 	// The Modify function has access to the config, state, and plan for
 	// both the attribute in question and the entire resource, but it can
 	// only modify the value of the one attribute.
+	//
+	// Any returned errors will stop further execution of plan modifications
+	// for this Attribute and any nested Attribute. Other Attribute at the same
+	// or higher levels of the Schema will still execute any plan modifications
+	// to ensure all warnings and errors across all root Attribute are
+	// captured.
 	//
 	// Please see the documentation for ResourceWithModifyPlan#ModifyPlan
 	// for further details.

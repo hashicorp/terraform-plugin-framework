@@ -75,10 +75,16 @@ type Attribute struct {
 	Validators []AttributeValidator
 
 	// PlanModifiers defines a sequence of modifiers for this attribute at
-	// plan time.
-	// Please note that plan modification only applies to resources, not
-	// data sources. Setting PlanModifiers on a data source attribute will
-	// have no effect.
+	// plan time. Attribute-level plan modifications occur before any
+	// resource-level plan modifications.
+	//
+	// Any errors will prevent further execution of this sequence
+	// of modifiers and modifiers associated with nested Attribute, but have no
+	// effect with other Attribute in the Schema.
+	//
+	// Plan modification only applies to resources, not data sources or
+	// providers. Setting PlanModifiers on a data source or provider attribute
+	// will have no effect.
 	PlanModifiers AttributePlanModifiers
 }
 

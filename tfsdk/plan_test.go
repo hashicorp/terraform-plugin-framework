@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -22,7 +22,7 @@ func TestPlanGet(t *testing.T) {
 	type testCase struct {
 		plan          Plan
 		expected      testPlanGetData
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -69,7 +69,7 @@ func TestPlanGet(t *testing.T) {
 			expected: testPlanGetData{
 				Name: types.String{Value: ""},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -92,7 +92,7 @@ func TestPlanGet(t *testing.T) {
 			expected: testPlanGetData{
 				Name: types.String{Value: "namevalue"},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
 		},
 	}
 
@@ -122,7 +122,7 @@ func TestPlanGetAttribute(t *testing.T) {
 	type testCase struct {
 		plan          Plan
 		expected      attr.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -165,7 +165,7 @@ func TestPlanGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      nil,
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -186,7 +186,7 @@ func TestPlanGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      types.String{Value: "namevalue"},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
 		},
 	}
 
@@ -215,7 +215,7 @@ func TestPlanSet(t *testing.T) {
 		plan          Plan
 		val           interface{}
 		expected      tftypes.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -293,7 +293,7 @@ func TestPlanSet(t *testing.T) {
 				Name: "newvalue",
 			},
 			expected:      tftypes.Value{},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -319,7 +319,7 @@ func TestPlanSet(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
 		},
 	}
 
@@ -349,7 +349,7 @@ func TestPlanSetAttribute(t *testing.T) {
 		path          *tftypes.AttributePath
 		val           interface{}
 		expected      tftypes.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -408,7 +408,7 @@ func TestPlanSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "originalname"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -437,10 +437,7 @@ func TestPlanSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newname"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				testtypes.TestWarningDiagnostic,
-				// TODO: Consider duplicate diagnostic consolidation functionality with diagnostic abstraction
-				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/24
+			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic,
 			},
 		},

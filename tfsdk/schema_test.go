@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -584,12 +585,11 @@ func TestSchemaValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateSchemaResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity: tfprotov6.DiagnosticSeverityWarning,
-						Summary:  "Deprecated",
-						Detail:   "Use something else instead.",
-					},
+				Diagnostics: diag.Diagnostics{
+					diag.NewWarningDiagnostic(
+						"Deprecated",
+						"Use something else instead.",
+					),
 				},
 			},
 		},
@@ -626,9 +626,9 @@ func TestSchemaValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateSchemaResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					testWarningDiagnostic,
-					testWarningDiagnostic,
+				Diagnostics: diag.Diagnostics{
+					testWarningDiagnostic1,
+					testWarningDiagnostic2,
 				},
 			},
 		},
@@ -665,9 +665,9 @@ func TestSchemaValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateSchemaResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					testErrorDiagnostic,
-					testErrorDiagnostic,
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+					testErrorDiagnostic2,
 				},
 			},
 		},

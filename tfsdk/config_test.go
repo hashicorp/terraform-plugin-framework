@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -22,7 +22,7 @@ func TestConfigGet(t *testing.T) {
 	type testCase struct {
 		config        Config
 		expected      testConfigGetData
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -69,7 +69,7 @@ func TestConfigGet(t *testing.T) {
 			expected: testConfigGetData{
 				Name: types.String{Value: ""},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			config: Config{
@@ -92,7 +92,7 @@ func TestConfigGet(t *testing.T) {
 			expected: testConfigGetData{
 				Name: types.String{Value: "namevalue"},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
 		},
 	}
 
@@ -122,7 +122,7 @@ func TestConfigGetAttribute(t *testing.T) {
 	type testCase struct {
 		config        Config
 		expected      attr.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -165,7 +165,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      nil,
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			config: Config{
@@ -186,7 +186,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      types.String{Value: "namevalue"},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
 		},
 	}
 

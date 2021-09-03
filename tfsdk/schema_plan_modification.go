@@ -1,7 +1,7 @@
 package tfsdk
 
 import (
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -35,5 +35,5 @@ type ModifySchemaPlanResponse struct {
 	// Diagnostics report errors or warnings related to running all attribute
 	// plan modifiers. Returning an empty slice indicates a successful
 	// plan modification with no warnings or errors generated.
-	Diagnostics []*tfprotov6.Diagnostic
+	Diagnostics diag.Diagnostics
 }

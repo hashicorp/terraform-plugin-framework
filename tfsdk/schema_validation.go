@@ -1,7 +1,7 @@
 package tfsdk
 
 import (
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 // ValidateSchemaRequest repesents a request for validating a Schema.
@@ -19,5 +19,5 @@ type ValidateSchemaRequest struct {
 type ValidateSchemaResponse struct {
 	// Diagnostics report errors or warnings related to validating the schema.
 	// An empty slice indicates success, with no warnings or errors generated.
-	Diagnostics []*tfprotov6.Diagnostic
+	Diagnostics diag.Diagnostics
 }

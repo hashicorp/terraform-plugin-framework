@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -11,7 +12,7 @@ import (
 
 type testServeResourceTypeTwo struct{}
 
-func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (Schema, diag.Diagnostics) {
 	return Schema{
 		Attributes: map[string]Attribute{
 			"id": {
@@ -41,7 +42,7 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (Schema, []*tfpr
 	}, nil
 }
 
-func (rt testServeResourceTypeTwo) NewResource(_ context.Context, p Provider) (Resource, []*tfprotov6.Diagnostic) {
+func (rt testServeResourceTypeTwo) NewResource(_ context.Context, p Provider) (Resource, diag.Diagnostics) {
 	provider, ok := p.(*testServeProvider)
 	if !ok {
 		prov, ok := p.(*testServeProviderWithMetaSchema)

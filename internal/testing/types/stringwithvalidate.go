@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -21,10 +21,10 @@ type StringTypeWithValidateWarning struct {
 	StringType
 }
 
-func (t StringTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value) []*tfprotov6.Diagnostic {
-	return []*tfprotov6.Diagnostic{TestErrorDiagnostic}
+func (t StringTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value) diag.Diagnostics {
+	return diag.Diagnostics{TestErrorDiagnostic}
 }
 
-func (t StringTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value) []*tfprotov6.Diagnostic {
-	return []*tfprotov6.Diagnostic{TestWarningDiagnostic}
+func (t StringTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value) diag.Diagnostics {
+	return diag.Diagnostics{TestWarningDiagnostic}
 }

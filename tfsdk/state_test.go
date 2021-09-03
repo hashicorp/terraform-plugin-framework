@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -35,7 +35,7 @@ func TestStateGet(t *testing.T) {
 	type testCase struct {
 		state         State
 		expected      interface{}
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -359,7 +359,7 @@ func TestStateGet(t *testing.T) {
 					Interface: "",
 				},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -530,7 +530,7 @@ func TestStateGet(t *testing.T) {
 					Interface: "SCSI",
 				},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
 		},
 	}
 
@@ -561,7 +561,7 @@ func TestStateGetAttribute(t *testing.T) {
 		state         State
 		path          *tftypes.AttributePath
 		expected      attr.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -827,7 +827,7 @@ func TestStateGetAttribute(t *testing.T) {
 			},
 			path:          tftypes.NewAttributePath().WithAttributeName("name"),
 			expected:      nil,
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -849,7 +849,7 @@ func TestStateGetAttribute(t *testing.T) {
 			},
 			path:          tftypes.NewAttributePath().WithAttributeName("name"),
 			expected:      types.String{Value: "namevalue"},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
 		},
 	}
 
@@ -878,7 +878,7 @@ func TestStateSet(t *testing.T) {
 		state         State
 		val           interface{}
 		expected      tftypes.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -1189,7 +1189,7 @@ func TestStateSet(t *testing.T) {
 				Name: "newvalue",
 			},
 			expected:      tftypes.Value{},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -1215,7 +1215,7 @@ func TestStateSet(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
 		},
 	}
 
@@ -1245,7 +1245,7 @@ func TestStateSetAttribute(t *testing.T) {
 		path          *tftypes.AttributePath
 		val           interface{}
 		expected      tftypes.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -1539,7 +1539,7 @@ func TestStateSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "originalname"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -1568,10 +1568,7 @@ func TestStateSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newname"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				testtypes.TestWarningDiagnostic,
-				// TODO: Consider duplicate diagnostic consolidation functionality with diagnostic abstraction
-				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/24
+			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic,
 			},
 		},

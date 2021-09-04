@@ -2,6 +2,8 @@ package reflect_test
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
@@ -20,11 +22,12 @@ func TestNewStruct_notAnObject(t *testing.T) {
 
 	var s struct{}
 	expectedDiags := diag.Diagnostics{
-		diag.NewAttributeErrorDiagnostic(
-			tftypes.NewAttributePath(),
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot reflect tftypes.String into a struct, must be an object",
-		),
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			Val:        tftypes.NewValue(tftypes.String, "hello"),
+			TargetType: reflect.TypeOf(s),
+			Err:        fmt.Errorf("cannot reflect %s into a struct, must be an object", tftypes.String),
+		},
 	}
 
 	_, diags := refl.Struct(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
@@ -37,26 +40,29 @@ func TestNewStruct_notAnObject(t *testing.T) {
 func TestNewStruct_notAStruct(t *testing.T) {
 	t.Parallel()
 
+	val := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"a": tftypes.String,
+		},
+	}, map[string]tftypes.Value{
+		"a": tftypes.NewValue(tftypes.String, "hello"),
+	})
+
 	var s string
 	expectedDiags := diag.Diagnostics{
-		diag.NewAttributeErrorDiagnostic(
-			tftypes.NewAttributePath(),
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\nexpected a struct type, got string",
-		),
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			TargetType: reflect.TypeOf(s),
+			Val:        val,
+			Err:        fmt.Errorf("expected a struct type, got string"),
+		},
 	}
 
 	_, diags := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"a": types.StringType,
 		},
-	}, tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"a": tftypes.String,
-		},
-	}, map[string]tftypes.Value{
-		"a": tftypes.NewValue(tftypes.String, "hello"),
-	}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+	}, val, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -66,20 +72,23 @@ func TestNewStruct_notAStruct(t *testing.T) {
 func TestNewStruct_objectMissingFields(t *testing.T) {
 	t.Parallel()
 
+	val := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{},
+	}, map[string]tftypes.Value{})
+
 	var s struct {
 		A string `tfsdk:"a"`
 	}
 	expectedDiags := diag.Diagnostics{
-		diag.NewAttributeErrorDiagnostic(
-			tftypes.NewAttributePath(),
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\nmismatch between struct and object: Struct defines fields not found in object: a.",
-		),
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			Err:        errors.New("mismatch between struct and object: Struct defines fields not found in object: a."),
+			Val:        val,
+			TargetType: reflect.TypeOf(s),
+		},
 	}
 
-	_, diags := refl.Struct(context.Background(), types.ObjectType{}, tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{},
-	}, map[string]tftypes.Value{}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+	_, diags := refl.Struct(context.Background(), types.ObjectType{}, val, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -89,26 +98,29 @@ func TestNewStruct_objectMissingFields(t *testing.T) {
 func TestNewStruct_structMissingProperties(t *testing.T) {
 	t.Parallel()
 
+	val := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"a": tftypes.String,
+		},
+	}, map[string]tftypes.Value{
+		"a": tftypes.NewValue(tftypes.String, "hello"),
+	})
+
 	var s struct{}
 	expectedDiags := diag.Diagnostics{
-		diag.NewAttributeErrorDiagnostic(
-			tftypes.NewAttributePath(),
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\nmismatch between struct and object: Object defines fields not found in struct: a.",
-		),
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			Err:        errors.New("mismatch between struct and object: Object defines fields not found in struct: a."),
+			Val:        val,
+			TargetType: reflect.TypeOf(s),
+		},
 	}
 
 	_, diags := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"a": types.StringType,
 		},
-	}, tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"a": tftypes.String,
-		},
-	}, map[string]tftypes.Value{
-		"a": tftypes.NewValue(tftypes.String, "hello"),
-	}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+	}, val, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -118,28 +130,31 @@ func TestNewStruct_structMissingProperties(t *testing.T) {
 func TestNewStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
 	t.Parallel()
 
+	val := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"b": tftypes.String,
+		},
+	}, map[string]tftypes.Value{
+		"b": tftypes.NewValue(tftypes.String, "hello"),
+	})
+
 	var s struct {
 		A string `tfsdk:"a"`
 	}
 	expectedDiags := diag.Diagnostics{
-		diag.NewAttributeErrorDiagnostic(
-			tftypes.NewAttributePath(),
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to struct. This is always an error in the provider. Please report the following to the provider developer:\n\nmismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b.",
-		),
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			TargetType: reflect.TypeOf(s),
+			Val:        val,
+			Err:        errors.New("mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b."),
+		},
 	}
 
 	_, diags := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"a": types.StringType,
 		},
-	}, tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"b": tftypes.String,
-		},
-	}, map[string]tftypes.Value{
-		"b": tftypes.NewValue(tftypes.String, "hello"),
-	}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+	}, val, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)

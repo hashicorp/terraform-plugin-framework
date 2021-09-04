@@ -17,23 +17,23 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 
 	// this only works with slices, so check that out first
 	if target.Kind() != reflect.Slice {
-		err := fmt.Errorf("expected a slice type, got %s", target.Type())
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to slice. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+		diags.Append(DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			AttrPath:   path,
+			Err:        fmt.Errorf("expected a slice type, got %s", target.Type()),
+		})
 		return target, diags
 	}
 	// TODO: check that the val is a list or set or tuple
 	elemTyper, ok := typ.(attr.TypeWithElementType)
 	if !ok {
-		err := fmt.Errorf("cannot reflect %s using type information provided by %T, %T must be an attr.TypeWithElementType", val.Type(), typ, typ)
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to slice. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+		diags.Append(DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			AttrPath:   path,
+			Err:        fmt.Errorf("cannot reflect %s using type information provided by %T, %T must be an attr.TypeWithElementType", val.Type(), typ, typ),
+		})
 		return target, diags
 	}
 
@@ -42,11 +42,12 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 	var values []tftypes.Value
 	err := val.As(&values)
 	if err != nil {
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to slice. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+		diags.Append(DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			AttrPath:   path,
+			Err:        err,
+		})
 		return target, diags
 	}
 

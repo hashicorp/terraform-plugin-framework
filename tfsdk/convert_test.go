@@ -38,6 +38,14 @@ func TestConvert(t *testing.T) {
 			typ:      types.StringType,
 			expected: types.String{Value: "hello"},
 		},
+		"string-to-number": {
+			val: types.String{Value: "hello"},
+			typ: types.NumberType,
+			expectedDiags: diag.Diagnostics{diag.NewErrorDiagnostic(
+				"Error converting value",
+				"An unexpected error was encountered converting a types.String to a types.NumberType. This is always a problem with the provider. Please tell the provider developers that types.String is not compatible with types.NumberType.",
+			)},
+		},
 	}
 
 	for name, tc := range tests {
@@ -45,9 +53,9 @@ func TestConvert(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := Convert(context.Background(), tc.val, tc.typ)
+			got, diags := ConvertValue(context.Background(), tc.val, tc.typ)
 
-			if diff := cmp.Diff(diags, tc.diags); diff != "" {
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Fatalf("Unexpected diff in diags (-wanted, +got): %s", diff)
 			}
 

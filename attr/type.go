@@ -27,6 +27,9 @@ type Type interface {
 	// to the Type passed as an argument.
 	Equal(Type) bool
 
+	// String should return a human-friendly version of the Type.
+	String() string
+
 	tftypes.AttributePathStepper
 }
 

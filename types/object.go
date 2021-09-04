@@ -3,6 +3,8 @@ package types
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -110,6 +112,26 @@ func (o ObjectType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathS
 	}
 
 	return o.AttrTypes[string(step.(tftypes.AttributeName))], nil
+}
+
+// String returns a human-friendly description of the ObjectType.
+func (o ObjectType) String() string {
+	var res strings.Builder
+	res.WriteString("types.ObjectType[")
+	keys := make([]string, 0, len(o.AttrTypes))
+	for k := range o.AttrTypes {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for pos, key := range keys {
+		if pos != 0 {
+			res.WriteString(", ")
+		}
+		res.WriteString(`"` + key + `":`)
+		res.WriteString(o.AttrTypes[key].String())
+	}
+	res.WriteString("]")
+	return res.String()
 }
 
 // Object represents an object

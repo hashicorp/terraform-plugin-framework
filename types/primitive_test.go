@@ -71,6 +71,11 @@ func (t testAttributeType) ApplyTerraform5AttributePathStep(_ tftypes.AttributeP
 	panic("not implemented")
 }
 
+// String should return a human-friendly version of the Type.
+func (t testAttributeType) String() string {
+	panic("not implemented")
+}
+
 func TestPrimitiveEqual(t *testing.T) {
 	t.Parallel()
 

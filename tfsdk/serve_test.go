@@ -2647,11 +2647,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
-			for _, diagnostic := range got.Diagnostics {
-				if diagnostic != nil && diagnostic.Severity == tfprotov6.DiagnosticSeverityError {
-					return
-				}
-			}
 			gotPlannedState, err := got.PlannedState.Unmarshal(tc.resourceType)
 			if err != nil {
 				t.Errorf("Unexpected error: %s", err)

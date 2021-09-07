@@ -64,5 +64,7 @@ type ResourceWithModifyPlan interface {
 	// in subsequent calls to ModifyPlan or Create/Read/Update.
 	// 3. Any attribute with an unknown value may either remain unknown
 	// or take on any value of the expected type.
+	//
+	// Any errors will prevent further resource-level plan modifications.
 	ModifyPlan(context.Context, ModifyResourcePlanRequest, *ModifyResourcePlanResponse)
 }

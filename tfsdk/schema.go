@@ -219,8 +219,8 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 		attrPath := path.WithAttributeName(name)
 		attrPlan, diags := req.Plan.GetAttribute(ctx, attrPath)
 		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
+		if diags.HasError() {
+			continue
 		}
 		nestedAttrReq := ModifyAttributePlanRequest{
 			AttributePath: attrPath,
@@ -241,8 +241,8 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 
 		setAttrDiags := resp.Plan.SetAttribute(ctx, attrPath, nestedAttrResp.AttributePlan)
 		resp.Diagnostics.Append(setAttrDiags...)
-		if resp.Diagnostics.HasError() {
-			return
+		if setAttrDiags.HasError() {
+			continue
 		}
 		resp.Diagnostics = nestedAttrResp.Diagnostics
 
@@ -260,14 +260,11 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 						"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
 					)
 
-					return
+					continue
 				}
 
 				for idx := range l.Elems {
 					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyInt(int64(idx)), req, resp)
-					if resp.Diagnostics.HasError() {
-						return
-					}
 				}
 			case NestingModeSet:
 				// TODO: Set implementation
@@ -283,14 +280,11 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 						"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
 					)
 
-					return
+					continue
 				}
 
 				for key := range m.Elems {
 					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyString(key), req, resp)
-					if resp.Diagnostics.HasError() {
-						return
-					}
 				}
 			case NestingModeSingle:
 				o, ok := attrPlan.(types.Object)
@@ -303,7 +297,7 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 						"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
 					)
 
-					return
+					continue
 				}
 				if len(o.Attrs) > 0 {
 					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath, req, resp)
@@ -316,7 +310,7 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 					"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
 				)
 
-				return
+				continue
 			}
 		}
 	}

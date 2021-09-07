@@ -74,10 +74,16 @@ type Attribute struct {
 	Validators []AttributeValidator
 
 	// PlanModifiers defines a sequence of modifiers for this attribute at
-	// plan time.
-	// Please note that plan modification only applies to resources, not
-	// data sources. Setting PlanModifiers on a data source attribute will
-	// have no effect.
+	// plan time. Attribute-level plan modifications occur before any
+	// resource-level plan modifications.
+	//
+	// Any errors will prevent further execution of this sequence
+	// of modifiers and modifiers associated with any nested Attribute, but will not
+	// prevent execution of PlanModifiers on any other Attribute in the Schema.
+	//
+	// Plan modification only applies to resources, not data sources or
+	// providers. Setting PlanModifiers on a data source or provider attribute
+	// will have no effect.
 	PlanModifiers AttributePlanModifiers
 }
 
@@ -387,39 +393,43 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	attrConfig, diags := req.Config.GetAttribute(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	// Only on new errors.
+	if diags.HasError() {
 		return
 	}
 	req.AttributeConfig = attrConfig
 
 	attrState, diags := req.State.GetAttribute(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	// Only on new errors.
+	if diags.HasError() {
 		return
 	}
 	req.AttributeState = attrState
 
 	attrPlan, diags := req.Plan.GetAttribute(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	// Only on new errors.
+	if diags.HasError() {
 		return
 	}
 	req.AttributePlan = attrPlan
 
-	modifyReq := ModifyAttributePlanRequest{
-		AttributePath:   req.AttributePath,
-		Config:          req.Config,
-		State:           req.State,
-		Plan:            req.Plan,
-		AttributeConfig: req.AttributeConfig,
-		AttributeState:  req.AttributeState,
-		AttributePlan:   req.AttributePlan,
-		ProviderMeta:    req.ProviderMeta,
-	}
 	for _, planModifier := range a.PlanModifiers {
-		planModifier.Modify(ctx, modifyReq, resp)
-		modifyReq.AttributePlan = resp.AttributePlan
-		if resp.Diagnostics.HasError() {
+		modifyResp := &ModifyAttributePlanResponse{
+			AttributePlan:   resp.AttributePlan,
+			RequiresReplace: resp.RequiresReplace,
+		}
+
+		planModifier.Modify(ctx, req, modifyResp)
+
+		req.AttributePlan = modifyResp.AttributePlan
+		resp.AttributePlan = modifyResp.AttributePlan
+		resp.Diagnostics.Append(modifyResp.Diagnostics...)
+		resp.RequiresReplace = modifyResp.RequiresReplace
+
+		// Only on new errors.
+		if modifyResp.Diagnostics.HasError() {
 			return
 		}
 	}

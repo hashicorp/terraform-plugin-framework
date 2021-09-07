@@ -682,6 +682,1353 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 	}
 }
 
+func TestAttributeModifyPlan(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		req          ModifyAttributePlanRequest
+		resp         ModifyAttributePlanResponse
+		expectedResp ModifyAttributePlanResponse
+	}{
+		"config-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nottest": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Configuration Read Error",
+						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+					),
+				},
+			},
+		},
+		"config-error-previous-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nottest": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Configuration Read Error",
+						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+					),
+				},
+			},
+		},
+		"plan-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nottest": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Plan Read Error",
+						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+					),
+				},
+			},
+		},
+		"plan-error-previous-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nottest": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Plan Read Error",
+						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+					),
+				},
+			},
+		},
+		"state-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nottest": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"State Read Error",
+						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+					),
+				},
+			},
+		},
+		"state-error-previous-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nottest": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"State Read Error",
+						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+					),
+				},
+			},
+		},
+		"no-plan-modifiers": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+			},
+		},
+		"attribute-plan": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testAttrPlanValueModifierOne{},
+									testAttrPlanValueModifierTwo{},
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testAttrPlanValueModifierOne{},
+									testAttrPlanValueModifierTwo{},
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testAttrPlanValueModifierOne{},
+									testAttrPlanValueModifierTwo{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTATTRONE"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "MODIFIED_TWO"},
+			},
+		},
+		"attribute-plan-previous-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testAttrPlanValueModifierOne{},
+									testAttrPlanValueModifierTwo{},
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testAttrPlanValueModifierOne{},
+									testAttrPlanValueModifierTwo{},
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testAttrPlanValueModifierOne{},
+									testAttrPlanValueModifierTwo{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTATTRONE"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "MODIFIED_TWO"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+		},
+		"requires-replacement": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan:   types.String{Value: "testvalue"},
+				RequiresReplace: true,
+			},
+		},
+		"requires-replacement-previous-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+				RequiresReplace: true,
+			},
+		},
+		"requires-replacement-passthrough": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+									testAttrPlanValueModifierOne{},
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+									testAttrPlanValueModifierOne{},
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+									testAttrPlanValueModifierOne{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTATTRONE"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan:   types.String{Value: "TESTATTRTWO"},
+				RequiresReplace: true,
+			},
+		},
+		"requires-replacement-unset": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+									testRequiresReplaceFalseModifier{},
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+									testRequiresReplaceFalseModifier{},
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									RequiresReplace(),
+									testRequiresReplaceFalseModifier{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "testvalue"},
+			},
+		},
+		"warnings": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testWarningDiagModifier{},
+									testWarningDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testWarningDiagModifier{},
+									testWarningDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testWarningDiagModifier{},
+									testWarningDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTDIAG"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTDIAG"},
+				Diagnostics: diag.Diagnostics{
+					// Diagnostics.Append() deduplicates, so the warning will only
+					// be here once unless the test implementation is changed to
+					// different modifiers or the modifier itself is changed.
+					diag.NewWarningDiagnostic(
+						"Warning diag",
+						"This is a warning",
+					),
+				},
+			},
+		},
+		"warnings-previous-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testWarningDiagModifier{},
+									testWarningDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testWarningDiagModifier{},
+									testWarningDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testWarningDiagModifier{},
+									testWarningDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTDIAG"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTDIAG"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					// Diagnostics.Append() deduplicates, so the warning will only
+					// be here once unless the test implementation is changed to
+					// different modifiers or the modifier itself is changed.
+					diag.NewWarningDiagnostic(
+						"Warning diag",
+						"This is a warning",
+					),
+				},
+			},
+		},
+		"error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testErrorDiagModifier{},
+									testErrorDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testErrorDiagModifier{},
+									testErrorDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testErrorDiagModifier{},
+									testErrorDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTDIAG"},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTDIAG"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Error diag",
+						"This is an error",
+					),
+				},
+			},
+		},
+		"error-previous-error": {
+			req: ModifyAttributePlanRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testErrorDiagModifier{},
+									testErrorDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+				Plan: Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testErrorDiagModifier{},
+									testErrorDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+				State: State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
+					}),
+					Schema: Schema{
+						Attributes: map[string]Attribute{
+							"test": {
+								Type:     types.StringType,
+								Required: true,
+								PlanModifiers: []AttributePlanModifier{
+									testErrorDiagModifier{},
+									testErrorDiagModifier{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTDIAG"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.String{Value: "TESTDIAG"},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					diag.NewErrorDiagnostic(
+						"Error diag",
+						"This is an error",
+					),
+				},
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			attribute, err := tc.req.Config.Schema.AttributeAtPath(tc.req.AttributePath)
+
+			if err != nil {
+				t.Fatalf("Unexpected error getting %s", err)
+			}
+
+			attribute.modifyPlan(context.Background(), tc.req, &tc.resp)
+
+			if diff := cmp.Diff(tc.expectedResp, tc.resp); diff != "" {
+				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
 func TestAttributeValidate(t *testing.T) {
 	t.Parallel()
 

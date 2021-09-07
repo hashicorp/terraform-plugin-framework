@@ -1,6 +1,6 @@
 # Import
 
-Practitioners may have previously existing resources that they wish to bring under Terraform'm management. Conceptually, this is called importing as Terraform must create the state of the resource. Providers are responsible for receiving a request for resource import and respond with the relevant resource state(s).
+Practitioners may have previously existing resources that they wish to bring under Terraform's management. Conceptually, this is called importing as Terraform must create the state of the resource. Providers are responsible for receiving a request for resource import and respond with the relevant resource state(s).
 
 This design documentation will walk through and recommend options for import handling in the framework.
 
@@ -174,7 +174,7 @@ Otherwise, custom provider implementations were required.
 
 ## Caveats
 
-Terraform supports the ability to import multiple resource states during a single import, however almost all resources in the Terraform ecosystem with import support implement a 1:1 import. The extremely uncommon multiple resource support in practice is likely contributed to:
+Terraform supports the ability to import multiple resource states during a single import (for example, resource import of an `aws_s3_bucket` also imports any associated `aws_s3_bucket_policy`), however almost all resources in the Terraform ecosystem with import support implement a 1:1 import. The extremely uncommon multiple resource support in practice is likely due to:
 
 - Risk of resource destruction for incorrect implementations ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/6036)).
 - Pracitioners may not have required permissions or wish to manage secondary imported resources ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/9508)).
@@ -242,7 +242,7 @@ This satisfies the main goals of this design and includes the ability to access 
 
 #### ResourceType and Resource Interface
 
-It is feasible to include import support using both methods described above, however it may introduce provider developer confusion about when to choose which method. The framework would need to decide what to do if both are  defined. If an error is desired, a methodology for quickly unit testing resource implementations would be desirable, otherwise that type of error may only be surfaced during acceptance testing (if it performs an import) or to practitioners after a provider is built/released.
+It is feasible to include import support using both methods described above, however it may introduce provider developer confusion about when to choose which method. The framework would need to decide what to do if both are defined. If an error is desired, a methodology for quickly unit testing resource implementations would be desirable, otherwise that type of error may only be surfaced during acceptance testing (if it performs an import) or to practitioners after a provider is built/released.
 
 ### Response Handling
 
@@ -270,7 +270,7 @@ type ImportResourceStateResponse struct {
     Diagnostics diags.Diagnostics
 
     // ImportedResources is the imported state for all resources.
-    ImportedResource []ImportedResource
+    ImportedResources []ImportedResource
 }
 
 type ImportedResource struct {
@@ -301,7 +301,7 @@ type ImportResourceStateResponse struct {
     // ImportedResources is the imported state for either all resources
     // (superceding State) or only resources outside the resource address in
     // the request.
-    ImportedResource []ImportedResource
+    ImportedResources []ImportedResource
 }
 ```
 

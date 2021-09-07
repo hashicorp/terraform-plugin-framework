@@ -54,7 +54,7 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 	}
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
-		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue)...)
+		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)
 
 		if diags.HasError() {
 			return nil, diags
@@ -147,7 +147,7 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 			tfVal := tftypes.NewValue(attrType.TerraformType(ctx), newTfVal)
 
 			if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
-				diags.Append(attrTypeWithValidate.Validate(ctx, tfVal)...)
+				diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)
 
 				if diags.HasError() {
 					return v, nil

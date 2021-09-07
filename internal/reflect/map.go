@@ -102,7 +102,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 		tfVal := tftypes.NewValue(tfType, nil)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
+			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 			if diags.HasError() {
 				return nil, diags
@@ -156,7 +156,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 		tfElemVal := tftypes.NewValue(tfElemType, tfVal)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfElemVal)...)
+			diags.Append(typeWithValidate.Validate(ctx, tfElemVal, path.WithElementKeyString(key.String()))...)
 
 			if diags.HasError() {
 				return nil, diags
@@ -174,7 +174,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 	tfVal := tftypes.NewValue(tfType, tfElems)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 		if diags.HasError() {
 			return nil, diags

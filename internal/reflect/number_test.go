@@ -1202,14 +1202,14 @@ func TestFromInt(t *testing.T) {
 				Value: big.NewFloat(1),
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 		"WithValidateError": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic,
+				testtypes.TestErrorDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 	}
@@ -1261,14 +1261,14 @@ func TestFromUint(t *testing.T) {
 				Value: big.NewFloat(1),
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 		"WithValidateError": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic,
+				testtypes.TestErrorDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 	}
@@ -1327,14 +1327,14 @@ func TestFromFloat(t *testing.T) {
 				Value: big.NewFloat(1),
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 		"WithValidateError": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic,
+				testtypes.TestErrorDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 	}
@@ -1393,14 +1393,14 @@ func TestFromBigFloat(t *testing.T) {
 				Value: big.NewFloat(1),
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 		"WithValidateError": {
 			val: big.NewFloat(1),
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic,
+				testtypes.TestErrorDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 	}
@@ -1452,14 +1452,14 @@ func TestFromBigInt(t *testing.T) {
 				Value: big.NewFloat(1),
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 		"WithValidateError": {
 			val: big.NewInt(1),
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic,
+				testtypes.TestErrorDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 	}

@@ -109,7 +109,7 @@ func TestFromPointer(t *testing.T) {
 			typ: testtypes.StringTypeWithValidateError{},
 			val: reflect.ValueOf(strPtr("hello, world")),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic,
+				testtypes.TestErrorDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 		"WithValidateWarning": {
@@ -119,7 +119,7 @@ func TestFromPointer(t *testing.T) {
 				Value: "hello, world",
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 	}

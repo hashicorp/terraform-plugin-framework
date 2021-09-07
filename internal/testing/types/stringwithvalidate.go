@@ -21,10 +21,10 @@ type StringTypeWithValidateWarning struct {
 	StringType
 }
 
-func (t StringTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value) diag.Diagnostics {
-	return diag.Diagnostics{TestErrorDiagnostic}
+func (t StringTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	return diag.Diagnostics{TestErrorDiagnostic(path)}
 }
 
-func (t StringTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value) diag.Diagnostics {
-	return diag.Diagnostics{TestWarningDiagnostic}
+func (t StringTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }

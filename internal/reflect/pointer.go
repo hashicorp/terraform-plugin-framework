@@ -90,7 +90,7 @@ func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *
 		tfVal := tftypes.NewValue(typ.TerraformType(ctx), nil)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
+			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 			if diags.HasError() {
 				return nil, diags

@@ -204,7 +204,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		tfObjVal := tftypes.NewValue(objTypes[name], tfVal)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfObjVal)...)
+			diags.Append(typeWithValidate.Validate(ctx, tfObjVal, path)...)
 
 			if diags.HasError() {
 				return nil, diags
@@ -219,7 +219,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 	}, objValues)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 		if diags.HasError() {
 			return nil, diags

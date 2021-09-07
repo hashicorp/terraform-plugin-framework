@@ -359,7 +359,7 @@ func TestStateGet(t *testing.T) {
 					Interface: "",
 				},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -530,7 +530,7 @@ func TestStateGet(t *testing.T) {
 					Interface: "SCSI",
 				},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -827,7 +827,7 @@ func TestStateGetAttribute(t *testing.T) {
 			},
 			path:          tftypes.NewAttributePath().WithAttributeName("name"),
 			expected:      nil,
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -849,7 +849,7 @@ func TestStateGetAttribute(t *testing.T) {
 			},
 			path:          tftypes.NewAttributePath().WithAttributeName("name"),
 			expected:      types.String{Value: "namevalue"},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -1189,7 +1189,7 @@ func TestStateSet(t *testing.T) {
 				Name: "newvalue",
 			},
 			expected:      tftypes.Value{},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -1215,7 +1215,7 @@ func TestStateSet(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -1539,7 +1539,9 @@ func TestStateSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "originalname"),
 			}),
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			// TODO: Diagnostic should include WithAttributeName("name")
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/128
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath())},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -1569,7 +1571,11 @@ func TestStateSetAttribute(t *testing.T) {
 				"name": tftypes.NewValue(tftypes.String, "newname"),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				// TODO: Diagnostic should include WithAttributeName("name")
+				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/128
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
+				// This duplicate should go away with the above fix.
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name")),
 			},
 		},
 	}

@@ -245,7 +245,7 @@ func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.Attrib
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
 		if diags.HasError() {
 			return nil, diags
@@ -272,7 +272,7 @@ func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.Attr
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
 		if diags.HasError() {
 			return nil, diags
@@ -299,7 +299,7 @@ func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.At
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
 		if diags.HasError() {
 			return nil, diags
@@ -326,7 +326,7 @@ func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tfty
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
 		if diags.HasError() {
 			return nil, diags
@@ -354,7 +354,7 @@ func FromBigInt(ctx context.Context, typ attr.Type, val *big.Int, path *tftypes.
 	tfNum := tftypes.NewValue(tftypes.Number, fl)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
 		if diags.HasError() {
 			return nil, diags

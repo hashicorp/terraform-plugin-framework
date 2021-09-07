@@ -21,10 +21,10 @@ type BoolTypeWithValidateWarning struct {
 	BoolType
 }
 
-func (t BoolTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value) diag.Diagnostics {
-	return diag.Diagnostics{TestErrorDiagnostic}
+func (t BoolTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	return diag.Diagnostics{TestErrorDiagnostic(path)}
 }
 
-func (t BoolTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value) diag.Diagnostics {
-	return diag.Diagnostics{TestWarningDiagnostic}
+func (t BoolTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }

@@ -306,6 +306,25 @@ func (t testAttrDefaultValueModifier) MarkdownDescription(ctx context.Context) s
 	return "This plan modifier is for use during testing only"
 }
 
+// testRequiresReplaceModifier is an AttributePlanModifier that sets RequiresReplace
+// on the attribute.
+type testRequiresReplaceFalseModifier struct{}
+
+// Modify sets RequiresReplace on the response to true.
+func (m testRequiresReplaceFalseModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	resp.RequiresReplace = false
+}
+
+// Description returns a human-readable description of the plan modifier.
+func (m testRequiresReplaceFalseModifier) Description(ctx context.Context) string {
+	return "Always unsets requires replace."
+}
+
+// MarkdownDescription returns a markdown description of the plan modifier.
+func (m testRequiresReplaceFalseModifier) MarkdownDescription(ctx context.Context) string {
+	return "Always unsets requires replace."
+}
+
 func (r testServeAttributePlanModifiers) Create(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
 	r.provider.applyResourceChangePlannedStateValue = req.Plan.Raw
 	r.provider.applyResourceChangePlannedStateSchema = req.Plan.Schema

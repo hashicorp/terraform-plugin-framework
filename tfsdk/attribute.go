@@ -393,39 +393,43 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	attrConfig, diags := req.Config.GetAttribute(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	// Only on new errors.
+	if diags.HasError() {
 		return
 	}
 	req.AttributeConfig = attrConfig
 
 	attrState, diags := req.State.GetAttribute(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	// Only on new errors.
+	if diags.HasError() {
 		return
 	}
 	req.AttributeState = attrState
 
 	attrPlan, diags := req.Plan.GetAttribute(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	// Only on new errors.
+	if diags.HasError() {
 		return
 	}
 	req.AttributePlan = attrPlan
 
-	modifyReq := ModifyAttributePlanRequest{
-		AttributePath:   req.AttributePath,
-		Config:          req.Config,
-		State:           req.State,
-		Plan:            req.Plan,
-		AttributeConfig: req.AttributeConfig,
-		AttributeState:  req.AttributeState,
-		AttributePlan:   req.AttributePlan,
-		ProviderMeta:    req.ProviderMeta,
-	}
 	for _, planModifier := range a.PlanModifiers {
-		planModifier.Modify(ctx, modifyReq, resp)
-		modifyReq.AttributePlan = resp.AttributePlan
-		if resp.Diagnostics.HasError() {
+		modifyResp := &ModifyAttributePlanResponse{
+			AttributePlan:   resp.AttributePlan,
+			RequiresReplace: resp.RequiresReplace,
+		}
+
+		planModifier.Modify(ctx, req, modifyResp)
+
+		req.AttributePlan = modifyResp.AttributePlan
+		resp.AttributePlan = modifyResp.AttributePlan
+		resp.Diagnostics.Append(modifyResp.Diagnostics...)
+		resp.RequiresReplace = modifyResp.RequiresReplace
+
+		// Only on new errors.
+		if modifyResp.Diagnostics.HasError() {
 			return
 		}
 	}

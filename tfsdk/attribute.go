@@ -79,8 +79,8 @@ type Attribute struct {
 	// resource-level plan modifications.
 	//
 	// Any errors will prevent further execution of this sequence
-	// of modifiers and modifiers associated with nested Attribute, but have no
-	// effect with other Attribute in the Schema.
+	// of modifiers and modifiers associated with any nested Attribute, but will not
+	// prevent execution of PlanModifiers on any other Attribute in the Schema.
 	//
 	// Plan modification only applies to resources, not data sources or
 	// providers. Setting PlanModifiers on a data source or provider attribute

@@ -21,10 +21,10 @@ type NumberTypeWithValidateWarning struct {
 	NumberType
 }
 
-func (t NumberTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value) diag.Diagnostics {
-	return diag.Diagnostics{TestErrorDiagnostic}
+func (t NumberTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	return diag.Diagnostics{TestErrorDiagnostic(path)}
 }
 
-func (t NumberTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value) diag.Diagnostics {
-	return diag.Diagnostics{TestWarningDiagnostic}
+func (t NumberTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }

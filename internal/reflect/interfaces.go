@@ -70,7 +70,7 @@ func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path *
 		tfVal := tftypes.NewValue(typ.TerraformType(ctx), tftypes.UnknownValue)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
+			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 			if diags.HasError() {
 				return nil, diags
@@ -91,7 +91,7 @@ func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path *
 	tfVal := tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx))
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 		if diags.HasError() {
 			return nil, diags
@@ -164,7 +164,7 @@ func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path *tftype
 		tfVal := tftypes.NewValue(typ.TerraformType(ctx), nil)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
+			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 			if diags.HasError() {
 				return nil, diags
@@ -185,7 +185,7 @@ func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path *tftype
 	tfVal := tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx))
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 		if diags.HasError() {
 			return nil, diags
@@ -256,7 +256,7 @@ func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreat
 	tfVal := tftypes.NewValue(typ.TerraformType(ctx), raw)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 		if diags.HasError() {
 			return nil, diags
@@ -279,7 +279,7 @@ func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 	var diags diag.Diagnostics
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, val)...)
+		diags.Append(typeWithValidate.Validate(ctx, val, path)...)
 
 		if diags.HasError() {
 			return target, diags
@@ -319,7 +319,7 @@ func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, path
 			return val, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 
-		diags.Append(typeWithValidate.Validate(ctx, tftypes.NewValue(tfType, tfVal))...)
+		diags.Append(typeWithValidate.Validate(ctx, tftypes.NewValue(tfType, tfVal), path)...)
 
 		if diags.HasError() {
 			return val, diags

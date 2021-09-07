@@ -99,14 +99,14 @@ func TestFromString(t *testing.T) {
 				Value: "mystring",
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 		"WithValidateError": {
 			val: "mystring",
 			typ: testtypes.StringTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic,
+				testtypes.TestErrorDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 	}
@@ -159,14 +159,14 @@ func TestFromBool(t *testing.T) {
 				Value: true,
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 		"WithValidateError": {
 			val: true,
 			typ: testtypes.BoolTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic,
+				testtypes.TestErrorDiagnostic(tftypes.NewAttributePath()),
 			},
 		},
 	}

@@ -69,7 +69,7 @@ func TestConfigGet(t *testing.T) {
 			expected: testConfigGetData{
 				Name: types.String{Value: ""},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			config: Config{
@@ -92,7 +92,7 @@ func TestConfigGet(t *testing.T) {
 			expected: testConfigGetData{
 				Name: types.String{Value: "namevalue"},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -165,7 +165,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      nil,
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			config: Config{
@@ -186,7 +186,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      types.String{Value: "namevalue"},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 

@@ -54,7 +54,7 @@ func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (
 	}
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
-		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue)...)
+		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)
 
 		if diags.HasError() {
 			return nil, diags

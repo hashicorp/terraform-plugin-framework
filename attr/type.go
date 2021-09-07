@@ -80,7 +80,7 @@ type TypeWithValidate interface {
 	// being used to populate the Type. It is generally used to check the
 	// data format and ensure that it complies with the requirements of the
 	// Type.
-	Validate(context.Context, tftypes.Value) diag.Diagnostics
+	Validate(context.Context, tftypes.Value, *tftypes.AttributePath) diag.Diagnostics
 }
 
 // TypeWithPlaintextDescription extends the Type interface to include a

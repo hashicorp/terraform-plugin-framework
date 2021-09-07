@@ -69,7 +69,7 @@ func TestPlanGet(t *testing.T) {
 			expected: testPlanGetData{
 				Name: types.String{Value: ""},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -92,7 +92,7 @@ func TestPlanGet(t *testing.T) {
 			expected: testPlanGetData{
 				Name: types.String{Value: "namevalue"},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -165,7 +165,7 @@ func TestPlanGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      nil,
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -186,7 +186,7 @@ func TestPlanGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      types.String{Value: "namevalue"},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -293,7 +293,7 @@ func TestPlanSet(t *testing.T) {
 				Name: "newvalue",
 			},
 			expected:      tftypes.Value{},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -319,7 +319,7 @@ func TestPlanSet(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -408,7 +408,9 @@ func TestPlanSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "originalname"),
 			}),
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic},
+			// TODO: Diagnostic should include WithAttributeName("name")
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/128
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath())},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -438,7 +440,11 @@ func TestPlanSetAttribute(t *testing.T) {
 				"name": tftypes.NewValue(tftypes.String, "newname"),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic,
+				// TODO: Diagnostic should include WithAttributeName("name")
+				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/128
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
+				// This duplicate should go away with the above fix.
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name")),
 			},
 		},
 	}

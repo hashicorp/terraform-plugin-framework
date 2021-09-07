@@ -65,7 +65,7 @@ func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.At
 	tfStr := tftypes.NewValue(tftypes.String, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfStr)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfStr, path)...)
 
 		if diags.HasError() {
 			return nil, diags
@@ -92,7 +92,7 @@ func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.Attrib
 	tfBool := tftypes.NewValue(tftypes.Bool, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfBool)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfBool, path)...)
 
 		if diags.HasError() {
 			return nil, diags

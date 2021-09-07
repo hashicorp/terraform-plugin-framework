@@ -11,18 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// OutOf is the inverse of Into, taking a Go value (`val`) and transforming it
+// FromValue is the inverse of Into, taking a Go value (`val`) and transforming it
 // into an attr.Value using the attr.Type supplied. `val` will first be
 // transformed into a tftypes.Value, then passed to `typ`'s ValueFromTerraform
 // method.
-func OutOf(ctx context.Context, typ attr.Type, val interface{}) (attr.Value, diag.Diagnostics) {
-	return FromValue(ctx, typ, val, tftypes.NewAttributePath())
-}
-
-// FromValue is recursively called to turn `val` into an `attr.Value` using
-// `typ`.
-//
-// It is meant to be called through OutOf, not directly.
 func FromValue(ctx context.Context, typ attr.Type, val interface{}, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 

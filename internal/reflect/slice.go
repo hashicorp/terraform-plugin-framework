@@ -88,7 +88,7 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 // for each element in the slice, using the element type or types defined on
 // `typ` to construct values for them.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 

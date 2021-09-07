@@ -148,7 +148,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 // into FromValue for each attribute, using the type of the attribute as
 // reported by `typ`.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	objTypes := map[string]tftypes.Type{}

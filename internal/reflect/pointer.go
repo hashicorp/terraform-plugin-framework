@@ -73,7 +73,7 @@ func pointerSafeZeroValue(ctx context.Context, target reflect.Value) reflect.Val
 // it will recurse into FromValue to find the attr.Value of the type the value
 // the pointer is referencing.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 

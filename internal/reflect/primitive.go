@@ -55,7 +55,7 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 
 // FromString returns an attr.Value as produced by `typ` from a string.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.String, val)
@@ -82,7 +82,7 @@ func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.At
 
 // FromBool returns an attr.Value as produced by `typ` from a bool.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Bool, val)

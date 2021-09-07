@@ -93,7 +93,7 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 // `val` must be a map type with keys that are a string type. The attr.Value
 // will be of the type produced by `typ`.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	tfType := typ.TerraformType(ctx)

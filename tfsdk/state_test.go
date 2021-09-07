@@ -1539,9 +1539,7 @@ func TestStateSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "originalname"),
 			}),
-			// TODO: Diagnostic should include WithAttributeName("name")
-			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/128
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath())},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -1571,10 +1569,6 @@ func TestStateSetAttribute(t *testing.T) {
 				"name": tftypes.NewValue(tftypes.String, "newname"),
 			}),
 			expectedDiags: diag.Diagnostics{
-				// TODO: Diagnostic should include WithAttributeName("name")
-				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/128
-				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
-				// This duplicate should go away with the above fix.
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name")),
 			},
 		},

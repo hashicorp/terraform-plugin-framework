@@ -79,7 +79,7 @@ func (p Plan) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (at
 // should be a struct whose values have one of the attr.Value types. Each field
 // must be tagged with the corresponding schema field.
 func (p *Plan) Set(ctx context.Context, val interface{}) diag.Diagnostics {
-	newPlanAttrValue, diags := reflect.OutOf(ctx, p.Schema.AttributeType(), val)
+	newPlanAttrValue, diags := reflect.FromValue(ctx, p.Schema.AttributeType(), val, tftypes.NewAttributePath())
 	if diags.HasError() {
 		return diags
 	}
@@ -115,7 +115,7 @@ func (p *Plan) SetAttribute(ctx context.Context, path *tftypes.AttributePath, va
 		return diags
 	}
 
-	newVal, newValDiags := reflect.OutOf(ctx, attrType, val)
+	newVal, newValDiags := reflect.FromValue(ctx, attrType, val, path)
 	diags.Append(newValDiags...)
 
 	if diags.HasError() {

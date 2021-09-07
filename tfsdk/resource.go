@@ -3,7 +3,7 @@ package tfsdk
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 // A ResourceType is a type of resource. For each type of resource this provider
@@ -11,10 +11,10 @@ import (
 // instance of it in the map returned by Provider.GeResources.
 type ResourceType interface {
 	// GetSchema returns the schema for this resource.
-	GetSchema(context.Context) (Schema, []*tfprotov6.Diagnostic)
+	GetSchema(context.Context) (Schema, diag.Diagnostics)
 
 	// NewResource instantiates a new Resource of this ResourceType.
-	NewResource(context.Context, Provider) (Resource, []*tfprotov6.Diagnostic)
+	NewResource(context.Context, Provider) (Resource, diag.Diagnostics)
 }
 
 // Resource represents a resource instance. This is the core interface that all

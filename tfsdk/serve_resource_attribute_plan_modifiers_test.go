@@ -5,12 +5,13 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Context) (Schema, diag.Diagnostics) {
 	return Schema{
 		Version: 1,
 		Attributes: map[string]Attribute{
@@ -88,7 +89,7 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 	}, nil
 }
 
-func (rt testServeResourceTypeAttributePlanModifiers) NewResource(_ context.Context, p Provider) (Resource, []*tfprotov6.Diagnostic) {
+func (rt testServeResourceTypeAttributePlanModifiers) NewResource(_ context.Context, p Provider) (Resource, diag.Diagnostics) {
 	provider, ok := p.(*testServeProvider)
 	if !ok {
 		prov, ok := p.(*testServeProviderWithMetaSchema)
@@ -198,12 +199,9 @@ func (t testWarningDiagModifier) Modify(ctx context.Context, req ModifyAttribute
 	}
 
 	if attrVal.Value == "TESTDIAG" {
-		resp.Diagnostics = append(resp.Diagnostics,
-			&tfprotov6.Diagnostic{
-				Severity: tfprotov6.DiagnosticSeverityWarning,
-				Summary:  "Warning diag",
-				Detail:   "This is a warning",
-			},
+		resp.Diagnostics.AddWarning(
+			"Warning diag",
+			"This is a warning",
 		)
 	}
 }
@@ -225,12 +223,9 @@ func (t testErrorDiagModifier) Modify(ctx context.Context, req ModifyAttributePl
 	}
 
 	if attrVal.Value == "TESTDIAG" {
-		resp.Diagnostics = append(resp.Diagnostics,
-			&tfprotov6.Diagnostic{
-				Severity: tfprotov6.DiagnosticSeverityError,
-				Summary:  "Error diag",
-				Detail:   "This is an error",
-			},
+		resp.Diagnostics.AddError(
+			"Error diag",
+			"This is an error",
 		)
 	}
 }

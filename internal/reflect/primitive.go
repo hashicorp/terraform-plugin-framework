@@ -6,8 +6,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -15,50 +14,50 @@ import (
 // populates it with the data in `val`.
 //
 // It is meant to be called through `Into`, not directly.
-func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, path *tftypes.AttributePath) (reflect.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
 	switch target.Kind() {
 	case reflect.Bool:
 		var b bool
 		err := val.As(&b)
 		if err != nil {
-			return target, append(diags, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityError,
-				Summary:   "Value Conversion Error",
-				Detail:    "An unexpected error was encountered trying to convert to boolean. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-				Attribute: path,
-			})
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert to boolean. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return target, diags
 		}
 		return reflect.ValueOf(b).Convert(target.Type()), nil
 	case reflect.String:
 		var s string
 		err := val.As(&s)
 		if err != nil {
-			return target, append(diags, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityError,
-				Summary:   "Value Conversion Error",
-				Detail:    "An unexpected error was encountered trying to convert to string. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-				Attribute: path,
-			})
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert to string. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return target, diags
 		}
 		return reflect.ValueOf(s).Convert(target.Type()), nil
 	default:
 		err := fmt.Errorf("unrecognized type: %s", target.Kind())
-		return target, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to convert to primitive. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert to primitive. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return target, diags
 	}
 }
 
 // FromString returns an attr.Value as produced by `typ` from a string.
 //
 // It is meant to be called through OutOf, not directly.
-func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.String, val)
 	if err != nil {
 		return nil, append(diags, validateValueErrorDiag(err, path))
@@ -66,9 +65,9 @@ func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.At
 	tfStr := tftypes.NewValue(tftypes.String, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags = append(diags, typeWithValidate.Validate(ctx, tfStr)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfStr)...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 	}
@@ -84,8 +83,8 @@ func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.At
 // FromBool returns an attr.Value as produced by `typ` from a bool.
 //
 // It is meant to be called through OutOf, not directly.
-func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Bool, val)
 	if err != nil {
 		return nil, append(diags, validateValueErrorDiag(err, path))
@@ -93,9 +92,9 @@ func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.Attrib
 	tfBool := tftypes.NewValue(tftypes.Bool, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags = append(diags, typeWithValidate.Validate(ctx, tfBool)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfBool)...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 	}

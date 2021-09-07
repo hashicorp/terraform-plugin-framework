@@ -3,20 +3,26 @@ package tfsdk
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 var (
-	testErrorDiagnostic = &tfprotov6.Diagnostic{
-		Severity: tfprotov6.DiagnosticSeverityError,
-		Summary:  "Error Diagnostic",
-		Detail:   "This is an error.",
-	}
-	testWarningDiagnostic = &tfprotov6.Diagnostic{
-		Severity: tfprotov6.DiagnosticSeverityWarning,
-		Summary:  "Warning Diagnostic",
-		Detail:   "This is a warning.",
-	}
+	testErrorDiagnostic1 = diag.NewErrorDiagnostic(
+		"Error Diagnostic 1",
+		"This is an error.",
+	)
+	testErrorDiagnostic2 = diag.NewErrorDiagnostic(
+		"Error Diagnostic 2",
+		"This is an error.",
+	)
+	testWarningDiagnostic1 = diag.NewWarningDiagnostic(
+		"Warning Diagnostic 1",
+		"This is a warning.",
+	)
+	testWarningDiagnostic2 = diag.NewWarningDiagnostic(
+		"Warning Diagnostic 2",
+		"This is a warning.",
+	)
 )
 
 type testErrorAttributeValidator struct {
@@ -32,7 +38,11 @@ func (v testErrorAttributeValidator) MarkdownDescription(ctx context.Context) st
 }
 
 func (v testErrorAttributeValidator) Validate(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
-	resp.Diagnostics = append(resp.Diagnostics, testErrorDiagnostic)
+	if len(resp.Diagnostics) == 0 {
+		resp.Diagnostics.Append(testErrorDiagnostic1)
+	} else {
+		resp.Diagnostics.Append(testErrorDiagnostic2)
+	}
 }
 
 type testWarningAttributeValidator struct {
@@ -48,5 +58,9 @@ func (v testWarningAttributeValidator) MarkdownDescription(ctx context.Context) 
 }
 
 func (v testWarningAttributeValidator) Validate(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
-	resp.Diagnostics = append(resp.Diagnostics, testWarningDiagnostic)
+	if len(resp.Diagnostics) == 0 {
+		resp.Diagnostics.Append(testWarningDiagnostic1)
+	} else {
+		resp.Diagnostics.Append(testWarningDiagnostic2)
+	}
 }

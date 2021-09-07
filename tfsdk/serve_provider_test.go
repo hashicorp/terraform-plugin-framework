@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -71,7 +72,7 @@ type testServeProvider struct {
 	readDataSourceCalledDataSourceType string
 }
 
-func (t *testServeProvider) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnostics) {
 	return Schema{
 		Version:            1,
 		DeprecationMessage: "Deprecated in favor of other_resource",
@@ -427,7 +428,7 @@ var testServeProviderProviderType = tftypes.Object{
 	},
 }
 
-func (t *testServeProvider) GetResources(_ context.Context) (map[string]ResourceType, []*tfprotov6.Diagnostic) {
+func (t *testServeProvider) GetResources(_ context.Context) (map[string]ResourceType, diag.Diagnostics) {
 	return map[string]ResourceType{
 		"test_one":                      testServeResourceTypeOne{},
 		"test_two":                      testServeResourceTypeTwo{},
@@ -437,7 +438,7 @@ func (t *testServeProvider) GetResources(_ context.Context) (map[string]Resource
 	}, nil
 }
 
-func (t *testServeProvider) GetDataSources(_ context.Context) (map[string]DataSourceType, []*tfprotov6.Diagnostic) {
+func (t *testServeProvider) GetDataSources(_ context.Context) (map[string]DataSourceType, diag.Diagnostics) {
 	return map[string]DataSourceType{
 		"test_one":               testServeDataSourceTypeOne{},
 		"test_two":               testServeDataSourceTypeTwo{},
@@ -456,7 +457,7 @@ type testServeProviderWithMetaSchema struct {
 	*testServeProvider
 }
 
-func (t *testServeProviderWithMetaSchema) GetMetaSchema(context.Context) (Schema, []*tfprotov6.Diagnostic) {
+func (t *testServeProviderWithMetaSchema) GetMetaSchema(context.Context) (Schema, diag.Diagnostics) {
 	return Schema{
 		Version: 2,
 		Attributes: map[string]Attribute{

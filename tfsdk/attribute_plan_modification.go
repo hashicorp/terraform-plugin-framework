@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -165,47 +165,29 @@ type ModifyAttributePlanResponse struct {
 	// planned state of the requested resource. Returning an empty slice
 	// indicates a successful validation with no warnings or errors
 	// generated.
-	Diagnostics []*tfprotov6.Diagnostic
+	Diagnostics diag.Diagnostics
 }
 
 // AddWarning appends a warning diagnostic to the response. If the warning
 // concerns a particular attribute, AddAttributeWarning should be used instead.
 func (r *ModifyAttributePlanResponse) AddWarning(summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Summary:  summary,
-		Detail:   detail,
-		Severity: tfprotov6.DiagnosticSeverityWarning,
-	})
+	r.Diagnostics.AddWarning(summary, detail)
 }
 
 // AddAttributeWarning appends a warning diagnostic to the response and labels
 // it with a specific attribute.
 func (r *ModifyAttributePlanResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Attribute: attributePath,
-		Summary:   summary,
-		Detail:    detail,
-		Severity:  tfprotov6.DiagnosticSeverityWarning,
-	})
+	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
 }
 
 // AddError appends an error diagnostic to the response. If the error concerns a
 // particular attribute, AddAttributeError should be used instead.
 func (r *ModifyAttributePlanResponse) AddError(summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Summary:  summary,
-		Detail:   detail,
-		Severity: tfprotov6.DiagnosticSeverityError,
-	})
+	r.Diagnostics.AddError(summary, detail)
 }
 
 // AddAttributeError appends an error diagnostic to the response and labels it
 // with a specific attribute.
 func (r *ModifyAttributePlanResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Attribute: attributePath,
-		Summary:   summary,
-		Detail:    detail,
-		Severity:  tfprotov6.DiagnosticSeverityError,
-	})
+	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
 }

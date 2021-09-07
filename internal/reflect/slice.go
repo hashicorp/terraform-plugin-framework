@@ -6,36 +6,35 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // build a slice of elements, matching the type of `target`, and fill it with
 // the data in `val`.
-func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
 	// this only works with slices, so check that out first
 	if target.Kind() != reflect.Slice {
 		err := fmt.Errorf("expected a slice type, got %s", target.Type())
-		return target, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to convert to slice. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert to slice. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return target, diags
 	}
 	// TODO: check that the val is a list or set or tuple
 	elemTyper, ok := typ.(attr.TypeWithElementType)
 	if !ok {
 		err := fmt.Errorf("cannot reflect %s using type information provided by %T, %T must be an attr.TypeWithElementType", val.Type(), typ, typ)
-		return target, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to convert to slice. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert to slice. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return target, diags
 	}
 
 	// we need our value to become a list of values so we can iterate over
@@ -43,12 +42,12 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 	var values []tftypes.Value
 	err := val.As(&values)
 	if err != nil {
-		return target, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to convert to slice. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert to slice. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return target, diags
 	}
 
 	// we need to know the type the slice is wrapping
@@ -69,9 +68,9 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 
 		// reflect the value into our new target
 		val, valDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, path)
-		diags = append(diags, valDiags...)
+		diags.Append(valDiags...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return target, diags
 		}
 
@@ -90,8 +89,8 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 // `typ` to construct values for them.
 //
 // It is meant to be called through OutOf, not directly.
-func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
 	// TODO: support tuples, which are attr.TypeWithElementTypes
 	tfType := typ.TerraformType(ctx)
@@ -100,9 +99,9 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		tfVal := tftypes.NewValue(tfType, nil)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
+			diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
 
-			if diagnostics.DiagsHasErrors(diags) {
+			if diags.HasError() {
 				return nil, diags
 			}
 		}
@@ -110,12 +109,12 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
 
 		if err != nil {
-			return nil, append(diags, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityError,
-				Summary:   "Value Conversion Error",
-				Detail:    "An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-				Attribute: path,
-			})
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return nil, diags
 		}
 
 		return attrVal, diags
@@ -124,21 +123,21 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 	t, ok := typ.(attr.TypeWithElementType)
 	if !ok {
 		err := fmt.Errorf("cannot use type %T as schema type %T; %T must be an attr.TypeWithElementType to hold %T", val, typ, typ, val)
-		return nil, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
 	}
 
 	elemType := t.ElementType()
 	tfElems := make([]tftypes.Value, 0, val.Len())
 	for i := 0; i < val.Len(); i++ {
 		val, valDiags := FromValue(ctx, elemType, val.Index(i).Interface(), path.WithElementKeyInt(int64(i)))
-		diags = append(diags, valDiags...)
+		diags.Append(valDiags...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 		tfVal, err := val.ToTerraformValue(ctx)
@@ -153,9 +152,9 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		tfElemVal := tftypes.NewValue(elemType.TerraformType(ctx), tfVal)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags = append(diags, typeWithValidate.Validate(ctx, tfElemVal)...)
+			diags.Append(typeWithValidate.Validate(ctx, tfElemVal)...)
 
-			if diagnostics.DiagsHasErrors(diags) {
+			if diags.HasError() {
 				return nil, diags
 			}
 		}
@@ -171,9 +170,9 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 	tfVal := tftypes.NewValue(tfType, tfElems)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfVal)...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 	}
@@ -181,12 +180,12 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 	attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
 
 	if err != nil {
-		return nil, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
 	}
 
 	return attrVal, diags

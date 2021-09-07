@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -218,333 +219,391 @@ func (v *valueCreator) Equal(o *valueCreator) bool {
 
 var _ tftypes.ValueCreator = &valueCreator{}
 
-func TestNewUnknownable_known(t *testing.T) {
+func TestNewUnknownable(t *testing.T) {
 	t.Parallel()
 
-	unknownable := &unknownableString{
-		Unknown: true,
+	testCases := map[string]struct {
+		val           tftypes.Value
+		target        reflect.Value
+		expected      bool
+		expectedDiags diag.Diagnostics
+	}{
+		"known": {
+			val: tftypes.NewValue(tftypes.String, "hello"),
+			target: reflect.ValueOf(&unknownableString{
+				Unknown: true,
+			}),
+			expected: false,
+		},
+		"unknown": {
+			val:      tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			target:   reflect.ValueOf(new(unknownableString)),
+			expected: true,
+		},
+		"error": {
+			val:    tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			target: reflect.ValueOf(new(unknownableStringError)),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert into a value. This is always an error in the provider. Please report the following to the provider developer:\n\nreflection error: this is an error",
+				),
+			},
+		},
 	}
-	res, diags := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	got := res.Interface().(*unknownableString)
-	if got.Unknown != false {
-		t.Errorf("Expected %v, got %v", false, got.Unknown)
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			res, diags := refl.NewUnknownable(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, tftypes.NewAttributePath())
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Fatalf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diags.HasError() {
+				return
+			}
+
+			got := res.Interface().(*unknownableString)
+
+			if got.Unknown != tc.expected {
+				t.Errorf("Expected %v, got %v", tc.expected, got.Unknown)
+			}
+		})
 	}
 }
 
-func TestNewUnknownable_unknown(t *testing.T) {
+func TestFromUnknownable(t *testing.T) {
 	t.Parallel()
 
-	var unknownable *unknownableString
-	res, diags := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	testCases := map[string]struct {
+		val           refl.Unknownable
+		expected      attr.Value
+		expectedDiags diag.Diagnostics
+	}{
+		"unknown": {
+			val: &unknownableString{
+				Unknown: true,
+			},
+			expected: types.String{Unknown: true},
+		},
+		"value": {
+			val: &unknownableString{
+				String: "hello, world",
+			},
+			expected: types.String{Value: "hello, world"},
+		},
 	}
-	got := res.Interface().(*unknownableString)
-	if got.Unknown != true {
-		t.Errorf("Expected %v, got %v", true, got.Unknown)
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := refl.FromUnknownable(context.Background(), types.StringType, tc.val, tftypes.NewAttributePath())
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(got, tc.expected); diff != "" {
+				t.Errorf("unexpected result (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }
 
-func TestNewUnknownable_error(t *testing.T) {
+func TestNewNullable(t *testing.T) {
 	t.Parallel()
 
-	var unknownable *unknownableStringError
-	_, diags := refl.NewUnknownable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(unknownable), refl.Options{}, tftypes.NewAttributePath())
-	if expected := "this is an error"; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
+	testCases := map[string]struct {
+		val           tftypes.Value
+		target        reflect.Value
+		expected      bool
+		expectedDiags diag.Diagnostics
+	}{
+		"not-null": {
+			val: tftypes.NewValue(tftypes.String, "hello"),
+			target: reflect.ValueOf(&nullableString{
+				Null: true,
+			}),
+			expected: false,
+		},
+		"null": {
+			val:      tftypes.NewValue(tftypes.String, nil),
+			target:   reflect.ValueOf(new(nullableString)),
+			expected: true,
+		},
+		"error": {
+			val:    tftypes.NewValue(tftypes.String, "hello"),
+			target: reflect.ValueOf(new(nullableStringError)),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert into a value. This is always an error in the provider. Please report the following to the provider developer:\n\nreflection error: this is an error",
+				),
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			res, diags := refl.NewNullable(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, tftypes.NewAttributePath())
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diags.HasError() {
+				return
+			}
+
+			got := res.Interface().(*nullableString)
+
+			if got.Null != tc.expected {
+				t.Errorf("Expected %v, got %v", tc.expected, got.Null)
+			}
+		})
 	}
 }
 
-func TestFromUnknownable_unknown(t *testing.T) {
+func TestFromNullable(t *testing.T) {
 	t.Parallel()
 
-	foo := &unknownableString{
-		Unknown: true,
+	testCases := map[string]struct {
+		val           refl.Nullable
+		expected      attr.Value
+		expectedDiags diag.Diagnostics
+	}{
+		"null": {
+			val: &nullableString{
+				Null: true,
+			},
+			expected: types.String{Null: true},
+		},
+		"value": {
+			val: &nullableString{
+				String: "hello, world",
+			},
+			expected: types.String{Value: "hello, world"},
+		},
 	}
-	expected := types.String{Unknown: true}
-	got, diags := refl.FromUnknownable(context.Background(), types.StringType, foo, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := refl.FromNullable(context.Background(), types.StringType, tc.val, tftypes.NewAttributePath())
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(got, tc.expected); diff != "" {
+				t.Errorf("unexpected result (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }
 
-func TestFromUnknownable_value(t *testing.T) {
+func TestNewAttributeValue(t *testing.T) {
 	t.Parallel()
 
-	foo := &unknownableString{
-		String: "hello, world",
+	testCases := map[string]struct {
+		val           tftypes.Value
+		target        reflect.Value
+		expected      attr.Value
+		expectedDiags diag.Diagnostics
+	}{
+		"unknown": {
+			val:      tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			target:   reflect.ValueOf(types.String{}),
+			expected: types.String{Unknown: true},
+		},
+		"null": {
+			val:      tftypes.NewValue(tftypes.String, nil),
+			target:   reflect.ValueOf(types.String{}),
+			expected: types.String{Null: true},
+		},
+		"value": {
+			val:      tftypes.NewValue(tftypes.String, "hello"),
+			target:   reflect.ValueOf(types.String{}),
+			expected: types.String{Value: "hello"},
+		},
 	}
-	expected := types.String{Value: "hello, world"}
-	got, diags := refl.FromUnknownable(context.Background(), types.StringType, foo, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, tftypes.NewAttributePath())
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diags.HasError() {
+				return
+			}
+
+			got := res.Interface().(types.String)
+
+			if diff := cmp.Diff(got, tc.expected); diff != "" {
+				t.Errorf("unexpected result (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }
 
-func TestNewNullable_notNull(t *testing.T) {
+func TestFromAttributeValue(t *testing.T) {
 	t.Parallel()
 
-	nullable := &nullableString{
-		Null: true,
+	testCases := map[string]struct {
+		val           attr.Value
+		expectedDiags diag.Diagnostics
+	}{
+		"null": {
+			val: types.String{Null: true},
+		},
+		"unknown": {
+			val: types.String{Unknown: true},
+		},
+		"value": {
+			val: types.String{Value: "hello, world"},
+		},
 	}
-	res, diags := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	got := res.Interface().(*nullableString)
-	if got.Null != false {
-		t.Errorf("Expected %v, got %v", false, got.Null)
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := refl.FromAttributeValue(context.Background(), types.StringType, tc.val, tftypes.NewAttributePath())
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(got, tc.val); diff != "" {
+				t.Errorf("unexpected result (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }
 
-func TestNewNullable_null(t *testing.T) {
+func TestNewValueConverter(t *testing.T) {
 	t.Parallel()
 
-	var nullable *nullableString
-	res, diags := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	testCases := map[string]struct {
+		val           tftypes.Value
+		target        reflect.Value
+		expected      *valueConverter
+		expectedDiags diag.Diagnostics
+	}{
+		"unknown": {
+			val:      tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			target:   reflect.ValueOf(new(valueConverter)),
+			expected: &valueConverter{unknown: true},
+		},
+		"null": {
+			val:      tftypes.NewValue(tftypes.String, nil),
+			target:   reflect.ValueOf(new(valueConverter)),
+			expected: &valueConverter{null: true},
+		},
+		"value": {
+			val:      tftypes.NewValue(tftypes.String, "hello"),
+			target:   reflect.ValueOf(new(valueConverter)),
+			expected: &valueConverter{value: "hello"},
+		},
+		"error": {
+			val:    tftypes.NewValue(tftypes.String, "hello"),
+			target: reflect.ValueOf(new(valueConverterError)),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert into a value. This is always an error in the provider. Please report the following to the provider developer:\n\nreflection error: this is an error",
+				),
+			},
+		},
 	}
-	got := res.Interface().(*nullableString)
-	if got.Null != true {
-		t.Errorf("Expected %v, got %v", true, got.Null)
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			res, diags := refl.NewValueConverter(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, tftypes.NewAttributePath())
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diags.HasError() {
+				return
+			}
+
+			got := res.Interface().(*valueConverter)
+
+			if diff := cmp.Diff(got, tc.expected); diff != "" {
+				t.Errorf("unexpected result (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }
 
-func TestNewNullable_error(t *testing.T) {
+func TestFromValueCreator(t *testing.T) {
 	t.Parallel()
 
-	var nullable *nullableStringError
-	_, diags := refl.NewNullable(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(nullable), refl.Options{}, tftypes.NewAttributePath())
-	if expected := "this is an error"; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
+	testCases := map[string]struct {
+		vc            *valueCreator
+		expected      attr.Value
+		expectedDiags diag.Diagnostics
+	}{
+		"null": {
+			vc: &valueCreator{
+				null: true,
+			},
+			expected: types.String{Null: true},
+		},
+		"unknown": {
+			vc: &valueCreator{
+				unknown: true,
+			},
+			expected: types.String{Unknown: true},
+		},
+		"value": {
+			vc: &valueCreator{
+				value: "hello, world",
+			},
+			expected: types.String{Value: "hello, world"},
+		},
 	}
-}
 
-func TestFromNullable_null(t *testing.T) {
-	t.Parallel()
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	foo := &nullableString{
-		Null: true,
-	}
-	expected := types.String{Null: true}
-	got, diags := refl.FromNullable(context.Background(), types.StringType, foo, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
-	}
-}
+			got, diags := refl.FromValueCreator(context.Background(), types.StringType, tc.vc, tftypes.NewAttributePath())
 
-func TestFromNullable_value(t *testing.T) {
-	t.Parallel()
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
 
-	foo := &nullableString{
-		String: "hello, world",
-	}
-	expected := types.String{Value: "hello, world"}
-	got, diags := refl.FromNullable(context.Background(), types.StringType, foo, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNewAttributeValue_unknown(t *testing.T) {
-	t.Parallel()
-
-	var av types.String
-	res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	got := res.Interface().(types.String)
-	expected := types.String{Unknown: true}
-	if !got.Equal(expected) {
-		t.Errorf("Expected %+v, got %+v", expected, got)
-	}
-}
-
-func TestNewAttributeValue_null(t *testing.T) {
-	t.Parallel()
-
-	var av types.String
-	res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	got := res.Interface().(types.String)
-	expected := types.String{Null: true}
-	if !got.Equal(expected) {
-		t.Errorf("Expected %+v, got %+v", expected, got)
-	}
-}
-
-func TestFromAttributeValue_null(t *testing.T) {
-	t.Parallel()
-
-	expected := types.String{Null: true}
-	got, diags := refl.FromAttributeValue(context.Background(), types.StringType, expected, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
-	}
-}
-
-func TestFromAttributeValue_unknown(t *testing.T) {
-	t.Parallel()
-
-	expected := types.String{Unknown: true}
-	got, diags := refl.FromAttributeValue(context.Background(), types.StringType, expected, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
-	}
-}
-
-func TestFromAttributeValue_value(t *testing.T) {
-	t.Parallel()
-
-	expected := types.String{Value: "hello, world"}
-	got, diags := refl.FromAttributeValue(context.Background(), types.StringType, expected, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNewAttributeValue_value(t *testing.T) {
-	t.Parallel()
-
-	var av types.String
-	res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(av), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	got := res.Interface().(types.String)
-	expected := types.String{Value: "hello"}
-	if !got.Equal(expected) {
-		t.Errorf("Expected %+v, got %+v", expected, got)
-	}
-}
-
-func TestNewValueConverter_unknown(t *testing.T) {
-	t.Parallel()
-
-	var vc *valueConverter
-	res, diags := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, tftypes.UnknownValue), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	got := res.Interface().(*valueConverter)
-	expected := &valueConverter{unknown: true}
-	if !got.Equal(expected) {
-		t.Errorf("Expected %+v, got %+v", expected, got)
-	}
-}
-
-func TestNewValueConverter_null(t *testing.T) {
-	t.Parallel()
-
-	var vc *valueConverter
-	res, diags := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, nil), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	got := res.Interface().(*valueConverter)
-	expected := &valueConverter{null: true}
-	if !got.Equal(expected) {
-		t.Errorf("Expected %+v, got %+v", expected, got)
-	}
-}
-
-func TestNewValueConverter_value(t *testing.T) {
-	t.Parallel()
-
-	var vc *valueConverter
-	res, diags := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	got := res.Interface().(*valueConverter)
-	expected := &valueConverter{value: "hello"}
-	if !got.Equal(expected) {
-		t.Errorf("Expected %+v, got %+v", expected, got)
-	}
-}
-
-func TestNewValueConverter_error(t *testing.T) {
-	t.Parallel()
-
-	var vc *valueConverterError
-	_, diags := refl.NewValueConverter(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(vc), refl.Options{}, tftypes.NewAttributePath())
-	if expected := "this is an error"; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
-	}
-}
-
-func TestFromValueCreator_null(t *testing.T) {
-	t.Parallel()
-
-	vc := &valueCreator{
-		null: true,
-	}
-	expected := types.String{Null: true}
-	got, diags := refl.FromValueCreator(context.Background(), types.StringType, vc, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
-	}
-}
-
-func TestFromValueCreator_unknown(t *testing.T) {
-	t.Parallel()
-
-	vc := &valueCreator{
-		unknown: true,
-	}
-	expected := types.String{Unknown: true}
-	got, diags := refl.FromValueCreator(context.Background(), types.StringType, vc, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
-	}
-}
-
-func TestFromValueCreator_value(t *testing.T) {
-	t.Parallel()
-
-	vc := &valueCreator{
-		value: "hello, world",
-	}
-	expected := types.String{Value: "hello, world"}
-	got, diags := refl.FromValueCreator(context.Background(), types.StringType, vc, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+			if diff := cmp.Diff(got, tc.expected); diff != "" {
+				t.Errorf("unexpected result (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }

@@ -1,0 +1,7 @@
+```release-note:breaking-change
+`attr.Value` implementations must now implement a `Type(context.Context)` method that returns the `attr.Type` that created the `attr.Value`.
+```
+
+```release-note:enhancement
+Added a `tfsdk.ValueAs` helper that allows accessing an `attr.Value` without type assertion, by using the same reflection rules used in the `Config.Get`, `Plan.Get`, and `State.Get` helpers.
+```

@@ -42,6 +42,11 @@ type Bool struct {
 	Value bool
 }
 
+// Type returns a BoolType.
+func (b Bool) Type(_ context.Context) attr.Type {
+	return BoolType
+}
+
 // ToTerraformValue returns the data contained in the *Bool as a bool. If
 // Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
 // returns nil.

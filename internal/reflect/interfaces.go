@@ -291,12 +291,12 @@ func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 		return target, append(diags, valueFromTerraformErrorDiag(err, path))
 	}
 	if reflect.TypeOf(res) != target.Type() {
-		err := fmt.Errorf("Cannot use attr.Value %s, only %s is supported because %T is the type in the schema", target.Type(), reflect.TypeOf(res), typ)
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert into a Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+		diags.Append(DiagNewAttributeValueIntoWrongType{
+			ValType:    reflect.TypeOf(res),
+			TargetType: target.Type(),
+			SchemaType: typ,
+			AttrPath:   path,
+		})
 		return target, diags
 	}
 	return reflect.ValueOf(res), diags

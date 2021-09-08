@@ -18,31 +18,31 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 
 	// this only works with maps, so check that out first
 	if underlyingValue.Kind() != reflect.Map {
-		err := fmt.Errorf("expected a map type, got %s", target.Type())
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+		diags.Append(DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			AttrPath:   path,
+			Err:        fmt.Errorf("expected a map type, got %s", target.Type()),
+		})
 		return target, diags
 	}
 	if !val.Type().Is(tftypes.Map{}) {
-		err := fmt.Errorf("cannot reflect %s into a map, must be a map", val.Type().String())
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+		diags.Append(DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			AttrPath:   path,
+			Err:        fmt.Errorf("cannot reflect %s into a map, must be a map", val.Type().String()),
+		})
 		return target, diags
 	}
 	elemTyper, ok := typ.(attr.TypeWithElementType)
 	if !ok {
-		err := fmt.Errorf("cannot reflect map using type information provided by %T, %T must be an attr.TypeWithElementType", typ, typ)
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+		diags.Append(DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			AttrPath:   path,
+			Err:        fmt.Errorf("cannot reflect map using type information provided by %T, %T must be an attr.TypeWithElementType", typ, typ),
+		})
 		return target, diags
 	}
 
@@ -51,11 +51,12 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 	values := map[string]tftypes.Value{}
 	err := val.As(&values)
 	if err != nil {
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+		diags.Append(DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			AttrPath:   path,
+			Err:        err,
+		})
 		return target, diags
 	}
 

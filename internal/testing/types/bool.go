@@ -39,13 +39,15 @@ func (t BoolType) TerraformType(_ context.Context) tftypes.Type {
 
 func (t BoolType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if in.IsNull() {
-		return types.Bool{
-			Null: true,
+		return Bool{
+			Bool:      types.Bool{Null: true},
+			CreatedBy: t,
 		}, nil
 	}
 	if !in.IsKnown() {
-		return types.Bool{
-			Unknown: true,
+		return Bool{
+			Bool:      types.Bool{Unknown: true},
+			CreatedBy: t,
 		}, nil
 	}
 	var b bool
@@ -53,5 +55,22 @@ func (t BoolType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 	if err != nil {
 		return nil, err
 	}
-	return types.Bool{Value: b}, nil
+	return Bool{Bool: types.Bool{Value: b}, CreatedBy: t}, nil
+}
+
+type Bool struct {
+	types.Bool
+	CreatedBy attr.Type
+}
+
+func (b Bool) Type(_ context.Context) attr.Type {
+	return b.CreatedBy
+}
+
+func (b Bool) Equal(o attr.Value) bool {
+	ob, ok := o.(Bool)
+	if !ok {
+		return false
+	}
+	return b.Bool.Equal(ob.Bool)
 }

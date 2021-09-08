@@ -31,22 +31,29 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 			"size": {
 				Required: true,
 				Type:     types.NumberType,
-				PlanModifiers: []AttributePlanModifier{RequiresReplaceIf(func(ctx context.Context, state, config attr.Value) (bool, error) {
+				PlanModifiers: []AttributePlanModifier{RequiresReplaceIf(func(ctx context.Context, state, config attr.Value, path *tftypes.AttributePath) (bool, diag.Diagnostics) {
 					if state == nil && config == nil {
 						return false, nil
 					}
 					if (state == nil && config != nil) || (state != nil && config == nil) {
 						return true, nil
 					}
-					stateVal := state.(types.Number)
-					configVal := config.(types.Number)
+					var stateVal, configVal types.Number
+					diags := ValueAs(ctx, state, &stateVal)
+					if diags.HasError() {
+						return false, diags
+					}
+					diags.Append(ValueAs(ctx, config, &configVal)...)
+					if diags.HasError() {
+						return false, diags
+					}
 
 					if !stateVal.Unknown && !stateVal.Null && !configVal.Unknown && !configVal.Null {
 						if configVal.Value.Cmp(stateVal.Value) > 0 {
-							return true, nil
+							return true, diags
 						}
 					}
-					return false, nil
+					return false, diags
 				}, "If the new size is greater than the old size, Terraform will destroy and recreate the resource", "If the new size is greater than the old size, Terraform will destroy and recreate the resource"),
 				}},
 			"scratch_disk": {

@@ -29,11 +29,12 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 	result := big.NewFloat(0)
 	err := val.As(&result)
 	if err != nil {
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+		diags.Append(DiagIntoIncompatibleType{
+			AttrPath:   path,
+			Err:        err,
+			TargetType: target.Type(),
+			Val:        val,
+		})
 		return target, diags
 	}
 	roundingError := fmt.Errorf("cannot store %s in %s", result.String(), target.Type())

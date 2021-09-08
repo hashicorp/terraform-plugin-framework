@@ -160,6 +160,11 @@ func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled 
 	})
 }
 
+// Type returns a MapType with the same element type as `m`.
+func (m Map) Type(ctx context.Context) attr.Type {
+	return MapType{ElemType: m.ElemType}
+}
+
 // ToTerraformValue returns the data contained in the AttributeValue as a Go
 // type that tftypes.NewValue will accept.
 func (m Map) ToTerraformValue(ctx context.Context) (interface{}, error) {

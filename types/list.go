@@ -147,6 +147,11 @@ func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled
 	})
 }
 
+// Type returns a ListType with the same element type as `l`.
+func (l List) Type(ctx context.Context) attr.Type {
+	return ListType{ElemType: l.ElemType}
+}
+
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a Go type that tftypes.NewValue will accept.
 func (l List) ToTerraformValue(ctx context.Context) (interface{}, error) {

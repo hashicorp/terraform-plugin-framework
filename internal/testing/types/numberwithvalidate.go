@@ -28,3 +28,23 @@ func (t NumberTypeWithValidateError) Validate(ctx context.Context, in tftypes.Va
 func (t NumberTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
 	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }
+
+func (n NumberTypeWithValidateError) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	res, err := n.NumberType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	newNumber := res.(Number)
+	newNumber.CreatedBy = n
+	return newNumber, nil
+}
+
+func (n NumberTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	res, err := n.NumberType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	newNumber := res.(Number)
+	newNumber.CreatedBy = n
+	return newNumber, nil
+}

@@ -315,8 +315,6 @@ func (s *server) validateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 	schema.validate(ctx, validateSchemaReq, &validateSchemaResp)
 
 	resp.Diagnostics = validateSchemaResp.Diagnostics
-
-	return
 }
 
 // configureProviderResponse is a thin abstraction to allow native Diagnostics usage

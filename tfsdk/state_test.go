@@ -34,7 +34,7 @@ func TestStateGet(t *testing.T) {
 
 	type testCase struct {
 		state         State
-		expected      interface{}
+		expected      testStateGetData
 		expectedDiags diag.Diagnostics
 	}
 
@@ -209,6 +209,55 @@ func TestStateGet(t *testing.T) {
 				},
 			},
 		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var val testStateGetData
+
+			diags := tc.state.Get(context.Background(), &val)
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(val, tc.expected); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestStateGet_testTypes(t *testing.T) {
+	t.Parallel()
+
+	type testStateGetDataTestTypes struct {
+		Name        testtypes.String `tfsdk:"name"`
+		MachineType string           `tfsdk:"machine_type"`
+		Tags        types.List       `tfsdk:"tags"`
+		Disks       []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"disks"`
+		BootDisk struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"boot_disk"`
+		ScratchDisk struct {
+			Interface string `tfsdk:"interface"`
+		} `tfsdk:"scratch_disk"`
+	}
+
+	type testCase struct {
+		state         State
+		expected      testStateGetDataTestTypes
+		expectedDiags diag.Diagnostics
+	}
+
+	testCases := map[string]testCase{
 		"AttrTypeWithValidateError": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -341,8 +390,8 @@ func TestStateGet(t *testing.T) {
 					},
 				},
 			},
-			expected: testStateGetData{
-				Name:        types.String{Value: ""},
+			expected: testStateGetDataTestTypes{
+				Name:        testtypes.String{String: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 				MachineType: "",
 				Tags:        types.List{},
 				Disks:       nil,
@@ -493,8 +542,8 @@ func TestStateGet(t *testing.T) {
 					},
 				},
 			},
-			expected: testStateGetData{
-				Name:        types.String{Value: "namevalue"},
+			expected: testStateGetDataTestTypes{
+				Name:        testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 				MachineType: "e2-medium",
 				Tags: types.List{
 					ElemType: types.StringType,
@@ -539,11 +588,14 @@ func TestStateGet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			var val testStateGetData
+			var val testStateGetDataTestTypes
 
 			diags := tc.state.Get(context.Background(), &val)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				for _, diag := range diags {
+					t.Log(diag)
+				}
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 
@@ -848,7 +900,7 @@ func TestStateGetAttribute(t *testing.T) {
 				},
 			},
 			path:          tftypes.NewAttributePath().WithAttributeName("name"),
-			expected:      types.String{Value: "namevalue"},
+			expected:      testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
@@ -1590,8 +1642,4 @@ func TestStateSetAttribute(t *testing.T) {
 			}
 		})
 	}
-}
-
-func strPtr(s string) *string {
-	return &s
 }

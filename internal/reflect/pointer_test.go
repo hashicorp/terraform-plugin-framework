@@ -2,6 +2,7 @@ package reflect_test
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -20,11 +21,12 @@ func TestPointer_notAPointer(t *testing.T) {
 
 	var s string
 	expectedDiags := diag.Diagnostics{
-		diag.NewAttributeErrorDiagnostic(
-			tftypes.NewAttributePath(),
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to pointer value. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot dereference pointer, not a pointer, is a string (string)",
-		),
+		refl.DiagIntoIncompatibleType{
+			Val:        tftypes.NewValue(tftypes.String, "hello"),
+			TargetType: reflect.TypeOf(s),
+			AttrPath:   tftypes.NewAttributePath(),
+			Err:        fmt.Errorf("cannot dereference pointer, not a pointer, is a %s (%s)", reflect.TypeOf(s), reflect.TypeOf(s).Kind()),
+		},
 	}
 
 	_, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
@@ -115,8 +117,11 @@ func TestFromPointer(t *testing.T) {
 		"WithValidateWarning": {
 			typ: testtypes.StringTypeWithValidateWarning{},
 			val: reflect.ValueOf(strPtr("hello, world")),
-			expected: types.String{
-				Value: "hello, world",
+			expected: testtypes.String{
+				String: types.String{
+					Value: "hello, world",
+				},
+				CreatedBy: testtypes.StringTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),

@@ -38,6 +38,11 @@ type String struct {
 	Value string
 }
 
+// Type returns a StringType.
+func (s String) Type(_ context.Context) attr.Type {
+	return StringType
+}
+
 // ToTerraformValue returns the data contained in the *String as a string. If
 // Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
 // returns nil.

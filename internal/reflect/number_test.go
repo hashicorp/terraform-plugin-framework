@@ -1198,8 +1198,11 @@ func TestFromInt(t *testing.T) {
 		"WithValidateWarning": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateWarning{},
-			expected: types.Number{
-				Value: big.NewFloat(1),
+			expected: testtypes.Number{
+				Number: types.Number{
+					Value: big.NewFloat(1),
+				},
+				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
@@ -1257,8 +1260,11 @@ func TestFromUint(t *testing.T) {
 		"WithValidateWarning": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateWarning{},
-			expected: types.Number{
-				Value: big.NewFloat(1),
+			expected: testtypes.Number{
+				Number: types.Number{
+					Value: big.NewFloat(1),
+				},
+				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
@@ -1323,8 +1329,11 @@ func TestFromFloat(t *testing.T) {
 		"WithValidateWarning": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateWarning{},
-			expected: types.Number{
-				Value: big.NewFloat(1),
+			expected: testtypes.Number{
+				Number: types.Number{
+					Value: big.NewFloat(1),
+				},
+				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
@@ -1389,8 +1398,11 @@ func TestFromBigFloat(t *testing.T) {
 		"WithValidateWarning": {
 			val: big.NewFloat(1),
 			typ: testtypes.NumberTypeWithValidateWarning{},
-			expected: types.Number{
-				Value: big.NewFloat(1),
+			expected: testtypes.Number{
+				Number: types.Number{
+					Value: big.NewFloat(1),
+				},
+				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
@@ -1448,8 +1460,11 @@ func TestFromBigInt(t *testing.T) {
 		"WithValidateWarning": {
 			val: big.NewInt(1),
 			typ: testtypes.NumberTypeWithValidateWarning{},
-			expected: types.Number{
-				Value: big.NewFloat(1),
+			expected: testtypes.Number{
+				Number: types.Number{
+					Value: big.NewFloat(1),
+				},
+				CreatedBy: testtypes.NumberTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),

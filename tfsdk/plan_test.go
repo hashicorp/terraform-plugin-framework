@@ -48,6 +48,42 @@ func TestPlanGet(t *testing.T) {
 				Name: types.String{Value: "namevalue"},
 			},
 		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var val testPlanGetData
+
+			diags := tc.plan.Get(context.Background(), &val)
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(val, tc.expected); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestPlanGet_testTypes(t *testing.T) {
+	t.Parallel()
+
+	type testPlanGetDataTestTypes struct {
+		Name testtypes.String `tfsdk:"name"`
+	}
+
+	type testCase struct {
+		plan          Plan
+		expected      testPlanGetDataTestTypes
+		expectedDiags diag.Diagnostics
+	}
+
+	testCases := map[string]testCase{
 		"AttrTypeWithValidateError": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -66,8 +102,8 @@ func TestPlanGet(t *testing.T) {
 					},
 				},
 			},
-			expected: testPlanGetData{
-				Name: types.String{Value: ""},
+			expected: testPlanGetDataTestTypes{
+				Name: testtypes.String{String: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 			},
 			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
@@ -89,8 +125,8 @@ func TestPlanGet(t *testing.T) {
 					},
 				},
 			},
-			expected: testPlanGetData{
-				Name: types.String{Value: "namevalue"},
+			expected: testPlanGetDataTestTypes{
+				Name: testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
@@ -101,7 +137,7 @@ func TestPlanGet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			var val testPlanGetData
+			var val testPlanGetDataTestTypes
 
 			diags := tc.plan.Get(context.Background(), &val)
 
@@ -185,7 +221,7 @@ func TestPlanGetAttribute(t *testing.T) {
 					},
 				},
 			},
-			expected:      types.String{Value: "namevalue"},
+			expected:      testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}

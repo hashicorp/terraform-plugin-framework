@@ -18,10 +18,21 @@ Since `terraform add` uses already available schema information and does not req
 Practitioners currently interact with `terraform import` by providing a resource address and import identifier, e.g.
 
 ```shell
-terraform import aws_instance.example i-12345678
+terraform import aws_security_group.example sg-12345678
 ```
 
-This is surfaced in the protocol as "type name" and "id" as shown in the next section. Future enhancements may allow Terraform CLI to surface the entire resource configuration across the protocol as well, but there is no timeline for that design or implementation.
+This is surfaced in the protocol as "type name" (parsed from the resource address) and "id" (passed through) as shown in the next section. Future enhancements may allow Terraform CLI to surface the entire resource configuration across the protocol as well, but there is no timeline for that design or implementation.
+
+Terraform CLI also supports the ability to import multiple resource states during a single import. For example, resource import of an `aws_s3_bucket` could automatically import an `aws_s3_bucket_policy` into the state, if it exists. When encountering the resources beyond the first, Terraform CLI will save them into the state using the same label, e.g.
+
+```console
+$ terraform import aws_s3_bucket.example example-bucket
+...
+aws_s3_bucket_policy.example: Refreshing state... (ID: example-bucket)
+aws_s3_bucket.example: Refreshing state... (ID: example-bucket)
+```
+
+In a more advanced example, the EC2 Security Group resource (`aws_security_group`) previously imported all EC2 Security Group Rules as resources (`aws_security_group_rule`). These would be saved into the state as if they were resources defined via `count`, e.g. `aws_security_group_rule.example[0]`, `aws_security_group_rule.example[1]`, etc.
 
 ### Terraform Plugin Protocol
 
@@ -178,17 +189,57 @@ Importer: &schema.ResourceImporter{
 },
 ```
 
-Otherwise, custom provider implementations were required.
+Otherwise, custom provider implementations were required. The following example shows multiple resource import that was previously implemented in `aws_s3_bucket` resource to optionally also import an associated `aws_s3_bucket_policy` resource:
+
+```go
+// Importer: &schema.ResourceImporter{
+//     State: resourceAwsS3BucketImportState,
+// },
+
+func resourceAwsS3BucketImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+    results := make([]*schema.ResourceData, 1)
+    results[0] = d
+
+    conn := meta.(*AWSClient).s3conn
+    pol, err := conn.GetBucketPolicy(&s3.GetBucketPolicyInput{
+        Bucket: aws.String(d.Id()),
+    })
+    if err != nil {
+        if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NoSuchBucketPolicy" {
+            // Bucket without policy
+            return results, nil
+        }
+        return nil, fmt.Errorf("Error importing AWS S3 bucket policy: %s", err)
+    }
+
+    policy := resourceAwsS3BucketPolicy()
+    pData := policy.Data(nil)
+    pData.SetId(d.Id())
+    pData.SetType("aws_s3_bucket_policy")
+    pData.Set("bucket", d.Id())
+    pData.Set("policy", pol.Policy)
+    results = append(results, pData)
+
+    return results, nil
+}
+```
+
+The [previous implementation of `aws_security_group` import]((https://github.com/hashicorp/terraform-provider-aws/blob/v2.70.0/aws/import_aws_security_group.go)), shows the more advanced case of importing an unknown number of resources.
 
 ## Caveats
 
-Terraform supports the ability to import multiple resource states during a single import (for example, resource import of an `aws_s3_bucket` also imports any associated `aws_s3_bucket_policy`), however almost all resources in the Terraform ecosystem with import support implement a 1:1 import. The extremely uncommon multiple resource support in practice is likely due to:
+Almost all resources in the Terraform ecosystem with import support implement a 1:1 import instead of utilizing multiple resource import.
+
+In practice, the following pain points generally led provider developers to avoid multiple resource import:
 
 - Risk of resource destruction for incorrect implementations ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/6036)).
-- Pracitioners may not have required permissions or wish to manage secondary imported resources ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/9508)).
-- Providers must define the resource addresses for secondary resources, which may not match practitioner desires and require additional action such as `state mv` ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/9001)).
-- (Previously) Risk of resource destruction for missing configurations ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/9001)).
-- (Previously) Terraform CLI unable to refresh secondary resource states using the correct provider instance ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/394)).
+- Pracitioners not having the required permissions or not wishing to manage the secondary imported resources ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/9508)).
+- The implicit resource addresses for secondary imported resources requiring additional practitioner action such as `state mv` ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/9001)).
+
+There were also some previous pain points associated with multiple resource import that have either been partially or wholly resolved:
+
+- Risk of resource destruction for missing configurations ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/9001)).
+- Terraform CLI unable to refresh secondary resource states using the correct provider instance ([example issue reference](https://github.com/hashicorp/terraform-provider-aws/issues/394)).
 
 While the framework design should not necessarily prohibit the inclusion of this functionality, enabling it with the current Terraform CLI handling could further contribute to provider and practitioner confusion.
 

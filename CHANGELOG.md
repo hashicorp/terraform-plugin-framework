@@ -1,4 +1,4 @@
-# 0.3.0 (Unreleased)
+# 0.3.0 (September 08, 2021)
 
 BREAKING CHANGES:
 * Methods on the `tfsdk.Config`, `tfsdk.Plan`, and `tfsdk.State` types now return `[]*tfprotov6.Diagnostic` instead of `error` ([#82](https://github.com/hashicorp/terraform-plugin-framework/issues/82))

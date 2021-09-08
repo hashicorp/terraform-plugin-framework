@@ -11,9 +11,17 @@ This design documentation will walk through and recommend options for import han
 Terraform CLI supports two forms of interacting with resources not in its statefile:
 
 - [`terraform add`](https://www.terraform.io/docs/cli/commands/add.html) (*Experimental*, Terraform CLI version 1.1.0 and later): Given a resource address and using the resource schema provided by the provider, generate a configuration template.
-- [`terraform import`](https://www.terraform.io/docs/cli/commands/import.html) (Terraform CLI version 0.7.0 and later): Given a resource address and (currently only) an identifier, forwards the request to the relevant provider and expects relevant resource state(s) with enough information to perform a refresh, then performs that resource refresh to ensure the resource state is fully populated.
+- [`terraform import`](https://www.terraform.io/docs/cli/commands/import.html) (Terraform CLI version 0.7.0 and later): Given a resource address and an identifier, forwards the request to the relevant provider and expects relevant resource state(s) with enough information to perform a refresh, then performs that resource refresh to ensure the resource state is fully populated.
 
-Since `add` uses already available schema information and does not require additional provider interaction, this design focuses on the latter, which is a currently unimplemented integration point for providers in the framework.
+Since `terraform add` uses already available schema information and does not require additional provider interaction, this design focuses on the latter, which is a currently unimplemented integration point for providers in the framework.
+
+Practitioners currently interact with `terraform import` by providing a resource address and import identifier, e.g.
+
+```shell
+terraform import aws_instance.example i-12345678
+```
+
+This is surfaced in the protocol as "type name" and "id" as shown in the next section. Future enhancements may allow Terraform CLI to surface the entire resource configuration across the protocol as well, but there is no timeline for that design or implementation.
 
 ### Terraform Plugin Protocol
 

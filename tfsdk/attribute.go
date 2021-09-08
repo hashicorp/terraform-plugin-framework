@@ -345,12 +345,11 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 
 			if !ok {
 				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Severity:  tfprotov6.DiagnosticSeverityError,
-					Summary:   "Attribute Validation Error",
-					Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
-					Attribute: req.AttributePath,
-				})
+				resp.Diagnostics.AddAttributeError(
+					req.AttributePath,
+					"Attribute Validation Error",
+					"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				)
 
 				return
 			}

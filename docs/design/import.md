@@ -8,7 +8,7 @@ This design documentation will walk through and recommend options for import han
 
 ### Terraform CLI
 
-Terraform CLI supports two forms of interacting with unmanaged resources:
+Terraform CLI supports two forms of interacting with resources not in its statefile:
 
 - [`terraform add`](https://www.terraform.io/docs/cli/commands/add.html) (*Experimental*, Terraform CLI version 1.1.0 and later): Given a resource address and using the resource schema provided by the provider, generate a configuration template.
 - [`terraform import`](https://www.terraform.io/docs/cli/commands/import.html) (Terraform CLI version 0.7.0 and later): Given a resource address and (currently only) an identifier, forwards the request to the relevant provider and expects relevant resource state(s) with enough information to perform a refresh, then performs that resource refresh to ensure the resource state is fully populated.

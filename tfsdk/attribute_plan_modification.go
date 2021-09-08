@@ -90,7 +90,7 @@ func RequiresReplaceIf(f RequiresReplaceIfFunc, description, markdownDescription
 
 // RequiresReplaceIfFunc is a conditional function used in the RequiresReplaceIf
 // plan modifier to determine whether the attribute requires replacement.
-type RequiresReplaceIfFunc func(ctx context.Context, state, config attr.Value) (bool, error)
+type RequiresReplaceIfFunc func(ctx context.Context, state, config attr.Value, path *tftypes.AttributePath) (bool, diag.Diagnostics)
 
 // RequiresReplaceIfModifier is an AttributePlanModifier that sets RequiresReplace
 // on the attribute if the conditional function returns true.
@@ -103,10 +103,8 @@ type RequiresReplaceIfModifier struct {
 // Modify sets RequiresReplace on the response to true if the conditional
 // RequiresReplaceIfFunc returns true.
 func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	res, err := r.f(ctx, req.AttributeState, req.AttributeConfig)
-	if err != nil {
-		resp.AddError("Error running RequiresReplaceIf func for attribute", err.Error())
-	}
+	res, diags := r.f(ctx, req.AttributeState, req.AttributeConfig, req.AttributePath)
+	resp.Diagnostics.Append(diags...)
 	resp.RequiresReplace = res
 }
 

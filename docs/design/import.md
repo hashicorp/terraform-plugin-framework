@@ -252,6 +252,20 @@ This satisfies the main goals of this design and includes the ability to access 
 
 It is feasible to include import support using both methods described above, however it may introduce provider developer confusion about when to choose which method. The framework would need to decide what to do if both are defined. If an error is desired, a methodology for quickly unit testing resource implementations would be desirable, otherwise that type of error may only be surfaced during acceptance testing (if it performs an import) or to practitioners after a provider is built/released.
 
+#### Requiring Implementation
+
+It is feasible to include import support on either of the existing `Resource` or `ResourceType` interface types as a new required method. e.g.
+
+```go
+type Resource interface {
+    // ... existing Create, Read, etc. ...
+
+    ImportState(context.Context, ImportResourceStateRequest, *ImportResourceStateResponse)
+}
+```
+
+Doing so would be a breaking change for providers already using early versions this framework, but longer term this would force provider developers to always consider import functionality. This may be desireable as it is a popular request in the ecosystem. To support cases where import support is not easy to implement or a desired provider design choice, the framework could then provide helper(s) to explicitly return an "import is not supported" diagnostic as the import implementation.
+
 ### Response Handling
 
 #### Single State Only
@@ -317,6 +331,6 @@ This would allow provider developers to choose between simpler or more advanced 
 
 ## Recommendations
 
-It is recommended that import support be implemented as its own interface types on top of `Resource`. This will allow the framework to own the abstraction and allow access to the provider instance. Import methods should use a request and response model similar to all other framework implementations.
+It is recommended that import support be implemented as a new required method on the existing `Resource` interface type. This will allow the framework to own the abstraction, allow access to the provider instance, and encourage implementation. Import methods should use a request and response model similar to all other framework implementations.
 
 The `ImportResourceStateResponse` type should initially implement single state support so provider developers do not need to manually construct a new state from the resource, pass through the correct resource address, or worry about the complexity and caveats associated with multiple resource import. If there is a strong desire or Terraform CLI has an improved story around multiple resource import, the framework can extend the type to support a separate field for multiple resource states.

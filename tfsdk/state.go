@@ -88,7 +88,7 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 			),
 		}
 	}
-	newStateAttrValue, diags := reflect.OutOf(ctx, s.Schema.AttributeType(), val)
+	newStateAttrValue, diags := reflect.FromValue(ctx, s.Schema.AttributeType(), val, tftypes.NewAttributePath())
 	if diags.HasError() {
 		return diags
 	}
@@ -124,7 +124,7 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 		return diags
 	}
 
-	newVal, newValDiags := reflect.OutOf(ctx, attrType, val)
+	newVal, newValDiags := reflect.FromValue(ctx, attrType, val, path)
 	diags.Append(newValDiags...)
 
 	if diags.HasError() {

@@ -235,7 +235,7 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 
 // FromInt creates an attr.Value using `typ` from an int64.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Number, val)
@@ -262,7 +262,7 @@ func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.Attrib
 
 // FromUint creates an attr.Value using `typ` from a uint64.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Number, val)
@@ -289,7 +289,7 @@ func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.Attr
 
 // FromFloat creates an attr.Value using `typ` from a float64.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Number, val)
@@ -316,7 +316,7 @@ func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.At
 
 // FromBigFloat creates an attr.Value using `typ` from a *big.Float.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Number, val)
@@ -343,7 +343,7 @@ func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tfty
 
 // FromBigInt creates an attr.Value using `typ` from a *big.Int.
 //
-// It is meant to be called through OutOf, not directly.
+// It is meant to be called through FromValue, not directly.
 func FromBigInt(ctx context.Context, typ attr.Type, val *big.Int, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	fl := big.NewFloat(0).SetInt(val)

@@ -62,5 +62,5 @@ func (s StringTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, i
 }
 
 func (t StringTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
-	return diag.Diagnostics{TestWarningDiagnostic}
+	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }

@@ -42,7 +42,7 @@ func (b BoolTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, in 
 }
 
 func (t BoolTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
-	return diag.Diagnostics{TestErrorDiagnostic}
+	return diag.Diagnostics{TestErrorDiagnostic(path)}
 }
 
 func (t BoolTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {

@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ attr.Type  = SetType{}
-	_ attr.Value = &Set{}
+	_ attr.TypeWithValidate = SetType{}
+	_ attr.Value            = &Set{}
 )
 
 // SetType is an AttributeType representing a set of values. All values must
@@ -99,6 +99,65 @@ func (t SetType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep
 	}
 
 	return t.ElemType, nil
+}
+
+// Validate implements type validation. This type requires all elements to be
+// unique.
+func (s SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if !in.Type().Is(tftypes.Set{}) {
+		err := fmt.Errorf("expected Set value, received %T with value: %v", in, in)
+		diags.AddAttributeError(
+			path,
+			"Set Type Validation Error",
+			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
+	}
+
+	if !in.IsKnown() {
+		return diags
+	}
+
+	var elems []tftypes.Value
+
+	if err := in.As(&elems); err != nil {
+		diags.AddAttributeError(
+			path,
+			"Set Type Validation Error",
+			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
+	}
+
+	// Attempting to use map[tftypes.Value]struct{} for duplicate detection yields:
+	//   panic: runtime error: hash of unhashable type tftypes.primitive
+	// Instead, use for loops.
+	for indexOuter, elemOuter := range elems {
+		// Only evaluate fully known values for duplicates.
+		if !elemOuter.IsFullyKnown() {
+			continue
+		}
+
+		for indexInner, elemInner := range elems {
+			if indexInner == indexOuter {
+				continue
+			}
+
+			if !elemInner.Equal(elemOuter) {
+				continue
+			}
+
+			diags.AddAttributeError(
+				path.WithElementKeyValue(elemInner),
+				"Duplicate Set Element",
+				fmt.Sprintf("This attribute contains duplicate values of: %s", elemInner),
+			)
+		}
+	}
+
+	return diags
 }
 
 // Set represents a set of AttributeValues, all of the same type, indicated

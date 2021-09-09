@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -92,6 +93,26 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 				Elems: []attr.Value{
 					String{Value: "hello"},
 					String{Value: "world"},
+				},
+			},
+		},
+		"set-of-duplicate-strings": {
+			receiver: SetType{
+				ElemType: StringType,
+			},
+			input: tftypes.NewValue(tftypes.Set{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			// Duplicate validation does not occur during this method.
+			// This is okay, as tftypes allows duplicates.
+			expected: Set{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "hello"},
 				},
 			},
 		},
@@ -276,6 +297,167 @@ func TestSetElementsAs_attributeValueSlice(t *testing.T) {
 	}
 }
 
+func TestSetTypeValidate(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in            tftypes.Value
+		expectedDiags diag.Diagnostics
+	}{
+		"null": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				nil,
+			),
+		},
+		"null-element": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				},
+			),
+		},
+		"null-elements": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				},
+			),
+		},
+		"unknown": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				tftypes.UnknownValue,
+			),
+		},
+		"unknown-element": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				},
+			),
+		},
+		"unknown-elements": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				},
+			),
+		},
+		"value": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+				},
+			),
+		},
+		"value-and-null": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, nil),
+				},
+			),
+		},
+		"value-and-unknown": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				},
+			),
+		},
+		"values": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				},
+			),
+		},
+		"values-duplicates": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "hello"),
+				},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "hello")),
+					"Duplicate Set Element",
+					"This attribute contains duplicate values of: tftypes.String<\"hello\">",
+				),
+			},
+		},
+		"values-duplicates-and-unknowns": {
+			in: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					tftypes.NewValue(tftypes.String, "hello"),
+				},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "hello")),
+					"Duplicate Set Element",
+					"This attribute contains duplicate values of: tftypes.String<\"hello\">",
+				),
+			},
+		},
+	}
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			diags := SetType{}.Validate(context.Background(), testCase.in, tftypes.NewAttributePath().WithAttributeName("test"))
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diagnostics (+got, -expected): %s", diff)
+			}
+		})
+	}
+}
+
 func TestSetToTerraformValue(t *testing.T) {
 	t.Parallel()
 
@@ -295,6 +477,21 @@ func TestSetToTerraformValue(t *testing.T) {
 			expectation: []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, "world"),
+			},
+		},
+		"value-duplicates": {
+			input: Set{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "hello"},
+				},
+			},
+			// Duplicate validation does not occur during this method.
+			// This is okay, as tftypes allows duplicates.
+			expectation: []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "hello"),
 			},
 		},
 		"unknown": {

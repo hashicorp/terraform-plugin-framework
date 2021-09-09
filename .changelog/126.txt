@@ -1,3 +1,7 @@
 ```release-note:feature
 types: Support `Set` and `SetType`
 ```
+
+```release-note:bug
+attr: Ensure `List` types implementing `attr.TypeWithValidate` call `ElementType` validation only if that type implements `attr.TypeWithValidate`
+```

@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -22,7 +22,7 @@ func TestConfigGet(t *testing.T) {
 	type testCase struct {
 		config        Config
 		expected      testConfigGetData
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -48,6 +48,42 @@ func TestConfigGet(t *testing.T) {
 				Name: types.String{Value: "namevalue"},
 			},
 		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var val testConfigGetData
+
+			diags := tc.config.Get(context.Background(), &val)
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(val, tc.expected); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestConfigGet_testTypes(t *testing.T) {
+	t.Parallel()
+
+	type testConfigGetData struct {
+		Name testtypes.String `tfsdk:"name"`
+	}
+
+	type testCase struct {
+		config        Config
+		expected      testConfigGetData
+		expectedDiags diag.Diagnostics
+	}
+
+	testCases := map[string]testCase{
 		"AttrTypeWithValidateError": {
 			config: Config{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -67,9 +103,9 @@ func TestConfigGet(t *testing.T) {
 				},
 			},
 			expected: testConfigGetData{
-				Name: types.String{Value: ""},
+				Name: testtypes.String{String: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			config: Config{
@@ -90,9 +126,9 @@ func TestConfigGet(t *testing.T) {
 				},
 			},
 			expected: testConfigGetData{
-				Name: types.String{Value: "namevalue"},
+				Name: testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -122,7 +158,7 @@ func TestConfigGetAttribute(t *testing.T) {
 	type testCase struct {
 		config        Config
 		expected      attr.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -165,7 +201,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      nil,
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			config: Config{
@@ -185,8 +221,8 @@ func TestConfigGetAttribute(t *testing.T) {
 					},
 				},
 			},
-			expected:      types.String{Value: "namevalue"},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expected:      testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 

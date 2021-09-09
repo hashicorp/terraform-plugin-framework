@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -31,9 +31,16 @@ type AttributePlanModifier interface {
 	// the diff that should be shown to the user for approval, and once
 	// during the apply phase with any unknown values from configuration
 	// filled in with their final values.
+	//
 	// The Modify function has access to the config, state, and plan for
 	// both the attribute in question and the entire resource, but it can
 	// only modify the value of the one attribute.
+	//
+	// Any returned errors will stop further execution of plan modifications
+	// for this Attribute and any nested Attribute. Other Attribute at the same
+	// or higher levels of the Schema will still execute any plan modifications
+	// to ensure all warnings and errors across all root Attribute are
+	// captured.
 	//
 	// Please see the documentation for ResourceWithModifyPlan#ModifyPlan
 	// for further details.
@@ -83,7 +90,7 @@ func RequiresReplaceIf(f RequiresReplaceIfFunc, description, markdownDescription
 
 // RequiresReplaceIfFunc is a conditional function used in the RequiresReplaceIf
 // plan modifier to determine whether the attribute requires replacement.
-type RequiresReplaceIfFunc func(ctx context.Context, state, config attr.Value) (bool, error)
+type RequiresReplaceIfFunc func(ctx context.Context, state, config attr.Value, path *tftypes.AttributePath) (bool, diag.Diagnostics)
 
 // RequiresReplaceIfModifier is an AttributePlanModifier that sets RequiresReplace
 // on the attribute if the conditional function returns true.
@@ -96,10 +103,8 @@ type RequiresReplaceIfModifier struct {
 // Modify sets RequiresReplace on the response to true if the conditional
 // RequiresReplaceIfFunc returns true.
 func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	res, err := r.f(ctx, req.AttributeState, req.AttributeConfig)
-	if err != nil {
-		resp.AddError("Error running RequiresReplaceIf func for attribute", err.Error())
-	}
+	res, diags := r.f(ctx, req.AttributeState, req.AttributeConfig, req.AttributePath)
+	resp.Diagnostics.Append(diags...)
 	resp.RequiresReplace = res
 }
 
@@ -158,47 +163,29 @@ type ModifyAttributePlanResponse struct {
 	// planned state of the requested resource. Returning an empty slice
 	// indicates a successful validation with no warnings or errors
 	// generated.
-	Diagnostics []*tfprotov6.Diagnostic
+	Diagnostics diag.Diagnostics
 }
 
 // AddWarning appends a warning diagnostic to the response. If the warning
 // concerns a particular attribute, AddAttributeWarning should be used instead.
 func (r *ModifyAttributePlanResponse) AddWarning(summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Summary:  summary,
-		Detail:   detail,
-		Severity: tfprotov6.DiagnosticSeverityWarning,
-	})
+	r.Diagnostics.AddWarning(summary, detail)
 }
 
 // AddAttributeWarning appends a warning diagnostic to the response and labels
 // it with a specific attribute.
 func (r *ModifyAttributePlanResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Attribute: attributePath,
-		Summary:   summary,
-		Detail:    detail,
-		Severity:  tfprotov6.DiagnosticSeverityWarning,
-	})
+	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
 }
 
 // AddError appends an error diagnostic to the response. If the error concerns a
 // particular attribute, AddAttributeError should be used instead.
 func (r *ModifyAttributePlanResponse) AddError(summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Summary:  summary,
-		Detail:   detail,
-		Severity: tfprotov6.DiagnosticSeverityError,
-	})
+	r.Diagnostics.AddError(summary, detail)
 }
 
 // AddAttributeError appends an error diagnostic to the response and labels it
 // with a specific attribute.
 func (r *ModifyAttributePlanResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics = append(r.Diagnostics, &tfprotov6.Diagnostic{
-		Attribute: attributePath,
-		Summary:   summary,
-		Detail:    detail,
-		Severity:  tfprotov6.DiagnosticSeverityError,
-	})
+	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
 }

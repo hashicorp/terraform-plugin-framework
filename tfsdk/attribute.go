@@ -7,7 +7,6 @@ import (
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -75,10 +74,16 @@ type Attribute struct {
 	Validators []AttributeValidator
 
 	// PlanModifiers defines a sequence of modifiers for this attribute at
-	// plan time.
-	// Please note that plan modification only applies to resources, not
-	// data sources. Setting PlanModifiers on a data source attribute will
-	// have no effect.
+	// plan time. Attribute-level plan modifications occur before any
+	// resource-level plan modifications.
+	//
+	// Any errors will prevent further execution of this sequence
+	// of modifiers and modifiers associated with any nested Attribute, but will not
+	// prevent execution of PlanModifiers on any other Attribute in the Schema.
+	//
+	// Plan modification only applies to resources, not data sources or
+	// providers. Setting PlanModifiers on a data source or provider attribute
+	// will have no effect.
 	PlanModifiers AttributePlanModifiers
 }
 
@@ -228,43 +233,40 @@ func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, pa
 // validate performs all Attribute validation.
 func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	if (a.Attributes == nil || len(a.Attributes.GetAttributes()) == 0) && a.Type == nil {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Invalid Attribute Definition",
-			Detail:    "Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
-			Attribute: req.AttributePath,
-		})
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Attribute Definition",
+			"Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
+		)
 
 		return
 	}
 
 	if a.Attributes != nil && len(a.Attributes.GetAttributes()) > 0 && a.Type != nil {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Invalid Attribute Definition",
-			Detail:    "Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
-			Attribute: req.AttributePath,
-		})
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Attribute Definition",
+			"Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
+		)
 
 		return
 	}
 
 	if !a.Required && !a.Optional && !a.Computed {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Invalid Attribute Definition",
-			Detail:    "Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
-			Attribute: req.AttributePath,
-		})
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Attribute Definition",
+			"Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
+		)
 
 		return
 	}
 
 	attributeConfig, diags := req.Config.GetAttribute(ctx, req.AttributePath)
 
-	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	resp.Diagnostics.Append(diags...)
 
-	if diagnostics.DiagsHasErrors(diags) {
+	if diags.HasError() {
 		return
 	}
 
@@ -282,12 +284,11 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 
 			if !ok {
 				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Severity:  tfprotov6.DiagnosticSeverityError,
-					Summary:   "Attribute Validation Error",
-					Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
-					Attribute: req.AttributePath,
-				})
+				resp.Diagnostics.AddAttributeError(
+					req.AttributePath,
+					"Attribute Validation Error",
+					"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				)
 
 				return
 			}
@@ -315,12 +316,11 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 
 			if !ok {
 				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
-				resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-					Severity:  tfprotov6.DiagnosticSeverityError,
-					Summary:   "Attribute Validation Error",
-					Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
-					Attribute: req.AttributePath,
-				})
+				resp.Diagnostics.AddAttributeError(
+					req.AttributePath,
+					"Attribute Validation Error",
+					"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				)
 
 				return
 			}
@@ -341,27 +341,41 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 				}
 			}
 		case NestingModeSingle:
-			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithAttributeName(nestedName),
-					Config:        req.Config,
-				}
-				nestedAttrResp := &ValidateAttributeResponse{
-					Diagnostics: resp.Diagnostics,
-				}
+			o, ok := req.AttributeConfig.(types.Object)
 
-				nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+			if !ok {
+				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+				resp.Diagnostics.AddAttributeError(
+					req.AttributePath,
+					"Attribute Validation Error",
+					"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				)
 
-				resp.Diagnostics = nestedAttrResp.Diagnostics
+				return
+			}
+
+			if !o.Null && !o.Unknown {
+				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+					nestedAttrReq := ValidateAttributeRequest{
+						AttributePath: req.AttributePath.WithAttributeName(nestedName),
+						Config:        req.Config,
+					}
+					nestedAttrResp := &ValidateAttributeResponse{
+						Diagnostics: resp.Diagnostics,
+					}
+
+					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+					resp.Diagnostics = nestedAttrResp.Diagnostics
+				}
 			}
 		default:
 			err := fmt.Errorf("unknown attribute validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
-			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityError,
-				Summary:   "Attribute Validation Error",
-				Detail:    "Attribute validation cannot walk schema. Report this to the provider developer:\n\n" + err.Error(),
-				Attribute: req.AttributePath,
-			})
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Attribute Validation Error",
+				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
 
 			return
 		}
@@ -371,23 +385,21 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 		tfValue, err := attributeConfig.ToTerraformValue(ctx)
 
 		if err != nil {
-			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityError,
-				Summary:   "Attribute Validation Error",
-				Detail:    "Attribute validation cannot convert value. Report this to the provider developer:\n\n" + err.Error(),
-				Attribute: req.AttributePath,
-			})
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Attribute Validation Error",
+				"Attribute validation cannot convert value. Report this to the provider developer:\n\n"+err.Error(),
+			)
 
 			return
 		}
 
 		if tfValue != nil {
-			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityWarning,
-				Summary:   "Attribute Deprecated",
-				Detail:    a.DeprecationMessage,
-				Attribute: req.AttributePath,
-			})
+			resp.Diagnostics.AddAttributeWarning(
+				req.AttributePath,
+				"Attribute Deprecated",
+				a.DeprecationMessage,
+			)
 		}
 	}
 }
@@ -395,40 +407,44 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 // modifyPlan runs all AttributePlanModifiers
 func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	attrConfig, diags := req.Config.GetAttribute(ctx, req.AttributePath)
-	resp.Diagnostics = append(resp.Diagnostics, diags...)
-	if diagnostics.DiagsHasErrors(diags) {
+	resp.Diagnostics.Append(diags...)
+	// Only on new errors.
+	if diags.HasError() {
 		return
 	}
 	req.AttributeConfig = attrConfig
 
 	attrState, diags := req.State.GetAttribute(ctx, req.AttributePath)
-	resp.Diagnostics = append(resp.Diagnostics, diags...)
-	if diagnostics.DiagsHasErrors(diags) {
+	resp.Diagnostics.Append(diags...)
+	// Only on new errors.
+	if diags.HasError() {
 		return
 	}
 	req.AttributeState = attrState
 
 	attrPlan, diags := req.Plan.GetAttribute(ctx, req.AttributePath)
-	resp.Diagnostics = append(resp.Diagnostics, diags...)
-	if diagnostics.DiagsHasErrors(diags) {
+	resp.Diagnostics.Append(diags...)
+	// Only on new errors.
+	if diags.HasError() {
 		return
 	}
 	req.AttributePlan = attrPlan
 
-	modifyReq := ModifyAttributePlanRequest{
-		AttributePath:   req.AttributePath,
-		Config:          req.Config,
-		State:           req.State,
-		Plan:            req.Plan,
-		AttributeConfig: req.AttributeConfig,
-		AttributeState:  req.AttributeState,
-		AttributePlan:   req.AttributePlan,
-		ProviderMeta:    req.ProviderMeta,
-	}
 	for _, planModifier := range a.PlanModifiers {
-		planModifier.Modify(ctx, modifyReq, resp)
-		modifyReq.AttributePlan = resp.AttributePlan
-		if diagnostics.DiagsHasErrors(resp.Diagnostics) {
+		modifyResp := &ModifyAttributePlanResponse{
+			AttributePlan:   resp.AttributePlan,
+			RequiresReplace: resp.RequiresReplace,
+		}
+
+		planModifier.Modify(ctx, req, modifyResp)
+
+		req.AttributePlan = modifyResp.AttributePlan
+		resp.AttributePlan = modifyResp.AttributePlan
+		resp.Diagnostics.Append(modifyResp.Diagnostics...)
+		resp.RequiresReplace = modifyResp.RequiresReplace
+
+		// Only on new errors.
+		if modifyResp.Diagnostics.HasError() {
 			return
 		}
 	}

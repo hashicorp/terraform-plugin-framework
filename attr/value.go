@@ -8,6 +8,9 @@ import (
 // Values allow provider developers to specify data in a convenient format, and
 // have it transparently be converted to formats Terraform understands.
 type Value interface {
+	// Type returns the Type that created the Value.
+	Type(context.Context) Type
+
 	// ToTerraformValue returns the data contained in the Value as
 	// a Go type that tftypes.NewValue will accept.
 	ToTerraformValue(context.Context) (interface{}, error)

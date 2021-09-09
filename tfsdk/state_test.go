@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -34,8 +34,8 @@ func TestStateGet(t *testing.T) {
 
 	type testCase struct {
 		state         State
-		expected      interface{}
-		expectedDiags []*tfprotov6.Diagnostic
+		expected      testStateGetData
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -209,6 +209,55 @@ func TestStateGet(t *testing.T) {
 				},
 			},
 		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var val testStateGetData
+
+			diags := tc.state.Get(context.Background(), &val)
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(val, tc.expected); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestStateGet_testTypes(t *testing.T) {
+	t.Parallel()
+
+	type testStateGetDataTestTypes struct {
+		Name        testtypes.String `tfsdk:"name"`
+		MachineType string           `tfsdk:"machine_type"`
+		Tags        types.List       `tfsdk:"tags"`
+		Disks       []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"disks"`
+		BootDisk struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"boot_disk"`
+		ScratchDisk struct {
+			Interface string `tfsdk:"interface"`
+		} `tfsdk:"scratch_disk"`
+	}
+
+	type testCase struct {
+		state         State
+		expected      testStateGetDataTestTypes
+		expectedDiags diag.Diagnostics
+	}
+
+	testCases := map[string]testCase{
 		"AttrTypeWithValidateError": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -341,8 +390,8 @@ func TestStateGet(t *testing.T) {
 					},
 				},
 			},
-			expected: testStateGetData{
-				Name:        types.String{Value: ""},
+			expected: testStateGetDataTestTypes{
+				Name:        testtypes.String{String: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 				MachineType: "",
 				Tags:        types.List{},
 				Disks:       nil,
@@ -359,7 +408,7 @@ func TestStateGet(t *testing.T) {
 					Interface: "",
 				},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -493,8 +542,8 @@ func TestStateGet(t *testing.T) {
 					},
 				},
 			},
-			expected: testStateGetData{
-				Name:        types.String{Value: "namevalue"},
+			expected: testStateGetDataTestTypes{
+				Name:        testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 				MachineType: "e2-medium",
 				Tags: types.List{
 					ElemType: types.StringType,
@@ -530,7 +579,7 @@ func TestStateGet(t *testing.T) {
 					Interface: "SCSI",
 				},
 			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -539,11 +588,14 @@ func TestStateGet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			var val testStateGetData
+			var val testStateGetDataTestTypes
 
 			diags := tc.state.Get(context.Background(), &val)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				for _, diag := range diags {
+					t.Log(diag)
+				}
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 
@@ -561,7 +613,7 @@ func TestStateGetAttribute(t *testing.T) {
 		state         State
 		path          *tftypes.AttributePath
 		expected      attr.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -827,7 +879,7 @@ func TestStateGetAttribute(t *testing.T) {
 			},
 			path:          tftypes.NewAttributePath().WithAttributeName("name"),
 			expected:      nil,
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -848,8 +900,8 @@ func TestStateGetAttribute(t *testing.T) {
 				},
 			},
 			path:          tftypes.NewAttributePath().WithAttributeName("name"),
-			expected:      types.String{Value: "namevalue"},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expected:      testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -878,7 +930,7 @@ func TestStateSet(t *testing.T) {
 		state         State
 		val           interface{}
 		expected      tftypes.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -1189,7 +1241,7 @@ func TestStateSet(t *testing.T) {
 				Name: "newvalue",
 			},
 			expected:      tftypes.Value{},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -1215,7 +1267,7 @@ func TestStateSet(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -1245,7 +1297,7 @@ func TestStateSetAttribute(t *testing.T) {
 		path          *tftypes.AttributePath
 		val           interface{}
 		expected      tftypes.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -1539,7 +1591,7 @@ func TestStateSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "originalname"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -1568,11 +1620,8 @@ func TestStateSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newname"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				testtypes.TestWarningDiagnostic,
-				// TODO: Consider duplicate diagnostic consolidation functionality with diagnostic abstraction
-				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/24
-				testtypes.TestWarningDiagnostic,
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name")),
 			},
 		},
 	}
@@ -1593,8 +1642,4 @@ func TestStateSetAttribute(t *testing.T) {
 			}
 		})
 	}
-}
-
-func strPtr(s string) *string {
-	return &s
 }

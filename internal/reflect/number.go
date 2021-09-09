@@ -9,8 +9,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -25,25 +24,25 @@ import (
 // things, as a general rule of thumb.
 //
 // It is meant to be called through Into, not directly.
-func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	result := big.NewFloat(0)
 	err := val.As(&result)
 	if err != nil {
-		return target, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
+		diags.Append(DiagIntoIncompatibleType{
+			AttrPath:   path,
+			Err:        err,
+			TargetType: target.Type(),
+			Val:        val,
 		})
+		return target, diags
 	}
 	roundingError := fmt.Errorf("cannot store %s in %s", result.String(), target.Type())
-	roundingErrorDiag := &tfprotov6.Diagnostic{
-		Severity:  tfprotov6.DiagnosticSeverityError,
-		Summary:   "Value Conversion Error",
-		Detail:    "An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n" + roundingError.Error(),
-		Attribute: path,
-	}
+	roundingErrorDiag := diag.NewAttributeErrorDiagnostic(
+		path,
+		"Value Conversion Error",
+		"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+roundingError.Error(),
+	)
 
 	switch target.Type() {
 	case reflect.TypeOf(big.NewFloat(0)):
@@ -174,12 +173,12 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 			floatResult = math.SmallestNonzeroFloat32
 		} else if acc != big.Exact {
 			err := fmt.Errorf("unsure how to round %s and %f", acc, floatResult)
-			return target, append(diags, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityError,
-				Summary:   "Value Conversion Error",
-				Detail:    "An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-				Attribute: path,
-			})
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return target, diags
 		}
 		return reflect.ValueOf(floatResult), diags
 	case reflect.Float64:
@@ -194,12 +193,12 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 				floatResult = -math.SmallestNonzeroFloat64
 			} else {
 				err := fmt.Errorf("not sure how to round %s and %f", acc, floatResult)
-				return target, append(diags, &tfprotov6.Diagnostic{
-					Severity:  tfprotov6.DiagnosticSeverityError,
-					Summary:   "Value Conversion Error",
-					Detail:    "An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-					Attribute: path,
-				})
+				diags.AddAttributeError(
+					path,
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+				)
+				return target, diags
 			}
 		} else if acc == big.Below {
 			if floatResult == math.Inf(-1) || floatResult == -math.MaxFloat64 {
@@ -208,38 +207,38 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 				floatResult = math.SmallestNonzeroFloat64
 			} else {
 				err := fmt.Errorf("not sure how to round %s and %f", acc, floatResult)
-				return target, append(diags, &tfprotov6.Diagnostic{
-					Severity:  tfprotov6.DiagnosticSeverityError,
-					Summary:   "Value Conversion Error",
-					Detail:    "An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-					Attribute: path,
-				})
+				diags.AddAttributeError(
+					path,
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+				)
+				return target, diags
 			}
 		} else if acc != big.Exact {
 			err := fmt.Errorf("not sure how to round %s and %f", acc, floatResult)
-			return target, append(diags, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityError,
-				Summary:   "Value Conversion Error",
-				Detail:    "An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-				Attribute: path,
-			})
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return target, diags
 		}
 		return reflect.ValueOf(floatResult), diags
 	}
 	err = fmt.Errorf("cannot convert number to %s", target.Type())
-	return target, append(diags, &tfprotov6.Diagnostic{
-		Severity:  tfprotov6.DiagnosticSeverityError,
-		Summary:   "Value Conversion Error",
-		Detail:    "An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-		Attribute: path,
-	})
+	diags.AddAttributeError(
+		path,
+		"Value Conversion Error",
+		"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+	)
+	return target, diags
 }
 
 // FromInt creates an attr.Value using `typ` from an int64.
 //
-// It is meant to be called through OutOf, not directly.
-func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+// It is meant to be called through FromValue, not directly.
+func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Number, val)
 	if err != nil {
 		return nil, append(diags, validateValueErrorDiag(err, path))
@@ -247,9 +246,9 @@ func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.Attrib
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 	}
@@ -264,9 +263,9 @@ func FromInt(ctx context.Context, typ attr.Type, val int64, path *tftypes.Attrib
 
 // FromUint creates an attr.Value using `typ` from a uint64.
 //
-// It is meant to be called through OutOf, not directly.
-func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+// It is meant to be called through FromValue, not directly.
+func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Number, val)
 	if err != nil {
 		return nil, append(diags, validateValueErrorDiag(err, path))
@@ -274,9 +273,9 @@ func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.Attr
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 	}
@@ -291,9 +290,9 @@ func FromUint(ctx context.Context, typ attr.Type, val uint64, path *tftypes.Attr
 
 // FromFloat creates an attr.Value using `typ` from a float64.
 //
-// It is meant to be called through OutOf, not directly.
-func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+// It is meant to be called through FromValue, not directly.
+func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Number, val)
 	if err != nil {
 		return nil, append(diags, validateValueErrorDiag(err, path))
@@ -301,9 +300,9 @@ func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.At
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 	}
@@ -318,9 +317,9 @@ func FromFloat(ctx context.Context, typ attr.Type, val float64, path *tftypes.At
 
 // FromBigFloat creates an attr.Value using `typ` from a *big.Float.
 //
-// It is meant to be called through OutOf, not directly.
-func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+// It is meant to be called through FromValue, not directly.
+func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Number, val)
 	if err != nil {
 		return nil, append(diags, validateValueErrorDiag(err, path))
@@ -328,9 +327,9 @@ func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tfty
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 	}
@@ -345,9 +344,9 @@ func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path *tfty
 
 // FromBigInt creates an attr.Value using `typ` from a *big.Int.
 //
-// It is meant to be called through OutOf, not directly.
-func FromBigInt(ctx context.Context, typ attr.Type, val *big.Int, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+// It is meant to be called through FromValue, not directly.
+func FromBigInt(ctx context.Context, typ attr.Type, val *big.Int, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	fl := big.NewFloat(0).SetInt(val)
 	err := tftypes.ValidateValue(tftypes.Number, fl)
 	if err != nil {
@@ -356,9 +355,9 @@ func FromBigInt(ctx context.Context, typ attr.Type, val *big.Int, path *tftypes.
 	tfNum := tftypes.NewValue(tftypes.Number, fl)
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags = append(diags, typeWithValidate.Validate(ctx, tfNum)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 	}

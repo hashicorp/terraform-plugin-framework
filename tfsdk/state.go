@@ -5,9 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -18,25 +17,25 @@ type State struct {
 }
 
 // Get populates the struct passed as `target` with the entire state.
-func (s State) Get(ctx context.Context, target interface{}) []*tfprotov6.Diagnostic {
+func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 	return reflect.Into(ctx, s.Schema.AttributeType(), s.Raw, target, reflect.Options{})
 }
 
 // GetAttribute retrieves the attribute found at `path` and returns it as an
 // attr.Value. Consumers should assert the type of the returned value with the
 // desired attr.Type.
-func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
 	attrType, err := s.Schema.AttributeTypeAtPath(path)
 	if err != nil {
 		err = fmt.Errorf("error getting attribute type in schema: %w", err)
-		return nil, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "State Read Error",
-			Detail:    "An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"State Read Error",
+			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
 	}
 
 	// if the whole state is nil, the value of a valid attribute is also nil
@@ -46,18 +45,18 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 
 	tfValue, err := s.terraformValueAtPath(path)
 	if err != nil {
-		return nil, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "State Read Error",
-			Detail:    "An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"State Read Error",
+			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
 	}
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
-		diags = append(diags, attrTypeWithValidate.Validate(ctx, tfValue)...)
+		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)
 
-		if diagnostics.DiagsHasErrors(diags) {
+		if diags.HasError() {
 			return nil, diags
 		}
 	}
@@ -65,12 +64,12 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 	attrValue, err := attrType.ValueFromTerraform(ctx, tfValue)
 
 	if err != nil {
-		return nil, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "State Read Error",
-			Detail:    "An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"State Read Error",
+			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
 	}
 
 	return attrValue, diags
@@ -79,30 +78,29 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 // Set populates the entire state using the supplied Go value. The value `val`
 // should be a struct whose values have one of the attr.Value types. Each field
 // must be tagged with the corresponding schema field.
-func (s *State) Set(ctx context.Context, val interface{}) []*tfprotov6.Diagnostic {
+func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 	if val == nil {
 		err := fmt.Errorf("cannot set nil as entire state; to remove a resource from state, call State.RemoveResource, instead")
-		return []*tfprotov6.Diagnostic{
-			{
-				Severity: tfprotov6.DiagnosticSeverityError,
-				Summary:  "State Read Error",
-				Detail:   "An unexpected error was encountered trying to write the state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			},
+		return diag.Diagnostics{
+			diag.NewErrorDiagnostic(
+				"State Read Error",
+				"An unexpected error was encountered trying to write the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			),
 		}
 	}
-	newStateAttrValue, diags := reflect.OutOf(ctx, s.Schema.AttributeType(), val)
-	if diagnostics.DiagsHasErrors(diags) {
+	newStateAttrValue, diags := reflect.FromValue(ctx, s.Schema.AttributeType(), val, tftypes.NewAttributePath())
+	if diags.HasError() {
 		return diags
 	}
 
 	newStateVal, err := newStateAttrValue.ToTerraformValue(ctx)
 	if err != nil {
 		err = fmt.Errorf("error running ToTerraformValue on state: %w", err)
-		return append(diags, &tfprotov6.Diagnostic{
-			Severity: tfprotov6.DiagnosticSeverityError,
-			Summary:  "State Write Error",
-			Detail:   "An unexpected error was encountered trying to write the state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-		})
+		diags.AddError(
+			"State Write Error",
+			"An unexpected error was encountered trying to write the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
 	}
 
 	newState := tftypes.NewValue(s.Schema.AttributeType().TerraformType(ctx), newStateVal)
@@ -112,36 +110,36 @@ func (s *State) Set(ctx context.Context, val interface{}) []*tfprotov6.Diagnosti
 }
 
 // SetAttribute sets the attribute at `path` using the supplied Go value.
-func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, val interface{}) []*tfprotov6.Diagnostic {
-	var diags []*tfprotov6.Diagnostic
+func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, val interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
 
 	attrType, err := s.Schema.AttributeTypeAtPath(path)
 	if err != nil {
 		err = fmt.Errorf("error getting attribute type in schema: %w", err)
-		return append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "State Write Error",
-			Detail:    "An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"State Write Error",
+			"An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
 	}
 
-	newVal, newValDiags := reflect.OutOf(ctx, attrType, val)
-	diags = append(diags, newValDiags...)
+	newVal, newValDiags := reflect.FromValue(ctx, attrType, val, path)
+	diags.Append(newValDiags...)
 
-	if diagnostics.DiagsHasErrors(diags) {
+	if diags.HasError() {
 		return diags
 	}
 
 	newTfVal, err := newVal.ToTerraformValue(ctx)
 	if err != nil {
 		err = fmt.Errorf("error running ToTerraformValue on new state value: %w", err)
-		return append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "State Write Error",
-			Detail:    "An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"State Write Error",
+			"An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
 	}
 
 	transformFunc := func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
@@ -149,9 +147,9 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 			tfVal := tftypes.NewValue(attrType.TerraformType(ctx), newTfVal)
 
 			if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
-				diags = append(diags, attrTypeWithValidate.Validate(ctx, tfVal)...)
+				diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)
 
-				if diagnostics.DiagsHasErrors(diags) {
+				if diags.HasError() {
 					return v, nil
 				}
 			}
@@ -163,12 +161,12 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 
 	s.Raw, err = tftypes.Transform(s.Raw, transformFunc)
 	if err != nil {
-		return append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "State Write Error",
-			Detail:    "An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"State Write Error",
+			"An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
 	}
 
 	return diags

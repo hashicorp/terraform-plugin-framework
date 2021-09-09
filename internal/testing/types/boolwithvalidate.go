@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -17,14 +17,34 @@ type BoolTypeWithValidateError struct {
 	BoolType
 }
 
+func (b BoolTypeWithValidateError) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	res, err := b.BoolType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	newBool := res.(Bool)
+	newBool.CreatedBy = b
+	return newBool, nil
+}
+
 type BoolTypeWithValidateWarning struct {
 	BoolType
 }
 
-func (t BoolTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value) []*tfprotov6.Diagnostic {
-	return []*tfprotov6.Diagnostic{TestErrorDiagnostic}
+func (b BoolTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	res, err := b.BoolType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	newBool := res.(Bool)
+	newBool.CreatedBy = b
+	return newBool, nil
 }
 
-func (t BoolTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value) []*tfprotov6.Diagnostic {
-	return []*tfprotov6.Diagnostic{TestWarningDiagnostic}
+func (t BoolTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	return diag.Diagnostics{TestErrorDiagnostic(path)}
+}
+
+func (t BoolTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }

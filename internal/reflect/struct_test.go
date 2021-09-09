@@ -2,12 +2,14 @@ package reflect_test
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -19,100 +21,143 @@ func TestNewStruct_notAnObject(t *testing.T) {
 	t.Parallel()
 
 	var s struct{}
-	_, diags := refl.Struct(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if !diagnostics.DiagsHasErrors(diags) {
-		t.Error("Expected error, didn't get one")
+	expectedDiags := diag.Diagnostics{
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			Val:        tftypes.NewValue(tftypes.String, "hello"),
+			TargetType: reflect.TypeOf(s),
+			Err:        fmt.Errorf("cannot reflect %s into a struct, must be an object", tftypes.String),
+		},
 	}
-	if expected := `cannot reflect tftypes.String into a struct, must be an object`; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
+
+	_, diags := refl.Struct(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 	}
 }
 
 func TestNewStruct_notAStruct(t *testing.T) {
 	t.Parallel()
 
-	var s string
-	_, diags := refl.Struct(context.Background(), types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"a": types.StringType,
-		},
-	}, tftypes.NewValue(tftypes.Object{
+	val := tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"a": tftypes.String,
 		},
 	}, map[string]tftypes.Value{
 		"a": tftypes.NewValue(tftypes.String, "hello"),
-	}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if !diagnostics.DiagsHasErrors(diags) {
-		t.Error("Expected error, didn't get one")
+	})
+
+	var s string
+	expectedDiags := diag.Diagnostics{
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			TargetType: reflect.TypeOf(s),
+			Val:        val,
+			Err:        fmt.Errorf("expected a struct type, got string"),
+		},
 	}
-	if expected := `expected a struct type, got string`; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
+
+	_, diags := refl.Struct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"a": types.StringType,
+		},
+	}, val, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 	}
 }
 
 func TestNewStruct_objectMissingFields(t *testing.T) {
 	t.Parallel()
 
+	val := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{},
+	}, map[string]tftypes.Value{})
+
 	var s struct {
 		A string `tfsdk:"a"`
 	}
-	_, diags := refl.Struct(context.Background(), types.ObjectType{}, tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{},
-	}, map[string]tftypes.Value{}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if !diagnostics.DiagsHasErrors(diags) {
-		t.Error("Expected error, didn't get one")
+	expectedDiags := diag.Diagnostics{
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			Err:        errors.New("mismatch between struct and object: Struct defines fields not found in object: a."),
+			Val:        val,
+			TargetType: reflect.TypeOf(s),
+		},
 	}
-	if expected := `mismatch between struct and object: Struct defines fields not found in object: a.`; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
+
+	_, diags := refl.Struct(context.Background(), types.ObjectType{}, val, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 	}
 }
 
 func TestNewStruct_structMissingProperties(t *testing.T) {
 	t.Parallel()
 
-	var s struct{}
-	_, diags := refl.Struct(context.Background(), types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"a": types.StringType,
-		},
-	}, tftypes.NewValue(tftypes.Object{
+	val := tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"a": tftypes.String,
 		},
 	}, map[string]tftypes.Value{
 		"a": tftypes.NewValue(tftypes.String, "hello"),
-	}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if !diagnostics.DiagsHasErrors(diags) {
-		t.Error("Expected error, didn't get one")
+	})
+
+	var s struct{}
+	expectedDiags := diag.Diagnostics{
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			Err:        errors.New("mismatch between struct and object: Object defines fields not found in struct: a."),
+			Val:        val,
+			TargetType: reflect.TypeOf(s),
+		},
 	}
-	if expected := `mismatch between struct and object: Object defines fields not found in struct: a.`; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
+
+	_, diags := refl.Struct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"a": types.StringType,
+		},
+	}, val, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 	}
 }
 
 func TestNewStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
 	t.Parallel()
 
-	var s struct {
-		A string `tfsdk:"a"`
-	}
-	_, diags := refl.Struct(context.Background(), types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"a": types.StringType,
-		},
-	}, tftypes.NewValue(tftypes.Object{
+	val := tftypes.NewValue(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"b": tftypes.String,
 		},
 	}, map[string]tftypes.Value{
 		"b": tftypes.NewValue(tftypes.String, "hello"),
-	}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if !diagnostics.DiagsHasErrors(diags) {
-		t.Error("Expected error, didn't get one")
+	})
+
+	var s struct {
+		A string `tfsdk:"a"`
 	}
-	if expected := `mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b.`; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
+	expectedDiags := diag.Diagnostics{
+		refl.DiagIntoIncompatibleType{
+			AttrPath:   tftypes.NewAttributePath(),
+			TargetType: reflect.TypeOf(s),
+			Val:        val,
+			Err:        errors.New("mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b."),
+		},
+	}
+
+	_, diags := refl.Struct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"a": types.StringType,
+		},
+	}, val, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 	}
 }
 
@@ -141,8 +186,8 @@ func TestNewStruct_primitives(t *testing.T) {
 		"b": tftypes.NewValue(tftypes.Number, 123),
 		"c": tftypes.NewValue(tftypes.Bool, true),
 	}), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
 	}
 	reflect.ValueOf(&s).Elem().Set(result)
 	if s.A != "hello" {
@@ -330,8 +375,8 @@ func TestNewStruct_complex(t *testing.T) {
 		UnhandledUnknownAsEmpty: true,
 	}, tftypes.NewAttributePath())
 	reflect.ValueOf(&s).Elem().Set(result)
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
 	}
 	str := "pointed"
 	expected := myStruct{
@@ -400,8 +445,8 @@ func TestFromStruct_primitives(t *testing.T) {
 			"opted_in": types.BoolType,
 		},
 	}, reflect.ValueOf(disk1), tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Fatalf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	if diags.HasError() {
+		t.Fatalf("Unexpected error: %v", diags)
 	}
 
 	expectedVal := types.Object{
@@ -525,8 +570,8 @@ func TestFromStruct_complex(t *testing.T) {
 			"uint":            types.NumberType,
 		},
 	}, reflect.ValueOf(s), tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
 	}
 	expected := types.Object{
 		AttrTypes: map[string]attr.Type{

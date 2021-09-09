@@ -1,18 +1,22 @@
 package types
 
 import (
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-var (
-	TestErrorDiagnostic = &tfprotov6.Diagnostic{
-		Severity: tfprotov6.DiagnosticSeverityError,
-		Summary:  "Error Diagnostic",
-		Detail:   "This is an error.",
-	}
-	TestWarningDiagnostic = &tfprotov6.Diagnostic{
-		Severity: tfprotov6.DiagnosticSeverityWarning,
-		Summary:  "Warning Diagnostic",
-		Detail:   "This is a warning.",
-	}
-)
+func TestErrorDiagnostic(path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+	return diag.NewAttributeErrorDiagnostic(
+		path,
+		"Error Diagnostic",
+		"This is an error.",
+	)
+}
+
+func TestWarningDiagnostic(path *tftypes.AttributePath) diag.AttributeWarningDiagnostic {
+	return diag.NewAttributeWarningDiagnostic(
+		path,
+		"Warning Diagnostic",
+		"This is a warning.",
+	)
+}

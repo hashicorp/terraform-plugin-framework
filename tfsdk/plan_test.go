@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -22,7 +22,7 @@ func TestPlanGet(t *testing.T) {
 	type testCase struct {
 		plan          Plan
 		expected      testPlanGetData
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -48,52 +48,6 @@ func TestPlanGet(t *testing.T) {
 				Name: types.String{Value: "namevalue"},
 			},
 		},
-		"AttrTypeWithValidateError": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "namevalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
-						},
-					},
-				},
-			},
-			expected: testPlanGetData{
-				Name: types.String{Value: ""},
-			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
-		},
-		"AttrTypeWithValidateWarning": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "namevalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
-						},
-					},
-				},
-			},
-			expected: testPlanGetData{
-				Name: types.String{Value: "namevalue"},
-			},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
-		},
 	}
 
 	for name, tc := range testCases {
@@ -116,13 +70,95 @@ func TestPlanGet(t *testing.T) {
 	}
 }
 
+func TestPlanGet_testTypes(t *testing.T) {
+	t.Parallel()
+
+	type testPlanGetDataTestTypes struct {
+		Name testtypes.String `tfsdk:"name"`
+	}
+
+	type testCase struct {
+		plan          Plan
+		expected      testPlanGetDataTestTypes
+		expectedDiags diag.Diagnostics
+	}
+
+	testCases := map[string]testCase{
+		"AttrTypeWithValidateError": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateError{},
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: testPlanGetDataTestTypes{
+				Name: testtypes.String{String: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
+			},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+		},
+		"AttrTypeWithValidateWarning": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateWarning{},
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: testPlanGetDataTestTypes{
+				Name: testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var val testPlanGetDataTestTypes
+
+			diags := tc.plan.Get(context.Background(), &val)
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(val, tc.expected); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
 func TestPlanGetAttribute(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
 		plan          Plan
 		expected      attr.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -165,7 +201,7 @@ func TestPlanGetAttribute(t *testing.T) {
 				},
 			},
 			expected:      nil,
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -185,8 +221,8 @@ func TestPlanGetAttribute(t *testing.T) {
 					},
 				},
 			},
-			expected:      types.String{Value: "namevalue"},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expected:      testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -215,7 +251,7 @@ func TestPlanSet(t *testing.T) {
 		plan          Plan
 		val           interface{}
 		expected      tftypes.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -293,7 +329,7 @@ func TestPlanSet(t *testing.T) {
 				Name: "newvalue",
 			},
 			expected:      tftypes.Value{},
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -319,7 +355,7 @@ func TestPlanSet(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestWarningDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
 
@@ -349,7 +385,7 @@ func TestPlanSetAttribute(t *testing.T) {
 		path          *tftypes.AttributePath
 		val           interface{}
 		expected      tftypes.Value
-		expectedDiags []*tfprotov6.Diagnostic
+		expectedDiags diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
@@ -408,7 +444,7 @@ func TestPlanSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "originalname"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{testtypes.TestErrorDiagnostic},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -437,11 +473,8 @@ func TestPlanSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newname"),
 			}),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				testtypes.TestWarningDiagnostic,
-				// TODO: Consider duplicate diagnostic consolidation functionality with diagnostic abstraction
-				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/24
-				testtypes.TestWarningDiagnostic,
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name")),
 			},
 		},
 	}

@@ -40,6 +40,11 @@ type Number struct {
 	Value *big.Float
 }
 
+// Type returns a NumberType.
+func (n Number) Type(_ context.Context) attr.Type {
+	return NumberType
+}
+
 // ToTerraformValue returns the data contained in the *Number as a *big.Float.
 // If Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
 // returns nil.

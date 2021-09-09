@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -11,7 +12,7 @@ import (
 
 type testServeDataSourceTypeConfigValidators struct{}
 
-func (dt testServeDataSourceTypeConfigValidators) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+func (dt testServeDataSourceTypeConfigValidators) GetSchema(_ context.Context) (Schema, diag.Diagnostics) {
 	return Schema{
 		Attributes: map[string]Attribute{
 			"string": {
@@ -22,7 +23,7 @@ func (dt testServeDataSourceTypeConfigValidators) GetSchema(_ context.Context) (
 	}, nil
 }
 
-func (dt testServeDataSourceTypeConfigValidators) NewDataSource(_ context.Context, p Provider) (DataSource, []*tfprotov6.Diagnostic) {
+func (dt testServeDataSourceTypeConfigValidators) NewDataSource(_ context.Context, p Provider) (DataSource, diag.Diagnostics) {
 	provider, ok := p.(*testServeProvider)
 	if !ok {
 		prov, ok := p.(*testServeProviderWithMetaSchema)

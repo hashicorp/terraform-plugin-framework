@@ -2,11 +2,13 @@ package reflect_test
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -18,9 +20,19 @@ func TestPointer_notAPointer(t *testing.T) {
 	t.Parallel()
 
 	var s string
+	expectedDiags := diag.Diagnostics{
+		refl.DiagIntoIncompatibleType{
+			Val:        tftypes.NewValue(tftypes.String, "hello"),
+			TargetType: reflect.TypeOf(s),
+			AttrPath:   tftypes.NewAttributePath(),
+			Err:        fmt.Errorf("cannot dereference pointer, not a pointer, is a %s (%s)", reflect.TypeOf(s), reflect.TypeOf(s).Kind()),
+		},
+	}
+
 	_, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if expected := "cannot dereference pointer, not a pointer, is a string (string)"; !diagnostics.DiagsContainsDetail(diags, expected) {
-		t.Errorf("Expected error to be %q, got %s", expected, diagnostics.DiagsString(diags))
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 	}
 }
 
@@ -29,8 +41,8 @@ func TestPointer_nilPointer(t *testing.T) {
 
 	var s *string
 	got, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
 	}
 	if got.Interface() == nil {
 		t.Error("Expected \"hello\", got nil")
@@ -45,8 +57,8 @@ func TestPointer_simple(t *testing.T) {
 
 	var s string
 	got, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(&s), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
 	}
 	if got.Interface() == nil {
 		t.Error("Expected \"hello\", got nil")
@@ -61,8 +73,8 @@ func TestPointer_pointerPointer(t *testing.T) {
 
 	var s *string
 	got, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(&s), refl.Options{}, tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("Unexpected error: %s", diagnostics.DiagsString(diags))
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
 	}
 	if got.Interface() == nil {
 		t.Error("Expected \"hello\", got nil")
@@ -72,62 +84,69 @@ func TestPointer_pointerPointer(t *testing.T) {
 	}
 }
 
-func TestFromPointer_simple(t *testing.T) {
+func TestFromPointer(t *testing.T) {
 	t.Parallel()
 
-	v := "hello, world"
-	got, diags := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(&v), tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("unexpected error: %s", diagnostics.DiagsString(diags))
+	testCases := map[string]struct {
+		typ           attr.Type
+		val           reflect.Value
+		expected      attr.Value
+		expectedDiags diag.Diagnostics
+	}{
+		"simple": {
+			typ: types.StringType,
+			val: reflect.ValueOf(strPtr("hello, world")),
+			expected: types.String{
+				Value: "hello, world",
+			},
+		},
+		"null": {
+			typ: types.StringType,
+			val: reflect.ValueOf(new(*string)),
+			expected: types.String{
+				Null: true,
+			},
+		},
+		"WithValidateError": {
+			typ: testtypes.StringTypeWithValidateError{},
+			val: reflect.ValueOf(strPtr("hello, world")),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestErrorDiagnostic(tftypes.NewAttributePath()),
+			},
+		},
+		"WithValidateWarning": {
+			typ: testtypes.StringTypeWithValidateWarning{},
+			val: reflect.ValueOf(strPtr("hello, world")),
+			expected: testtypes.String{
+				String: types.String{
+					Value: "hello, world",
+				},
+				CreatedBy: testtypes.StringTypeWithValidateWarning{},
+			},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath()),
+			},
+		},
 	}
-	expected := types.String{
-		Value: "hello, world",
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := refl.FromPointer(context.Background(), tc.typ, tc.val, tftypes.NewAttributePath())
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(got, tc.expected); diff != "" {
+				t.Errorf("unexpected result (+wanted, -got): %s", diff)
+			}
+		})
 	}
 }
 
-func TestFromPointer_null(t *testing.T) {
-	t.Parallel()
-
-	var v *string
-	got, diags := refl.FromPointer(context.Background(), types.StringType, reflect.ValueOf(v), tftypes.NewAttributePath())
-	if diagnostics.DiagsHasErrors(diags) {
-		t.Errorf("unexpected error: %s", diagnostics.DiagsString(diags))
-	}
-	expected := types.String{
-		Null: true,
-	}
-	if diff := cmp.Diff(expected, got); diff != "" {
-		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
-	}
-}
-
-func TestFromPointer_AttrTypeWithValidate_Error(t *testing.T) {
-	v := "hello, world"
-	_, diags := refl.FromPointer(context.Background(), testtypes.StringTypeWithValidateError{}, reflect.ValueOf(&v), tftypes.NewAttributePath())
-	if len(diags) == 0 {
-		t.Fatalf("expected diagnostics, got none")
-	}
-	if !cmp.Equal(diags[0], testtypes.TestErrorDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestErrorDiagnostic), diagnostics.DiagString(diags[0]))
-	}
-}
-
-func TestFromPointer_AttrTypeWithValidate_Warning(t *testing.T) {
-	expectedVal := types.String{
-		Value: "hello, world",
-	}
-	v := "hello, world"
-	actualVal, diags := refl.FromPointer(context.Background(), testtypes.StringTypeWithValidateWarning{}, reflect.ValueOf(&v), tftypes.NewAttributePath())
-	if len(diags) == 0 {
-		t.Fatalf("expected diagnostics, got none")
-	}
-	if !cmp.Equal(diags[0], testtypes.TestWarningDiagnostic) {
-		t.Fatalf("expected diagnostic:\n\n%s\n\ngot diagnostic:\n\n%s\n\n", diagnostics.DiagString(testtypes.TestWarningDiagnostic), diagnostics.DiagString(diags[0]))
-	}
-	if !expectedVal.Equal(actualVal) {
-		t.Fatalf("unexpected value: got %+v, wanted %+v", actualVal, expectedVal)
-	}
+func strPtr(s string) *string {
+	return &s
 }

@@ -5,12 +5,13 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Context) (Schema, []*tfprotov6.Diagnostic) {
+func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Context) (Schema, diag.Diagnostics) {
 	return Schema{
 		Version: 1,
 		Attributes: map[string]Attribute{
@@ -30,22 +31,29 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 			"size": {
 				Required: true,
 				Type:     types.NumberType,
-				PlanModifiers: []AttributePlanModifier{RequiresReplaceIf(func(ctx context.Context, state, config attr.Value) (bool, error) {
+				PlanModifiers: []AttributePlanModifier{RequiresReplaceIf(func(ctx context.Context, state, config attr.Value, path *tftypes.AttributePath) (bool, diag.Diagnostics) {
 					if state == nil && config == nil {
 						return false, nil
 					}
 					if (state == nil && config != nil) || (state != nil && config == nil) {
 						return true, nil
 					}
-					stateVal := state.(types.Number)
-					configVal := config.(types.Number)
+					var stateVal, configVal types.Number
+					diags := ValueAs(ctx, state, &stateVal)
+					if diags.HasError() {
+						return false, diags
+					}
+					diags.Append(ValueAs(ctx, config, &configVal)...)
+					if diags.HasError() {
+						return false, diags
+					}
 
 					if !stateVal.Unknown && !stateVal.Null && !configVal.Unknown && !configVal.Null {
 						if configVal.Value.Cmp(stateVal.Value) > 0 {
-							return true, nil
+							return true, diags
 						}
 					}
-					return false, nil
+					return false, diags
 				}, "If the new size is greater than the old size, Terraform will destroy and recreate the resource", "If the new size is greater than the old size, Terraform will destroy and recreate the resource"),
 				}},
 			"scratch_disk": {
@@ -88,7 +96,7 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 	}, nil
 }
 
-func (rt testServeResourceTypeAttributePlanModifiers) NewResource(_ context.Context, p Provider) (Resource, []*tfprotov6.Diagnostic) {
+func (rt testServeResourceTypeAttributePlanModifiers) NewResource(_ context.Context, p Provider) (Resource, diag.Diagnostics) {
 	provider, ok := p.(*testServeProvider)
 	if !ok {
 		prov, ok := p.(*testServeProviderWithMetaSchema)
@@ -198,12 +206,9 @@ func (t testWarningDiagModifier) Modify(ctx context.Context, req ModifyAttribute
 	}
 
 	if attrVal.Value == "TESTDIAG" {
-		resp.Diagnostics = append(resp.Diagnostics,
-			&tfprotov6.Diagnostic{
-				Severity: tfprotov6.DiagnosticSeverityWarning,
-				Summary:  "Warning diag",
-				Detail:   "This is a warning",
-			},
+		resp.Diagnostics.AddWarning(
+			"Warning diag",
+			"This is a warning",
 		)
 	}
 }
@@ -225,12 +230,9 @@ func (t testErrorDiagModifier) Modify(ctx context.Context, req ModifyAttributePl
 	}
 
 	if attrVal.Value == "TESTDIAG" {
-		resp.Diagnostics = append(resp.Diagnostics,
-			&tfprotov6.Diagnostic{
-				Severity: tfprotov6.DiagnosticSeverityError,
-				Summary:  "Error diag",
-				Detail:   "This is an error",
-			},
+		resp.Diagnostics.AddError(
+			"Error diag",
+			"This is an error",
 		)
 	}
 }
@@ -309,6 +311,25 @@ func (t testAttrDefaultValueModifier) Description(ctx context.Context) string {
 
 func (t testAttrDefaultValueModifier) MarkdownDescription(ctx context.Context) string {
 	return "This plan modifier is for use during testing only"
+}
+
+// testRequiresReplaceModifier is an AttributePlanModifier that sets RequiresReplace
+// on the attribute.
+type testRequiresReplaceFalseModifier struct{}
+
+// Modify sets RequiresReplace on the response to true.
+func (m testRequiresReplaceFalseModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	resp.RequiresReplace = false
+}
+
+// Description returns a human-readable description of the plan modifier.
+func (m testRequiresReplaceFalseModifier) Description(ctx context.Context) string {
+	return "Always unsets requires replace."
+}
+
+// MarkdownDescription returns a markdown description of the plan modifier.
+func (m testRequiresReplaceFalseModifier) MarkdownDescription(ctx context.Context) string {
+	return "Always unsets requires replace."
 }
 
 func (r testServeAttributePlanModifiers) Create(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {

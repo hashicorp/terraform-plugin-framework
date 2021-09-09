@@ -6,8 +6,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/diagnostics"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -15,26 +14,26 @@ import (
 // references, populates it with BuildValue, and takes a pointer to it.
 //
 // It is meant to be called through Into, not directly.
-func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
 	if target.Kind() != reflect.Ptr {
-		err := fmt.Errorf("cannot dereference pointer, not a pointer, is a %s (%s)", target.Type(), target.Kind())
-		return target, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to convert to pointer value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
+		diags.Append(DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			AttrPath:   path,
+			Err:        fmt.Errorf("cannot dereference pointer, not a pointer, is a %s (%s)", target.Type(), target.Kind()),
 		})
+		return target, diags
 	}
 	// we may have gotten a nil pointer, so we need to create our own that
 	// we can set
 	pointer := reflect.New(target.Type().Elem())
 	// build out whatever the pointer is pointing to
 	pointed, pointedDiags := BuildValue(ctx, typ, val, pointer.Elem(), opts, path)
-	diags = append(diags, pointedDiags...)
+	diags.Append(pointedDiags...)
 
-	if diagnostics.DiagsHasErrors(diags) {
+	if diags.HasError() {
 		return target, diags
 	}
 	// to be able to set the pointer to our new pointer, we need to create
@@ -74,26 +73,26 @@ func pointerSafeZeroValue(ctx context.Context, target reflect.Value) reflect.Val
 // it will recurse into FromValue to find the attr.Value of the type the value
 // the pointer is referencing.
 //
-// It is meant to be called through OutOf, not directly.
-func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *tftypes.AttributePath) (attr.Value, []*tfprotov6.Diagnostic) {
-	var diags []*tfprotov6.Diagnostic
+// It is meant to be called through FromValue, not directly.
+func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
 	if value.Kind() != reflect.Ptr {
 		err := fmt.Errorf("cannot use type %s as a pointer", value.Type())
-		return nil, append(diags, &tfprotov6.Diagnostic{
-			Severity:  tfprotov6.DiagnosticSeverityError,
-			Summary:   "Value Conversion Error",
-			Detail:    "An unexpected error was encountered trying to convert from pointer value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-			Attribute: path,
-		})
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert from pointer value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
 	}
 	if value.IsNil() {
 		tfVal := tftypes.NewValue(typ.TerraformType(ctx), nil)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags = append(diags, typeWithValidate.Validate(ctx, tfVal)...)
+			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
-			if diagnostics.DiagsHasErrors(diags) {
+			if diags.HasError() {
 				return nil, diags
 			}
 		}
@@ -101,19 +100,19 @@ func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *
 		attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
 
 		if err != nil {
-			return nil, append(diags, &tfprotov6.Diagnostic{
-				Severity:  tfprotov6.DiagnosticSeverityError,
-				Summary:   "Value Conversion Error",
-				Detail:    "An unexpected error was encountered trying to convert from pointer value. This is always an error in the provider. Please report the following to the provider developer:\n\n" + err.Error(),
-				Attribute: path,
-			})
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert from pointer value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return nil, diags
 		}
 
 		return attrVal, diags
 	}
 
 	attrVal, attrValDiags := FromValue(ctx, typ, value.Elem().Interface(), path)
-	diags = append(diags, attrValDiags...)
+	diags.Append(attrValDiags...)
 
 	return attrVal, diags
 }

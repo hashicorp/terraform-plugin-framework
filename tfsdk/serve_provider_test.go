@@ -59,6 +59,10 @@ type testServeProvider struct {
 	updateFunc                            func(context.Context, UpdateResourceRequest, *UpdateResourceResponse)
 	deleteFunc                            func(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
 
+	// import resource state
+	importResourceStateCalledResourceType string
+	importStateFunc                       func(context.Context, ImportResourceStateRequest, *ImportResourceStateResponse)
+
 	// validate data source config request
 	validateDataSourceConfigCalledDataSourceType string
 	validateDataSourceConfigImpl                 func(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
@@ -434,6 +438,7 @@ func (t *testServeProvider) GetResources(_ context.Context) (map[string]Resource
 		"test_two":                      testServeResourceTypeTwo{},
 		"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiers{},
 		"test_config_validators":        testServeResourceTypeConfigValidators{},
+		"test_import_state":             testServeResourceTypeImportState{},
 		"test_validate_config":          testServeResourceTypeValidateConfig{},
 	}, nil
 }

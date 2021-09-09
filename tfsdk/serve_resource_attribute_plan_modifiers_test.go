@@ -376,3 +376,8 @@ func (r testServeAttributePlanModifiers) Delete(ctx context.Context, req DeleteR
 	r.provider.applyResourceChangeCalledAction = "delete"
 	r.provider.deleteFunc(ctx, req, resp)
 }
+
+func (r testServeAttributePlanModifiers) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
+	r.provider.importResourceStateCalledResourceType = "test_attribute_plan_modifiers"
+	r.provider.importStateFunc(ctx, req, resp)
+}

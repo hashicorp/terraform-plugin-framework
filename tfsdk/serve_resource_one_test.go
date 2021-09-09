@@ -125,3 +125,8 @@ func (r testServeResourceOne) Delete(ctx context.Context, req DeleteResourceRequ
 	r.provider.applyResourceChangeCalledAction = "delete"
 	r.provider.deleteFunc(ctx, req, resp)
 }
+
+func (r testServeResourceOne) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
+	r.provider.importResourceStateCalledResourceType = "test_one"
+	r.provider.importStateFunc(ctx, req, resp)
+}

@@ -67,6 +67,8 @@ func (r testServeResourceValidateConfig) Update(ctx context.Context, req UpdateR
 }
 func (r testServeResourceValidateConfig) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
 }
+func (r testServeResourceValidateConfig) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
+}
 
 func (r testServeResourceValidateConfig) ValidateConfig(ctx context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
 	r.provider.validateResourceConfigCalledResourceType = "test_validate_config"

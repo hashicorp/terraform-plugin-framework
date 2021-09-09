@@ -1122,14 +1122,6 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 	}
 }
 
-func (s *server) ImportResourceState(ctx context.Context, _ *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
-	// uncomment when we implement this function
-	//ctx = s.registerContext(ctx)
-
-	// TODO: support resource importing
-	return &tfprotov6.ImportResourceStateResponse{}, nil
-}
-
 // validateDataResourceConfigResponse is a thin abstraction to allow native Diagnostics usage
 type validateDataResourceConfigResponse struct {
 	Diagnostics diag.Diagnostics

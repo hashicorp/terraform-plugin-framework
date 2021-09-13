@@ -116,7 +116,7 @@ func (s SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.A
 		return diags
 	}
 
-	if !in.IsKnown() {
+	if !in.IsKnown() || in.IsNull() {
 		return diags
 	}
 
@@ -249,6 +249,9 @@ func (s Set) Equal(o attr.Value) bool {
 		return false
 	}
 	if s.ElemType == nil && other.ElemType != nil {
+		return false
+	}
+	if other.ElemType == nil {
 		return false
 	}
 	if s.ElemType != nil && !s.ElemType.Equal(other.ElemType) {

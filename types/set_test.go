@@ -318,7 +318,7 @@ func TestSetTypeValidate(t *testing.T) {
 					ElementType: tftypes.String,
 				},
 				[]tftypes.Value{
-					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					tftypes.NewValue(tftypes.String, nil),
 				},
 			),
 		},
@@ -328,10 +328,17 @@ func TestSetTypeValidate(t *testing.T) {
 					ElementType: tftypes.String,
 				},
 				[]tftypes.Value{
-					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-					tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					tftypes.NewValue(tftypes.String, nil),
+					tftypes.NewValue(tftypes.String, nil),
 				},
 			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, nil)),
+					"Duplicate Set Element",
+					"This attribute contains duplicate values of: tftypes.String<null>",
+				),
+			},
 		},
 		"unknown": {
 			in: tftypes.NewValue(

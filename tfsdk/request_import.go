@@ -8,7 +8,7 @@ type ImportResourceStateRequest struct {
 	// calling the import command. In many cases, this may align with the
 	// unique identifier for the resource, which can optionally be stored
 	// as an Attribute. However, this identifier can also be treated as
-	// treated as its own type of value and parsed during import. This value
-	// is not stored in the state unless implemented by the resource.
+	// its own type of value and parsed during import. This value
+	// is not stored in the state unless the provider explicitly stores it.
 	ID string
 }

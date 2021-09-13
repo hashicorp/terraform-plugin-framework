@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -295,6 +296,52 @@ func TestSetElementsAs_attributeValueSlice(t *testing.T) {
 	if diff := cmp.Diff(stringSlice, expected); diff != "" {
 		t.Errorf("Unexpected diff (-expected, +got): %s", diff)
 	}
+}
+
+func benchmarkSetTypeValidate(b *testing.B, elementCount int) {
+	elements := make([]tftypes.Value, 0, elementCount)
+
+	for idx := range elements {
+		elements[idx] = tftypes.NewValue(tftypes.String, strconv.Itoa(idx))
+	}
+
+	ctx := context.Background()
+	in := tftypes.NewValue(
+		tftypes.Set{
+			ElementType: tftypes.String,
+		},
+		elements,
+	)
+	path := tftypes.NewAttributePath().WithAttributeName("test")
+	set := SetType{}
+
+	for n := 0; n < b.N; n++ {
+		set.Validate(ctx, in, path)
+	}
+}
+
+func BenchmarkSetTypeValidate10(b *testing.B) {
+	benchmarkSetTypeValidate(b, 10)
+}
+
+func BenchmarkSetTypeValidate100(b *testing.B) {
+	benchmarkSetTypeValidate(b, 100)
+}
+
+func BenchmarkSetTypeValidate1000(b *testing.B) {
+	benchmarkSetTypeValidate(b, 1000)
+}
+
+func BenchmarkSetTypeValidate10000(b *testing.B) {
+	benchmarkSetTypeValidate(b, 10000)
+}
+
+func BenchmarkSetTypeValidate100000(b *testing.B) {
+	benchmarkSetTypeValidate(b, 100000)
+}
+
+func BenchmarkSetTypeValidate1000000(b *testing.B) {
+	benchmarkSetTypeValidate(b, 1000000)
 }
 
 func TestSetTypeValidate(t *testing.T) {

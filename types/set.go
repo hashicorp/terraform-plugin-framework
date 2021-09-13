@@ -140,10 +140,8 @@ func (s SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.A
 			continue
 		}
 
-		for indexInner, elemInner := range elems {
-			if indexInner == indexOuter {
-				continue
-			}
+		for indexInner := indexOuter + 1; indexInner < len(elems); indexInner++ {
+			elemInner := elems[indexInner]
 
 			if !elemInner.Equal(elemOuter) {
 				continue
@@ -249,9 +247,6 @@ func (s Set) Equal(o attr.Value) bool {
 		return false
 	}
 	if s.ElemType == nil && other.ElemType != nil {
-		return false
-	}
-	if other.ElemType == nil {
 		return false
 	}
 	if s.ElemType != nil && !s.ElemType.Equal(other.ElemType) {

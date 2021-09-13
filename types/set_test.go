@@ -298,6 +298,8 @@ func TestSetElementsAs_attributeValueSlice(t *testing.T) {
 	}
 }
 
+var benchDiags diag.Diagnostics // Prevent compiler optimization
+
 func benchmarkSetTypeValidate(b *testing.B, elementCount int) {
 	elements := make([]tftypes.Value, 0, elementCount)
 
@@ -305,6 +307,7 @@ func benchmarkSetTypeValidate(b *testing.B, elementCount int) {
 		elements[idx] = tftypes.NewValue(tftypes.String, strconv.Itoa(idx))
 	}
 
+	var diags diag.Diagnostics // Prevent compiler optimization
 	ctx := context.Background()
 	in := tftypes.NewValue(
 		tftypes.Set{
@@ -316,8 +319,10 @@ func benchmarkSetTypeValidate(b *testing.B, elementCount int) {
 	set := SetType{}
 
 	for n := 0; n < b.N; n++ {
-		set.Validate(ctx, in, path)
+		diags = set.Validate(ctx, in, path)
 	}
+
+	benchDiags = diags
 }
 
 func BenchmarkSetTypeValidate10(b *testing.B) {

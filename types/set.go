@@ -101,6 +101,11 @@ func (t SetType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep
 	return t.ElemType, nil
 }
 
+// String returns a human-friendly description of the SetType.
+func (t SetType) String() string {
+	return "types.SetType[" + t.ElemType.String() + "]"
+}
+
 // Validate implements type validation. This type requires all elements to be
 // unique.
 func (s SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {

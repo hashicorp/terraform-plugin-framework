@@ -271,8 +271,9 @@ func (s setNestedAttributes) GetMaxItems() int64 {
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.
 func (s setNestedAttributes) AttributeType() attr.Type {
-	// TODO fill in implementation when types.SetType is available
-	return nil
+	return types.SetType{
+		ElemType: s.nestedAttributes.AttributeType(),
+	}
 }
 
 func (s setNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {

@@ -65,10 +65,14 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 		targetValue := reflect.Zero(elemType)
 
 		// update our path so we can have nice errors
-		path := path.WithElementKeyInt(int64(pos))
+		valPath := path.WithElementKeyInt(int64(pos))
+
+		if typ.TerraformType(ctx).Is(tftypes.Set{}) {
+			valPath = path.WithElementKeyValue(value)
+		}
 
 		// reflect the value into our new target
-		val, valDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, path)
+		val, valDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, valPath)
 		diags.Append(valDiags...)
 
 		if diags.HasError() {
@@ -135,25 +139,40 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 	elemType := t.ElementType()
 	tfElems := make([]tftypes.Value, 0, val.Len())
 	for i := 0; i < val.Len(); i++ {
-		val, valDiags := FromValue(ctx, elemType, val.Index(i).Interface(), path.WithElementKeyInt(int64(i)))
+		// The underlying reflect.Slice is fetched by Index(). For set types,
+		// the path is value-based instead of index-based. Since there is only
+		// the index until the value is retrieved, this will pass the
+		// technically incorrect index-based path at first for framework
+		// debugging purposes, then correct the path afterwards.
+		valPath := path.WithElementKeyInt(int64(i))
+
+		val, valDiags := FromValue(ctx, elemType, val.Index(i).Interface(), valPath)
 		diags.Append(valDiags...)
 
 		if diags.HasError() {
 			return nil, diags
 		}
+
 		tfVal, err := val.ToTerraformValue(ctx)
+
 		if err != nil {
 			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
+
 		err = tftypes.ValidateValue(elemType.TerraformType(ctx), tfVal)
+
 		if err != nil {
 			return nil, append(diags, validateValueErrorDiag(err, path))
 		}
 
 		tfElemVal := tftypes.NewValue(elemType.TerraformType(ctx), tfVal)
 
-		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfElemVal, path.WithElementKeyInt(int64(i)))...)
+		if tfType.Is(tftypes.Set{}) {
+			valPath = path.WithElementKeyValue(tfElemVal)
+		}
+
+		if typeWithValidate, ok := elemType.(attr.TypeWithValidate); ok {
+			diags.Append(typeWithValidate.Validate(ctx, tfElemVal, valPath)...)
 
 			if diags.HasError() {
 				return nil, diags

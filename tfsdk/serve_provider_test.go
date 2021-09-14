@@ -163,7 +163,32 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 				Type:     types.MapType{ElemType: types.NumberType},
 				Optional: true,
 			},
-			// TODO: add sets when we support them
+			"set-string": {
+				Type: types.SetType{
+					ElemType: types.StringType,
+				},
+				Optional: true,
+			},
+			"set-set-string": {
+				Type: types.SetType{
+					ElemType: types.SetType{
+						ElemType: types.StringType,
+					},
+				},
+				Optional: true,
+			},
+			"set-object": {
+				Type: types.SetType{
+					ElemType: types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"foo": types.StringType,
+							"bar": types.BoolType,
+							"baz": types.NumberType,
+						},
+					},
+				},
+				Optional: true,
+			},
 			// TODO: add tuples when we support them
 			"single-nested-attributes": {
 				Attributes: SingleNestedAttributes(map[string]Attribute{
@@ -205,6 +230,20 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 						Required: true,
 					},
 				}, MapNestedAttributesOptions{}),
+				Optional: true,
+			},
+			"set-nested-attributes": {
+				Attributes: SetNestedAttributes(map[string]Attribute{
+					"foo": {
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
+					},
+					"bar": {
+						Type:     types.NumberType,
+						Required: true,
+					},
+				}, SetNestedAttributesOptions{}),
 				Optional: true,
 			},
 		},
@@ -357,6 +396,55 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 				Sensitive: true,
 			},
 			{
+				Name: "set-nested-attributes",
+				NestedType: &tfprotov6.SchemaObject{
+					Nesting: tfprotov6.SchemaObjectNestingModeSet,
+					Attributes: []*tfprotov6.SchemaAttribute{
+						{
+							Name:     "bar",
+							Type:     tftypes.Number,
+							Required: true,
+						},
+						{
+							Name:     "foo",
+							Type:     tftypes.String,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+				Optional: true,
+			},
+			{
+				Name: "set-object",
+				Type: tftypes.Set{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"foo": tftypes.String,
+							"bar": tftypes.Bool,
+							"baz": tftypes.Number,
+						},
+					},
+				},
+				Optional: true,
+			},
+			{
+				Name: "set-set-string",
+				Type: tftypes.Set{
+					ElementType: tftypes.Set{
+						ElementType: tftypes.String,
+					},
+				},
+				Optional: true,
+			},
+			{
+				Name: "set-string",
+				Type: tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				Optional: true,
+			},
+			{
 				Name: "single-nested-attributes",
 				NestedType: &tfprotov6.SchemaObject{
 					Nesting: tfprotov6.SchemaObjectNestingModeSingle,
@@ -381,7 +469,6 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 				Type:     tftypes.String,
 				Optional: true,
 			},
-			// TODO: add sets when we support them
 			// TODO: add tuples when we support them
 		},
 	},
@@ -412,6 +499,13 @@ var testServeProviderProviderType = tftypes.Object{
 			"baz":  tftypes.Number,
 			"quux": tftypes.List{ElementType: tftypes.String},
 		}},
+		"set-string":     tftypes.Set{ElementType: tftypes.String},
+		"set-set-string": tftypes.Set{ElementType: tftypes.Set{ElementType: tftypes.String}},
+		"set-object": tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.Bool,
+			"baz": tftypes.Number,
+		}}},
 		"empty-object": tftypes.Object{AttributeTypes: map[string]tftypes.Type{}},
 		"single-nested-attributes": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo": tftypes.String,
@@ -422,6 +516,10 @@ var testServeProviderProviderType = tftypes.Object{
 			"bar": tftypes.Number,
 		}}},
 		"map-nested-attributes": tftypes.Map{AttributeType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.Number,
+		}}},
+		"set-nested-attributes": tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo": tftypes.String,
 			"bar": tftypes.Number,
 		}}},

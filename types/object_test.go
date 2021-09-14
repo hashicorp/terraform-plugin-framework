@@ -628,6 +628,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": StringType,
 						},
 					},
+					"f": SetType{ElemType: StringType},
 				},
 				Attrs: map[string]attr.Value{
 					"a": List{
@@ -648,6 +649,13 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": String{Value: "testing123"},
 						},
 					},
+					"f": Set{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
 				},
 			},
 			expected: map[string]tftypes.Value{
@@ -665,6 +673,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "testing123"),
 				}),
+				"f": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
 			},
 		},
 		"unknown": {
@@ -679,6 +691,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": StringType,
 						},
 					},
+					"f": SetType{ElemType: StringType},
 				},
 				Unknown: true,
 			},
@@ -696,6 +709,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": StringType,
 						},
 					},
+					"f": SetType{ElemType: StringType},
 				},
 				Null: true,
 			},
@@ -713,6 +727,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": StringType,
 						},
 					},
+					"f": SetType{ElemType: StringType},
 				},
 				Attrs: map[string]attr.Value{
 					"a": List{
@@ -733,6 +748,13 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": String{Value: "testing123"},
 						},
 					},
+					"f": Set{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
 				},
 			},
 			expected: map[string]tftypes.Value{
@@ -750,6 +772,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "testing123"),
 				}),
+				"f": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
 			},
 		},
 		"partial-null": {
@@ -764,6 +790,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": StringType,
 						},
 					},
+					"f": SetType{ElemType: StringType},
 				},
 				Attrs: map[string]attr.Value{
 					"a": List{
@@ -784,6 +811,13 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": String{Value: "testing123"},
 						},
 					},
+					"f": Set{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
 				},
 			},
 			expected: map[string]tftypes.Value{
@@ -801,6 +835,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "testing123"),
 				}),
+				"f": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
 			},
 		},
 		"deep-partial-unknown": {
@@ -815,6 +853,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": StringType,
 						},
 					},
+					"f": SetType{ElemType: StringType},
 				},
 				Attrs: map[string]attr.Value{
 					"a": List{
@@ -835,6 +874,13 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": String{Unknown: true},
 						},
 					},
+					"f": List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
 				},
 			},
 			expected: map[string]tftypes.Value{
@@ -852,6 +898,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				}),
+				"f": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
+				}),
 			},
 		},
 		"deep-partial-null": {
@@ -866,6 +916,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": StringType,
 						},
 					},
+					"f": SetType{ElemType: StringType},
 				},
 				Attrs: map[string]attr.Value{
 					"a": List{
@@ -886,6 +937,13 @@ func TestObjectToTerraformValue(t *testing.T) {
 							"name": String{Null: true},
 						},
 					},
+					"f": Set{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
 				},
 			},
 			expected: map[string]tftypes.Value{
@@ -902,6 +960,10 @@ func TestObjectToTerraformValue(t *testing.T) {
 					},
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, nil),
+				}),
+				"f": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "hello"),
+					tftypes.NewValue(tftypes.String, "world"),
 				}),
 			},
 		},

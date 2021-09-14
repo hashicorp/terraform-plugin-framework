@@ -1,0 +1,7 @@
+```release-note:breaking-change
+`attr.Type` implementations must now have a `String()` method that returns a human-friendly name for the type.
+```
+
+```release-note:enhancement
+Added a `tfsdk.ConvertValue` helper that will convert any `attr.Value` into any compatible `attr.Type`. Compatibility happens at the terraform-plugin-go level; the type that the `attr.Value`'s `ToTerraformValue` method produces must be compatible with the `attr.Type`'s `TerraformType()`. Generally, this means that the `attr.Type` of the `attr.Value` and the `attr.Type` being converted to must both produce the same `tftypes.Type` when their `TerraformType()` method is called.
+```

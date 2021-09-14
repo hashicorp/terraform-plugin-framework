@@ -46,6 +46,9 @@ type Resource interface {
 	//
 	// If import is not supported, it is recommended to use the
 	// ResourceImportStateNotImplemented() call in this method.
+	//
+	// If setting an attribute with the import identifier, it is recommended
+	// to use the ResourceImportStatePassthroughID() call in this method.
 	ImportState(context.Context, ImportResourceStateRequest, *ImportResourceStateResponse)
 }
 

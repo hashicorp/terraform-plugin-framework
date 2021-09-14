@@ -67,8 +67,7 @@ func TestServerImportResourceState(t *testing.T) {
 			},
 
 			impl: func(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-				diags := resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("id"), req.ID)
-				resp.Diagnostics.Append(diags...)
+				ResourceImportStatePassthroughID(ctx, tftypes.NewAttributePath().WithAttributeName("id"), req, resp)
 			},
 
 			resp: &tfprotov6.ImportResourceStateResponse{

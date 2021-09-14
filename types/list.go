@@ -101,6 +101,11 @@ func (l ListType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSte
 	return l.ElemType, nil
 }
 
+// String returns a human-friendly description of the ListType.
+func (l ListType) String() string {
+	return "types.ListType[" + l.ElemType.String() + "]"
+}
+
 // List represents a list of AttributeValues, all of the same type, indicated
 // by ElemType.
 type List struct {

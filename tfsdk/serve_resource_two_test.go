@@ -157,8 +157,7 @@ func (r testServeResourceTwo) Delete(ctx context.Context, req DeleteResourceRequ
 }
 
 func (r testServeResourceTwo) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-	r.provider.importResourceStateCalledResourceType = "test_two"
-	r.provider.importStateFunc(ctx, req, resp)
+	ResourceImportStateNotImplemented(ctx, "Not expected to be called during testing.", resp)
 }
 
 func (r testServeResourceTwo) ModifyPlan(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {

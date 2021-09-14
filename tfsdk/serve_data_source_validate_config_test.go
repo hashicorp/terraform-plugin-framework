@@ -60,6 +60,7 @@ type testServeDataSourceValidateConfig struct {
 }
 
 func (r testServeDataSourceValidateConfig) Read(ctx context.Context, req ReadDataSourceRequest, resp *ReadDataSourceResponse) {
+	// Intentionally blank. Not expected to be called during testing.
 }
 
 func (r testServeDataSourceValidateConfig) ValidateConfig(ctx context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {

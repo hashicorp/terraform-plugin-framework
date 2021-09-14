@@ -86,12 +86,16 @@ type testServeResourceImportState struct {
 }
 
 func (r testServeResourceImportState) Create(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+	// Intentionally blank. Not expected to be called during testing.
 }
 func (r testServeResourceImportState) Read(ctx context.Context, req ReadResourceRequest, resp *ReadResourceResponse) {
+	// Intentionally blank. Not expected to be called during testing.
 }
 func (r testServeResourceImportState) Update(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+	// Intentionally blank. Not expected to be called during testing.
 }
 func (r testServeResourceImportState) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+	// Intentionally blank. Not expected to be called during testing.
 }
 func (r testServeResourceImportState) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
 	r.provider.importResourceStateCalledResourceType = "test_import_state"

@@ -60,14 +60,19 @@ type testServeResourceValidateConfig struct {
 }
 
 func (r testServeResourceValidateConfig) Create(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
+	// Intentionally blank. Not expected to be called during testing.
 }
 func (r testServeResourceValidateConfig) Read(ctx context.Context, req ReadResourceRequest, resp *ReadResourceResponse) {
+	// Intentionally blank. Not expected to be called during testing.
 }
 func (r testServeResourceValidateConfig) Update(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
+	// Intentionally blank. Not expected to be called during testing.
 }
 func (r testServeResourceValidateConfig) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+	// Intentionally blank. Not expected to be called during testing.
 }
 func (r testServeResourceValidateConfig) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
+	ResourceImportStateNotImplemented(ctx, "Not expected to be called during testing.", resp)
 }
 
 func (r testServeResourceValidateConfig) ValidateConfig(ctx context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {

@@ -19,10 +19,15 @@ func TestStateGet(t *testing.T) {
 		Name        types.String `tfsdk:"name"`
 		MachineType string       `tfsdk:"machine_type"`
 		Tags        types.List   `tfsdk:"tags"`
+		TagsSet     types.Set    `tfsdk:"tags_set"`
 		Disks       []struct {
 			ID                 string `tfsdk:"id"`
 			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
 		} `tfsdk:"disks"`
+		DisksSet []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"disks_set"`
 		BootDisk struct {
 			ID                 string `tfsdk:"id"`
 			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -46,7 +51,16 @@ func TestStateGet(t *testing.T) {
 						"name":         tftypes.String,
 						"machine_type": tftypes.String,
 						"tags":         tftypes.List{ElementType: tftypes.String},
+						"tags_set":     tftypes.Set{ElementType: tftypes.String},
 						"disks": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+						"disks_set": tftypes.Set{
 							ElementType: tftypes.Object{
 								AttributeTypes: map[string]tftypes.Type{
 									"id":                   tftypes.String,
@@ -76,7 +90,41 @@ func TestStateGet(t *testing.T) {
 						tftypes.NewValue(tftypes.String, "blue"),
 						tftypes.NewValue(tftypes.String, "green"),
 					}),
+					"tags_set": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
 					"disks": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+						}),
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+						}),
+					}),
+					"disks_set": tftypes.NewValue(tftypes.Set{
 						ElementType: tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
 								"id":                   tftypes.String,
@@ -135,6 +183,12 @@ func TestStateGet(t *testing.T) {
 							},
 							Required: true,
 						},
+						"tags_set": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
 						"disks": {
 							Attributes: ListNestedAttributes(map[string]Attribute{
 								"id": {
@@ -146,6 +200,20 @@ func TestStateGet(t *testing.T) {
 									Optional: true,
 								},
 							}, ListNestedAttributesOptions{}),
+							Optional: true,
+							Computed: true,
+						},
+						"disks_set": {
+							Attributes: SetNestedAttributes(map[string]Attribute{
+								"id": {
+									Type:     types.StringType,
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, SetNestedAttributesOptions{}),
 							Optional: true,
 							Computed: true,
 						},
@@ -182,7 +250,28 @@ func TestStateGet(t *testing.T) {
 						types.String{Value: "green"},
 					},
 				},
+				TagsSet: types.Set{
+					ElemType: types.StringType,
+					Elems: []attr.Value{
+						types.String{Value: "red"},
+						types.String{Value: "blue"},
+						types.String{Value: "green"},
+					},
+				},
 				Disks: []struct {
+					ID                 string `tfsdk:"id"`
+					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+				}{
+					{
+						ID:                 "disk0",
+						DeleteWithInstance: true,
+					},
+					{
+						ID:                 "disk1",
+						DeleteWithInstance: false,
+					},
+				},
+				DisksSet: []struct {
 					ID                 string `tfsdk:"id"`
 					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
 				}{
@@ -238,10 +327,15 @@ func TestStateGet_testTypes(t *testing.T) {
 		Name        testtypes.String `tfsdk:"name"`
 		MachineType string           `tfsdk:"machine_type"`
 		Tags        types.List       `tfsdk:"tags"`
+		TagsSet     types.Set        `tfsdk:"tags_set"`
 		Disks       []struct {
 			ID                 string `tfsdk:"id"`
 			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
 		} `tfsdk:"disks"`
+		DisksSet []struct {
+			ID                 string `tfsdk:"id"`
+			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+		} `tfsdk:"disks_set"`
 		BootDisk struct {
 			ID                 string `tfsdk:"id"`
 			DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -265,7 +359,16 @@ func TestStateGet_testTypes(t *testing.T) {
 						"name":         tftypes.String,
 						"machine_type": tftypes.String,
 						"tags":         tftypes.List{ElementType: tftypes.String},
+						"tags_set":     tftypes.Set{ElementType: tftypes.String},
 						"disks": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+						"disks_set": tftypes.Set{
 							ElementType: tftypes.Object{
 								AttributeTypes: map[string]tftypes.Type{
 									"id":                   tftypes.String,
@@ -295,7 +398,41 @@ func TestStateGet_testTypes(t *testing.T) {
 						tftypes.NewValue(tftypes.String, "blue"),
 						tftypes.NewValue(tftypes.String, "green"),
 					}),
+					"tags_set": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
 					"disks": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+						}),
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+						}),
+					}),
+					"disks_set": tftypes.NewValue(tftypes.Set{
 						ElementType: tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
 								"id":                   tftypes.String,
@@ -354,6 +491,12 @@ func TestStateGet_testTypes(t *testing.T) {
 							},
 							Required: true,
 						},
+						"tags_set": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
 						"disks": {
 							Attributes: ListNestedAttributes(map[string]Attribute{
 								"id": {
@@ -365,6 +508,20 @@ func TestStateGet_testTypes(t *testing.T) {
 									Optional: true,
 								},
 							}, ListNestedAttributesOptions{}),
+							Optional: true,
+							Computed: true,
+						},
+						"disks_set": {
+							Attributes: SetNestedAttributes(map[string]Attribute{
+								"id": {
+									Type:     types.StringType,
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, SetNestedAttributesOptions{}),
 							Optional: true,
 							Computed: true,
 						},
@@ -394,7 +551,9 @@ func TestStateGet_testTypes(t *testing.T) {
 				Name:        testtypes.String{String: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 				MachineType: "",
 				Tags:        types.List{},
+				TagsSet:     types.Set{},
 				Disks:       nil,
+				DisksSet:    nil,
 				BootDisk: struct {
 					ID                 string `tfsdk:"id"`
 					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -417,7 +576,16 @@ func TestStateGet_testTypes(t *testing.T) {
 						"name":         tftypes.String,
 						"machine_type": tftypes.String,
 						"tags":         tftypes.List{ElementType: tftypes.String},
+						"tags_set":     tftypes.Set{ElementType: tftypes.String},
 						"disks": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+						"disks_set": tftypes.Set{
 							ElementType: tftypes.Object{
 								AttributeTypes: map[string]tftypes.Type{
 									"id":                   tftypes.String,
@@ -447,7 +615,41 @@ func TestStateGet_testTypes(t *testing.T) {
 						tftypes.NewValue(tftypes.String, "blue"),
 						tftypes.NewValue(tftypes.String, "green"),
 					}),
+					"tags_set": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
 					"disks": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+						}),
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+						}),
+					}),
+					"disks_set": tftypes.NewValue(tftypes.Set{
 						ElementType: tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
 								"id":                   tftypes.String,
@@ -506,6 +708,12 @@ func TestStateGet_testTypes(t *testing.T) {
 							},
 							Required: true,
 						},
+						"tags_set": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
 						"disks": {
 							Attributes: ListNestedAttributes(map[string]Attribute{
 								"id": {
@@ -517,6 +725,20 @@ func TestStateGet_testTypes(t *testing.T) {
 									Optional: true,
 								},
 							}, ListNestedAttributesOptions{}),
+							Optional: true,
+							Computed: true,
+						},
+						"disks_set": {
+							Attributes: SetNestedAttributes(map[string]Attribute{
+								"id": {
+									Type:     types.StringType,
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, SetNestedAttributesOptions{}),
 							Optional: true,
 							Computed: true,
 						},
@@ -553,7 +775,28 @@ func TestStateGet_testTypes(t *testing.T) {
 						types.String{Value: "green"},
 					},
 				},
+				TagsSet: types.Set{
+					ElemType: types.StringType,
+					Elems: []attr.Value{
+						types.String{Value: "red"},
+						types.String{Value: "blue"},
+						types.String{Value: "green"},
+					},
+				},
 				Disks: []struct {
+					ID                 string `tfsdk:"id"`
+					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+				}{
+					{
+						ID:                 "disk0",
+						DeleteWithInstance: true,
+					},
+					{
+						ID:                 "disk1",
+						DeleteWithInstance: false,
+					},
+				},
+				DisksSet: []struct {
 					ID                 string `tfsdk:"id"`
 					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
 				}{
@@ -856,6 +1099,135 @@ func TestStateGetAttribute(t *testing.T) {
 				},
 				AttrTypes: map[string]attr.Type{
 					"interface": types.StringType,
+				},
+			},
+		},
+		"set": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"tags": tftypes.Set{ElementType: tftypes.String},
+					},
+				}, map[string]tftypes.Value{
+					"tags": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"tags": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("tags"),
+			expected: types.Set{
+				Elems: []attr.Value{
+					types.String{Value: "red"},
+					types.String{Value: "blue"},
+					types.String{Value: "green"},
+				},
+				ElemType: types.StringType,
+			},
+		},
+		"nested-set": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"disks": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"disks": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+						}),
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+						}),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"disks": {
+							Attributes: SetNestedAttributes(map[string]Attribute{
+								"id": {
+									Type:     types.StringType,
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, SetNestedAttributesOptions{}),
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("disks"),
+			expected: types.Set{
+				Elems: []attr.Value{
+					types.Object{
+						Attrs: map[string]attr.Value{
+							"delete_with_instance": types.Bool{Value: true},
+							"id":                   types.String{Value: "disk0"},
+						},
+						AttrTypes: map[string]attr.Type{
+							"delete_with_instance": types.BoolType,
+							"id":                   types.StringType,
+						},
+					},
+					types.Object{
+						Attrs: map[string]attr.Value{
+							"delete_with_instance": types.Bool{Value: false},
+							"id":                   types.String{Value: "disk1"},
+						},
+						AttrTypes: map[string]attr.Type{
+							"delete_with_instance": types.BoolType,
+							"id":                   types.StringType,
+						},
+					},
+				},
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"delete_with_instance": types.BoolType,
+						"id":                   types.StringType,
+					},
 				},
 			},
 		},
@@ -1223,6 +1595,122 @@ func TestStateSet(t *testing.T) {
 				}),
 			}),
 		},
+		"set": {
+			state: State{
+				Raw: tftypes.Value{},
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"tags": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			val: struct {
+				Tags []string `tfsdk:"tags"`
+			}{
+				Tags: []string{"red", "blue", "green"},
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"tags": tftypes.Set{ElementType: tftypes.String},
+				},
+			}, map[string]tftypes.Value{
+				"tags": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.String,
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+					tftypes.NewValue(tftypes.String, "blue"),
+					tftypes.NewValue(tftypes.String, "green"),
+				}),
+			}),
+		},
+		"nested-set": {
+			state: State{
+				Raw: tftypes.Value{},
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"disks": {
+							Attributes: SetNestedAttributes(map[string]Attribute{
+								"id": {
+									Type:     types.StringType,
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, SetNestedAttributesOptions{}),
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
+			val: struct {
+				Disks []struct {
+					ID                 string `tfsdk:"id"`
+					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+				} `tfsdk:"disks"`
+			}{
+				Disks: []struct {
+					ID                 string `tfsdk:"id"`
+					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+				}{
+					{
+						ID:                 "disk0",
+						DeleteWithInstance: true,
+					},
+					{
+						ID:                 "disk1",
+						DeleteWithInstance: false,
+					},
+				},
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"disks": tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					},
+				},
+			}, map[string]tftypes.Value{
+				"disks": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+		},
 		"AttrTypeWithValidateError": {
 			state: State{
 				Raw: tftypes.Value{},
@@ -1560,6 +2048,181 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				}, map[string]tftypes.Value{
 					"interface": tftypes.NewValue(tftypes.String, "NVME"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
+			}),
+		},
+		"set": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"tags":  tftypes.Set{ElementType: tftypes.String},
+						"other": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"tags": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "red"),
+						tftypes.NewValue(tftypes.String, "blue"),
+						tftypes.NewValue(tftypes.String, "green"),
+					}),
+					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"tags": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("tags"),
+			val:  []string{"one", "two"},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"tags":  tftypes.Set{ElementType: tftypes.String},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"tags": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.String,
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "one"),
+					tftypes.NewValue(tftypes.String, "two"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
+			}),
+		},
+		"set-element": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"disks": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+						"other": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"disks": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+						}),
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						}, map[string]tftypes.Value{
+							"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+							"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+						}),
+					}),
+					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"disks": {
+							Attributes: SetNestedAttributes(map[string]Attribute{
+								"id": {
+									Type:     types.StringType,
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, SetNestedAttributesOptions{}),
+							Optional: true,
+							Computed: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"id":                   tftypes.String,
+					"delete_with_instance": tftypes.Bool,
+				},
+			}, map[string]tftypes.Value{
+				"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+				"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+			})),
+			val: struct {
+				ID                 string `tfsdk:"id"`
+				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+			}{
+				ID:                 "mynewdisk",
+				DeleteWithInstance: true,
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"disks": tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"disks": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+					}),
 				}),
 				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 			}),

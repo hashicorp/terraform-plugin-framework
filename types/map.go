@@ -99,6 +99,11 @@ func (m MapType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep
 	return m.ElemType, nil
 }
 
+// String returns a human-friendly description of the MapType.
+func (m MapType) String() string {
+	return "types.MapType[" + m.ElemType.String() + "]"
+}
+
 // Map represents a map of AttributeValues, all of the same type, indicated by
 // ElemType. Keys for the map will always be strings.
 type Map struct {

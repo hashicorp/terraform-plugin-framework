@@ -267,8 +267,37 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyInt(int64(idx)), req, resp)
 				}
 			case NestingModeSet:
-				// TODO: Set implementation
-				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/53
+				s, ok := attrPlan.(types.Set)
+
+				if !ok {
+					err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", attrPlan, nm, attrPath)
+					resp.Diagnostics.AddAttributeError(
+						attrPath,
+						"Attribute Plan Modification Error",
+						"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+					)
+
+					return
+				}
+
+				for _, value := range s.Elems {
+					tfValueRaw, err := value.ToTerraformValue(ctx)
+
+					if err != nil {
+						err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
+						resp.Diagnostics.AddAttributeError(
+							attrPath,
+							"Attribute Plan Modification Error",
+							"Attribute plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
+						)
+
+						return
+					}
+
+					tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
+
+					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyValue(tfValue), req, resp)
+				}
 			case NestingModeMap:
 				m, ok := attrPlan.(types.Map)
 

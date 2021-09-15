@@ -126,6 +126,32 @@ func TestServerImportResourceState(t *testing.T) {
 				},
 			},
 		},
+		"imported_resource_conversion_error": {
+			req: &tfprotov6.ImportResourceStateRequest{
+				ID:       "test",
+				TypeName: "test_import_state",
+			},
+
+			impl: func(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
+				resp.State.Raw = tftypes.NewValue(tftypes.String, "this should never work")
+			},
+
+			resp: &tfprotov6.ImportResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Summary:  "Error converting imported resource response",
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Detail: "An unexpected error was encountered when converting the imported resource response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n" +
+							`unexpected value type string, tftypes.Object["id":tftypes.String, "optional_string":tftypes.String, "required_string":tftypes.String] values must be of type map[string]tftypes.Value`,
+					},
+				},
+				ImportedResources: []*tfprotov6.ImportedResource{
+					{
+						TypeName: "test_import_state",
+					},
+				},
+			},
+		},
 		"no_state": {
 			req: &tfprotov6.ImportResourceStateRequest{
 				ID:       "test",

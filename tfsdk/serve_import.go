@@ -54,6 +54,9 @@ func (r importResourceStateResponse) toTfprotov6(ctx context.Context) *tfprotov6
 	for _, ir := range r.ImportedResources {
 		irProto6, diags := ir.toTfprotov6(ctx)
 		resp.Diagnostics = append(resp.Diagnostics, diags.ToTfprotov6Diagnostics()...)
+		if diags.HasError() {
+			continue
+		}
 		resp.ImportedResources = append(resp.ImportedResources, irProto6)
 	}
 

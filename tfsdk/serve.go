@@ -7,6 +7,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -698,6 +699,70 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return
 	}
 
+	// Execute any attr.TypeWithModifyPlans
+	//
+	// We do this first because type plan modifications should be
+	// overridable by resource and attribute level plan modifications. As a
+	// rule of thumb, more specific plan modifiers should happen after more
+	// generic plan modifiers.
+	//
+	// We only do this if there's a plan to modify; otherwise, it
+	// represents a resource being deleted and there's no point.
+	if !plan.IsNull() {
+		rawStateVal := map[string]tftypes.Value{}
+		err = state.As(&rawStateVal)
+		if err != nil {
+			// TODO: error
+		}
+		rawPlanVal := map[string]tftypes.Value{}
+		err = plan.As(&rawPlanVal)
+		if err != nil {
+			// TODO: error
+		}
+		for attrName, a := range resourceSchema.Attributes {
+			path := tftypes.NewAttributePath().WithAttributeName(attrName)
+			state, ok := rawStateVal[attrName]
+			if !ok {
+				// TODO: error
+			}
+			plan, ok := rawPlanVal[attrName]
+			if !ok {
+				// TODO: error
+			}
+
+			if a.Type != nil {
+				newPlan, diags := attributeTypeModifyPlan(ctx, a.Type, state, plan, path)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				rawNewPlan, err := attr.ValueToTerraform(ctx, newPlan)
+				if err != nil {
+					// TODO: error
+				}
+				rawPlanVal[attrName] = rawNewPlan
+			} else if a.Attributes != nil {
+				newPlan, diags := attributeTypeModifyPlan(ctx, a.Attributes.AttributeType(), state, plan, path)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				rawNewPlan, err := attr.ValueToTerraform(ctx, newPlan)
+				if err != nil {
+					// TODO: error
+				}
+				rawPlanVal[attrName] = rawNewPlan
+			} else {
+				// TODO: error
+			}
+		}
+		err = tftypes.ValidateValue(plan.Type(), rawPlanVal)
+		if err != nil {
+			// TODO: error
+		}
+		plan = tftypes.NewValue(plan.Type(), rawPlanVal)
+	}
+
 	// Execute any AttributePlanModifiers.
 	//
 	// This pass is before any Computed-only attributes are marked as unknown
@@ -763,6 +828,10 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		}
 		plan = modifiedPlan
 	}
+
+	// TODO: execute any type plan modifiers again to allow overwriting
+	// unknown values. Do we even want to do that? What could the use case
+	// possibly be?
 
 	// Execute any AttributePlanModifiers again. This allows overwriting
 	// any unknown values.

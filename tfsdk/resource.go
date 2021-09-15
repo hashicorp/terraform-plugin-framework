@@ -41,6 +41,15 @@ type Resource interface {
 	// Delete is called when the provider must delete the resource. Config
 	// values may be read from the DeleteResourceRequest.
 	Delete(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
+
+	// ImportState is called when the provider must import the resource.
+	//
+	// If import is not supported, it is recommended to use the
+	// ResourceImportStateNotImplemented() call in this method.
+	//
+	// If setting an attribute with the import identifier, it is recommended
+	// to use the ResourceImportStatePassthroughID() call in this method.
+	ImportState(context.Context, ImportResourceStateRequest, *ImportResourceStateResponse)
 }
 
 // ResourceWithModifyPlan represents a resource instance with a ModifyPlan

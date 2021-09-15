@@ -333,46 +333,21 @@ func (m testRequiresReplaceFalseModifier) MarkdownDescription(ctx context.Contex
 }
 
 func (r testServeAttributePlanModifiers) Create(ctx context.Context, req CreateResourceRequest, resp *CreateResourceResponse) {
-	r.provider.applyResourceChangePlannedStateValue = req.Plan.Raw
-	r.provider.applyResourceChangePlannedStateSchema = req.Plan.Schema
-	r.provider.applyResourceChangeConfigValue = req.Config.Raw
-	r.provider.applyResourceChangeConfigSchema = req.Config.Schema
-	r.provider.applyResourceChangeProviderMetaValue = req.ProviderMeta.Raw
-	r.provider.applyResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
-	r.provider.applyResourceChangeCalledResourceType = "test_attribute_plan_modifiers"
-	r.provider.applyResourceChangeCalledAction = "create"
-	r.provider.createFunc(ctx, req, resp)
+	// Intentionally blank. Not expected to be called during testing.
 }
 
 func (r testServeAttributePlanModifiers) Read(ctx context.Context, req ReadResourceRequest, resp *ReadResourceResponse) {
-	r.provider.readResourceCurrentStateValue = req.State.Raw
-	r.provider.readResourceCurrentStateSchema = req.State.Schema
-	r.provider.readResourceProviderMetaValue = req.ProviderMeta.Raw
-	r.provider.readResourceProviderMetaSchema = req.ProviderMeta.Schema
-	r.provider.readResourceCalledResourceType = "test_attribute_plan_modifiers"
-	r.provider.readResourceImpl(ctx, req, resp)
+	// Intentionally blank. Not expected to be called during testing.
 }
 
 func (r testServeAttributePlanModifiers) Update(ctx context.Context, req UpdateResourceRequest, resp *UpdateResourceResponse) {
-	r.provider.applyResourceChangePriorStateValue = req.State.Raw
-	r.provider.applyResourceChangePriorStateSchema = req.State.Schema
-	r.provider.applyResourceChangePlannedStateValue = req.Plan.Raw
-	r.provider.applyResourceChangePlannedStateSchema = req.Plan.Schema
-	r.provider.applyResourceChangeConfigValue = req.Config.Raw
-	r.provider.applyResourceChangeConfigSchema = req.Config.Schema
-	r.provider.applyResourceChangeProviderMetaValue = req.ProviderMeta.Raw
-	r.provider.applyResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
-	r.provider.applyResourceChangeCalledResourceType = "test_attribute_plan_modifiers"
-	r.provider.applyResourceChangeCalledAction = "update"
-	r.provider.updateFunc(ctx, req, resp)
+	// Intentionally blank. Not expected to be called during testing.
 }
 
 func (r testServeAttributePlanModifiers) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
-	r.provider.applyResourceChangePriorStateValue = req.State.Raw
-	r.provider.applyResourceChangePriorStateSchema = req.State.Schema
-	r.provider.applyResourceChangeProviderMetaValue = req.ProviderMeta.Raw
-	r.provider.applyResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
-	r.provider.applyResourceChangeCalledResourceType = "test_attribute_plan_modifiers"
-	r.provider.applyResourceChangeCalledAction = "delete"
-	r.provider.deleteFunc(ctx, req, resp)
+	// Intentionally blank. Not expected to be called during testing.
+}
+
+func (r testServeAttributePlanModifiers) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
+	ResourceImportStateNotImplemented(ctx, "Not expected to be called during testing.", resp)
 }

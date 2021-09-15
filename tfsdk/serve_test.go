@@ -276,9 +276,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 			"test_one":                      testServeResourceTypeOneSchema,
 			"test_two":                      testServeResourceTypeTwoSchema,
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
-
-			"test_config_validators": testServeResourceTypeConfigValidatorsSchema,
-			"test_validate_config":   testServeResourceTypeValidateConfigSchema,
+			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
+			"test_import_state":             testServeResourceTypeImportStateSchema,
+			"test_validate_config":          testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one":               testServeDataSourceTypeOneSchema,
@@ -311,6 +311,7 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 			"test_two":                      testServeResourceTypeTwoSchema,
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
+			"test_import_state":             testServeResourceTypeImportStateSchema,
 			"test_validate_config":          testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{

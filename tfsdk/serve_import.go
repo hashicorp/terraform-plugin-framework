@@ -32,9 +32,7 @@ func (r importedResource) toTfprotov6(ctx context.Context) (*tfprotov6.ImportedR
 			"Error converting imported resource response",
 			"An unexpected error was encountered when converting the imported resource response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
 		)
-		// Do not return a nil ImportedResource, it can cause Terraform CLI
-		// to panic.
-		return irProto6, diags
+		return nil, diags
 	}
 
 	irProto6.State = &stateProto6
@@ -56,6 +54,9 @@ func (r importResourceStateResponse) toTfprotov6(ctx context.Context) *tfprotov6
 	for _, ir := range r.ImportedResources {
 		irProto6, diags := ir.toTfprotov6(ctx)
 		resp.Diagnostics = append(resp.Diagnostics, diags.ToTfprotov6Diagnostics()...)
+		if diags.HasError() {
+			continue
+		}
 		resp.ImportedResources = append(resp.ImportedResources, irProto6)
 	}
 

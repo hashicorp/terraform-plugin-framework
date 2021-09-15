@@ -145,11 +145,6 @@ func TestServerImportResourceState(t *testing.T) {
 							`unexpected value type string, tftypes.Object["id":tftypes.String, "optional_string":tftypes.String, "required_string":tftypes.String] values must be of type map[string]tftypes.Value`,
 					},
 				},
-				ImportedResources: []*tfprotov6.ImportedResource{
-					{
-						TypeName: "test_import_state",
-					},
-				},
 			},
 		},
 		"no_state": {

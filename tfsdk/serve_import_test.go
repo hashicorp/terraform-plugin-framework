@@ -71,39 +71,28 @@ func TestServerImportResourceState(t *testing.T) {
 			},
 
 			resp: &tfprotov6.ImportResourceStateResponse{
-				// TODO: SetAttribute should error or import should do the right thing here as
-				//       this seems like a potentially common implementation.
-				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/148
-				Diagnostics: []*tfprotov6.Diagnostic{
+				ImportedResources: []*tfprotov6.ImportedResource{
 					{
-						Summary:  "Missing Resource Import State",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail: "An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n" +
-							"Resource ImportState method returned no State in response. If import is intentionally not supported, call the ResourceImportStateNotImplemented() function or return an error.",
+						State: func() *tfprotov6.DynamicValue {
+							val, err := tfprotov6.NewDynamicValue(
+								testServeResourceTypeImportStateTftype,
+								tftypes.NewValue(
+									testServeResourceTypeImportStateTftype,
+									map[string]tftypes.Value{
+										"id":              tftypes.NewValue(tftypes.String, "test"),
+										"optional_string": tftypes.NewValue(tftypes.String, nil),
+										"required_string": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							)
+							if err != nil {
+								panic(err)
+							}
+							return &val
+						}(),
+						TypeName: "test_import_state",
 					},
 				},
-				// ImportedResources: []*tfprotov6.ImportedResource{
-				// 	{
-				// 		State: func() *tfprotov6.DynamicValue {
-				// 			val, err := tfprotov6.NewDynamicValue(
-				// 				testServeResourceTypeImportStateTftype,
-				// 				tftypes.NewValue(
-				// 					testServeResourceTypeImportStateTftype,
-				// 					map[string]tftypes.Value{
-				// 						"id":              tftypes.NewValue(tftypes.String, "test"),
-				// 						"optional_string": tftypes.NewValue(tftypes.String, nil),
-				// 						"required_string": tftypes.NewValue(tftypes.String, ""),
-				// 					},
-				// 				),
-				// 			)
-				// 			if err != nil {
-				// 				panic(err)
-				// 			}
-				// 			return &val
-				// 		}(),
-				// 		TypeName: "test_import_state",
-				// 	},
-				// },
 			},
 		},
 		"ResourceImportStateNotImplemented": {

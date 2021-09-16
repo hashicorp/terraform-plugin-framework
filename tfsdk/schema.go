@@ -84,6 +84,10 @@ func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, err
 		return n.AttributeType(), nil
 	}
 
+	if s, ok := rawType.(Schema); ok {
+		return s.AttributeType(), nil
+	}
+
 	a, ok := rawType.(Attribute)
 	if !ok {
 		return nil, fmt.Errorf("got unexpected type %T", rawType)

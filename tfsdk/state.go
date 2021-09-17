@@ -22,10 +22,43 @@ func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 	return reflect.Into(ctx, s.Schema.AttributeType(), s.Raw, target, reflect.Options{})
 }
 
-// GetAttribute retrieves the attribute found at `path` and returns it as an
+// GetAttribute retrieves the attribute found at `path` and populates the
+// `target` with the value.
+func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath, target interface{}) diag.Diagnostics {
+	attrValue, diags := s.getAttributeValue(ctx, path)
+
+	if attrValue == nil {
+		return diags
+	}
+
+	valueAsDiags := ValueAs(ctx, attrValue, target)
+
+	// ValueAs does not have path information for its Diagnostics.
+	for idx, valueAsDiag := range valueAsDiags {
+		if valueAsDiag.Severity() == diag.SeverityError {
+			valueAsDiags[idx] = diag.NewAttributeErrorDiagnostic(
+				path,
+				valueAsDiag.Summary(),
+				valueAsDiag.Detail(),
+			)
+		} else if valueAsDiag.Severity() == diag.SeverityWarning {
+			valueAsDiags[idx] = diag.NewAttributeWarningDiagnostic(
+				path,
+				valueAsDiag.Summary(),
+				valueAsDiag.Detail(),
+			)
+		}
+	}
+
+	diags.Append(valueAsDiags...)
+
+	return diags
+}
+
+// getAttribute retrieves the attribute found at `path` and returns it as an
 // attr.Value. Consumers should assert the type of the returned value with the
 // desired attr.Type.
-func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func (s State) getAttributeValue(ctx context.Context, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	attrType, err := s.Schema.AttributeTypeAtPath(path)

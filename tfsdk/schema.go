@@ -225,7 +225,7 @@ func (s Schema) modifyAttributePlans(ctx context.Context, req ModifySchemaPlanRe
 func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path *tftypes.AttributePath, req ModifySchemaPlanRequest, resp *ModifySchemaPlanResponse) {
 	for name, nestedAttr := range attrs {
 		attrPath := path.WithAttributeName(name)
-		attrPlan, diags := req.Plan.GetAttribute(ctx, attrPath)
+		attrPlan, diags := req.Plan.getAttributeValue(ctx, attrPath)
 		resp.Diagnostics.Append(diags...)
 		if diags.HasError() {
 			continue

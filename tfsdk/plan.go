@@ -153,7 +153,7 @@ func (p *Plan) SetAttribute(ctx context.Context, path *tftypes.AttributePath, va
 		}
 	}
 
-	transformFunc, transformFuncDiags := p.setAttributeTransformFunc(ctx, path, tfVal)
+	transformFunc, transformFuncDiags := p.setAttributeTransformFunc(ctx, path, tfVal, nil)
 	diags.Append(transformFuncDiags...)
 
 	if diags.HasError() {
@@ -174,9 +174,7 @@ func (p *Plan) SetAttribute(ctx context.Context, path *tftypes.AttributePath, va
 	return diags
 }
 
-func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.AttributePath, tfVal tftypes.Value) (func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
-	var diags diag.Diagnostics
-
+func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.AttributePath, tfVal tftypes.Value, diags diag.Diagnostics) (func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
 	_, remaining, err := tftypes.WalkAttributePath(p.Raw, path)
 
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
@@ -376,7 +374,7 @@ func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attri
 		}, diags
 	}
 
-	return p.setAttributeTransformFunc(ctx, parentPath, parentTfVal)
+	return p.setAttributeTransformFunc(ctx, parentPath, parentTfVal, diags)
 }
 
 func (p Plan) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {

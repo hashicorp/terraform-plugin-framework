@@ -2123,6 +2123,50 @@ func TestPlanSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 		},
+		"write-List-AttrTypeWithValidateWarning-Element": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{},
+				}, nil),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: testtypes.ListTypeWithValidateWarning{
+								ListType: types.ListType{
+									ElemType: types.StringType,
+								},
+							},
+							Optional: true,
+							Computed: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			val:  "testvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.List{
+						ElementType: tftypes.String,
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.String,
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
+			},
+		},
 		"write-List-Element": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -2241,6 +2285,79 @@ func TestPlanSetAttribute(t *testing.T) {
 				),
 			},
 		},
+		"write-List-Element-AttrTypeWithValidateWarning": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{},
+				}, nil),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"disks": {
+							Attributes: ListNestedAttributes(map[string]Attribute{
+								"id": {
+									Type:     testtypes.StringTypeWithValidateWarning{},
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, ListNestedAttributesOptions{}),
+							Optional: true,
+							Computed: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+			val: struct {
+				ID                 string `tfsdk:"id"`
+				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+			}{
+				ID:                 "mynewdisk",
+				DeleteWithInstance: true,
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"disks": tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"disks": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0).WithAttributeName("id")),
+			},
+		},
 		"write-Map": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -2281,6 +2398,49 @@ func TestPlanSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 		},
+		"write-Map-AttrTypeWithValidateWarning-Element": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{},
+				}, nil),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: testtypes.MapTypeWithValidateWarning{
+								MapType: types.MapType{
+									ElemType: types.StringType,
+								},
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key"),
+			val:  "keyvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.Map{
+						AttributeType: tftypes.String,
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test": tftypes.NewValue(tftypes.Map{
+					AttributeType: tftypes.String,
+				}, map[string]tftypes.Value{
+					"key": tftypes.NewValue(tftypes.String, "keyvalue"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
+			},
+		},
 		"write-Map-Element": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -2318,6 +2478,47 @@ func TestPlanSetAttribute(t *testing.T) {
 				}),
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
+		},
+		"write-Map-Element-AttrTypeWithValidateWarning": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{},
+				}, nil),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.MapType{
+								ElemType: testtypes.StringTypeWithValidateWarning{},
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key"),
+			val:  "keyvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.Map{
+						AttributeType: tftypes.String,
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test": tftypes.NewValue(tftypes.Map{
+					AttributeType: tftypes.String,
+				}, map[string]tftypes.Value{
+					"key": tftypes.NewValue(tftypes.String, "keyvalue"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key")),
+			},
 		},
 		"write-Number": {
 			plan: Plan{
@@ -2511,6 +2712,139 @@ func TestPlanSetAttribute(t *testing.T) {
 				}),
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
+		},
+		"write-Set-AttrTypeWithValidateWarning-Element": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{},
+				}, nil),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: testtypes.SetTypeWithValidateWarning{
+								SetType: types.SetType{
+									ElemType: types.StringType,
+								},
+							},
+							Optional: true,
+							Computed: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "testvalue")),
+			val:  "testvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.Set{
+						ElementType: tftypes.String,
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.String,
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
+			},
+		},
+		"write-Set-Element-AttrTypeWithValidateWarning": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{},
+				}, nil),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"disks": {
+							Attributes: SetNestedAttributes(map[string]Attribute{
+								"id": {
+									Type:     testtypes.StringTypeWithValidateWarning{},
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, SetNestedAttributesOptions{}),
+							Optional: true,
+							Computed: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"id":                   tftypes.String,
+					"delete_with_instance": tftypes.Bool,
+				},
+			}, map[string]tftypes.Value{
+				"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
+				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+			})),
+			val: struct {
+				ID                 string `tfsdk:"id"`
+				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+			}{
+				ID:                 "mynewdisk",
+				DeleteWithInstance: true,
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"disks": tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"disks": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"id":                   tftypes.String,
+						"delete_with_instance": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
+					"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+				})).WithAttributeName("id")),
+			},
 		},
 		"write-String": {
 			plan: Plan{

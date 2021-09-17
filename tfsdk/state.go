@@ -162,7 +162,7 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 		}
 	}
 
-	transformFunc, transformFuncDiags := s.setAttributeTransformFunc(ctx, path, tfVal)
+	transformFunc, transformFuncDiags := s.setAttributeTransformFunc(ctx, path, tfVal, nil)
 	diags.Append(transformFuncDiags...)
 
 	if diags.HasError() {
@@ -183,9 +183,7 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 	return diags
 }
 
-func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.AttributePath, tfVal tftypes.Value) (func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
-	var diags diag.Diagnostics
-
+func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.AttributePath, tfVal tftypes.Value, diags diag.Diagnostics) (func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
 	_, remaining, err := tftypes.WalkAttributePath(s.Raw, path)
 
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
@@ -385,7 +383,7 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attr
 		}, diags
 	}
 
-	return s.setAttributeTransformFunc(ctx, parentPath, parentTfVal)
+	return s.setAttributeTransformFunc(ctx, parentPath, parentTfVal, diags)
 }
 
 // RemoveResource removes the entire resource from state.

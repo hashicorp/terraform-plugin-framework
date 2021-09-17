@@ -120,6 +120,14 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 				Type:     types.BoolType,
 				Optional: true,
 			},
+			"int64": {
+				Type:     types.Int64Type,
+				Optional: true,
+			},
+			"float64": {
+				Type:     types.Float64Type,
+				Optional: true,
+			},
 			"list-string": {
 				Type: types.ListType{
 					ElemType: types.StringType,
@@ -280,6 +288,16 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 				Type: tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{},
 				},
+				Optional: true,
+			},
+			{
+				Name:     "float64",
+				Type:     tftypes.Number,
+				Optional: true,
+			},
+			{
+				Name:     "int64",
+				Type:     tftypes.Number,
 				Optional: true,
 			},
 			{
@@ -489,6 +507,8 @@ var testServeProviderProviderType = tftypes.Object{
 		"string":            tftypes.String,
 		"number":            tftypes.Number,
 		"bool":              tftypes.Bool,
+		"int64":             tftypes.Number,
+		"float64":           tftypes.Number,
 		"list-string":       tftypes.List{ElementType: tftypes.String},
 		"list-list-string":  tftypes.List{ElementType: tftypes.List{ElementType: tftypes.String}},
 		"list-object": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{

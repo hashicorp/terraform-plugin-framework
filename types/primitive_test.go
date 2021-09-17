@@ -12,9 +12,11 @@ func TestPrimitiveTerraformType(t *testing.T) {
 	t.Parallel()
 
 	tests := map[primitive]tftypes.Type{
-		StringType: tftypes.String,
-		NumberType: tftypes.Number,
-		BoolType:   tftypes.Bool,
+		StringType:  tftypes.String,
+		NumberType:  tftypes.Number,
+		BoolType:    tftypes.Bool,
+		Int64Type:   tftypes.Number,
+		Float64Type: tftypes.Number,
 	}
 	for prim, expected := range tests {
 		prim, expected := prim, expected
@@ -48,6 +50,18 @@ func TestPrimitiveValueFromTerraform(t *testing.T) {
 		t.Parallel()
 
 		testBoolValueFromTerraform(t, false)
+	})
+
+	t.Run(Int64Type.String(), func(t *testing.T) {
+		t.Parallel()
+
+		testInt64ValueFromTerraform(t, false)
+	})
+
+	t.Run(Float64Type.String(), func(t *testing.T) {
+		t.Parallel()
+
+		testFloat64ValueFromTerraform(t, false)
 	})
 }
 
@@ -100,6 +114,16 @@ func TestPrimitiveEqual(t *testing.T) {
 			candidate: BoolType,
 			expected:  false,
 		},
+		"string-int64": {
+			prim:      StringType,
+			candidate: Int64Type,
+			expected:  false,
+		},
+		"string-float64": {
+			prim:      StringType,
+			candidate: Float64Type,
+			expected:  false,
+		},
 		"string-unknown": {
 			prim:      StringType,
 			candidate: primitive(100),
@@ -123,6 +147,16 @@ func TestPrimitiveEqual(t *testing.T) {
 		"number-bool": {
 			prim:      NumberType,
 			candidate: BoolType,
+			expected:  false,
+		},
+		"number-int64": {
+			prim:      NumberType,
+			candidate: Int64Type,
+			expected:  false,
+		},
+		"number-float64": {
+			prim:      NumberType,
+			candidate: Float64Type,
 			expected:  false,
 		},
 		"number-unknown": {
@@ -150,6 +184,16 @@ func TestPrimitiveEqual(t *testing.T) {
 			candidate: BoolType,
 			expected:  true,
 		},
+		"bool-int64": {
+			prim:      BoolType,
+			candidate: Int64Type,
+			expected:  false,
+		},
+		"bool-float64": {
+			prim:      BoolType,
+			candidate: Float64Type,
+			expected:  false,
+		},
 		"bool-unknown": {
 			prim:      BoolType,
 			candidate: primitive(100),
@@ -173,6 +217,16 @@ func TestPrimitiveEqual(t *testing.T) {
 		"unknown-bool": {
 			prim:      100,
 			candidate: BoolType,
+			expected:  false,
+		},
+		"unknown-int64": {
+			prim:      100,
+			candidate: Int64Type,
+			expected:  false,
+		},
+		"unknown-float64": {
+			prim:      100,
+			candidate: Float64Type,
 			expected:  false,
 		},
 		"unknown-unknown": {

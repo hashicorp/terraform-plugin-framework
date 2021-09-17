@@ -376,16 +376,16 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attr
 		}
 	}
 
-	if len(remaining.Steps()) > 1 {
-		return s.setAttributeTransformFunc(ctx, parentPath, parentTfVal)
+	if len(remaining.Steps()) == 1 {
+		return func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
+			if p.Equal(parentPath) {
+				return parentTfVal, nil
+			}
+			return v, nil
+		}, diags
 	}
 
-	return func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
-		if p.Equal(parentPath) {
-			return parentTfVal, nil
-		}
-		return v, nil
-	}, diags
+	return s.setAttributeTransformFunc(ctx, parentPath, parentTfVal)
 }
 
 // RemoveResource removes the entire resource from state.

@@ -367,16 +367,16 @@ func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attri
 		}
 	}
 
-	if len(remaining.Steps()) > 1 {
-		return p.setAttributeTransformFunc(ctx, parentPath, parentTfVal)
+	if len(remaining.Steps()) == 1 {
+		return func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
+			if p.Equal(parentPath) {
+				return parentTfVal, nil
+			}
+			return v, nil
+		}, diags
 	}
 
-	return func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
-		if p.Equal(parentPath) {
-			return parentTfVal, nil
-		}
-		return v, nil
-	}, diags
+	return p.setAttributeTransformFunc(ctx, parentPath, parentTfVal)
 }
 
 func (p Plan) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {

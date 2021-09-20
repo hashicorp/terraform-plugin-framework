@@ -27,13 +27,15 @@ func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath, target interface{}) diag.Diagnostics {
 	attrValue, diags := s.getAttributeValue(ctx, path)
 
-	if attrValue == nil {
+	if attrValue == nil || diags.HasError() {
 		return diags
 	}
 
 	valueAsDiags := ValueAs(ctx, attrValue, target)
 
 	// ValueAs does not have path information for its Diagnostics.
+	// TODO: Update to use diagnostic SetPath method.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/169
 	for idx, valueAsDiag := range valueAsDiags {
 		if valueAsDiag.Severity() == diag.SeverityError {
 			valueAsDiags[idx] = diag.NewAttributeErrorDiagnostic(
@@ -55,7 +57,7 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath, ta
 	return diags
 }
 
-// getAttribute retrieves the attribute found at `path` and returns it as an
+// getAttributeValue retrieves the attribute found at `path` and returns it as an
 // attr.Value. Consumers should assert the type of the returned value with the
 // desired attr.Type.
 func (s State) getAttributeValue(ctx context.Context, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {

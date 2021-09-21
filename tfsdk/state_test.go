@@ -2507,9 +2507,9 @@ func TestStateSetAttribute(t *testing.T) {
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					tftypes.NewAttributePath().WithAttributeName("disks"),
-					"State Write Error",
-					"An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Cannot add list element 3 as list currently has 1 length. To prevent ambiguity, SetAttribute can only add the next element to a list. Add empty elements into the list prior to this call, if appropriate.",
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Cannot add list element 3 as list currently has 1 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
 				),
 			},
 		},
@@ -2685,9 +2685,9 @@ func TestStateSetAttribute(t *testing.T) {
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					tftypes.NewAttributePath().WithAttributeName("disks"),
-					"State Write Error",
-					"An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, SetAttribute can only add the next element to a list. Add empty elements into the list prior to this call, if appropriate.",
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
 				),
 			},
 		},
@@ -4138,9 +4138,9 @@ func TestStateSetAttribute(t *testing.T) {
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					tftypes.NewAttributePath().WithAttributeName("disks"),
-					"State Write Error",
-					"An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, SetAttribute can only add the next element to a list. Add empty elements into the list prior to this call, if appropriate.",
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
 				),
 			},
 		},

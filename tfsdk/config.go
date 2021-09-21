@@ -27,7 +27,17 @@ func (c Config) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath, target interface{}) diag.Diagnostics {
 	attrValue, diags := c.getAttributeValue(ctx, path)
 
-	if attrValue == nil || diags.HasError() {
+	if diags.HasError() {
+		return diags
+	}
+
+	if attrValue == nil {
+		diags.AddAttributeError(
+			path,
+			"Config Read Error",
+			"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				"Missing attribute value, however no error was returned. Preventing the panic from this situation.",
+		)
 		return diags
 	}
 

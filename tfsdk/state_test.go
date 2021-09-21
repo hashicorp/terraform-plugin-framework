@@ -3888,6 +3888,33 @@ func TestStateSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 			}),
 		},
+		"write-root": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{},
+				}, nil),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.BoolType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath(),
+			val:  false,
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{},
+			}, nil),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert the Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\nexpected tftypes.Object[\"test\":tftypes.Bool], got tftypes.Bool",
+				),
+			},
+		},
 		"write-Bool": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{

@@ -174,20 +174,39 @@ func (p *Plan) SetAttribute(ctx context.Context, path *tftypes.AttributePath, va
 	return diags
 }
 
-func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.AttributePath, tfVal tftypes.Value, diags diag.Diagnostics) (func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
+// pathExists walks the current state and returns true if the path can be reached.
+// The value at the path may be null or unknown.
+func (p Plan) pathExists(ctx context.Context, path *tftypes.AttributePath) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
 	_, remaining, err := tftypes.WalkAttributePath(p.Raw, path)
 
-	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
-		err = fmt.Errorf("Cannot walk attribute path in plan: %w", err)
+	if err != nil {
+		if errors.Is(err, tftypes.ErrInvalidStep) {
+			return false, diags
+		}
+
 		diags.AddAttributeError(
 			path,
-			"Plan Write Error",
-			"An unexpected error was encountered trying to write an attribute to the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			"Plan Read Error",
+			"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				fmt.Sprintf("Cannot walk attribute path in plan: %s", err),
 		)
+		return false, diags
+	}
+
+	return len(remaining.Steps()) == 0, diags
+}
+
+func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.AttributePath, tfVal tftypes.Value, diags diag.Diagnostics) (func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
+	exists, pathExistsDiags := p.pathExists(ctx, path)
+	diags.Append(pathExistsDiags...)
+
+	if diags.HasError() {
 		return nil, diags
 	}
 
-	if len(remaining.Steps()) == 0 {
+	if exists {
 		// Overwrite existing value
 		return func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
 			if p.Equal(path) {
@@ -236,7 +255,7 @@ func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attri
 		parentValue = tftypes.NewValue(parentTfType, nil)
 	}
 
-	switch step := remaining.Steps()[len(remaining.Steps())-1].(type) {
+	switch step := path.Steps()[len(path.Steps())-1].(type) {
 	case tftypes.AttributeName:
 		// Add to Object
 		if !parentValue.Type().Is(tftypes.Object{}) {
@@ -363,15 +382,6 @@ func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attri
 		if diags.HasError() {
 			return nil, diags
 		}
-	}
-
-	if len(remaining.Steps()) == 1 {
-		return func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
-			if p.Equal(parentPath) {
-				return parentTfVal, nil
-			}
-			return v, nil
-		}, diags
 	}
 
 	return p.setAttributeTransformFunc(ctx, parentPath, parentTfVal, diags)

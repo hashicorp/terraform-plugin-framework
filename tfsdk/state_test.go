@@ -1295,6 +1295,438 @@ func TestStateGetAttribute(t *testing.T) {
 	}
 }
 
+func TestStatePathExists(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		state         State
+		path          *tftypes.AttributePath
+		expected      bool
+		expectedDiags diag.Diagnostics
+	}
+
+	testCases := map[string]testCase{
+		"empty-path": {
+			state:    State{},
+			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			expected: false,
+		},
+		"empty-root": {
+			state:    State{},
+			path:     tftypes.NewAttributePath(),
+			expected: true,
+		},
+		"root": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath(),
+			expected: true,
+		},
+		"WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			expected: true,
+		},
+		"WithAttributeName-mismatch": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("other"),
+			expected: false,
+		},
+		"WithAttributeName.WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested": tftypes.String,
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"nested": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"nested": types.StringType,
+								},
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("nested"),
+			expected: true,
+		},
+		"WithAttributeName.WithAttributeName-mismatch-child": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested": tftypes.String,
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"nested": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"nested": types.StringType,
+								},
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("other"),
+			expected: false,
+		},
+		"WithAttributeName.WithAttributeName-mismatch-parent": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("other"),
+			expected: false,
+		},
+		"WithAttributeName.WithElementKeyInt": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.ListType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			expected: true,
+		},
+		"WithAttributeName.WithElementKeyInt-mismatch-child": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.ListType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(1),
+			expected: false,
+		},
+		"WithAttributeName.WithElementKeyInt-mismatch-parent": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			expected: false,
+		},
+		"WithAttributeName.WithElementKeyString": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							AttributeType: tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Map{
+						AttributeType: tftypes.String,
+					}, map[string]tftypes.Value{
+						"key": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.MapType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key"),
+			expected: true,
+		},
+		"WithAttributeName.WithElementKeyString-mismatch-child": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							AttributeType: tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Map{
+						AttributeType: tftypes.String,
+					}, map[string]tftypes.Value{
+						"key": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.MapType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("other"),
+			expected: false,
+		},
+		"WithAttributeName.WithElementKeyString-mismatch-parent": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("other"),
+			expected: false,
+		},
+		"WithAttributeName.WithElementKeyValue": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Set{
+							ElementType: tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "testvalue")),
+			expected: true,
+		},
+		"WithAttributeName.WithElementKeyValue-mismatch-child": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Set{
+							ElementType: tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "othervalue")),
+			expected: false,
+		},
+		"WithAttributeName.WithElementKeyValue-mismatch-parent": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "othervalue")),
+			expected: false,
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := tc.state.pathExists(context.Background(), tc.path)
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(got, tc.expected); diff != "" {
+				t.Errorf("unexpected result (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
 func TestStateSet(t *testing.T) {
 	t.Parallel()
 

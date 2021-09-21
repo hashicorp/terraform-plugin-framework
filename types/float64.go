@@ -2,11 +2,57 @@ package types
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+func float64Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if !in.Type().Is(tftypes.Number) {
+		diags.AddAttributeError(
+			path,
+			"Float64 Type Validation Error",
+			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				fmt.Sprintf("Expected Number value, received %T with value: %v", in, in),
+		)
+		return diags
+	}
+
+	if !in.IsKnown() || in.IsNull() {
+		return diags
+	}
+
+	var value *big.Float
+	err := in.As(&value)
+
+	if err != nil {
+		diags.AddAttributeError(
+			path,
+			"Float64 Type Validation Error",
+			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				fmt.Sprintf("Cannot convert value to big.Float: %s", err),
+		)
+		return diags
+	}
+
+	_, accuracy := value.Float64()
+
+	if accuracy != 0 {
+		diags.AddAttributeError(
+			path,
+			"Float64 Type Validation Error",
+			fmt.Sprintf("Value %s cannot be represented as a 64-bit floating point.", value),
+		)
+		return diags
+	}
+
+	return diags
+}
 
 func float64ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
@@ -24,8 +70,11 @@ func float64ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Valu
 		return nil, err
 	}
 
-	// Validation is handled by Validate method.
-	f, _ := bigF.Float64()
+	f, accuracy := bigF.Float64()
+
+	if accuracy != 0 {
+		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
+	}
 
 	return Float64{Value: f}, nil
 }

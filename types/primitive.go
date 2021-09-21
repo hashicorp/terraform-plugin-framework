@@ -3,7 +3,6 @@ package types
 import (
 	"context"
 	"fmt"
-	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -119,90 +118,9 @@ func (p primitive) Validate(ctx context.Context, in tftypes.Value, path *tftypes
 
 	switch p {
 	case Int64Type:
-		if !in.Type().Is(tftypes.Number) {
-			diags.AddAttributeError(
-				path,
-				"Int64 Type Validation Error",
-				"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Expected Number value, received %T with value: %v", in, in),
-			)
-			return diags
-		}
-
-		if !in.IsKnown() || in.IsNull() {
-			return diags
-		}
-
-		var value *big.Float
-		err := in.As(&value)
-
-		if err != nil {
-			diags.AddAttributeError(
-				path,
-				"Int64 Type Validation Error",
-				"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Cannot convert value to big.Float: %s", err),
-			)
-			return diags
-		}
-
-		if !value.IsInt() {
-			diags.AddAttributeError(
-				path,
-				"Int64 Type Validation Error",
-				fmt.Sprintf("Value %s is not an integer.", value),
-			)
-			return diags
-		}
-
-		_, accuracy := value.Int64()
-
-		if accuracy != 0 {
-			diags.AddAttributeError(
-				path,
-				"Int64 Type Validation Error",
-				fmt.Sprintf("Value %s is cannot be represented as a 64-bit integer.", value),
-			)
-			return diags
-		}
+		diags.Append(int64Validate(ctx, in, path)...)
 	case Float64Type:
-		if !in.Type().Is(tftypes.Number) {
-			diags.AddAttributeError(
-				path,
-				"Float64 Type Validation Error",
-				"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Expected Number value, received %T with value: %v", in, in),
-			)
-			return diags
-		}
-
-		if !in.IsKnown() || in.IsNull() {
-			return diags
-		}
-
-		var value *big.Float
-		err := in.As(&value)
-
-		if err != nil {
-			diags.AddAttributeError(
-				path,
-				"Float64 Type Validation Error",
-				"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Cannot convert value to big.Float: %s", err),
-			)
-			return diags
-		}
-
-		_, accuracy := value.Float64()
-
-		if accuracy != 0 {
-			diags.AddAttributeError(
-				path,
-				"Float64 Type Validation Error",
-				fmt.Sprintf("Value %s is cannot be represented as a 64-bit floating point.", value),
-			)
-			return diags
-		}
+		diags.Append(float64Validate(ctx, in, path)...)
 	}
 
 	return diags

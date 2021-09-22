@@ -365,6 +365,8 @@ func TestServerValidateProviderConfig(t *testing.T) {
 				"string":            tftypes.NewValue(tftypes.String, "a new string value"),
 				"number":            tftypes.NewValue(tftypes.Number, 1234),
 				"bool":              tftypes.NewValue(tftypes.Bool, true),
+				"int64":             tftypes.NewValue(tftypes.Number, 1234),
+				"float64":           tftypes.NewValue(tftypes.Number, 1234),
 				"list-string": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
 					tftypes.NewValue(tftypes.String, "hello"),
 					tftypes.NewValue(tftypes.String, "world"),
@@ -779,6 +781,8 @@ func TestServerConfigureProvider(t *testing.T) {
 				"string":            tftypes.NewValue(tftypes.String, "a new string value"),
 				"number":            tftypes.NewValue(tftypes.Number, 1234),
 				"bool":              tftypes.NewValue(tftypes.Bool, true),
+				"int64":             tftypes.NewValue(tftypes.Number, 1234),
+				"float64":           tftypes.NewValue(tftypes.Number, 1234),
 				"list-string": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
 					tftypes.NewValue(tftypes.String, "hello"),
 					tftypes.NewValue(tftypes.String, "world"),
@@ -958,6 +962,8 @@ func TestServerConfigureProvider(t *testing.T) {
 				"string":            tftypes.NewValue(tftypes.String, "a new string value"),
 				"number":            tftypes.NewValue(tftypes.Number, 1234),
 				"bool":              tftypes.NewValue(tftypes.Bool, true),
+				"int64":             tftypes.NewValue(tftypes.Number, 1234),
+				"float64":           tftypes.NewValue(tftypes.Number, 1234),
 				"list-string": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
 					tftypes.NewValue(tftypes.String, "hello"),
 					tftypes.NewValue(tftypes.String, "world"),

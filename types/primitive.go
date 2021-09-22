@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -19,12 +20,20 @@ const (
 
 	// BoolType represents a boolean type.
 	BoolType
+
+	// Int64Type represents a 64-bit integer.
+	Int64Type
+
+	// Float64Type represents a 64-bit floating point.
+	Float64Type
 )
 
 var (
-	_ attr.Type = StringType
-	_ attr.Type = NumberType
-	_ attr.Type = BoolType
+	_ attr.Type             = StringType
+	_ attr.Type             = NumberType
+	_ attr.Type             = BoolType
+	_ attr.TypeWithValidate = Int64Type
+	_ attr.TypeWithValidate = Float64Type
 )
 
 func (p primitive) String() string {
@@ -35,6 +44,10 @@ func (p primitive) String() string {
 		return "types.NumberType"
 	case BoolType:
 		return "types.BoolType"
+	case Int64Type:
+		return "types.Int64Type"
+	case Float64Type:
+		return "types.Float64Type"
 	default:
 		return fmt.Sprintf("unknown primitive %d", p)
 	}
@@ -48,7 +61,7 @@ func (p primitive) TerraformType(_ context.Context) tftypes.Type {
 	switch p {
 	case StringType:
 		return tftypes.String
-	case NumberType:
+	case NumberType, Int64Type, Float64Type:
 		return tftypes.Number
 	case BoolType:
 		return tftypes.Bool
@@ -68,6 +81,10 @@ func (p primitive) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 		return numberValueFromTerraform(ctx, in)
 	case BoolType:
 		return boolValueFromTerraform(ctx, in)
+	case Int64Type:
+		return int64ValueFromTerraform(ctx, in)
+	case Float64Type:
+		return float64ValueFromTerraform(ctx, in)
 	default:
 		panic(fmt.Sprintf("unknown primitive %d", p))
 	}
@@ -81,7 +98,7 @@ func (p primitive) Equal(o attr.Type) bool {
 		return false
 	}
 	switch p {
-	case StringType, NumberType, BoolType:
+	case StringType, NumberType, BoolType, Int64Type, Float64Type:
 		return p == other
 	default:
 		// unrecognized types are never equal to anything.
@@ -93,4 +110,18 @@ func (p primitive) Equal(o attr.Type) bool {
 // type.
 func (p primitive) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	return nil, fmt.Errorf("cannot apply AttributePathStep %T to %s", step, p.String())
+}
+
+// Validate implements type validation.
+func (p primitive) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	switch p {
+	case Int64Type:
+		diags.Append(int64Validate(ctx, in, path)...)
+	case Float64Type:
+		diags.Append(float64Validate(ctx, in, path)...)
+	}
+
+	return diags
 }

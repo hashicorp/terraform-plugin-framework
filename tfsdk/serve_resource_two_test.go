@@ -171,5 +171,7 @@ func (r testServeResourceTwo) ModifyPlan(ctx context.Context, req ModifyResource
 	r.provider.planResourceChangeProviderMetaSchema = req.ProviderMeta.Schema
 	r.provider.planResourceChangeCalledResourceType = "test_two"
 	r.provider.planResourceChangeCalledAction = "modify_plan"
-	r.provider.modifyPlanFunc(ctx, req, resp)
+	if r.provider.modifyPlanFunc != nil {
+		r.provider.modifyPlanFunc(ctx, req, resp)
+	}
 }

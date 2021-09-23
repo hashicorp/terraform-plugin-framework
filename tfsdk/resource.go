@@ -8,7 +8,7 @@ import (
 
 // A ResourceType is a type of resource. For each type of resource this provider
 // supports, it should define a type implementing ResourceType and return an
-// instance of it in the map returned by Provider.GeResources.
+// instance of it in the map returned by Provider.GetResources.
 type ResourceType interface {
 	// GetSchema returns the schema for this resource.
 	GetSchema(context.Context) (Schema, diag.Diagnostics)

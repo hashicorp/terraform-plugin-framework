@@ -278,6 +278,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
 			"test_import_state":             testServeResourceTypeImportStateSchema,
+			"test_normalization":            testServeResourceTypeNormalizationSchema,
 			"test_validate_config":          testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
@@ -312,6 +313,7 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
 			"test_import_state":             testServeResourceTypeImportStateSchema,
+			"test_normalization":            testServeResourceTypeNormalizationSchema,
 			"test_validate_config":          testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
@@ -1578,6 +1580,37 @@ func TestServerReadResource(t *testing.T) {
 				},
 			},
 		},
+		"normalization": {
+			currentState: tftypes.NewValue(testServeResourceTypeNormalizationType, map[string]tftypes.Value{
+				"id":   tftypes.NewValue(tftypes.String, "FooBar"),
+				"name": tftypes.NewValue(tftypes.String, "FooBar"),
+			}),
+			resource:     "test_normalization",
+			resourceType: testServeResourceTypeNormalizationType,
+
+			impl: func(_ context.Context, req ReadResourceRequest, resp *ReadResourceResponse) {
+				// This is mimicking a common situation where the remote
+				// API returns the name normalized (in this case, converted to
+				// lowercase) but otherwise equivalent to the "current state".
+				resp.State.Raw = tftypes.NewValue(testServeResourceTypeNormalizationType, map[string]tftypes.Value{
+					"id":   tftypes.NewValue(tftypes.String, "foobar"),
+					"name": tftypes.NewValue(tftypes.String, "foobar"),
+				})
+			},
+
+			expectedNewState: tftypes.NewValue(testServeResourceTypeNormalizationType, map[string]tftypes.Value{
+				// The computed "id" took on the new value, because this is
+				// just a raw string. (This isn't necessarily a good idea,
+				// for a real provider, but verifies that the equality
+				// rule on "name" didn't also affect "id" somehow.)
+				"id": tftypes.NewValue(tftypes.String, "foobar"),
+
+				// The "name" is a case-insensitive string, so we preserve
+				// the old value in order to avoid churning the config
+				// of any other resources that refer to this.
+				"name": tftypes.NewValue(tftypes.String, "FooBar"),
+			}),
+		},
 	}
 
 	for name, tc := range tests {
@@ -2734,6 +2767,26 @@ func TestServerPlanResourceChange(t *testing.T) {
 			resourceType:            testServeResourceTypeAttributePlanModifiersType,
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
+		"normalization": {
+			priorState: tftypes.NewValue(testServeResourceTypeNormalizationType, map[string]tftypes.Value{
+				"id":   tftypes.NewValue(tftypes.String, "foobar"),
+				"name": tftypes.NewValue(tftypes.String, "FooBar"),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeNormalizationType, map[string]tftypes.Value{
+				"id":   tftypes.NewValue(tftypes.String, "foobar"),
+				"name": tftypes.NewValue(tftypes.String, "FOOBAR"),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeNormalizationType, map[string]tftypes.Value{
+				"id":   tftypes.NewValue(tftypes.String, "foobar"),
+				"name": tftypes.NewValue(tftypes.String, "FOOBAR"),
+			}),
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeNormalizationType, map[string]tftypes.Value{
+				"id":   tftypes.NewValue(tftypes.String, "foobar"),
+				"name": tftypes.NewValue(tftypes.String, "FooBar"), // planning retains the original casing, because name is case-insensitive
+			}),
+			resource:     "test_normalization",
+			resourceType: testServeResourceTypeNormalizationType,
+		},
 	}
 
 	for name, tc := range tests {
@@ -2785,6 +2838,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
+			}
+			if got.PlannedState == nil {
+				t.Fatalf("Result has no PlannedState")
 			}
 			gotPlannedState, err := got.PlannedState.Unmarshal(tc.resourceType)
 			if err != nil {

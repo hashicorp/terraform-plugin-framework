@@ -573,7 +573,13 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	// don't return even if we have error diagnostics, we need to set the
 	// state on the response, first
 
-	newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), readResp.State.Raw)
+	// Discard any changes where the schema considers the new value as equal
+	// to the old value, because otherwise we can cause unimportant
+	// normalization changes to disruptively propagate to other resources
+	// whose configurations are derived from this result.
+	finalState := undoNormalizationDifferences(ctx, readReq.State.Raw, readResp.State.Raw, resourceSchema)
+
+	newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), finalState)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error converting read response",
@@ -688,6 +694,14 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Discard any planned changes where the schema considers values as
+	// equal, so the plan will only present "real" changes by default.
+	// The provider's own plan customization logic could potentially
+	// override this result later, but that'd be valid only for attributes
+	// that aren't set in "config".
+	plan = undoNormalizationDifferences(ctx, state, plan, resourceSchema)
+	config = undoNormalizationDifferences(ctx, state, config, resourceSchema)
 
 	// first, execute any AttributePlanModifiers
 	modifySchemaPlanReq := ModifySchemaPlanRequest{

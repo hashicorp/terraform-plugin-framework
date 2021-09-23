@@ -557,6 +557,7 @@ func (t *testServeProvider) GetResources(_ context.Context) (map[string]Resource
 		"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiers{},
 		"test_config_validators":        testServeResourceTypeConfigValidators{},
 		"test_import_state":             testServeResourceTypeImportState{},
+		"test_normalization":            testServeResourceTypeNormalization{},
 		"test_validate_config":          testServeResourceTypeValidateConfig{},
 	}, nil
 }

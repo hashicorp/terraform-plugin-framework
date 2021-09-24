@@ -2,6 +2,7 @@ package tfsdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -110,6 +111,13 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 }
 
 // SetAttribute sets the attribute at `path` using the supplied Go value.
+//
+// The attribute path and value must be valid with the current schema. If the
+// attribute path already has a value, it will be overwritten. If the attribute
+// path does not have a value, it will be added, including any parent attribute
+// paths as necessary.
+//
+// Lists can only have the next element added according to the current length.
 func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, val interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -142,25 +150,26 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 		return diags
 	}
 
-	transformFunc := func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
-		if p.Equal(path) {
-			tfVal := tftypes.NewValue(attrType.TerraformType(ctx), newTfVal)
+	tfVal := tftypes.NewValue(attrType.TerraformType(ctx), newTfVal)
 
-			if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
-				diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)
+	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+		diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)
 
-				if diags.HasError() {
-					return v, nil
-				}
-			}
-
-			return tfVal, nil
+		if diags.HasError() {
+			return diags
 		}
-		return v, nil
+	}
+
+	transformFunc, transformFuncDiags := s.setAttributeTransformFunc(ctx, path, tfVal, nil)
+	diags.Append(transformFuncDiags...)
+
+	if diags.HasError() {
+		return diags
 	}
 
 	s.Raw, err = tftypes.Transform(s.Raw, transformFunc)
 	if err != nil {
+		err = fmt.Errorf("Cannot transform state: %w", err)
 		diags.AddAttributeError(
 			path,
 			"State Write Error",
@@ -170,6 +179,117 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 	}
 
 	return diags
+}
+
+// pathExists walks the current state and returns true if the path can be reached.
+// The value at the path may be null or unknown.
+func (s State) pathExists(ctx context.Context, path *tftypes.AttributePath) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	_, remaining, err := tftypes.WalkAttributePath(s.Raw, path)
+
+	if err != nil {
+		if errors.Is(err, tftypes.ErrInvalidStep) {
+			return false, diags
+		}
+
+		diags.AddAttributeError(
+			path,
+			"State Read Error",
+			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				fmt.Sprintf("Cannot walk attribute path in state: %s", err),
+		)
+		return false, diags
+	}
+
+	return len(remaining.Steps()) == 0, diags
+}
+
+// setAttributeTransformFunc recursively creates a value based on the current
+// Plan values along the path. If the value at the path does not yet exist,
+// this will perform recursion to add the child value to a parent value,
+// creating the parent value if necessary.
+func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.AttributePath, tfVal tftypes.Value, diags diag.Diagnostics) (func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
+	exists, pathExistsDiags := s.pathExists(ctx, path)
+	diags.Append(pathExistsDiags...)
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	if exists {
+		// Overwrite existing value
+		return func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
+			if p.Equal(path) {
+				return tfVal, nil
+			}
+			return v, nil
+		}, diags
+	}
+
+	parentPath := path.WithoutLastStep()
+	parentAttrType, err := s.Schema.AttributeTypeAtPath(parentPath)
+
+	if err != nil {
+		err = fmt.Errorf("error getting parent attribute type in schema: %w", err)
+		diags.AddAttributeError(
+			parentPath,
+			"State Write Error",
+			"An unexpected error was encountered trying to write an attribute to the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
+	}
+
+	parentValue, err := s.terraformValueAtPath(parentPath)
+
+	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
+		diags.AddAttributeError(
+			parentPath,
+			"Plan Read Error",
+			"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
+	}
+
+	if parentValue.IsNull() || !parentValue.IsKnown() {
+		// TODO: This will break when DynamicPsuedoType is introduced.
+		// tftypes.Type should implement AttributePathStepper, but it currently does not.
+		// When it does, we should use: tftypes.WalkAttributePath(s.Raw.Type(), parentPath)
+		// Reference: https://github.com/hashicorp/terraform-plugin-go/issues/110
+		parentType := parentAttrType.TerraformType(ctx)
+		var childValue interface{}
+
+		if !parentValue.IsKnown() {
+			childValue = tftypes.UnknownValue
+		}
+
+		var parentValueDiags diag.Diagnostics
+		parentValue, parentValueDiags = createParentValue(ctx, parentPath, parentType, childValue)
+		diags.Append(parentValueDiags...)
+
+		if diags.HasError() {
+			return nil, diags
+		}
+	}
+
+	var childValueDiags diag.Diagnostics
+	childStep := path.Steps()[len(path.Steps())-1]
+	parentValue, childValueDiags = upsertChildValue(ctx, parentPath, parentValue, childStep, tfVal)
+	diags.Append(childValueDiags...)
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	if attrTypeWithValidate, ok := parentAttrType.(attr.TypeWithValidate); ok {
+		diags.Append(attrTypeWithValidate.Validate(ctx, parentValue, parentPath)...)
+
+		if diags.HasError() {
+			return nil, diags
+		}
+	}
+
+	return s.setAttributeTransformFunc(ctx, parentPath, parentValue, diags)
 }
 
 // RemoveResource removes the entire resource from state.

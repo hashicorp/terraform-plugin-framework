@@ -1,4 +1,4 @@
-# 0.4.0 (Unreleased)
+# 0.4.0 (September 24, 2021)
 
 BREAKING CHANGES:
 * `attr.Type` implementations must now have a `String()` method that returns a human-friendly name for the type. ([#120](https://github.com/hashicorp/terraform-plugin-framework/issues/120))

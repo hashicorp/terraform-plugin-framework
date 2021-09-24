@@ -821,81 +821,6 @@ func TestPlanSetAttribute(t *testing.T) {
 	}
 
 	testCases := map[string]testCase{
-		"add-Bool": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"other": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.BoolType,
-							Required: true,
-						},
-						"other": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
-			val:  false,
-			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"test":  tftypes.Bool,
-					"other": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"test":  tftypes.NewValue(tftypes.Bool, false),
-				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-			}),
-		},
-		"add-List": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"other": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"tags": {
-							Type: types.ListType{
-								ElemType: types.StringType,
-							},
-							Required: true,
-						},
-						"other": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("tags"),
-			val:  []string{"one", "two"},
-			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"tags":  tftypes.List{ElementType: tftypes.String},
-					"other": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"tags": tftypes.NewValue(tftypes.List{
-					ElementType: tftypes.String,
-				}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "one"),
-					tftypes.NewValue(tftypes.String, "two"),
-				}),
-				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-			}),
-		},
 		"add-List-Element-append": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -1291,50 +1216,6 @@ func TestPlanSetAttribute(t *testing.T) {
 				),
 			},
 		},
-		"add-Map": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"other": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type: types.MapType{
-								ElemType: types.StringType,
-							},
-							Required: true,
-						},
-						"other": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
-			val: map[string]string{
-				"newkey": "newvalue",
-			},
-			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"test": tftypes.Map{
-						AttributeType: tftypes.String,
-					},
-					"other": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"test": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.String,
-				}, map[string]tftypes.Value{
-					"newkey": tftypes.NewValue(tftypes.String, "newvalue"),
-				}),
-				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-			}),
-		},
 		"add-Map-Element-append": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -1430,133 +1311,6 @@ func TestPlanSetAttribute(t *testing.T) {
 					AttributeType: tftypes.String,
 				}, map[string]tftypes.Value{
 					"key": tftypes.NewValue(tftypes.String, "keyvalue"),
-				}),
-				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-			}),
-		},
-		"add-Number": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"other": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.NumberType,
-							Required: true,
-						},
-						"other": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
-			val:  1,
-			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"test":  tftypes.Number,
-					"other": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"test":  tftypes.NewValue(tftypes.Number, 1),
-				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-			}),
-		},
-		"add-Object": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"other": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"scratch_disk": {
-							Type: types.ObjectType{
-								AttrTypes: map[string]attr.Type{
-									"interface": types.StringType,
-								},
-							},
-							Optional: true,
-						},
-						"other": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("scratch_disk"),
-			val: struct {
-				Interface string `tfsdk:"interface"`
-			}{
-				Interface: "NVME",
-			},
-			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"scratch_disk": tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"interface": tftypes.String,
-						},
-					},
-					"other": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"scratch_disk": tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"interface": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"interface": tftypes.NewValue(tftypes.String, "NVME"),
-				}),
-				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-			}),
-		},
-		"add-Set": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"other": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"tags": {
-							Type: types.SetType{
-								ElemType: types.StringType,
-							},
-							Required: true,
-						},
-						"other": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("tags"),
-			val:  []string{"one", "two"},
-			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"tags":  tftypes.Set{ElementType: tftypes.String},
-					"other": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"tags": tftypes.NewValue(tftypes.Set{
-					ElementType: tftypes.String,
-				}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "one"),
-					tftypes.NewValue(tftypes.String, "two"),
 				}),
 				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 			}),
@@ -1773,40 +1527,6 @@ func TestPlanSetAttribute(t *testing.T) {
 						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
 					}),
 				}),
-				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-			}),
-		},
-		"add-String": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"other": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.StringType,
-							Required: true,
-						},
-						"other": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
-			val:  "newvalue",
-			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"test":  tftypes.String,
-					"other": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"test":  tftypes.NewValue(tftypes.String, "newvalue"),
 				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 			}),
 		},
@@ -2027,6 +1747,7 @@ func TestPlanSetAttribute(t *testing.T) {
 						AttributeType: tftypes.String,
 					}, map[string]tftypes.Value{
 						"originalkey": tftypes.NewValue(tftypes.String, "originalvalue"),
+						"otherkey":    tftypes.NewValue(tftypes.String, "othervalue"),
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
@@ -2160,6 +1881,7 @@ func TestPlanSetAttribute(t *testing.T) {
 						"scratch_disk": tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
 								"interface": tftypes.String,
+								"other":     tftypes.String,
 							},
 						},
 						"other": tftypes.String,
@@ -2168,9 +1890,11 @@ func TestPlanSetAttribute(t *testing.T) {
 					"scratch_disk": tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
 							"interface": tftypes.String,
+							"other":     tftypes.String,
 						},
 					}, map[string]tftypes.Value{
 						"interface": tftypes.NewValue(tftypes.String, "SCSI"),
+						"other":     tftypes.NewValue(tftypes.String, "originalvalue"),
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
@@ -2180,6 +1904,7 @@ func TestPlanSetAttribute(t *testing.T) {
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"interface": types.StringType,
+									"other":     types.StringType,
 								},
 							},
 							Optional: true,
@@ -2194,14 +1919,17 @@ func TestPlanSetAttribute(t *testing.T) {
 			path: tftypes.NewAttributePath().WithAttributeName("scratch_disk"),
 			val: struct {
 				Interface string `tfsdk:"interface"`
+				Other     string `tfsdk:"other"`
 			}{
 				Interface: "NVME",
+				Other:     "newvalue",
 			},
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"scratch_disk": tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
 							"interface": tftypes.String,
+							"other":     tftypes.String,
 						},
 					},
 					"other": tftypes.String,
@@ -2210,9 +1938,11 @@ func TestPlanSetAttribute(t *testing.T) {
 				"scratch_disk": tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"interface": tftypes.String,
+						"other":     tftypes.String,
 					},
 				}, map[string]tftypes.Value{
 					"interface": tftypes.NewValue(tftypes.String, "NVME"),
+					"other":     tftypes.NewValue(tftypes.String, "newvalue"),
 				}),
 				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 			}),
@@ -2452,6 +2182,60 @@ func TestPlanSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 			}),
 		},
+		"overwrite-Set-Element-duplicate": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"tags": tftypes.Set{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"tags": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "one"),
+						tftypes.NewValue(tftypes.String, "two"),
+						tftypes.NewValue(tftypes.String, "three"),
+					}),
+					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"tags": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyValue(tftypes.NewValue(tftypes.String, "three")),
+			val:  "three",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"tags": tftypes.Set{
+						ElementType: tftypes.String,
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"tags": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.String,
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "one"),
+					tftypes.NewValue(tftypes.String, "two"),
+					tftypes.NewValue(tftypes.String, "three"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
+			}),
+		},
 		"overwrite-String": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -2491,7 +2275,9 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-root": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Bool,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2505,7 +2291,9 @@ func TestPlanSetAttribute(t *testing.T) {
 			path: tftypes.NewAttributePath(),
 			val:  false,
 			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{},
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.Bool,
+				},
 			}, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
@@ -2518,7 +2306,10 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Bool": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.Bool,
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2548,7 +2339,12 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-List": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"tags": tftypes.List{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2585,7 +2381,12 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-List-AttrTypeWithValidateWarning-Element": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2629,7 +2430,17 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-List-Element": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"disks": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2699,7 +2510,17 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-List-Element-length-error": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"disks": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2733,7 +2554,17 @@ func TestPlanSetAttribute(t *testing.T) {
 				DeleteWithInstance: true,
 			},
 			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{},
+				AttributeTypes: map[string]tftypes.Type{
+					"disks": tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					},
+					"other": tftypes.String,
+				},
 			}, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
@@ -2820,7 +2651,12 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Map": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							AttributeType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2860,7 +2696,12 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Map-AttrTypeWithValidateWarning-Element": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							AttributeType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2903,7 +2744,12 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Map-Element": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							AttributeType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2941,7 +2787,12 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Map-Element-AttrTypeWithValidateWarning": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							AttributeType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -2982,7 +2833,10 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Number": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.Number,
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -3012,7 +2866,14 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Object": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"scratch_disk": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"interface": tftypes.String,
+							},
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -3060,7 +2921,10 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Set": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"tags":  tftypes.Set{ElementType: tftypes.String},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -3097,7 +2961,17 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Set-Element": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"disks": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -3175,7 +3049,12 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Set-AttrTypeWithValidateWarning-Element": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Set{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -3219,7 +3098,17 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-Set-Element-AttrTypeWithValidateWarning": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"disks": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
@@ -3308,7 +3197,10 @@ func TestPlanSetAttribute(t *testing.T) {
 		"write-String": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{},
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.String,
+						"other": tftypes.String,
+					},
 				}, nil),
 				Schema: Schema{
 					Attributes: map[string]Attribute{

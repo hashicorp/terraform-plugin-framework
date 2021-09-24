@@ -51,20 +51,20 @@ func TestCreateParentValue(t *testing.T) {
 		},
 		"Map-null": {
 			parentType: tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			},
 			childValue: nil,
 			expected: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{}),
 		},
 		"Map-unknown": {
 			parentType: tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			},
 			childValue: tftypes.UnknownValue,
 			expected: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{}),
 		},
 		"Object-null": {
@@ -315,64 +315,64 @@ func TestUpsertChildValue(t *testing.T) {
 		},
 		"Map-empty": {
 			parentType: tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			},
 			parentValue: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{}),
 			childStep:  tftypes.ElementKeyString("key"),
 			childValue: tftypes.NewValue(tftypes.String, "value"),
 			expected: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{
 				"key": tftypes.NewValue(tftypes.String, "value"),
 			}),
 		},
 		"Map-null": {
 			parentType: tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			},
 			parentValue: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, nil),
 			childStep:  tftypes.ElementKeyString("key"),
 			childValue: tftypes.NewValue(tftypes.String, "value"),
 			expected: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{
 				"key": tftypes.NewValue(tftypes.String, "value"),
 			}),
 		},
 		"Map-value-overwrite": {
 			parentType: tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			},
 			parentValue: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{
 				"key": tftypes.NewValue(tftypes.String, "oldvalue"),
 			}),
 			childStep:  tftypes.ElementKeyString("key"),
 			childValue: tftypes.NewValue(tftypes.String, "newvalue"),
 			expected: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{
 				"key": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
 		},
 		"Map-value-write": {
 			parentType: tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			},
 			parentValue: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{
 				"keyone": tftypes.NewValue(tftypes.String, "valueone"),
 			}),
 			childStep:  tftypes.ElementKeyString("keytwo"),
 			childValue: tftypes.NewValue(tftypes.String, "valuetwo"),
 			expected: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{
 				"keyone": tftypes.NewValue(tftypes.String, "valueone"),
 				"keytwo": tftypes.NewValue(tftypes.String, "valuetwo"),

@@ -23,7 +23,7 @@ func TestMapTypeTerraformType(t *testing.T) {
 				ElemType: StringType,
 			},
 			expected: tftypes.Map{
-				AttributeType: tftypes.String,
+				ElementType: tftypes.String,
 			},
 		},
 		"map-of-map-of-strings": {
@@ -33,8 +33,8 @@ func TestMapTypeTerraformType(t *testing.T) {
 				},
 			},
 			expected: tftypes.Map{
-				AttributeType: tftypes.Map{
-					AttributeType: tftypes.String,
+				ElementType: tftypes.Map{
+					ElementType: tftypes.String,
 				},
 			},
 		},
@@ -47,9 +47,9 @@ func TestMapTypeTerraformType(t *testing.T) {
 				},
 			},
 			expected: tftypes.Map{
-				AttributeType: tftypes.Map{
-					AttributeType: tftypes.Map{
-						AttributeType: tftypes.String,
+				ElementType: tftypes.Map{
+					ElementType: tftypes.Map{
+						ElementType: tftypes.String,
 					},
 				},
 			},
@@ -59,7 +59,7 @@ func TestMapTypeTerraformType(t *testing.T) {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			got := test.input.TerraformType(context.Background())
-			if !got.Is(test.expected) {
+			if !got.Equal(test.expected) {
 				t.Errorf("Expected %s, got %s", test.expected, got)
 			}
 		})
@@ -81,7 +81,7 @@ func TestMapTypeValueFromTerraform(t *testing.T) {
 				ElemType: NumberType,
 			},
 			input: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.Number,
+				ElementType: tftypes.Number,
 			}, map[string]tftypes.Value{
 				"one":   tftypes.NewValue(tftypes.Number, 1),
 				"two":   tftypes.NewValue(tftypes.Number, 2),
@@ -108,7 +108,7 @@ func TestMapTypeValueFromTerraform(t *testing.T) {
 				ElemType: NumberType,
 			},
 			input: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.Number,
+				ElementType: tftypes.Number,
 			}, tftypes.UnknownValue),
 			expected: Map{
 				ElemType: NumberType,
@@ -120,7 +120,7 @@ func TestMapTypeValueFromTerraform(t *testing.T) {
 				ElemType: NumberType,
 			},
 			input: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.Number,
+				ElementType: tftypes.Number,
 			}, nil),
 			expected: Map{
 				ElemType: NumberType,

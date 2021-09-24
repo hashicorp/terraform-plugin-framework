@@ -352,7 +352,7 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 			{
 				Name: "map",
 				Type: tftypes.Map{
-					AttributeType: tftypes.Number,
+					ElementType: tftypes.Number,
 				},
 				Optional: true,
 			},
@@ -516,7 +516,7 @@ var testServeProviderProviderType = tftypes.Object{
 			"bar": tftypes.Bool,
 			"baz": tftypes.Number,
 		}}},
-		"map": tftypes.Map{AttributeType: tftypes.Number},
+		"map": tftypes.Map{ElementType: tftypes.Number},
 		"object": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo":  tftypes.String,
 			"bar":  tftypes.Bool,
@@ -539,7 +539,7 @@ var testServeProviderProviderType = tftypes.Object{
 			"foo": tftypes.String,
 			"bar": tftypes.Number,
 		}}},
-		"map-nested-attributes": tftypes.Map{AttributeType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+		"map-nested-attributes": tftypes.Map{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo": tftypes.String,
 			"bar": tftypes.Number,
 		}}},

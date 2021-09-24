@@ -35,7 +35,7 @@ func (m MapType) ElementType() attr.Type {
 // AttributeType to something Terraform can understand.
 func (m MapType) TerraformType(ctx context.Context) tftypes.Type {
 	return tftypes.Map{
-		AttributeType: m.ElemType.TerraformType(ctx),
+		ElementType: m.ElemType.TerraformType(ctx),
 	}
 }
 
@@ -49,7 +49,7 @@ func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr
 	if !in.Type().Is(tftypes.Map{}) {
 		return nil, fmt.Errorf("can't use %s as value of Map, can only use tftypes.Map values", in.String())
 	}
-	if !in.Type().Is(tftypes.Map{AttributeType: m.ElemType.TerraformType(ctx)}) {
+	if !in.Type().Equal(tftypes.Map{ElementType: m.ElemType.TerraformType(ctx)}) {
 		return nil, fmt.Errorf("can't use %s as value of Map with ElementType %T, can only use %s values", in.String(), m.ElemType, m.ElemType.TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
@@ -158,7 +158,7 @@ func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled 
 		values[key] = tftypes.NewValue(m.ElemType.TerraformType(ctx), val)
 	}
 	return reflect.Into(ctx, MapType{ElemType: m.ElemType}, tftypes.NewValue(tftypes.Map{
-		AttributeType: m.ElemType.TerraformType(ctx),
+		ElementType: m.ElemType.TerraformType(ctx),
 	}, values), target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,

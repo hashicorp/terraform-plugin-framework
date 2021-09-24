@@ -62,7 +62,7 @@ func TestSetTypeTerraformType(t *testing.T) {
 			t.Parallel()
 
 			got := test.input.TerraformType(context.Background())
-			if !got.Is(test.expected) {
+			if !got.Equal(test.expected) {
 				t.Errorf("Expected %s, got %s", test.expected, got)
 			}
 		})

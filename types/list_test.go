@@ -58,7 +58,7 @@ func TestListTypeTerraformType(t *testing.T) {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			got := test.input.TerraformType(context.Background())
-			if !got.Is(test.expected) {
+			if !got.Equal(test.expected) {
 				t.Errorf("Expected %s, got %s", test.expected, got)
 			}
 		})

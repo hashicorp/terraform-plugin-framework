@@ -1554,12 +1554,12 @@ func TestStatePathExists(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					}, map[string]tftypes.Value{
 						"key": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
@@ -1583,12 +1583,12 @@ func TestStatePathExists(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					}, map[string]tftypes.Value{
 						"key": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
@@ -2621,13 +2621,13 @@ func TestStateSetAttribute(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 						"other": tftypes.String,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					}, map[string]tftypes.Value{
 						"key1": tftypes.NewValue(tftypes.String, "key1value"),
 					}),
@@ -2653,13 +2653,13 @@ func TestStateSetAttribute(t *testing.T) {
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"test": tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					},
 					"other": tftypes.String,
 				},
 			}, map[string]tftypes.Value{
 				"test": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.String,
+					ElementType: tftypes.String,
 				}, map[string]tftypes.Value{
 					"key1": tftypes.NewValue(tftypes.String, "key1value"),
 					"key2": tftypes.NewValue(tftypes.String, "key2value"),
@@ -2672,13 +2672,13 @@ func TestStateSetAttribute(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 						"other": tftypes.String,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					}, nil),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
@@ -2702,13 +2702,13 @@ func TestStateSetAttribute(t *testing.T) {
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"test": tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					},
 					"other": tftypes.String,
 				},
 			}, map[string]tftypes.Value{
 				"test": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.String,
+					ElementType: tftypes.String,
 				}, map[string]tftypes.Value{
 					"key": tftypes.NewValue(tftypes.String, "keyvalue"),
 				}),
@@ -3138,13 +3138,13 @@ func TestStateSetAttribute(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 						"other": tftypes.String,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					}, map[string]tftypes.Value{
 						"originalkey": tftypes.NewValue(tftypes.String, "originalvalue"),
 						"otherkey":    tftypes.NewValue(tftypes.String, "othervalue"),
@@ -3173,13 +3173,13 @@ func TestStateSetAttribute(t *testing.T) {
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"test": tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					},
 					"other": tftypes.String,
 				},
 			}, map[string]tftypes.Value{
 				"test": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.String,
+					ElementType: tftypes.String,
 				}, map[string]tftypes.Value{
 					"newkey": tftypes.NewValue(tftypes.String, "newvalue"),
 				}),
@@ -3191,13 +3191,13 @@ func TestStateSetAttribute(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 						"other": tftypes.String,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					}, map[string]tftypes.Value{
 						"key":   tftypes.NewValue(tftypes.String, "originalvalue"),
 						"other": tftypes.NewValue(tftypes.String, "should be untouched"),
@@ -3224,13 +3224,13 @@ func TestStateSetAttribute(t *testing.T) {
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"test": tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					},
 					"other": tftypes.String,
 				},
 			}, map[string]tftypes.Value{
 				"test": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.String,
+					ElementType: tftypes.String,
 				}, map[string]tftypes.Value{
 					"key":   tftypes.NewValue(tftypes.String, "newvalue"),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
@@ -4053,7 +4053,7 @@ func TestStateSetAttribute(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 						"other": tftypes.String,
 					},
@@ -4080,13 +4080,13 @@ func TestStateSetAttribute(t *testing.T) {
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"test": tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					},
 					"other": tftypes.String,
 				},
 			}, map[string]tftypes.Value{
 				"test": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.String,
+					ElementType: tftypes.String,
 				}, map[string]tftypes.Value{
 					"newkey": tftypes.NewValue(tftypes.String, "newvalue"),
 				}),
@@ -4098,7 +4098,7 @@ func TestStateSetAttribute(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 						"other": tftypes.String,
 					},
@@ -4125,13 +4125,13 @@ func TestStateSetAttribute(t *testing.T) {
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"test": tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					},
 					"other": tftypes.String,
 				},
 			}, map[string]tftypes.Value{
 				"test": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.String,
+					ElementType: tftypes.String,
 				}, map[string]tftypes.Value{
 					"key": tftypes.NewValue(tftypes.String, "keyvalue"),
 				}),
@@ -4146,7 +4146,7 @@ func TestStateSetAttribute(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 						"other": tftypes.String,
 					},
@@ -4171,13 +4171,13 @@ func TestStateSetAttribute(t *testing.T) {
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"test": tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					},
 					"other": tftypes.String,
 				},
 			}, map[string]tftypes.Value{
 				"test": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.String,
+					ElementType: tftypes.String,
 				}, map[string]tftypes.Value{
 					"key": tftypes.NewValue(tftypes.String, "keyvalue"),
 				}),
@@ -4189,7 +4189,7 @@ func TestStateSetAttribute(t *testing.T) {
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test": tftypes.Map{
-							AttributeType: tftypes.String,
+							ElementType: tftypes.String,
 						},
 						"other": tftypes.String,
 					},
@@ -4214,13 +4214,13 @@ func TestStateSetAttribute(t *testing.T) {
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"test": tftypes.Map{
-						AttributeType: tftypes.String,
+						ElementType: tftypes.String,
 					},
 					"other": tftypes.String,
 				},
 			}, map[string]tftypes.Value{
 				"test": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.String,
+					ElementType: tftypes.String,
 				}, map[string]tftypes.Value{
 					"key": tftypes.NewValue(tftypes.String, "keyvalue"),
 				}),

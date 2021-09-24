@@ -489,12 +489,12 @@ func TestServerValidateProviderConfig(t *testing.T) {
 						"bar": tftypes.NewValue(tftypes.Number, 14554216),
 					}),
 				}),
-				"map": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Number}, map[string]tftypes.Value{
+				"map": tftypes.NewValue(tftypes.Map{ElementType: tftypes.Number}, map[string]tftypes.Value{
 					"foo": tftypes.NewValue(tftypes.Number, 123),
 					"bar": tftypes.NewValue(tftypes.Number, 456),
 					"baz": tftypes.NewValue(tftypes.Number, 789),
 				}),
-				"map-nested-attributes": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+				"map-nested-attributes": tftypes.NewValue(tftypes.Map{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"bar": tftypes.Number,
 					"foo": tftypes.String,
 				}}}, map[string]tftypes.Value{
@@ -823,12 +823,12 @@ func TestServerConfigureProvider(t *testing.T) {
 						"baz": tftypes.NewValue(tftypes.Number, 8675309),
 					}),
 				}),
-				"map": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Number}, map[string]tftypes.Value{
+				"map": tftypes.NewValue(tftypes.Map{ElementType: tftypes.Number}, map[string]tftypes.Value{
 					"foo": tftypes.NewValue(tftypes.Number, 123),
 					"bar": tftypes.NewValue(tftypes.Number, 456),
 					"baz": tftypes.NewValue(tftypes.Number, 789),
 				}),
-				"map-nested-attributes": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+				"map-nested-attributes": tftypes.NewValue(tftypes.Map{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"bar": tftypes.Number,
 					"foo": tftypes.String,
 				}}}, map[string]tftypes.Value{
@@ -1007,12 +1007,12 @@ func TestServerConfigureProvider(t *testing.T) {
 					"foo": tftypes.String,
 					"bar": tftypes.Number,
 				}}}, tftypes.UnknownValue),
-				"map": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Number}, map[string]tftypes.Value{
+				"map": tftypes.NewValue(tftypes.Map{ElementType: tftypes.Number}, map[string]tftypes.Value{
 					"foo": tftypes.NewValue(tftypes.Number, 123),
 					"bar": tftypes.NewValue(tftypes.Number, 456),
 					"baz": tftypes.NewValue(tftypes.Number, 789),
 				}),
-				"map-nested-attributes": tftypes.NewValue(tftypes.Map{AttributeType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+				"map-nested-attributes": tftypes.NewValue(tftypes.Map{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"bar": tftypes.Number,
 					"foo": tftypes.String,
 				}}}, map[string]tftypes.Value{

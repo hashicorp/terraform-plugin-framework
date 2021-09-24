@@ -24,7 +24,7 @@ func TestReflectMap_string(t *testing.T) {
 	result, diags := refl.Map(context.Background(), types.MapType{
 		ElemType: types.StringType,
 	}, tftypes.NewValue(tftypes.Map{
-		AttributeType: tftypes.String,
+		ElementType: tftypes.String,
 	}, map[string]tftypes.Value{
 		"a": tftypes.NewValue(tftypes.String, "red"),
 		"b": tftypes.NewValue(tftypes.String, "blue"),

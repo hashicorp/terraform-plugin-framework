@@ -150,7 +150,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "map",
-				Type:     tftypes.Map{AttributeType: tftypes.String},
+				Type:     tftypes.Map{ElementType: tftypes.String},
 				Optional: true,
 			},
 		},
@@ -2534,7 +2534,7 @@ func TestAttributeValidate(t *testing.T) {
 						tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
 								"test": tftypes.Map{
-									AttributeType: tftypes.Object{
+									ElementType: tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
 											"nested_attr": tftypes.String,
 										},
@@ -2545,7 +2545,7 @@ func TestAttributeValidate(t *testing.T) {
 						map[string]tftypes.Value{
 							"test": tftypes.NewValue(
 								tftypes.Map{
-									AttributeType: tftypes.Object{
+									ElementType: tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
 											"nested_attr": tftypes.String,
 										},
@@ -2591,7 +2591,7 @@ func TestAttributeValidate(t *testing.T) {
 						tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
 								"test": tftypes.Map{
-									AttributeType: tftypes.Object{
+									ElementType: tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
 											"nested_attr": tftypes.String,
 										},
@@ -2602,7 +2602,7 @@ func TestAttributeValidate(t *testing.T) {
 						map[string]tftypes.Value{
 							"test": tftypes.NewValue(
 								tftypes.Map{
-									AttributeType: tftypes.Object{
+									ElementType: tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
 											"nested_attr": tftypes.String,
 										},

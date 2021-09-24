@@ -307,7 +307,7 @@ func TestNewStruct_complex(t *testing.T) {
 				},
 			},
 			"map": tftypes.Map{
-				AttributeType: tftypes.List{
+				ElementType: tftypes.List{
 					ElementType: tftypes.String,
 				},
 			},
@@ -406,7 +406,7 @@ func TestNewStruct_complex(t *testing.T) {
 			}),
 		}),
 		"map": tftypes.NewValue(tftypes.Map{
-			AttributeType: tftypes.List{
+			ElementType: tftypes.List{
 				ElementType: tftypes.String,
 			},
 		}, map[string]tftypes.Value{

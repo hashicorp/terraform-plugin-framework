@@ -176,7 +176,7 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 						},
 						{
 							Name:     "map",
-							Type:     tftypes.Map{AttributeType: tftypes.Number},
+							Type:     tftypes.Map{ElementType: tftypes.Number},
 							Computed: true,
 						},
 						{

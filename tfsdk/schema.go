@@ -268,7 +268,7 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 				}
 
 				for idx := range l.Elems {
-					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyInt(int64(idx)), req, resp)
+					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath.WithElementKeyInt(idx), req, resp)
 				}
 			case NestingModeSet:
 				s, ok := attrPlan.(types.Set)

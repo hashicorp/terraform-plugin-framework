@@ -296,7 +296,7 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 			for idx := range l.Elems {
 				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 					nestedAttrReq := ValidateAttributeRequest{
-						AttributePath: req.AttributePath.WithElementKeyInt(int64(idx)).WithAttributeName(nestedName),
+						AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(nestedName),
 						Config:        req.Config,
 					}
 					nestedAttrResp := &ValidateAttributeResponse{

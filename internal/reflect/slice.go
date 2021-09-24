@@ -65,7 +65,7 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 		targetValue := reflect.Zero(elemType)
 
 		// update our path so we can have nice errors
-		valPath := path.WithElementKeyInt(int64(pos))
+		valPath := path.WithElementKeyInt(pos)
 
 		if typ.TerraformType(ctx).Is(tftypes.Set{}) {
 			valPath = path.WithElementKeyValue(value)
@@ -144,7 +144,7 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		// the index until the value is retrieved, this will pass the
 		// technically incorrect index-based path at first for framework
 		// debugging purposes, then correct the path afterwards.
-		valPath := path.WithElementKeyInt(int64(i))
+		valPath := path.WithElementKeyInt(i)
 
 		val, valDiags := FromValue(ctx, elemType, val.Index(i).Interface(), valPath)
 		diags.Append(valDiags...)

@@ -13,7 +13,7 @@ import (
 func int64Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if !in.Type().Is(tftypes.Number) {
+	if !in.Type().Equal(tftypes.Number) {
 		diags.AddAttributeError(
 			path,
 			"Int64 Type Validation Error",

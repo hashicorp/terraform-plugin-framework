@@ -24,7 +24,7 @@ func TestPrimitiveTerraformType(t *testing.T) {
 			t.Parallel()
 
 			got := prim.TerraformType(context.Background())
-			if !got.Is(expected) {
+			if !got.Equal(expected) {
 				t.Errorf("Expected %s, got %s", expected, got)
 			}
 		})

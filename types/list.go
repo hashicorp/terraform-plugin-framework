@@ -48,7 +48,7 @@ func (l ListType) TerraformType(ctx context.Context) tftypes.Type {
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
 func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	if !in.Type().Is(l.TerraformType(ctx)) {
+	if !in.Type().Equal(l.TerraformType(ctx)) {
 		return nil, fmt.Errorf("can't use %s as value of List with ElementType %T, can only use %s values", in.String(), l.ElemType, l.ElemType.TerraformType(ctx).String())
 	}
 	list := List{

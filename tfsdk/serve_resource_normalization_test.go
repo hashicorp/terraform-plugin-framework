@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -22,7 +21,7 @@ func (dt testServeResourceTypeNormalization) GetSchema(_ context.Context) (Schem
 				Computed: true,
 			},
 			"name": {
-				Type:     caseInsensitiveStringType{},
+				Type:     testServeResourceTypeNormalizationStringType,
 				Required: true,
 			},
 		},
@@ -60,6 +59,13 @@ var testServeResourceTypeNormalizationSchema = &tfprotov6.Schema{
 	},
 }
 
+var testServeResourceTypeNormalizationStringType = types.SpecializedStringType(types.SpecializedStringOpts{
+	TypeString: "tfsdk.testServeResourceTypeNormalizationStringType",
+	NormalizeFunc: func(given string) string {
+		return strings.ToLower(given)
+	},
+})
+
 var testServeResourceTypeNormalizationType = tftypes.Object{
 	AttributeTypes: map[string]tftypes.Type{
 		"id":   tftypes.String,
@@ -96,63 +102,4 @@ func (r testServeResourceNormalization) ImportState(ctx context.Context, req Imp
 func (r testServeResourceNormalization) ValidateConfig(ctx context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
 	r.provider.validateResourceConfigCalledResourceType = "test_normalization"
 	r.provider.validateResourceConfigImpl(ctx, req, resp)
-}
-
-// caseInsensitiveString is an attr.Type representing a string where differences
-// in case (as defined by Unicode case-folding) are considered to be
-// normalization rather than drift.
-type caseInsensitiveStringType struct{}
-
-var _ attr.Type = caseInsensitiveStringType{}
-
-func (t caseInsensitiveStringType) TerraformType(ctx context.Context) tftypes.Type {
-	return types.StringType.TerraformType(ctx)
-}
-
-func (t caseInsensitiveStringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	if !in.IsKnown() {
-		return caseInsensitiveString{types.String{Unknown: true}}, nil
-	}
-	if in.IsNull() {
-		return caseInsensitiveString{types.String{Null: true}}, nil
-	}
-	var s string
-	err := in.As(&s)
-	if err != nil {
-		return nil, err
-	}
-	return caseInsensitiveString{types.String{Value: s}}, nil
-}
-
-func (t caseInsensitiveStringType) Equal(other attr.Type) bool {
-	_, ok := other.(caseInsensitiveStringType)
-	return ok
-}
-
-func (t caseInsensitiveStringType) String() string {
-	return "tfsdk.caseInsensitiveStringType"
-}
-
-func (t caseInsensitiveStringType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	return types.StringType.ApplyTerraform5AttributePathStep(step)
-}
-
-type caseInsensitiveString struct {
-	types.String
-}
-
-var _ attr.Value = caseInsensitiveString{}
-
-func (s caseInsensitiveString) Equal(other attr.Value) bool {
-	o, ok := other.(caseInsensitiveString)
-	if !ok {
-		return false
-	}
-	if s.Unknown != o.Unknown {
-		return false
-	}
-	if s.Null != o.Null {
-		return false
-	}
-	return strings.EqualFold(s.Value, o.Value)
 }

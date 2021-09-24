@@ -13,21 +13,9 @@ import (
 // without modification. A null Object or Tuple is converted to known with null
 // children. An unknown Object or Tuple is converted to known with unknown
 // children. List, Map, and Set are created with empty elements.
-//
-// The parentType parameter ensures that the value will match the current
-// schema, not what is currently stored in the parentValue.
-func createParentValue(ctx context.Context, parentPath *tftypes.AttributePath, parentType tftypes.Type, parentValue tftypes.Value) (tftypes.Value, diag.Diagnostics) {
+func createParentValue(ctx context.Context, parentPath *tftypes.AttributePath, parentType tftypes.Type, childValue interface{}) (tftypes.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
-
-	if !parentValue.IsNull() && parentValue.IsKnown() {
-		return parentValue, diags
-	}
-
-	var childValue interface{}
-
-	if !parentValue.IsKnown() {
-		childValue = tftypes.UnknownValue
-	}
+	var parentValue tftypes.Value
 
 	switch parentType := parentType.(type) {
 	case tftypes.List:
@@ -57,7 +45,7 @@ func createParentValue(ctx context.Context, parentPath *tftypes.AttributePath, p
 			parentPath,
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-				fmt.Sprintf("Unknown parent type %T to create value.", parentValue.Type()),
+				fmt.Sprintf("Unknown parent type %s to create value.", parentType),
 		)
 		return parentValue, diags
 	}
@@ -70,10 +58,7 @@ func createParentValue(ctx context.Context, parentPath *tftypes.AttributePath, p
 // value will be added.
 //
 // Lists can only have the next element added according to the current length.
-//
-// The parentType parameter ensures that the value will match the current
-// schema, not what is currently stored in the parentValue.
-func upsertChildValue(ctx context.Context, parentPath *tftypes.AttributePath, parentType tftypes.Type, parentValue tftypes.Value, childStep tftypes.AttributePathStep, childValue tftypes.Value) (tftypes.Value, diag.Diagnostics) {
+func upsertChildValue(ctx context.Context, parentPath *tftypes.AttributePath, parentValue tftypes.Value, childStep tftypes.AttributePathStep, childValue tftypes.Value) (tftypes.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// TODO: Add Tuple support
@@ -81,12 +66,12 @@ func upsertChildValue(ctx context.Context, parentPath *tftypes.AttributePath, pa
 	switch childStep := childStep.(type) {
 	case tftypes.AttributeName:
 		// Set in Object
-		if !parentType.Is(tftypes.Object{}) {
+		if !parentValue.Type().Is(tftypes.Object{}) {
 			diags.AddAttributeError(
 				parentPath,
 				"Value Conversion Error",
 				"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Cannot add attribute into parent type: %s", parentType),
+					fmt.Sprintf("Cannot add attribute into parent type: %s", parentValue.Type()),
 			)
 			return parentValue, diags
 		}
@@ -105,15 +90,15 @@ func upsertChildValue(ctx context.Context, parentPath *tftypes.AttributePath, pa
 		}
 
 		parentAttrs[string(childStep)] = childValue
-		parentValue = tftypes.NewValue(parentType, parentAttrs)
+		parentValue = tftypes.NewValue(parentValue.Type(), parentAttrs)
 	case tftypes.ElementKeyInt:
 		// Upsert List element, except past length + 1
-		if !parentType.Is(tftypes.List{}) {
+		if !parentValue.Type().Is(tftypes.List{}) {
 			diags.AddAttributeError(
 				parentPath,
 				"Value Conversion Error",
 				"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Cannot add list element into parent type: %s", parentType),
+					fmt.Sprintf("Cannot add list element into parent type: %s", parentValue.Type()),
 			)
 			return parentValue, diags
 		}
@@ -147,15 +132,15 @@ func upsertChildValue(ctx context.Context, parentPath *tftypes.AttributePath, pa
 			parentElems[int(childStep)] = childValue
 		}
 
-		parentValue = tftypes.NewValue(parentType, parentElems)
+		parentValue = tftypes.NewValue(parentValue.Type(), parentElems)
 	case tftypes.ElementKeyString:
 		// Upsert Map element
-		if !parentType.Is(tftypes.Map{}) {
+		if !parentValue.Type().Is(tftypes.Map{}) {
 			diags.AddAttributeError(
 				parentPath,
 				"Value Conversion Error",
 				"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Cannot add map value into parent type: %s", parentType),
+					fmt.Sprintf("Cannot add map value into parent type: %s", parentValue.Type()),
 			)
 			return parentValue, diags
 		}
@@ -174,15 +159,15 @@ func upsertChildValue(ctx context.Context, parentPath *tftypes.AttributePath, pa
 		}
 
 		parentElems[string(childStep)] = childValue
-		parentValue = tftypes.NewValue(parentType, parentElems)
+		parentValue = tftypes.NewValue(parentValue.Type(), parentElems)
 	case tftypes.ElementKeyValue:
 		// Upsert Set element
-		if !parentType.Is(tftypes.Set{}) {
+		if !parentValue.Type().Is(tftypes.Set{}) {
 			diags.AddAttributeError(
 				parentPath,
 				"Value Conversion Error",
 				"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Cannot add set element into parent type: %s", parentType),
+					fmt.Sprintf("Cannot add set element into parent type: %s", parentValue.Type()),
 			)
 			return parentValue, diags
 		}
@@ -214,7 +199,7 @@ func upsertChildValue(ctx context.Context, parentPath *tftypes.AttributePath, pa
 			parentElems = append(parentElems, childValue)
 		}
 
-		parentValue = tftypes.NewValue(parentType, parentElems)
+		parentValue = tftypes.NewValue(parentValue.Type(), parentElems)
 	}
 
 	return parentValue, diags

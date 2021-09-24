@@ -14,20 +14,20 @@ func TestCreateParentValue(t *testing.T) {
 
 	testCases := map[string]struct {
 		parentType    tftypes.Type
-		parentValue   tftypes.Value
+		childValue    interface{}
 		expected      tftypes.Value
 		expectedDiags diag.Diagnostics
 	}{
 		"Bool-null": {
-			parentType:  tftypes.Bool,
-			parentValue: tftypes.NewValue(tftypes.Bool, nil),
-			expected:    tftypes.NewValue(tftypes.Bool, nil),
+			parentType: tftypes.Bool,
+			childValue: nil,
+			expected:   tftypes.Value{},
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					tftypes.NewAttributePath().WithAttributeName("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Unknown parent type tftypes.primitive to create value.",
+						"Unknown parent type tftypes.Bool to create value.",
 				),
 			},
 		},
@@ -35,9 +35,7 @@ func TestCreateParentValue(t *testing.T) {
 			parentType: tftypes.List{
 				ElementType: tftypes.String,
 			},
-			parentValue: tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, nil),
+			childValue: nil,
 			expected: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, []tftypes.Value{}),
@@ -46,37 +44,16 @@ func TestCreateParentValue(t *testing.T) {
 			parentType: tftypes.List{
 				ElementType: tftypes.String,
 			},
-			parentValue: tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, tftypes.UnknownValue),
+			childValue: tftypes.UnknownValue,
 			expected: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, []tftypes.Value{}),
-		},
-		"List-value": {
-			parentType: tftypes.List{
-				ElementType: tftypes.String,
-			},
-			parentValue: tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "one"),
-				tftypes.NewValue(tftypes.String, "two"),
-			}),
-			expected: tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "one"),
-				tftypes.NewValue(tftypes.String, "two"),
-			}),
 		},
 		"Map-null": {
 			parentType: tftypes.Map{
 				AttributeType: tftypes.String,
 			},
-			parentValue: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
-			}, nil),
+			childValue: nil,
 			expected: tftypes.NewValue(tftypes.Map{
 				AttributeType: tftypes.String,
 			}, map[string]tftypes.Value{}),
@@ -85,29 +62,10 @@ func TestCreateParentValue(t *testing.T) {
 			parentType: tftypes.Map{
 				AttributeType: tftypes.String,
 			},
-			parentValue: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
-			}, tftypes.UnknownValue),
+			childValue: tftypes.UnknownValue,
 			expected: tftypes.NewValue(tftypes.Map{
 				AttributeType: tftypes.String,
 			}, map[string]tftypes.Value{}),
-		},
-		"Map-value": {
-			parentType: tftypes.Map{
-				AttributeType: tftypes.String,
-			},
-			parentValue: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
-			}, map[string]tftypes.Value{
-				"keyone": tftypes.NewValue(tftypes.String, "valueone"),
-				"keytwo": tftypes.NewValue(tftypes.String, "valuetwo"),
-			}),
-			expected: tftypes.NewValue(tftypes.Map{
-				AttributeType: tftypes.String,
-			}, map[string]tftypes.Value{
-				"keyone": tftypes.NewValue(tftypes.String, "valueone"),
-				"keytwo": tftypes.NewValue(tftypes.String, "valuetwo"),
-			}),
 		},
 		"Object-null": {
 			parentType: tftypes.Object{
@@ -116,12 +74,7 @@ func TestCreateParentValue(t *testing.T) {
 					"attrtwo": tftypes.String,
 				},
 			},
-			parentValue: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"attrone": tftypes.String,
-					"attrtwo": tftypes.String,
-				},
-			}, nil),
+			childValue: nil,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"attrone": tftypes.String,
@@ -139,12 +92,7 @@ func TestCreateParentValue(t *testing.T) {
 					"attrtwo": tftypes.String,
 				},
 			},
-			parentValue: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"attrone": tftypes.String,
-					"attrtwo": tftypes.String,
-				},
-			}, tftypes.UnknownValue),
+			childValue: tftypes.UnknownValue,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"attrone": tftypes.String,
@@ -155,39 +103,11 @@ func TestCreateParentValue(t *testing.T) {
 				"attrtwo": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
 		},
-		"Object-value": {
-			parentType: tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"attrone": tftypes.String,
-					"attrtwo": tftypes.String,
-				},
-			},
-			parentValue: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"attrone": tftypes.String,
-					"attrtwo": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"attrone": tftypes.NewValue(tftypes.String, "one"),
-				"attrtwo": tftypes.NewValue(tftypes.String, "two"),
-			}),
-			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"attrone": tftypes.String,
-					"attrtwo": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"attrone": tftypes.NewValue(tftypes.String, "one"),
-				"attrtwo": tftypes.NewValue(tftypes.String, "two"),
-			}),
-		},
 		"Set-null": {
 			parentType: tftypes.Set{
 				ElementType: tftypes.String,
 			},
-			parentValue: tftypes.NewValue(tftypes.Set{
-				ElementType: tftypes.String,
-			}, nil),
+			childValue: nil,
 			expected: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
 			}, []tftypes.Value{}),
@@ -196,37 +116,16 @@ func TestCreateParentValue(t *testing.T) {
 			parentType: tftypes.Set{
 				ElementType: tftypes.String,
 			},
-			parentValue: tftypes.NewValue(tftypes.Set{
-				ElementType: tftypes.String,
-			}, tftypes.UnknownValue),
+			childValue: tftypes.UnknownValue,
 			expected: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
 			}, []tftypes.Value{}),
-		},
-		"Set-value": {
-			parentType: tftypes.Set{
-				ElementType: tftypes.String,
-			},
-			parentValue: tftypes.NewValue(tftypes.Set{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "one"),
-				tftypes.NewValue(tftypes.String, "two"),
-			}),
-			expected: tftypes.NewValue(tftypes.Set{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "one"),
-				tftypes.NewValue(tftypes.String, "two"),
-			}),
 		},
 		"Tuple-null": {
 			parentType: tftypes.Tuple{
 				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
 			},
-			parentValue: tftypes.NewValue(tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
-			}, nil),
+			childValue: nil,
 			expected: tftypes.NewValue(tftypes.Tuple{
 				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
 			}, []tftypes.Value{
@@ -238,31 +137,12 @@ func TestCreateParentValue(t *testing.T) {
 			parentType: tftypes.Tuple{
 				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
 			},
-			parentValue: tftypes.NewValue(tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
-			}, tftypes.UnknownValue),
+			childValue: tftypes.UnknownValue,
 			expected: tftypes.NewValue(tftypes.Tuple{
 				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-			}),
-		},
-		"Tuple-value": {
-			parentType: tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
-			},
-			parentValue: tftypes.NewValue(tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "one"),
-				tftypes.NewValue(tftypes.String, "two"),
-			}),
-			expected: tftypes.NewValue(tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "one"),
-				tftypes.NewValue(tftypes.String, "two"),
 			}),
 		},
 	}
@@ -276,7 +156,7 @@ func TestCreateParentValue(t *testing.T) {
 				context.Background(),
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				tc.parentType,
-				tc.parentValue,
+				tc.childValue,
 			)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
@@ -614,7 +494,6 @@ func TestUpsertChildValue(t *testing.T) {
 			got, diags := upsertChildValue(
 				context.Background(),
 				tftypes.NewAttributePath().WithAttributeName("test"),
-				tc.parentType,
 				tc.parentValue,
 				tc.childStep,
 				tc.childValue,

@@ -231,7 +231,6 @@ func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attri
 		return nil, diags
 	}
 
-	parentTfType := parentAttrType.TerraformType(ctx)
 	parentValue, err := p.terraformValueAtPath(parentPath)
 
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
@@ -243,17 +242,30 @@ func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attri
 		return nil, diags
 	}
 
-	var parentValueDiags diag.Diagnostics
-	parentValue, parentValueDiags = createParentValue(ctx, parentPath, parentTfType, parentValue)
-	diags.Append(parentValueDiags...)
+	if parentValue.IsNull() || !parentValue.IsKnown() {
+		// TODO: This will break when DynamicPsuedoType is introduced.
+		// tftypes.Type should implement AttributePathStepper, but it currently does not.
+		// When it does, we should use: tftypes.WalkAttributePath(p.Raw.Type(), parentPath)
+		// Reference: https://github.com/hashicorp/terraform-plugin-go/issues/110
+		parentType := parentAttrType.TerraformType(ctx)
+		var childValue interface{}
 
-	if diags.HasError() {
-		return nil, diags
+		if !parentValue.IsKnown() {
+			childValue = tftypes.UnknownValue
+		}
+
+		var parentValueDiags diag.Diagnostics
+		parentValue, parentValueDiags = createParentValue(ctx, parentPath, parentType, childValue)
+		diags.Append(parentValueDiags...)
+
+		if diags.HasError() {
+			return nil, diags
+		}
 	}
 
 	var childValueDiags diag.Diagnostics
 	childStep := path.Steps()[len(path.Steps())-1]
-	parentValue, childValueDiags = upsertChildValue(ctx, parentPath, parentTfType, parentValue, childStep, tfVal)
+	parentValue, childValueDiags = upsertChildValue(ctx, parentPath, parentValue, childStep, tfVal)
 	diags.Append(childValueDiags...)
 
 	if diags.HasError() {

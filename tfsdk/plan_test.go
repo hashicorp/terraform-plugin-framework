@@ -3297,6 +3297,9 @@ func TestPlanSetAttribute(t *testing.T) {
 			diags := tc.plan.SetAttribute(context.Background(), tc.path, tc.val)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				for _, diagnostic := range diags {
+					t.Log(diagnostic)
+				}
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 

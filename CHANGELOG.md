@@ -1,3 +1,21 @@
+# 0.4.0 (Unreleased)
+
+BREAKING CHANGES:
+* `attr.Type` implementations must now have a `String()` method that returns a human-friendly name for the type. ([#120](https://github.com/hashicorp/terraform-plugin-framework/issues/120))
+* tfsdk: `Resource` implementations must now include the `ImportState(context.Context, ImportResourceStateRequest, *ImportResourceStateResponse)` method. If import is not supported, call the `ResourceImportStateNotImplemented()` function or return an error. ([#149](https://github.com/hashicorp/terraform-plugin-framework/issues/149))
+
+FEATURES:
+* tfsdk: Support resource import ([#149](https://github.com/hashicorp/terraform-plugin-framework/issues/149))
+* types: Support `Set` and `SetType` ([#126](https://github.com/hashicorp/terraform-plugin-framework/issues/126))
+* types: Support for `Float64`, `Float64Type`, `Int64`, and `Int64Type` ([#166](https://github.com/hashicorp/terraform-plugin-framework/issues/166))
+
+ENHANCEMENTS:
+* Added a `tfsdk.ConvertValue` helper that will convert any `attr.Value` into any compatible `attr.Type`. Compatibility happens at the terraform-plugin-go level; the type that the `attr.Value`'s `ToTerraformValue` method produces must be compatible with the `attr.Type`'s `TerraformType()`. Generally, this means that the `attr.Type` of the `attr.Value` and the `attr.Type` being converted to must both produce the same `tftypes.Type` when their `TerraformType()` method is called. ([#120](https://github.com/hashicorp/terraform-plugin-framework/issues/120))
+
+BUG FIXES:
+* attr: Ensure `List` types implementing `attr.TypeWithValidate` call `ElementType` validation only if that type implements `attr.TypeWithValidate` ([#126](https://github.com/hashicorp/terraform-plugin-framework/issues/126))
+* tfsdk: `(Plan).SetAttribute()` and `(State).SetAttribute()` will now create missing attribute paths instead of silently failing to update. ([#165](https://github.com/hashicorp/terraform-plugin-framework/issues/165))
+
 # 0.3.0 (September 08, 2021)
 
 BREAKING CHANGES:

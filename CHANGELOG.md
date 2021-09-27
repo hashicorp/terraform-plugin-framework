@@ -1,4 +1,4 @@
-# 0.4.1 (Unreleased)
+# 0.4.1 (September 27, 2021)
 
 NOTES:
 * Upgraded to terraform-plugin-go v0.4.0 which contains its own breaking changes. Please see https://github.com/hashicorp/terraform-plugin-go/blob/main/CHANGELOG.md#040-september-24-2021 for more details. ([#179](https://github.com/hashicorp/terraform-plugin-framework/issues/179))

@@ -753,9 +753,6 @@ func TestServerValidateProviderConfig(t *testing.T) {
 				return
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				for _, d := range got.Diagnostics {
-					t.Log(d.Detail)
-				}
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 		})
@@ -1075,9 +1072,6 @@ func TestServerConfigureProvider(t *testing.T) {
 				t.Errorf("Expected Terraform version to be %q, got %q", tc.tfVersion, s.configuredTFVersion)
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				for _, d := range got.Diagnostics {
-					t.Log(d.Detail)
-				}
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 			if diff := cmp.Diff(s.configuredVal, tc.config); diff != "" {
@@ -1316,9 +1310,6 @@ func TestServerValidateResourceConfig(t *testing.T) {
 				return
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				for _, d := range got.Diagnostics {
-					t.Log(d.Detail)
-				}
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 		})
@@ -1652,9 +1643,6 @@ func TestServerReadResource(t *testing.T) {
 				return
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				for _, d := range got.Diagnostics {
-					t.Log(d.Detail)
-				}
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 			if diff := cmp.Diff(s.readResourceCurrentStateValue, tc.currentState); diff != "" {
@@ -2745,9 +2733,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 				return
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				for _, d := range got.Diagnostics {
-					t.Log(d.Detail)
-				}
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 			gotPlannedState, err := got.PlannedState.Unmarshal(tc.resourceType)
@@ -3874,9 +3859,6 @@ func TestServerApplyResourceChange(t *testing.T) {
 				return
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				for _, d := range got.Diagnostics {
-					t.Log(d.Detail)
-				}
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 			if s.applyResourceChangeCalledResourceType != tc.resource {
@@ -4168,9 +4150,6 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 				return
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				for _, d := range got.Diagnostics {
-					t.Log(d.Detail)
-				}
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 		})
@@ -4393,9 +4372,6 @@ func TestServerReadDataSource(t *testing.T) {
 				return
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				for _, d := range got.Diagnostics {
-					t.Log(d.Detail)
-				}
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
 			}
 			if diff := cmp.Diff(s.readDataSourceConfigValue, tc.config); diff != "" {

@@ -126,16 +126,8 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 		return Attribute{}, ErrPathInsideAtomicAttribute
 	}
 
-	// list, set, and map nested attributes all return a
-	// map[string]Attribute when the path points to an element in the list,
-	// set, or path. We need it to point to an attribute specifically, so
-	// we're choosing to use the parent attribute in this case, which is
-	// usually what we want.
-	if len(path.Steps()) > 1 {
-		lastStep := path.Steps()[len(path.Steps())-1]
-		if _, ok := lastStep.(tftypes.AttributeName); !ok {
-			return s.AttributeAtPath(path.WithoutLastStep())
-		}
+	if _, ok := res.(nestedAttributes); ok {
+		return Attribute{}, ErrPathInsideAtomicAttribute
 	}
 
 	a, ok := res.(Attribute)

@@ -554,6 +554,7 @@ func (t *testServeProvider) GetResources(_ context.Context) (map[string]Resource
 	return map[string]ResourceType{
 		"test_one":                      testServeResourceTypeOne{},
 		"test_two":                      testServeResourceTypeTwo{},
+		"test_three":                    testServeResourceTypeThree{},
 		"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiers{},
 		"test_config_validators":        testServeResourceTypeConfigValidators{},
 		"test_import_state":             testServeResourceTypeImportState{},

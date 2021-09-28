@@ -275,6 +275,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 		ResourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one":                      testServeResourceTypeOneSchema,
 			"test_two":                      testServeResourceTypeTwoSchema,
+			"test_three":                    testServeResourceTypeThreeSchema,
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
 			"test_import_state":             testServeResourceTypeImportStateSchema,
@@ -309,6 +310,7 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 		ResourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one":                      testServeResourceTypeOneSchema,
 			"test_two":                      testServeResourceTypeTwoSchema,
+			"test_three":                    testServeResourceTypeThreeSchema,
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
 			"test_import_state":             testServeResourceTypeImportStateSchema,
@@ -1780,6 +1782,102 @@ func TestServerPlanResourceChange(t *testing.T) {
 			resource:             "test_two",
 			resourceType:         testServeResourceTypeTwoType,
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+		},
+		"three_nested_computed_unknown": {
+			resource:     "test_three",
+			resourceType: testServeResourceTypeThreeType,
+			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name":          tftypes.NewValue(tftypes.String, "myname"),
+				"last_updated":  tftypes.NewValue(tftypes.String, "yesterday"),
+				"first_updated": tftypes.NewValue(tftypes.String, "last year"),
+				"map_nested": tftypes.NewValue(tftypes.Map{
+					AttributeType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"one": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"computed_string": tftypes.NewValue(tftypes.String, "mycompstring"),
+						"string":          tftypes.NewValue(tftypes.String, "mystring"),
+					}),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name":          tftypes.NewValue(tftypes.String, "myname"),
+				"last_updated":  tftypes.NewValue(tftypes.String, nil),
+				"first_updated": tftypes.NewValue(tftypes.String, nil),
+				"map_nested": tftypes.NewValue(tftypes.Map{
+					AttributeType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"one": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"computed_string": tftypes.NewValue(tftypes.String, nil),
+						"string":          tftypes.NewValue(tftypes.String, nil),
+					}),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name":          tftypes.NewValue(tftypes.String, "myname"),
+				"last_updated":  tftypes.NewValue(tftypes.String, nil),
+				"first_updated": tftypes.NewValue(tftypes.String, nil),
+				"map_nested": tftypes.NewValue(tftypes.Map{
+					AttributeType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"one": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"computed_string": tftypes.NewValue(tftypes.String, nil),
+						"string":          tftypes.NewValue(tftypes.String, nil),
+					}),
+				}),
+			}),
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name":          tftypes.NewValue(tftypes.String, "myname"),
+				"last_updated":  tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"first_updated": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"map_nested": tftypes.NewValue(tftypes.Map{
+					AttributeType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"one": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"computed_string": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+						"string":          tftypes.NewValue(tftypes.String, nil),
+					}),
+				}),
+			}),
 		},
 		"one_add": {
 			priorState: tftypes.NewValue(testServeResourceTypeOneType, nil),

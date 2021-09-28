@@ -105,7 +105,7 @@ var testServeResourceTypeThreeType = tftypes.Object{
 		"last_updated":  tftypes.String,
 		"first_updated": tftypes.String,
 		"map_nested": tftypes.Map{
-			AttributeType: tftypes.Object{
+			ElementType: tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"computed_string": tftypes.String,
 					"string":          tftypes.String,

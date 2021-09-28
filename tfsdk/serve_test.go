@@ -1791,7 +1791,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"last_updated":  tftypes.NewValue(tftypes.String, "yesterday"),
 				"first_updated": tftypes.NewValue(tftypes.String, "last year"),
 				"map_nested": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.Object{
+					ElementType: tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
 							"computed_string": tftypes.String,
 							"string":          tftypes.String,
@@ -1814,7 +1814,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"last_updated":  tftypes.NewValue(tftypes.String, nil),
 				"first_updated": tftypes.NewValue(tftypes.String, nil),
 				"map_nested": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.Object{
+					ElementType: tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
 							"computed_string": tftypes.String,
 							"string":          tftypes.String,
@@ -1837,7 +1837,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"last_updated":  tftypes.NewValue(tftypes.String, nil),
 				"first_updated": tftypes.NewValue(tftypes.String, nil),
 				"map_nested": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.Object{
+					ElementType: tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
 							"computed_string": tftypes.String,
 							"string":          tftypes.String,
@@ -1860,7 +1860,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"last_updated":  tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				"first_updated": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				"map_nested": tftypes.NewValue(tftypes.Map{
-					AttributeType: tftypes.Object{
+					ElementType: tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
 							"computed_string": tftypes.String,
 							"string":          tftypes.String,

@@ -185,7 +185,7 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 		}),
 	})
 
-	got, err := tftypes.Transform(input, markComputedNilsAsUnknown(context.Background(), s))
+	got, err := tftypes.Transform(input, markComputedNilsAsUnknown(context.Background(), input, s))
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 		return
@@ -275,6 +275,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 		ResourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one":                      testServeResourceTypeOneSchema,
 			"test_two":                      testServeResourceTypeTwoSchema,
+			"test_three":                    testServeResourceTypeThreeSchema,
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
 			"test_import_state":             testServeResourceTypeImportStateSchema,
@@ -309,6 +310,7 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 		ResourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one":                      testServeResourceTypeOneSchema,
 			"test_two":                      testServeResourceTypeTwoSchema,
+			"test_three":                    testServeResourceTypeThreeSchema,
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
 			"test_import_state":             testServeResourceTypeImportStateSchema,
@@ -1737,7 +1739,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					tftypes.NewValue(tftypes.String, "red"),
 					tftypes.NewValue(tftypes.String, "orange"),
 				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "when the earth was young"),
+				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
 		},
 		"one_nil_state_and_config": {
@@ -1780,6 +1782,102 @@ func TestServerPlanResourceChange(t *testing.T) {
 			resource:             "test_two",
 			resourceType:         testServeResourceTypeTwoType,
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+		},
+		"three_nested_computed_unknown": {
+			resource:     "test_three",
+			resourceType: testServeResourceTypeThreeType,
+			priorState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name":          tftypes.NewValue(tftypes.String, "myname"),
+				"last_updated":  tftypes.NewValue(tftypes.String, "yesterday"),
+				"first_updated": tftypes.NewValue(tftypes.String, "last year"),
+				"map_nested": tftypes.NewValue(tftypes.Map{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"one": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"computed_string": tftypes.NewValue(tftypes.String, "mycompstring"),
+						"string":          tftypes.NewValue(tftypes.String, "mystring"),
+					}),
+				}),
+			}),
+			config: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name":          tftypes.NewValue(tftypes.String, "myname"),
+				"last_updated":  tftypes.NewValue(tftypes.String, nil),
+				"first_updated": tftypes.NewValue(tftypes.String, nil),
+				"map_nested": tftypes.NewValue(tftypes.Map{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"one": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"computed_string": tftypes.NewValue(tftypes.String, nil),
+						"string":          tftypes.NewValue(tftypes.String, nil),
+					}),
+				}),
+			}),
+			proposedNewState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name":          tftypes.NewValue(tftypes.String, "myname"),
+				"last_updated":  tftypes.NewValue(tftypes.String, nil),
+				"first_updated": tftypes.NewValue(tftypes.String, nil),
+				"map_nested": tftypes.NewValue(tftypes.Map{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"one": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"computed_string": tftypes.NewValue(tftypes.String, nil),
+						"string":          tftypes.NewValue(tftypes.String, nil),
+					}),
+				}),
+			}),
+			expectedPlannedState: tftypes.NewValue(testServeResourceTypeThreeType, map[string]tftypes.Value{
+				"name":          tftypes.NewValue(tftypes.String, "myname"),
+				"last_updated":  tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"first_updated": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"map_nested": tftypes.NewValue(tftypes.Map{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					},
+				}, map[string]tftypes.Value{
+					"one": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"computed_string": tftypes.String,
+							"string":          tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"computed_string": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+						"string":          tftypes.NewValue(tftypes.String, nil),
+					}),
+				}),
+			}),
 		},
 		"one_add": {
 			priorState: tftypes.NewValue(testServeResourceTypeOneType, nil),
@@ -1838,7 +1936,24 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 				}),
 			}),
-			config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
 			resource:     "test_two",
 			resourceType: testServeResourceTypeTwoType,
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
@@ -1918,7 +2033,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 			}),
 			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"id": tftypes.NewValue(tftypes.String, "1234567"),
 				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"name":    tftypes.String,
 					"size_gb": tftypes.Number,
@@ -1935,11 +2050,28 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 				}),
 			}),
-			config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "1234567"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
 			resource:     "test_two",
 			resourceType: testServeResourceTypeTwoType,
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"id": tftypes.NewValue(tftypes.String, "1234567"),
 				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"name":    tftypes.String,
 					"size_gb": tftypes.Number,
@@ -1998,7 +2130,24 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 				}),
 			}),
-			config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
 			resource:     "test_two",
 			resourceType: testServeResourceTypeTwoType,
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
@@ -2069,7 +2218,24 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 				}),
 			}),
-			config:       tftypes.NewValue(testServeResourceTypeTwoType, nil),
+			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
+				"id": tftypes.NewValue(tftypes.String, "123456"),
+				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"name":    tftypes.String,
+					"size_gb": tftypes.Number,
+					"boot":    tftypes.Bool,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"name":    tftypes.String,
+						"size_gb": tftypes.Number,
+						"boot":    tftypes.Bool,
+					}}, map[string]tftypes.Value{
+						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
+						"size_gb": tftypes.NewValue(tftypes.Number, 10),
+						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
 			resource:     "test_two",
 			resourceType: testServeResourceTypeTwoType,
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{

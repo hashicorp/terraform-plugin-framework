@@ -126,6 +126,10 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 		return Attribute{}, ErrPathInsideAtomicAttribute
 	}
 
+	if _, ok := res.(nestedAttributes); ok {
+		return Attribute{}, ErrPathInsideAtomicAttribute
+	}
+
 	a, ok := res.(Attribute)
 	if !ok {
 		return Attribute{}, fmt.Errorf("got unexpected type %T", res)

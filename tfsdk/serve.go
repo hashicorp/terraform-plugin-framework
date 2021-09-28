@@ -584,9 +584,16 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	resp.NewState = &newState
 }
 
-func markComputedNilsAsUnknown(ctx context.Context, resourceSchema Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
+func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
 	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
-		if !val.IsNull() {
+		// we are only modifying attributes, not the entire resource
+		if len(path.Steps()) < 1 {
+			return val, nil
+		}
+		configVal, _, err := tftypes.WalkAttributePath(config, path)
+		if err != tftypes.ErrInvalidStep && err != nil {
+			return val, err
+		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() {
 			return val, nil
 		}
 		attribute, err := resourceSchema.AttributeAtPath(path)
@@ -676,11 +683,6 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 
 	resp.PlannedState = req.ProposedNewState
 
-	if plan.IsNull() || !plan.IsKnown() {
-		// on null or unknown plans, just bail, we can't do anything
-		return
-	}
-
 	// create the resource instance, so we can call its methods and handle
 	// the request
 	resource, diags := resourceType.NewResource(ctx, s.p)
@@ -689,64 +691,96 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return
 	}
 
-	// first, execute any AttributePlanModifiers
-	modifySchemaPlanReq := ModifySchemaPlanRequest{
-		Config: Config{
-			Schema: resourceSchema,
-			Raw:    config,
-		},
-		State: State{
-			Schema: resourceSchema,
-			Raw:    state,
-		},
-		Plan: Plan{
-			Schema: resourceSchema,
-			Raw:    plan,
-		},
+	// first, mark any computed attributes that are null in the config as
+	// unknown in the plan, so providers have the choice to update them
+	//
+	// do this first so that providers can override the unknown with a
+	// known value using any plan modifiers
+	//
+	// we only do this if there's a plan to modify; otherwise, it
+	// represents a resource being deleted and there's no point
+	if !plan.IsNull() {
+		modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, config, resourceSchema))
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error modifying plan",
+				"There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return
+		}
+		plan = modifiedPlan
 	}
-	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
-		pmSchema, diags := pm.GetMetaSchema(ctx)
-		if diags != nil {
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
+
+	// next, execute any AttributePlanModifiers as long as there's a plan
+	// to modify.
+	//
+	// We only do this if there's a plan to modify; otherwise, it
+	// represents a resource being deleted and there's no point.
+	if !plan.IsNull() {
+		modifySchemaPlanReq := ModifySchemaPlanRequest{
+			Config: Config{
+				Schema: resourceSchema,
+				Raw:    config,
+			},
+			State: State{
+				Schema: resourceSchema,
+				Raw:    state,
+			},
+			Plan: Plan{
+				Schema: resourceSchema,
+				Raw:    plan,
+			},
+		}
+		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			pmSchema, diags := pm.GetMetaSchema(ctx)
+			if diags != nil {
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+			}
+			modifySchemaPlanReq.ProviderMeta = Config{
+				Schema: pmSchema,
+				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+			}
+
+			if req.ProviderMeta != nil {
+				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				if err != nil {
+					resp.Diagnostics.AddError(
+						"Error parsing provider_meta",
+						"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
+					)
+					return
+				}
+				modifySchemaPlanReq.ProviderMeta.Raw = pmValue
 			}
 		}
-		modifySchemaPlanReq.ProviderMeta = Config{
-			Schema: pmSchema,
-			Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+
+		modifySchemaPlanResp := ModifySchemaPlanResponse{
+			Plan: Plan{
+				Schema: resourceSchema,
+				Raw:    plan,
+			},
+			Diagnostics: resp.Diagnostics,
 		}
 
-		if req.ProviderMeta != nil {
-			pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error parsing provider_meta",
-					"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-				)
-				return
-			}
-			modifySchemaPlanReq.ProviderMeta.Raw = pmValue
+		resourceSchema.modifyAttributePlans(ctx, modifySchemaPlanReq, &modifySchemaPlanResp)
+		resp.RequiresReplace = modifySchemaPlanResp.RequiresReplace
+		plan = modifySchemaPlanResp.Plan.Raw
+		resp.Diagnostics = modifySchemaPlanResp.Diagnostics
+		if resp.Diagnostics.HasError() {
+			return
 		}
 	}
 
-	modifySchemaPlanResp := ModifySchemaPlanResponse{
-		Plan: Plan{
-			Schema: resourceSchema,
-			Raw:    plan,
-		},
-		Diagnostics: resp.Diagnostics,
-	}
-
-	resourceSchema.modifyAttributePlans(ctx, modifySchemaPlanReq, &modifySchemaPlanResp)
-	resp.RequiresReplace = modifySchemaPlanResp.RequiresReplace
-	plan = modifySchemaPlanResp.Plan.Raw
-	resp.Diagnostics = modifySchemaPlanResp.Diagnostics
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// second, execute any ModifyPlan func
+	// third, execute any resource-level ModifyPlan method
+	//
+	// we do this regardless of whether the plan is null or not, because we
+	// want resources to be able to return diagnostics when planning to
+	// delete resources, e.g. to inform practitioners that the resource
+	// _can't_ be deleted in the API and will just be removed from
+	// Terraform's state
 	var modifyPlanResp ModifyResourcePlanResponse
 	if resource, ok := resource.(ResourceWithModifyPlan); ok {
 		modifyPlanReq := ModifyResourcePlanRequest{
@@ -800,16 +834,7 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		plan = modifyPlanResp.Plan.Raw
 	}
 
-	modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, resourceSchema))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error modifying plan",
-			"There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-
-	plannedState, err := tfprotov6.NewDynamicValue(modifiedPlan.Type(), modifiedPlan)
+	plannedState, err := tfprotov6.NewDynamicValue(plan.Type(), plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error converting response",

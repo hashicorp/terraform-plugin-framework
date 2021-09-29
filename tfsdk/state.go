@@ -45,7 +45,9 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 	}
 
 	tfValue, err := s.terraformValueAtPath(path)
-	if err != nil {
+
+	// Ignoring ErrInvalidStep will allow this method to return a null value of the type.
+	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
 		diags.AddAttributeError(
 			path,
 			"State Read Error",
@@ -53,6 +55,10 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (a
 		)
 		return nil, diags
 	}
+
+	// TODO: If ErrInvalidStep, check parent paths for unknown value.
+	//       If found, convert this value to an unknown value.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/186
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)

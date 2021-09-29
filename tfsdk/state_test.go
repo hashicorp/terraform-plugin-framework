@@ -860,420 +860,860 @@ func TestStateGetAttribute(t *testing.T) {
 	}
 
 	testCases := map[string]testCase{
-		"primitive": {
+		"empty": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"name": tftypes.String,
+						"test":  tftypes.String,
+						"other": tftypes.Bool,
+					},
+				}, nil),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			expected: nil,
+		},
+		"WithAttributeName-nonexistent": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
 					},
 				}, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "hello, world"),
+					"test": tftypes.NewValue(tftypes.String, "value"),
 				}),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
-						"name": {
+						"test": {
 							Type:     types.StringType,
 							Required: true,
 						},
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("name"),
-			expected: types.String{Value: "hello, world"},
+			path:     tftypes.NewAttributePath().WithAttributeName("other"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath().WithAttributeName("other"),
+					"State Read Error",
+					"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error getting attribute type in schema: AttributeName(\"other\") still remains in the path: could not find attribute \"other\" in schema",
+				),
+			},
 		},
-		"list": {
+		"WithAttributeName-List-null-WithElementKeyInt": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"tags": tftypes.List{ElementType: tftypes.String},
+						"test": tftypes.List{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
 					},
 				}, map[string]tftypes.Value{
-					"tags": tftypes.NewValue(tftypes.List{
+					"test": tftypes.NewValue(tftypes.List{
 						ElementType: tftypes.String,
-					}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "red"),
-						tftypes.NewValue(tftypes.String, "blue"),
-						tftypes.NewValue(tftypes.String, "green"),
-					}),
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
-						"tags": {
+						"test": {
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("tags"),
-			expected: types.List{
-				Elems: []attr.Value{
-					types.String{Value: "red"},
-					types.String{Value: "blue"},
-					types.String{Value: "green"},
-				},
-				ElemType: types.StringType,
-			},
-		},
-		"nested-list": {
-			state: State{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"disks": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"id":                   tftypes.String,
-									"delete_with_instance": tftypes.Bool,
-								},
-							},
-						},
-					},
-				}, map[string]tftypes.Value{
-					"disks": tftypes.NewValue(tftypes.List{
-						ElementType: tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"id":                   tftypes.String,
-								"delete_with_instance": tftypes.Bool,
-							},
-						},
-					}, []tftypes.Value{
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"id":                   tftypes.String,
-								"delete_with_instance": tftypes.Bool,
-							},
-						}, map[string]tftypes.Value{
-							"id":                   tftypes.NewValue(tftypes.String, "disk0"),
-							"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-						}),
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"id":                   tftypes.String,
-								"delete_with_instance": tftypes.Bool,
-							},
-						}, map[string]tftypes.Value{
-							"id":                   tftypes.NewValue(tftypes.String, "disk1"),
-							"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
-						}),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"disks": {
-							Attributes: ListNestedAttributes(map[string]Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
-								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}, ListNestedAttributesOptions{}),
-							Optional: true,
-							Computed: true,
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks"),
-			expected: types.List{
-				Elems: []attr.Value{
-					types.Object{
-						Attrs: map[string]attr.Value{
-							"delete_with_instance": types.Bool{Value: true},
-							"id":                   types.String{Value: "disk0"},
-						},
-						AttrTypes: map[string]attr.Type{
-							"delete_with_instance": types.BoolType,
-							"id":                   types.StringType,
-						},
-					},
-					types.Object{
-						Attrs: map[string]attr.Value{
-							"delete_with_instance": types.Bool{Value: false},
-							"id":                   types.String{Value: "disk1"},
-						},
-						AttrTypes: map[string]attr.Type{
-							"delete_with_instance": types.BoolType,
-							"id":                   types.StringType,
-						},
-					},
-				},
-				ElemType: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"delete_with_instance": types.BoolType,
-						"id":                   types.StringType,
-					},
-				},
-			},
-		},
-		"nested-single": {
-			state: State{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"boot_disk": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"id":                   tftypes.String,
-								"delete_with_instance": tftypes.Bool,
-							},
-						},
-					},
-				}, map[string]tftypes.Value{
-					"boot_disk": tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"id":                   tftypes.String,
-							"delete_with_instance": tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"id":                   tftypes.NewValue(tftypes.String, "bootdisk"),
-						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"boot_disk": {
-							Attributes: SingleNestedAttributes(map[string]Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
-								},
-								"delete_with_instance": {
-									Type: types.BoolType,
-								},
-							}),
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("boot_disk"),
-			expected: types.Object{
-				Attrs: map[string]attr.Value{
-					"delete_with_instance": types.Bool{Value: true},
-					"id":                   types.String{Value: "bootdisk"},
-				},
-				AttrTypes: map[string]attr.Type{
-					"delete_with_instance": types.BoolType,
-					"id":                   types.StringType,
-				},
-			},
-		},
-		"object": {
-			state: State{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"scratch_disk": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"interface": tftypes.String,
-							},
-						},
-					},
-				}, map[string]tftypes.Value{
-					"scratch_disk": tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"interface": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"interface": tftypes.NewValue(tftypes.String, "SCSI"),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"scratch_disk": {
-							Type: types.ObjectType{
-								AttrTypes: map[string]attr.Type{
-									"interface": types.StringType,
-								},
-							},
+						"other": {
+							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("scratch_disk"),
-			expected: types.Object{
-				Attrs: map[string]attr.Value{
-					"interface": types.String{Value: "SCSI"},
-				},
-				AttrTypes: map[string]attr.Type{
-					"interface": types.StringType,
-				},
-			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			expected: types.String{Null: true},
 		},
-		"set": {
+		"WithAttributeName-List-WithElementKeyInt": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"tags": tftypes.Set{ElementType: tftypes.String},
+						"test": tftypes.List{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
 					},
 				}, map[string]tftypes.Value{
-					"tags": tftypes.NewValue(tftypes.Set{
+					"test": tftypes.NewValue(tftypes.List{
 						ElementType: tftypes.String,
 					}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "red"),
-						tftypes.NewValue(tftypes.String, "blue"),
-						tftypes.NewValue(tftypes.String, "green"),
+						tftypes.NewValue(tftypes.String, "value"),
+						tftypes.NewValue(tftypes.String, "othervalue"),
 					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
-						"tags": {
+						"test": {
+							Type: types.ListType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: ListNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, ListNestedAttributesOptions{}),
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-ListNestedAttributes-WithElementKeyInt-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						}),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: ListNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, ListNestedAttributesOptions{}),
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-Map-null-WithElementKeyString": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Map{
+						ElementType: tftypes.String,
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.MapType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-Map-WithElementKeyString": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Map{
+						ElementType: tftypes.String,
+					}, map[string]tftypes.Value{
+						"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						"other":    tftypes.NewValue(tftypes.String, "othervalue"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.MapType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-Map-WithElementKeyString-nonexistent": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Map{
+						ElementType: tftypes.String,
+					}, map[string]tftypes.Value{
+						"sub_test": tftypes.NewValue(tftypes.String, "value"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.MapType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("other"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-MapNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Map{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: MapNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, MapNestedAttributesOptions{}),
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element").WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-MapNestedAttributes-WithElementKeyString-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Map{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, map[string]tftypes.Value{
+						"element": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						}),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: MapNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, MapNestedAttributesOptions{}),
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element").WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-Object-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"sub_test": tftypes.NewValue(tftypes.String, "value"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"sub_test": types.StringType,
+								},
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-Set-null-WithElementKeyValue": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Set{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
 							Type: types.SetType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("tags"),
-			expected: types.Set{
-				Elems: []attr.Value{
-					types.String{Value: "red"},
-					types.String{Value: "blue"},
-					types.String{Value: "green"},
-				},
-				ElemType: types.StringType,
-			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "value")),
+			expected: types.String{Null: true},
 		},
-		"nested-set": {
+		"WithAttributeName-Set-WithElementKeyValue": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"disks": tftypes.Set{
+						"test": tftypes.Set{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "value"),
+						tftypes.NewValue(tftypes.String, "othervalue"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.SetType{
+								ElemType: types.StringType,
+							},
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "value")),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-SetNestedAttributes-null-WithElementKeyValue-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Set{
 							ElementType: tftypes.Object{
 								AttributeTypes: map[string]tftypes.Type{
-									"id":                   tftypes.String,
-									"delete_with_instance": tftypes.Bool,
+									"sub_test": tftypes.String,
 								},
 							},
 						},
+						"other": tftypes.Bool,
 					},
 				}, map[string]tftypes.Value{
-					"disks": tftypes.NewValue(tftypes.Set{
+					"test": tftypes.NewValue(tftypes.Set{
 						ElementType: tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
-								"id":                   tftypes.String,
-								"delete_with_instance": tftypes.Bool,
+								"sub_test": tftypes.String,
+							},
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: SetNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, SetNestedAttributesOptions{}),
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"sub_test": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"sub_test": tftypes.NewValue(tftypes.String, "value"),
+			})).WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-SetNestedAttributes-WithElementKeyValue-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
 							},
 						},
 					}, []tftypes.Value{
 						tftypes.NewValue(tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
-								"id":                   tftypes.String,
-								"delete_with_instance": tftypes.Bool,
+								"sub_test": tftypes.String,
 							},
 						}, map[string]tftypes.Value{
-							"id":                   tftypes.NewValue(tftypes.String, "disk0"),
-							"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-						}),
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"id":                   tftypes.String,
-								"delete_with_instance": tftypes.Bool,
-							},
-						}, map[string]tftypes.Value{
-							"id":                   tftypes.NewValue(tftypes.String, "disk1"),
-							"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+							"sub_test": tftypes.NewValue(tftypes.String, "value"),
 						}),
 					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
-						"disks": {
+						"test": {
 							Attributes: SetNestedAttributes(map[string]Attribute{
-								"id": {
+								"sub_test": {
 									Type:     types.StringType,
 									Required: true,
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
 							}, SetNestedAttributesOptions{}),
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks"),
-			expected: types.Set{
-				Elems: []attr.Value{
-					types.Object{
-						Attrs: map[string]attr.Value{
-							"delete_with_instance": types.Bool{Value: true},
-							"id":                   types.String{Value: "disk0"},
-						},
-						AttrTypes: map[string]attr.Type{
-							"delete_with_instance": types.BoolType,
-							"id":                   types.StringType,
-						},
-					},
-					types.Object{
-						Attrs: map[string]attr.Value{
-							"delete_with_instance": types.Bool{Value: false},
-							"id":                   types.String{Value: "disk1"},
-						},
-						AttrTypes: map[string]attr.Type{
-							"delete_with_instance": types.BoolType,
-							"id":                   types.StringType,
-						},
-					},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"sub_test": tftypes.String,
 				},
-				ElemType: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"delete_with_instance": types.BoolType,
-						"id":                   types.StringType,
+			}, map[string]tftypes.Value{
+				"sub_test": tftypes.NewValue(tftypes.String, "value"),
+			})).WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.String,
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: SingleNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}),
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
 					},
 				},
 			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-SingleNestedAttributes-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"sub_test": tftypes.NewValue(tftypes.String, "value"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: SingleNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}),
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-String-null": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.String,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.String, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+						"other": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-String-unknown": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.String,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			expected: types.String{Unknown: true},
+		},
+		"WithAttributeName-String-value": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.String,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.String, "value"),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type:     types.StringType,
+							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			expected: types.String{Value: "value"},
 		},
 		"AttrTypeWithValidateError": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"name": tftypes.String,
+						"test":  tftypes.String,
+						"other": tftypes.Bool,
 					},
 				}, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+					"test":  tftypes.NewValue(tftypes.String, "value"),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
-						"name": {
+						"test": {
 							Type:     testtypes.StringTypeWithValidateError{},
 							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
 						},
 					},
 				},
 			},
-			path:          tftypes.NewAttributePath().WithAttributeName("name"),
+			path:          tftypes.NewAttributePath().WithAttributeName("test"),
 			expected:      nil,
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"name": tftypes.String,
+						"test":  tftypes.String,
+						"other": tftypes.Bool,
 					},
 				}, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+					"test":  tftypes.NewValue(tftypes.String, "value"),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
-						"name": {
+						"test": {
 							Type:     testtypes.StringTypeWithValidateWarning{},
 							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
 						},
 					},
 				},
 			},
-			path:          tftypes.NewAttributePath().WithAttributeName("name"),
-			expected:      testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+			path:          tftypes.NewAttributePath().WithAttributeName("test"),
+			expected:      testtypes.String{String: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"))},
 		},
 	}
 
@@ -1283,7 +1723,6 @@ func TestStateGetAttribute(t *testing.T) {
 			t.Parallel()
 
 			val, diags := tc.state.GetAttribute(context.Background(), tc.path)
-
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}

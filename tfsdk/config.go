@@ -2,6 +2,7 @@ package tfsdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -44,7 +45,9 @@ func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (
 	}
 
 	tfValue, err := c.terraformValueAtPath(path)
-	if err != nil {
+
+	// Ignoring ErrInvalidStep will allow this method to return a null value of the type.
+	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
 		diags.AddAttributeError(
 			path,
 			"Configuration Read Error",
@@ -52,6 +55,10 @@ func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (
 		)
 		return nil, diags
 	}
+
+	// TODO: If ErrInvalidStep, check parent paths for unknown value.
+	//       If found, convert this value to an unknown value.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/186
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)

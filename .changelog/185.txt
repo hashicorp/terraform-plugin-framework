@@ -1,0 +1,3 @@
+```release-note:bug
+tfsdk: Fetch null values from valid missing `Config`, `Plan`, and `State` paths in `GetAttribute()` method
+```

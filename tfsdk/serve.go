@@ -695,8 +695,8 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	//
 	// This pass is before any Computed-only attributes are marked as unknown
 	// to ensure any plan changes will trigger that behavior. These plan
-	// modifiers be run again after that marking to allow setting values and
-	// preventing extraneous plan differences.
+	// modifiers are run again after that marking to allow setting values
+	// and preventing extraneous plan differences.
 	//
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.

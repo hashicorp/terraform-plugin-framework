@@ -92,6 +92,10 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 				Type:          types.StringType,
 				PlanModifiers: []AttributePlanModifier{testAttrDefaultValueModifier{}},
 			},
+			"computed_string_no_modifiers": {
+				Computed: true,
+				Type:     types.StringType,
+			},
 		},
 	}, nil
 }
@@ -114,6 +118,11 @@ var testServeResourceTypeAttributePlanModifiersSchema = &tfprotov6.Schema{
 	Version: 1,
 	Block: &tfprotov6.SchemaBlock{
 		Attributes: []*tfprotov6.SchemaAttribute{
+			{
+				Name:     "computed_string_no_modifiers",
+				Computed: true,
+				Type:     tftypes.String,
+			},
 			{
 				Name:     "name",
 				Required: true,
@@ -173,8 +182,9 @@ var testServeResourceTypeAttributePlanModifiersSchema = &tfprotov6.Schema{
 
 var testServeResourceTypeAttributePlanModifiersType = tftypes.Object{
 	AttributeTypes: map[string]tftypes.Type{
-		"name": tftypes.String,
-		"size": tftypes.Number,
+		"computed_string_no_modifiers": tftypes.String,
+		"name":                         tftypes.String,
+		"size":                         tftypes.Number,
 		"scratch_disk": tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
 				"id":        tftypes.String,

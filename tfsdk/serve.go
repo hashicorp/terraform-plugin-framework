@@ -691,15 +691,57 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return
 	}
 
-	// first, mark any computed attributes that are null in the config as
-	// unknown in the plan, so providers have the choice to update them
+	// Execute any AttributePlanModifiers.
 	//
-	// do this first so that providers can override the unknown with a
-	// known value using any plan modifiers
+	// This pass is before any Computed-only attributes are marked as unknown
+	// to ensure any plan changes will trigger that behavior. These plan
+	// modifiers are run again after that marking to allow setting values
+	// and preventing extraneous plan differences.
 	//
-	// we only do this if there's a plan to modify; otherwise, it
-	// represents a resource being deleted and there's no point
-	if !plan.IsNull() {
+	// We only do this if there's a plan to modify; otherwise, it
+	// represents a resource being deleted and there's no point.
+	//
+	// TODO: Enabling this pass will generate the following test error:
+	//
+	//     --- FAIL: TestServerPlanResourceChange/two_modifyplan_add_list_elem (0.00s)
+	// serve_test.go:3303: An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:
+	//
+	// ElementKeyInt(1).AttributeName("name") still remains in the path: step cannot be applied to this value
+	//
+	// To fix this, (Config).GetAttribute() should return nil instead of the error.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/183
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/150
+	// See also: https://github.com/hashicorp/terraform-plugin-framework/pull/167
+
+	// Execute any resource-level ModifyPlan method.
+	//
+	// This pass is before any Computed-only attributes are marked as unknown
+	// to ensure any plan changes will trigger that behavior. These plan
+	// modifiers be run again after that marking to allow setting values and
+	// preventing extraneous plan differences.
+	//
+	// TODO: Enabling this pass will generate the following test error:
+	//
+	//     --- FAIL: TestServerPlanResourceChange/two_modifyplan_add_list_elem (0.00s)
+	// serve_test.go:3303: An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:
+	//
+	// ElementKeyInt(1).AttributeName("name") still remains in the path: step cannot be applied to this value
+	//
+	// To fix this, (Config).GetAttribute() should return nil instead of the error.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/183
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/150
+	// See also: https://github.com/hashicorp/terraform-plugin-framework/pull/167
+
+	// After ensuring there are proposed changes, mark any computed attributes
+	// that are null in the config as unknown in the plan, so providers have
+	// the choice to update them.
+	//
+	// Later attribute and resource plan modifier passes can override the
+	// unknown with a known value using any plan modifiers.
+	//
+	// We only do this if there's a plan to modify; otherwise, it
+	// represents a resource being deleted and there's no point.
+	if !plan.IsNull() && !plan.Equal(state) {
 		modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, config, resourceSchema))
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -711,8 +753,8 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		plan = modifiedPlan
 	}
 
-	// next, execute any AttributePlanModifiers as long as there's a plan
-	// to modify.
+	// Execute any AttributePlanModifiers again. This allows overwriting
+	// any unknown values.
 	//
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.
@@ -766,7 +808,7 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		}
 
 		resourceSchema.modifyAttributePlans(ctx, modifySchemaPlanReq, &modifySchemaPlanResp)
-		resp.RequiresReplace = modifySchemaPlanResp.RequiresReplace
+		resp.RequiresReplace = append(resp.RequiresReplace, modifySchemaPlanResp.RequiresReplace...)
 		plan = modifySchemaPlanResp.Plan.Raw
 		resp.Diagnostics = modifySchemaPlanResp.Diagnostics
 		if resp.Diagnostics.HasError() {
@@ -774,9 +816,10 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		}
 	}
 
-	// third, execute any resource-level ModifyPlan method
+	// Execute any resource-level ModifyPlan method again. This allows
+	// overwriting any unknown values.
 	//
-	// we do this regardless of whether the plan is null or not, because we
+	// We do this regardless of whether the plan is null or not, because we
 	// want resources to be able to return diagnostics when planning to
 	// delete resources, e.g. to inform practitioners that the resource
 	// _can't_ be deleted in the API and will just be removed from

@@ -1,3 +1,8 @@
+# 0.4.2 (September 29, 2021)
+
+BUG FIXES:
+* Fix bug in which updating `Computed`-only attributes would lead to a "Provider produced inconsistent result after apply" error ([#176](https://github.com/hashicorp/terraform-plugin-framework/issues/176)/[#184](https://github.com/hashicorp/terraform-plugin-framework/issues/184))
+
 # 0.4.1 (September 27, 2021)
 
 NOTES:

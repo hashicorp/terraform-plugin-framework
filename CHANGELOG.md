@@ -1,3 +1,8 @@
+# 0.4.2 (Unreleased)
+
+BUG FIXES:
+* Fix bug in which updating `Computed`-only attributes would lead to a "Provider produced inconsistent result after apply" error [GH-176]/[GH-184]
+
 # 0.4.1 (September 27, 2021)
 
 NOTES:

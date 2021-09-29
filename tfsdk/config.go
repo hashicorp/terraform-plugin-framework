@@ -2,6 +2,7 @@ package tfsdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -44,7 +45,9 @@ func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (
 	}
 
 	tfValue, err := c.terraformValueAtPath(path)
-	if err != nil {
+
+	// Ignoring ErrInvalidStep will allow this method to return a null value of the type.
+	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
 		diags.AddAttributeError(
 			path,
 			"Configuration Read Error",

@@ -247,16 +247,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-			expected: nil,
-			// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-					"Configuration Read Error",
-					"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"ElementKeyInt(0) still remains in the path: step cannot be applied to this value",
-				),
-			},
+			expected: types.String{Null: true},
 		},
 		"WithAttributeName-List-WithElementKeyInt": {
 			config: Config{
@@ -336,16 +327,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
-			expected: nil,
-			// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
-					"Configuration Read Error",
-					"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"ElementKeyInt(0).AttributeName(\"sub_test\") still remains in the path: step cannot be applied to this value",
-				),
-			},
+			expected: types.String{Null: true},
 		},
 		"WithAttributeName-ListNestedAttributes-WithElementKeyInt-WithAttributeName": {
 			config: Config{
@@ -430,16 +412,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
-			expected: nil,
-			// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
-					"Configuration Read Error",
-					"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"ElementKeyString(\"sub_test\") still remains in the path: step cannot be applied to this value",
-				),
-			},
+			expected: types.String{Null: true},
 		},
 		"WithAttributeName-Map-WithElementKeyString": {
 			config: Config{
@@ -510,16 +483,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("other"),
-			expected: nil,
-			// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("other"),
-					"Configuration Read Error",
-					"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"ElementKeyString(\"other\") still remains in the path: step cannot be applied to this value",
-				),
-			},
+			expected: types.String{Null: true},
 		},
 		"WithAttributeName-MapNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
 			config: Config{
@@ -563,16 +527,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element").WithAttributeName("sub_test"),
-			expected: nil,
-			// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element").WithAttributeName("sub_test"),
-					"Configuration Read Error",
-					"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"ElementKeyString(\"element\").AttributeName(\"sub_test\") still remains in the path: step cannot be applied to this value",
-				),
-			},
+			expected: types.String{Null: true},
 		},
 		"WithAttributeName-MapNestedAttributes-WithElementKeyString-WithAttributeName": {
 			config: Config{
@@ -698,16 +653,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "value")),
-			expected: nil,
-			// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "value")),
-					"Configuration Read Error",
-					"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"ElementKeyValue(tftypes.String<\"value\">) still remains in the path: step cannot be applied to this value",
-				),
-			},
+			expected: types.String{Null: true},
 		},
 		"WithAttributeName-Set-WithElementKeyValue": {
 			config: Config{
@@ -793,22 +739,7 @@ func TestConfigGetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"sub_test": tftypes.NewValue(tftypes.String, "value"),
 			})).WithAttributeName("sub_test"),
-			expected: nil,
-			// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"sub_test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"sub_test": tftypes.NewValue(tftypes.String, "value"),
-					})).WithAttributeName("sub_test"),
-					"Configuration Read Error",
-					"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"ElementKeyValue(tftypes.Object[\"sub_test\":tftypes.String]<\"sub_test\":tftypes.String<\"value\">>).AttributeName(\"sub_test\") still remains in the path: step cannot be applied to this value",
-				),
-			},
+			expected: types.String{Null: true},
 		},
 		"WithAttributeName-SetNestedAttributes-WithElementKeyValue-WithAttributeName": {
 			config: Config{
@@ -906,16 +837,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
-			expected: nil,
-			// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
-					"Configuration Read Error",
-					"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"AttributeName(\"sub_test\") still remains in the path: step cannot be applied to this value",
-				),
-			},
+			expected: types.String{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-WithAttributeName": {
 			config: Config{

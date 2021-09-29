@@ -1,0 +1,3 @@
+```release-note:feature
+tfsdk: Support list and set blocks in schema definitions
+```

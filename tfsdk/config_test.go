@@ -1027,10 +1027,6 @@ func TestConfigGetAttribute(t *testing.T) {
 
 			val, diags := tc.config.GetAttribute(context.Background(), tc.path)
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
-				for _, d := range diags {
-					t.Log(d.Summary())
-					t.Log(d.Detail())
-				}
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 

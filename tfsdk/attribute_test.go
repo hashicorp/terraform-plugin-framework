@@ -875,15 +875,15 @@ func TestAttributeModifyPlan(t *testing.T) {
 				Plan: Plan{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
-							"nottest": tftypes.String,
+							"test": tftypes.String,
 						},
 					}, map[string]tftypes.Value{
-						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"test": {
-								Type:     types.StringType,
+								Type:     types.ListType{ElemType: types.StringType},
 								Required: true,
 							},
 						},
@@ -916,7 +916,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						tftypes.NewAttributePath().WithAttributeName("test"),
 						"Plan Read Error",
-						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 			},
@@ -944,15 +945,15 @@ func TestAttributeModifyPlan(t *testing.T) {
 				Plan: Plan{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
-							"nottest": tftypes.String,
+							"test": tftypes.String,
 						},
 					}, map[string]tftypes.Value{
-						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"test": {
-								Type:     types.StringType,
+								Type:     types.ListType{ElemType: types.StringType},
 								Required: true,
 							},
 						},
@@ -995,7 +996,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						tftypes.NewAttributePath().WithAttributeName("test"),
 						"Plan Read Error",
-						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 			},
@@ -1040,15 +1042,15 @@ func TestAttributeModifyPlan(t *testing.T) {
 				State: State{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
-							"nottest": tftypes.String,
+							"test": tftypes.String,
 						},
 					}, map[string]tftypes.Value{
-						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"test": {
-								Type:     types.StringType,
+								Type:     types.ListType{ElemType: types.StringType},
 								Required: true,
 							},
 						},
@@ -1064,7 +1066,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						tftypes.NewAttributePath().WithAttributeName("test"),
 						"State Read Error",
-						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 			},
@@ -1109,15 +1112,15 @@ func TestAttributeModifyPlan(t *testing.T) {
 				State: State{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
-							"nottest": tftypes.String,
+							"test": tftypes.String,
 						},
 					}, map[string]tftypes.Value{
-						"nottest": tftypes.NewValue(tftypes.String, "testvalue"),
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 					Schema: Schema{
 						Attributes: map[string]Attribute{
 							"test": {
-								Type:     types.StringType,
+								Type:     types.ListType{ElemType: types.StringType},
 								Required: true,
 							},
 						},
@@ -1143,7 +1146,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						tftypes.NewAttributePath().WithAttributeName("test"),
 						"State Read Error",
-						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\nAttributeName(\"test\") still remains in the path: step cannot be applied to this value",
+						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 			},

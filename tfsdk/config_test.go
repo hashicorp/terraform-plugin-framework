@@ -588,6 +588,100 @@ func TestConfigGetAttributeValue(t *testing.T) {
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
+		"WithAttributeName-ListNestedBlocks-null-WithElementKeyInt-WithAttributeName": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Blocks: ListNestedBlocks(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, ListNestedBlocksOptions{}),
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						}),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Blocks: ListNestedBlocks(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, ListNestedBlocksOptions{}),
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
 		"WithAttributeName-Map-null-WithElementKeyString": {
 			config: Config{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -989,6 +1083,112 @@ func TestConfigGetAttributeValue(t *testing.T) {
 								},
 							}, SetNestedAttributesOptions{}),
 							Required: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"sub_test": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"sub_test": tftypes.NewValue(tftypes.String, "value"),
+			})).WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-SetNestedBlocks-null-WithElementKeyValue-WithAttributeName": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Blocks: SetNestedBlocks(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, SetNestedBlocksOptions{}),
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"sub_test": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"sub_test": tftypes.NewValue(tftypes.String, "value"),
+			})).WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-SetNestedBlocks-WithElementKeyValue-WithAttributeName": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						}),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Blocks: SetNestedBlocks(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, SetNestedBlocksOptions{}),
 						},
 						"other": {
 							Type:     types.BoolType,

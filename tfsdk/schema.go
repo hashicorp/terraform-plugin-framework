@@ -64,6 +64,9 @@ func (s Schema) AttributeType() attr.Type {
 		if attr.Attributes != nil {
 			attrTypes[name] = attr.Attributes.AttributeType()
 		}
+		if attr.Blocks != nil {
+			attrTypes[name] = attr.Blocks.AttributeType()
+		}
 	}
 	return types.ObjectType{AttrTypes: attrTypes}
 }
@@ -96,6 +99,10 @@ func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, err
 		return a.Type, nil
 	}
 
+	if a.definesBlocks() {
+		return a.Blocks.AttributeType(), nil
+	}
+
 	return a.Attributes.AttributeType(), nil
 }
 
@@ -108,6 +115,9 @@ func (s Schema) TerraformType(ctx context.Context) tftypes.Type {
 		}
 		if attr.Attributes != nil {
 			attrTypes[name] = attr.Attributes.AttributeType().TerraformType(ctx)
+		}
+		if attr.Blocks != nil {
+			attrTypes[name] = attr.Blocks.AttributeType().TerraformType(ctx)
 		}
 	}
 	return tftypes.Object{AttributeTypes: attrTypes}
@@ -140,20 +150,32 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 // tfprotov6Schema returns the *tfprotov6.Schema equivalent of a Schema. At least
 // one attribute must be set in the schema, or an error will be returned.
 func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) {
+	if len(s.Attributes) < 1 {
+		return nil, errors.New("must have at least one attribute in the schema")
+	}
+
 	result := &tfprotov6.Schema{
 		Version: s.Version,
 	}
 
 	var attrs []*tfprotov6.SchemaAttribute
+	var blocks []*tfprotov6.SchemaNestedBlock
 
 	for name, attr := range s.Attributes {
-		a, err := attr.tfprotov6SchemaAttribute(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
+		proto6Raw, err := attr.tfprotov6(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
 
 		if err != nil {
 			return nil, err
 		}
 
-		attrs = append(attrs, a)
+		switch proto6 := proto6Raw.(type) {
+		case *tfprotov6.SchemaAttribute:
+			attrs = append(attrs, proto6)
+		case *tfprotov6.SchemaNestedBlock:
+			blocks = append(blocks, proto6)
+		default:
+			return nil, fmt.Errorf("unknown tfprotov6 type %T for Attribute", proto6)
+		}
 	}
 
 	sort.Slice(attrs, func(i, j int) bool {
@@ -168,14 +190,23 @@ func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) 
 		return attrs[i].Name < attrs[j].Name
 	})
 
-	if len(attrs) < 1 {
-		return nil, errors.New("must have at least one attribute in the schema")
-	}
+	sort.Slice(blocks, func(i, j int) bool {
+		if blocks[i] == nil {
+			return true
+		}
+
+		if blocks[j] == nil {
+			return false
+		}
+
+		return blocks[i].TypeName < blocks[j].TypeName
+	})
 
 	result.Block = &tfprotov6.SchemaBlock{
 		// core doesn't do anything with version, as far as I can tell,
 		// so let's not set it.
 		Attributes: attrs,
+		BlockTypes: blocks,
 		Deprecated: s.DeprecationMessage != "",
 	}
 
@@ -254,7 +285,7 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 		}
 		resp.Diagnostics = nestedAttrResp.Diagnostics
 
-		if nestedAttr.Attributes != nil {
+		if nestedAttr.definesAttributes() {
 			nm := nestedAttr.Attributes.GetNestingMode()
 			switch nm {
 			case NestingModeList:
@@ -338,6 +369,70 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 				}
 				if len(o.Attrs) > 0 {
 					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath, req, resp)
+				}
+			default:
+				err := fmt.Errorf("unknown attribute nesting mode (%T: %v) at path: %s", nm, nm, attrPath)
+				resp.Diagnostics.AddAttributeError(
+					attrPath,
+					"Attribute Plan Modification Error",
+					"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				)
+
+				continue
+			}
+		}
+
+		if nestedAttr.definesBlocks() {
+			nm := nestedAttr.Blocks.GetNestingMode()
+			switch nm {
+			case NestingModeList:
+				l, ok := attrPlan.(types.List)
+
+				if !ok {
+					err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", attrPlan, nm, attrPath)
+					resp.Diagnostics.AddAttributeError(
+						attrPath,
+						"Attribute Plan Modification Error",
+						"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+					)
+
+					continue
+				}
+
+				for idx := range l.Elems {
+					modifyAttributesPlans(ctx, nestedAttr.Blocks.GetAttributes(), attrPath.WithElementKeyInt(idx), req, resp)
+				}
+			case NestingModeSet:
+				s, ok := attrPlan.(types.Set)
+
+				if !ok {
+					err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", attrPlan, nm, attrPath)
+					resp.Diagnostics.AddAttributeError(
+						attrPath,
+						"Attribute Plan Modification Error",
+						"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+					)
+
+					return
+				}
+
+				for _, value := range s.Elems {
+					tfValueRaw, err := value.ToTerraformValue(ctx)
+
+					if err != nil {
+						err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
+						resp.Diagnostics.AddAttributeError(
+							attrPath,
+							"Attribute Plan Modification Error",
+							"Attribute plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
+						)
+
+						return
+					}
+
+					tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
+
+					modifyAttributesPlans(ctx, nestedAttr.Blocks.GetAttributes(), attrPath.WithElementKeyValue(tfValue), req, resp)
 				}
 			default:
 				err := fmt.Errorf("unknown attribute nesting mode (%T: %v) at path: %s", nm, nm, attrPath)

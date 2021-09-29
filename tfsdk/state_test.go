@@ -1285,6 +1285,100 @@ func TestStateGetAttributeValue(t *testing.T) {
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
+		"WithAttributeName-ListNestedBlocks-null-WithElementKeyInt-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Blocks: ListNestedBlocks(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, ListNestedBlocksOptions{}),
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						}),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Blocks: ListNestedBlocks(map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							}, ListNestedBlocksOptions{}),
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
 		"WithAttributeName-Map-null-WithElementKeyString": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -2491,7 +2585,7 @@ func TestStateSet(t *testing.T) {
 				}),
 			}),
 		},
-		"nested-list": {
+		"nested-list-attr": {
 			state: State{
 				Raw: tftypes.Value{},
 				Schema: Schema{
@@ -2509,6 +2603,87 @@ func TestStateSet(t *testing.T) {
 							}, ListNestedAttributesOptions{}),
 							Optional: true,
 							Computed: true,
+						},
+					},
+				},
+			},
+			val: struct {
+				Disks []struct {
+					ID                 string `tfsdk:"id"`
+					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+				} `tfsdk:"disks"`
+			}{
+				Disks: []struct {
+					ID                 string `tfsdk:"id"`
+					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+				}{
+					{
+						ID:                 "disk0",
+						DeleteWithInstance: true,
+					},
+					{
+						ID:                 "disk1",
+						DeleteWithInstance: false,
+					},
+				},
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"disks": tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					},
+				},
+			}, map[string]tftypes.Value{
+				"disks": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+		},
+		"nested-list-block": {
+			state: State{
+				Raw: tftypes.Value{},
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"disks": {
+							Blocks: ListNestedBlocks(map[string]Attribute{
+								"id": {
+									Type:     types.StringType,
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, ListNestedBlocksOptions{}),
 						},
 					},
 				},
@@ -2706,7 +2881,7 @@ func TestStateSet(t *testing.T) {
 				}),
 			}),
 		},
-		"nested-set": {
+		"nested-set-attr": {
 			state: State{
 				Raw: tftypes.Value{},
 				Schema: Schema{
@@ -2724,6 +2899,87 @@ func TestStateSet(t *testing.T) {
 							}, SetNestedAttributesOptions{}),
 							Optional: true,
 							Computed: true,
+						},
+					},
+				},
+			},
+			val: struct {
+				Disks []struct {
+					ID                 string `tfsdk:"id"`
+					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+				} `tfsdk:"disks"`
+			}{
+				Disks: []struct {
+					ID                 string `tfsdk:"id"`
+					DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+				}{
+					{
+						ID:                 "disk0",
+						DeleteWithInstance: true,
+					},
+					{
+						ID:                 "disk1",
+						DeleteWithInstance: false,
+					},
+				},
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"disks": tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					},
+				},
+			}, map[string]tftypes.Value{
+				"disks": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "disk0"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "disk1"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+			}),
+		},
+		"nested-set-block": {
+			state: State{
+				Raw: tftypes.Value{},
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"disks": {
+							Blocks: SetNestedBlocks(map[string]Attribute{
+								"id": {
+									Type:     types.StringType,
+									Required: true,
+								},
+								"delete_with_instance": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							}, SetNestedBlocksOptions{}),
 						},
 					},
 				},

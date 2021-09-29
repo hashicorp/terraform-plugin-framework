@@ -230,6 +230,19 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 				}, ListNestedAttributesOptions{}),
 				Optional: true,
 			},
+			"list-nested-blocks": {
+				Blocks: ListNestedBlocks(map[string]Attribute{
+					"foo": {
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
+					},
+					"bar": {
+						Type:     types.NumberType,
+						Required: true,
+					},
+				}, ListNestedBlocksOptions{}),
+			},
 			"map-nested-attributes": {
 				Attributes: MapNestedAttributes(map[string]Attribute{
 					"foo": {
@@ -257,6 +270,19 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 					},
 				}, SetNestedAttributesOptions{}),
 				Optional: true,
+			},
+			"set-nested-blocks": {
+				Blocks: SetNestedBlocks(map[string]Attribute{
+					"foo": {
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
+					},
+					"bar": {
+						Type:     types.NumberType,
+						Required: true,
+					},
+				}, SetNestedBlocksOptions{}),
 			},
 		},
 	}, nil
@@ -493,6 +519,46 @@ var testServeProviderProviderSchema = &tfprotov6.Schema{
 			},
 			// TODO: add tuples when we support them
 		},
+		BlockTypes: []*tfprotov6.SchemaNestedBlock{
+			{
+				Block: &tfprotov6.SchemaBlock{
+					Attributes: []*tfprotov6.SchemaAttribute{
+						{
+							Name:     "bar",
+							Type:     tftypes.Number,
+							Required: true,
+						},
+						{
+							Name:     "foo",
+							Type:     tftypes.String,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+				Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+				TypeName: "list-nested-blocks",
+			},
+			{
+				Block: &tfprotov6.SchemaBlock{
+					Attributes: []*tfprotov6.SchemaAttribute{
+						{
+							Name:     "bar",
+							Type:     tftypes.Number,
+							Required: true,
+						},
+						{
+							Name:     "foo",
+							Type:     tftypes.String,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+				Nesting:  tfprotov6.SchemaNestedBlockNestingModeSet,
+				TypeName: "set-nested-blocks",
+			},
+		},
 	},
 }
 
@@ -539,11 +605,19 @@ var testServeProviderProviderType = tftypes.Object{
 			"foo": tftypes.String,
 			"bar": tftypes.Number,
 		}}},
+		"list-nested-blocks": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.Number,
+		}}},
 		"map-nested-attributes": tftypes.Map{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo": tftypes.String,
 			"bar": tftypes.Number,
 		}}},
 		"set-nested-attributes": tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+			"foo": tftypes.String,
+			"bar": tftypes.Number,
+		}}},
+		"set-nested-blocks": tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 			"foo": tftypes.String,
 			"bar": tftypes.Number,
 		}}},

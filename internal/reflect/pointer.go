@@ -18,12 +18,12 @@ func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target refle
 	var diags diag.Diagnostics
 
 	if target.Kind() != reflect.Ptr {
-		diags.Append(DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			AttrPath:   path,
-			Err:        fmt.Errorf("cannot dereference pointer, not a pointer, is a %s (%s)", target.Type(), target.Kind()),
-		})
+		diags.Append(NewDiagIntoIncompatibleType(
+			path,
+			val,
+			target.Type(),
+			fmt.Errorf("cannot dereference pointer, not a pointer, is a %s (%s)", target.Type(), target.Kind()),
+		))
 		return target, diags
 	}
 	// we may have gotten a nil pointer, so we need to create our own that

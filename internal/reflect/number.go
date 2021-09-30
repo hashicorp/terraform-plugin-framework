@@ -29,12 +29,12 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 	result := big.NewFloat(0)
 	err := val.As(&result)
 	if err != nil {
-		diags.Append(DiagIntoIncompatibleType{
-			AttrPath:   path,
-			Err:        err,
-			TargetType: target.Type(),
-			Val:        val,
-		})
+		diags.Append(NewDiagIntoIncompatibleType(
+			path,
+			val,
+			target.Type(),
+			err,
+		))
 		return target, diags
 	}
 	roundingError := fmt.Errorf("cannot store %s in %s", result.String(), target.Type())

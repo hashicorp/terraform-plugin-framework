@@ -22,12 +22,12 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 		var b bool
 		err := val.As(&b)
 		if err != nil {
-			diags.Append(DiagIntoIncompatibleType{
-				Val:        val,
-				TargetType: target.Type(),
-				AttrPath:   path,
-				Err:        err,
-			})
+			diags.Append(NewDiagIntoIncompatibleType(
+				path,
+				val,
+				target.Type(),
+				err,
+			))
 			return target, diags
 		}
 		return reflect.ValueOf(b).Convert(target.Type()), nil
@@ -35,22 +35,22 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 		var s string
 		err := val.As(&s)
 		if err != nil {
-			diags.Append(DiagIntoIncompatibleType{
-				Val:        val,
-				TargetType: target.Type(),
-				AttrPath:   path,
-				Err:        err,
-			})
+			diags.Append(NewDiagIntoIncompatibleType(
+				path,
+				val,
+				target.Type(),
+				err,
+			))
 			return target, diags
 		}
 		return reflect.ValueOf(s).Convert(target.Type()), nil
 	default:
-		diags.Append(DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			AttrPath:   path,
-			Err:        errors.New("unknown type"),
-		})
+		diags.Append(NewDiagIntoIncompatibleType(
+			path,
+			val,
+			target.Type(),
+			errors.New("unknown type"),
+		))
 		return target, diags
 	}
 }

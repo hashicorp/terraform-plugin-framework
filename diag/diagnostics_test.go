@@ -533,13 +533,13 @@ func TestDiagnosticsToTfprotov6Diagnostics(t *testing.T) {
 		},
 		"Diagnostic-SeverityInvalid": {
 			diags: diag.Diagnostics{
-				invalidSeverityDiagnostic{},
+				&invalidSeverityDiagnostic{},
 			},
 			expected: []*tfprotov6.Diagnostic{
 				{
-					Detail:   invalidSeverityDiagnostic{}.Detail(),
+					Detail:   (&invalidSeverityDiagnostic{}).Detail(),
 					Severity: tfprotov6.DiagnosticSeverityInvalid,
-					Summary:  invalidSeverityDiagnostic{}.Summary(),
+					Summary:  (&invalidSeverityDiagnostic{}).Summary(),
 				},
 			},
 		},

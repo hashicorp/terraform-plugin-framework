@@ -21,12 +21,12 @@ func TestPointer_notAPointer(t *testing.T) {
 
 	var s string
 	expectedDiags := diag.Diagnostics{
-		refl.DiagIntoIncompatibleType{
-			Val:        tftypes.NewValue(tftypes.String, "hello"),
-			TargetType: reflect.TypeOf(s),
-			AttrPath:   tftypes.NewAttributePath(),
-			Err:        fmt.Errorf("cannot dereference pointer, not a pointer, is a %s (%s)", reflect.TypeOf(s), reflect.TypeOf(s).Kind()),
-		},
+		refl.NewDiagIntoIncompatibleType(
+			tftypes.NewAttributePath(),
+			tftypes.NewValue(tftypes.String, "hello"),
+			reflect.TypeOf(s),
+			fmt.Errorf("cannot dereference pointer, not a pointer, is a %s (%s)", reflect.TypeOf(s), reflect.TypeOf(s).Kind()),
+		),
 	}
 
 	_, diags := refl.Pointer(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())

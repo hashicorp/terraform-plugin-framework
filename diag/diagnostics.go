@@ -81,13 +81,10 @@ func (diags Diagnostics) ToTfprotov6Diagnostics() []*tfprotov6.Diagnostic {
 
 	for _, diag := range diags {
 		tfprotov6Diagnostic := &tfprotov6.Diagnostic{
-			Detail:   diag.Detail(),
-			Severity: diag.Severity().ToTfprotov6DiagnosticSeverity(),
-			Summary:  diag.Summary(),
-		}
-
-		if diagWithPath, ok := diag.(DiagnosticWithPath); ok {
-			tfprotov6Diagnostic.Attribute = diagWithPath.Path()
+			Attribute: diag.Path(),
+			Detail:    diag.Detail(),
+			Severity:  diag.Severity().ToTfprotov6DiagnosticSeverity(),
+			Summary:   diag.Summary(),
 		}
 
 		results = append(results, tfprotov6Diagnostic)

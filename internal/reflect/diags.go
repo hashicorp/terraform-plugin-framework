@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func toTerraform5ValueErrorDiag(err error, path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+func toTerraform5ValueErrorDiag(err error, path *tftypes.AttributePath) *diag.GenericDiagnostic {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -17,7 +17,7 @@ func toTerraform5ValueErrorDiag(err error, path *tftypes.AttributePath) diag.Att
 	)
 }
 
-func toTerraformValueErrorDiag(err error, path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+func toTerraformValueErrorDiag(err error, path *tftypes.AttributePath) *diag.GenericDiagnostic {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -25,7 +25,7 @@ func toTerraformValueErrorDiag(err error, path *tftypes.AttributePath) diag.Attr
 	)
 }
 
-func validateValueErrorDiag(err error, path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+func validateValueErrorDiag(err error, path *tftypes.AttributePath) *diag.GenericDiagnostic {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -33,7 +33,7 @@ func validateValueErrorDiag(err error, path *tftypes.AttributePath) diag.Attribu
 	)
 }
 
-func valueFromTerraformErrorDiag(err error, path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+func valueFromTerraformErrorDiag(err error, path *tftypes.AttributePath) *diag.GenericDiagnostic {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -41,27 +41,37 @@ func valueFromTerraformErrorDiag(err error, path *tftypes.AttributePath) diag.At
 	)
 }
 
+var _ diag.Diagnostic = &DiagIntoIncompatibleType{}
+
 type DiagIntoIncompatibleType struct {
+	*diag.GenericDiagnostic
+
 	Val        tftypes.Value
 	TargetType reflect.Type
-	AttrPath   *tftypes.AttributePath
 	Err        error
 }
 
-func (d DiagIntoIncompatibleType) Severity() diag.Severity {
-	return diag.SeverityError
+func NewDiagIntoIncompatibleType(path *tftypes.AttributePath, val tftypes.Value, targetType reflect.Type, err error) *DiagIntoIncompatibleType {
+	diagnostic := &DiagIntoIncompatibleType{
+		GenericDiagnostic: diag.NewAttributeErrorDiagnostic(
+			path,
+			"Value Conversion Error",
+			fmt.Sprintf("An unexpected error was encountered trying to convert %T into %s. This is always an error in the provider. Please report the following to the provider developer:\n\n%s", val, targetType, err.Error()),
+		),
+
+		Val:        val,
+		TargetType: targetType,
+		Err:        err,
+	}
+
+	return diagnostic
 }
 
-func (d DiagIntoIncompatibleType) Summary() string {
-	return "Value Conversion Error"
-}
-
-func (d DiagIntoIncompatibleType) Detail() string {
-	return fmt.Sprintf("An unexpected error was encountered trying to convert %T into %s. This is always an error in the provider. Please report the following to the provider developer:\n\n%s", d.Val, d.TargetType, d.Err.Error())
-}
-
-func (d DiagIntoIncompatibleType) Equal(o diag.Diagnostic) bool {
-	od, ok := o.(DiagIntoIncompatibleType)
+func (d *DiagIntoIncompatibleType) Equal(o diag.Diagnostic) bool {
+	if d == nil && o == nil {
+		return true
+	}
+	od, ok := o.(*DiagIntoIncompatibleType)
 	if !ok {
 		return false
 	}
@@ -71,40 +81,41 @@ func (d DiagIntoIncompatibleType) Equal(o diag.Diagnostic) bool {
 	if d.TargetType != od.TargetType {
 		return false
 	}
-	if !d.AttrPath.Equal(od.AttrPath) {
-		return false
-	}
 	if d.Err.Error() != od.Err.Error() {
 		return false
 	}
-	return true
-}
-
-func (d DiagIntoIncompatibleType) Path() *tftypes.AttributePath {
-	return d.AttrPath
+	return d.GenericDiagnostic.Equal(od.GenericDiagnostic)
 }
 
 type DiagNewAttributeValueIntoWrongType struct {
+	*diag.GenericDiagnostic
+
 	ValType    reflect.Type
 	TargetType reflect.Type
 	SchemaType attr.Type
-	AttrPath   *tftypes.AttributePath
 }
 
-func (d DiagNewAttributeValueIntoWrongType) Severity() diag.Severity {
-	return diag.SeverityError
+func NewDiagNewAttributeValueIntoWrongType(path *tftypes.AttributePath, valType reflect.Type, targetType reflect.Type, schemaType attr.Type) *DiagNewAttributeValueIntoWrongType {
+	diagnostic := &DiagNewAttributeValueIntoWrongType{
+		GenericDiagnostic: diag.NewAttributeErrorDiagnostic(
+			path,
+			"Value Conversion Error",
+			fmt.Sprintf("An unexpected error was encountered trying to convert into a Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\nCannot use attr.Value %s, only %s is supported because %T is the type in the schema", targetType, valType, schemaType),
+		),
+
+		ValType:    valType,
+		TargetType: targetType,
+		SchemaType: schemaType,
+	}
+
+	return diagnostic
 }
 
-func (d DiagNewAttributeValueIntoWrongType) Summary() string {
-	return "Value Conversion Error"
-}
-
-func (d DiagNewAttributeValueIntoWrongType) Detail() string {
-	return fmt.Sprintf("An unexpected error was encountered trying to convert into a Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\nCannot use attr.Value %s, only %s is supported because %T is the type in the schema", d.TargetType, d.ValType, d.SchemaType)
-}
-
-func (d DiagNewAttributeValueIntoWrongType) Equal(o diag.Diagnostic) bool {
-	od, ok := o.(DiagNewAttributeValueIntoWrongType)
+func (d *DiagNewAttributeValueIntoWrongType) Equal(o diag.Diagnostic) bool {
+	if d == nil && o == nil {
+		return true
+	}
+	od, ok := o.(*DiagNewAttributeValueIntoWrongType)
 	if !ok {
 		return false
 	}
@@ -117,12 +128,5 @@ func (d DiagNewAttributeValueIntoWrongType) Equal(o diag.Diagnostic) bool {
 	if !d.SchemaType.Equal(od.SchemaType) {
 		return false
 	}
-	if !d.AttrPath.Equal(od.AttrPath) {
-		return false
-	}
-	return true
-}
-
-func (d DiagNewAttributeValueIntoWrongType) Path() *tftypes.AttributePath {
-	return d.AttrPath
+	return d.GenericDiagnostic.Equal(od.GenericDiagnostic)
 }

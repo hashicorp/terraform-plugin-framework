@@ -114,6 +114,16 @@ func (f Float64) Equal(other attr.Value) bool {
 	return f.Value == o.Value
 }
 
+// IsNull returns true if the Float64 is null.
+func (f Float64) IsNull() bool {
+	return f.Null
+}
+
+// IsUnknown returns true if the Float64 is unknown.
+func (f Float64) IsUnknown() bool {
+	return f.Unknown
+}
+
 // ToTerraformValue returns the data contained in the Float64 as a float64.
 // If Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
 // returns nil.

@@ -1,0 +1,7 @@
+```release-note:breaking-change
+attr: The `Value` interface type now requires `IsNull() bool` and `IsUnknown() bool` methods for implementations.
+```
+
+```release-note:enhancement
+attr: Added `IsNull()` and `IsUnknown()` methods to the `Value` interface type
+```

@@ -78,3 +78,13 @@ func (n Number) Equal(other attr.Value) bool {
 	}
 	return n.Value.Cmp(o.Value) == 0
 }
+
+// IsNull returns true if the Number is null.
+func (n Number) IsNull() bool {
+	return n.Null
+}
+
+// IsUnknown returns true if the Number is unknown.
+func (n Number) IsUnknown() bool {
+	return n.Unknown
+}

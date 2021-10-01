@@ -224,3 +224,13 @@ func (m Map) Equal(o attr.Value) bool {
 	}
 	return true
 }
+
+// IsNull returns true if the Map is null.
+func (m Map) IsNull() bool {
+	return m.Null
+}
+
+// IsUnknown returns true if the Map is unknown.
+func (m Map) IsUnknown() bool {
+	return m.Unknown
+}

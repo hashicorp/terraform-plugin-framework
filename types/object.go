@@ -271,3 +271,13 @@ func (o Object) Equal(c attr.Value) bool {
 
 	return true
 }
+
+// IsNull returns true if the Object is null.
+func (o Object) IsNull() bool {
+	return o.Null
+}
+
+// IsUnknown returns true if the Object is unknown.
+func (o Object) IsUnknown() bool {
+	return o.Unknown
+}

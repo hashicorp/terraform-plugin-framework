@@ -70,3 +70,13 @@ func (s String) Equal(other attr.Value) bool {
 	}
 	return s.Value == o.Value
 }
+
+// IsNull returns true if the String is null.
+func (s String) IsNull() bool {
+	return s.Null
+}
+
+// IsUnknown returns true if the String is unknown.
+func (s String) IsUnknown() bool {
+	return s.Unknown
+}

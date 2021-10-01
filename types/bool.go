@@ -74,3 +74,13 @@ func (b Bool) Equal(other attr.Value) bool {
 	}
 	return b.Value == o.Value
 }
+
+// IsNull returns true if the Bool is null.
+func (b Bool) IsNull() bool {
+	return b.Null
+}
+
+// IsUnknown returns true if the Bool is unknown.
+func (b Bool) IsUnknown() bool {
+	return b.Unknown
+}

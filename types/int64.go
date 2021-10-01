@@ -127,6 +127,16 @@ func (i Int64) Equal(other attr.Value) bool {
 	return i.Value == o.Value
 }
 
+// IsNull returns true if the Int64 is null.
+func (i Int64) IsNull() bool {
+	return i.Null
+}
+
+// IsUnknown returns true if the Int64 is unknown.
+func (i Int64) IsUnknown() bool {
+	return i.Unknown
+}
+
 // ToTerraformValue returns the data contained in the Int64 as a int64.
 // If Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
 // returns nil.

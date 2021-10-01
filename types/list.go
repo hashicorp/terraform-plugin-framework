@@ -211,3 +211,13 @@ func (l List) Equal(o attr.Value) bool {
 	}
 	return true
 }
+
+// IsNull returns true if the List is null.
+func (l List) IsNull() bool {
+	return l.Null
+}
+
+// IsUnknown returns true if the List is unknown.
+func (l List) IsUnknown() bool {
+	return l.Unknown
+}

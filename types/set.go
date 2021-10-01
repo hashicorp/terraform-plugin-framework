@@ -268,6 +268,16 @@ func (s Set) Equal(o attr.Value) bool {
 	return true
 }
 
+// IsNull returns true if the Set is null.
+func (s Set) IsNull() bool {
+	return s.Null
+}
+
+// IsUnknown returns true if the Set is unknown.
+func (s Set) IsUnknown() bool {
+	return s.Unknown
+}
+
 func (s Set) contains(v attr.Value) bool {
 	for _, elem := range s.Elems {
 		if elem.Equal(v) {

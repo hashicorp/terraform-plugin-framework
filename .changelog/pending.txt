@@ -1,0 +1,3 @@
+```release-note:breaking-change
+tfsdk: The `AddAttributeError`, `AddAttributeWarning`, `AddError`, and `AddWarning` methods on the `ConfigureProviderResponse`, `CreateResourceResponse`, `DeleteResourceResponse`, `ModifyAttributePlanResponse`, `ModifyResourcePlanResponse`, `ReadDataSourceResponse`, `ReadResourceResponse`, and `UpdateResourceResponse` types have been removed in preference of the same methods on the `Diagnostics` field of these types. For example, code such as `resp.AddError("...", "...")` can be updated to `resp.Diagnostics.AddError("...", "...")`.
+```

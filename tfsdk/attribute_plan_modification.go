@@ -165,27 +165,3 @@ type ModifyAttributePlanResponse struct {
 	// generated.
 	Diagnostics diag.Diagnostics
 }
-
-// AddWarning appends a warning diagnostic to the response. If the warning
-// concerns a particular attribute, AddAttributeWarning should be used instead.
-func (r *ModifyAttributePlanResponse) AddWarning(summary, detail string) {
-	r.Diagnostics.AddWarning(summary, detail)
-}
-
-// AddAttributeWarning appends a warning diagnostic to the response and labels
-// it with a specific attribute.
-func (r *ModifyAttributePlanResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
-}
-
-// AddError appends an error diagnostic to the response. If the error concerns a
-// particular attribute, AddAttributeError should be used instead.
-func (r *ModifyAttributePlanResponse) AddError(summary, detail string) {
-	r.Diagnostics.AddError(summary, detail)
-}
-
-// AddAttributeError appends an error diagnostic to the response and labels it
-// with a specific attribute.
-func (r *ModifyAttributePlanResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
-}

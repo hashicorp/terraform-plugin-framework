@@ -2400,7 +2400,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}),
 			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
 				resp.RequiresReplace = []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")}
-				resp.AddWarning("I'm warning you", "You have been warned")
+				resp.Diagnostics.AddWarning("I'm warning you", "You have been warned")
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
 			expectedDiags: []*tfprotov6.Diagnostic{
@@ -2488,7 +2488,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}),
 			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
 				resp.RequiresReplace = []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")}
-				resp.AddError("This is an error", "More details about the error")
+				resp.Diagnostics.AddError("This is an error", "More details about the error")
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
 			expectedDiags: []*tfprotov6.Diagnostic{

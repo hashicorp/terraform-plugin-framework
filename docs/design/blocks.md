@@ -51,7 +51,7 @@ Blocks also have other limitations in Terraform, such as not supporting sensitiv
 
 ### Terraform Plugin Protocol
 
-In terms of the protocol, all configuration information from the plugin is referred to as the schema. Prior to the recent version 6 of the protocol, only blocks were supported implementing complex schema types.
+In terms of the protocol, all configuration information from the plugin is referred to as the schema. Prior to the recent version 6 of the protocol, implementing complex schema types could only be done using blocks.
 
 Version 6 of the protocol defines the following implementation details for schema:
 

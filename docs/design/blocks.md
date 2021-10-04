@@ -297,9 +297,9 @@ The previous framework provided the [`helper/schema.Resource` type](https://pkg.
 // but also for data sources. In the case of data sources, the Create,
 // Update and Delete functions must not be provided.
 type Resource struct {
-    // ... other fields ...
+	// ... other fields ...
 
-    // Schema is the schema for the configuration of this resource.
+	// Schema is the schema for the configuration of this resource.
 	//
 	// The keys of this map are the configuration keys, and the values
 	// describe the schema of the configuration value.

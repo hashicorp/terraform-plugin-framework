@@ -92,6 +92,10 @@ func TestNumberToTerraformValue(t *testing.T) {
 			input:       Number{Value: big.NewFloat(123)},
 			expectation: big.NewFloat(123),
 		},
+		"value-nil": {
+			input:       Number{Value: nil},
+			expectation: nil,
+		},
 		"unknown": {
 			input:       Number{Unknown: true},
 			expectation: tftypes.UnknownValue,

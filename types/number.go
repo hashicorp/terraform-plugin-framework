@@ -55,6 +55,9 @@ func (n Number) ToTerraformValue(_ context.Context) (interface{}, error) {
 	if n.Unknown {
 		return tftypes.UnknownValue, nil
 	}
+	if n.Value == nil {
+		return nil, nil
+	}
 	return n.Value, nil
 }
 

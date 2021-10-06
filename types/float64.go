@@ -131,5 +131,5 @@ func (f Float64) ToTerraformValue(ctx context.Context) (interface{}, error) {
 
 // Type returns a NumberType.
 func (f Float64) Type(ctx context.Context) attr.Type {
-	return Int64Type
+	return Float64Type
 }

@@ -264,3 +264,82 @@ func TestBoolEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestBoolMarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Bool
+		expectation []byte
+	}
+	tests := map[string]testCase{
+		"unknown produces null": {
+			input:       Bool{Unknown: true},
+			expectation: []byte("null"),
+		},
+		"null produces null": {
+			input:       Bool{Null: true},
+			expectation: []byte("null"),
+		},
+		"false produces false": {
+			input:       Bool{Value: false},
+			expectation: []byte("false"),
+		},
+		"true produces true": {
+			input:       Bool{Value: true},
+			expectation: []byte("true"),
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := test.input.MarshalJSON()
+			if err != nil {
+				t.Error(err)
+			}
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestBoolUnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       []byte
+		expectation Bool
+	}
+	tests := map[string]testCase{
+		"null produces null": {
+			input:       []byte("null"),
+			expectation: Bool{Null: true},
+		},
+		"false produces false": {
+			input:       []byte("false"),
+			expectation: Bool{Value: false},
+		},
+		"true produces true": {
+			input:       []byte("true"),
+			expectation: Bool{Value: true},
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var got Bool
+			err := got.UnmarshalJSON(test.input)
+			if err != nil {
+				t.Error(err)
+			}
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}

@@ -217,3 +217,82 @@ func TestStringEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestStringMarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       String
+		expectation []byte
+	}
+	tests := map[string]testCase{
+		"unknown produces null": {
+			input:       String{Unknown: true},
+			expectation: []byte("null"),
+		},
+		"null produces null": {
+			input:       String{Null: true},
+			expectation: []byte("null"),
+		},
+		`empty produces ""`: {
+			input:       String{Value: ""},
+			expectation: []byte(`""`),
+		},
+		`test produces "test"`: {
+			input:       String{Value: "test"},
+			expectation: []byte(`"test"`),
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := test.input.MarshalJSON()
+			if err != nil {
+				t.Error(err)
+			}
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestStringUnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       []byte
+		expectation String
+	}
+	tests := map[string]testCase{
+		"null produces null": {
+			input:       []byte("null"),
+			expectation: String{Null: true},
+		},
+		`"" produces empty`: {
+			input:       []byte(`""`),
+			expectation: String{Value: ""},
+		},
+		`"test" produces test`: {
+			input:       []byte(`"test"`),
+			expectation: String{Value: "test"},
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var got String
+			err := got.UnmarshalJSON(test.input)
+			if err != nil {
+				t.Error(err)
+			}
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}

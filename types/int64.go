@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 
@@ -145,4 +146,27 @@ func (i Int64) ToTerraformValue(ctx context.Context) (interface{}, error) {
 // Type returns a NumberType.
 func (i Int64) Type(ctx context.Context) attr.Type {
 	return Int64Type
+}
+
+func (i Int64) MarshalJSON() ([]byte, error) {
+	if i.Null || i.Unknown {
+		return json.Marshal((*int64)(nil))
+	}
+	return json.Marshal(i.Value)
+}
+
+func (i *Int64) UnmarshalJSON(data []byte) error {
+	var iPtr *int64
+	if err := json.Unmarshal(data, &iPtr); err != nil {
+		return err
+	}
+	i.Unknown = false
+	if iPtr == nil {
+		i.Value = 0
+		i.Null = true
+	} else {
+		i.Value = *iPtr
+		i.Null = false
+	}
+	return nil
 }

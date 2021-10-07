@@ -240,3 +240,106 @@ func TestNumberEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestNumberMarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Number
+		expectation []byte
+	}
+	tests := map[string]testCase{
+		"unknown produces null": {
+			input:       Number{Unknown: true},
+			expectation: []byte("null"),
+		},
+		"null produces null": {
+			input:       Number{Null: true},
+			expectation: []byte("null"),
+		},
+		"0 produces 0": {
+			input:       Number{Value: big.NewFloat(0)},
+			expectation: []byte("0"),
+		},
+		"1 produces 1": {
+			input:       Number{Value: big.NewFloat(1)},
+			expectation: []byte("1"),
+		},
+		"-1 produces -1": {
+			input:       Number{Value: big.NewFloat(-1)},
+			expectation: []byte("-1"),
+		},
+		"1.1 produces 1.1": {
+			input:       Number{Value: big.NewFloat(1.1)},
+			expectation: []byte("1.1"),
+		},
+		"-1.1 produces -1.1": {
+			input:       Number{Value: big.NewFloat(-1.1)},
+			expectation: []byte("-1.1"),
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := test.input.MarshalJSON()
+			if err != nil {
+				t.Error(err)
+			}
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestNumberUnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       []byte
+		expectation Number
+	}
+	tests := map[string]testCase{
+		"null produces null": {
+			input:       []byte("null"),
+			expectation: Number{Null: true},
+		},
+		"0 produces 0": {
+			input:       []byte("0"),
+			expectation: Number{Value: big.NewFloat(0)},
+		},
+		"1 produces 1": {
+			input:       []byte("1"),
+			expectation: Number{Value: big.NewFloat(1)},
+		},
+		"-1 produces -1": {
+			input:       []byte("-1"),
+			expectation: Number{Value: big.NewFloat(-1)},
+		},
+		"1.1 produces 1.1": {
+			input:       []byte("1.1"),
+			expectation: Number{Value: big.NewFloat(1.1)},
+		},
+		"-1.1 produces -1.1": {
+			input:       []byte("-1.1"),
+			expectation: Number{Value: big.NewFloat(-1.1)},
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var got Number
+			err := got.UnmarshalJSON(test.input)
+			if err != nil {
+				t.Error(err)
+			}
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}

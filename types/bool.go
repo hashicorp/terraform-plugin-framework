@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -73,4 +74,27 @@ func (b Bool) Equal(other attr.Value) bool {
 		return false
 	}
 	return b.Value == o.Value
+}
+
+func (b Bool) MarshalJSON() ([]byte, error) {
+	if b.Null || b.Unknown {
+		return json.Marshal((*bool)(nil))
+	}
+	return json.Marshal(b.Value)
+}
+
+func (b *Bool) UnmarshalJSON(data []byte) error {
+	var bPtr *bool
+	if err := json.Unmarshal(data, &bPtr); err != nil {
+		return err
+	}
+	b.Unknown = false
+	if bPtr == nil {
+		b.Value = false
+		b.Null = true
+	} else {
+		b.Value = *bPtr
+		b.Null = false
+	}
+	return nil
 }

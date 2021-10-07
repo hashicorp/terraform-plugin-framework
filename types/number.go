@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -80,4 +81,32 @@ func (n Number) Equal(other attr.Value) bool {
 		return false
 	}
 	return n.Value.Cmp(o.Value) == 0
+}
+
+func (n Number) MarshalJSON() ([]byte, error) {
+	if n.Null || n.Unknown {
+		return json.Marshal((*big.Float)(nil))
+	}
+	// big.Float implements the text marshaler which will wrap the result
+	// in double quotes which is incorrect for JSON.
+	// The docs state it only marshals the float anyways so using the
+	// float64 primitive json marshaler is hopefully good enough.
+	f, _ := n.Value.Float64()
+	return json.Marshal(f)
+}
+
+func (n *Number) UnmarshalJSON(data []byte) error {
+	var fPtr *float64
+	if err := json.Unmarshal(data, &fPtr); err != nil {
+		return err
+	}
+	n.Unknown = false
+	if fPtr == nil {
+		n.Value = nil
+		n.Null = true
+	} else {
+		n.Value = big.NewFloat(*fPtr)
+		n.Null = false
+	}
+	return nil
 }

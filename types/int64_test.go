@@ -217,3 +217,90 @@ func TestInt64Equal(t *testing.T) {
 		})
 	}
 }
+
+func TestInt64MarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Int64
+		expectation []byte
+	}
+	tests := map[string]testCase{
+		"unknown produces null": {
+			input:       Int64{Unknown: true},
+			expectation: []byte("null"),
+		},
+		"null produces null": {
+			input:       Int64{Null: true},
+			expectation: []byte("null"),
+		},
+		"0 produces 0": {
+			input:       Int64{Value: 0},
+			expectation: []byte("0"),
+		},
+		"1 produces 1": {
+			input:       Int64{Value: 1},
+			expectation: []byte("1"),
+		},
+		"-1 produces -1": {
+			input:       Int64{Value: -1},
+			expectation: []byte("-1"),
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := test.input.MarshalJSON()
+			if err != nil {
+				t.Error(err)
+			}
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestInt64UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       []byte
+		expectation Int64
+	}
+	tests := map[string]testCase{
+		"null produces null": {
+			input:       []byte("null"),
+			expectation: Int64{Null: true},
+		},
+		"0 produces 0": {
+			input:       []byte("0"),
+			expectation: Int64{Value: 0},
+		},
+		"1 produces 1": {
+			input:       []byte("1"),
+			expectation: Int64{Value: 1},
+		},
+		"-1 produces -1": {
+			input:       []byte("-1"),
+			expectation: Int64{Value: -1},
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var got Int64
+			err := got.UnmarshalJSON(test.input)
+			if err != nil {
+				t.Error(err)
+			}
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}

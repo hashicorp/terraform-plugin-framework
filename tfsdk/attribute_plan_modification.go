@@ -64,7 +64,9 @@ type RequiresReplaceModifier struct{}
 
 // Modify sets RequiresReplace on the response to true.
 func (r RequiresReplaceModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	resp.RequiresReplace = true
+	if req.AttributePlan != req.AttributeState && req.AttributeConfig != nil {
+		resp.RequiresReplace = true
+	}
 }
 
 // Description returns a human-readable description of the plan modifier.
@@ -103,9 +105,11 @@ type RequiresReplaceIfModifier struct {
 // Modify sets RequiresReplace on the response to true if the conditional
 // RequiresReplaceIfFunc returns true.
 func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	res, diags := r.f(ctx, req.AttributeState, req.AttributeConfig, req.AttributePath)
-	resp.Diagnostics.Append(diags...)
-	resp.RequiresReplace = res
+	if req.AttributePlan != req.AttributeState && req.AttributeConfig != nil {
+		res, diags := r.f(ctx, req.AttributeState, req.AttributeConfig, req.AttributePath)
+		resp.Diagnostics.Append(diags...)
+		resp.RequiresReplace = res
+	}
 }
 
 // Description returns a human-readable description of the plan modifier.

@@ -1026,6 +1026,66 @@ func TestStateGetAttribute(t *testing.T) {
 			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
 			expected: types.String{Null: true},
 		},
+		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName-Object": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"value": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"value": tftypes.String,
+									},
+								},
+							},
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: ListNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Attributes: SingleNestedAttributes(map[string]Attribute{
+										"value": {
+											Type:     types.StringType,
+											Optional: true,
+										},
+									}),
+									Optional: true,
+								},
+							}, ListNestedAttributesOptions{}),
+							Optional: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: types.Object{
+				Null:      true,
+				AttrTypes: map[string]attr.Type{"value": types.StringType},
+			},
+		},
 		"WithAttributeName-ListNestedAttributes-WithElementKeyInt-WithAttributeName": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{

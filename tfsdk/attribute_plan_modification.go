@@ -137,20 +137,36 @@ type PreserveStateModifier struct{}
 // Modify copies the attribute's prior state to the attribute plan if the prior
 // state value is not null.
 func (r PreserveStateModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	if req.AttributeState == nil {
+	if req.AttributeState == nil || resp.AttributePlan == nil {
 		return
 	}
 
 	val, err := req.AttributeState.ToTerraformValue(ctx)
 	if err != nil {
 		resp.Diagnostics.AddAttributeError(req.AttributePath,
-			"Error converting value",
+			"Error converting state value",
 			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", req.AttributeState.Type(ctx), err),
 		)
 		return
 	}
 
+	// if we have no state value, there's nothing to preserve
 	if val == nil {
+		return
+	}
+
+	val, err = resp.AttributePlan.ToTerraformValue(ctx)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error converting plan value",
+			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", resp.AttributePlan.Type(ctx), err),
+		)
+		return
+	}
+
+	// if it's not planned to be the unknown value, stick with
+	// the concrete plan
+	if val != tftypes.UnknownValue {
 		return
 	}
 

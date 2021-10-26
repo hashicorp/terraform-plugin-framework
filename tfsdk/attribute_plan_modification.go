@@ -137,7 +137,7 @@ type PreserveStateModifier struct{}
 // Modify copies the attribute's prior state to the attribute plan if the prior
 // state value is not null.
 func (r PreserveStateModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	if req.AttributeState == nil || resp.AttributePlan == nil {
+	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
 		return
 	}
 
@@ -167,6 +167,21 @@ func (r PreserveStateModifier) Modify(ctx context.Context, req ModifyAttributePl
 	// if it's not planned to be the unknown value, stick with
 	// the concrete plan
 	if val != tftypes.UnknownValue {
+		return
+	}
+
+	val, err = req.AttributeConfig.ToTerraformValue(ctx)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error converting config value",
+			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", req.AttributeConfig.Type(ctx), err),
+		)
+		return
+	}
+
+	// if the config is the unknown value, use the unknown value
+	// otherwise, interpolation gets messed up
+	if val == tftypes.UnknownValue {
 		return
 	}
 

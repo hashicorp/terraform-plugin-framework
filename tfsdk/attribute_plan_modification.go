@@ -2,6 +2,7 @@ package tfsdk
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -136,9 +137,24 @@ type PreserveStateModifier struct{}
 // Modify copies the attribute's prior state to the attribute plan if the prior
 // state value is not null.
 func (r PreserveStateModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	if req.AttributeState != nil {
-		resp.AttributePlan = req.AttributeState
+	if req.AttributeState == nil {
+		return
 	}
+
+	val, err := req.AttributeState.ToTerraformValue(ctx)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error converting value",
+			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", req.AttributeState.Type(ctx), err),
+		)
+		return
+	}
+
+	if val == nil {
+		return
+	}
+
+	resp.AttributePlan = req.AttributeState
 }
 
 // Description returns a human-readable description of the plan modifier.

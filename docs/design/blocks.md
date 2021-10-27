@@ -667,3 +667,5 @@ tfsdk.Schema{
 	},
 }
 ```
+
+Additional future consideration should be given to introducing schema validation unit testing capabilities in the framework, which would allow provider developers to receive an error should a key in the root `Attributes` map match a key in the root `Blocks` map.

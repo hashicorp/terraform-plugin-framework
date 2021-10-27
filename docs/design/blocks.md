@@ -595,7 +595,14 @@ For example:
 },
 ```
 
-This allows the framework to differentiate between block and nested attributes by fields.
+This allows the framework to differentiate between block and nested attributes by fields. This would allow for a potential block to attribute migration path of:
+
+- Rename `Blocks` field identifier to `Attributes`
+- Rename `ListNestedBlocks`/`SetNestedBlocks` call expressions to `ListNestedAttributes`/`SetNestedAttributes`
+- Rename `ListNestedBlocksOptions`/`SetNestedBlocksOptions` declarations to `ListNestedAttributesOptions`/`SetNestedBlocksOptions`
+- Either default to adding `Required`/`Optional`/`Computed` field identifier(s) and `true` value(s) or its a manual step for provider developers
+
+However, this does introduce the possibility of creating a schema that passes compilation checks, but is not a valid schema. For example, `Attributes` that contains `Blocks` which is not possible in the protocol. At best the framework could introduce unit testable schema validation logic to catch this situation, or worse case, it would result in runtime errors for practitioners that get reported back to provider developers.
 
 ### Blocks as a Separate Type
 
@@ -621,25 +628,42 @@ type Schema struct {
 }
 ```
 
-This would more closely represent the underlying protocol differences, however it could be a more complex implementation and likely a more confusing provider development experience. Provider developers wanting to switch from blocks to attributes in the future would then need to perform more difficult code changes.
+This would more closely represent the underlying protocol differences, however it could be a more complex provider development experience due to those differences and especially when migrating from the previous framework which had a different abstraction. Provider developers wanting to switch from blocks to attributes in the future would need to perform more difficult code changes as well:
+
+- Convert `map[string]Block` declaration to `map[string]Attribute`
+- Convert `Block` declaration to `Attribute`
+  - Wrap `Attributes` with call expression (e.g. `ListNestedAttributes`) based on `NestingMode`
+    - Migrate `MinItems` and `MaxItems` to options fields (e.g. `ListNestedAttributesOptions`) or `Validators`
+  - Remove `NestingMode` field identifier and value
+- Rename `Blocks` field identifier to `Attributes`
+  - If `Attributes` exists already, append the block's attributes to existing `Attributes` map
+- Either default to adding `Required`/`Optional`/`Computed` field identifier(s) and `true` value(s) or its a manual step for provider developers
+
+It does however result in compile-time feedback about capabilities and reduces the abstraction presented by this framework, which matches many other previously implemented designs.
 
 ## Recommendations
 
-It is recommended that list and set block support be implemented as a new `Attribute` field, named `Blocks`, that is defined similarly to `Attributes` and conflicts with the `Type` and `Attributes` fields. Other block nesting modes such as map, single, and group should be avoided as they are practically untested in practice since the older Terraform Plugin SDK never supported them. `Attribute` validation can impose any constraints for blocks, such as lack of sensitivity. The schema will do all the necessary conversion into the underlying `SchemaNestedBlock` and `SchemaBlock` types, while data access will be no different than existing `List` or `Set` of `Object` handling (similar to the nested attribute counterparts).
+It is recommended that list and set block support be implemented as a separate type(s). Other block nesting modes such as map, single, and group should be avoided as they are practically untested in practice since the older Terraform Plugin SDK never supported them. The schema will do all the necessary conversion into the underlying `SchemaNestedBlock` and `SchemaBlock` types, while data access will be no different than existing `List` or `Set` of `Object` handling (similar to the nested attribute counterparts).
 
 `Attributes` will always be recommended for new schema definitions over `Blocks`. Whether the new `Blocks` field is explicitly marked as `Deprecated` in Go documentation, is a potential implementation detail for consideration.
 
 An example schema may look like:
 
 ```go
-"example_block": {
-	Blocks: ListNestedBlocks(map[string]Attribute{
-		"example_attribute": {
-			Type:     types.StringType,
-			Required: true,
+tfsdk.Schema{
+	// Attributes technically becomes optional using existing support in this
+	// framework, but will be recommended for new schemas with complex values.
+	// Attributes: map[string]tfsdk.Attribute{},
+	Blocks: map[string]tfsdk.Block{
+		"example_block": {
+			Attributes: map[string]tfsdk.Attribute{
+				"example_block_attribute": {
+					Type:     types.StringType,
+					Optional: true,
+				},
+			}
+			NestingMode: tfsdk.BlockNestingModeList,
 		},
-	}, ListNestedBlocksOptions{}),
-},
+	},
+}
 ```
-
-This has a few benefits for provider developers as `Blocks` will feel as familiar as `Attributes`. It will also allow for easier conversion to `Attributes` in the future.

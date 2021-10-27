@@ -16,30 +16,6 @@ type ConfigureProviderResponse struct {
 	Diagnostics diag.Diagnostics
 }
 
-// AddWarning appends a warning diagnostic to the response. If the warning
-// concerns a particular attribute, AddAttributeWarning should be used instead.
-func (r *ConfigureProviderResponse) AddWarning(summary, detail string) {
-	r.Diagnostics.AddWarning(summary, detail)
-}
-
-// AddAttributeWarning appends a warning diagnostic to the response and labels
-// it with a specific attribute.
-func (r *ConfigureProviderResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
-}
-
-// AddError appends an error diagnostic to the response. If the error concerns a
-// particular attribute, AddAttributeError should be used instead.
-func (r *ConfigureProviderResponse) AddError(summary, detail string) {
-	r.Diagnostics.AddError(summary, detail)
-}
-
-// AddAttributeError appends an error diagnostic to the response and labels it
-// with a specific attribute.
-func (r *ConfigureProviderResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
-}
-
 // CreateResourceResponse represents a response to a CreateResourceRequest. An
 // instance of this response struct is supplied as
 // an argument to the resource's Create function, in which the provider
@@ -54,30 +30,6 @@ type CreateResourceResponse struct {
 	// resource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
-}
-
-// AddWarning appends a warning diagnostic to the response. If the warning
-// concerns a particular attribute, AddAttributeWarning should be used instead.
-func (r *CreateResourceResponse) AddWarning(summary, detail string) {
-	r.Diagnostics.AddWarning(summary, detail)
-}
-
-// AddAttributeWarning appends a warning diagnostic to the response and labels
-// it with a specific attribute.
-func (r *CreateResourceResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
-}
-
-// AddError appends an error diagnostic to the response. If the error concerns a
-// particular attribute, AddAttributeError should be used instead.
-func (r *CreateResourceResponse) AddError(summary, detail string) {
-	r.Diagnostics.AddError(summary, detail)
-}
-
-// AddAttributeError appends an error diagnostic to the response and labels it
-// with a specific attribute.
-func (r *CreateResourceResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
 }
 
 // ReadResourceResponse represents a response to a ReadResourceRequest. An
@@ -96,30 +48,6 @@ type ReadResourceResponse struct {
 	Diagnostics diag.Diagnostics
 }
 
-// AddWarning appends a warning diagnostic to the response. If the warning
-// concerns a particular attribute, AddAttributeWarning should be used instead.
-func (r *ReadResourceResponse) AddWarning(summary, detail string) {
-	r.Diagnostics.AddWarning(summary, detail)
-}
-
-// AddAttributeWarning appends a warning diagnostic to the response and labels
-// it with a specific attribute.
-func (r *ReadResourceResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
-}
-
-// AddError appends an error diagnostic to the response. If the error concerns a
-// particular attribute, AddAttributeError should be used instead.
-func (r *ReadResourceResponse) AddError(summary, detail string) {
-	r.Diagnostics.AddError(summary, detail)
-}
-
-// AddAttributeError appends an error diagnostic to the response and labels it
-// with a specific attribute.
-func (r *ReadResourceResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
-}
-
 // UpdateResourceResponse represents a response to an UpdateResourceRequest. An
 // instance of this response struct is supplied as
 // an argument to the resource's Update function, in which the provider
@@ -136,30 +64,6 @@ type UpdateResourceResponse struct {
 	Diagnostics diag.Diagnostics
 }
 
-// AddWarning appends a warning diagnostic to the response. If the warning
-// concerns a particular attribute, AddAttributeWarning should be used instead.
-func (r *UpdateResourceResponse) AddWarning(summary, detail string) {
-	r.Diagnostics.AddWarning(summary, detail)
-}
-
-// AddAttributeWarning appends a warning diagnostic to the response and labels
-// it with a specific attribute.
-func (r *UpdateResourceResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
-}
-
-// AddError appends an error diagnostic to the response. If the error concerns a
-// particular attribute, AddAttributeError should be used instead.
-func (r *UpdateResourceResponse) AddError(summary, detail string) {
-	r.Diagnostics.AddError(summary, detail)
-}
-
-// AddAttributeError appends an error diagnostic to the response and labels it
-// with a specific attribute.
-func (r *UpdateResourceResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
-}
-
 // DeleteResourceResponse represents a response to a DeleteResourceRequest. An
 // instance of this response struct is supplied as
 // an argument to the resource's Delete function, in which the provider
@@ -174,30 +78,6 @@ type DeleteResourceResponse struct {
 	// resource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
-}
-
-// AddWarning appends a warning diagnostic to the response. If the warning
-// concerns a particular attribute, AddAttributeWarning should be used instead.
-func (r *DeleteResourceResponse) AddWarning(summary, detail string) {
-	r.Diagnostics.AddWarning(summary, detail)
-}
-
-// AddAttributeWarning appends a warning diagnostic to the response and labels
-// it with a specific attribute.
-func (r *DeleteResourceResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
-}
-
-// AddError appends an error diagnostic to the response. If the error concerns a
-// particular attribute, AddAttributeError should be used instead.
-func (r *DeleteResourceResponse) AddError(summary, detail string) {
-	r.Diagnostics.AddError(summary, detail)
-}
-
-// AddAttributeError appends an error diagnostic to the response and labels it
-// with a specific attribute.
-func (r *DeleteResourceResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
 }
 
 // ModifyResourcePlanResponse represents a response to a
@@ -221,30 +101,6 @@ type ModifyResourcePlanResponse struct {
 	Diagnostics diag.Diagnostics
 }
 
-// AddWarning appends a warning diagnostic to the response. If the warning
-// concerns a particular attribute, AddAttributeWarning should be used instead.
-func (r *ModifyResourcePlanResponse) AddWarning(summary, detail string) {
-	r.Diagnostics.AddWarning(summary, detail)
-}
-
-// AddAttributeWarning appends a warning diagnostic to the response and labels
-// it with a specific attribute.
-func (r *ModifyResourcePlanResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
-}
-
-// AddError appends an error diagnostic to the response. If the error concerns a
-// particular attribute, AddAttributeError should be used instead.
-func (r *ModifyResourcePlanResponse) AddError(summary, detail string) {
-	r.Diagnostics.AddError(summary, detail)
-}
-
-// AddAttributeError appends an error diagnostic to the response and labels it
-// with a specific attribute.
-func (r *ModifyResourcePlanResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
-}
-
 // ReadDataSourceResponse represents a response to a ReadDataSourceRequest. An
 // instance of this response struct is supplied as an argument to the data
 // source's Read function, in which the provider should set values on the
@@ -258,28 +114,4 @@ type ReadDataSourceResponse struct {
 	// source. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
-}
-
-// AddWarning appends a warning diagnostic to the response. If the warning
-// concerns a particular attribute, AddAttributeWarning should be used instead.
-func (r *ReadDataSourceResponse) AddWarning(summary, detail string) {
-	r.Diagnostics.AddWarning(summary, detail)
-}
-
-// AddAttributeWarning appends a warning diagnostic to the response and labels
-// it with a specific attribute.
-func (r *ReadDataSourceResponse) AddAttributeWarning(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeWarning(attributePath, summary, detail)
-}
-
-// AddError appends an error diagnostic to the response. If the error concerns a
-// particular attribute, AddAttributeError should be used instead.
-func (r *ReadDataSourceResponse) AddError(summary, detail string) {
-	r.Diagnostics.AddError(summary, detail)
-}
-
-// AddAttributeError appends an error diagnostic to the response and labels it
-// with a specific attribute.
-func (r *ReadDataSourceResponse) AddAttributeError(attributePath *tftypes.AttributePath, summary, detail string) {
-	r.Diagnostics.AddAttributeError(attributePath, summary, detail)
 }

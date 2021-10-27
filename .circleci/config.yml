@@ -63,6 +63,19 @@ jobs:
     steps:
       - get_dependencies
       - run: ./scripts/gofmtcheck.sh
+  "provider-corner integration test":
+    docker:
+      - image: docker.mirror.hashicorp.services/circleci/golang:1.17
+    steps:
+      - get_dependencies
+      - run:
+          command: |
+            cd ..
+            git clone --depth=1 https://github.com/hashicorp/terraform-provider-corner.git
+            cd terraform-provider-corner
+            echo "replace github.com/hashicorp/terraform-plugin-framework => ../project" >> go.mod
+            go mod tidy
+            go test ./... -v -run=TestAccFramework
 
 workflows:
   version: 2
@@ -78,6 +91,10 @@ workflows:
       - "docker-go117 gofmt":
           requires:
             - "docker-go117 build"
+      - "provider-corner integration test":
+          requires:
+            - "docker-go117 build"
+
   release:
     jobs:
       - "docker-go117 build"
@@ -88,6 +105,9 @@ workflows:
           requires:
             - "docker-go117 build"
       - "docker-go117 gofmt":
+          requires:
+            - "docker-go117 build"
+      - "provider-corner integration test":
           requires:
             - "docker-go117 build"
       - trigger-release:

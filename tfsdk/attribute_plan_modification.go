@@ -65,6 +65,52 @@ type RequiresReplaceModifier struct{}
 
 // Modify sets RequiresReplace on the response to true.
 func (r RequiresReplaceModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	if req.AttributeConfig == nil || req.AttributePlan == nil || req.AttributeState == nil {
+		// shouldn't happen, but let's not panic if it does
+		return
+	}
+
+	if req.State.Raw.IsNull() {
+		// if we're creating the resource, no need to delete and
+		// recreate it
+		return
+	}
+
+	if req.Plan.Raw.IsNull() {
+		// if we're deleting the resource, no need to delete and
+		// recreate it
+		return
+	}
+
+	attrSchema, err := req.State.Schema.AttributeAtPath(req.AttributePath)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error finding attribute schema",
+			fmt.Sprintf("An unexpected error was encountered retrieving the schema for this attribute. This is always a bug in the provider.\n\nError: %s", err),
+		)
+		return
+	}
+
+	configRaw, err := req.AttributeConfig.ToTerraformValue(ctx)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error converting config value",
+			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", req.AttributeConfig.Type(ctx), err),
+		)
+		return
+	}
+	if configRaw == nil && attrSchema.Computed {
+		// if the config is null and the attribute is computed, this
+		// could be an out of band change, don't require replace
+		return
+	}
+
+	if req.AttributePlan.Equal(req.AttributeState) {
+		// if the plan and the state are in agreement, this attribute
+		// isn't changing, don't require replace
+		return
+	}
+
 	resp.RequiresReplace = true
 }
 
@@ -104,9 +150,61 @@ type RequiresReplaceIfModifier struct {
 // Modify sets RequiresReplace on the response to true if the conditional
 // RequiresReplaceIfFunc returns true.
 func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	if req.AttributeConfig == nil || req.AttributePlan == nil || req.AttributeState == nil {
+		// shouldn't happen, but let's not panic if it does
+		return
+	}
+
+	if req.State.Raw.IsNull() {
+		// if we're creating the resource, no need to delete and
+		// recreate it
+		return
+	}
+
+	if req.Plan.Raw.IsNull() {
+		// if we're deleting the resource, no need to delete and
+		// recreate it
+		return
+	}
+
+	attrSchema, err := req.State.Schema.AttributeAtPath(req.AttributePath)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error finding attribute schema",
+			fmt.Sprintf("An unexpected error was encountered retrieving the schema for this attribute. This is always a bug in the provider.\n\nError: %s", err),
+		)
+		return
+	}
+
+	configRaw, err := req.AttributeConfig.ToTerraformValue(ctx)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error converting config value",
+			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", req.AttributeConfig.Type(ctx), err),
+		)
+		return
+	}
+	if configRaw == nil && attrSchema.Computed {
+		// if the config is null and the attribute is computed, this
+		// could be an out of band change, don't require replace
+		return
+	}
+
+	if req.AttributePlan.Equal(req.AttributeState) {
+		// if the plan and the state are in agreement, this attribute
+		// isn't changing, don't require replace
+		return
+	}
+
 	res, diags := r.f(ctx, req.AttributeState, req.AttributeConfig, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	resp.RequiresReplace = res
+
+	// if the function says to require replacing, we require replacing
+	// if the function says not to, we don't change the value that other
+	// plan modifiers may have set
+	if res {
+		resp.RequiresReplace = true
+	}
 }
 
 // Description returns a human-readable description of the plan modifier.

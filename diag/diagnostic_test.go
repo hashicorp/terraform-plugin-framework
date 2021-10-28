@@ -13,8 +13,6 @@ func (d *invalidSeverityDiagnostic) Detail() string {
 	return "detail for invalid severity diagnostic"
 }
 
-func (d *invalidSeverityDiagnostic) SetDetail(detail string) {}
-
 func (d *invalidSeverityDiagnostic) Equal(other diag.Diagnostic) bool {
 	if d == nil && other == nil {
 		return true
@@ -39,10 +37,6 @@ func (d *invalidSeverityDiagnostic) Severity() diag.Severity {
 	return diag.SeverityInvalid
 }
 
-func (d *invalidSeverityDiagnostic) SetSeverity(severity diag.Severity) {}
-
 func (d *invalidSeverityDiagnostic) Summary() string {
 	return "summary for invalid severity diagnostic"
 }
-
-func (d *invalidSeverityDiagnostic) SetSummary(summary string) {}

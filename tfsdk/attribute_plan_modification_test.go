@@ -432,17 +432,17 @@ func TestRequiresReplaceModifier(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			attrConfig, diags := tc.config.GetAttribute(context.Background(), tc.path)
+			attrConfig, diags := tc.config.getAttributeValue(context.Background(), tc.path)
 			if diags.HasError() {
 				t.Fatalf("Got unexpected diagnostics: %s", diags)
 			}
 
-			attrState, diags := tc.state.GetAttribute(context.Background(), tc.path)
+			attrState, diags := tc.state.getAttributeValue(context.Background(), tc.path)
 			if diags.HasError() {
 				t.Fatalf("Got unexpected diagnostics: %s", diags)
 			}
 
-			attrPlan, diags := tc.plan.GetAttribute(context.Background(), tc.path)
+			attrPlan, diags := tc.plan.getAttributeValue(context.Background(), tc.path)
 			if diags.HasError() {
 				t.Fatalf("Got unexpected diagnostics: %s", diags)
 			}
@@ -786,17 +786,17 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			attrConfig, diags := tc.config.GetAttribute(context.Background(), tc.path)
+			attrConfig, diags := tc.config.getAttributeValue(context.Background(), tc.path)
 			if diags.HasError() {
 				t.Fatalf("Got unexpected diagnostics: %s", diags)
 			}
 
-			attrState, diags := tc.state.GetAttribute(context.Background(), tc.path)
+			attrState, diags := tc.state.getAttributeValue(context.Background(), tc.path)
 			if diags.HasError() {
 				t.Fatalf("Got unexpected diagnostics: %s", diags)
 			}
 
-			attrPlan, diags := tc.plan.GetAttribute(context.Background(), tc.path)
+			attrPlan, diags := tc.plan.getAttributeValue(context.Background(), tc.path)
 			if diags.HasError() {
 				t.Fatalf("Got unexpected diagnostics: %s", diags)
 			}

@@ -2,11 +2,14 @@ package tfsdk
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	intreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -850,6 +853,210 @@ func TestStateGet_testTypes(t *testing.T) {
 }
 
 func TestStateGetAttribute(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		state         State
+		target        interface{}
+		expected      interface{}
+		expectedDiags diag.Diagnostics
+	}
+
+	testCases := map[string]testCase{
+		"string": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(string),
+			expected: newStringPointer("namevalue"),
+		},
+		"*string": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(*string),
+			expected: newStringPointerPointer("namevalue"),
+		},
+		"types.String": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(types.String),
+			expected: &types.String{Value: "namevalue"},
+		},
+		"incompatible-target": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(testtypes.String),
+			expected: new(testtypes.String),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath().WithAttributeName("name"),
+					"Value Conversion Error",
+					intreflect.DiagNewAttributeValueIntoWrongType{
+						ValType:    reflect.TypeOf(types.String{Value: "namevalue"}),
+						TargetType: reflect.TypeOf(testtypes.String{}),
+						AttrPath:   tftypes.NewAttributePath().WithAttributeName("name"),
+						SchemaType: types.StringType,
+					}.Detail(),
+				),
+			},
+		},
+		"incompatible-type": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(bool),
+			expected: new(bool),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					tftypes.NewAttributePath().WithAttributeName("name"),
+					"Value Conversion Error",
+					intreflect.DiagIntoIncompatibleType{
+						Val:        tftypes.NewValue(tftypes.String, "namevalue"),
+						TargetType: reflect.TypeOf(false),
+						Err:        fmt.Errorf("can't unmarshal %s into *%T, expected boolean", tftypes.String, false),
+						AttrPath:   tftypes.NewAttributePath().WithAttributeName("name"),
+					}.Detail(),
+				),
+			},
+		},
+		"AttrTypeWithValidateError": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateError{},
+							Required: true,
+						},
+					},
+				},
+			},
+			target:        new(testtypes.String),
+			expected:      new(testtypes.String),
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+		},
+		"AttrTypeWithValidateWarning": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateWarning{},
+							Required: true,
+						},
+					},
+				},
+			},
+			target:        new(testtypes.String),
+			expected:      &testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			diags := tc.state.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"), tc.target)
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(tc.target, tc.expected, cmp.Transformer("testtypes", func(in *testtypes.String) testtypes.String { return *in }), cmp.Transformer("types", func(in *types.String) types.String { return *in })); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestStateGetAttributeValue(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
@@ -1722,7 +1929,7 @@ func TestStateGetAttribute(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			val, diags := tc.state.GetAttribute(context.Background(), tc.path)
+			val, diags := tc.state.getAttributeValue(context.Background(), tc.path)
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}

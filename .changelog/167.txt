@@ -1,0 +1,7 @@
+```release-note:breaking-change
+tfsdk: The `Config`, `Plan`, and `State` type `GetAttribute` methods now return diagnostics only and require the target as the last parameter, similar to the `Get` method.
+```
+
+```release-note:enhancement
+tfsdk: The `Config`, `Plan`, and `State` type `GetAttribute` methods can now be used to fetch values directly into `attr.Value` implementations and Go types.
+```

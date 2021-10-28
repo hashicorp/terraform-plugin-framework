@@ -262,8 +262,7 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 		return
 	}
 
-	attributeConfig, diags := req.Config.GetAttribute(ctx, req.AttributePath)
-
+	attributeConfig, diags := req.Config.getAttributeValue(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {
@@ -447,7 +446,7 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 
 // modifyPlan runs all AttributePlanModifiers
 func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	attrConfig, diags := req.Config.GetAttribute(ctx, req.AttributePath)
+	attrConfig, diags := req.Config.getAttributeValue(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 	// Only on new errors.
 	if diags.HasError() {
@@ -455,7 +454,7 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 	}
 	req.AttributeConfig = attrConfig
 
-	attrState, diags := req.State.GetAttribute(ctx, req.AttributePath)
+	attrState, diags := req.State.getAttributeValue(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 	// Only on new errors.
 	if diags.HasError() {
@@ -463,7 +462,7 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 	}
 	req.AttributeState = attrState
 
-	attrPlan, diags := req.Plan.GetAttribute(ctx, req.AttributePath)
+	attrPlan, diags := req.Plan.getAttributeValue(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 	// Only on new errors.
 	if diags.HasError() {

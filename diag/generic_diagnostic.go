@@ -19,11 +19,6 @@ func (d GenericDiagnostic) Detail() string {
 	return d.detail
 }
 
-// SetDetail sets the diagnostic detail.
-func (d *GenericDiagnostic) SetDetail(detail string) {
-	d.detail = detail
-}
-
 // Equal returns true if the other diagnostic is wholly equivalent.
 func (d *GenericDiagnostic) Equal(other Diagnostic) bool {
 	if d == nil && other == nil {
@@ -66,19 +61,9 @@ func (d GenericDiagnostic) Severity() Severity {
 	return d.severity
 }
 
-// SetSummary sets the diagnostic severity.
-func (d *GenericDiagnostic) SetSeverity(severity Severity) {
-	d.severity = severity
-}
-
 // Summary returns the diagnostic summary.
 func (d GenericDiagnostic) Summary() string {
 	return d.summary
-}
-
-// SetSummary sets the diagnostic summary.
-func (d *GenericDiagnostic) SetSummary(summary string) {
-	d.summary = summary
 }
 
 // NewAttributeErrorDiagnostic returns a new error severity diagnostic with the given summary, detail, and path.

@@ -17,17 +17,11 @@ type Diagnostic interface {
 	// Severity returns the desired level of feedback for the diagnostic.
 	Severity() Severity
 
-	// SetSeverity returns the desired level of feedback for the diagnostic.
-	SetSeverity(Severity)
-
 	// Summary is a short description for the diagnostic.
 	//
 	// Typically this is implemented as a title, such as "Invalid Resource Name",
 	// or single line sentence.
 	Summary() string
-
-	// SetSummary sets a short description for the diagnostic.
-	SetSummary(string)
 
 	// Detail is a long description for the diagnostic.
 	//
@@ -36,9 +30,6 @@ type Diagnostic interface {
 	// should generally be written and formatted for human consumption by
 	// practitioners or provider developers.
 	Detail() string
-
-	// SetDetail sets a long description for the diagnostic.
-	SetDetail(string)
 
 	// Path points to a specific value within an aggregate value.
 	//

@@ -1,5 +1,5 @@
 ```release-note:breaking-change
-diag: The `DiagnosticWithPath` interface type has been merged into the `Diagnostic` interface type and additional setter methods are now required. If implementing custom `Diagnostic` types, the `Path()`, `SetDetail()`, `SetPath()`, `SetSeverity()`, `SetSummary()` methods are now required.
+diag: The `DiagnosticWithPath` interface type has been merged into the `Diagnostic` interface type. If implementing custom `Diagnostic` types, the `Path()` and `SetPath()` methods are now required.
 ```
 
 ```release-note:breaking-change
@@ -7,5 +7,5 @@ diag: The `AttributeErrorDiagnostic`, `AttributeWarningDiagnostic`, `ErrorDiagno
 ```
 
 ```release-note:enhancement
-diag: Added `Diagnostic` interface type `Path()`, `SetDetail()`, `SetPath()`, `SetSeverity()`, and `SetSummary()` methods
+diag: Added `Diagnostic` interface type `Path()` and `SetPath()` methods
 ```

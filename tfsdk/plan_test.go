@@ -250,15 +250,11 @@ func TestPlanGetAttribute(t *testing.T) {
 			target:   new(testtypes.String),
 			expected: new(testtypes.String),
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
+				intreflect.NewDiagNewAttributeValueIntoWrongType(
 					tftypes.NewAttributePath().WithAttributeName("name"),
-					"Value Conversion Error",
-					intreflect.DiagNewAttributeValueIntoWrongType{
-						ValType:    reflect.TypeOf(types.String{Value: "namevalue"}),
-						TargetType: reflect.TypeOf(testtypes.String{}),
-						AttrPath:   tftypes.NewAttributePath().WithAttributeName("name"),
-						SchemaType: types.StringType,
-					}.Detail(),
+					reflect.TypeOf(types.String{Value: "namevalue"}),
+					reflect.TypeOf(testtypes.String{}),
+					types.StringType,
 				),
 			},
 		},
@@ -283,15 +279,11 @@ func TestPlanGetAttribute(t *testing.T) {
 			target:   new(bool),
 			expected: new(bool),
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
+				intreflect.NewDiagIntoIncompatibleType(
 					tftypes.NewAttributePath().WithAttributeName("name"),
-					"Value Conversion Error",
-					intreflect.DiagIntoIncompatibleType{
-						Val:        tftypes.NewValue(tftypes.String, "namevalue"),
-						TargetType: reflect.TypeOf(false),
-						Err:        fmt.Errorf("can't unmarshal %s into *%T, expected boolean", tftypes.String, false),
-						AttrPath:   tftypes.NewAttributePath().WithAttributeName("name"),
-					}.Detail(),
+					tftypes.NewValue(tftypes.String, "namevalue"),
+					reflect.TypeOf(false),
+					fmt.Errorf("can't unmarshal %s into *%T, expected boolean", tftypes.String, false),
 				),
 			},
 		},

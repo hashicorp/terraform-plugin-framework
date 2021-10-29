@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestAttributeTfprotov6(t *testing.T) {
+func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
@@ -669,7 +669,7 @@ func TestAttributeTfprotov6(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := tc.attr.tfprotov6(context.Background(), tc.name, tc.path)
+			got, err := tc.attr.tfprotov6SchemaAttribute(context.Background(), tc.name, tc.path)
 			if err != nil {
 				if tc.expectedErr == "" {
 					t.Errorf("Unexpected error: %s", err)

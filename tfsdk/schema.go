@@ -200,13 +200,13 @@ func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) 
 	var blocks []*tfprotov6.SchemaNestedBlock
 
 	for name, attr := range s.Attributes {
-		proto6, err := attr.tfprotov6(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
+		a, err := attr.tfprotov6SchemaAttribute(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
 
 		if err != nil {
 			return nil, err
 		}
 
-		attrs = append(attrs, proto6)
+		attrs = append(attrs, a)
 	}
 
 	for name, block := range s.Blocks {

@@ -19,12 +19,14 @@ type Attribute struct {
 	// Type indicates what kind of attribute this is. You'll most likely
 	// want to use one of the types in the types package.
 	//
-	// If Type is set, Attributes and Blocks cannot be.
+	// If Type is set, Attributes cannot be.
 	Type attr.Type
 
 	// Attributes can have their own, nested attributes. This nested map of
 	// attributes behaves exactly like the map of attributes on the Schema
 	// type.
+	//
+	// If Attributes is set, Type cannot be.
 	Attributes NestedAttributes
 
 	// Description is used in various tooling, like the language server, to
@@ -42,18 +44,11 @@ type Attribute struct {
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,
 	// and Required and Computed cannot both be true.
-	//
-	// Cannot be set with Blocks. Only nested attributes under Blocks may set
-	// configurability. Use ListNestedBlockOptions with MinItems above 0 to
-	// mark enforce Block requirement in a practitioner configuration.
 	Required bool
 
 	// Optional indicates whether the practitioner can choose not to enter
 	// a value for this attribute or not. Optional and Required cannot both
 	// be true.
-	//
-	// Cannot be set with Blocks. Only nested attributes under Blocks may set
-	// configurability.
 	Optional bool
 
 	// Computed indicates whether the provider may return its own value for
@@ -61,9 +56,6 @@ type Attribute struct {
 	// Required and Optional are both false, Computed must be true, and the
 	// attribute will be considered "read only" for the practitioner, with
 	// only the provider able to set its value.
-	//
-	// Cannot be set with Blocks. Only nested attributes under Blocks may set
-	// configurability.
 	Computed bool
 
 	// Sensitive indicates whether the value of this attribute should be
@@ -71,9 +63,6 @@ type Attribute struct {
 	// in CLI output. Sensitive does not impact how values are stored, and
 	// practitioners are encouraged to store their state as if the entire
 	// file is sensitive.
-	//
-	// Cannot be set with Blocks. Only nested attributes under Blocks may set
-	// sensitivity.
 	Sensitive bool
 
 	// DeprecationMessage defines a message to display to practitioners
@@ -99,9 +88,9 @@ type Attribute struct {
 }
 
 // ApplyTerraform5AttributePathStep transparently calls
-// ApplyTerraform5AttributePathStep on a.Type or a.Attributes,
-// whichever is non-nil. It allows Attributes to be walked using tftypes.Walk
-// and tftypes.Transform.
+// ApplyTerraform5AttributePathStep on a.Type or a.Attributes, whichever is
+// non-nil. It allows Attributes to be walked using tftypes.Walk and
+// tftypes.Transform.
 func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	if a.Type != nil {
 		return a.Type.ApplyTerraform5AttributePathStep(step)
@@ -180,7 +169,7 @@ func (a Attribute) terraformType(ctx context.Context) tftypes.Type {
 // tfprotov6 returns the *tfprotov6.SchemaAttribute equivalent of an
 // Attribute. Errors will be tftypes.AttributePathErrors based on
 // `path`. `name` is the name of the attribute.
-func (a Attribute) tfprotov6(ctx context.Context, name string, path *tftypes.AttributePath) (*tfprotov6.SchemaAttribute, error) {
+func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath) (*tfprotov6.SchemaAttribute, error) {
 	if a.definesAttributes() && a.Type != nil {
 		return nil, path.NewErrorf("cannot have both Attributes and Type set")
 	}
@@ -240,14 +229,13 @@ func (a Attribute) tfprotov6(ctx context.Context, name string, path *tftypes.Att
 	}
 
 	for nestedName, nestedA := range a.Attributes.GetAttributes() {
-		nestedPath := path.WithAttributeName(nestedName)
-		nestedAProto6, err := nestedA.tfprotov6(ctx, nestedName, nestedPath)
+		nestedSchemaAttribute, err := nestedA.tfprotov6SchemaAttribute(ctx, nestedName, path.WithAttributeName(nestedName))
 
 		if err != nil {
 			return nil, err
 		}
 
-		object.Attributes = append(object.Attributes, nestedAProto6)
+		object.Attributes = append(object.Attributes, nestedSchemaAttribute)
 	}
 
 	sort.Slice(object.Attributes, func(i, j int) bool {

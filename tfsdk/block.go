@@ -180,7 +180,7 @@ func (b Block) tfprotov6(ctx context.Context, name string, path *tftypes.Attribu
 
 	for attrName, attr := range b.Attributes {
 		attrPath := path.WithAttributeName(attrName)
-		attrProto6, err := attr.tfprotov6(ctx, attrName, attrPath)
+		attrProto6, err := attr.tfprotov6SchemaAttribute(ctx, attrName, attrPath)
 
 		if err != nil {
 			return nil, err

@@ -20,6 +20,11 @@ func newStringPointer(in string) *string {
 	return &in
 }
 
+func newStringPointerPointer(in string) **string {
+	stringPointer := &in
+	return &stringPointer
+}
+
 func newInt64Pointer(in int64) *int64 {
 	return &in
 }

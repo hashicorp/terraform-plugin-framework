@@ -15,20 +15,48 @@ import (
 var (
 	// ErrPathInsideAtomicAttribute is used with AttributeAtPath is called
 	// on a path that doesn't have a schema associated with it, because
-	// it's an element or attribute of a complex type, not a nested
+	// it's an element, attribute, or block of a complex type, not a nested
 	// attribute.
-	ErrPathInsideAtomicAttribute = errors.New("path leads to element or attribute of a schema.Attribute that has no schema associated with it")
+	ErrPathInsideAtomicAttribute = errors.New("path leads to element, attribute, or block of a schema.Attribute that has no schema associated with it")
 )
 
 // Schema is used to define the shape of practitioner-provider information,
 // like resources, data sources, and providers. Think of it as a type
 // definition, but for Terraform.
 type Schema struct {
-	// Attributes are the fields inside the resource, provider, or data
+	// Attributes are value fields inside the resource, provider, or data
 	// source that the schema is defining. The map key should be the name
 	// of the attribute, and the body defines how it behaves. Names must
-	// only contain lowercase letters, numbers, and underscores.
+	// only contain lowercase letters, numbers, and underscores. Names must
+	// not collide with any Blocks names.
+	//
+	// In practitioner configurations, an equals sign (=) is required to set
+	// the value. See also:
+	//   https://www.terraform.io/docs/language/syntax/configuration.html
+	//
+	// Attributes are strongly preferred over Blocks.
 	Attributes map[string]Attribute
+
+	// Blocks are structural fields inside the resource, provider, or data
+	// source that the schema is defining. The map key should be the name
+	// of the block, and the body defines how it behaves. Names must
+	// only contain lowercase letters, numbers, and underscores. Names must
+	// not collide with any Attributes names.
+	//
+	// Blocks are by definition, structural, meaning they are implicitly
+	// required in values.
+	//
+	// In practitioner configurations, an equals sign (=) cannot be used to
+	// set the value. Blocks are instead repeated as necessary, or require
+	// the use of dynamic block expressions. See also:
+	//   https://www.terraform.io/docs/language/syntax/configuration.html
+	//   https://www.terraform.io/docs/language/expressions/dynamic-blocks.html
+	//
+	// Attributes are strongly preferred over Blocks. Blocks should only be
+	// used for configuration compatibility with previously existing schemas
+	// from an older Terraform Plugin SDK. Efforts should be made to convert
+	// Blocks to Attributes as a breaking change for practitioners.
+	Blocks map[string]Block
 
 	// Version indicates the current version of the schema. Schemas are
 	// versioned to help with automatic upgrade process. This is not
@@ -45,28 +73,33 @@ type Schema struct {
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
 // schema.
 func (s Schema) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	if v, ok := step.(tftypes.AttributeName); ok {
-		if attr, ok := s.Attributes[string(v)]; ok {
-			return attr, nil
-		}
-		return nil, fmt.Errorf("could not find attribute %q in schema", v)
+	a, ok := step.(tftypes.AttributeName)
+
+	if !ok {
+		return nil, fmt.Errorf("cannot apply AttributePathStep %T to schema", step)
 	}
-	return nil, fmt.Errorf("cannot apply AttributePathStep %T to schema", step)
+
+	attrName := string(a)
+
+	if attr, ok := s.Attributes[attrName]; ok {
+		return attr, nil
+	}
+
+	if block, ok := s.Blocks[attrName]; ok {
+		return block, nil
+	}
+
+	return nil, fmt.Errorf("could not find attribute or block %q in schema", a)
 }
 
 // AttributeType returns a types.ObjectType composed from the schema types.
 func (s Schema) AttributeType() attr.Type {
 	attrTypes := map[string]attr.Type{}
 	for name, attr := range s.Attributes {
-		if attr.Type != nil {
-			attrTypes[name] = attr.Type
-		}
-		if attr.Attributes != nil {
-			attrTypes[name] = attr.Attributes.AttributeType()
-		}
-		if attr.Blocks != nil {
-			attrTypes[name] = attr.Blocks.AttributeType()
-		}
+		attrTypes[name] = attr.attributeType()
+	}
+	for name, block := range s.Blocks {
+		attrTypes[name] = block.attributeType()
 	}
 	return types.ObjectType{AttrTypes: attrTypes}
 }
@@ -78,47 +111,32 @@ func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, err
 		return nil, fmt.Errorf("%v still remains in the path: %w", remaining, err)
 	}
 
-	typ, ok := rawType.(attr.Type)
-	if ok {
+	switch typ := rawType.(type) {
+	case attr.Type:
 		return typ, nil
-	}
-
-	if n, ok := rawType.(nestedAttributes); ok {
-		return n.AttributeType(), nil
-	}
-
-	if s, ok := rawType.(Schema); ok {
-		return s.AttributeType(), nil
-	}
-
-	a, ok := rawType.(Attribute)
-	if !ok {
+	case nestedAttributes:
+		return typ.AttributeType(), nil
+	case nestedBlock:
+		return typ.Block.attributeType(), nil
+	case Attribute:
+		return typ.attributeType(), nil
+	case Block:
+		return typ.attributeType(), nil
+	case Schema:
+		return typ.AttributeType(), nil
+	default:
 		return nil, fmt.Errorf("got unexpected type %T", rawType)
 	}
-	if a.Type != nil {
-		return a.Type, nil
-	}
-
-	if a.definesBlocks() {
-		return a.Blocks.AttributeType(), nil
-	}
-
-	return a.Attributes.AttributeType(), nil
 }
 
 // TerraformType returns a tftypes.Type that can represent the schema.
 func (s Schema) TerraformType(ctx context.Context) tftypes.Type {
 	attrTypes := map[string]tftypes.Type{}
 	for name, attr := range s.Attributes {
-		if attr.Type != nil {
-			attrTypes[name] = attr.Type.TerraformType(ctx)
-		}
-		if attr.Attributes != nil {
-			attrTypes[name] = attr.Attributes.AttributeType().TerraformType(ctx)
-		}
-		if attr.Blocks != nil {
-			attrTypes[name] = attr.Blocks.AttributeType().TerraformType(ctx)
-		}
+		attrTypes[name] = attr.terraformType(ctx)
+	}
+	for name, block := range s.Blocks {
+		attrTypes[name] = block.terraformType(ctx)
 	}
 	return tftypes.Object{AttributeTypes: attrTypes}
 }
@@ -132,26 +150,46 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 		return Attribute{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
 	}
 
-	if _, ok := res.(attr.Type); ok {
+	switch r := res.(type) {
+	case attr.Type:
 		return Attribute{}, ErrPathInsideAtomicAttribute
-	}
-
-	if _, ok := res.(nestedAttributes); ok {
+	case nestedAttributes:
 		return Attribute{}, ErrPathInsideAtomicAttribute
-	}
-
-	a, ok := res.(Attribute)
-	if !ok {
+	case nestedBlock:
+		return Attribute{}, ErrPathInsideAtomicAttribute
+	case Attribute:
+		return r, nil
+	case Block:
+		return Attribute{}, ErrPathInsideAtomicAttribute
+	default:
 		return Attribute{}, fmt.Errorf("got unexpected type %T", res)
 	}
-	return a, nil
+}
+
+// blockAtPath returns the Block at the passed path. If the path points
+// to an element or attribute of a complex type, rather than to a Block,
+// it will return an ErrPathInsideAtomicAttribute error.
+func (s Schema) blockAtPath(path *tftypes.AttributePath) (Block, error) {
+	res, remaining, err := tftypes.WalkAttributePath(s, path)
+	if err != nil {
+		return Block{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
+	}
+
+	switch r := res.(type) {
+	case nestedBlock:
+		return Block{}, ErrPathInsideAtomicAttribute
+	case Block:
+		return r, nil
+	default:
+		return Block{}, fmt.Errorf("got unexpected type %T", res)
+	}
 }
 
 // tfprotov6Schema returns the *tfprotov6.Schema equivalent of a Schema. At least
 // one attribute must be set in the schema, or an error will be returned.
 func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) {
-	if len(s.Attributes) < 1 {
-		return nil, errors.New("must have at least one attribute in the schema")
+	if len(s.Attributes) < 1 && len(s.Blocks) < 1 {
+		return nil, errors.New("must have at least one attribute or block in the schema")
 	}
 
 	result := &tfprotov6.Schema{
@@ -162,20 +200,23 @@ func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) 
 	var blocks []*tfprotov6.SchemaNestedBlock
 
 	for name, attr := range s.Attributes {
-		proto6Raw, err := attr.tfprotov6(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
+		proto6, err := attr.tfprotov6(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
 
 		if err != nil {
 			return nil, err
 		}
 
-		switch proto6 := proto6Raw.(type) {
-		case *tfprotov6.SchemaAttribute:
-			attrs = append(attrs, proto6)
-		case *tfprotov6.SchemaNestedBlock:
-			blocks = append(blocks, proto6)
-		default:
-			return nil, fmt.Errorf("unknown tfprotov6 type %T for Attribute", proto6)
+		attrs = append(attrs, proto6)
+	}
+
+	for name, block := range s.Blocks {
+		proto6, err := block.tfprotov6(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
+
+		if err != nil {
+			return nil, err
 		}
+
+		blocks = append(blocks, proto6)
 	}
 
 	sort.Slice(attrs, func(i, j int) bool {
@@ -236,6 +277,20 @@ func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *V
 		}
 
 		attribute.validate(ctx, attributeReq, attributeResp)
+
+		resp.Diagnostics = attributeResp.Diagnostics
+	}
+
+	for name, block := range s.Blocks {
+		attributeReq := ValidateAttributeRequest{
+			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
+			Config:        req.Config,
+		}
+		attributeResp := &ValidateAttributeResponse{
+			Diagnostics: resp.Diagnostics,
+		}
+
+		block.validate(ctx, attributeReq, attributeResp)
 
 		resp.Diagnostics = attributeResp.Diagnostics
 	}
@@ -369,70 +424,6 @@ func modifyAttributesPlans(ctx context.Context, attrs map[string]Attribute, path
 				}
 				if len(o.Attrs) > 0 {
 					modifyAttributesPlans(ctx, nestedAttr.Attributes.GetAttributes(), attrPath, req, resp)
-				}
-			default:
-				err := fmt.Errorf("unknown attribute nesting mode (%T: %v) at path: %s", nm, nm, attrPath)
-				resp.Diagnostics.AddAttributeError(
-					attrPath,
-					"Attribute Plan Modification Error",
-					"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-				)
-
-				continue
-			}
-		}
-
-		if nestedAttr.definesBlocks() {
-			nm := nestedAttr.Blocks.GetNestingMode()
-			switch nm {
-			case NestingModeList:
-				l, ok := attrPlan.(types.List)
-
-				if !ok {
-					err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", attrPlan, nm, attrPath)
-					resp.Diagnostics.AddAttributeError(
-						attrPath,
-						"Attribute Plan Modification Error",
-						"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-					)
-
-					continue
-				}
-
-				for idx := range l.Elems {
-					modifyAttributesPlans(ctx, nestedAttr.Blocks.GetAttributes(), attrPath.WithElementKeyInt(idx), req, resp)
-				}
-			case NestingModeSet:
-				s, ok := attrPlan.(types.Set)
-
-				if !ok {
-					err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", attrPlan, nm, attrPath)
-					resp.Diagnostics.AddAttributeError(
-						attrPath,
-						"Attribute Plan Modification Error",
-						"Attribute plan modifier cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-					)
-
-					return
-				}
-
-				for _, value := range s.Elems {
-					tfValueRaw, err := value.ToTerraformValue(ctx)
-
-					if err != nil {
-						err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
-						resp.Diagnostics.AddAttributeError(
-							attrPath,
-							"Attribute Plan Modification Error",
-							"Attribute plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
-						)
-
-						return
-					}
-
-					tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
-
-					modifyAttributesPlans(ctx, nestedAttr.Blocks.GetAttributes(), attrPath.WithElementKeyValue(tfValue), req, resp)
 				}
 			default:
 				err := fmt.Errorf("unknown attribute nesting mode (%T: %v) at path: %s", nm, nm, attrPath)

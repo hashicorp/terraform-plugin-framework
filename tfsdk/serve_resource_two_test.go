@@ -38,8 +38,10 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (Schema, diag.Di
 					},
 				}, ListNestedAttributesOptions{}),
 			},
+		},
+		Blocks: map[string]Block{
 			"list_nested_blocks": {
-				Blocks: ListNestedBlocks(map[string]Attribute{
+				Attributes: map[string]Attribute{
 					"required_bool": {
 						Required: true,
 						Type:     types.BoolType,
@@ -52,7 +54,8 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (Schema, diag.Di
 						Required: true,
 						Type:     types.StringType,
 					},
-				}, ListNestedBlocksOptions{}),
+				},
+				NestingMode: NestingModeList,
 			},
 		},
 	}, nil

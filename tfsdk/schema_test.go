@@ -213,13 +213,24 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 		"WithAttributeName-ListNestedBlocks-WithAttributeName": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeList,
+					},
 					"test": {
-						Blocks: ListNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -227,24 +238,36 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, ListNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeList,
 					},
 				},
 			},
 			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
 			expected:    Attribute{},
-			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to ListNestedBlocks",
+			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeList",
 		},
 		"WithAttributeName-ListNestedBlocks-WithElementKeyInt": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeList,
+					},
 					"test": {
-						Blocks: ListNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -252,7 +275,8 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, ListNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeList,
 					},
 				},
 			},
@@ -263,13 +287,24 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeList,
+					},
 					"test": {
-						Blocks: ListNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -277,7 +312,8 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, ListNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeList,
 					},
 				},
 			},
@@ -290,13 +326,24 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 		"WithAttributeName-ListNestedBlocks-WithElementKeyString": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeList,
+					},
 					"test": {
-						Blocks: ListNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -304,24 +351,36 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, ListNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeList,
 					},
 				},
 			},
 			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
 			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to ListNestedBlocks",
+			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeList",
 		},
 		"WithAttributeName-ListNestedBlocks-WithElementKeyValue": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeList,
+					},
 					"test": {
-						Blocks: ListNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -329,13 +388,14 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, ListNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeList,
 					},
 				},
 			},
 			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
 			expected:    Attribute{},
-			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to ListNestedBlocks",
+			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to block NestingModeList",
 		},
 		"WithAttributeName-MapNestedAttributes-WithAttributeName": {
 			schema: Schema{
@@ -604,13 +664,24 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 		"WithAttributeName-SetNestedBlocks-WithAttributeName": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeSet,
+					},
 					"test": {
-						Blocks: SetNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -618,24 +689,36 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, SetNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeSet,
 					},
 				},
 			},
 			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
 			expected:    Attribute{},
-			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't use tftypes.AttributeName on sets",
+			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeSet",
 		},
 		"WithAttributeName-SetNestedBlocks-WithElementKeyInt": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeSet,
+					},
 					"test": {
-						Blocks: SetNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -643,24 +726,36 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, SetNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeSet,
 					},
 				},
 			},
 			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
 			expected:    Attribute{},
-			expectedErr: "ElementKeyInt(0) still remains in the path: can't use tftypes.ElementKeyInt on sets",
+			expectedErr: "ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to block NestingModeSet",
 		},
 		"WithAttributeName-SetNestedBlocks-WithElementKeyString": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeSet,
+					},
 					"test": {
-						Blocks: SetNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -668,24 +763,36 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, SetNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeSet,
 					},
 				},
 			},
 			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
 			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't use tftypes.ElementKeyString on sets",
+			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeSet",
 		},
 		"WithAttributeName-SetNestedBlocks-WithElementKeyValue": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeSet,
+					},
 					"test": {
-						Blocks: SetNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -693,7 +800,8 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, SetNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeSet,
 					},
 				},
 			},
@@ -704,13 +812,24 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 		"WithAttributeName-SetNestedBlocks-WithElementKeyValue-WithAttributeName": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
-					"other": {
+					"other_attr": {
 						Type:     types.BoolType,
 						Optional: true,
 					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: NestingModeSet,
+					},
 					"test": {
-						Blocks: SetNestedBlocks(map[string]Attribute{
-							"other": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
 								Type:     types.BoolType,
 								Optional: true,
 							},
@@ -718,7 +837,8 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 							},
-						}, SetNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeSet,
 					},
 				},
 			},
@@ -1075,8 +1195,10 @@ func TestSchemaAttributeType(t *testing.T) {
 					},
 				}),
 			},
+		},
+		Blocks: map[string]Block{
 			"list_nested_blocks": {
-				Blocks: ListNestedBlocks(map[string]Attribute{
+				Attributes: map[string]Attribute{
 					"string": {
 						Type:     types.StringType,
 						Required: true,
@@ -1094,7 +1216,30 @@ func TestSchemaAttributeType(t *testing.T) {
 						Computed: true,
 						Optional: true,
 					},
-				}, ListNestedBlocksOptions{}),
+				},
+				NestingMode: NestingModeList,
+			},
+			"set_nested_blocks": {
+				Attributes: map[string]Attribute{
+					"string": {
+						Type:     types.StringType,
+						Required: true,
+					},
+					"number": {
+						Type:     types.NumberType,
+						Optional: true,
+					},
+					"bool": {
+						Type:     types.BoolType,
+						Computed: true,
+					},
+					"list": {
+						Type:     types.ListType{ElemType: types.StringType},
+						Computed: true,
+						Optional: true,
+					},
+				},
+				NestingMode: NestingModeSet,
 			},
 		},
 	}
@@ -1129,6 +1274,16 @@ func TestSchemaAttributeType(t *testing.T) {
 					},
 				},
 			},
+			"set_nested_blocks": types.SetType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"string": types.StringType,
+						"number": types.NumberType,
+						"bool":   types.BoolType,
+						"list":   types.ListType{ElemType: types.StringType},
+					},
+				},
+			},
 		},
 	}
 
@@ -1151,7 +1306,7 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 	tests := map[string]testCase{
 		"empty-val": {
 			input:       Schema{},
-			expectedErr: "must have at least one attribute in the schema",
+			expectedErr: "must have at least one attribute or block in the schema",
 		},
 		"basic-attrs": {
 			input: Schema{
@@ -1480,9 +1635,9 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 		"nested-blocks": {
 			input: Schema{
 				Version: 3,
-				Attributes: map[string]Attribute{
+				Blocks: map[string]Block{
 					"list": {
-						Blocks: ListNestedBlocks(map[string]Attribute{
+						Attributes: map[string]Attribute{
 							"string": {
 								Type:     types.StringType,
 								Required: true,
@@ -1500,10 +1655,11 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 								Computed: true,
 								Optional: true,
 							},
-						}, ListNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeList,
 					},
 					"set": {
-						Blocks: SetNestedBlocks(map[string]Attribute{
+						Attributes: map[string]Attribute{
 							"string": {
 								Type:     types.StringType,
 								Required: true,
@@ -1521,7 +1677,8 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 								Computed: true,
 								Optional: true,
 							},
-						}, SetNestedBlocksOptions{}),
+						},
+						NestingMode: NestingModeSet,
 					},
 				},
 			},

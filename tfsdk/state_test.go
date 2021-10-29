@@ -1116,7 +1116,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					tftypes.NewAttributePath().WithAttributeName("other"),
 					"State Read Error",
 					"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"error getting attribute type in schema: AttributeName(\"other\") still remains in the path: could not find attribute \"other\" in schema",
+						"error getting attribute type in schema: AttributeName(\"other\") still remains in the path: could not find attribute or block \"other\" in schema",
 				),
 			},
 		},
@@ -1289,6 +1289,14 @@ func TestStateGetAttributeValue(t *testing.T) {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.Bool,
+								},
+							},
+						},
 						"test": tftypes.List{
 							ElementType: tftypes.Object{
 								AttributeTypes: map[string]tftypes.Type{
@@ -1296,9 +1304,16 @@ func TestStateGetAttributeValue(t *testing.T) {
 								},
 							},
 						},
-						"other": tftypes.Bool,
 					},
 				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+					}, nil),
 					"test": tftypes.NewValue(tftypes.List{
 						ElementType: tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
@@ -1306,21 +1321,32 @@ func TestStateGetAttributeValue(t *testing.T) {
 							},
 						},
 					}, nil),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]Block{
+						"other_block": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: NestingModeList,
+						},
 						"test": {
-							Blocks: ListNestedBlocks(map[string]Attribute{
+							Attributes: map[string]Attribute{
 								"sub_test": {
 									Type:     types.StringType,
 									Required: true,
 								},
-							}, ListNestedBlocksOptions{}),
-						},
-						"other": {
-							Type:     types.BoolType,
-							Optional: true,
+							},
+							NestingMode: NestingModeList,
 						},
 					},
 				},
@@ -1332,6 +1358,14 @@ func TestStateGetAttributeValue(t *testing.T) {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.Bool,
+								},
+							},
+						},
 						"test": tftypes.List{
 							ElementType: tftypes.Object{
 								AttributeTypes: map[string]tftypes.Type{
@@ -1339,9 +1373,16 @@ func TestStateGetAttributeValue(t *testing.T) {
 								},
 							},
 						},
-						"other": tftypes.Bool,
 					},
 				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+					}, nil),
 					"test": tftypes.NewValue(tftypes.List{
 						ElementType: tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
@@ -1357,21 +1398,32 @@ func TestStateGetAttributeValue(t *testing.T) {
 							"sub_test": tftypes.NewValue(tftypes.String, "value"),
 						}),
 					}),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]Block{
+						"other_block": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: NestingModeList,
+						},
 						"test": {
-							Blocks: ListNestedBlocks(map[string]Attribute{
+							Attributes: map[string]Attribute{
 								"sub_test": {
 									Type:     types.StringType,
 									Required: true,
 								},
-							}, ListNestedBlocksOptions{}),
-						},
-						"other": {
-							Type:     types.BoolType,
-							Optional: true,
+							},
+							NestingMode: NestingModeList,
 						},
 					},
 				},
@@ -1784,6 +1836,164 @@ func TestStateGetAttributeValue(t *testing.T) {
 						"other": {
 							Type:     types.BoolType,
 							Optional: true,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"sub_test": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"sub_test": tftypes.NewValue(tftypes.String, "value"),
+			})).WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-SetNestedBlocks-null-WithElementKeyValue-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.Bool,
+								},
+							},
+						},
+						"test": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]Block{
+						"other_block": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: NestingModeSet,
+						},
+						"test": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							},
+							NestingMode: NestingModeSet,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"sub_test": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"sub_test": tftypes.NewValue(tftypes.String, "value"),
+			})).WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-SetNestedBlocks-WithElementKeyValue-WithAttributeName": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.Bool,
+								},
+							},
+						},
+						"test": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						}),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]Block{
+						"other_block": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: NestingModeSet,
+						},
+						"test": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							},
+							NestingMode: NestingModeSet,
 						},
 					},
 				},
@@ -2672,9 +2882,9 @@ func TestStateSet(t *testing.T) {
 			state: State{
 				Raw: tftypes.Value{},
 				Schema: Schema{
-					Attributes: map[string]Attribute{
+					Blocks: map[string]Block{
 						"disks": {
-							Blocks: ListNestedBlocks(map[string]Attribute{
+							Attributes: map[string]Attribute{
 								"id": {
 									Type:     types.StringType,
 									Required: true,
@@ -2683,7 +2893,8 @@ func TestStateSet(t *testing.T) {
 									Type:     types.BoolType,
 									Optional: true,
 								},
-							}, ListNestedBlocksOptions{}),
+							},
+							NestingMode: NestingModeList,
 						},
 					},
 				},
@@ -2968,9 +3179,9 @@ func TestStateSet(t *testing.T) {
 			state: State{
 				Raw: tftypes.Value{},
 				Schema: Schema{
-					Attributes: map[string]Attribute{
+					Blocks: map[string]Block{
 						"disks": {
-							Blocks: SetNestedBlocks(map[string]Attribute{
+							Attributes: map[string]Attribute{
 								"id": {
 									Type:     types.StringType,
 									Required: true,
@@ -2979,7 +3190,8 @@ func TestStateSet(t *testing.T) {
 									Type:     types.BoolType,
 									Optional: true,
 								},
-							}, SetNestedBlocksOptions{}),
+							},
+							NestingMode: NestingModeSet,
 						},
 					},
 				},

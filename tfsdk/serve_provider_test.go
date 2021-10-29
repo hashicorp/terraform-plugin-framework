@@ -230,19 +230,6 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 				}, ListNestedAttributesOptions{}),
 				Optional: true,
 			},
-			"list-nested-blocks": {
-				Blocks: ListNestedBlocks(map[string]Attribute{
-					"foo": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
-					},
-					"bar": {
-						Type:     types.NumberType,
-						Required: true,
-					},
-				}, ListNestedBlocksOptions{}),
-			},
 			"map-nested-attributes": {
 				Attributes: MapNestedAttributes(map[string]Attribute{
 					"foo": {
@@ -271,8 +258,10 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 				}, SetNestedAttributesOptions{}),
 				Optional: true,
 			},
-			"set-nested-blocks": {
-				Blocks: SetNestedBlocks(map[string]Attribute{
+		},
+		Blocks: map[string]Block{
+			"list-nested-blocks": {
+				Attributes: map[string]Attribute{
 					"foo": {
 						Type:     types.StringType,
 						Optional: true,
@@ -282,7 +271,22 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 						Type:     types.NumberType,
 						Required: true,
 					},
-				}, SetNestedBlocksOptions{}),
+				},
+				NestingMode: NestingModeList,
+			},
+			"set-nested-blocks": {
+				Attributes: map[string]Attribute{
+					"foo": {
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
+					},
+					"bar": {
+						Type:     types.NumberType,
+						Required: true,
+					},
+				},
+				NestingMode: NestingModeSet,
 			},
 		},
 	}, nil

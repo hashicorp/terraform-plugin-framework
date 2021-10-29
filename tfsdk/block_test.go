@@ -96,7 +96,7 @@ func TestBlockTfprotov6(t *testing.T) {
 						},
 					},
 					BlockTypes: []*tfprotov6.SchemaNestedBlock{
-						&tfprotov6.SchemaNestedBlock{
+						{
 							Block: &tfprotov6.SchemaBlock{
 								Attributes: []*tfprotov6.SchemaAttribute{
 									{
@@ -135,7 +135,7 @@ func TestBlockTfprotov6(t *testing.T) {
 			expected: &tfprotov6.SchemaNestedBlock{
 				Block: &tfprotov6.SchemaBlock{
 					BlockTypes: []*tfprotov6.SchemaNestedBlock{
-						&tfprotov6.SchemaNestedBlock{
+						{
 							Block: &tfprotov6.SchemaBlock{
 								Attributes: []*tfprotov6.SchemaAttribute{
 									{
@@ -213,7 +213,7 @@ func TestBlockTfprotov6(t *testing.T) {
 						},
 					},
 					BlockTypes: []*tfprotov6.SchemaNestedBlock{
-						&tfprotov6.SchemaNestedBlock{
+						{
 							Block: &tfprotov6.SchemaBlock{
 								Attributes: []*tfprotov6.SchemaAttribute{
 									{
@@ -252,7 +252,7 @@ func TestBlockTfprotov6(t *testing.T) {
 			expected: &tfprotov6.SchemaNestedBlock{
 				Block: &tfprotov6.SchemaBlock{
 					BlockTypes: []*tfprotov6.SchemaNestedBlock{
-						&tfprotov6.SchemaNestedBlock{
+						{
 							Block: &tfprotov6.SchemaBlock{
 								Attributes: []*tfprotov6.SchemaAttribute{
 									{

@@ -55,7 +55,7 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (Schema, diag.Di
 						Type:     types.StringType,
 					},
 				},
-				NestingMode: NestingModeList,
+				NestingMode: BlockNestingModeList,
 			},
 		},
 	}, nil

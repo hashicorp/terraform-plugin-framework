@@ -46,7 +46,7 @@ func TestBlockTfprotov6(t *testing.T) {
 						Optional: true,
 					},
 				},
-				NestingMode: NestingModeList,
+				NestingMode: BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -80,10 +80,10 @@ func TestBlockTfprotov6(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 				},
-				NestingMode: NestingModeList,
+				NestingMode: BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -126,10 +126,10 @@ func TestBlockTfprotov6(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 				},
-				NestingMode: NestingModeList,
+				NestingMode: BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -163,7 +163,7 @@ func TestBlockTfprotov6(t *testing.T) {
 						Optional: true,
 					},
 				},
-				NestingMode: NestingModeSet,
+				NestingMode: BlockNestingModeSet,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -197,10 +197,10 @@ func TestBlockTfprotov6(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 				},
-				NestingMode: NestingModeSet,
+				NestingMode: BlockNestingModeSet,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -243,10 +243,10 @@ func TestBlockTfprotov6(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 				},
-				NestingMode: NestingModeSet,
+				NestingMode: BlockNestingModeSet,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -281,7 +281,7 @@ func TestBlockTfprotov6(t *testing.T) {
 					},
 				},
 				DeprecationMessage: "deprecated, use something else instead",
-				NestingMode:        NestingModeList,
+				NestingMode:        BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -309,7 +309,7 @@ func TestBlockTfprotov6(t *testing.T) {
 					},
 				},
 				Description: "test description",
-				NestingMode: NestingModeList,
+				NestingMode: BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -339,7 +339,7 @@ func TestBlockTfprotov6(t *testing.T) {
 				},
 				Description:         "test plain description",
 				MarkdownDescription: "test markdown description",
-				NestingMode:         NestingModeList,
+				NestingMode:         BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -368,7 +368,7 @@ func TestBlockTfprotov6(t *testing.T) {
 					},
 				},
 				MarkdownDescription: "test description",
-				NestingMode:         NestingModeList,
+				NestingMode:         BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -397,7 +397,7 @@ func TestBlockTfprotov6(t *testing.T) {
 					},
 				},
 				MaxItems:    10,
-				NestingMode: NestingModeList,
+				NestingMode: BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -425,7 +425,7 @@ func TestBlockTfprotov6(t *testing.T) {
 					},
 				},
 				MinItems:    10,
-				NestingMode: NestingModeList,
+				NestingMode: BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -532,7 +532,7 @@ func TestBlockValidate(t *testing.T) {
 									},
 								},
 								DeprecationMessage: "Use something else instead.",
-								NestingMode:        NestingModeList,
+								NestingMode:        BlockNestingModeList,
 							},
 						},
 					},
@@ -587,7 +587,7 @@ func TestBlockValidate(t *testing.T) {
 									},
 								},
 								DeprecationMessage: "Use something else instead.",
-								NestingMode:        NestingModeList,
+								NestingMode:        BlockNestingModeList,
 							},
 						},
 					},
@@ -634,7 +634,7 @@ func TestBlockValidate(t *testing.T) {
 									},
 								},
 								DeprecationMessage: "Use something else instead.",
-								NestingMode:        NestingModeList,
+								NestingMode:        BlockNestingModeList,
 							},
 						},
 					},
@@ -697,13 +697,13 @@ func TestBlockValidate(t *testing.T) {
 									"nested_attr": {
 										Type:     types.StringType,
 										Required: true,
-										Validators: []AttributeValidator{
-											testWarningAttributeValidator{},
-											testWarningAttributeValidator{},
-										},
 									},
 								},
-								NestingMode: NestingModeList,
+								NestingMode: BlockNestingModeList,
+								Validators: []AttributeValidator{
+									testWarningAttributeValidator{},
+									testWarningAttributeValidator{},
+								},
 							},
 						},
 					},
@@ -763,13 +763,13 @@ func TestBlockValidate(t *testing.T) {
 									"nested_attr": {
 										Type:     types.StringType,
 										Required: true,
-										Validators: []AttributeValidator{
-											testErrorAttributeValidator{},
-											testErrorAttributeValidator{},
-										},
 									},
 								},
-								NestingMode: NestingModeList,
+								NestingMode: BlockNestingModeList,
+								Validators: []AttributeValidator{
+									testErrorAttributeValidator{},
+									testErrorAttributeValidator{},
+								},
 							},
 						},
 					},
@@ -782,7 +782,139 @@ func TestBlockValidate(t *testing.T) {
 				},
 			},
 		},
-		"type-with-validate-error": {
+		"nested-attr-warnings": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Blocks: map[string]Block{
+							"test": {
+								Attributes: map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										Validators: []AttributeValidator{
+											testWarningAttributeValidator{},
+											testWarningAttributeValidator{},
+										},
+									},
+								},
+								NestingMode: BlockNestingModeList,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testWarningDiagnostic1,
+					testWarningDiagnostic2,
+				},
+			},
+		},
+		"nested-attr-errors": {
+			req: ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: Schema{
+						Blocks: map[string]Block{
+							"test": {
+								Attributes: map[string]Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										Validators: []AttributeValidator{
+											testErrorAttributeValidator{},
+											testErrorAttributeValidator{},
+										},
+									},
+								},
+								NestingMode: BlockNestingModeList,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+					testErrorDiagnostic2,
+				},
+			},
+		},
+		"nested-attr-type-with-validate-error": {
 			req: ValidateAttributeRequest{
 				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
 				Config: Config{
@@ -831,7 +963,7 @@ func TestBlockValidate(t *testing.T) {
 										Required: true,
 									},
 								},
-								NestingMode: NestingModeList,
+								NestingMode: BlockNestingModeList,
 							},
 						},
 					},
@@ -843,7 +975,7 @@ func TestBlockValidate(t *testing.T) {
 				},
 			},
 		},
-		"type-with-validate-warning": {
+		"nested-attr-type-with-validate-warning": {
 			req: ValidateAttributeRequest{
 				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
 				Config: Config{
@@ -892,7 +1024,7 @@ func TestBlockValidate(t *testing.T) {
 										Required: true,
 									},
 								},
-								NestingMode: NestingModeList,
+								NestingMode: BlockNestingModeList,
 							},
 						},
 					},
@@ -953,7 +1085,7 @@ func TestBlockValidate(t *testing.T) {
 										Required: true,
 									},
 								},
-								NestingMode: NestingModeList,
+								NestingMode: BlockNestingModeList,
 							},
 						},
 					},
@@ -1013,7 +1145,7 @@ func TestBlockValidate(t *testing.T) {
 										},
 									},
 								},
-								NestingMode: NestingModeList,
+								NestingMode: BlockNestingModeList,
 							},
 						},
 					},
@@ -1074,7 +1206,7 @@ func TestBlockValidate(t *testing.T) {
 										Required: true,
 									},
 								},
-								NestingMode: NestingModeSet,
+								NestingMode: BlockNestingModeSet,
 							},
 						},
 					},
@@ -1134,7 +1266,7 @@ func TestBlockValidate(t *testing.T) {
 										},
 									},
 								},
-								NestingMode: NestingModeSet,
+								NestingMode: BlockNestingModeSet,
 							},
 						},
 					},

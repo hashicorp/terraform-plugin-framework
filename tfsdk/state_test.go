@@ -1337,7 +1337,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeList,
+							NestingMode: BlockNestingModeList,
 						},
 						"test": {
 							Attributes: map[string]Attribute{
@@ -1346,7 +1346,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 									Required: true,
 								},
 							},
-							NestingMode: NestingModeList,
+							NestingMode: BlockNestingModeList,
 						},
 					},
 				},
@@ -1414,7 +1414,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeList,
+							NestingMode: BlockNestingModeList,
 						},
 						"test": {
 							Attributes: map[string]Attribute{
@@ -1423,7 +1423,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 									Required: true,
 								},
 							},
-							NestingMode: NestingModeList,
+							NestingMode: BlockNestingModeList,
 						},
 					},
 				},
@@ -1901,7 +1901,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeSet,
+							NestingMode: BlockNestingModeSet,
 						},
 						"test": {
 							Attributes: map[string]Attribute{
@@ -1910,7 +1910,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 									Required: true,
 								},
 							},
-							NestingMode: NestingModeSet,
+							NestingMode: BlockNestingModeSet,
 						},
 					},
 				},
@@ -1984,7 +1984,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeSet,
+							NestingMode: BlockNestingModeSet,
 						},
 						"test": {
 							Attributes: map[string]Attribute{
@@ -1993,7 +1993,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 									Required: true,
 								},
 							},
-							NestingMode: NestingModeSet,
+							NestingMode: BlockNestingModeSet,
 						},
 					},
 				},
@@ -2894,7 +2894,7 @@ func TestStateSet(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeList,
+							NestingMode: BlockNestingModeList,
 						},
 					},
 				},
@@ -3191,7 +3191,7 @@ func TestStateSet(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeSet,
+							NestingMode: BlockNestingModeSet,
 						},
 					},
 				},

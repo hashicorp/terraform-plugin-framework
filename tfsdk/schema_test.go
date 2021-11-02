@@ -226,7 +226,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -239,7 +239,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 				},
 			},
@@ -263,7 +263,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -276,7 +276,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 				},
 			},
@@ -300,7 +300,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -313,7 +313,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 				},
 			},
@@ -339,7 +339,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -352,7 +352,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 				},
 			},
@@ -376,7 +376,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -389,7 +389,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 				},
 			},
@@ -677,7 +677,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -690,7 +690,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 				},
 			},
@@ -714,7 +714,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -727,7 +727,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 				},
 			},
@@ -751,7 +751,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -764,7 +764,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 				},
 			},
@@ -788,7 +788,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -801,7 +801,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 				},
 			},
@@ -825,7 +825,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 					"test": {
 						Attributes: map[string]Attribute{
@@ -838,7 +838,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 								Required: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 				},
 			},
@@ -1217,7 +1217,7 @@ func TestSchemaAttributeType(t *testing.T) {
 						Optional: true,
 					},
 				},
-				NestingMode: NestingModeList,
+				NestingMode: BlockNestingModeList,
 			},
 			"set_nested_blocks": {
 				Attributes: map[string]Attribute{
@@ -1239,7 +1239,7 @@ func TestSchemaAttributeType(t *testing.T) {
 						Optional: true,
 					},
 				},
-				NestingMode: NestingModeSet,
+				NestingMode: BlockNestingModeSet,
 			},
 		},
 	}
@@ -1656,7 +1656,7 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeList,
+						NestingMode: BlockNestingModeList,
 					},
 					"set": {
 						Attributes: map[string]Attribute{
@@ -1678,7 +1678,7 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 								Optional: true,
 							},
 						},
-						NestingMode: NestingModeSet,
+						NestingMode: BlockNestingModeSet,
 					},
 				},
 			},

@@ -640,7 +640,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeList,
+							NestingMode: BlockNestingModeList,
 						},
 						"test": {
 							Attributes: map[string]Attribute{
@@ -649,7 +649,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 									Required: true,
 								},
 							},
-							NestingMode: NestingModeList,
+							NestingMode: BlockNestingModeList,
 						},
 					},
 				},
@@ -717,7 +717,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeList,
+							NestingMode: BlockNestingModeList,
 						},
 						"test": {
 							Attributes: map[string]Attribute{
@@ -726,7 +726,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 									Required: true,
 								},
 							},
-							NestingMode: NestingModeList,
+							NestingMode: BlockNestingModeList,
 						},
 					},
 				},
@@ -1204,7 +1204,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeSet,
+							NestingMode: BlockNestingModeSet,
 						},
 						"test": {
 							Attributes: map[string]Attribute{
@@ -1213,7 +1213,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 									Required: true,
 								},
 							},
-							NestingMode: NestingModeSet,
+							NestingMode: BlockNestingModeSet,
 						},
 					},
 				},
@@ -1287,7 +1287,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 									Optional: true,
 								},
 							},
-							NestingMode: NestingModeSet,
+							NestingMode: BlockNestingModeSet,
 						},
 						"test": {
 							Attributes: map[string]Attribute{
@@ -1296,7 +1296,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 									Required: true,
 								},
 							},
-							NestingMode: NestingModeSet,
+							NestingMode: BlockNestingModeSet,
 						},
 					},
 				},

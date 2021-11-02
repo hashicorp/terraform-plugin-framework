@@ -272,7 +272,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 						Required: true,
 					},
 				},
-				NestingMode: NestingModeList,
+				NestingMode: BlockNestingModeList,
 			},
 			"set-nested-blocks": {
 				Attributes: map[string]Attribute{
@@ -286,7 +286,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (Schema, diag.Diagnosti
 						Required: true,
 					},
 				},
-				NestingMode: NestingModeSet,
+				NestingMode: BlockNestingModeSet,
 			},
 		},
 	}, nil

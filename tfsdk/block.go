@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+var _ tftypes.AttributePathStepper = Block{}
+
 // Block defines the constraints and behaviors of a single structural field in a
 // schema.
 type Block struct {
-	tftypes.AttributePathStepper
-
 	// Attributes are value fields inside the block. This map of attributes
 	// behaves exactly like the map of attributes on the Schema type.
 	Attributes map[string]Attribute
@@ -52,14 +52,17 @@ type Block struct {
 	MinItems int64
 
 	// NestingMode indicates the block kind.
-	NestingMode NestingMode
+	NestingMode BlockNestingMode
+
+	// Validators defines validation functionality for the block.
+	Validators []AttributeValidator
 }
 
 // ApplyTerraform5AttributePathStep allows Blocks to be walked using
 // tftypes.Walk and tftypes.Transform.
 func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	switch b.NestingMode {
-	case NestingModeList:
+	case BlockNestingModeList:
 		_, ok := step.(tftypes.ElementKeyInt)
 
 		if !ok {
@@ -67,7 +70,7 @@ func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) 
 		}
 
 		return nestedBlock{Block: b}, nil
-	case NestingModeSet:
+	case BlockNestingModeSet:
 		_, ok := step.(tftypes.ElementKeyValue)
 
 		if !ok {
@@ -76,7 +79,7 @@ func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) 
 
 		return nestedBlock{Block: b}, nil
 	default:
-		panic(fmt.Sprintf("unsupported block nesting mode: %v", b.NestingMode))
+		return nil, fmt.Errorf("unsupported block nesting mode: %v", b.NestingMode)
 	}
 }
 
@@ -124,11 +127,11 @@ func (b Block) attributeType() attr.Type {
 	}
 
 	switch b.NestingMode {
-	case NestingModeList:
+	case BlockNestingModeList:
 		return types.ListType{
 			ElemType: attrType,
 		}
-	case NestingModeSet:
+	case BlockNestingModeSet:
 		return types.SetType{
 			ElemType: attrType,
 		}
@@ -167,13 +170,10 @@ func (b Block) tfprotov6(ctx context.Context, name string, path *tftypes.Attribu
 
 	nm := b.NestingMode
 	switch nm {
-	case NestingModeList:
+	case BlockNestingModeList:
 		schemaNestedBlock.Nesting = tfprotov6.SchemaNestedBlockNestingModeList
-	case NestingModeSet:
+	case BlockNestingModeSet:
 		schemaNestedBlock.Nesting = tfprotov6.SchemaNestedBlockNestingModeSet
-	case NestingModeMap, NestingModeSingle:
-		// This is intentional to only maintain the previous Terraform Plugin SDK support.
-		return nil, path.NewErrorf("unsupported block nesting mode: %v", nm)
 	default:
 		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
 	}
@@ -238,13 +238,17 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 
 	req.AttributeConfig = attributeConfig
 
+	for _, validator := range b.Validators {
+		validator.Validate(ctx, req, resp)
+	}
+
 	nm := b.NestingMode
 	switch nm {
-	case NestingModeList:
+	case BlockNestingModeList:
 		l, ok := req.AttributeConfig.(types.List)
 
 		if !ok {
-			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+			err := fmt.Errorf("unknown block value type (%s) for nesting mode (%T) at path: %s", req.AttributeConfig.Type(ctx), nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error",
@@ -283,11 +287,11 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
-	case NestingModeSet:
+	case BlockNestingModeSet:
 		s, ok := req.AttributeConfig.(types.Set)
 
 		if !ok {
-			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+			err := fmt.Errorf("unknown block value type (%s) for nesting mode (%T) at path: %s", req.AttributeConfig.Type(ctx), nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error",
@@ -341,16 +345,6 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
-	case NestingModeMap, NestingModeSingle:
-		// This is intentional to only maintain the previous Terraform Plugin SDK support.
-		err := fmt.Errorf("unsupported block validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
-		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
-			"Block Validation Error",
-			"Block validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-		)
-
-		return
 	default:
 		err := fmt.Errorf("unknown block validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
 		resp.Diagnostics.AddAttributeError(

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// Attribute defines the constraints and behaviors of a single field in a
+// Attribute defines the constraints and behaviors of a single value field in a
 // schema. Attributes are the fields that show up in Terraform state files and
 // can be used in configuration files.
 type Attribute struct {
@@ -141,20 +141,53 @@ func (a Attribute) Equal(o Attribute) bool {
 	return true
 }
 
+// attributeType returns an attr.Type corresponding to the attribute.
+func (a Attribute) attributeType() attr.Type {
+	if a.Attributes != nil {
+		return a.Attributes.AttributeType()
+	}
+
+	return a.Type
+}
+
+// definesAttributes returns true if Attribute has a non-empty Attributes definition.
+//
+// Attribute may also incorrectly have an Attributes and/or Type definition.
+func (a Attribute) definesAttributes() bool {
+	return a.Attributes != nil && len(a.Attributes.GetAttributes()) > 0
+}
+
+// terraformType returns an tftypes.Type corresponding to the attribute.
+func (a Attribute) terraformType(ctx context.Context) tftypes.Type {
+	if a.Attributes != nil {
+		return a.Attributes.AttributeType().TerraformType(ctx)
+	}
+
+	return a.Type.TerraformType(ctx)
+}
+
 // tfprotov6 returns the *tfprotov6.SchemaAttribute equivalent of an
 // Attribute. Errors will be tftypes.AttributePathErrors based on
 // `path`. `name` is the name of the attribute.
 func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath) (*tfprotov6.SchemaAttribute, error) {
+	if a.definesAttributes() && a.Type != nil {
+		return nil, path.NewErrorf("cannot have both Attributes and Type set")
+	}
+
+	if !a.definesAttributes() && a.Type == nil {
+		return nil, path.NewErrorf("must have Attributes or Type set")
+	}
+
+	if !a.Required && !a.Optional && !a.Computed {
+		return nil, path.NewErrorf("must have Required, Optional, or Computed set")
+	}
+
 	schemaAttribute := &tfprotov6.SchemaAttribute{
 		Name:      name,
 		Required:  a.Required,
 		Optional:  a.Optional,
 		Computed:  a.Computed,
 		Sensitive: a.Sensitive,
-	}
-
-	if !a.Required && !a.Optional && !a.Computed {
-		return nil, path.NewErrorf("must have Required, Optional, or Computed set")
 	}
 
 	if a.DeprecationMessage != "" {
@@ -169,14 +202,6 @@ func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, pa
 	if a.MarkdownDescription != "" {
 		schemaAttribute.Description = a.MarkdownDescription
 		schemaAttribute.DescriptionKind = tfprotov6.StringKindMarkdown
-	}
-
-	if a.Attributes != nil && len(a.Attributes.GetAttributes()) > 0 && a.Type != nil {
-		return nil, path.NewErrorf("can't have both Attributes and Type set")
-	}
-
-	if (a.Attributes == nil || len(a.Attributes.GetAttributes()) < 1) && a.Type == nil {
-		return nil, path.NewErrorf("must have Attributes or Type set")
 	}
 
 	if a.Type != nil {
@@ -232,7 +257,7 @@ func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, pa
 
 // validate performs all Attribute validation.
 func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
-	if (a.Attributes == nil || len(a.Attributes.GetAttributes()) == 0) && a.Type == nil {
+	if !a.definesAttributes() && a.Type == nil {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Attribute Definition",
@@ -242,7 +267,7 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 		return
 	}
 
-	if a.Attributes != nil && len(a.Attributes.GetAttributes()) > 0 && a.Type != nil {
+	if a.definesAttributes() && a.Type != nil {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Attribute Definition",
@@ -275,151 +300,7 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 		validator.Validate(ctx, req, resp)
 	}
 
-	if a.Attributes != nil {
-		nm := a.Attributes.GetNestingMode()
-		switch nm {
-		case NestingModeList:
-			l, ok := req.AttributeConfig.(types.List)
-
-			if !ok {
-				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
-				resp.Diagnostics.AddAttributeError(
-					req.AttributePath,
-					"Attribute Validation Error",
-					"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-				)
-
-				return
-			}
-
-			for idx := range l.Elems {
-				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-					nestedAttrReq := ValidateAttributeRequest{
-						AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(nestedName),
-						Config:        req.Config,
-					}
-					nestedAttrResp := &ValidateAttributeResponse{
-						Diagnostics: resp.Diagnostics,
-					}
-
-					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
-
-					resp.Diagnostics = nestedAttrResp.Diagnostics
-				}
-			}
-		case NestingModeSet:
-			s, ok := req.AttributeConfig.(types.Set)
-
-			if !ok {
-				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
-				resp.Diagnostics.AddAttributeError(
-					req.AttributePath,
-					"Attribute Validation Error",
-					"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-				)
-
-				return
-			}
-
-			for _, value := range s.Elems {
-				tfValueRaw, err := value.ToTerraformValue(ctx)
-
-				if err != nil {
-					err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
-					resp.Diagnostics.AddAttributeError(
-						req.AttributePath,
-						"Attribute Validation Error",
-						"Attribute validation cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
-					)
-
-					return
-				}
-
-				tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
-
-				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-					nestedAttrReq := ValidateAttributeRequest{
-						AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(nestedName),
-						Config:        req.Config,
-					}
-					nestedAttrResp := &ValidateAttributeResponse{
-						Diagnostics: resp.Diagnostics,
-					}
-
-					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
-
-					resp.Diagnostics = nestedAttrResp.Diagnostics
-				}
-			}
-		case NestingModeMap:
-			m, ok := req.AttributeConfig.(types.Map)
-
-			if !ok {
-				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
-				resp.Diagnostics.AddAttributeError(
-					req.AttributePath,
-					"Attribute Validation Error",
-					"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-				)
-
-				return
-			}
-
-			for key := range m.Elems {
-				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-					nestedAttrReq := ValidateAttributeRequest{
-						AttributePath: req.AttributePath.WithElementKeyString(key).WithAttributeName(nestedName),
-						Config:        req.Config,
-					}
-					nestedAttrResp := &ValidateAttributeResponse{
-						Diagnostics: resp.Diagnostics,
-					}
-
-					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
-
-					resp.Diagnostics = nestedAttrResp.Diagnostics
-				}
-			}
-		case NestingModeSingle:
-			o, ok := req.AttributeConfig.(types.Object)
-
-			if !ok {
-				err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
-				resp.Diagnostics.AddAttributeError(
-					req.AttributePath,
-					"Attribute Validation Error",
-					"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-				)
-
-				return
-			}
-
-			if !o.Null && !o.Unknown {
-				for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
-					nestedAttrReq := ValidateAttributeRequest{
-						AttributePath: req.AttributePath.WithAttributeName(nestedName),
-						Config:        req.Config,
-					}
-					nestedAttrResp := &ValidateAttributeResponse{
-						Diagnostics: resp.Diagnostics,
-					}
-
-					nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
-
-					resp.Diagnostics = nestedAttrResp.Diagnostics
-				}
-			}
-		default:
-			err := fmt.Errorf("unknown attribute validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
-			resp.Diagnostics.AddAttributeError(
-				req.AttributePath,
-				"Attribute Validation Error",
-				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-			)
-
-			return
-		}
-	}
+	a.validateAttributes(ctx, req, resp)
 
 	if a.DeprecationMessage != "" && attributeConfig != nil {
 		tfValue, err := attributeConfig.ToTerraformValue(ctx)
@@ -441,6 +322,157 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 				a.DeprecationMessage,
 			)
 		}
+	}
+}
+
+// validateAttributes performs all nested Attributes validation.
+func (a Attribute) validateAttributes(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	if !a.definesAttributes() {
+		return
+	}
+
+	nm := a.Attributes.GetNestingMode()
+	switch nm {
+	case NestingModeList:
+		l, ok := req.AttributeConfig.(types.List)
+
+		if !ok {
+			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Attribute Validation Error",
+				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
+
+			return
+		}
+
+		for idx := range l.Elems {
+			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+				nestedAttrReq := ValidateAttributeRequest{
+					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(nestedName),
+					Config:        req.Config,
+				}
+				nestedAttrResp := &ValidateAttributeResponse{
+					Diagnostics: resp.Diagnostics,
+				}
+
+				nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+				resp.Diagnostics = nestedAttrResp.Diagnostics
+			}
+		}
+	case NestingModeSet:
+		s, ok := req.AttributeConfig.(types.Set)
+
+		if !ok {
+			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Attribute Validation Error",
+				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
+
+			return
+		}
+
+		for _, value := range s.Elems {
+			tfValueRaw, err := value.ToTerraformValue(ctx)
+
+			if err != nil {
+				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
+				resp.Diagnostics.AddAttributeError(
+					req.AttributePath,
+					"Attribute Validation Error",
+					"Attribute validation cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
+				)
+
+				return
+			}
+
+			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
+
+			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+				nestedAttrReq := ValidateAttributeRequest{
+					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(nestedName),
+					Config:        req.Config,
+				}
+				nestedAttrResp := &ValidateAttributeResponse{
+					Diagnostics: resp.Diagnostics,
+				}
+
+				nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+				resp.Diagnostics = nestedAttrResp.Diagnostics
+			}
+		}
+	case NestingModeMap:
+		m, ok := req.AttributeConfig.(types.Map)
+
+		if !ok {
+			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Attribute Validation Error",
+				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
+
+			return
+		}
+
+		for key := range m.Elems {
+			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+				nestedAttrReq := ValidateAttributeRequest{
+					AttributePath: req.AttributePath.WithElementKeyString(key).WithAttributeName(nestedName),
+					Config:        req.Config,
+				}
+				nestedAttrResp := &ValidateAttributeResponse{
+					Diagnostics: resp.Diagnostics,
+				}
+
+				nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+				resp.Diagnostics = nestedAttrResp.Diagnostics
+			}
+		}
+	case NestingModeSingle:
+		o, ok := req.AttributeConfig.(types.Object)
+
+		if !ok {
+			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Attribute Validation Error",
+				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
+
+			return
+		}
+
+		if !o.Null && !o.Unknown {
+			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+				nestedAttrReq := ValidateAttributeRequest{
+					AttributePath: req.AttributePath.WithAttributeName(nestedName),
+					Config:        req.Config,
+				}
+				nestedAttrResp := &ValidateAttributeResponse{
+					Diagnostics: resp.Diagnostics,
+				}
+
+				nestedAttr.validate(ctx, nestedAttrReq, nestedAttrResp)
+
+				resp.Diagnostics = nestedAttrResp.Diagnostics
+			}
+		}
+	default:
+		err := fmt.Errorf("unknown attribute validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Attribute Validation Error",
+			"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+		)
+
+		return
 	}
 }
 

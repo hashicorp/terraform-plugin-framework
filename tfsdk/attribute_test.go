@@ -635,7 +635,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Optional: true,
 			},
 			path:        tftypes.NewAttributePath(),
-			expectedErr: "can't have both Attributes and Type set",
+			expectedErr: "cannot have both Attributes and Type set",
 		},
 		"attr-and-nested-attr-unset": {
 			name: "whoops",

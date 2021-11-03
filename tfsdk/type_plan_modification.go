@@ -9,6 +9,67 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func runTypePlanModifiers(ctx context.Context, state, plan tftypes.Value, schema Schema, resp *planResourceChangeResponse) (tftypes.Value, bool) {
+	if plan.IsNull() {
+		return plan, true
+	}
+	rawPlan := map[string]tftypes.Value{}
+	err := plan.As(&rawPlan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error parsing plan",
+			"An unexpected error was encountered trying to parse the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return plan, false
+	}
+	rawState := map[string]tftypes.Value{}
+	if !state.IsNull() {
+		err = state.As(&rawState)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error parsing state",
+				"An unexpected error was encountered trying to parse the prior state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return plan, false
+		}
+	}
+	for attrName, a := range schema.Attributes {
+		path := tftypes.NewAttributePath().WithAttributeName(attrName)
+		planAttr, ok := rawPlan[attrName]
+		if !ok {
+			resp.Diagnostics.AddError(
+				"Error modifying plan",
+				// TODO: this isn't ideal
+				// but should it be a pathed diagnostic?
+				// Terraform is horribly broken at this point
+				// there may be nothing in the config to point to
+				fmt.Sprintf("An attribute %s in the schema was not present in the plan. This is possibly a bug with Terraform. Please report it to the provider developer.", path),
+			)
+			return plan, false
+		}
+		stateAttr, ok := rawState[attrName]
+		if !ok {
+			stateAttr = tftypes.NewValue(a.terraformType(ctx), nil)
+		}
+		newPlan, diags := attributeTypeModifyPlan(ctx, a.attributeType(), stateAttr, planAttr, path)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return plan, false
+		}
+		rawNewPlan, err := attr.ValueToTerraform(ctx, newPlan)
+		if err != nil {
+			// TODO: error
+		}
+		rawPlan[attrName] = rawNewPlan
+	}
+	err = tftypes.ValidateValue(plan.Type(), rawPlan)
+	if err != nil {
+		// TODO: error
+	}
+	plan = tftypes.NewValue(plan.Type(), rawPlan)
+	return plan, true
+}
+
 func attributeTypeModifyPlanObject(ctx context.Context, typ attr.Type, state, plan tftypes.Value, path *tftypes.AttributePath) (tftypes.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -154,7 +215,7 @@ func attributeTypeModifyPlanList(ctx context.Context, typ attr.Type, state, plan
 		if index < len(stateVals) {
 			elemState = stateVals[index]
 		}
-		newPlan, ds := attributeTypeModifyPlan(ctx, wet.ElementType(), elemState, elemPlan, path.WithElementKeyInt(int64(index)))
+		newPlan, ds := attributeTypeModifyPlan(ctx, wet.ElementType(), elemState, elemPlan, path.WithElementKeyInt(index))
 		diags.Append(ds...)
 		if diags.HasError() {
 			return plan, diags
@@ -162,7 +223,7 @@ func attributeTypeModifyPlanList(ctx context.Context, typ attr.Type, state, plan
 		rawNewPlan, err := attr.ValueToTerraform(ctx, newPlan)
 		if err != nil {
 			diags.AddAttributeError(path, "Error generating plan",
-				fmt.Sprintf("An unexpected error was encountered while trying to generate the plan. Please report the following to the provider developer:\n\nCouldn't convert the attr.Value at %s back to a tftypes.Value: %s", path.WithElementKeyInt(int64(index)), err),
+				fmt.Sprintf("An unexpected error was encountered while trying to generate the plan. Please report the following to the provider developer:\n\nCouldn't convert the attr.Value at %s back to a tftypes.Value: %s", path.WithElementKeyInt(index), err),
 			)
 			return plan, diags
 		}
@@ -203,19 +264,19 @@ func attributeTypeModifyPlanTuple(ctx context.Context, typ attr.Type, state, pla
 	elemTypes := wets.ElementTypes()
 	for index, elemPlan := range planVals {
 		if index >= len(elemTypes) {
-			diags.AddAttributeError(path, "Error generating plan", "An unexpected error was encountered while trying to generate the plan. Please report the following to the provider developer:\n\nPlan has a value at "+path.WithElementKeyInt(int64(index)).String()+" that the tuple has no type for.")
+			diags.AddAttributeError(path, "Error generating plan", "An unexpected error was encountered while trying to generate the plan. Please report the following to the provider developer:\n\nPlan has a value at "+path.WithElementKeyInt(index).String()+" that the tuple has no type for.")
 			return plan, diags
 		}
 		elemType := elemTypes[index]
 		if index >= len(stateVals) {
-			diags.AddAttributeError(path, "Error generating plan", "An unexpected error was encountered while trying to generate the plan. Please report the following to the provider developer:\n\nPlan has a value at "+path.WithElementKeyInt(int64(index)).String()+" that has no state equivalent, which is not allowed in tuples.")
+			diags.AddAttributeError(path, "Error generating plan", "An unexpected error was encountered while trying to generate the plan. Please report the following to the provider developer:\n\nPlan has a value at "+path.WithElementKeyInt(index).String()+" that has no state equivalent, which is not allowed in tuples.")
 			return plan, diags
 		}
 		elemState := tftypes.NewValue(elemType.TerraformType(ctx), nil)
 		if index < len(stateVals) {
 			elemState = stateVals[index]
 		}
-		newPlan, ds := attributeTypeModifyPlan(ctx, elemType, elemState, elemPlan, path.WithElementKeyInt(int64(index)))
+		newPlan, ds := attributeTypeModifyPlan(ctx, elemType, elemState, elemPlan, path.WithElementKeyInt(index))
 		diags.Append(ds...)
 		if diags.HasError() {
 			return plan, diags
@@ -223,7 +284,7 @@ func attributeTypeModifyPlanTuple(ctx context.Context, typ attr.Type, state, pla
 		rawNewPlan, err := attr.ValueToTerraform(ctx, newPlan)
 		if err != nil {
 			diags.AddAttributeError(path, "Error generating plan",
-				fmt.Sprintf("An unexpected error was encountered while trying to generate the plan. Please report the following to the provider developer:\n\nCouldn't convert the attr.Value at %s back to a tftypes.Value: %s", path.WithElementKeyInt(int64(index)), err),
+				fmt.Sprintf("An unexpected error was encountered while trying to generate the plan. Please report the following to the provider developer:\n\nCouldn't convert the attr.Value at %s back to a tftypes.Value: %s", path.WithElementKeyInt(index), err),
 			)
 			return plan, diags
 		}

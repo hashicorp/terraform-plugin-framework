@@ -7,7 +7,6 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -708,93 +707,11 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	//
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.
-	if !plan.IsNull() {
-		rawPlanVal := map[string]tftypes.Value{}
-		err = plan.As(&rawPlanVal)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error parsing plan",
-				"An unexpected error was encountered trying to parse the prior state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		rawStateVal := map[string]tftypes.Value{}
-		if !state.IsNull() {
-			err = state.As(&rawStateVal)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error parsing prior state",
-					"An unexpected error was encountered trying to parse the prior state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-				)
-				return
-			}
-		}
-		for attrName, a := range resourceSchema.Attributes {
-			path := tftypes.NewAttributePath().WithAttributeName(attrName)
-			plan, ok := rawPlanVal[attrName]
-			if !ok {
-				// TODO: error
-			}
-
-			if a.Type != nil {
-				state, ok := rawStateVal[attrName]
-				if !ok {
-					state = tftypes.NewValue(a.Type.TerraformType(ctx), nil)
-				}
-				newPlan, diags := attributeTypeModifyPlan(ctx, a.Type, state, plan, path)
-				resp.Diagnostics.Append(diags...)
-				if resp.Diagnostics.HasError() {
-					return
-				}
-				rawNewPlan, err := attr.ValueToTerraform(ctx, newPlan)
-				if err != nil {
-					// TODO: error
-				}
-				rawPlanVal[attrName] = rawNewPlan
-			} else if a.Attributes != nil {
-				state, ok := rawStateVal[attrName]
-				if !ok {
-					state = tftypes.NewValue(a.Attributes.AttributeType().TerraformType(ctx), nil)
-				}
-				newPlan, diags := attributeTypeModifyPlan(ctx, a.Attributes.AttributeType(), state, plan, path)
-				resp.Diagnostics.Append(diags...)
-				if resp.Diagnostics.HasError() {
-					return
-				}
-
-				if a.Type != nil {
-					newPlan, diags := attributeTypeModifyPlan(ctx, a.Type, state, plan, path)
-					resp.Diagnostics.Append(diags...)
-					if resp.Diagnostics.HasError() {
-						return
-					}
-					rawNewPlan, err := attr.ValueToTerraform(ctx, newPlan)
-					if err != nil {
-						// TODO: error
-					}
-					rawPlanVal[attrName] = rawNewPlan
-				} else if a.Attributes != nil {
-					newPlan, diags := attributeTypeModifyPlan(ctx, a.Attributes.AttributeType(), state, plan, path)
-					resp.Diagnostics.Append(diags...)
-					if resp.Diagnostics.HasError() {
-						return
-					}
-					rawNewPlan, err := attr.ValueToTerraform(ctx, newPlan)
-					if err != nil {
-						// TODO: error
-					}
-					rawPlanVal[attrName] = rawNewPlan
-				} else {
-					// TODO: error
-				}
-			}
-			err = tftypes.ValidateValue(plan.Type(), rawPlanVal)
-			if err != nil {
-				// TODO: error
-			}
-			plan = tftypes.NewValue(plan.Type(), rawPlanVal)
-		}
+	newPlan, ok := runTypePlanModifiers(ctx, state, plan, resourceSchema, resp)
+	if !ok {
+		return
 	}
+	plan = newPlan
 
 	// Execute any AttributePlanModifiers.
 	//

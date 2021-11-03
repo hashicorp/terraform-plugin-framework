@@ -199,9 +199,9 @@ func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttribu
 	res, diags := r.f(ctx, req.AttributeState, req.AttributeConfig, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
-	// if the function says to require replacing, we require replacing
-	// if the function says not to, we don't change the value that other
-	// plan modifiers may have set
+	// If the function says to require replacing, we require replacing.
+	// If the function says not to, we don't change the value that prior
+	// plan modifiers may have set.
 	if res {
 		resp.RequiresReplace = true
 	}

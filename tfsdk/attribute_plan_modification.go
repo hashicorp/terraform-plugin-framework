@@ -119,24 +119,24 @@ func (r RequiresReplaceIfModifier) MarkdownDescription(ctx context.Context) stri
 	return r.markdownDescription
 }
 
-// PreserveState returns a PreserveStateModifier.
-func PreserveState() AttributePlanModifier {
-	return PreserveStateModifier{}
+// UseStateForUnknown returns a UseStateForUnknownModifier.
+func UseStateForUnknown() AttributePlanModifier {
+	return UseStateForUnknownModifier{}
 }
 
-// PreserveStateModifier is an AttributePlanModifier that copies the prior state
+// UseStateForUnknownModifier is an AttributePlanModifier that copies the prior state
 // value for an attribute into that attribute's plan, if that state is non-null.
 //
-// Computed attributes without the PreserveState attribute plan modifier will
+// Computed attributes without the UseStateForUnknown attribute plan modifier will
 // have their value set to Unknown in the plan, so their value always will be
 // displayed as "(known after apply)" in the CLI plan output.
 // If this plan modifier is used, the prior state value will be displayed in
 // the plan instead unless a prior plan modifier adjusts the value.
-type PreserveStateModifier struct{}
+type UseStateForUnknownModifier struct{}
 
 // Modify copies the attribute's prior state to the attribute plan if the prior
 // state value is not null.
-func (r PreserveStateModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func (r UseStateForUnknownModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
 		return
 	}
@@ -189,12 +189,12 @@ func (r PreserveStateModifier) Modify(ctx context.Context, req ModifyAttributePl
 }
 
 // Description returns a human-readable description of the plan modifier.
-func (r PreserveStateModifier) Description(ctx context.Context) string {
+func (r UseStateForUnknownModifier) Description(ctx context.Context) string {
 	return "Once set, the value of this attribute in state will not change."
 }
 
 // MarkdownDescription returns a markdown description of the plan modifier.
-func (r PreserveStateModifier) MarkdownDescription(ctx context.Context) string {
+func (r UseStateForUnknownModifier) MarkdownDescription(ctx context.Context) string {
 	return "Once set, the value of this attribute in state will not change."
 }
 

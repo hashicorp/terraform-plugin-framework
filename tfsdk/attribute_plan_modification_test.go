@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestPreserveStateModifier(t *testing.T) {
+func TestUseStateForUnknownModifier(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
@@ -148,7 +148,7 @@ func TestPreserveStateModifier(t *testing.T) {
 			resp := &ModifyAttributePlanResponse{
 				AttributePlan: req.AttributePlan,
 			}
-			modifier := PreserveState()
+			modifier := UseStateForUnknown()
 
 			modifier.Modify(context.Background(), req, resp)
 			if resp.Diagnostics.HasError() {

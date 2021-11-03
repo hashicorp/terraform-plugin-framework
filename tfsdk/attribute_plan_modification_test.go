@@ -483,6 +483,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 		state        State
 		plan         Plan
 		config       Config
+		priorRR      bool
 		path         *tftypes.AttributePath
 		ifReturn     bool
 		expectedPlan attr.Value
@@ -525,6 +526,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
+			priorRR:      false,
 			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "foo"},
@@ -552,6 +554,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
+			priorRR:      false,
 			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: nil,
@@ -582,6 +585,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
+			priorRR:      false,
 			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "bar"},
@@ -612,6 +616,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
+			priorRR:      false,
 			ifReturn:     true,
 			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			expectedPlan: types.String{Null: true},
@@ -642,6 +647,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
+			priorRR:      false,
 			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "quux"},
@@ -672,10 +678,43 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
+			priorRR:      false,
 			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			ifReturn:     false,
 			expectedPlan: types.String{Value: "quux"},
 			expectedRR:   false,
+		},
+		"known-state-change-false-dont-override": {
+			// when updating the attribute, if it has changed and
+			// the function returns false, but a prior plan
+			// modifier already marked the resource as needing to
+			// be recreated, we shouldn't override that
+			state: State{
+				Schema: schema,
+				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
+				}),
+			},
+			plan: Plan{
+				Schema: schema,
+				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
+				}),
+			},
+			config: Config{
+				Schema: schema,
+				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
+				}),
+			},
+			priorRR:      true,
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
+			ifReturn:     false,
+			expectedPlan: types.String{Value: "quux"},
+			expectedRR:   true,
 		},
 		"known-state-no-change": {
 			// when the attribute hasn't changed, it shouldn't
@@ -701,6 +740,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
+			priorRR:      false,
 			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "foo"},
@@ -737,6 +777,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
+			priorRR:      false,
 			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: types.String{Unknown: true},
@@ -774,6 +815,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
+			priorRR:      false,
 			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			ifReturn:     true,
 			expectedPlan: types.String{Null: true},
@@ -812,7 +854,8 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				ProviderMeta:    Config{},
 			}
 			resp := &ModifyAttributePlanResponse{
-				AttributePlan: req.AttributePlan,
+				AttributePlan:   req.AttributePlan,
+				RequiresReplace: tc.priorRR,
 			}
 			modifier := RequiresReplaceIf(func(ctx context.Context, state, config attr.Value, path *tftypes.AttributePath) (bool, diag.Diagnostics) {
 				return tc.ifReturn, nil

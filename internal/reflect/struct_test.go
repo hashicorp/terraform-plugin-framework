@@ -22,12 +22,11 @@ func TestNewStruct_notAnObject(t *testing.T) {
 
 	var s struct{}
 	expectedDiags := diag.Diagnostics{
-		refl.DiagIntoIncompatibleType{
-			AttrPath:   tftypes.NewAttributePath(),
+		diag.WithPath(tftypes.NewAttributePath(), refl.DiagIntoIncompatibleType{
 			Val:        tftypes.NewValue(tftypes.String, "hello"),
 			TargetType: reflect.TypeOf(s),
 			Err:        fmt.Errorf("cannot reflect %s into a struct, must be an object", tftypes.String),
-		},
+		}),
 	}
 
 	_, diags := refl.Struct(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
@@ -50,12 +49,11 @@ func TestNewStruct_notAStruct(t *testing.T) {
 
 	var s string
 	expectedDiags := diag.Diagnostics{
-		refl.DiagIntoIncompatibleType{
-			AttrPath:   tftypes.NewAttributePath(),
+		diag.WithPath(tftypes.NewAttributePath(), refl.DiagIntoIncompatibleType{
 			TargetType: reflect.TypeOf(s),
 			Val:        val,
 			Err:        fmt.Errorf("expected a struct type, got string"),
-		},
+		}),
 	}
 
 	_, diags := refl.Struct(context.Background(), types.ObjectType{
@@ -80,12 +78,11 @@ func TestNewStruct_objectMissingFields(t *testing.T) {
 		A string `tfsdk:"a"`
 	}
 	expectedDiags := diag.Diagnostics{
-		refl.DiagIntoIncompatibleType{
-			AttrPath:   tftypes.NewAttributePath(),
+		diag.WithPath(tftypes.NewAttributePath(), refl.DiagIntoIncompatibleType{
 			Err:        errors.New("mismatch between struct and object: Struct defines fields not found in object: a."),
 			Val:        val,
 			TargetType: reflect.TypeOf(s),
-		},
+		}),
 	}
 
 	_, diags := refl.Struct(context.Background(), types.ObjectType{}, val, reflect.ValueOf(s), refl.Options{}, tftypes.NewAttributePath())
@@ -108,12 +105,11 @@ func TestNewStruct_structMissingProperties(t *testing.T) {
 
 	var s struct{}
 	expectedDiags := diag.Diagnostics{
-		refl.DiagIntoIncompatibleType{
-			AttrPath:   tftypes.NewAttributePath(),
+		diag.WithPath(tftypes.NewAttributePath(), refl.DiagIntoIncompatibleType{
 			Err:        errors.New("mismatch between struct and object: Object defines fields not found in struct: a."),
 			Val:        val,
 			TargetType: reflect.TypeOf(s),
-		},
+		}),
 	}
 
 	_, diags := refl.Struct(context.Background(), types.ObjectType{
@@ -142,12 +138,11 @@ func TestNewStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
 		A string `tfsdk:"a"`
 	}
 	expectedDiags := diag.Diagnostics{
-		refl.DiagIntoIncompatibleType{
-			AttrPath:   tftypes.NewAttributePath(),
+		diag.WithPath(tftypes.NewAttributePath(), refl.DiagIntoIncompatibleType{
 			TargetType: reflect.TypeOf(s),
 			Val:        val,
 			Err:        errors.New("mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b."),
-		},
+		}),
 	}
 
 	_, diags := refl.Struct(context.Background(), types.ObjectType{

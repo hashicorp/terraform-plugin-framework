@@ -44,22 +44,8 @@ func (p Plan) GetAttribute(ctx context.Context, path *tftypes.AttributePath, tar
 	valueAsDiags := ValueAs(ctx, attrValue, target)
 
 	// ValueAs does not have path information for its Diagnostics.
-	// TODO: Update to use diagnostic SetPath method.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/169
 	for idx, valueAsDiag := range valueAsDiags {
-		if valueAsDiag.Severity() == diag.SeverityError {
-			valueAsDiags[idx] = diag.NewAttributeErrorDiagnostic(
-				path,
-				valueAsDiag.Summary(),
-				valueAsDiag.Detail(),
-			)
-		} else if valueAsDiag.Severity() == diag.SeverityWarning {
-			valueAsDiags[idx] = diag.NewAttributeWarningDiagnostic(
-				path,
-				valueAsDiag.Summary(),
-				valueAsDiag.Detail(),
-			)
-		}
+		valueAsDiags[idx] = diag.WithPath(path, valueAsDiag)
 	}
 
 	diags.Append(valueAsDiags...)

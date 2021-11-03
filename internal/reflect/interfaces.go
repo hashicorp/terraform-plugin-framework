@@ -291,12 +291,11 @@ func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 		return target, append(diags, valueFromTerraformErrorDiag(err, path))
 	}
 	if reflect.TypeOf(res) != target.Type() {
-		diags.Append(DiagNewAttributeValueIntoWrongType{
+		diags.Append(diag.WithPath(path, DiagNewAttributeValueIntoWrongType{
 			ValType:    reflect.TypeOf(res),
 			TargetType: target.Type(),
 			SchemaType: typ,
-			AttrPath:   path,
-		})
+		}))
 		return target, diags
 	}
 	return reflect.ValueOf(res), diags

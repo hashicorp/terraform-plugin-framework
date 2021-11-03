@@ -204,6 +204,8 @@ func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttribu
 	// plan modifiers may have set.
 	if res {
 		resp.RequiresReplace = true
+	} else if resp.RequiresReplace {
+		// TODO: log that we didn't override the result
 	}
 }
 

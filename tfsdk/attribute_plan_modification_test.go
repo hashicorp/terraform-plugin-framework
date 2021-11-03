@@ -176,12 +176,12 @@ func TestRequiresReplaceModifier(t *testing.T) {
 
 	schema := Schema{
 		Attributes: map[string]Attribute{
-			"a": {
+			"optional-computed": {
 				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
 			},
-			"b": {
+			"optional": {
 				Type:     types.StringType,
 				Optional: true,
 			},
@@ -199,18 +199,18 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("a"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			expectedPlan: types.String{Value: "foo"},
 			expectedRR:   false,
 		},
@@ -228,15 +228,15 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("a"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			expectedPlan: nil,
 			expectedRR:   false,
 		},
@@ -247,25 +247,25 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("b"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			expectedPlan: types.String{Value: "bar"},
 			expectedRR:   true,
 		},
@@ -276,25 +276,25 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("b"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,
 		},
@@ -304,25 +304,25 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("b"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			expectedPlan: types.String{Value: "quux"},
 			expectedRR:   true,
 		},
@@ -332,25 +332,25 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("a"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			expectedPlan: types.String{Value: "foo"},
 			expectedRR:   false,
 		},
@@ -367,25 +367,25 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, nil),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, nil),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("a"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			expectedPlan: types.String{Unknown: true},
 			expectedRR:   false,
 		},
@@ -403,25 +403,25 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("b"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,
 		},
@@ -491,12 +491,12 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 
 	schema := Schema{
 		Attributes: map[string]Attribute{
-			"a": {
+			"optional-computed": {
 				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
 			},
-			"b": {
+			"optional": {
 				Type:     types.StringType,
 				Optional: true,
 			},
@@ -514,18 +514,18 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("a"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "foo"},
 			expectedRR:   false,
@@ -544,15 +544,15 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("a"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: nil,
 			expectedRR:   false,
@@ -564,25 +564,25 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("b"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "bar"},
 			expectedRR:   true,
@@ -594,26 +594,26 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
 			ifReturn:     true,
-			path:         tftypes.NewAttributePath().WithAttributeName("b"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,
 		},
@@ -624,25 +624,25 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("b"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "quux"},
 			expectedRR:   true,
@@ -654,25 +654,25 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("b"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			ifReturn:     false,
 			expectedPlan: types.String{Value: "quux"},
 			expectedRR:   false,
@@ -683,25 +683,25 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("a"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "foo"},
 			expectedRR:   false,
@@ -719,25 +719,25 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, nil),
-					"b": tftypes.NewValue(tftypes.String, "quux"),
+					"optional-computed": tftypes.NewValue(tftypes.String, nil),
+					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("a"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: types.String{Unknown: true},
 			expectedRR:   false,
@@ -756,25 +756,25 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			state: State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, "bar"),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
 			plan: Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
 			config: Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
-					"a": tftypes.NewValue(tftypes.String, "foo"),
-					"b": tftypes.NewValue(tftypes.String, nil),
+					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
+					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			path:         tftypes.NewAttributePath().WithAttributeName("b"),
+			path:         tftypes.NewAttributePath().WithAttributeName("optional"),
 			ifReturn:     true,
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,

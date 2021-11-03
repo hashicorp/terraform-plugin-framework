@@ -52,7 +52,7 @@ type Schema struct {
 	//   https://www.terraform.io/docs/language/syntax/configuration.html
 	//   https://www.terraform.io/docs/language/expressions/dynamic-blocks.html
 	//
-	// Attributes are strongly preferred over Blocks. Blocks should only be
+	// Deprecated: Attributes are preferred over Blocks. Blocks should only be
 	// used for configuration compatibility with previously existing schemas
 	// from an older Terraform Plugin SDK. Efforts should be made to convert
 	// Blocks to Attributes as a breaking change for practitioners.

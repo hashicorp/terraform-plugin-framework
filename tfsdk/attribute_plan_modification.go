@@ -2,6 +2,7 @@ package tfsdk
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -116,6 +117,85 @@ func (r RequiresReplaceIfModifier) Description(ctx context.Context) string {
 // MarkdownDescription returns a markdown description of the plan modifier.
 func (r RequiresReplaceIfModifier) MarkdownDescription(ctx context.Context) string {
 	return r.markdownDescription
+}
+
+// UseStateForUnknown returns a UseStateForUnknownModifier.
+func UseStateForUnknown() AttributePlanModifier {
+	return UseStateForUnknownModifier{}
+}
+
+// UseStateForUnknownModifier is an AttributePlanModifier that copies the prior state
+// value for an attribute into that attribute's plan, if that state is non-null.
+//
+// Computed attributes without the UseStateForUnknown attribute plan modifier will
+// have their value set to Unknown in the plan, so their value always will be
+// displayed as "(known after apply)" in the CLI plan output.
+// If this plan modifier is used, the prior state value will be displayed in
+// the plan instead unless a prior plan modifier adjusts the value.
+type UseStateForUnknownModifier struct{}
+
+// Modify copies the attribute's prior state to the attribute plan if the prior
+// state value is not null.
+func (r UseStateForUnknownModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
+		return
+	}
+
+	val, err := req.AttributeState.ToTerraformValue(ctx)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error converting state value",
+			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", req.AttributeState.Type(ctx), err),
+		)
+		return
+	}
+
+	// if we have no state value, there's nothing to preserve
+	if val == nil {
+		return
+	}
+
+	val, err = resp.AttributePlan.ToTerraformValue(ctx)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error converting plan value",
+			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", resp.AttributePlan.Type(ctx), err),
+		)
+		return
+	}
+
+	// if it's not planned to be the unknown value, stick with
+	// the concrete plan
+	if val != tftypes.UnknownValue {
+		return
+	}
+
+	val, err = req.AttributeConfig.ToTerraformValue(ctx)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(req.AttributePath,
+			"Error converting config value",
+			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", req.AttributeConfig.Type(ctx), err),
+		)
+		return
+	}
+
+	// if the config is the unknown value, use the unknown value
+	// otherwise, interpolation gets messed up
+	if val == tftypes.UnknownValue {
+		return
+	}
+
+	resp.AttributePlan = req.AttributeState
+}
+
+// Description returns a human-readable description of the plan modifier.
+func (r UseStateForUnknownModifier) Description(ctx context.Context) string {
+	return "Once set, the value of this attribute in state will not change."
+}
+
+// MarkdownDescription returns a markdown description of the plan modifier.
+func (r UseStateForUnknownModifier) MarkdownDescription(ctx context.Context) string {
+	return "Once set, the value of this attribute in state will not change."
 }
 
 // ModifyAttributePlanRequest represents a request for the provider to modify an

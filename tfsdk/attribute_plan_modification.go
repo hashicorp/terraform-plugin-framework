@@ -131,7 +131,7 @@ func PreserveState() AttributePlanModifier {
 // have their value set to Unknown in the plan, so their value always will be
 // displayed as "(known after apply)" in the CLI plan output.
 // If this plan modifier is used, the prior state value will be displayed in
-// the plan instead.
+// the plan instead unless a prior plan modifier adjusts the value.
 type PreserveStateModifier struct{}
 
 // Modify copies the attribute's prior state to the attribute plan if the prior

@@ -22,10 +22,41 @@ func (p Plan) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 	return reflect.Into(ctx, p.Schema.AttributeType(), p.Raw, target, reflect.Options{})
 }
 
-// GetAttribute retrieves the attribute found at `path` and returns it as an
+// GetAttribute retrieves the attribute found at `path` and populates the
+// `target` with the value.
+func (p Plan) GetAttribute(ctx context.Context, path *tftypes.AttributePath, target interface{}) diag.Diagnostics {
+	attrValue, diags := p.getAttributeValue(ctx, path)
+
+	if diags.HasError() {
+		return diags
+	}
+
+	if attrValue == nil {
+		diags.AddAttributeError(
+			path,
+			"Plan Read Error",
+			"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				"Missing attribute value, however no error was returned. Preventing the panic from this situation.",
+		)
+		return diags
+	}
+
+	valueAsDiags := ValueAs(ctx, attrValue, target)
+
+	// ValueAs does not have path information for its Diagnostics.
+	for idx, valueAsDiag := range valueAsDiags {
+		valueAsDiags[idx] = diag.WithPath(path, valueAsDiag)
+	}
+
+	diags.Append(valueAsDiags...)
+
+	return diags
+}
+
+// getAttributeValue retrieves the attribute found at `path` and returns it as an
 // attr.Value. Consumers should assert the type of the returned value with the
 // desired attr.Type.
-func (p Plan) GetAttribute(ctx context.Context, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func (p Plan) getAttributeValue(ctx context.Context, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	attrType, err := p.Schema.AttributeTypeAtPath(path)

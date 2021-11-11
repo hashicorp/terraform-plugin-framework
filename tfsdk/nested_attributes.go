@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// NestingMode is an enum type of the ways nested attributes can be nested.
-// They can be a list, a set, or a map (with string keys), or they can be
-// nested directly, like an object.
+// NestingMode is an enum type of the ways nested attributes can be nested in
+// an attribute. They can be a list, a set, a map (with string
+// keys), or they can be nested directly, like an object.
 type NestingMode uint8
 
 const (

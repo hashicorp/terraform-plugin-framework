@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestErrorDiagnostic(path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+func TestErrorDiagnostic(path *tftypes.AttributePath) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Error Diagnostic",
@@ -13,7 +13,7 @@ func TestErrorDiagnostic(path *tftypes.AttributePath) diag.AttributeErrorDiagnos
 	)
 }
 
-func TestWarningDiagnostic(path *tftypes.AttributePath) diag.AttributeWarningDiagnostic {
+func TestWarningDiagnostic(path *tftypes.AttributePath) diag.DiagnosticWithPath {
 	return diag.NewAttributeWarningDiagnostic(
 		path,
 		"Warning Diagnostic",

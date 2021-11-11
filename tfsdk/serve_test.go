@@ -491,6 +491,25 @@ func TestServerValidateProviderConfig(t *testing.T) {
 						"bar": tftypes.NewValue(tftypes.Number, 14554216),
 					}),
 				}),
+				"list-nested-blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "let's do the math"),
+						"bar": tftypes.NewValue(tftypes.Number, 18973),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "this is why we can't have nice things"),
+						"bar": tftypes.NewValue(tftypes.Number, 14554216),
+					}),
+				}),
 				"map": tftypes.NewValue(tftypes.Map{ElementType: tftypes.Number}, map[string]tftypes.Value{
 					"foo": tftypes.NewValue(tftypes.Number, 123),
 					"bar": tftypes.NewValue(tftypes.Number, 456),
@@ -516,6 +535,25 @@ func TestServerValidateProviderConfig(t *testing.T) {
 					}),
 				}),
 				"set-nested-attributes": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "let's do the math"),
+						"bar": tftypes.NewValue(tftypes.Number, 18973),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "this is why we can't have nice things"),
+						"bar": tftypes.NewValue(tftypes.Number, 14554216),
+					}),
+				}),
+				"set-nested-blocks": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"foo": tftypes.String,
 					"bar": tftypes.Number,
 				}}}, []tftypes.Value{
@@ -931,7 +969,45 @@ func TestServerConfigureProvider(t *testing.T) {
 						"bar": tftypes.NewValue(tftypes.Number, 14554216),
 					}),
 				}),
+				"list-nested-blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "let's do the math"),
+						"bar": tftypes.NewValue(tftypes.Number, 18973),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "this is why we can't have nice things"),
+						"bar": tftypes.NewValue(tftypes.Number, 14554216),
+					}),
+				}),
 				"set-nested-attributes": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "let's do the math"),
+						"bar": tftypes.NewValue(tftypes.Number, 18973),
+					}),
+					tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"foo": tftypes.String,
+						"bar": tftypes.Number,
+					}}, map[string]tftypes.Value{
+						"foo": tftypes.NewValue(tftypes.String, "this is why we can't have nice things"),
+						"bar": tftypes.NewValue(tftypes.Number, 14554216),
+					}),
+				}),
+				"set-nested-blocks": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"foo": tftypes.String,
 					"bar": tftypes.Number,
 				}}}, []tftypes.Value{
@@ -1014,6 +1090,10 @@ func TestServerConfigureProvider(t *testing.T) {
 					"bar": tftypes.NewValue(tftypes.Number, 456),
 					"baz": tftypes.NewValue(tftypes.Number, 789),
 				}),
+				"list-nested-blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, tftypes.UnknownValue),
 				"map-nested-attributes": tftypes.NewValue(tftypes.Map{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"bar": tftypes.Number,
 					"foo": tftypes.String,
@@ -1034,6 +1114,10 @@ func TestServerConfigureProvider(t *testing.T) {
 					}),
 				}),
 				"set-nested-attributes": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"bar": tftypes.Number,
+				}}}, tftypes.UnknownValue),
+				"set-nested-blocks": tftypes.NewValue(tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 					"foo": tftypes.String,
 					"bar": tftypes.Number,
 				}}}, tftypes.UnknownValue),
@@ -1433,6 +1517,13 @@ func TestServerReadResource(t *testing.T) {
 						},
 					},
 				}, tftypes.UnknownValue),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, tftypes.UnknownValue),
 			}),
 			resource:     "test_two",
 			resourceType: testServeResourceTypeTwoType,
@@ -1461,6 +1552,25 @@ func TestServerReadResource(t *testing.T) {
 							"boot":    tftypes.NewValue(tftypes.Bool, true),
 						}),
 					}),
+					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_bool":   tftypes.Bool,
+								"required_number": tftypes.Number,
+								"required_string": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+							"required_number": tftypes.NewValue(tftypes.Number, 123),
+							"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+						}),
+					}),
 				})
 			},
 
@@ -1487,6 +1597,25 @@ func TestServerReadResource(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, true),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 		},
 		"two_diags": {
@@ -1501,6 +1630,13 @@ func TestServerReadResource(t *testing.T) {
 						},
 					},
 				}, tftypes.UnknownValue),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, tftypes.UnknownValue),
 			}),
 			resource:     "test_two",
 			resourceType: testServeResourceTypeTwoType,
@@ -1527,6 +1663,25 @@ func TestServerReadResource(t *testing.T) {
 							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 							"size_gb": tftypes.NewValue(tftypes.Number, 100),
 							"boot":    tftypes.NewValue(tftypes.Bool, true),
+						}),
+					}),
+					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_bool":   tftypes.Bool,
+								"required_number": tftypes.Number,
+								"required_string": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+							"required_number": tftypes.NewValue(tftypes.Number, 123),
+							"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 						}),
 					}),
 				})
@@ -1562,6 +1717,25 @@ func TestServerReadResource(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 100),
 						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -1812,6 +1986,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 10),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -2147,6 +2340,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),
@@ -2165,6 +2377,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),
@@ -2181,6 +2412,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 10),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -2212,6 +2462,36 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, true),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 456),
+						"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
+					}),
+				}),
 			}),
 			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
 				resp.Plan.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
@@ -2240,6 +2520,36 @@ func TestServerPlanResourceChange(t *testing.T) {
 							"boot":    tftypes.NewValue(tftypes.Bool, true),
 						}),
 					}),
+					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_bool":   tftypes.Bool,
+								"required_number": tftypes.Number,
+								"required_string": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+							"required_number": tftypes.NewValue(tftypes.Number, 123),
+							"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+						}),
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_bool":   tftypes.Bool,
+								"required_number": tftypes.Number,
+								"required_string": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+							"required_number": tftypes.NewValue(tftypes.Number, 456),
+							"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
+						}),
+					}),
 				})
 			},
 		},
@@ -2261,6 +2571,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "1234567"),
@@ -2277,6 +2606,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 10),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -2297,6 +2645,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 			resource:     "test_two",
 			resourceType: testServeResourceTypeTwoType,
@@ -2315,6 +2682,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 10),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -2341,6 +2727,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),
@@ -2357,6 +2762,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 10),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -2377,6 +2801,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 			resource:     "test_two",
 			resourceType: testServeResourceTypeTwoType,
@@ -2395,6 +2838,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 10),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -2429,6 +2891,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 			proposedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "123456"),
@@ -2445,6 +2926,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 10),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -2465,6 +2965,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 			resource:     "test_two",
 			resourceType: testServeResourceTypeTwoType,
@@ -2483,6 +3002,25 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 10),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -2527,7 +3065,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"format": tftypes.String,
 					}}, map[string]tftypes.Value{
 						"size":   tftypes.NewValue(tftypes.Number, 1),
-						"format": tftypes.NewValue(tftypes.String, "ext4"),
+						"format": tftypes.NewValue(tftypes.String, "ext3"),
 					}),
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
@@ -2626,7 +3164,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
-					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"interface": tftypes.NewValue(tftypes.String, "something-else"),
 					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 						"size":   tftypes.Number,
 						"format": tftypes.String,
@@ -2715,7 +3253,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
-					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"interface": tftypes.NewValue(tftypes.String, "something-else"),
 					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 						"size":   tftypes.Number,
 						"format": tftypes.String,
@@ -2804,7 +3342,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
-					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"interface": tftypes.NewValue(tftypes.String, "something-else"),
 					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 						"size":   tftypes.Number,
 						"format": tftypes.String,
@@ -2905,7 +3443,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
-					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"interface": tftypes.NewValue(tftypes.String, "something-else"),
 					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 						"size":   tftypes.Number,
 						"format": tftypes.String,
@@ -2994,7 +3532,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
-					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"interface": tftypes.NewValue(tftypes.String, "something-else"),
 					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 						"size":   tftypes.Number,
 						"format": tftypes.String,
@@ -3174,7 +3712,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}},
 				}}, map[string]tftypes.Value{
 					"id":        tftypes.NewValue(tftypes.String, "my-scr-disk"),
-					"interface": tftypes.NewValue(tftypes.String, "scsi"),
+					"interface": tftypes.NewValue(tftypes.String, "something-else"),
 					"filesystem": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
 						"size":   tftypes.Number,
 						"format": tftypes.String,
@@ -3693,6 +4231,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"boot":    tftypes.Bool,
 					},
 				}}, tftypes.UnknownValue),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, tftypes.UnknownValue),
 			}),
 			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "test-instance"),
@@ -3701,6 +4246,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.String,
 						"size_gb": tftypes.Number,
 						"boot":    tftypes.Bool,
+					},
+				}}, nil),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
 					},
 				}}, nil),
 			}),
@@ -3729,6 +4281,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 							"boot":    tftypes.NewValue(tftypes.Bool, true),
 						}),
 					}),
+					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_bool":   tftypes.Bool,
+								"required_number": tftypes.Number,
+								"required_string": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+							"required_number": tftypes.NewValue(tftypes.Number, 123),
+							"required_string": tftypes.NewValue(tftypes.String, "stringvalue"),
+						}),
+					}),
 				})
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
@@ -3750,6 +4321,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 123),
 						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "stringvalue"),
 					}),
 				}),
 			}),
@@ -3774,6 +4364,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 123),
 						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -3809,6 +4418,36 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, false),
+						"required_number": tftypes.NewValue(tftypes.Number, 456),
+						"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
+					}),
+				}),
 			}),
 			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "test-instance"),
@@ -3840,6 +4479,36 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, false),
+						"required_number": tftypes.NewValue(tftypes.Number, 456),
+						"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
 					}),
 				}),
 			}),
@@ -3879,6 +4548,36 @@ func TestServerApplyResourceChange(t *testing.T) {
 							"boot":    tftypes.NewValue(tftypes.Bool, false),
 						}),
 					}),
+					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_bool":   tftypes.Bool,
+								"required_number": tftypes.Number,
+								"required_string": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+							"required_number": tftypes.NewValue(tftypes.Number, 123),
+							"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+						}),
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_bool":   tftypes.Bool,
+								"required_number": tftypes.Number,
+								"required_string": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_bool":   tftypes.NewValue(tftypes.Bool, false),
+							"required_number": tftypes.NewValue(tftypes.Number, 456),
+							"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
+						}),
+					}),
 				})
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
@@ -3911,6 +4610,36 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, false),
+						"required_number": tftypes.NewValue(tftypes.Number, 456),
+						"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
 					}),
 				}),
 			}),
@@ -3946,6 +4675,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -4077,6 +4825,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"boot":    tftypes.Bool,
 					},
 				}}, tftypes.UnknownValue),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, tftypes.UnknownValue),
 			}),
 			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "test-instance"),
@@ -4085,6 +4840,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.String,
 						"size_gb": tftypes.Number,
 						"boot":    tftypes.Bool,
+					},
+				}}, nil),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
 					},
 				}}, nil),
 			}),
@@ -4116,6 +4878,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 							"boot":    tftypes.NewValue(tftypes.Bool, true),
 						}),
 					}),
+					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_bool":   tftypes.Bool,
+								"required_number": tftypes.Number,
+								"required_string": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+							"required_number": tftypes.NewValue(tftypes.Number, 123),
+							"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+						}),
+					}),
 				})
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
@@ -4137,6 +4918,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 123),
 						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -4161,6 +4961,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 123),
 						"boot":    tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -4196,6 +5015,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
 					}),
 				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+					}),
+				}),
 			}),
 			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
 				"id": tftypes.NewValue(tftypes.String, "test-instance"),
@@ -4227,6 +5065,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -4269,6 +5126,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 							"boot":    tftypes.NewValue(tftypes.Bool, false),
 						}),
 					}),
+					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_bool":   tftypes.Bool,
+								"required_number": tftypes.Number,
+								"required_string": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+							"required_number": tftypes.NewValue(tftypes.Number, 123),
+							"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
+						}),
+					}),
 				})
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
@@ -4301,6 +5177,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),
@@ -4336,6 +5231,25 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
 						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
 						"boot":    tftypes.NewValue(tftypes.Bool, false),
+					}),
+				}),
+				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"required_bool":   tftypes.Bool,
+						"required_number": tftypes.Number,
+						"required_string": tftypes.String,
+					},
+				}}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"required_bool":   tftypes.Bool,
+							"required_number": tftypes.Number,
+							"required_string": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
+						"required_number": tftypes.NewValue(tftypes.Number, 123),
+						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
 					}),
 				}),
 			}),

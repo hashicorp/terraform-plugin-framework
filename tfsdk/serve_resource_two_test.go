@@ -39,6 +39,25 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (Schema, diag.Di
 				}, ListNestedAttributesOptions{}),
 			},
 		},
+		Blocks: map[string]Block{
+			"list_nested_blocks": {
+				Attributes: map[string]Attribute{
+					"required_bool": {
+						Required: true,
+						Type:     types.BoolType,
+					},
+					"required_number": {
+						Required: true,
+						Type:     types.NumberType,
+					},
+					"required_string": {
+						Required: true,
+						Type:     types.StringType,
+					},
+				},
+				NestingMode: BlockNestingModeList,
+			},
+		},
 	}, nil
 }
 
@@ -91,6 +110,31 @@ var testServeResourceTypeTwoSchema = &tfprotov6.Schema{
 				Type:     tftypes.String,
 			},
 		},
+		BlockTypes: []*tfprotov6.SchemaNestedBlock{
+			{
+				Block: &tfprotov6.SchemaBlock{
+					Attributes: []*tfprotov6.SchemaAttribute{
+						{
+							Name:     "required_bool",
+							Required: true,
+							Type:     tftypes.Bool,
+						},
+						{
+							Name:     "required_number",
+							Required: true,
+							Type:     tftypes.Number,
+						},
+						{
+							Name:     "required_string",
+							Required: true,
+							Type:     tftypes.String,
+						},
+					},
+				},
+				Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+				TypeName: "list_nested_blocks",
+			},
+		},
 	},
 }
 
@@ -102,6 +146,13 @@ var testServeResourceTypeTwoType = tftypes.Object{
 				"boot":    tftypes.Bool,
 				"name":    tftypes.String,
 				"size_gb": tftypes.Number,
+			}},
+		},
+		"list_nested_blocks": tftypes.List{ElementType: tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"required_bool":   tftypes.Bool,
+				"required_number": tftypes.Number,
+				"required_string": tftypes.String,
 			}},
 		},
 	},

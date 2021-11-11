@@ -12,6 +12,9 @@ import (
 //
 // See the ErrorDiagnostic and WarningDiagnostic concrete types for generic
 // implementations.
+//
+// To add path information to an existing diagnostic, see the WithPath()
+// function.
 type Diagnostic interface {
 	// Severity returns the desired level of feedback for the diagnostic.
 	Severity() Severity

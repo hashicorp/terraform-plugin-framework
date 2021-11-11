@@ -210,6 +210,193 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 			expected:    Attribute{},
 			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to ListNestedAttributes",
 		},
+		"WithAttributeName-ListNestedBlocks-WithAttributeName": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			expected:    Attribute{},
+			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeList",
+		},
+		"WithAttributeName-ListNestedBlocks-WithElementKeyInt": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			expected:    Attribute{},
+			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+		},
+		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: Attribute{
+				Type:     types.StringType,
+				Required: true,
+			},
+		},
+		"WithAttributeName-ListNestedBlocks-WithElementKeyString": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			expected:    Attribute{},
+			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeList",
+		},
+		"WithAttributeName-ListNestedBlocks-WithElementKeyValue": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
+			expected:    Attribute{},
+			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to block NestingModeList",
+		},
 		"WithAttributeName-MapNestedAttributes-WithAttributeName": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
@@ -465,6 +652,193 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 							},
 						}, SetNestedAttributesOptions{}),
 						Required: true,
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")).WithAttributeName("sub_test"),
+			expected: Attribute{
+				Type:     types.StringType,
+				Required: true,
+			},
+		},
+		"WithAttributeName-SetNestedBlocks-WithAttributeName": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			expected:    Attribute{},
+			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeSet",
+		},
+		"WithAttributeName-SetNestedBlocks-WithElementKeyInt": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			expected:    Attribute{},
+			expectedErr: "ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to block NestingModeSet",
+		},
+		"WithAttributeName-SetNestedBlocks-WithElementKeyString": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			expected:    Attribute{},
+			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeSet",
+		},
+		"WithAttributeName-SetNestedBlocks-WithElementKeyValue": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
+			expected:    Attribute{},
+			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+		},
+		"WithAttributeName-SetNestedBlocks-WithElementKeyValue-WithAttributeName": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
 					},
 				},
 			},
@@ -822,6 +1196,52 @@ func TestSchemaAttributeType(t *testing.T) {
 				}),
 			},
 		},
+		Blocks: map[string]Block{
+			"list_nested_blocks": {
+				Attributes: map[string]Attribute{
+					"string": {
+						Type:     types.StringType,
+						Required: true,
+					},
+					"number": {
+						Type:     types.NumberType,
+						Optional: true,
+					},
+					"bool": {
+						Type:     types.BoolType,
+						Computed: true,
+					},
+					"list": {
+						Type:     types.ListType{ElemType: types.StringType},
+						Computed: true,
+						Optional: true,
+					},
+				},
+				NestingMode: BlockNestingModeList,
+			},
+			"set_nested_blocks": {
+				Attributes: map[string]Attribute{
+					"string": {
+						Type:     types.StringType,
+						Required: true,
+					},
+					"number": {
+						Type:     types.NumberType,
+						Optional: true,
+					},
+					"bool": {
+						Type:     types.BoolType,
+						Computed: true,
+					},
+					"list": {
+						Type:     types.ListType{ElemType: types.StringType},
+						Computed: true,
+						Optional: true,
+					},
+				},
+				NestingMode: BlockNestingModeSet,
+			},
+		},
 	}
 
 	expectedType := types.ObjectType{
@@ -842,6 +1262,26 @@ func TestSchemaAttributeType(t *testing.T) {
 				AttrTypes: map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
+				},
+			},
+			"list_nested_blocks": types.ListType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"string": types.StringType,
+						"number": types.NumberType,
+						"bool":   types.BoolType,
+						"list":   types.ListType{ElemType: types.StringType},
+					},
+				},
+			},
+			"set_nested_blocks": types.SetType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"string": types.StringType,
+						"number": types.NumberType,
+						"bool":   types.BoolType,
+						"list":   types.ListType{ElemType: types.StringType},
+					},
 				},
 			},
 		},
@@ -866,7 +1306,7 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 	tests := map[string]testCase{
 		"empty-val": {
 			input:       Schema{},
-			expectedErr: "must have at least one attribute in the schema",
+			expectedErr: "must have at least one attribute or block in the schema",
 		},
 		"basic-attrs": {
 			input: Schema{
@@ -1187,6 +1627,122 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 								},
 							},
 							Required: true,
+						},
+					},
+				},
+			},
+		},
+		"nested-blocks": {
+			input: Schema{
+				Version: 3,
+				Blocks: map[string]Block{
+					"list": {
+						Attributes: map[string]Attribute{
+							"string": {
+								Type:     types.StringType,
+								Required: true,
+							},
+							"number": {
+								Type:     types.NumberType,
+								Optional: true,
+							},
+							"bool": {
+								Type:     types.BoolType,
+								Computed: true,
+							},
+							"list": {
+								Type:     types.ListType{ElemType: types.StringType},
+								Computed: true,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeList,
+					},
+					"set": {
+						Attributes: map[string]Attribute{
+							"string": {
+								Type:     types.StringType,
+								Required: true,
+							},
+							"number": {
+								Type:     types.NumberType,
+								Optional: true,
+							},
+							"bool": {
+								Type:     types.BoolType,
+								Computed: true,
+							},
+							"list": {
+								Type:     types.ListType{ElemType: types.StringType},
+								Computed: true,
+								Optional: true,
+							},
+						},
+						NestingMode: BlockNestingModeSet,
+					},
+				},
+			},
+			expected: &tfprotov6.Schema{
+				Version: 3,
+				Block: &tfprotov6.SchemaBlock{
+					BlockTypes: []*tfprotov6.SchemaNestedBlock{
+						{
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Computed: true,
+										Name:     "bool",
+										Type:     tftypes.Bool,
+									},
+									{
+										Computed: true,
+										Name:     "list",
+										Optional: true,
+										Type:     tftypes.List{ElementType: tftypes.String},
+									},
+									{
+										Name:     "number",
+										Optional: true,
+										Type:     tftypes.Number,
+									},
+									{
+										Name:     "string",
+										Required: true,
+										Type:     tftypes.String,
+									},
+								},
+							},
+							Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+							TypeName: "list",
+						},
+						{
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Computed: true,
+										Name:     "bool",
+										Type:     tftypes.Bool,
+									},
+									{
+										Computed: true,
+										Name:     "list",
+										Optional: true,
+										Type:     tftypes.List{ElementType: tftypes.String},
+									},
+									{
+										Name:     "number",
+										Optional: true,
+										Type:     tftypes.Number,
+									},
+									{
+										Name:     "string",
+										Required: true,
+										Type:     tftypes.String,
+									},
+								},
+							},
+							Nesting:  tfprotov6.SchemaNestedBlockNestingModeSet,
+							TypeName: "set",
 						},
 					},
 				},

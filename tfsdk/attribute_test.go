@@ -635,7 +635,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Optional: true,
 			},
 			path:        tftypes.NewAttributePath(),
-			expectedErr: "can't have both Attributes and Type set",
+			expectedErr: "cannot have both Attributes and Type set",
 		},
 		"attr-and-nested-attr-unset": {
 			name: "whoops",
@@ -1383,7 +1383,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 							"test": tftypes.String,
 						},
 					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
 					}),
 					Schema: Schema{
 						Attributes: map[string]Attribute{
@@ -1403,7 +1403,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 							"test": tftypes.String,
 						},
 					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
 					}),
 					Schema: Schema{
 						Attributes: map[string]Attribute{
@@ -1455,7 +1455,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 							"test": tftypes.String,
 						},
 					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
 					}),
 					Schema: Schema{
 						Attributes: map[string]Attribute{
@@ -1475,7 +1475,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 							"test": tftypes.String,
 						},
 					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
 					}),
 					Schema: Schema{
 						Attributes: map[string]Attribute{
@@ -1547,8 +1547,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []AttributePlanModifier{
-									RequiresReplace(),
 									testAttrPlanValueModifierOne{},
+									RequiresReplace(),
 								},
 							},
 						},
@@ -2041,7 +2041,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 			attribute.modifyPlan(context.Background(), tc.req, &tc.resp)
 
 			if diff := cmp.Diff(tc.expectedResp, tc.resp); diff != "" {
-				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
+				t.Errorf("Unexpected response (-wanted, +got): %s", diff)
 			}
 		})
 	}

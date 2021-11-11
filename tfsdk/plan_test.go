@@ -2,11 +2,14 @@ package tfsdk
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	intreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -157,6 +160,206 @@ func TestPlanGetAttribute(t *testing.T) {
 
 	type testCase struct {
 		plan          Plan
+		target        interface{}
+		expected      interface{}
+		expectedDiags diag.Diagnostics
+	}
+
+	testCases := map[string]testCase{
+		"string": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(string),
+			expected: newStringPointer("namevalue"),
+		},
+		"*string": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(*string),
+			expected: newStringPointerPointer("namevalue"),
+		},
+		"types.String": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(types.String),
+			expected: &types.String{Value: "namevalue"},
+		},
+		"incompatible-target": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(testtypes.String),
+			expected: new(testtypes.String),
+			expectedDiags: diag.Diagnostics{
+				diag.WithPath(
+					tftypes.NewAttributePath().WithAttributeName("name"),
+					intreflect.DiagNewAttributeValueIntoWrongType{
+						ValType:    reflect.TypeOf(types.String{Value: "namevalue"}),
+						TargetType: reflect.TypeOf(testtypes.String{}),
+						SchemaType: types.StringType,
+					},
+				),
+			},
+		},
+		"incompatible-type": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			target:   new(bool),
+			expected: new(bool),
+			expectedDiags: diag.Diagnostics{
+				diag.WithPath(
+					tftypes.NewAttributePath().WithAttributeName("name"),
+					intreflect.DiagIntoIncompatibleType{
+						Val:        tftypes.NewValue(tftypes.String, "namevalue"),
+						TargetType: reflect.TypeOf(false),
+						Err:        fmt.Errorf("can't unmarshal %s into *%T, expected boolean", tftypes.String, false),
+					},
+				),
+			},
+		},
+		"AttrTypeWithValidateError": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateError{},
+							Required: true,
+						},
+					},
+				},
+			},
+			target:        new(testtypes.String),
+			expected:      new(testtypes.String),
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+		},
+		"AttrTypeWithValidateWarning": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateWarning{},
+							Required: true,
+						},
+					},
+				},
+			},
+			target:        new(testtypes.String),
+			expected:      &testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			diags := tc.plan.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"), tc.target)
+
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(tc.target, tc.expected, cmp.Transformer("testtypes", func(in *testtypes.String) testtypes.String { return *in }), cmp.Transformer("types", func(in *types.String) types.String { return *in })); diff != "" {
+				t.Errorf("unexpected value (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestPlanGetAttributeValue(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		plan          Plan
 		path          *tftypes.AttributePath
 		expected      attr.Value
 		expectedDiags diag.Diagnostics
@@ -212,7 +415,7 @@ func TestPlanGetAttribute(t *testing.T) {
 					tftypes.NewAttributePath().WithAttributeName("other"),
 					"Plan Read Error",
 					"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"error getting attribute type in schema: AttributeName(\"other\") still remains in the path: could not find attribute \"other\" in schema",
+						"error getting attribute type in schema: AttributeName(\"other\") still remains in the path: could not find attribute or block \"other\" in schema",
 				),
 			},
 		},
@@ -434,6 +637,152 @@ func TestPlanGetAttribute(t *testing.T) {
 						"other": {
 							Type:     types.BoolType,
 							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
+		"WithAttributeName-ListNestedBlocks-null-WithElementKeyInt-WithAttributeName": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.Bool,
+								},
+							},
+						},
+						"test": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]Block{
+						"other_block": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: BlockNestingModeList,
+						},
+						"test": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							},
+							NestingMode: BlockNestingModeList,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.Bool,
+								},
+							},
+						},
+						"test": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						}),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]Block{
+						"other_block": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: BlockNestingModeList,
+						},
+						"test": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							},
+							NestingMode: BlockNestingModeList,
 						},
 					},
 				},
@@ -859,6 +1208,164 @@ func TestPlanGetAttribute(t *testing.T) {
 			})).WithAttributeName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
+		"WithAttributeName-SetNestedBlocks-null-WithElementKeyValue-WithAttributeName": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.Bool,
+								},
+							},
+						},
+						"test": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]Block{
+						"other_block": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: BlockNestingModeSet,
+						},
+						"test": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							},
+							NestingMode: BlockNestingModeSet,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"sub_test": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"sub_test": tftypes.NewValue(tftypes.String, "value"),
+			})).WithAttributeName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-SetNestedBlocks-WithElementKeyValue-WithAttributeName": {
+			plan: Plan{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.Bool,
+								},
+							},
+						},
+						"test": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"sub_test": tftypes.String,
+								},
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						}),
+					}),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]Block{
+						"other_block": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: BlockNestingModeSet,
+						},
+						"test": {
+							Attributes: map[string]Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							},
+							NestingMode: BlockNestingModeSet,
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"sub_test": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"sub_test": tftypes.NewValue(tftypes.String, "value"),
+			})).WithAttributeName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName": {
 			plan: Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
@@ -1085,7 +1592,7 @@ func TestPlanGetAttribute(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			val, diags := tc.plan.GetAttribute(context.Background(), tc.path)
+			val, diags := tc.plan.getAttributeValue(context.Background(), tc.path)
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}

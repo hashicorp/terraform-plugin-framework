@@ -20,6 +20,11 @@ func newStringPointer(in string) *string {
 	return &in
 }
 
+func newStringPointerPointer(in string) **string {
+	stringPointer := &in
+	return &stringPointer
+}
+
 func newInt64Pointer(in int64) *int64 {
 	return &in
 }
@@ -43,22 +48,30 @@ func TestValueAs(t *testing.T) {
 		"incompatible-type": {
 			val:    types.String{Value: "hello"},
 			target: newInt64Pointer(0),
-			expectedDiags: diag.Diagnostics{reflect.DiagIntoIncompatibleType{
-				Val:        tftypes.NewValue(tftypes.String, "hello"),
-				TargetType: goreflect.TypeOf(int64(0)),
-				Err:        fmt.Errorf("can't unmarshal %s into %T, expected *big.Float", tftypes.String, big.NewFloat(0)),
-				AttrPath:   tftypes.NewAttributePath(),
-			}},
+			expectedDiags: diag.Diagnostics{
+				diag.WithPath(
+					tftypes.NewAttributePath(),
+					reflect.DiagIntoIncompatibleType{
+						Val:        tftypes.NewValue(tftypes.String, "hello"),
+						TargetType: goreflect.TypeOf(int64(0)),
+						Err:        fmt.Errorf("can't unmarshal %s into %T, expected *big.Float", tftypes.String, big.NewFloat(0)),
+					},
+				),
+			},
 		},
 		"different-type": {
 			val:    types.String{Value: "hello"},
 			target: &testtypes.String{},
-			expectedDiags: diag.Diagnostics{reflect.DiagNewAttributeValueIntoWrongType{
-				ValType:    goreflect.TypeOf(types.String{Value: "hello"}),
-				TargetType: goreflect.TypeOf(testtypes.String{}),
-				AttrPath:   tftypes.NewAttributePath(),
-				SchemaType: types.StringType,
-			}},
+			expectedDiags: diag.Diagnostics{
+				diag.WithPath(
+					tftypes.NewAttributePath(),
+					reflect.DiagNewAttributeValueIntoWrongType{
+						ValType:    goreflect.TypeOf(types.String{Value: "hello"}),
+						TargetType: goreflect.TypeOf(testtypes.String{}),
+						SchemaType: types.StringType,
+					},
+				),
+			},
 		},
 	}
 

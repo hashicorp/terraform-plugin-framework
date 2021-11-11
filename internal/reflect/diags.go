@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func toTerraform5ValueErrorDiag(err error, path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+func toTerraform5ValueErrorDiag(err error, path *tftypes.AttributePath) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -17,7 +17,7 @@ func toTerraform5ValueErrorDiag(err error, path *tftypes.AttributePath) diag.Att
 	)
 }
 
-func toTerraformValueErrorDiag(err error, path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+func toTerraformValueErrorDiag(err error, path *tftypes.AttributePath) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -25,7 +25,7 @@ func toTerraformValueErrorDiag(err error, path *tftypes.AttributePath) diag.Attr
 	)
 }
 
-func validateValueErrorDiag(err error, path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+func validateValueErrorDiag(err error, path *tftypes.AttributePath) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -33,7 +33,7 @@ func validateValueErrorDiag(err error, path *tftypes.AttributePath) diag.Attribu
 	)
 }
 
-func valueFromTerraformErrorDiag(err error, path *tftypes.AttributePath) diag.AttributeErrorDiagnostic {
+func valueFromTerraformErrorDiag(err error, path *tftypes.AttributePath) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -44,7 +44,6 @@ func valueFromTerraformErrorDiag(err error, path *tftypes.AttributePath) diag.At
 type DiagIntoIncompatibleType struct {
 	Val        tftypes.Value
 	TargetType reflect.Type
-	AttrPath   *tftypes.AttributePath
 	Err        error
 }
 
@@ -71,24 +70,16 @@ func (d DiagIntoIncompatibleType) Equal(o diag.Diagnostic) bool {
 	if d.TargetType != od.TargetType {
 		return false
 	}
-	if !d.AttrPath.Equal(od.AttrPath) {
-		return false
-	}
 	if d.Err.Error() != od.Err.Error() {
 		return false
 	}
 	return true
 }
 
-func (d DiagIntoIncompatibleType) Path() *tftypes.AttributePath {
-	return d.AttrPath
-}
-
 type DiagNewAttributeValueIntoWrongType struct {
 	ValType    reflect.Type
 	TargetType reflect.Type
 	SchemaType attr.Type
-	AttrPath   *tftypes.AttributePath
 }
 
 func (d DiagNewAttributeValueIntoWrongType) Severity() diag.Severity {
@@ -117,12 +108,5 @@ func (d DiagNewAttributeValueIntoWrongType) Equal(o diag.Diagnostic) bool {
 	if !d.SchemaType.Equal(od.SchemaType) {
 		return false
 	}
-	if !d.AttrPath.Equal(od.AttrPath) {
-		return false
-	}
 	return true
-}
-
-func (d DiagNewAttributeValueIntoWrongType) Path() *tftypes.AttributePath {
-	return d.AttrPath
 }

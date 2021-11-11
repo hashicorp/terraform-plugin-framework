@@ -177,6 +177,34 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 				},
 			},
 		},
+		"wrong-type": {
+			receiver: SetType{
+				ElemType: StringType,
+			},
+			input:       tftypes.NewValue(tftypes.String, "wrong"),
+			expectedErr: `can't use tftypes.String<"wrong"> as value of Set with ElementType types.primitive, can only use tftypes.String values`,
+		},
+		"wrong-element-type": {
+			receiver: SetType{
+				ElemType: StringType,
+			},
+			input: tftypes.NewValue(tftypes.Set{
+				ElementType: tftypes.Number,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.Number, 1),
+			}),
+			expectedErr: `can't use tftypes.Set[tftypes.Number]<tftypes.Number<"1">> as value of Set with ElementType types.primitive, can only use tftypes.String values`,
+		},
+		"nil-type": {
+			receiver: SetType{
+				ElemType: StringType,
+			},
+			input: tftypes.NewValue(nil, nil),
+			expected: Set{
+				ElemType: StringType,
+				Null:     true,
+			},
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test
@@ -185,14 +213,14 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 
 			got, gotErr := test.receiver.ValueFromTerraform(context.Background(), test.input)
 			if gotErr != nil {
-				if test.expectedErr != "" {
-					if gotErr.Error() != test.expectedErr {
-						t.Errorf("Expected error to be %q, got %q", test.expectedErr, gotErr.Error())
-						return
-					}
+				if test.expectedErr == "" {
+					t.Errorf("Unexpected error: %s", gotErr.Error())
+					return
 				}
-				t.Errorf("Unexpected error: %s", gotErr.Error())
-				return
+				if gotErr.Error() != test.expectedErr {
+					t.Errorf("Expected error to be %q, got %q", test.expectedErr, gotErr.Error())
+					return
+				}
 			}
 			if gotErr == nil && test.expectedErr != "" {
 				t.Errorf("Expected error to be %q, got nil", test.expectedErr)

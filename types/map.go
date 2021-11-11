@@ -46,6 +46,10 @@ func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr
 	ma := Map{
 		ElemType: m.ElemType,
 	}
+	if in.Type() == nil {
+		ma.Null = true
+		return ma, nil
+	}
 	if !in.Type().Is(tftypes.Map{}) {
 		return nil, fmt.Errorf("can't use %s as value of Map, can only use tftypes.Map values", in.String())
 	}

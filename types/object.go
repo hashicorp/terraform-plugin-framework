@@ -52,6 +52,10 @@ func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 	object := Object{
 		AttrTypes: o.AttrTypes,
 	}
+	if in.Type() == nil {
+		object.Null = true
+		return object, nil
+	}
 	if !in.Type().Equal(o.TerraformType(ctx)) {
 		return nil, fmt.Errorf("expected %s, got %s", o.TerraformType(ctx), in.Type())
 	}

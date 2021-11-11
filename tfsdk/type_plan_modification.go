@@ -58,13 +58,21 @@ func runTypePlanModifiers(ctx context.Context, state, plan tftypes.Value, schema
 		}
 		rawNewPlan, err := attr.ValueToTerraform(ctx, newPlan)
 		if err != nil {
-			// TODO: error
+			resp.Diagnostics.AddError(
+				"Error converting value",
+				"An unexpected error was encountered converting a value to its protocol type during plan modification. This is always a bug in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return plan, false
 		}
 		rawPlan[attrName] = rawNewPlan
 	}
 	err = tftypes.ValidateValue(plan.Type(), rawPlan)
 	if err != nil {
-		// TODO: error
+		resp.Diagnostics.AddError(
+			"Error modifying plan",
+			"An unexpected error was encountered validating the modified plan. This is always a bug in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return plan, false
 	}
 	plan = tftypes.NewValue(plan.Type(), rawPlan)
 	return plan, true

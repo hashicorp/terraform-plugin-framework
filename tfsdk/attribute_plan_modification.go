@@ -2,6 +2,7 @@ package tfsdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -127,7 +128,10 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req ModifyAttribute
 	}
 
 	attrSchema, err := req.State.Schema.AttributeAtPath(req.AttributePath)
-	if err != nil {
+
+	// Path may lead to block instead of attribute. Blocks cannot be Computed.
+	// If ErrPathIsBlock, attrSchema.Computed will still be false later.
+	if err != nil && !errors.Is(err, ErrPathIsBlock) {
 		resp.Diagnostics.AddAttributeError(req.AttributePath,
 			"Error finding attribute schema",
 			fmt.Sprintf("An unexpected error was encountered retrieving the schema for this attribute. This is always a bug in the provider.\n\nError: %s", err),
@@ -264,7 +268,10 @@ func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttribu
 	}
 
 	attrSchema, err := req.State.Schema.AttributeAtPath(req.AttributePath)
-	if err != nil {
+
+	// Path may lead to block instead of attribute. Blocks cannot be Computed.
+	// If ErrPathIsBlock, attrSchema.Computed will still be false later.
+	if err != nil && !errors.Is(err, ErrPathIsBlock) {
 		resp.Diagnostics.AddAttributeError(req.AttributePath,
 			"Error finding attribute schema",
 			fmt.Sprintf("An unexpected error was encountered retrieving the schema for this attribute. This is always a bug in the provider.\n\nError: %s", err),

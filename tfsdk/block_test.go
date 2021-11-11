@@ -5,12 +5,993 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+func TestBlockModifyPlan(t *testing.T) {
+	t.Parallel()
+
+	blockValue := func(elementValue string) attr.Value {
+		return types.List{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"nested_attr": types.StringType,
+				},
+			},
+			Elems: []attr.Value{
+				types.Object{
+					AttrTypes: map[string]attr.Type{
+						"nested_attr": types.StringType,
+					},
+					Attrs: map[string]attr.Value{
+						"nested_attr": types.String{Value: elementValue},
+					},
+				},
+			},
+		}
+	}
+
+	var blockNullValue attr.Value = types.List{
+		ElemType: types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"nested_attr": types.StringType,
+			},
+		},
+		Null: true,
+	}
+
+	schema := func(blockPlanModifiers AttributePlanModifiers, nestedAttrPlanModifiers AttributePlanModifiers) Schema {
+		return Schema{
+			Blocks: map[string]Block{
+				"test": {
+					Attributes: map[string]Attribute{
+						"nested_attr": {
+							Type:          types.StringType,
+							Required:      true,
+							PlanModifiers: nestedAttrPlanModifiers,
+						},
+					},
+					NestingMode:   BlockNestingModeList,
+					PlanModifiers: blockPlanModifiers,
+				},
+			},
+		}
+	}
+
+	schemaTfValue := func(nestedAttrValue string) tftypes.Value {
+		return tftypes.NewValue(
+			tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_attr": tftypes.String,
+							},
+						},
+					},
+				},
+			},
+			map[string]tftypes.Value{
+				"test": tftypes.NewValue(
+					tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_attr": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_attr": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"nested_attr": tftypes.NewValue(tftypes.String, nestedAttrValue),
+							},
+						),
+					},
+				),
+			},
+		)
+	}
+
+	var schemaNullTfValue tftypes.Value = tftypes.NewValue(
+		tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"test": tftypes.List{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested_attr": tftypes.String,
+						},
+					},
+				},
+			},
+		},
+		map[string]tftypes.Value{
+			"test": tftypes.NewValue(
+				tftypes.List{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested_attr": tftypes.String,
+						},
+					},
+				},
+				nil,
+			),
+		},
+	)
+
+	modifyAttributePlanRequest := func(attrPath *tftypes.AttributePath, schema Schema, configValue, planValue, stateValue string) ModifyAttributePlanRequest {
+		return ModifyAttributePlanRequest{
+			AttributePath: attrPath,
+			Config: Config{
+				Raw:    schemaTfValue(configValue),
+				Schema: schema,
+			},
+			Plan: Plan{
+				Raw:    schemaTfValue(planValue),
+				Schema: schema,
+			},
+			State: State{
+				Raw:    schemaTfValue(stateValue),
+				Schema: schema,
+			},
+		}
+	}
+
+	testCases := map[string]struct {
+		req                ModifyAttributePlanRequest
+		resp               ModifyAttributePlanResponse
+		expectedResp       ModifyAttributePlanResponse
+		expectedSchemaResp ModifySchemaPlanResponse
+	}{
+		"no-plan-modifiers": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, nil),
+				"testvalue",
+				"testvalue",
+				"testvalue",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("testvalue"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("testvalue"),
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Plan: Plan{
+					Raw:    schemaTfValue("testvalue"),
+					Schema: schema(nil, nil),
+				},
+			},
+		},
+		"block-modified": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					testBlockPlanModifierNullList{},
+				}, nil),
+				"TESTATTRONE",
+				"TESTATTRONE",
+				"TESTATTRONE",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTATTRONE"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockNullValue,
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Plan: Plan{
+					Raw: schemaNullTfValue,
+					Schema: schema([]AttributePlanModifier{
+						testBlockPlanModifierNullList{},
+					}, nil),
+				},
+			},
+		},
+		"block-modified-previous-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					testBlockPlanModifierNullList{},
+				}, nil),
+				"TESTATTRONE",
+				"TESTATTRONE",
+				"TESTATTRONE",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTATTRONE"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockNullValue,
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaNullTfValue,
+					Schema: schema([]AttributePlanModifier{
+						testBlockPlanModifierNullList{},
+					}, nil),
+				},
+			},
+		},
+		"block-requires-replacement": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					RequiresReplace(),
+				}, nil),
+				"newtestvalue",
+				"newtestvalue",
+				"testvalue",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan:   blockValue("newtestvalue"),
+				RequiresReplace: true,
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Plan: Plan{
+					Raw: schemaTfValue("newtestvalue"),
+					Schema: schema([]AttributePlanModifier{
+						RequiresReplace(),
+					}, nil),
+				},
+				RequiresReplace: []*tftypes.AttributePath{
+					tftypes.NewAttributePath().WithAttributeName("test"),
+				},
+			},
+		},
+		"block-requires-replacement-previous-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					RequiresReplace(),
+				}, nil),
+				"newtestvalue",
+				"newtestvalue",
+				"testvalue",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+				RequiresReplace: true,
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("newtestvalue"),
+					Schema: schema([]AttributePlanModifier{
+						RequiresReplace(),
+					}, nil),
+				},
+				RequiresReplace: []*tftypes.AttributePath{
+					tftypes.NewAttributePath().WithAttributeName("test"),
+				},
+			},
+		},
+		"block-requires-replacement-passthrough": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					RequiresReplace(),
+					testBlockPlanModifierNullList{},
+				}, nil),
+				"newtestvalue",
+				"newtestvalue",
+				"testvalue",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan:   blockNullValue,
+				RequiresReplace: true,
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Plan: Plan{
+					Raw: schemaNullTfValue,
+					Schema: schema([]AttributePlanModifier{
+						RequiresReplace(),
+						testBlockPlanModifierNullList{},
+					}, nil),
+				},
+				RequiresReplace: []*tftypes.AttributePath{
+					tftypes.NewAttributePath().WithAttributeName("test"),
+				},
+			},
+		},
+		"block-requires-replacement-unset": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					RequiresReplace(),
+					testRequiresReplaceFalseModifier{},
+				}, nil),
+				"newtestvalue",
+				"newtestvalue",
+				"testvalue",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Plan: Plan{
+					Raw: schemaTfValue("newtestvalue"),
+					Schema: schema([]AttributePlanModifier{
+						RequiresReplace(),
+						testRequiresReplaceFalseModifier{},
+					}, nil),
+				},
+			},
+		},
+		"block-warnings": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					testWarningDiagModifier{},
+					testWarningDiagModifier{},
+				}, nil),
+				"TESTDIAG",
+				"TESTDIAG",
+				"TESTDIAG",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					// Diagnostics.Append() deduplicates, so the warning will only
+					// be here once unless the test implementation is changed to
+					// different modifiers or the modifier itself is changed.
+					diag.NewWarningDiagnostic(
+						"Warning diag",
+						"This is a warning",
+					),
+				},
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					// Diagnostics.Append() deduplicates, so the warning will only
+					// be here once unless the test implementation is changed to
+					// different modifiers or the modifier itself is changed.
+					diag.NewWarningDiagnostic(
+						"Warning diag",
+						"This is a warning",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("TESTDIAG"),
+					Schema: schema([]AttributePlanModifier{
+						testWarningDiagModifier{},
+						testWarningDiagModifier{},
+					}, nil),
+				},
+			},
+		},
+		"block-warnings-previous-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					testWarningDiagModifier{},
+					testWarningDiagModifier{},
+				}, nil),
+				"TESTDIAG",
+				"TESTDIAG",
+				"TESTDIAG",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					// Diagnostics.Append() deduplicates, so the warning will only
+					// be here once unless the test implementation is changed to
+					// different modifiers or the modifier itself is changed.
+					diag.NewWarningDiagnostic(
+						"Warning diag",
+						"This is a warning",
+					),
+				},
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					// Diagnostics.Append() deduplicates, so the warning will only
+					// be here once unless the test implementation is changed to
+					// different modifiers or the modifier itself is changed.
+					diag.NewWarningDiagnostic(
+						"Warning diag",
+						"This is a warning",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("TESTDIAG"),
+					Schema: schema([]AttributePlanModifier{
+						testWarningDiagModifier{},
+						testWarningDiagModifier{},
+					}, nil),
+				},
+			},
+		},
+		"block-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					testErrorDiagModifier{},
+					testErrorDiagModifier{},
+				}, nil),
+				"TESTDIAG",
+				"TESTDIAG",
+				"TESTDIAG",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Error diag",
+						"This is an error",
+					),
+				},
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Error diag",
+						"This is an error",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("TESTDIAG"),
+					Schema: schema([]AttributePlanModifier{
+						testErrorDiagModifier{},
+						testErrorDiagModifier{},
+					}, nil),
+				},
+			},
+		},
+		"block-error-previous-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema([]AttributePlanModifier{
+					testErrorDiagModifier{},
+					testErrorDiagModifier{},
+				}, nil),
+				"TESTDIAG",
+				"TESTDIAG",
+				"TESTDIAG",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					diag.NewErrorDiagnostic(
+						"Error diag",
+						"This is an error",
+					),
+				},
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					diag.NewErrorDiagnostic(
+						"Error diag",
+						"This is an error",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("TESTDIAG"),
+					Schema: schema([]AttributePlanModifier{
+						testErrorDiagModifier{},
+						testErrorDiagModifier{},
+					}, nil),
+				},
+			},
+		},
+		"nested-attribute-modified": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					testAttrPlanValueModifierOne{},
+					testAttrPlanValueModifierTwo{},
+				}),
+				"TESTATTRONE",
+				"TESTATTRONE",
+				"TESTATTRONE",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTATTRONE"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				// This value is not expected to be updated here since plan
+				// modification occurred outside the block itself.
+				// See the schema response instead.
+				AttributePlan: blockValue("TESTATTRONE"),
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Plan: Plan{
+					Raw: schemaTfValue("MODIFIED_TWO"),
+					Schema: schema(nil, []AttributePlanModifier{
+						testAttrPlanValueModifierOne{},
+						testAttrPlanValueModifierTwo{},
+					}),
+				},
+			},
+		},
+		"nested-attribute-modified-previous-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					testAttrPlanValueModifierOne{},
+					testAttrPlanValueModifierTwo{},
+				}),
+				"TESTATTRONE",
+				"TESTATTRONE",
+				"TESTATTRONE",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTATTRONE"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				// This value is not expected to be updated here since plan
+				// modification occurred outside the block itself.
+				// See the schema response instead.
+				AttributePlan: blockValue("TESTATTRONE"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("MODIFIED_TWO"),
+					Schema: schema(nil, []AttributePlanModifier{
+						testAttrPlanValueModifierOne{},
+						testAttrPlanValueModifierTwo{},
+					}),
+				},
+			},
+		},
+		"nested-attribute-requires-replacement": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					RequiresReplace(),
+				}),
+				"newtestvalue",
+				"newtestvalue",
+				"testvalue",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Plan: Plan{
+					Raw: schemaTfValue("newtestvalue"),
+					Schema: schema(nil, []AttributePlanModifier{
+						RequiresReplace(),
+					}),
+				},
+				RequiresReplace: []*tftypes.AttributePath{
+					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("nested_attr"),
+				},
+			},
+		},
+		"nested-attribute-requires-replacement-previous-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					RequiresReplace(),
+				}),
+				"newtestvalue",
+				"newtestvalue",
+				"testvalue",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("newtestvalue"),
+					Schema: schema(nil, []AttributePlanModifier{
+						RequiresReplace(),
+					}),
+				},
+				RequiresReplace: []*tftypes.AttributePath{
+					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("nested_attr"),
+				},
+			},
+		},
+		"nested-attribute-requires-replacement-passthrough": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					RequiresReplace(),
+					testAttrPlanValueModifierOne{},
+				}),
+				"TESTATTRONE",
+				"TESTATTRONE",
+				"previousvalue",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTATTRONE"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				// This value is not expected to be updated here since plan
+				// modification occurred outside the block itself.
+				// See the schema response instead.
+				AttributePlan: blockValue("TESTATTRONE"),
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Plan: Plan{
+					Raw: schemaTfValue("TESTATTRTWO"),
+					Schema: schema(nil, []AttributePlanModifier{
+						RequiresReplace(),
+						testAttrPlanValueModifierOne{},
+					}),
+				},
+				RequiresReplace: []*tftypes.AttributePath{
+					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("nested_attr"),
+				},
+			},
+		},
+		"nested-attribute-requires-replacement-unset": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					RequiresReplace(),
+					testRequiresReplaceFalseModifier{},
+				}),
+				"newtestvalue",
+				"newtestvalue",
+				"testvalue",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("newtestvalue"),
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Plan: Plan{
+					Raw: schemaTfValue("newtestvalue"),
+					Schema: schema(nil, []AttributePlanModifier{
+						RequiresReplace(),
+						testRequiresReplaceFalseModifier{},
+					}),
+				},
+			},
+		},
+		"nested-attribute-warnings": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					testWarningDiagModifier{},
+					testWarningDiagModifier{},
+				}),
+				"TESTDIAG",
+				"TESTDIAG",
+				"TESTDIAG",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				// This additional diagnostic is not expected here since plan
+				// modification error occurred outside the block itself.
+				// See the schema response instead.
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					// Diagnostics.Append() deduplicates, so the warning will only
+					// be here once unless the test implementation is changed to
+					// different modifiers or the modifier itself is changed.
+					diag.NewWarningDiagnostic(
+						"Warning diag",
+						"This is a warning",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("TESTDIAG"),
+					Schema: schema(nil, []AttributePlanModifier{
+						testWarningDiagModifier{},
+						testWarningDiagModifier{},
+					}),
+				},
+			},
+		},
+		"nested-attribute-warnings-previous-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					testWarningDiagModifier{},
+					testWarningDiagModifier{},
+				}),
+				"TESTDIAG",
+				"TESTDIAG",
+				"TESTDIAG",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					// This additional diagnostic is not expected here since plan
+					// modification error occurred outside the block itself.
+					// See the schema response instead.
+				},
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					// Diagnostics.Append() deduplicates, so the warning will only
+					// be here once unless the test implementation is changed to
+					// different modifiers or the modifier itself is changed.
+					diag.NewWarningDiagnostic(
+						"Warning diag",
+						"This is a warning",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("TESTDIAG"),
+					Schema: schema(nil, []AttributePlanModifier{
+						testWarningDiagModifier{},
+						testWarningDiagModifier{},
+					}),
+				},
+			},
+		},
+		"nested-attribute-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					testErrorDiagModifier{},
+					testErrorDiagModifier{},
+				}),
+				"TESTDIAG",
+				"TESTDIAG",
+				"TESTDIAG",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				// This additional diagnostic is not expected here since plan
+				// modification error occurred outside the block itself.
+				// See the schema response instead.
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Error diag",
+						"This is an error",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("TESTDIAG"),
+					Schema: schema(nil, []AttributePlanModifier{
+						testErrorDiagModifier{},
+						testErrorDiagModifier{},
+					}),
+				},
+			},
+		},
+		"nested-attribute-error-previous-error": {
+			req: modifyAttributePlanRequest(
+				tftypes.NewAttributePath().WithAttributeName("test"),
+				schema(nil, []AttributePlanModifier{
+					testErrorDiagModifier{},
+					testErrorDiagModifier{},
+				}),
+				"TESTDIAG",
+				"TESTDIAG",
+				"TESTDIAG",
+			),
+			resp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: blockValue("TESTDIAG"),
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					// This additional diagnostic is not expected here since plan
+					// modification error occurred outside the block itself.
+					// See the schema response instead.
+				},
+			},
+			expectedSchemaResp: ModifySchemaPlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Previous error diag",
+						"This was a previous error",
+					),
+					diag.NewErrorDiagnostic(
+						"Error diag",
+						"This is an error",
+					),
+				},
+				Plan: Plan{
+					Raw: schemaTfValue("TESTDIAG"),
+					Schema: schema(nil, []AttributePlanModifier{
+						testErrorDiagModifier{},
+						testErrorDiagModifier{},
+					}),
+				},
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			block, err := tc.req.Config.Schema.blockAtPath(tc.req.AttributePath)
+
+			if err != nil {
+				t.Fatalf("Unexpected error getting %s", err)
+			}
+
+			schemaResp := ModifySchemaPlanResponse{Plan: tc.req.Plan}
+
+			block.modifyPlan(context.Background(), tc.req, &tc.resp, &schemaResp)
+
+			if diff := cmp.Diff(tc.expectedResp, tc.resp); diff != "" {
+				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
+			}
+
+			if diff := cmp.Diff(tc.expectedSchemaResp, schemaResp); diff != "" {
+				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
 
 func TestBlockTfprotov6(t *testing.T) {
 	t.Parallel()
@@ -1299,4 +2280,30 @@ func TestBlockValidate(t *testing.T) {
 			}
 		})
 	}
+}
+
+type testBlockPlanModifierNullList struct{}
+
+func (t testBlockPlanModifierNullList) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	_, ok := req.AttributePlan.(types.List)
+	if !ok {
+		return
+	}
+
+	resp.AttributePlan = types.List{
+		ElemType: types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"nested_attr": types.StringType,
+			},
+		},
+		Null: true,
+	}
+}
+
+func (t testBlockPlanModifierNullList) Description(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+func (t testBlockPlanModifierNullList) MarkdownDescription(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
 }

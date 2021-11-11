@@ -18,12 +18,11 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 			"name": {
 				Required: true,
 				Type:     types.StringType,
-				// For the purposes of testing, these plan modifiers behave
-				// differently for certain values of the attribute.
-				// By default, they do nothing.
 				PlanModifiers: []AttributePlanModifier{
 					testWarningDiagModifier{},
-					testErrorDiagModifier{},
+					// For the purposes of testing, these plan modifiers behave
+					// differently for certain values of the attribute.
+					// By default, they do nothing.
 					testAttrPlanValueModifierOne{},
 					testAttrPlanValueModifierTwo{},
 				},
@@ -210,17 +209,10 @@ type testServeResourceTypeAttributePlanModifiers struct{}
 type testWarningDiagModifier struct{}
 
 func (t testWarningDiagModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	attrVal, ok := req.AttributePlan.(types.String)
-	if !ok {
-		return
-	}
-
-	if attrVal.Value == "TESTDIAG" {
-		resp.Diagnostics.AddWarning(
-			"Warning diag",
-			"This is a warning",
-		)
-	}
+	resp.Diagnostics.AddWarning(
+		"Warning diag",
+		"This is a warning",
+	)
 }
 
 func (t testWarningDiagModifier) Description(ctx context.Context) string {
@@ -234,17 +226,10 @@ func (t testWarningDiagModifier) MarkdownDescription(ctx context.Context) string
 type testErrorDiagModifier struct{}
 
 func (t testErrorDiagModifier) Modify(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	attrVal, ok := req.AttributePlan.(types.String)
-	if !ok {
-		return
-	}
-
-	if attrVal.Value == "TESTDIAG" {
-		resp.Diagnostics.AddError(
-			"Error diag",
-			"This is an error",
-		)
-	}
+	resp.Diagnostics.AddError(
+		"Error diag",
+		"This is an error",
+	)
 }
 
 func (t testErrorDiagModifier) Description(ctx context.Context) string {

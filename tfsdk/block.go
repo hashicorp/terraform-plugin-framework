@@ -54,6 +54,20 @@ type Block struct {
 	// NestingMode indicates the block kind.
 	NestingMode BlockNestingMode
 
+	// PlanModifiers defines a sequence of modifiers for this block at
+	// plan time. Block-level plan modifications occur before any
+	// resource-level plan modifications.
+	//
+	// Any errors will prevent further execution of this sequence
+	// of modifiers and modifiers associated with any nested Attribute or
+	// Block, but will not prevent execution of PlanModifiers on any
+	// other Attribute or Block in the Schema.
+	//
+	// Plan modification only applies to resources, not data sources or
+	// providers. Setting PlanModifiers on a data source or provider attribute
+	// will have no effect.
+	PlanModifiers AttributePlanModifiers
+
 	// Validators defines validation functionality for the block.
 	Validators []AttributeValidator
 }
@@ -137,6 +151,190 @@ func (b Block) attributeType() attr.Type {
 		}
 	default:
 		panic(fmt.Sprintf("unsupported block nesting mode: %v", b.NestingMode))
+	}
+}
+
+// modifyPlan performs all Block plan modification.
+func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse, schemaResp *ModifySchemaPlanResponse) {
+	attributeConfig, diags := req.Config.getAttributeValue(ctx, req.AttributePath)
+	resp.Diagnostics.Append(diags...)
+	schemaResp.Diagnostics = resp.Diagnostics
+
+	if diags.HasError() {
+		return
+	}
+
+	req.AttributeConfig = attributeConfig
+
+	attributePlan, diags := req.Plan.getAttributeValue(ctx, req.AttributePath)
+	resp.Diagnostics.Append(diags...)
+	schemaResp.Diagnostics = resp.Diagnostics
+
+	if diags.HasError() {
+		return
+	}
+
+	req.AttributePlan = attributePlan
+	resp.AttributePlan = attributePlan
+
+	attributeState, diags := req.State.getAttributeValue(ctx, req.AttributePath)
+	resp.Diagnostics.Append(diags...)
+	schemaResp.Diagnostics = resp.Diagnostics
+
+	if diags.HasError() {
+		return
+	}
+
+	req.AttributeState = attributeState
+
+	for _, planModifier := range b.PlanModifiers {
+		modifyResp := &ModifyAttributePlanResponse{
+			AttributePlan:   resp.AttributePlan,
+			RequiresReplace: resp.RequiresReplace,
+		}
+
+		planModifier.Modify(ctx, req, modifyResp)
+
+		req.AttributePlan = modifyResp.AttributePlan
+		resp.AttributePlan = modifyResp.AttributePlan
+		resp.Diagnostics.Append(modifyResp.Diagnostics...)
+		resp.RequiresReplace = modifyResp.RequiresReplace
+		schemaResp.Diagnostics = resp.Diagnostics
+
+		// Only on new errors.
+		if modifyResp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	if resp.RequiresReplace {
+		schemaResp.RequiresReplace = append(schemaResp.RequiresReplace, req.AttributePath)
+	}
+
+	setAttrDiags := schemaResp.Plan.SetAttribute(ctx, req.AttributePath, resp.AttributePlan)
+	resp.Diagnostics.Append(setAttrDiags...)
+	schemaResp.Diagnostics = resp.Diagnostics
+
+	if setAttrDiags.HasError() {
+		return
+	}
+
+	nm := b.NestingMode
+	switch nm {
+	case BlockNestingModeList:
+		l, ok := req.AttributePlan.(types.List)
+
+		if !ok {
+			err := fmt.Errorf("unknown block value type (%s) for nesting mode (%T) at path: %s", req.AttributeConfig.Type(ctx), nm, req.AttributePath)
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Block Plan Modification Error",
+				"Block validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
+
+			return
+		}
+
+		for idx := range l.Elems {
+			for name, attr := range b.Attributes {
+				attrReq := ModifyAttributePlanRequest{
+					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					Config:        req.Config,
+					Plan:          schemaResp.Plan,
+					ProviderMeta:  req.ProviderMeta,
+					State:         req.State,
+				}
+				attrResp := &ModifyAttributePlanResponse{
+					Diagnostics: resp.Diagnostics,
+				}
+
+				attr.modifyPlan(ctx, attrReq, attrResp, schemaResp)
+			}
+
+			for name, block := range b.Blocks {
+				blockReq := ModifyAttributePlanRequest{
+					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					Config:        req.Config,
+					Plan:          schemaResp.Plan,
+					ProviderMeta:  req.ProviderMeta,
+					State:         req.State,
+				}
+				blockResp := &ModifyAttributePlanResponse{
+					Diagnostics: resp.Diagnostics,
+				}
+
+				block.modifyPlan(ctx, blockReq, blockResp, schemaResp)
+			}
+		}
+	case BlockNestingModeSet:
+		s, ok := req.AttributePlan.(types.Set)
+
+		if !ok {
+			err := fmt.Errorf("unknown block value type (%s) for nesting mode (%T) at path: %s", req.AttributeConfig.Type(ctx), nm, req.AttributePath)
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Block Plan Modification Error",
+				"Block plan modification cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
+
+			return
+		}
+
+		for _, value := range s.Elems {
+			tfValueRaw, err := value.ToTerraformValue(ctx)
+
+			if err != nil {
+				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
+				resp.Diagnostics.AddAttributeError(
+					req.AttributePath,
+					"Block Plan Modification Error",
+					"Block plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
+				)
+
+				return
+			}
+
+			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
+
+			for name, attr := range b.Attributes {
+				attrReq := ModifyAttributePlanRequest{
+					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					Config:        req.Config,
+					Plan:          schemaResp.Plan,
+					ProviderMeta:  req.ProviderMeta,
+					State:         req.State,
+				}
+				attrResp := &ModifyAttributePlanResponse{
+					Diagnostics: resp.Diagnostics,
+				}
+
+				attr.modifyPlan(ctx, attrReq, attrResp, schemaResp)
+			}
+
+			for name, block := range b.Blocks {
+				blockReq := ModifyAttributePlanRequest{
+					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					Config:        req.Config,
+					Plan:          schemaResp.Plan,
+					ProviderMeta:  req.ProviderMeta,
+					State:         req.State,
+				}
+				blockResp := &ModifyAttributePlanResponse{
+					Diagnostics: resp.Diagnostics,
+				}
+
+				block.modifyPlan(ctx, blockReq, blockResp, schemaResp)
+			}
+		}
+	default:
+		err := fmt.Errorf("unknown block plan modification nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Block Plan Modification Error",
+			"Block plan modification cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+		)
+
+		return
 	}
 }
 

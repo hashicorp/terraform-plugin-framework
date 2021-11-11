@@ -807,7 +807,7 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 			Diagnostics: resp.Diagnostics,
 		}
 
-		resourceSchema.modifyAttributePlans(ctx, modifySchemaPlanReq, &modifySchemaPlanResp)
+		resourceSchema.modifyPlan(ctx, modifySchemaPlanReq, &modifySchemaPlanResp)
 		resp.RequiresReplace = append(resp.RequiresReplace, modifySchemaPlanResp.RequiresReplace...)
 		plan = modifySchemaPlanResp.Plan.Raw
 		resp.Diagnostics = modifySchemaPlanResp.Diagnostics

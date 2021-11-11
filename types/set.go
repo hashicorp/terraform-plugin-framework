@@ -48,11 +48,15 @@ func (t SetType) TerraformType(ctx context.Context) tftypes.Type {
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
 func (t SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	if !in.Type().Equal(t.TerraformType(ctx)) {
-		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), t.ElemType, t.ElemType.TerraformType(ctx).String())
-	}
 	set := Set{
 		ElemType: t.ElemType,
+	}
+	if in.Type() == nil {
+		set.Null = true
+		return set, nil
+	}
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), t.ElemType, t.ElemType.TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
 		set.Unknown = true

@@ -103,6 +103,16 @@ func TestMapTypeValueFromTerraform(t *testing.T) {
 			input:       tftypes.NewValue(tftypes.String, "wrong"),
 			expectedErr: `can't use tftypes.String<"wrong"> as value of Map, can only use tftypes.Map values`,
 		},
+		"nil-type": {
+			receiver: MapType{
+				ElemType: NumberType,
+			},
+			input: tftypes.NewValue(nil, nil),
+			expected: Map{
+				ElemType: NumberType,
+				Null:     true,
+			},
+		},
 		"unknown": {
 			receiver: MapType{
 				ElemType: NumberType,

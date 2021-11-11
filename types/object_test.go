@@ -124,6 +124,20 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 			input:       tftypes.NewValue(tftypes.String, "hello"),
 			expectedErr: `expected tftypes.Object["a":tftypes.String], got tftypes.String`,
 		},
+		"nil-type": {
+			receiver: ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+			},
+			input: tftypes.NewValue(nil, nil),
+			expected: Object{
+				AttrTypes: map[string]attr.Type{
+					"a": StringType,
+				},
+				Null: true,
+			},
+		},
 		"unknown": {
 			receiver: ObjectType{
 				AttrTypes: map[string]attr.Type{

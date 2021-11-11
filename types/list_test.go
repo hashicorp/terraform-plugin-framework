@@ -153,20 +153,48 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				},
 			},
 		},
+		"wrong-type": {
+			receiver: ListType{
+				ElemType: StringType,
+			},
+			input:       tftypes.NewValue(tftypes.String, "wrong"),
+			expectedErr: `can't use tftypes.String<"wrong"> as value of List with ElementType types.primitive, can only use tftypes.String values`,
+		},
+		"wrong-element-type": {
+			receiver: ListType{
+				ElemType: StringType,
+			},
+			input: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.Number,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.Number, 1),
+			}),
+			expectedErr: `can't use tftypes.List[tftypes.Number]<tftypes.Number<"1">> as value of List with ElementType types.primitive, can only use tftypes.String values`,
+		},
+		"nil-type": {
+			receiver: ListType{
+				ElemType: StringType,
+			},
+			input: tftypes.NewValue(nil, nil),
+			expected: List{
+				ElemType: StringType,
+				Null:     true,
+			},
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			got, gotErr := test.receiver.ValueFromTerraform(context.Background(), test.input)
 			if gotErr != nil {
-				if test.expectedErr != "" {
-					if gotErr.Error() != test.expectedErr {
-						t.Errorf("Expected error to be %q, got %q", test.expectedErr, gotErr.Error())
-						return
-					}
+				if test.expectedErr == "" {
+					t.Errorf("Unexpected error: %s", gotErr.Error())
+					return
 				}
-				t.Errorf("Unexpected error: %s", gotErr.Error())
-				return
+				if gotErr.Error() != test.expectedErr {
+					t.Errorf("Expected error to be %q, got %q", test.expectedErr, gotErr.Error())
+					return
+				}
 			}
 			if gotErr == nil && test.expectedErr != "" {
 				t.Errorf("Expected error to be %q, got nil", test.expectedErr)

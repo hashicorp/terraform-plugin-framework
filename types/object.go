@@ -52,6 +52,13 @@ func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 	object := Object{
 		AttrTypes: o.AttrTypes,
 	}
+	if in.Type() == nil {
+		object.Null = true
+		return object, nil
+	}
+	if !in.Type().Equal(o.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", o.TerraformType(ctx), in.Type())
+	}
 	if !in.IsKnown() {
 		object.Unknown = true
 		return object, nil
@@ -59,9 +66,6 @@ func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 	if in.IsNull() {
 		object.Null = true
 		return object, nil
-	}
-	if !o.TerraformType(ctx).Equal(in.Type()) {
-		return nil, fmt.Errorf("expected %s, got %s", o.TerraformType(ctx), in.Type())
 	}
 	attributes := map[string]attr.Value{}
 

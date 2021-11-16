@@ -698,10 +698,9 @@ func TestAttributeModifyPlan(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		req                ModifyAttributePlanRequest
-		resp               ModifyAttributePlanResponse
-		expectedResp       ModifyAttributePlanResponse
-		expectedSchemaResp ModifySchemaPlanResponse
+		req          ModifyAttributePlanRequest
+		resp         ModifySchemaPlanResponse // Plan automatically copied from req
+		expectedResp ModifySchemaPlanResponse
 	}{
 		"config-error": {
 			req: ModifyAttributePlanRequest{
@@ -758,21 +757,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
-						"Configuration Read Error",
-						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						tftypes.NewAttributePath().WithAttributeName("test"),
@@ -855,8 +841,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -864,22 +849,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
-						"Configuration Read Error",
-						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -966,21 +936,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
-						"Plan Read Error",
-						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						tftypes.NewAttributePath().WithAttributeName("test"),
@@ -1063,8 +1020,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -1072,22 +1028,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
-						"Plan Read Error",
-						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -1174,21 +1115,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
-						"State Read Error",
-						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						tftypes.NewAttributePath().WithAttributeName("test"),
@@ -1271,8 +1199,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -1280,22 +1207,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
-						"State Read Error",
-						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -1382,13 +1294,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1475,13 +1382,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTATTRONE"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "MODIFIED_TWO"},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1572,8 +1474,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTATTRONE"},
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -1581,16 +1482,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "MODIFIED_TWO"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -1684,14 +1576,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "newtestvalue"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan:   types.String{Value: "newtestvalue"},
-				RequiresReplace: true,
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1778,8 +1664,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "newtestvalue"},
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -1787,17 +1672,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "newtestvalue"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-				},
-				RequiresReplace: true,
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -1893,14 +1768,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTATTRONE"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan:   types.String{Value: "TESTATTRTWO"},
-				RequiresReplace: true,
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1990,13 +1859,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "testvalue"},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2083,22 +1947,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTDIAG"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTDIAG"},
-				Diagnostics: diag.Diagnostics{
-					// Diagnostics.Append() deduplicates, so the warning will only
-					// be here once unless the test implementation is changed to
-					// different modifiers or the modifier itself is changed.
-					diag.NewWarningDiagnostic(
-						"Warning diag",
-						"This is a warning",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					// Diagnostics.Append() deduplicates, so the warning will only
 					// be here once unless the test implementation is changed to
@@ -2198,8 +2048,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTDIAG"},
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -2207,23 +2056,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTDIAG"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					// Diagnostics.Append() deduplicates, so the warning will only
-					// be here once unless the test implementation is changed to
-					// different modifiers or the modifier itself is changed.
-					diag.NewWarningDiagnostic(
-						"Warning diag",
-						"This is a warning",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -2327,19 +2160,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTDIAG"},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTDIAG"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Error diag",
-						"This is an error",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Error diag",
@@ -2436,8 +2258,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTDIAG"},
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -2445,20 +2266,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.String{Value: "TESTDIAG"},
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					diag.NewErrorDiagnostic(
-						"Error diag",
-						"This is an error",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -2505,16 +2313,12 @@ func TestAttributeModifyPlan(t *testing.T) {
 				t.Fatalf("Unexpected error getting %s", err)
 			}
 
-			schemaResp := ModifySchemaPlanResponse{Plan: tc.req.Plan}
+			tc.resp.Plan = tc.req.Plan
 
-			attribute.modifyPlan(context.Background(), tc.req, &tc.resp, &schemaResp)
+			attribute.modifyPlan(context.Background(), tc.req, &tc.resp)
 
 			if diff := cmp.Diff(tc.expectedResp, tc.resp); diff != "" {
 				t.Errorf("Unexpected response (-wanted, +got): %s", diff)
-			}
-
-			if diff := cmp.Diff(tc.expectedSchemaResp, schemaResp); diff != "" {
-				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
 			}
 		})
 	}

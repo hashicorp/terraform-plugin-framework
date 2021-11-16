@@ -317,11 +317,8 @@ func (s Schema) modifyPlan(ctx context.Context, req ModifySchemaPlanRequest, res
 			Plan:          req.Plan,
 			ProviderMeta:  req.ProviderMeta,
 		}
-		attrResp := &ModifyAttributePlanResponse{
-			Diagnostics: resp.Diagnostics,
-		}
 
-		attr.modifyPlan(ctx, attrReq, attrResp, resp)
+		attr.modifyPlan(ctx, attrReq, resp)
 	}
 
 	for name, block := range s.Blocks {
@@ -332,10 +329,7 @@ func (s Schema) modifyPlan(ctx context.Context, req ModifySchemaPlanRequest, res
 			Plan:          req.Plan,
 			ProviderMeta:  req.ProviderMeta,
 		}
-		blockResp := &ModifyAttributePlanResponse{
-			Diagnostics: resp.Diagnostics,
-		}
 
-		block.modifyPlan(ctx, blockReq, blockResp, resp)
+		block.modifyPlan(ctx, blockReq, resp)
 	}
 }

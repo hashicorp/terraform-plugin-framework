@@ -155,10 +155,9 @@ func (b Block) attributeType() attr.Type {
 }
 
 // modifyPlan performs all Block plan modification.
-func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse, schemaResp *ModifySchemaPlanResponse) {
+func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifySchemaPlanResponse) {
 	attributeConfig, diags := req.Config.getAttributeValue(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	schemaResp.Diagnostics = resp.Diagnostics
 
 	if diags.HasError() {
 		return
@@ -168,18 +167,15 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 
 	attributePlan, diags := req.Plan.getAttributeValue(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	schemaResp.Diagnostics = resp.Diagnostics
 
 	if diags.HasError() {
 		return
 	}
 
 	req.AttributePlan = attributePlan
-	resp.AttributePlan = attributePlan
 
 	attributeState, diags := req.State.getAttributeValue(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
-	schemaResp.Diagnostics = resp.Diagnostics
 
 	if diags.HasError() {
 		return
@@ -187,19 +183,18 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 
 	req.AttributeState = attributeState
 
+	var requiresReplace bool
 	for _, planModifier := range b.PlanModifiers {
 		modifyResp := &ModifyAttributePlanResponse{
-			AttributePlan:   resp.AttributePlan,
-			RequiresReplace: resp.RequiresReplace,
+			AttributePlan:   req.AttributePlan,
+			RequiresReplace: requiresReplace,
 		}
 
 		planModifier.Modify(ctx, req, modifyResp)
 
 		req.AttributePlan = modifyResp.AttributePlan
-		resp.AttributePlan = modifyResp.AttributePlan
 		resp.Diagnostics.Append(modifyResp.Diagnostics...)
-		resp.RequiresReplace = modifyResp.RequiresReplace
-		schemaResp.Diagnostics = resp.Diagnostics
+		requiresReplace = modifyResp.RequiresReplace
 
 		// Only on new errors.
 		if modifyResp.Diagnostics.HasError() {
@@ -207,13 +202,12 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 		}
 	}
 
-	if resp.RequiresReplace {
-		schemaResp.RequiresReplace = append(schemaResp.RequiresReplace, req.AttributePath)
+	if requiresReplace {
+		resp.RequiresReplace = append(resp.RequiresReplace, req.AttributePath)
 	}
 
-	setAttrDiags := schemaResp.Plan.SetAttribute(ctx, req.AttributePath, resp.AttributePlan)
+	setAttrDiags := resp.Plan.SetAttribute(ctx, req.AttributePath, req.AttributePlan)
 	resp.Diagnostics.Append(setAttrDiags...)
-	schemaResp.Diagnostics = resp.Diagnostics
 
 	if setAttrDiags.HasError() {
 		return
@@ -240,30 +234,24 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 				attrReq := ModifyAttributePlanRequest{
 					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
 					Config:        req.Config,
-					Plan:          schemaResp.Plan,
+					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
 				}
-				attrResp := &ModifyAttributePlanResponse{
-					Diagnostics: resp.Diagnostics,
-				}
 
-				attr.modifyPlan(ctx, attrReq, attrResp, schemaResp)
+				attr.modifyPlan(ctx, attrReq, resp)
 			}
 
 			for name, block := range b.Blocks {
 				blockReq := ModifyAttributePlanRequest{
 					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
 					Config:        req.Config,
-					Plan:          schemaResp.Plan,
+					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
 				}
-				blockResp := &ModifyAttributePlanResponse{
-					Diagnostics: resp.Diagnostics,
-				}
 
-				block.modifyPlan(ctx, blockReq, blockResp, schemaResp)
+				block.modifyPlan(ctx, blockReq, resp)
 			}
 		}
 	case BlockNestingModeSet:
@@ -300,30 +288,24 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 				attrReq := ModifyAttributePlanRequest{
 					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
 					Config:        req.Config,
-					Plan:          schemaResp.Plan,
+					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
 				}
-				attrResp := &ModifyAttributePlanResponse{
-					Diagnostics: resp.Diagnostics,
-				}
 
-				attr.modifyPlan(ctx, attrReq, attrResp, schemaResp)
+				attr.modifyPlan(ctx, attrReq, resp)
 			}
 
 			for name, block := range b.Blocks {
 				blockReq := ModifyAttributePlanRequest{
 					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
 					Config:        req.Config,
-					Plan:          schemaResp.Plan,
+					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
 				}
-				blockResp := &ModifyAttributePlanResponse{
-					Diagnostics: resp.Diagnostics,
-				}
 
-				block.modifyPlan(ctx, blockReq, blockResp, schemaResp)
+				block.modifyPlan(ctx, blockReq, resp)
 			}
 		}
 	default:

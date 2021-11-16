@@ -16,35 +16,6 @@ import (
 func TestBlockModifyPlan(t *testing.T) {
 	t.Parallel()
 
-	blockValue := func(elementValue string) attr.Value {
-		return types.List{
-			ElemType: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"nested_attr": types.StringType,
-				},
-			},
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: map[string]attr.Type{
-						"nested_attr": types.StringType,
-					},
-					Attrs: map[string]attr.Value{
-						"nested_attr": types.String{Value: elementValue},
-					},
-				},
-			},
-		}
-	}
-
-	var blockNullValue attr.Value = types.List{
-		ElemType: types.ObjectType{
-			AttrTypes: map[string]attr.Type{
-				"nested_attr": types.StringType,
-			},
-		},
-		Null: true,
-	}
-
 	schema := func(blockPlanModifiers AttributePlanModifiers, nestedAttrPlanModifiers AttributePlanModifiers) Schema {
 		return Schema{
 			Blocks: map[string]Block{
@@ -147,10 +118,9 @@ func TestBlockModifyPlan(t *testing.T) {
 	}
 
 	testCases := map[string]struct {
-		req                ModifyAttributePlanRequest
-		resp               ModifyAttributePlanResponse
-		expectedResp       ModifyAttributePlanResponse
-		expectedSchemaResp ModifySchemaPlanResponse
+		req          ModifyAttributePlanRequest
+		resp         ModifySchemaPlanResponse // Plan automatically copied from req
+		expectedResp ModifySchemaPlanResponse
 	}{
 		"no-plan-modifiers": {
 			req: modifyAttributePlanRequest(
@@ -160,13 +130,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"testvalue",
 				"testvalue",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("testvalue"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("testvalue"),
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw:    schemaTfValue("testvalue"),
 					Schema: schema(nil, nil),
@@ -183,13 +148,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTATTRONE",
 				"TESTATTRONE",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTATTRONE"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockNullValue,
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: schemaNullTfValue,
 					Schema: schema([]AttributePlanModifier{
@@ -208,8 +168,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTATTRONE",
 				"TESTATTRONE",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTATTRONE"),
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -217,16 +176,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockNullValue,
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -251,14 +201,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"newtestvalue",
 				"testvalue",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan:   blockValue("newtestvalue"),
-				RequiresReplace: true,
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema([]AttributePlanModifier{
@@ -280,8 +224,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				"newtestvalue",
 				"testvalue",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -289,17 +232,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-				},
-				RequiresReplace: true,
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -328,14 +261,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"newtestvalue",
 				"testvalue",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan:   blockNullValue,
-				RequiresReplace: true,
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: schemaNullTfValue,
 					Schema: schema([]AttributePlanModifier{
@@ -359,13 +286,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"newtestvalue",
 				"testvalue",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema([]AttributePlanModifier{
@@ -386,22 +308,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTDIAG",
 				"TESTDIAG",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-				Diagnostics: diag.Diagnostics{
-					// Diagnostics.Append() deduplicates, so the warning will only
-					// be here once unless the test implementation is changed to
-					// different modifiers or the modifier itself is changed.
-					diag.NewWarningDiagnostic(
-						"Warning diag",
-						"This is a warning",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					// Diagnostics.Append() deduplicates, so the warning will only
 					// be here once unless the test implementation is changed to
@@ -431,8 +339,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTDIAG",
 				"TESTDIAG",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -440,23 +347,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					// Diagnostics.Append() deduplicates, so the warning will only
-					// be here once unless the test implementation is changed to
-					// different modifiers or the modifier itself is changed.
-					diag.NewWarningDiagnostic(
-						"Warning diag",
-						"This is a warning",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -490,19 +381,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTDIAG",
 				"TESTDIAG",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Error diag",
-						"This is an error",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Error diag",
@@ -529,8 +409,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTDIAG",
 				"TESTDIAG",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -538,20 +417,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					diag.NewErrorDiagnostic(
-						"Error diag",
-						"This is an error",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -582,16 +448,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTATTRONE",
 				"TESTATTRONE",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTATTRONE"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				// This value is not expected to be updated here since plan
-				// modification occurred outside the block itself.
-				// See the schema response instead.
-				AttributePlan: blockValue("TESTATTRONE"),
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: schemaTfValue("MODIFIED_TWO"),
 					Schema: schema(nil, []AttributePlanModifier{
@@ -612,8 +470,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTATTRONE",
 				"TESTATTRONE",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTATTRONE"),
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -621,19 +478,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				// This value is not expected to be updated here since plan
-				// modification occurred outside the block itself.
-				// See the schema response instead.
-				AttributePlan: blockValue("TESTATTRONE"),
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -659,13 +504,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"newtestvalue",
 				"testvalue",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema(nil, []AttributePlanModifier{
@@ -687,8 +527,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				"newtestvalue",
 				"testvalue",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -696,16 +535,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -734,16 +564,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTATTRONE",
 				"previousvalue",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTATTRONE"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				// This value is not expected to be updated here since plan
-				// modification occurred outside the block itself.
-				// See the schema response instead.
-				AttributePlan: blockValue("TESTATTRONE"),
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: schemaTfValue("TESTATTRTWO"),
 					Schema: schema(nil, []AttributePlanModifier{
@@ -767,13 +589,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"newtestvalue",
 				"testvalue",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("newtestvalue"),
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Plan: Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema(nil, []AttributePlanModifier{
@@ -794,16 +611,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTDIAG",
 				"TESTDIAG",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-				// This additional diagnostic is not expected here since plan
-				// modification error occurred outside the block itself.
-				// See the schema response instead.
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					// Diagnostics.Append() deduplicates, so the warning will only
 					// be here once unless the test implementation is changed to
@@ -833,8 +642,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTDIAG",
 				"TESTDIAG",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -842,19 +650,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					// This additional diagnostic is not expected here since plan
-					// modification error occurred outside the block itself.
-					// See the schema response instead.
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -888,16 +684,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTDIAG",
 				"TESTDIAG",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-				// This additional diagnostic is not expected here since plan
-				// modification error occurred outside the block itself.
-				// See the schema response instead.
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Error diag",
@@ -924,8 +712,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				"TESTDIAG",
 				"TESTDIAG",
 			),
-			resp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
+			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -933,19 +720,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					),
 				},
 			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: blockValue("TESTDIAG"),
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					// This additional diagnostic is not expected here since plan
-					// modification error occurred outside the block itself.
-					// See the schema response instead.
-				},
-			},
-			expectedSchemaResp: ModifySchemaPlanResponse{
+			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Previous error diag",
@@ -978,15 +753,11 @@ func TestBlockModifyPlan(t *testing.T) {
 				t.Fatalf("Unexpected error getting %s", err)
 			}
 
-			schemaResp := ModifySchemaPlanResponse{Plan: tc.req.Plan}
+			tc.resp.Plan = tc.req.Plan
 
-			block.modifyPlan(context.Background(), tc.req, &tc.resp, &schemaResp)
+			block.modifyPlan(context.Background(), tc.req, &tc.resp)
 
 			if diff := cmp.Diff(tc.expectedResp, tc.resp); diff != "" {
-				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
-			}
-
-			if diff := cmp.Diff(tc.expectedSchemaResp, schemaResp); diff != "" {
 				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
 			}
 		})

@@ -6,9 +6,7 @@ terraform-plugin-framework is a module for building Terraform providers. It is b
 
 ## Status
 
-![experimental](https://camo.githubusercontent.com/8ad47215ae8b556345c074d2636cdf5e8a7f54068c110d1a1795501b43fab52e/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f7374617475732d6578706572696d656e74616c2d454141413332)
-
-terraform-plugin-framework is still experimental. We are committed to moving forward with the module, but cannot guarantee any of its interfaces will not change as long as it is in version 0. We're waiting for more feedback, usage, and maturity before we're comfortable committing to APIs with the same years-long support timelines that [terraform-plugin-sdk](https://github.com/hashicorp/terraform-plugin-sdk) brings.
+terraform-plugin-framework is still in **technical preview**. We are committed to moving forward with the module, but cannot guarantee any of its interfaces will not change as long as it is in version 0. We're waiting for more feedback, usage, and maturity before we're comfortable committing to APIs with the same years-long support timelines that [terraform-plugin-sdk](https://github.com/hashicorp/terraform-plugin-sdk) brings. We do not expect practitioner experiences to break or change as a result of these changes, only the abstractions surfaced to provider developers.
 
 terraform-plugin-framework is also not at full feature parity with terraform-plugin-sdk yet. Notably, it doesn't offer support for [upgrading resource state](https://github.com/hashicorp/terraform-plugin-framework/issues/42) or [using timeouts](https://github.com/hashicorp/terraform-plugin-framework/issues/62). We plan to add these features soon. See [Which SDK Should I Use?](https://terraform.io/docs/plugin/which-sdk.html) on terraform.io for more information.
 

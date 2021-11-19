@@ -99,19 +99,25 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 	)
 
-	modifyAttributePlanRequest := func(attrPath *tftypes.AttributePath, schema Schema, configValue, planValue, stateValue string) ModifyAttributePlanRequest {
+	type modifyAttributePlanValues struct {
+		config string
+		plan   string
+		state  string
+	}
+
+	modifyAttributePlanRequest := func(attrPath *tftypes.AttributePath, schema Schema, values modifyAttributePlanValues) ModifyAttributePlanRequest {
 		return ModifyAttributePlanRequest{
 			AttributePath: attrPath,
 			Config: Config{
-				Raw:    schemaTfValue(configValue),
+				Raw:    schemaTfValue(values.config),
 				Schema: schema,
 			},
 			Plan: Plan{
-				Raw:    schemaTfValue(planValue),
+				Raw:    schemaTfValue(values.plan),
 				Schema: schema,
 			},
 			State: State{
-				Raw:    schemaTfValue(stateValue),
+				Raw:    schemaTfValue(values.state),
 				Schema: schema,
 			},
 		}
@@ -126,9 +132,11 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema(nil, nil),
-				"testvalue",
-				"testvalue",
-				"testvalue",
+				modifyAttributePlanValues{
+					config: "testvalue",
+					plan:   "testvalue",
+					state:  "testvalue",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -144,9 +152,11 @@ func TestBlockModifyPlan(t *testing.T) {
 				schema([]AttributePlanModifier{
 					testBlockPlanModifierNullList{},
 				}, nil),
-				"TESTATTRONE",
-				"TESTATTRONE",
-				"TESTATTRONE",
+				modifyAttributePlanValues{
+					config: "TESTATTRONE",
+					plan:   "TESTATTRONE",
+					state:  "TESTATTRONE",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -164,9 +174,11 @@ func TestBlockModifyPlan(t *testing.T) {
 				schema([]AttributePlanModifier{
 					testBlockPlanModifierNullList{},
 				}, nil),
-				"TESTATTRONE",
-				"TESTATTRONE",
-				"TESTATTRONE",
+				modifyAttributePlanValues{
+					config: "TESTATTRONE",
+					plan:   "TESTATTRONE",
+					state:  "TESTATTRONE",
+				},
 			),
 			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
@@ -197,9 +209,11 @@ func TestBlockModifyPlan(t *testing.T) {
 				schema([]AttributePlanModifier{
 					RequiresReplace(),
 				}, nil),
-				"newtestvalue",
-				"newtestvalue",
-				"testvalue",
+				modifyAttributePlanValues{
+					config: "newtestvalue",
+					plan:   "newtestvalue",
+					state:  "testvalue",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -220,9 +234,11 @@ func TestBlockModifyPlan(t *testing.T) {
 				schema([]AttributePlanModifier{
 					RequiresReplace(),
 				}, nil),
-				"newtestvalue",
-				"newtestvalue",
-				"testvalue",
+				modifyAttributePlanValues{
+					config: "newtestvalue",
+					plan:   "newtestvalue",
+					state:  "testvalue",
+				},
 			),
 			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
@@ -257,9 +273,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					RequiresReplace(),
 					testBlockPlanModifierNullList{},
 				}, nil),
-				"newtestvalue",
-				"newtestvalue",
-				"testvalue",
+				modifyAttributePlanValues{
+					config: "newtestvalue",
+					plan:   "newtestvalue",
+					state:  "testvalue",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -282,9 +300,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					RequiresReplace(),
 					testRequiresReplaceFalseModifier{},
 				}, nil),
-				"newtestvalue",
-				"newtestvalue",
-				"testvalue",
+				modifyAttributePlanValues{
+					config: "newtestvalue",
+					plan:   "newtestvalue",
+					state:  "testvalue",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -304,9 +324,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testWarningDiagModifier{},
 					testWarningDiagModifier{},
 				}, nil),
-				"TESTDIAG",
-				"TESTDIAG",
-				"TESTDIAG",
+				modifyAttributePlanValues{
+					config: "TESTDIAG",
+					plan:   "TESTDIAG",
+					state:  "TESTDIAG",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -335,9 +357,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testWarningDiagModifier{},
 					testWarningDiagModifier{},
 				}, nil),
-				"TESTDIAG",
-				"TESTDIAG",
-				"TESTDIAG",
+				modifyAttributePlanValues{
+					config: "TESTDIAG",
+					plan:   "TESTDIAG",
+					state:  "TESTDIAG",
+				},
 			),
 			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
@@ -377,9 +401,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testErrorDiagModifier{},
 					testErrorDiagModifier{},
 				}, nil),
-				"TESTDIAG",
-				"TESTDIAG",
-				"TESTDIAG",
+				modifyAttributePlanValues{
+					config: "TESTDIAG",
+					plan:   "TESTDIAG",
+					state:  "TESTDIAG",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -405,9 +431,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testErrorDiagModifier{},
 					testErrorDiagModifier{},
 				}, nil),
-				"TESTDIAG",
-				"TESTDIAG",
-				"TESTDIAG",
+				modifyAttributePlanValues{
+					config: "TESTDIAG",
+					plan:   "TESTDIAG",
+					state:  "TESTDIAG",
+				},
 			),
 			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
@@ -444,9 +472,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testAttrPlanValueModifierOne{},
 					testAttrPlanValueModifierTwo{},
 				}),
-				"TESTATTRONE",
-				"TESTATTRONE",
-				"TESTATTRONE",
+				modifyAttributePlanValues{
+					config: "TESTATTRONE",
+					plan:   "TESTATTRONE",
+					state:  "TESTATTRONE",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -466,9 +496,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testAttrPlanValueModifierOne{},
 					testAttrPlanValueModifierTwo{},
 				}),
-				"TESTATTRONE",
-				"TESTATTRONE",
-				"TESTATTRONE",
+				modifyAttributePlanValues{
+					config: "TESTATTRONE",
+					plan:   "TESTATTRONE",
+					state:  "TESTATTRONE",
+				},
 			),
 			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
@@ -500,9 +532,11 @@ func TestBlockModifyPlan(t *testing.T) {
 				schema(nil, []AttributePlanModifier{
 					RequiresReplace(),
 				}),
-				"newtestvalue",
-				"newtestvalue",
-				"testvalue",
+				modifyAttributePlanValues{
+					config: "newtestvalue",
+					plan:   "newtestvalue",
+					state:  "testvalue",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -523,9 +557,11 @@ func TestBlockModifyPlan(t *testing.T) {
 				schema(nil, []AttributePlanModifier{
 					RequiresReplace(),
 				}),
-				"newtestvalue",
-				"newtestvalue",
-				"testvalue",
+				modifyAttributePlanValues{
+					config: "newtestvalue",
+					plan:   "newtestvalue",
+					state:  "testvalue",
+				},
 			),
 			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
@@ -560,9 +596,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					RequiresReplace(),
 					testAttrPlanValueModifierOne{},
 				}),
-				"TESTATTRONE",
-				"TESTATTRONE",
-				"previousvalue",
+				modifyAttributePlanValues{
+					config: "TESTATTRONE",
+					plan:   "TESTATTRONE",
+					state:  "previousvalue",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -585,9 +623,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					RequiresReplace(),
 					testRequiresReplaceFalseModifier{},
 				}),
-				"newtestvalue",
-				"newtestvalue",
-				"testvalue",
+				modifyAttributePlanValues{
+					config: "newtestvalue",
+					plan:   "newtestvalue",
+					state:  "testvalue",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -607,9 +647,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testWarningDiagModifier{},
 					testWarningDiagModifier{},
 				}),
-				"TESTDIAG",
-				"TESTDIAG",
-				"TESTDIAG",
+				modifyAttributePlanValues{
+					config: "TESTDIAG",
+					plan:   "TESTDIAG",
+					state:  "TESTDIAG",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -638,9 +680,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testWarningDiagModifier{},
 					testWarningDiagModifier{},
 				}),
-				"TESTDIAG",
-				"TESTDIAG",
-				"TESTDIAG",
+				modifyAttributePlanValues{
+					config: "TESTDIAG",
+					plan:   "TESTDIAG",
+					state:  "TESTDIAG",
+				},
 			),
 			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
@@ -680,9 +724,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testErrorDiagModifier{},
 					testErrorDiagModifier{},
 				}),
-				"TESTDIAG",
-				"TESTDIAG",
-				"TESTDIAG",
+				modifyAttributePlanValues{
+					config: "TESTDIAG",
+					plan:   "TESTDIAG",
+					state:  "TESTDIAG",
+				},
 			),
 			resp: ModifySchemaPlanResponse{},
 			expectedResp: ModifySchemaPlanResponse{
@@ -708,9 +754,11 @@ func TestBlockModifyPlan(t *testing.T) {
 					testErrorDiagModifier{},
 					testErrorDiagModifier{},
 				}),
-				"TESTDIAG",
-				"TESTDIAG",
-				"TESTDIAG",
+				modifyAttributePlanValues{
+					config: "TESTDIAG",
+					plan:   "TESTDIAG",
+					state:  "TESTDIAG",
+				},
 			),
 			resp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{

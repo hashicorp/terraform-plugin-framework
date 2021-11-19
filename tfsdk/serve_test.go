@@ -3120,6 +3120,13 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}),
 			resource:     "test_attribute_plan_modifiers",
 			resourceType: testServeResourceTypeAttributePlanModifiersType,
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "Warning diag",
+					Detail:   "This is a warning",
+				},
+			},
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"computed_string_no_modifiers": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				"name":                         tftypes.NewValue(tftypes.String, "name1"),
@@ -3216,6 +3223,13 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}),
 			resource:     "test_attribute_plan_modifiers",
 			resourceType: testServeResourceTypeAttributePlanModifiersType,
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "Warning diag",
+					Detail:   "This is a warning",
+				},
+			},
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"computed_string_no_modifiers": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				"name":                         tftypes.NewValue(tftypes.String, "name1"),
@@ -3305,6 +3319,13 @@ func TestServerPlanResourceChange(t *testing.T) {
 			}),
 			resource:     "test_attribute_plan_modifiers",
 			resourceType: testServeResourceTypeAttributePlanModifiersType,
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "Warning diag",
+					Detail:   "This is a warning",
+				},
+			},
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 				"computed_string_no_modifiers": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				"name":                         tftypes.NewValue(tftypes.String, "name1"),
@@ -3393,7 +3414,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
 			expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
-				"computed_string_no_modifiers": tftypes.NewValue(tftypes.String, "statevalue"),
+				"computed_string_no_modifiers": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				"name":                         tftypes.NewValue(tftypes.String, "TESTDIAG"),
 				"size":                         tftypes.NewValue(tftypes.Number, 3),
 				"scratch_disk": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -3420,11 +3441,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Severity: tfprotov6.DiagnosticSeverityWarning,
 					Summary:  "Warning diag",
 					Detail:   "This is a warning",
-				},
-				{
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Summary:  "Error diag",
-					Detail:   "This is an error",
 				},
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
@@ -3514,8 +3530,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			resource:                "test_attribute_plan_modifiers",
-			resourceType:            testServeResourceTypeAttributePlanModifiersType,
+			resource:     "test_attribute_plan_modifiers",
+			resourceType: testServeResourceTypeAttributePlanModifiersType,
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "Warning diag",
+					Detail:   "This is a warning",
+				},
+			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
 		"attr_plan_modifiers_default_value_modifier": {
@@ -3603,8 +3626,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "DEFAULTVALUE"),
 			}),
-			resource:                "test_attribute_plan_modifiers",
-			resourceType:            testServeResourceTypeAttributePlanModifiersType,
+			resource:     "test_attribute_plan_modifiers",
+			resourceType: testServeResourceTypeAttributePlanModifiersType,
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "Warning diag",
+					Detail:   "This is a warning",
+				},
+			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
 		// TODO: Attribute plan modifiers should run before plan unknown marking.
@@ -3675,6 +3705,13 @@ func TestServerPlanResourceChange(t *testing.T) {
 		// 		}),
 		// 		"region": tftypes.NewValue(tftypes.String, "DEFAULTVALUE"),
 		// 	}),
+		// 	expectedDiags: []*tfprotov6.Diagnostic{
+		// 		{
+		// 			Severity: tfprotov6.DiagnosticSeverityWarning,
+		// 			Summary:  "Warning diag",
+		// 			Detail:   "This is a warning",
+		// 		},
+		// 	},
 		// 	expectedPlannedState: tftypes.NewValue(testServeResourceTypeAttributePlanModifiersType, map[string]tftypes.Value{
 		// 		"computed_string_no_modifiers": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 		// 		"name":                         tftypes.NewValue(tftypes.String, "MODIFIED_TWO"),
@@ -3783,8 +3820,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 				"region": tftypes.NewValue(tftypes.String, "region1"),
 			}),
-			resource:                "test_attribute_plan_modifiers",
-			resourceType:            testServeResourceTypeAttributePlanModifiersType,
+			resource:     "test_attribute_plan_modifiers",
+			resourceType: testServeResourceTypeAttributePlanModifiersType,
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "Warning diag",
+					Detail:   "This is a warning",
+				},
+			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface")},
 		},
 	}

@@ -188,6 +188,25 @@ func TestRequiresReplaceModifier(t *testing.T) {
 		},
 	}
 
+	blockSchema := Schema{
+		Blocks: map[string]Block{
+			"block": {
+				Attributes: map[string]Attribute{
+					"optional-computed": {
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
+					},
+					"optional": {
+						Type:     types.StringType,
+						Optional: true,
+					},
+				},
+				NestingMode: BlockNestingModeList,
+			},
+		},
+	}
+
 	tests := map[string]testCase{
 		"null-state": {
 			// when we first create the resource, it shouldn't
@@ -425,6 +444,322 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,
 		},
+		"block-no-change": {
+			state: State{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+						}),
+				}),
+			},
+			plan: Plan{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+						}),
+				}),
+			},
+			config: Config{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+						}),
+				}),
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("block"),
+			expectedPlan: types.List{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"optional-computed": types.StringType,
+						"optional":          types.StringType,
+					},
+				},
+				Elems: []attr.Value{
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"optional-computed": types.StringType,
+							"optional":          types.StringType,
+						},
+						Attrs: map[string]attr.Value{
+							"optional-computed": types.String{Value: "samevalue"},
+							"optional":          types.String{Value: "samevalue"},
+						},
+					},
+				},
+			},
+			expectedRR: false,
+		},
+		"block-element-count-change": {
+			state: State{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+						}),
+				}),
+			},
+			plan: Plan{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "newvalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "newvalue"),
+							}),
+						}),
+				}),
+			},
+			config: Config{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "newvalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "newvalue"),
+							}),
+						}),
+				}),
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("block"),
+			expectedPlan: types.List{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"optional-computed": types.StringType,
+						"optional":          types.StringType,
+					},
+				},
+				Elems: []attr.Value{
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"optional-computed": types.StringType,
+							"optional":          types.StringType,
+						},
+						Attrs: map[string]attr.Value{
+							"optional-computed": types.String{Value: "samevalue"},
+							"optional":          types.String{Value: "samevalue"},
+						},
+					},
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"optional-computed": types.StringType,
+							"optional":          types.StringType,
+						},
+						Attrs: map[string]attr.Value{
+							"optional-computed": types.String{Value: "newvalue"},
+							"optional":          types.String{Value: "newvalue"},
+						},
+					},
+				},
+			},
+			expectedRR: true,
+		},
+		"block-nested-attribute-change": {
+			state: State{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "oldvalue"),
+							}),
+						}),
+				}),
+			},
+			plan: Plan{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "newvalue"),
+							}),
+						}),
+				}),
+			},
+			config: Config{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "newvalue"),
+							}),
+						}),
+				}),
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("block"),
+			expectedPlan: types.List{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"optional-computed": types.StringType,
+						"optional":          types.StringType,
+					},
+				},
+				Elems: []attr.Value{
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"optional-computed": types.StringType,
+							"optional":          types.StringType,
+						},
+						Attrs: map[string]attr.Value{
+							"optional-computed": types.String{Value: "samevalue"},
+							"optional":          types.String{Value: "newvalue"},
+						},
+					},
+				},
+			},
+			expectedRR: true,
+		},
 	}
 
 	for name, tc := range tests {
@@ -500,6 +835,25 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			"optional": {
 				Type:     types.StringType,
 				Optional: true,
+			},
+		},
+	}
+
+	blockSchema := Schema{
+		Blocks: map[string]Block{
+			"block": {
+				Attributes: map[string]Attribute{
+					"optional-computed": {
+						Type:     types.StringType,
+						Optional: true,
+						Computed: true,
+					},
+					"optional": {
+						Type:     types.StringType,
+						Optional: true,
+					},
+				},
+				NestingMode: BlockNestingModeList,
 			},
 		},
 	}
@@ -820,6 +1174,325 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			ifReturn:     true,
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,
+		},
+		"block-no-change": {
+			state: State{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+						}),
+				}),
+			},
+			plan: Plan{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+						}),
+				}),
+			},
+			config: Config{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+						}),
+				}),
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("block"),
+			expectedPlan: types.List{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"optional-computed": types.StringType,
+						"optional":          types.StringType,
+					},
+				},
+				Elems: []attr.Value{
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"optional-computed": types.StringType,
+							"optional":          types.StringType,
+						},
+						Attrs: map[string]attr.Value{
+							"optional-computed": types.String{Value: "samevalue"},
+							"optional":          types.String{Value: "samevalue"},
+						},
+					},
+				},
+			},
+			ifReturn:   false,
+			expectedRR: false,
+		},
+		"block-element-count-change": {
+			state: State{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+						}),
+				}),
+			},
+			plan: Plan{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "newvalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "newvalue"),
+							}),
+						}),
+				}),
+			},
+			config: Config{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "samevalue"),
+							}),
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "newvalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "newvalue"),
+							}),
+						}),
+				}),
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("block"),
+			expectedPlan: types.List{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"optional-computed": types.StringType,
+						"optional":          types.StringType,
+					},
+				},
+				Elems: []attr.Value{
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"optional-computed": types.StringType,
+							"optional":          types.StringType,
+						},
+						Attrs: map[string]attr.Value{
+							"optional-computed": types.String{Value: "samevalue"},
+							"optional":          types.String{Value: "samevalue"},
+						},
+					},
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"optional-computed": types.StringType,
+							"optional":          types.StringType,
+						},
+						Attrs: map[string]attr.Value{
+							"optional-computed": types.String{Value: "newvalue"},
+							"optional":          types.String{Value: "newvalue"},
+						},
+					},
+				},
+			},
+			ifReturn:   true,
+			expectedRR: true,
+		},
+		"block-nested-attribute-change": {
+			state: State{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "oldvalue"),
+							}),
+						}),
+				}),
+			},
+			plan: Plan{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "newvalue"),
+							}),
+						}),
+				}),
+			},
+			config: Config{
+				Schema: blockSchema,
+				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
+					"block": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional-computed": tftypes.String,
+									"optional":          tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"optional-computed": tftypes.NewValue(tftypes.String, "samevalue"),
+								"optional":          tftypes.NewValue(tftypes.String, "newvalue"),
+							}),
+						}),
+				}),
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("block"),
+			expectedPlan: types.List{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"optional-computed": types.StringType,
+						"optional":          types.StringType,
+					},
+				},
+				Elems: []attr.Value{
+					types.Object{
+						AttrTypes: map[string]attr.Type{
+							"optional-computed": types.StringType,
+							"optional":          types.StringType,
+						},
+						Attrs: map[string]attr.Value{
+							"optional-computed": types.String{Value: "samevalue"},
+							"optional":          types.String{Value: "newvalue"},
+						},
+					},
+				},
+			},
+			ifReturn:   true,
+			expectedRR: true,
 		},
 	}
 

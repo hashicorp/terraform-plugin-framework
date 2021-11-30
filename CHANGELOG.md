@@ -1,3 +1,30 @@
+# 0.5.0 (Unreleased)
+
+BREAKING CHANGES:
+
+* Fixed RequiresReplace and RequiresReplaceIf to be more judicious about when they require a resource to be destroyed and recreated. They will no longer require resources to be recreated when _any_ attribute changes, instead limiting it only to the attribute they're declared on. They will also not require resources to be recreated when they're being created or deleted. Finally, they won't require a resource to be recreated if the user has no value in the config for the attribute and the attribute is computed; this is to prevent the resource from being destroyed and recreated when the provider changes the value without any user prompting. Providers that wish to destroy and recreate the resource when an optional and computed attribute is removed from the user's config should do so in their own plan modifier. ([#213](https://github.com/hashicorp/terraform-plugin-framework/issues/213))
+* RequiresReplaceIf no longer overrides previous plan modifiers' value for RequiresReplace if the function returns false. ([#213](https://github.com/hashicorp/terraform-plugin-framework/issues/213))
+* diag: The `AttributeErrorDiagnostic` and `AttributeWarningDiagnostic` types have been removed. Any usage can be replaced with `DiagnosticWithPath`. ([#219](https://github.com/hashicorp/terraform-plugin-framework/issues/219))
+* tfsdk: The `AddAttributeError`, `AddAttributeWarning`, `AddError`, and `AddWarning` methods on the `ConfigureProviderResponse`, `CreateResourceResponse`, `DeleteResourceResponse`, `ModifyAttributePlanResponse`, `ModifyResourcePlanResponse`, `ReadDataSourceResponse`, `ReadResourceResponse`, and `UpdateResourceResponse` types have been removed in preference of the same methods on the `Diagnostics` field of these types. For example, code such as `resp.AddError("...", "...")` can be updated to `resp.Diagnostics.AddError("...", "...")`. ([#198](https://github.com/hashicorp/terraform-plugin-framework/issues/198))
+* tfsdk: The `Config`, `Plan`, and `State` type `GetAttribute` methods now return diagnostics only and require the target as the last parameter, similar to the `Get` method. ([#167](https://github.com/hashicorp/terraform-plugin-framework/issues/167))
+
+FEATURES:
+
+* Added `tfsdk.UseStateForUnknown()` as a built-in plan modifier, which will automatically replace an unknown value in the plan with the value from the state. This mimics the behavior of computed and optional+computed values in Terraform Plugin SDK versions 1 and 2. Provider developers will likely want to use it for "write-once" attributes that never change once they're set in state. ([#204](https://github.com/hashicorp/terraform-plugin-framework/issues/204))
+* tfsdk: Support list and set blocks in schema definitions ([#188](https://github.com/hashicorp/terraform-plugin-framework/issues/188))
+
+ENHANCEMENTS:
+
+* diag: Added `WithPath()` function to wrap or overwrite diagnostic path information. ([#219](https://github.com/hashicorp/terraform-plugin-framework/issues/219))
+* tfsdk: The `Config`, `Plan`, and `State` type `GetAttribute` methods can now be used to fetch values directly into `attr.Value` implementations and Go types. ([#167](https://github.com/hashicorp/terraform-plugin-framework/issues/167))
+
+BUG FIXES:
+
+* tfsdk: Fetch null values from valid missing `Config`, `Plan`, and `State` paths in `GetAttribute()` method ([#185](https://github.com/hashicorp/terraform-plugin-framework/issues/185))
+* types: Ensure `Float64` `Type()` method returns `Float64Type` ([#202](https://github.com/hashicorp/terraform-plugin-framework/issues/202))
+* types: Prevent panic with uninitialized `Number` `Value` ([#200](https://github.com/hashicorp/terraform-plugin-framework/issues/200))
+* types: Prevent panics when `ValueFromTerraform` received `nil` values ([#208](https://github.com/hashicorp/terraform-plugin-framework/issues/208))
+
 # 0.4.2 (September 29, 2021)
 
 BUG FIXES:

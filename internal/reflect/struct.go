@@ -186,16 +186,10 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 
 		objTypes[name] = attrType.TerraformType(ctx)
 
-		tfVal, err := attrVal.ToTerraformValue(ctx)
+		tfObjVal, err := attrVal.ToTerraformValue(ctx)
 		if err != nil {
 			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
-		err = tftypes.ValidateValue(objTypes[name], tfVal)
-		if err != nil {
-			return nil, append(diags, validateValueErrorDiag(err, path))
-		}
-
-		tfObjVal := tftypes.NewValue(objTypes[name], tfVal)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfObjVal, path)...)

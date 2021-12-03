@@ -316,18 +316,18 @@ func TestListToTerraformValue(t *testing.T) {
 					String{Value: "world"},
 				},
 			},
-			expectation: []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, "world"),
-			},
+			}),
 		},
 		"unknown": {
-			input:       List{Unknown: true},
-			expectation: tftypes.UnknownValue,
+			input:       List{ElemType: StringType, Unknown: true},
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       List{Null: true},
-			expectation: nil,
+			input:       List{ElemType: StringType, Null: true},
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
 		},
 		"partial-unknown": {
 			input: List{
@@ -337,10 +337,10 @@ func TestListToTerraformValue(t *testing.T) {
 					String{Value: "hello, world"},
 				},
 			},
-			expectation: []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				tftypes.NewValue(tftypes.String, "hello, world"),
-			},
+			}),
 		},
 		"partial-null": {
 			input: List{
@@ -350,10 +350,10 @@ func TestListToTerraformValue(t *testing.T) {
 					String{Value: "hello, world"},
 				},
 			},
-			expectation: []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, nil),
 				tftypes.NewValue(tftypes.String, "hello, world"),
-			},
+			}),
 		},
 	}
 	for name, test := range tests {

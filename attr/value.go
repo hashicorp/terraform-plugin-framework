@@ -2,6 +2,8 @@ package attr
 
 import (
 	"context"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Value defines an interface for describing data associated with an attribute.
@@ -12,8 +14,8 @@ type Value interface {
 	Type(context.Context) Type
 
 	// ToTerraformValue returns the data contained in the Value as
-	// a Go type that tftypes.NewValue will accept.
-	ToTerraformValue(context.Context) (interface{}, error)
+	// a tftypes.Value.
+	ToTerraformValue(context.Context) (tftypes.Value, error)
 
 	// Equal must return true if the Value is considered semantically equal
 	// to the Value passed as an argument.

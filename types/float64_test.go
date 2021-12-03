@@ -90,19 +90,19 @@ func TestFloat64ToTerraformValue(t *testing.T) {
 	tests := map[string]testCase{
 		"value-int": {
 			input:       Float64{Value: 123},
-			expectation: big.NewFloat(123.0),
+			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.0)),
 		},
 		"value-float": {
 			input:       Float64{Value: 123.456},
-			expectation: big.NewFloat(123.456),
+			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.456)),
 		},
 		"unknown": {
 			input:       Float64{Unknown: true},
-			expectation: tftypes.UnknownValue,
+			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 		},
 		"null": {
 			input:       Float64{Null: true},
-			expectation: nil,
+			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 	}
 	for name, test := range tests {

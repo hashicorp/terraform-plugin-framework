@@ -89,19 +89,19 @@ func TestBoolToTerraformValue(t *testing.T) {
 	tests := map[string]testCase{
 		"true": {
 			input:       Bool{Value: true},
-			expectation: true,
+			expectation: tftypes.NewValue(tftypes.Bool, true),
 		},
 		"false": {
 			input:       Bool{Value: false},
-			expectation: false,
+			expectation: tftypes.NewValue(tftypes.Bool, false),
 		},
 		"unknown": {
 			input:       Bool{Unknown: true},
-			expectation: tftypes.UnknownValue,
+			expectation: tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
 		},
 		"null": {
 			input:       Bool{Null: true},
-			expectation: nil,
+			expectation: tftypes.NewValue(tftypes.Bool, nil),
 		},
 	}
 	for name, test := range tests {

@@ -269,8 +269,7 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 		}
 
 		for _, value := range s.Elems {
-			tfValueRaw, err := value.ToTerraformValue(ctx)
-
+			tfValue, err := value.ToTerraformValue(ctx)
 			if err != nil {
 				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
 				resp.Diagnostics.AddAttributeError(
@@ -281,8 +280,6 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 
 				return
 			}
-
-			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
 
 			for name, attr := range b.Attributes {
 				attrReq := ModifyAttributePlanRequest{
@@ -482,8 +479,7 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 		}
 
 		for _, value := range s.Elems {
-			tfValueRaw, err := value.ToTerraformValue(ctx)
-
+			tfValue, err := value.ToTerraformValue(ctx)
 			if err != nil {
 				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
 				resp.Diagnostics.AddAttributeError(
@@ -494,8 +490,6 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 
 				return
 			}
-
-			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
 
 			for name, attr := range b.Attributes {
 				nestedAttrReq := ValidateAttributeRequest{
@@ -549,7 +543,7 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 			return
 		}
 
-		if tfValue != nil {
+		if !tfValue.IsNull() {
 			resp.Diagnostics.AddAttributeWarning(
 				req.AttributePath,
 				"Block Deprecated",

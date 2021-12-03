@@ -1,0 +1,3 @@
+```release-note:enhancement
+Added the ability to get an attribute as a generic `attr.Value` when using `GetAttribute`.
+```

@@ -96,3 +96,17 @@ func TestValueAs(t *testing.T) {
 		})
 	}
 }
+
+func TestValueAs_generic(t *testing.T) {
+	t.Parallel()
+
+	var target attr.Value
+	val := types.String{Value: "hello"}
+	diags := ValueAs(context.Background(), val, &target)
+	if len(diags) > 0 {
+		t.Fatalf("Unexpected diagnostics: %s", diags)
+	}
+	if !val.Equal(target.(attr.Value)) {
+		t.Errorf("Expected target to be %v, got %v", val, target)
+	}
+}

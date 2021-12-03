@@ -1,0 +1,3 @@
+```release-note:feature
+Added support for a ModifyPlan method on the `attr.Type` type, allowing custom types to include plan modification logic that will be applied to every attribute or element using that type.
+```

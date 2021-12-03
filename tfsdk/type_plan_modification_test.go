@@ -120,6 +120,120 @@ func TestRunTypePlanModifiers(t *testing.T) {
 			expectedRR:    nil,
 			expectedOK:    true,
 		},
+		"preserve-existing": {
+			state: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"input": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"input": tftypes.NewValue(tftypes.String, "hello, world"),
+			}),
+			plan: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"input": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"input": tftypes.NewValue(tftypes.String, "hElLo, WoRlD"),
+			}),
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"input": {
+						Type: typeWithPlanModifier{
+							modifyPlan: func(ctx context.Context, state attr.Value, plan attr.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+								st := state.(testtypes.String)
+								pl := plan.(testtypes.String)
+								if strings.ToLower(st.String.Value) == strings.ToLower(pl.String.Value) {
+									return state, diag.Diagnostics{
+										diag.NewWarningDiagnostic(
+											"Diff suppressed",
+											"We suppressed a diff because the strings were only different in capitalization. Normally you wouldn't warn on this, but work with me here.",
+										),
+									}
+								}
+								return plan, nil
+							},
+						},
+						Required: true,
+					},
+				},
+			},
+			resp: &planResourceChangeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewWarningDiagnostic(
+						"Other warning",
+						"Deprecated attribute or something",
+					),
+				},
+				RequiresReplace: []*tftypes.AttributePath{
+					tftypes.NewAttributePath().WithAttributeName("foo"),
+				},
+			},
+			expectedPlan: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"input": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"input": tftypes.NewValue(tftypes.String, "hello, world"),
+			}),
+			expectedDiags: diag.Diagnostics{
+				diag.NewWarningDiagnostic(
+					"Other warning",
+					"Deprecated attribute or something",
+				),
+				diag.NewWarningDiagnostic(
+					"Diff suppressed",
+					"We suppressed a diff because the strings were only different in capitalization. Normally you wouldn't warn on this, but work with me here.",
+				),
+			},
+			expectedRR: []*tftypes.AttributePath{
+				tftypes.NewAttributePath().WithAttributeName("foo"),
+			},
+			expectedOK: true,
+		},
+		"error": {
+			state: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"input": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"input": tftypes.NewValue(tftypes.String, "hello, world"),
+			}),
+			plan: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"input": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"input": tftypes.NewValue(tftypes.String, "hElLo, WoRlD"),
+			}),
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"input": {
+						Type: typeWithPlanModifier{
+							modifyPlan: func(ctx context.Context, state attr.Value, plan attr.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+								// something bad happened
+								return plan, diag.Diagnostics{
+									diag.NewErrorDiagnostic("Ooops", "something bad happened"),
+								}
+							},
+						},
+						Required: true,
+					},
+				},
+			},
+			resp: &planResourceChangeResponse{},
+			expectedPlan: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"input": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"input": tftypes.NewValue(tftypes.String, "hElLo, WoRlD"),
+			}),
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Ooops", "something bad happened"),
+			},
+			expectedRR: nil,
+			expectedOK: false,
+		},
 	}
 
 	for name, tc := range tests {

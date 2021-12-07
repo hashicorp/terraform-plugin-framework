@@ -14,6 +14,10 @@ import (
 // the contents of `val`, using the reflection rules
 // defined for `Get` and `GetAttribute`.
 func ValueAs(ctx context.Context, val attr.Value, target interface{}) diag.Diagnostics {
+	if reflect.IsGenericAttrValue(ctx, target) {
+		*(target.(*attr.Value)) = val
+		return nil
+	}
 	raw, err := val.ToTerraformValue(ctx)
 	if err != nil {
 		return diag.Diagnostics{diag.NewErrorDiagnostic("Error converting value",

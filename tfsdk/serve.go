@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-log/tfsdklog"
 )
 
 var _ tfprotov6.ProviderServer = &server{}
@@ -592,21 +593,27 @@ func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 		}
 		configVal, _, err := tftypes.WalkAttributePath(config, path)
 		if err != tftypes.ErrInvalidStep && err != nil {
+			tfsdklog.Error(ctx, "error walking attribute path", "path", path)
 			return val, err
 		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() {
+			tfsdklog.Trace(ctx, "attribute not null in config, not marking unknown", "path", path)
 			return val, nil
 		}
 		attribute, err := resourceSchema.AttributeAtPath(path)
 		if err != nil {
 			if errors.Is(err, ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
+				tfsdklog.Trace(ctx, "attribute is a non-schema attribute, not marking unknown", "path", path)
 				return val, nil
 			}
+			tfsdklog.Error(ctx, "couldn't find attribute in resource schema", "path", path)
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
 		if !attribute.Computed {
+			tfsdklog.Trace(ctx, "attribute is not computed in schema, not marking unknown", "path", path)
 			return val, nil
 		}
+		tfsdklog.Debug(ctx, "marking computed attribute that is null in the config as unknown", "path", path)
 		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
 	}
 }
@@ -742,6 +749,7 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.
 	if !plan.IsNull() && !plan.Equal(state) {
+		tfsdklog.Trace(ctx, "marking computed null values as unknown")
 		modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, config, resourceSchema))
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -749,6 +757,9 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 				"There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 			)
 			return
+		}
+		if !plan.Equal(modifiedPlan) {
+			tfsdklog.Trace(ctx, "at least one value was changed to unknown")
 		}
 		plan = modifiedPlan
 	}
@@ -889,7 +900,7 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 
 	// ensure deterministic RequiresReplace by sorting and deduplicating
-	resp.RequiresReplace = normaliseRequiresReplace(resp.RequiresReplace)
+	resp.RequiresReplace = normaliseRequiresReplace(ctx, resp.RequiresReplace)
 }
 
 // applyResourceChangeResponse is a thin abstraction to allow native Diagnostics usage
@@ -910,7 +921,7 @@ func (r applyResourceChangeResponse) toTfprotov6() *tfprotov6.ApplyResourceChang
 // normaliseRequiresReplace sorts and deduplicates the slice of AttributePaths
 // used in the RequiresReplace response field.
 // Sorting is lexical based on the string representation of each AttributePath.
-func normaliseRequiresReplace(rs []*tftypes.AttributePath) []*tftypes.AttributePath {
+func normaliseRequiresReplace(ctx context.Context, rs []*tftypes.AttributePath) []*tftypes.AttributePath {
 	if len(rs) < 2 {
 		return rs
 	}
@@ -926,6 +937,7 @@ func normaliseRequiresReplace(rs []*tftypes.AttributePath) []*tftypes.AttributeP
 	j := 1
 	for i := 1; i < len(rs); i++ {
 		if rs[i].Equal(ret[j-1]) {
+			tfsdklog.Debug(ctx, "attribute found multiple times in RequiresReplace, removing duplicate", "path", rs[i])
 			continue
 		}
 		ret[j] = rs[i]
@@ -1027,6 +1039,7 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 
 	switch {
 	case create && !update && !destroy:
+		tfsdklog.Trace(ctx, "running create")
 		createReq := CreateResourceRequest{
 			Config: Config{
 				Schema: resourceSchema,
@@ -1079,6 +1092,7 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		}
 		resp.NewState = &newState
 	case !create && update && !destroy:
+		tfsdklog.Trace(ctx, "running update")
 		updateReq := UpdateResourceRequest{
 			Config: Config{
 				Schema: resourceSchema,
@@ -1135,6 +1149,7 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		}
 		resp.NewState = &newState
 	case !create && !update && destroy:
+		tfsdklog.Trace(ctx, "running delete")
 		destroyReq := DeleteResourceRequest{
 			State: State{
 				Schema: resourceSchema,

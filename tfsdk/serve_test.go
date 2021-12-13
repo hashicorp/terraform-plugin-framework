@@ -248,7 +248,7 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			actual := normaliseRequiresReplace(tc.input)
+			actual := normaliseRequiresReplace(context.Background(), tc.input)
 
 			if diff := cmp.Diff(actual, tc.expected, cmpopts.EquateEmpty()); diff != "" {
 				t.Errorf("Unexpected diff (+wanted, -got): %s", diff)

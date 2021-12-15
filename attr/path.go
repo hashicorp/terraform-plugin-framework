@@ -57,6 +57,19 @@ func (a Path) ChildOf(p Path) bool {
 	return true
 }
 
+// Equal returns true if the two Paths are semantically equal.
+func (a Path) Equal(o Path) bool {
+	if len(a.steps) != len(o.steps) {
+		return false
+	}
+	for pos, step := range a.steps {
+		if !step.Equal(o.steps[pos]) {
+			return false
+		}
+	}
+	return true
+}
+
 // Attribute returns a copy of `a`, with another step added to select the named
 // attribute of the object that `a` points to.
 func (a Path) Attribute(name string) Path {

@@ -58,7 +58,7 @@ func (n Number) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 		return tftypes.NewValue(tftypes.Number, nil), nil
 	}
 	if err := tftypes.ValidateValue(tftypes.Number, n.Value); err != nil {
-		return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
+		return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), err
 	}
 	return tftypes.NewValue(tftypes.Number, n.Value), nil
 }

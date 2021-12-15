@@ -275,3 +275,28 @@ func (o Object) Equal(c attr.Value) bool {
 
 	return true
 }
+
+// String returns a human-friendly representation of the Object for logging and
+// debugging purposes.
+func (o Object) String() string {
+	res := "types.Object<"
+	if o.Unknown {
+		res += "unknown"
+	} else if o.Null {
+		res += "null"
+	} else {
+		attrs := make([]string, 0, len(o.Attrs))
+		for k := range o.Attrs {
+			attrs = append(attrs, k)
+		}
+		sort.Strings(attrs)
+		for pos, attr := range attrs {
+			if pos != 0 {
+				res += ", "
+			}
+			res += "\"" + attr + "\":" + o.Attrs[attr].String()
+		}
+	}
+	res += ">"
+	return res
+}

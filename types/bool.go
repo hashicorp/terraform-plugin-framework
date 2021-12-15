@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -73,4 +74,19 @@ func (b Bool) Equal(other attr.Value) bool {
 		return false
 	}
 	return b.Value == o.Value
+}
+
+// String returns a human-friendly representation of the Bool for logging and
+// debugging purposes.
+func (b Bool) String() string {
+	res := "types.Bool<"
+	if b.Unknown {
+		res += "unknown"
+	} else if b.Null {
+		res += "null"
+	} else {
+		res += strconv.FormatBool(b.Value)
+	}
+	res += ">"
+	return res
 }

@@ -40,13 +40,13 @@ func (t StringType) TerraformType(_ context.Context) tftypes.Type {
 func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
 		return String{
-			String:    types.String{Unknown: true},
+			Str:       types.String{Unknown: true},
 			CreatedBy: t,
 		}, nil
 	}
 	if in.IsNull() {
 		return String{
-			String:    types.String{Null: true},
+			Str:       types.String{Null: true},
 			CreatedBy: t,
 		}, nil
 	}
@@ -56,13 +56,13 @@ func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 		return nil, err
 	}
 	return String{
-		String:    types.String{Value: s},
+		Str:       types.String{Value: s},
 		CreatedBy: t,
 	}, nil
 }
 
 type String struct {
-	types.String
+	Str       types.String
 	CreatedBy attr.Type
 }
 
@@ -70,10 +70,27 @@ func (s String) Type(_ context.Context) attr.Type {
 	return s.CreatedBy
 }
 
+func (s String) ToTerraformValue(ctx context.Context) (interface{}, error) {
+	return s.Str.ToTerraformValue(ctx)
+}
+
 func (s String) Equal(o attr.Value) bool {
 	os, ok := o.(String)
 	if !ok {
 		return false
 	}
-	return s.String.Equal(os.String)
+	return s.Str.Equal(os.Str)
+}
+
+func (s String) String() string {
+	res := "testtypes.String<"
+	if s.Str.Unknown {
+		res += "unknown"
+	} else if s.Str.Null {
+		res += "null"
+	} else {
+		res += "\"" + s.Str.Value + "\""
+	}
+	res += ">"
+	return res
 }

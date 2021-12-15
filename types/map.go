@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -227,4 +228,29 @@ func (m Map) Equal(o attr.Value) bool {
 		}
 	}
 	return true
+}
+
+// String returns a human-friendly representation of the Map for logging and
+// debugging purposes.
+func (m Map) String() string {
+	res := "types.Map<"
+	if m.Unknown {
+		res += "unknown"
+	} else if m.Null {
+		res += "null"
+	} else {
+		keys := make([]string, 0, len(m.Elems))
+		for k := range m.Elems {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for pos, key := range keys {
+			if pos != 0 {
+				res += ", "
+			}
+			res += "\"" + key + "\":" + m.Elems[key].String()
+		}
+	}
+	res += ">"
+	return res
 }

@@ -281,3 +281,23 @@ func (s Set) contains(v attr.Value) bool {
 
 	return false
 }
+
+// String returns a human-friendly representation of the Set for logging and
+// debugging purposes.
+func (s Set) String() string {
+	res := "types.Set<"
+	if s.Unknown {
+		res += "unknown"
+	} else if s.Null {
+		res += "null"
+	} else {
+		for pos, el := range s.Elems {
+			if pos != 0 {
+				res += ", "
+			}
+			res += el.String()
+		}
+	}
+	res += ">"
+	return res
+}

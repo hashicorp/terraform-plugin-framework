@@ -117,7 +117,7 @@ func TestFromPointer(t *testing.T) {
 			typ: testtypes.StringTypeWithValidateWarning{},
 			val: reflect.ValueOf(strPtr("hello, world")),
 			expected: testtypes.String{
-				String: types.String{
+				Str: types.String{
 					Value: "hello, world",
 				},
 				CreatedBy: testtypes.StringTypeWithValidateWarning{},

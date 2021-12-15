@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -73,4 +74,16 @@ func (b Bool) Equal(o attr.Value) bool {
 		return false
 	}
 	return b.Bool.Equal(ob.Bool)
+}
+func (b Bool) String() string {
+	res := "testtypes.Bool<"
+	if b.Bool.Unknown {
+		res += "unknown"
+	} else if b.Bool.Null {
+		res += "null"
+	} else {
+		res += strconv.FormatBool(b.Bool.Value)
+	}
+	res += ">"
+	return res
 }

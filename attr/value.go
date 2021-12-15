@@ -18,4 +18,8 @@ type Value interface {
 	// Equal must return true if the Value is considered semantically equal
 	// to the Value passed as an argument.
 	Equal(Value) bool
+
+	// String should return a human-friendly string representation of the
+	// value for debugging and logging purposes.
+	String() string
 }

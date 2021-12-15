@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -132,4 +133,19 @@ func (f Float64) ToTerraformValue(ctx context.Context) (interface{}, error) {
 // Type returns a NumberType.
 func (f Float64) Type(ctx context.Context) attr.Type {
 	return Float64Type
+}
+
+// String returns a human-friendly representation of the Float64 for logging
+// and debugging purposes.
+func (f Float64) String() string {
+	res := "types.Float64<"
+	if f.Unknown {
+		res += "unknown"
+	} else if f.Null {
+		res += "null"
+	} else {
+		res += strconv.FormatFloat(f.Value, 'g', -1, 64)
+	}
+	res += ">"
+	return res
 }

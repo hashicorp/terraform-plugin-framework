@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -145,4 +146,19 @@ func (i Int64) ToTerraformValue(ctx context.Context) (interface{}, error) {
 // Type returns a NumberType.
 func (i Int64) Type(ctx context.Context) attr.Type {
 	return Int64Type
+}
+
+// String returns a human-friendly representation of the Int64 for logging and
+// debugging purposes.
+func (i Int64) String() string {
+	res := "types.Int64<"
+	if i.Unknown {
+		res += "unknown"
+	} else if i.Null {
+		res += "null"
+	} else {
+		res += strconv.FormatInt(i.Value, 10)
+	}
+	res += ">"
+	return res
 }

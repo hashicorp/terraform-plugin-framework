@@ -79,3 +79,15 @@ func (n Number) Equal(o attr.Value) bool {
 	}
 	return n.Number.Equal(on.Number)
 }
+func (n Number) String() string {
+	res := "testtypes.Number<"
+	if n.Number.Unknown {
+		res += "unknown"
+	} else if n.Number.Null {
+		res += "null"
+	} else {
+		res += n.Number.Value.String()
+	}
+	res += ">"
+	return res
+}

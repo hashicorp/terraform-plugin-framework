@@ -81,3 +81,18 @@ func (n Number) Equal(other attr.Value) bool {
 	}
 	return n.Value.Cmp(o.Value) == 0
 }
+
+// String returns a human-friendly representation of the Number for logging and
+// debugging purposes.
+func (n Number) String() string {
+	res := "types.Number<"
+	if n.Unknown {
+		res += "unknown"
+	} else if n.Null {
+		res += "null"
+	} else {
+		res += n.Value.String()
+	}
+	res += ">"
+	return res
+}

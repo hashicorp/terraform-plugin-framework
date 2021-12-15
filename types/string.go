@@ -70,3 +70,18 @@ func (s String) Equal(other attr.Value) bool {
 	}
 	return s.Value == o.Value
 }
+
+// String returns a human-friendly representation of the String for logging and
+// debugging purposes.
+func (s String) String() string {
+	res := "types.String<"
+	if s.Unknown {
+		res += "unknown"
+	} else if s.Null {
+		res += "null"
+	} else {
+		res += "\"" + s.Value + "\""
+	}
+	res += ">"
+	return res
+}

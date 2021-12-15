@@ -215,3 +215,23 @@ func (l List) Equal(o attr.Value) bool {
 	}
 	return true
 }
+
+// String returns a human-friendly representation of the List for logging and
+// debugging purposes.
+func (l List) String() string {
+	res := "types.List<"
+	if l.Unknown {
+		res += "unknown"
+	} else if l.Null {
+		res += "null"
+	} else {
+		for pos, el := range l.Elems {
+			if pos != 0 {
+				res += ", "
+			}
+			res += el.String()
+		}
+	}
+	res += ">"
+	return res
+}

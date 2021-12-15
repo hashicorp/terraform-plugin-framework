@@ -551,7 +551,7 @@ func TestStateGet_testTypes(t *testing.T) {
 				},
 			},
 			expected: testStateGetDataTestTypes{
-				Name:        testtypes.String{String: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
+				Name:        testtypes.String{Str: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 				MachineType: "",
 				Tags:        types.List{},
 				TagsSet:     types.Set{},
@@ -768,7 +768,7 @@ func TestStateGet_testTypes(t *testing.T) {
 				},
 			},
 			expected: testStateGetDataTestTypes{
-				Name:        testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+				Name:        testtypes.String{Str: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 				MachineType: "e2-medium",
 				Tags: types.List{
 					ElemType: types.StringType,
@@ -1029,7 +1029,7 @@ func TestStateGetAttribute(t *testing.T) {
 				},
 			},
 			target:        new(testtypes.String),
-			expected:      &testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expected:      &testtypes.String{Str: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
@@ -2279,7 +2279,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 				},
 			},
 			path:          tftypes.NewAttributePath().WithAttributeName("test"),
-			expected:      testtypes.String{String: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expected:      testtypes.String{Str: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"))},
 		},
 	}

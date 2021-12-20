@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -19,7 +20,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 	type testCase struct {
 		name        string
 		attr        Attribute
-		path        *tftypes.AttributePath
+		path        attrpath.Path
 		expected    *tfprotov6.SchemaAttribute
 		expectedErr string
 	}
@@ -32,7 +33,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Optional:           true,
 				DeprecationMessage: "deprecated, use new_string instead",
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:       "string",
 				Type:       tftypes.String,
@@ -47,7 +48,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Optional:    true,
 				Description: "A string attribute",
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:            "string",
 				Type:            tftypes.String,
@@ -63,7 +64,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Optional:            true,
 				MarkdownDescription: "A string attribute",
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:            "string",
 				Type:            tftypes.String,
@@ -80,7 +81,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Description:         "A string attribute",
 				MarkdownDescription: "A string attribute (markdown)",
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:            "string",
 				Type:            tftypes.String,
@@ -95,7 +96,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type:     types.StringType,
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "string",
 				Type:     tftypes.String,
@@ -108,7 +109,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type:     types.BoolType,
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "bool",
 				Type:     tftypes.Bool,
@@ -121,7 +122,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type:     types.NumberType,
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "number",
 				Type:     tftypes.Number,
@@ -134,7 +135,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type:     types.ListType{ElemType: types.NumberType},
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "list",
 				Type:     tftypes.List{ElementType: tftypes.Number},
@@ -147,7 +148,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type:     types.MapType{ElemType: types.StringType},
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "map",
 				Type:     tftypes.Map{ElementType: tftypes.String},
@@ -164,7 +165,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}},
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name: "object",
 				Type: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
@@ -181,7 +182,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type:     types.SetType{ElemType: types.NumberType},
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "set",
 				Type:     tftypes.Set{ElementType: tftypes.Number},
@@ -195,7 +196,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type:     types.StringType,
 				Required: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "string",
 				Type:     tftypes.String,
@@ -208,7 +209,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type:     types.StringType,
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "string",
 				Type:     tftypes.String,
@@ -221,7 +222,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Type:     types.StringType,
 				Computed: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "string",
 				Type:     tftypes.String,
@@ -235,7 +236,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Computed: true,
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "string",
 				Type:     tftypes.String,
@@ -250,7 +251,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Optional:  true,
 				Sensitive: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:      "string",
 				Type:      tftypes.String,
@@ -274,7 +275,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}),
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "single_nested",
 				Optional: true,
@@ -312,7 +313,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}, ListNestedAttributesOptions{}),
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "list_nested",
 				Optional: true,
@@ -352,7 +353,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}),
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "list_nested",
 				Optional: true,
@@ -393,7 +394,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}),
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "list_nested",
 				Optional: true,
@@ -435,7 +436,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}),
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "list_nested",
 				Optional: true,
@@ -475,7 +476,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}, SetNestedAttributesOptions{}),
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "set_nested",
 				Optional: true,
@@ -515,7 +516,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}),
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "set_nested",
 				Optional: true,
@@ -556,7 +557,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}),
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "set_nested",
 				Optional: true,
@@ -598,7 +599,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}),
 				Optional: true,
 			},
-			path: tftypes.NewAttributePath(),
+			path: attrpath.New(),
 			expected: &tfprotov6.SchemaAttribute{
 				Name:     "set_nested",
 				Optional: true,
@@ -634,7 +635,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				}),
 				Optional: true,
 			},
-			path:        tftypes.NewAttributePath(),
+			path:        attrpath.New(),
 			expectedErr: "cannot have both Attributes and Type set",
 		},
 		"attr-and-nested-attr-unset": {
@@ -642,7 +643,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Optional: true,
 			},
-			path:        tftypes.NewAttributePath(),
+			path:        attrpath.New(),
 			expectedErr: "must have Attributes or Type set",
 		},
 		"attr-and-nested-attr-empty": {
@@ -651,7 +652,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 				Optional:   true,
 				Attributes: SingleNestedAttributes(map[string]Attribute{}),
 			},
-			path:        tftypes.NewAttributePath(),
+			path:        attrpath.New(),
 			expectedErr: "must have Attributes or Type set",
 		},
 		"missing-required-optional-and-computed": {
@@ -659,7 +660,7 @@ func TestAttributeTfprotov6SchemaAttribute(t *testing.T) {
 			attr: Attribute{
 				Type: types.StringType,
 			},
-			path:        tftypes.NewAttributePath(),
+			path:        attrpath.New(),
 			expectedErr: "must have Required, Optional, or Computed set",
 		},
 	}
@@ -704,7 +705,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 	}{
 		"config-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -761,7 +762,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Configuration Read Error",
 						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -788,7 +789,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"config-error-previous-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -856,7 +857,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"This was a previous error",
 					),
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Configuration Read Error",
 						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -883,7 +884,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"plan-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -940,7 +941,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Plan Read Error",
 						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -967,7 +968,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"plan-error-previous-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1035,7 +1036,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"This was a previous error",
 					),
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Plan Read Error",
 						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -1062,7 +1063,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"state-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1119,7 +1120,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"State Read Error",
 						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -1146,7 +1147,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"state-error-previous-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1214,7 +1215,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"This was a previous error",
 					),
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"State Read Error",
 						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -1241,7 +1242,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"no-plan-modifiers": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1317,7 +1318,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"attribute-plan": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1409,7 +1410,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"attribute-plan-previous-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1514,7 +1515,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"requires-replacement": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1595,14 +1596,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				},
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test"),
+				RequiresReplace: []attrpath.Path{
+					attrpath.New().Attribute("test"),
 				},
 			},
 		},
 		"requires-replacement-previous-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1696,14 +1697,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				},
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test"),
+				RequiresReplace: []attrpath.Path{
+					attrpath.New().Attribute("test"),
 				},
 			},
 		},
 		"requires-replacement-passthrough": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1787,14 +1788,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				},
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test"),
+				RequiresReplace: []attrpath.Path{
+					attrpath.New().Attribute("test"),
 				},
 			},
 		},
 		"requires-replacement-unset": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1882,7 +1883,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"warnings": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1983,7 +1984,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"warnings-previous-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2095,7 +2096,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2193,7 +2194,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"error-previous-error": {
 			req: ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2333,7 +2334,7 @@ func TestAttributeValidate(t *testing.T) {
 	}{
 		"no-attributes-or-type": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2354,7 +2355,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Invalid Attribute Definition",
 						"Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
 					),
@@ -2363,7 +2364,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"both-attributes-and-type": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2391,7 +2392,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Invalid Attribute Definition",
 						"Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
 					),
@@ -2400,7 +2401,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"missing-required-optional-and-computed": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2421,7 +2422,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Invalid Attribute Definition",
 						"Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
 					),
@@ -2430,7 +2431,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-error": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2452,7 +2453,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Configuration Read Error",
 						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -2462,7 +2463,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"no-validation": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2485,7 +2486,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"deprecation-message-known": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2508,7 +2509,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Attribute Deprecated",
 						"Use something else instead.",
 					),
@@ -2517,7 +2518,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"deprecation-message-null": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2541,7 +2542,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"deprecation-message-unknown": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2564,7 +2565,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						attrpath.New().Attribute("test"),
 						"Attribute Deprecated",
 						"Use something else instead.",
 					),
@@ -2573,7 +2574,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"warnings": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2605,7 +2606,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"errors": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2637,7 +2638,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"type-with-validate-error": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2658,13 +2659,13 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
+					testtypes.TestErrorDiagnostic(attrpath.New().Attribute("test")),
 				},
 			},
 		},
 		"type-with-validate-warning": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -2685,13 +2686,13 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
+					testtypes.TestWarningDiagnostic(attrpath.New().Attribute("test")),
 				},
 			},
 		},
 		"nested-attr-list-no-validation": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -2748,7 +2749,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-list-validation": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -2812,7 +2813,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-map-no-validation": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -2869,7 +2870,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-map-validation": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -2933,7 +2934,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-set-no-validation": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -2990,7 +2991,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-set-validation": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -3054,7 +3055,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-single-no-validation": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -3098,7 +3099,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-single-validation": {
 			req: ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: attrpath.New().Attribute("test"),
 				Config: Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{

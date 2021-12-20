@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -112,7 +113,7 @@ func (t SetType) String() string {
 
 // Validate implements type validation. This type requires all elements to be
 // unique.
-func (s SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func (s SetType) Validate(ctx context.Context, in tftypes.Value, path attrpath.Path) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if !in.Type().Is(tftypes.Set{}) {
@@ -157,7 +158,9 @@ func (s SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.A
 			}
 
 			diags.AddAttributeError(
-				path.WithElementKeyValue(elemInner),
+				// TODO: fix when we can have set values again
+				//path.WithElementKeyValue(elemInner),
+				path,
 				"Duplicate Set Element",
 				fmt.Sprintf("This attribute contains duplicate values of: %s", elemInner),
 			)

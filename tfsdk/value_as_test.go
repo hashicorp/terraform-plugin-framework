@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
@@ -50,7 +51,7 @@ func TestValueAs(t *testing.T) {
 			target: newInt64Pointer(0),
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					tftypes.NewAttributePath(),
+					attrpath.New(),
 					reflect.DiagIntoIncompatibleType{
 						Val:        tftypes.NewValue(tftypes.String, "hello"),
 						TargetType: goreflect.TypeOf(int64(0)),
@@ -64,7 +65,7 @@ func TestValueAs(t *testing.T) {
 			target: &testtypes.String{},
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					tftypes.NewAttributePath(),
+					attrpath.New(),
 					reflect.DiagNewAttributeValueIntoWrongType{
 						ValType:    goreflect.TypeOf(types.String{Value: "hello"}),
 						TargetType: goreflect.TypeOf(testtypes.String{}),

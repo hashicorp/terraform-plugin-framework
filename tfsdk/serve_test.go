@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -205,8 +206,8 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input    []*tftypes.AttributePath
-		expected []*tftypes.AttributePath
+		input    []attrpath.Path
+		expected []attrpath.Path
 	}
 
 	tests := map[string]testCase{
@@ -215,29 +216,29 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 			expected: nil,
 		},
 		"no-duplicates": {
-			input: []*tftypes.AttributePath{
-				tftypes.NewAttributePath().WithAttributeName("name2"),
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
-				tftypes.NewAttributePath().WithAttributeName("name1").WithElementKeyString("elementkey"),
+			input: []attrpath.Path{
+				attrpath.New().Attribute("name2"),
+				attrpath.New().Attribute("name1"),
+				attrpath.New().ElementPos(1234),
+				attrpath.New().Attribute("name1").ElementKey("elementkey"),
 			},
-			expected: []*tftypes.AttributePath{
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithAttributeName("name1").WithElementKeyString("elementkey"),
-				tftypes.NewAttributePath().WithAttributeName("name2"),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
+			expected: []attrpath.Path{
+				attrpath.New().Attribute("name1"),
+				attrpath.New().Attribute("name1").ElementKey("elementkey"),
+				attrpath.New().Attribute("name2"),
+				attrpath.New().ElementPos(1234),
 			},
 		},
 		"duplicates": {
-			input: []*tftypes.AttributePath{
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
+			input: []attrpath.Path{
+				attrpath.New().Attribute("name1"),
+				attrpath.New().Attribute("name1"),
+				attrpath.New().ElementPos(1234),
+				attrpath.New().ElementPos(1234),
 			},
-			expected: []*tftypes.AttributePath{
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
+			expected: []attrpath.Path{
+				attrpath.New().Attribute("name1"),
+				attrpath.New().ElementPos(1234),
 			},
 		},
 	}
@@ -647,7 +648,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
 						if len(resp.Diagnostics) == 0 {
 							resp.Diagnostics.AddAttributeWarning(
-								tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+								attrpath.New().Attribute("disks").ElementPos(0),
 								"This is a warning",
 								"This is your final warning",
 							)
@@ -657,7 +658,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 							)
 						} else {
 							resp.Diagnostics.AddAttributeWarning(
-								tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+								attrpath.New().Attribute("disks").ElementPos(0),
 								"This is another warning",
 								"This is really your final warning",
 							)
@@ -740,7 +741,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 				&testServeProvider{
 					validateProviderConfigImpl: func(_ context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
 						resp.Diagnostics.AddAttributeWarning(
-							tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+							attrpath.New().Attribute("disks").ElementPos(0),
 							"This is a warning",
 							"This is your final warning",
 						)
@@ -1251,7 +1252,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
 				if len(resp.Diagnostics) == 0 {
 					resp.Diagnostics.AddAttributeWarning(
-						tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+						attrpath.New().Attribute("disks").ElementPos(0),
 						"This is a warning",
 						"This is your final warning",
 					)
@@ -1261,7 +1262,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 					)
 				} else {
 					resp.Diagnostics.AddAttributeWarning(
-						tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+						attrpath.New().Attribute("disks").ElementPos(0),
 						"This is another warning",
 						"This is really your final warning",
 					)
@@ -1338,7 +1339,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 
 			impl: func(_ context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
 				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					attrpath.New().Attribute("disks").ElementPos(0),
 					"This is a warning",
 					"This is your final warning",
 				)
@@ -1686,7 +1687,7 @@ func TestServerReadResource(t *testing.T) {
 					}),
 				})
 				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					attrpath.New().Attribute("disks").ElementPos(0),
 					"This is a warning",
 					"This is your final warning",
 				)
@@ -2705,7 +2706,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 			}),
 			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
-				resp.RequiresReplace = []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")}
+				resp.RequiresReplace = []attrpath.Path{attrpath.New().Attribute("id")}
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
 		},
@@ -2861,7 +2862,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 			}),
 			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
-				resp.RequiresReplace = []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")}
+				resp.RequiresReplace = []attrpath.Path{attrpath.New().Attribute("id")}
 				resp.Diagnostics.AddWarning("I'm warning you", "You have been warned")
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
@@ -3025,7 +3026,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				}),
 			}),
 			modifyPlanFunc: func(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
-				resp.RequiresReplace = []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")}
+				resp.RequiresReplace = []attrpath.Path{attrpath.New().Attribute("id")}
 				resp.Diagnostics.AddError("This is an error", "More details about the error")
 			},
 			expectedRequiresReplace: []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")},
@@ -3991,7 +3992,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
 				})
 				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("favorite_colors").WithElementKeyInt(0),
+					attrpath.New().Attribute("favorite_colors").ElementPos(0),
 					"This is a warning",
 					"I'm warning you",
 				)
@@ -4102,7 +4103,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
 				})
 				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("name"),
+					attrpath.New().Attribute("name"),
 					"I'm warning you...",
 					"This is a warning!",
 				)
@@ -4165,7 +4166,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
 				})
 				resp.Diagnostics.AddAttributeError(
-					tftypes.NewAttributePath().WithAttributeName("name"),
+					attrpath.New().Attribute("name"),
 					"Oops!",
 					"This is an error! Don't update the state!",
 				)
@@ -4218,7 +4219,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
 				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
 				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
+					attrpath.New().Attribute("created_timestamp"),
 					"This is a warning",
 					"just a warning diagnostic, no behavior changes",
 				)
@@ -5529,7 +5530,7 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
 				if len(resp.Diagnostics) == 0 {
 					resp.Diagnostics.AddAttributeWarning(
-						tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+						attrpath.New().Attribute("disks").ElementPos(0),
 						"This is a warning",
 						"This is your final warning",
 					)
@@ -5539,7 +5540,7 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 					)
 				} else {
 					resp.Diagnostics.AddAttributeWarning(
-						tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+						attrpath.New().Attribute("disks").ElementPos(0),
 						"This is another warning",
 						"This is really your final warning",
 					)
@@ -5616,7 +5617,7 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 
 			impl: func(_ context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
 				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					attrpath.New().Attribute("disks").ElementPos(0),
 					"This is a warning",
 					"This is your final warning",
 				)
@@ -5802,7 +5803,7 @@ func TestServerReadDataSource(t *testing.T) {
 					"id":     tftypes.NewValue(tftypes.String, "a random id or something I dunno"),
 				})
 				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+					attrpath.New().Attribute("disks").ElementPos(0),
 					"This is a warning",
 					"This is your final warning",
 				)

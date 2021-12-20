@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -13,7 +14,7 @@ import (
 // without modification. A null Object or Tuple is converted to known with null
 // children. An unknown Object or Tuple is converted to known with unknown
 // children. List, Map, and Set are created with empty elements.
-func createParentValue(ctx context.Context, parentPath *tftypes.AttributePath, parentType tftypes.Type, childValue interface{}) (tftypes.Value, diag.Diagnostics) {
+func createParentValue(ctx context.Context, parentPath attrpath.Path, parentType tftypes.Type, childValue interface{}) (tftypes.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var parentValue tftypes.Value
 
@@ -58,7 +59,7 @@ func createParentValue(ctx context.Context, parentPath *tftypes.AttributePath, p
 // value will be added.
 //
 // Lists can only have the next element added according to the current length.
-func upsertChildValue(ctx context.Context, parentPath *tftypes.AttributePath, parentValue tftypes.Value, childStep tftypes.AttributePathStep, childValue tftypes.Value) (tftypes.Value, diag.Diagnostics) {
+func upsertChildValue(ctx context.Context, parentPath attrpath.Path, parentValue tftypes.Value, childStep tftypes.AttributePathStep, childValue tftypes.Value) (tftypes.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// TODO: Add Tuple support

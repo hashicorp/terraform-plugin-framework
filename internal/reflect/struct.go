@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -24,7 +25,7 @@ import (
 // and other mistakes early.
 //
 // Struct is meant to be called from Into, not directly.
-func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target reflect.Value, opts Options, path attrpath.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// this only works with object values, so make sure that constraint is
@@ -125,7 +126,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			return target, diags
 		}
 		structField := result.Field(structFieldPos)
-		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.WithAttributeName(field))
+		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.Attribute(field))
 		diags.Append(fieldValDiags...)
 
 		if diags.HasError() {
@@ -143,7 +144,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 // reported by `typ`.
 //
 // It is meant to be called through FromValue, not directly.
-func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	objTypes := map[string]tftypes.Type{}
 	objValues := map[string]tftypes.Value{}
@@ -163,7 +164,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 
 	attrTypes := typ.AttributeTypes()
 	for name, fieldNo := range targetFields {
-		path := path.WithAttributeName(name)
+		path := path.Attribute(name)
 		fieldValue := val.Field(fieldNo)
 
 		attrVal, attrValDiags := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)

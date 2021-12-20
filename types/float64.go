@@ -7,11 +7,12 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func float64Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func float64Validate(ctx context.Context, in tftypes.Value, path attrpath.Path) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if !in.Type().Equal(tftypes.Number) {

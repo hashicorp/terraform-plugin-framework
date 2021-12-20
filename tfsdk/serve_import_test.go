@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -67,7 +68,7 @@ func TestServerImportResourceState(t *testing.T) {
 			},
 
 			impl: func(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-				ResourceImportStatePassthroughID(ctx, tftypes.NewAttributePath().WithAttributeName("id"), req, resp)
+				ResourceImportStatePassthroughID(ctx, attrpath.New().Attribute("id"), req, resp)
 			},
 
 			resp: &tfprotov6.ImportResourceStateResponse{

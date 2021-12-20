@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -232,7 +233,7 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 		for idx := range l.Elems {
 			for name, attr := range b.Attributes {
 				attrReq := ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					AttributePath: req.AttributePath.ElementPos(idx).Attribute(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -244,7 +245,7 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 
 			for name, block := range b.Blocks {
 				blockReq := ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					AttributePath: req.AttributePath.ElementPos(idx).Attribute(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -268,41 +269,44 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 			return
 		}
 
-		for _, value := range s.Elems {
-			tfValueRaw, err := value.ToTerraformValue(ctx)
+		for range /*_, value := */ s.Elems {
+			/*
+				tfValueRaw, err := value.ToTerraformValue(ctx)
 
-			if err != nil {
-				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
-				resp.Diagnostics.AddAttributeError(
-					req.AttributePath,
-					"Block Plan Modification Error",
-					"Block plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
-				)
+				if err != nil {
+					err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
+					resp.Diagnostics.AddAttributeError(
+						req.AttributePath,
+						"Block Plan Modification Error",
+						"Block plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
+					)
 
-				return
-			}
+					return
+				}
 
-			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
-
-			for name, attr := range b.Attributes {
+				tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
+			*/
+			for _ /*name*/, attr := range b.Attributes {
 				attrReq := ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
-					Config:        req.Config,
-					Plan:          resp.Plan,
-					ProviderMeta:  req.ProviderMeta,
-					State:         req.State,
+					// TODO: fix when we can have set values again
+					//AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					Config:       req.Config,
+					Plan:         resp.Plan,
+					ProviderMeta: req.ProviderMeta,
+					State:        req.State,
 				}
 
 				attr.modifyPlan(ctx, attrReq, resp)
 			}
 
-			for name, block := range b.Blocks {
+			for _ /*name*/, block := range b.Blocks {
 				blockReq := ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
-					Config:        req.Config,
-					Plan:          resp.Plan,
-					ProviderMeta:  req.ProviderMeta,
-					State:         req.State,
+					// TODO: fix when we can have set values again
+					//AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					Config:       req.Config,
+					Plan:         resp.Plan,
+					ProviderMeta: req.ProviderMeta,
+					State:        req.State,
 				}
 
 				block.modifyPlan(ctx, blockReq, resp)
@@ -328,7 +332,7 @@ func (b Block) terraformType(ctx context.Context) tftypes.Type {
 // tfprotov6 returns the *tfprotov6.SchemaNestedBlock equivalent of a Block.
 // Errors will be tftypes.AttributePathErrors based on `path`. `name` is the
 // name of the attribute.
-func (b Block) tfprotov6(ctx context.Context, name string, path *tftypes.AttributePath) (*tfprotov6.SchemaNestedBlock, error) {
+func (b Block) tfprotov6(ctx context.Context, name string, path attrpath.Path) (*tfprotov6.SchemaNestedBlock, error) {
 	schemaNestedBlock := &tfprotov6.SchemaNestedBlock{
 		Block: &tfprotov6.SchemaBlock{
 			Deprecated: b.DeprecationMessage != "",
@@ -359,7 +363,7 @@ func (b Block) tfprotov6(ctx context.Context, name string, path *tftypes.Attribu
 	}
 
 	for attrName, attr := range b.Attributes {
-		attrPath := path.WithAttributeName(attrName)
+		attrPath := path.Attribute(attrName)
 		attrProto6, err := attr.tfprotov6SchemaAttribute(ctx, attrName, attrPath)
 
 		if err != nil {
@@ -370,7 +374,7 @@ func (b Block) tfprotov6(ctx context.Context, name string, path *tftypes.Attribu
 	}
 
 	for blockName, block := range b.Blocks {
-		blockPath := path.WithAttributeName(blockName)
+		blockPath := path.Attribute(blockName)
 		blockProto6, err := block.tfprotov6(ctx, blockName, blockPath)
 
 		if err != nil {
@@ -441,7 +445,7 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 		for idx := range l.Elems {
 			for name, attr := range b.Attributes {
 				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					AttributePath: req.AttributePath.ElementPos(idx).Attribute(name),
 					Config:        req.Config,
 				}
 				nestedAttrResp := &ValidateAttributeResponse{
@@ -455,7 +459,7 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 
 			for name, block := range b.Blocks {
 				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					AttributePath: req.AttributePath.ElementPos(idx).Attribute(name),
 					Config:        req.Config,
 				}
 				nestedAttrResp := &ValidateAttributeResponse{
@@ -481,26 +485,28 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 			return
 		}
 
-		for _, value := range s.Elems {
-			tfValueRaw, err := value.ToTerraformValue(ctx)
+		for range /*_, value := */ s.Elems {
+			/*
+				tfValueRaw, err := value.ToTerraformValue(ctx)
 
-			if err != nil {
-				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
-				resp.Diagnostics.AddAttributeError(
-					req.AttributePath,
-					"Block Validation Error",
-					"Block validation cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
-				)
+				if err != nil {
+					err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
+					resp.Diagnostics.AddAttributeError(
+						req.AttributePath,
+						"Block Validation Error",
+						"Block validation cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
+					)
 
-				return
-			}
+					return
+				}
 
-			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
-
-			for name, attr := range b.Attributes {
+				tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
+			*/
+			for _ /*name*/, attr := range b.Attributes {
 				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
-					Config:        req.Config,
+					// TODO: fix when we can have set values again
+					//AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					Config: req.Config,
 				}
 				nestedAttrResp := &ValidateAttributeResponse{
 					Diagnostics: resp.Diagnostics,
@@ -511,10 +517,11 @@ func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp 
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 
-			for name, block := range b.Blocks {
+			for _ /*name*/, block := range b.Blocks {
 				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
-					Config:        req.Config,
+					// TODO: fix when we can have set values again
+					//AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					Config: req.Config,
 				}
 				nestedAttrResp := &ValidateAttributeResponse{
 					Diagnostics: resp.Diagnostics,

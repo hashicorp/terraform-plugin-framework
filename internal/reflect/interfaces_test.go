@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -245,7 +246,7 @@ func TestNewUnknownable(t *testing.T) {
 			target: reflect.ValueOf(new(unknownableStringError)),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath(),
+					attrpath.New(),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to convert into a value. This is always an error in the provider. Please report the following to the provider developer:\n\nreflection error: this is an error",
 				),
@@ -258,7 +259,7 @@ func TestNewUnknownable(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			res, diags := refl.NewUnknownable(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, tftypes.NewAttributePath())
+			res, diags := refl.NewUnknownable(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, attrpath.New())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Fatalf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -304,7 +305,7 @@ func TestFromUnknownable(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := refl.FromUnknownable(context.Background(), types.StringType, tc.val, tftypes.NewAttributePath())
+			got, diags := refl.FromUnknownable(context.Background(), types.StringType, tc.val, attrpath.New())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -343,7 +344,7 @@ func TestNewNullable(t *testing.T) {
 			target: reflect.ValueOf(new(nullableStringError)),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath(),
+					attrpath.New(),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to convert into a value. This is always an error in the provider. Please report the following to the provider developer:\n\nreflection error: this is an error",
 				),
@@ -356,7 +357,7 @@ func TestNewNullable(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			res, diags := refl.NewNullable(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, tftypes.NewAttributePath())
+			res, diags := refl.NewNullable(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, attrpath.New())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -402,7 +403,7 @@ func TestFromNullable(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := refl.FromNullable(context.Background(), types.StringType, tc.val, tftypes.NewAttributePath())
+			got, diags := refl.FromNullable(context.Background(), types.StringType, tc.val, attrpath.New())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -446,7 +447,7 @@ func TestNewAttributeValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, tftypes.NewAttributePath())
+			res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, attrpath.New())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -488,7 +489,7 @@ func TestFromAttributeValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := refl.FromAttributeValue(context.Background(), types.StringType, tc.val, tftypes.NewAttributePath())
+			got, diags := refl.FromAttributeValue(context.Background(), types.StringType, tc.val, attrpath.New())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -530,7 +531,7 @@ func TestNewValueConverter(t *testing.T) {
 			target: reflect.ValueOf(new(valueConverterError)),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath(),
+					attrpath.New(),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to convert into a value. This is always an error in the provider. Please report the following to the provider developer:\n\nreflection error: this is an error",
 				),
@@ -543,7 +544,7 @@ func TestNewValueConverter(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			res, diags := refl.NewValueConverter(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, tftypes.NewAttributePath())
+			res, diags := refl.NewValueConverter(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, attrpath.New())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -595,7 +596,7 @@ func TestFromValueCreator(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := refl.FromValueCreator(context.Background(), types.StringType, tc.vc, tftypes.NewAttributePath())
+			got, diags := refl.FromValueCreator(context.Background(), types.StringType, tc.vc, attrpath.New())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)

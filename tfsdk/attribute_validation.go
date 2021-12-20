@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // AttributeValidator describes reusable Attribute validation functionality.
@@ -29,7 +29,7 @@ type AttributeValidator interface {
 // ValidateAttributeRequest repesents a request for
 type ValidateAttributeRequest struct {
 	// AttributePath contains the path of the attribute.
-	AttributePath *tftypes.AttributePath
+	AttributePath attrpath.Path
 
 	// AttributeConfig contains the value of the attribute in the configuration.
 	AttributeConfig attr.Value

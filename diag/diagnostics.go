@@ -1,8 +1,8 @@
 package diag
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Diagnostics represents a collection of diagnostics.
@@ -12,12 +12,12 @@ import (
 type Diagnostics []Diagnostic
 
 // AddAttributeError adds a generic attribute error diagnostic to the collection.
-func (diags *Diagnostics) AddAttributeError(path *tftypes.AttributePath, summary string, detail string) {
+func (diags *Diagnostics) AddAttributeError(path attrpath.Path, summary string, detail string) {
 	diags.Append(NewAttributeErrorDiagnostic(path, summary, detail))
 }
 
 // AddAttributeWarning adds a generic attribute warning diagnostic to the collection.
-func (diags *Diagnostics) AddAttributeWarning(path *tftypes.AttributePath, summary string, detail string) {
+func (diags *Diagnostics) AddAttributeWarning(path attrpath.Path, summary string, detail string) {
 	diags.Append(NewAttributeWarningDiagnostic(path, summary, detail))
 }
 
@@ -87,7 +87,7 @@ func (diags Diagnostics) ToTfprotov6Diagnostics() []*tfprotov6.Diagnostic {
 		}
 
 		if diagWithPath, ok := diag.(DiagnosticWithPath); ok {
-			tfprotov6Diagnostic.Attribute = diagWithPath.Path()
+			tfprotov6Diagnostic.Attribute = diagWithPath.Path().ToTerraformProto()
 		}
 
 		results = append(results, tfprotov6Diagnostic)

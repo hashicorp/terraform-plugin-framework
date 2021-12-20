@@ -6,13 +6,14 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Map creates a map value that matches the type of `target`, and populates it
 // with the contents of `val`.
-func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path attrpath.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	underlyingValue := trueReflectValue(target)
 
@@ -70,7 +71,7 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 		targetValue := reflect.Zero(elemType)
 
 		// update our path so we can have nice errors
-		path := path.WithElementKeyString(key)
+		path := path.ElementKey(key)
 
 		// reflect the value into our new target
 		result, elemDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, path)
@@ -91,7 +92,7 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 // will be of the type produced by `typ`.
 //
 // It is meant to be called through FromValue, not directly.
-func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Value, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	tfType := typ.TerraformType(ctx)
 
@@ -132,7 +133,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 			)
 			return nil, diags
 		}
-		val, valDiags := FromValue(ctx, elemType, val.MapIndex(key).Interface(), path.WithElementKeyString(key.String()))
+		val, valDiags := FromValue(ctx, elemType, val.MapIndex(key).Interface(), path.ElementKey(key.String()))
 		diags.Append(valDiags...)
 
 		if diags.HasError() {
@@ -153,7 +154,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 		tfElemVal := tftypes.NewValue(tfElemType, tfVal)
 
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfElemVal, path.WithElementKeyString(key.String()))...)
+			diags.Append(typeWithValidate.Validate(ctx, tfElemVal, path.ElementKey(key.String()))...)
 
 			if diags.HasError() {
 				return nil, diags

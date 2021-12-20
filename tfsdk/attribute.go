@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -170,7 +171,7 @@ func (a Attribute) terraformType(ctx context.Context) tftypes.Type {
 // tfprotov6 returns the *tfprotov6.SchemaAttribute equivalent of an
 // Attribute. Errors will be tftypes.AttributePathErrors based on
 // `path`. `name` is the name of the attribute.
-func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath) (*tfprotov6.SchemaAttribute, error) {
+func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, path attrpath.Path) (*tfprotov6.SchemaAttribute, error) {
 	if a.definesAttributes() && a.Type != nil {
 		return nil, path.NewErrorf("cannot have both Attributes and Type set")
 	}
@@ -230,7 +231,7 @@ func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, pa
 	}
 
 	for nestedName, nestedA := range a.Attributes.GetAttributes() {
-		nestedSchemaAttribute, err := nestedA.tfprotov6SchemaAttribute(ctx, nestedName, path.WithAttributeName(nestedName))
+		nestedSchemaAttribute, err := nestedA.tfprotov6SchemaAttribute(ctx, nestedName, path.Attribute(nestedName))
 
 		if err != nil {
 			return nil, err
@@ -351,7 +352,7 @@ func (a Attribute) validateAttributes(ctx context.Context, req ValidateAttribute
 		for idx := range l.Elems {
 			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(nestedName),
+					AttributePath: req.AttributePath.ElementPos(idx).Attribute(nestedName),
 					Config:        req.Config,
 				}
 				nestedAttrResp := &ValidateAttributeResponse{
@@ -377,8 +378,8 @@ func (a Attribute) validateAttributes(ctx context.Context, req ValidateAttribute
 			return
 		}
 
-		for _, value := range s.Elems {
-			tfValueRaw, err := value.ToTerraformValue(ctx)
+		for range /*_, value := */ s.Elems {
+			/*tfValueRaw, err := value.ToTerraformValue(ctx)
 
 			if err != nil {
 				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
@@ -392,11 +393,13 @@ func (a Attribute) validateAttributes(ctx context.Context, req ValidateAttribute
 			}
 
 			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
+			*/
 
-			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+			for _ /*nestedName*/, nestedAttr := range a.Attributes.GetAttributes() {
 				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(nestedName),
-					Config:        req.Config,
+					// TODO: fix when we can actually have set values again
+					//AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(nestedName),
+					Config: req.Config,
 				}
 				nestedAttrResp := &ValidateAttributeResponse{
 					Diagnostics: resp.Diagnostics,
@@ -424,7 +427,7 @@ func (a Attribute) validateAttributes(ctx context.Context, req ValidateAttribute
 		for key := range m.Elems {
 			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithElementKeyString(key).WithAttributeName(nestedName),
+					AttributePath: req.AttributePath.ElementKey(key).Attribute(nestedName),
 					Config:        req.Config,
 				}
 				nestedAttrResp := &ValidateAttributeResponse{
@@ -453,7 +456,7 @@ func (a Attribute) validateAttributes(ctx context.Context, req ValidateAttribute
 		if !o.Null && !o.Unknown {
 			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 				nestedAttrReq := ValidateAttributeRequest{
-					AttributePath: req.AttributePath.WithAttributeName(nestedName),
+					AttributePath: req.AttributePath.Attribute(nestedName),
 					Config:        req.Config,
 				}
 				nestedAttrResp := &ValidateAttributeResponse{
@@ -559,7 +562,7 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 		for idx := range l.Elems {
 			for name, attr := range a.Attributes.GetAttributes() {
 				attrReq := ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					AttributePath: req.AttributePath.ElementPos(idx).Attribute(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -583,29 +586,31 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 			return
 		}
 
-		for _, value := range s.Elems {
-			tfValueRaw, err := value.ToTerraformValue(ctx)
+		for range /* _, value := */ s.Elems {
+			/*
+				tfValueRaw, err := value.ToTerraformValue(ctx)
 
-			if err != nil {
-				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
-				resp.Diagnostics.AddAttributeError(
-					req.AttributePath,
-					"Attribute Plan Modification Error",
-					"Attribute plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
-				)
+				if err != nil {
+					err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
+					resp.Diagnostics.AddAttributeError(
+						req.AttributePath,
+						"Attribute Plan Modification Error",
+						"Attribute plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
+					)
 
-				return
-			}
+					return
+				}
 
-			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
-
-			for name, attr := range a.Attributes.GetAttributes() {
+				tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
+			*/
+			for _ /*name*/, attr := range a.Attributes.GetAttributes() {
 				attrReq := ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
-					Config:        req.Config,
-					Plan:          resp.Plan,
-					ProviderMeta:  req.ProviderMeta,
-					State:         req.State,
+					// TODO: fix when we can have set values again
+					//AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					Config:       req.Config,
+					Plan:         resp.Plan,
+					ProviderMeta: req.ProviderMeta,
+					State:        req.State,
 				}
 
 				attr.modifyPlan(ctx, attrReq, resp)
@@ -628,7 +633,7 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 		for key := range m.Elems {
 			for name, attr := range a.Attributes.GetAttributes() {
 				attrReq := ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyString(key).WithAttributeName(name),
+					AttributePath: req.AttributePath.ElementKey(key).Attribute(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -658,7 +663,7 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 
 		for name, attr := range a.Attributes.GetAttributes() {
 			attrReq := ModifyAttributePlanRequest{
-				AttributePath: req.AttributePath.WithAttributeName(name),
+				AttributePath: req.AttributePath.Attribute(name),
 				Config:        req.Config,
 				Plan:          resp.Plan,
 				ProviderMeta:  req.ProviderMeta,

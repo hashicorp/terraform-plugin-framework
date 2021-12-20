@@ -3,6 +3,7 @@ package attr
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -83,7 +84,7 @@ type TypeWithValidate interface {
 	// being used to populate the Type. It is generally used to check the
 	// data format and ensure that it complies with the requirements of the
 	// Type.
-	Validate(context.Context, tftypes.Value, *tftypes.AttributePath) diag.Diagnostics
+	Validate(context.Context, tftypes.Value, attrpath.Path) diag.Diagnostics
 }
 
 // TypeWithPlaintextDescription extends the Type interface to include a

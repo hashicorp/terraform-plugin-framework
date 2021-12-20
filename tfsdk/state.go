@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -24,7 +25,7 @@ func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 
 // GetAttribute retrieves the attribute found at `path` and populates the
 // `target` with the value.
-func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath, target interface{}) diag.Diagnostics {
+func (s State) GetAttribute(ctx context.Context, path attrpath.Path, target interface{}) diag.Diagnostics {
 	attrValue, diags := s.getAttributeValue(ctx, path)
 
 	if diags.HasError() {
@@ -56,7 +57,7 @@ func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath, ta
 // getAttributeValue retrieves the attribute found at `path` and returns it as an
 // attr.Value. Consumers should assert the type of the returned value with the
 // desired attr.Type.
-func (s State) getAttributeValue(ctx context.Context, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func (s State) getAttributeValue(ctx context.Context, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	attrType, err := s.Schema.AttributeTypeAtPath(path)
@@ -126,7 +127,7 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 			),
 		}
 	}
-	newStateAttrValue, diags := reflect.FromValue(ctx, s.Schema.AttributeType(), val, tftypes.NewAttributePath())
+	newStateAttrValue, diags := reflect.FromValue(ctx, s.Schema.AttributeType(), val, attrpath.New())
 	if diags.HasError() {
 		return diags
 	}
@@ -155,7 +156,7 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 // paths as necessary.
 //
 // Lists can only have the next element added according to the current length.
-func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, val interface{}) diag.Diagnostics {
+func (s *State) SetAttribute(ctx context.Context, path attrpath.Path, val interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	attrType, err := s.Schema.AttributeTypeAtPath(path)
@@ -220,10 +221,10 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 
 // pathExists walks the current state and returns true if the path can be reached.
 // The value at the path may be null or unknown.
-func (s State) pathExists(ctx context.Context, path *tftypes.AttributePath) (bool, diag.Diagnostics) {
+func (s State) pathExists(ctx context.Context, path attrpath.Path) (bool, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	_, remaining, err := tftypes.WalkAttributePath(s.Raw, path)
+	_, remaining, err := tftypes.WalkAttributePath(s.Raw, path.ToTerraformProto())
 
 	if err != nil {
 		if errors.Is(err, tftypes.ErrInvalidStep) {
@@ -246,7 +247,7 @@ func (s State) pathExists(ctx context.Context, path *tftypes.AttributePath) (boo
 // Plan values along the path. If the value at the path does not yet exist,
 // this will perform recursion to add the child value to a parent value,
 // creating the parent value if necessary.
-func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.AttributePath, tfVal tftypes.Value, diags diag.Diagnostics) (func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
+func (s State) setAttributeTransformFunc(ctx context.Context, path attrpath.Path, tfVal tftypes.Value, diags diag.Diagnostics) (func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
 	exists, pathExistsDiags := s.pathExists(ctx, path)
 	diags.Append(pathExistsDiags...)
 
@@ -257,14 +258,14 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attr
 	if exists {
 		// Overwrite existing value
 		return func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
-			if p.Equal(path) {
+			if p.Equal(path.ToTerraformProto()) {
 				return tfVal, nil
 			}
 			return v, nil
 		}, diags
 	}
 
-	parentPath := path.WithoutLastStep()
+	parentPath := path.Parent()
 	parentAttrType, err := s.Schema.AttributeTypeAtPath(parentPath)
 
 	if err != nil {
@@ -309,10 +310,13 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attr
 		}
 	}
 
-	var childValueDiags diag.Diagnostics
-	childStep := path.Steps()[len(path.Steps())-1]
-	parentValue, childValueDiags = upsertChildValue(ctx, parentPath, parentValue, childStep, tfVal)
-	diags.Append(childValueDiags...)
+	/*
+		TODO: fix when I can figure out how to do this
+		var childValueDiags diag.Diagnostics
+		childStep := path.Steps()[len(path.Steps())-1]
+		parentValue, childValueDiags = upsertChildValue(ctx, parentPath, parentValue, childStep, tfVal)
+		diags.Append(childValueDiags...)
+	*/
 
 	if diags.HasError() {
 		return nil, diags
@@ -334,8 +338,8 @@ func (s *State) RemoveResource(ctx context.Context) {
 	s.Raw = tftypes.NewValue(s.Schema.TerraformType(ctx), nil)
 }
 
-func (s State) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {
-	rawValue, remaining, err := tftypes.WalkAttributePath(s.Raw, path)
+func (s State) terraformValueAtPath(path attrpath.Path) (tftypes.Value, error) {
+	rawValue, remaining, err := tftypes.WalkAttributePath(s.Raw, path.ToTerraformProto())
 	if err != nil {
 		return tftypes.Value{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
 	}

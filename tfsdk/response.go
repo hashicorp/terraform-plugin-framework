@@ -1,8 +1,8 @@
 package tfsdk
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // ConfigureProviderResponse represents a response to a
@@ -88,11 +88,10 @@ type ModifyResourcePlanResponse struct {
 	// Plan is the planned new state for the resource.
 	Plan Plan
 
-	// RequiresReplace is a list of tftypes.AttributePaths that require the
-	// resource to be replaced. They should point to the specific field
-	// that changed that requires the resource to be destroyed and
-	// recreated.
-	RequiresReplace []*tftypes.AttributePath
+	// RequiresReplace is a list of attrpath.Paths that require the resource to
+	// be replaced. They should point to the specific field that changed
+	// that requires the resource to be destroyed and recreated.
+	RequiresReplace []attrpath.Path
 
 	// Diagnostics report errors or warnings related to determining the
 	// planned state of the requested resource. Returning an empty slice

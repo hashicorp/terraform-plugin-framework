@@ -1,11 +1,11 @@
 package types
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestErrorDiagnostic(path *tftypes.AttributePath) diag.DiagnosticWithPath {
+func TestErrorDiagnostic(path attrpath.Path) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Error Diagnostic",
@@ -13,7 +13,7 @@ func TestErrorDiagnostic(path *tftypes.AttributePath) diag.DiagnosticWithPath {
 	)
 }
 
-func TestWarningDiagnostic(path *tftypes.AttributePath) diag.DiagnosticWithPath {
+func TestWarningDiagnostic(path attrpath.Path) diag.DiagnosticWithPath {
 	return diag.NewAttributeWarningDiagnostic(
 		path,
 		"Warning Diagnostic",

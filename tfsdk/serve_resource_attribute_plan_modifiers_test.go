@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -30,7 +31,7 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 			"size": {
 				Required: true,
 				Type:     types.NumberType,
-				PlanModifiers: []AttributePlanModifier{RequiresReplaceIf(func(ctx context.Context, state, config attr.Value, path *tftypes.AttributePath) (bool, diag.Diagnostics) {
+				PlanModifiers: []AttributePlanModifier{RequiresReplaceIf(func(ctx context.Context, state, config attr.Value, path attrpath.Path) (bool, diag.Diagnostics) {
 					if state == nil && config == nil {
 						return false, nil
 					}

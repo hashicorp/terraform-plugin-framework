@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -24,7 +25,7 @@ func (c Config) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 
 // GetAttribute retrieves the attribute found at `path` and populates the
 // `target` with the value.
-func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath, target interface{}) diag.Diagnostics {
+func (c Config) GetAttribute(ctx context.Context, path attrpath.Path, target interface{}) diag.Diagnostics {
 	attrValue, diags := c.getAttributeValue(ctx, path)
 
 	if diags.HasError() {
@@ -56,7 +57,7 @@ func (c Config) GetAttribute(ctx context.Context, path *tftypes.AttributePath, t
 // getAttributeValue retrieves the attribute found at `path` and returns it as an
 // attr.Value. Consumers should assert the type of the returned value with the
 // desired attr.Type.
-func (c Config) getAttributeValue(ctx context.Context, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func (c Config) getAttributeValue(ctx context.Context, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	attrType, err := c.Schema.AttributeTypeAtPath(path)
@@ -113,8 +114,8 @@ func (c Config) getAttributeValue(ctx context.Context, path *tftypes.AttributePa
 	return attrValue, diags
 }
 
-func (c Config) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {
-	rawValue, remaining, err := tftypes.WalkAttributePath(c.Raw, path)
+func (c Config) terraformValueAtPath(path attrpath.Path) (tftypes.Value, error) {
+	rawValue, remaining, err := tftypes.WalkAttributePath(c.Raw, path.ToTerraformProto())
 	if err != nil {
 		return tftypes.Value{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
 	}

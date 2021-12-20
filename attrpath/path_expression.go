@@ -1,4 +1,4 @@
-package attr
+package attrpath
 
 import (
 	"context"
@@ -6,32 +6,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tfsdklog"
 )
 
-// PathExpression is like a Path, but allows for using wildcards to apply to
+// Expression is like a Path, but allows for using wildcards to apply to
 // any attribute or element. It's useful for specifying validation rules and
 // other scenarios where Path is too limited.
 //
-// In theory, a PathExpression is a superset of a Path, in that a
-// PathExpression doesn't necessarily have to use wildcards, and thus could
+// In theory, a Expression is a superset of a Path, in that a
+// Expression doesn't necessarily have to use wildcards, and thus could
 // identify a specific attribute or element, just like a Path. But
-// PathExpressions can also specify a class of attributes or elements, i.e.
+// Expressions can also specify a class of attributes or elements, i.e.
 // "this attribute for every object in this list".
-type PathExpression struct {
+type Expression struct {
 	steps []expressionStep
 }
 
-// NewPathExpression returns an PathExpression that is ready to be used.
-func NewPathExpression() PathExpression {
-	return PathExpression{}
+// NewExpression returns an Expression that is ready to be used.
+func NewExpression() Expression {
+	return Expression{}
 }
 
-// IsEmpty returns true if a PathExpression has no steps and effectively points
+// IsEmpty returns true if a Expression has no steps and effectively points
 // to the root of the value.
-func (a PathExpression) IsEmpty() bool {
+func (a Expression) IsEmpty() bool {
 	return len(a.steps) < 1
 }
 
-// Matches returns true if the passed Path matches the PathExpression.
-func (a PathExpression) Matches(ctx context.Context, p Path) bool {
+// Matches returns true if the passed Path matches the Expression.
+func (a Expression) Matches(ctx context.Context, p Path) bool {
 	ctx = tfsdklog.With(ctx, "path", p)
 	ctx = tfsdklog.With(ctx, "path_expression", a)
 	if len(a.steps) != len(p.steps) {
@@ -109,27 +109,29 @@ func (a PathExpression) Matches(ctx context.Context, p Path) bool {
 			}
 			tfsdklog.Trace(ctx, "path matches so far, expression doesn't exclude element position")
 			continue
-		case elementKeyValueExpression:
-			ekvStep, ok := step.(elementKeyValue)
-			if !ok {
-				tfsdklog.Trace(ctx, "path not considered a match, expression is for an element value but path is not")
-				return false
-			}
-			if expStep.any {
-				tfsdklog.Trace(ctx, "path matches so far, expression allows for any element value")
-				continue
-			}
-			if expStep.exact != nil && !expStep.exact.Equal(ekvStep.Value) {
-				tfsdklog.Trace(ctx, "path not considered a match, expression is for another element")
-				return false
-			}
-			for _, exclude := range expStep.except {
-				if exclude.Equal(ekvStep.Value) {
-					tfsdklog.Trace(ctx, "path not considered a match, uses excluded element value")
-					return false
-				}
-			}
-			continue
+			/*
+				case elementKeyValueExpression:
+					ekvStep, ok := step.(elementKeyValue)
+					if !ok {
+						tfsdklog.Trace(ctx, "path not considered a match, expression is for an element value but path is not")
+						return false
+					}
+					if expStep.any {
+						tfsdklog.Trace(ctx, "path matches so far, expression allows for any element value")
+						continue
+					}
+					if expStep.exact != nil && !expStep.exact.Equal(ekvStep.Value) {
+						tfsdklog.Trace(ctx, "path not considered a match, expression is for another element")
+						return false
+					}
+					for _, exclude := range expStep.except {
+						if exclude.Equal(ekvStep.Value) {
+							tfsdklog.Trace(ctx, "path not considered a match, uses excluded element value")
+							return false
+						}
+					}
+					continue
+			*/
 		default:
 			tfsdklog.Error(ctx, "unknown path expression step type")
 		}
@@ -137,30 +139,30 @@ func (a PathExpression) Matches(ctx context.Context, p Path) bool {
 	return true
 }
 
-// Parent returns a PathExpression pointing to the parent of the attribute or
-// element that `a` points to. If `a` has no parent, an empty PathExpression is
+// Parent returns a Expression pointing to the parent of the attribute or
+// element that `a` points to. If `a` has no parent, an empty Expression is
 // returned.
-func (a PathExpression) Parent() PathExpression {
+func (a Expression) Parent() Expression {
 	if len(a.steps) < 1 {
-		return PathExpression{steps: []expressionStep{}}
+		return Expression{steps: []expressionStep{}}
 	}
-	return PathExpression{
+	return Expression{
 		steps: copyExpressionSteps(a.steps)[:len(a.steps)-1],
 	}
 }
 
 // Attribute returns a copy of `a`, with another step added to select the named
 // attribute of the object that `a` points to.
-func (a PathExpression) Attribute(name string) PathExpression {
-	return PathExpression{
+func (a Expression) Attribute(name string) Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), attributeNameExpression{exact: &name}),
 	}
 }
 
 // AnyAttribute returns a copy of `a`, with another step added that matches any
 // attribute of the object that `a` points to.
-func (a PathExpression) AnyAttribute() PathExpression {
-	return PathExpression{
+func (a Expression) AnyAttribute() Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), attributeNameExpression{any: true}),
 	}
 }
@@ -168,32 +170,32 @@ func (a PathExpression) AnyAttribute() PathExpression {
 // AnyAttributeExcept returns a copy of `a`, with another step added that
 // matches any attribute of the object that `a` points to except the named
 // attributes.
-func (a PathExpression) AnyAttributeExcept(name ...string) PathExpression {
-	return PathExpression{
+func (a Expression) AnyAttributeExcept(name ...string) Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), attributeNameExpression{except: name}),
 	}
 }
 
 // ElementKey returns a copy of `a` with another step added to select the named
 // key of the map that `a` points to.
-func (a PathExpression) ElementKey(name string) PathExpression {
-	return PathExpression{
+func (a Expression) ElementKey(name string) Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), elementKeyStringExpression{exact: &name}),
 	}
 }
 
 // Any ElementKey returns a copy of `a` with another step added that matches
 // any key of the map that `a` points to.
-func (a PathExpression) AnyElementKey() PathExpression {
-	return PathExpression{
+func (a Expression) AnyElementKey() Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), elementKeyStringExpression{any: true}),
 	}
 }
 
 // Any ElementKey returns a copy of `a` with another step added that matches
 // any key of the map that `a` points to except for the named keys.
-func (a PathExpression) AnyElementKeyExcept(key ...string) PathExpression {
-	return PathExpression{
+func (a Expression) AnyElementKeyExcept(key ...string) Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), elementKeyStringExpression{except: key}),
 	}
 }
@@ -201,16 +203,16 @@ func (a PathExpression) AnyElementKeyExcept(key ...string) PathExpression {
 // ElementPos returns a copy of `a` with another step added to select the
 // element that is in the specified position of the list or tuple that `a`
 // points to.
-func (a PathExpression) ElementPos(pos int) PathExpression {
-	return PathExpression{
+func (a Expression) ElementPos(pos int) Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), elementKeyIntExpression{exact: &pos}),
 	}
 }
 
 // AnyElementPos returns a copy of `a` with another step added that matches any
 // element of the list or tuple that `a` points to.
-func (a PathExpression) AnyElementPos() PathExpression {
-	return PathExpression{
+func (a Expression) AnyElementPos() Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), elementKeyIntExpression{any: true}),
 	}
 }
@@ -218,35 +220,37 @@ func (a PathExpression) AnyElementPos() PathExpression {
 // AnyElementPosExcept returns a copy of `a` with another step added that
 // matches any element of the list or tuple that `a` points to except those in
 // the specified positions.
-func (a PathExpression) AnyElementPosExcept(pos ...int) PathExpression {
-	return PathExpression{
+func (a Expression) AnyElementPosExcept(pos ...int) Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), elementKeyIntExpression{except: pos}),
 	}
 }
 
 // Element returns a copy of `a` with another step added to select the
 // specified element of the set that `a` points to.
-func (a PathExpression) Element(val Value) PathExpression {
-	return PathExpression{
+/*
+func (a Expression) Element(val Value) Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), elementKeyValueExpression{exact: val}),
 	}
 }
 
 // AnyElement returns a copy of `a` with another step added that matches any
 // element of the set that `a` points to.
-func (a PathExpression) AnyElement() PathExpression {
-	return PathExpression{
+func (a Expression) AnyElement() Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), elementKeyValueExpression{any: true}),
 	}
 }
 
 // AnyElementExcept returns a copy of `a` with another step added that matches
 // any element of the set that `a` points to except the passed values.
-func (a PathExpression) AnyElementExcept(val ...Value) PathExpression {
-	return PathExpression{
+func (a Expression) AnyElementExcept(val ...Value) Expression {
+	return Expression{
 		steps: append(copyExpressionSteps(a.steps), elementKeyValueExpression{except: val}),
 	}
 }
+*/
 
 type expressionStep interface {
 	unimplementableExpressionStep()
@@ -292,6 +296,7 @@ func (e elementKeyIntExpression) unimplementableExpressionStep() {}
 // an attr.Value index. It is used on attr.TypeWithElementType types that
 // return a tftypes.Set from their TerraformType method. It is also used on
 // tfsdk.SetNestedAttribute nested attributes.
+/*
 type elementKeyValueExpression struct {
 	any    bool
 	exact  Value
@@ -299,6 +304,7 @@ type elementKeyValueExpression struct {
 }
 
 func (e elementKeyValueExpression) unimplementableExpressionStep() {}
+*/
 
 func copyExpressionSteps(in []expressionStep) []expressionStep {
 	out := make([]expressionStep, len(in))

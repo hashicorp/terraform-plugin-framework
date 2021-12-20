@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -109,8 +110,8 @@ func (s Schema) AttributeType() attr.Type {
 }
 
 // AttributeTypeAtPath returns the attr.Type of the attribute at the given path.
-func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, error) {
-	rawType, remaining, err := tftypes.WalkAttributePath(s, path)
+func (s Schema) AttributeTypeAtPath(path attrpath.Path) (attr.Type, error) {
+	rawType, remaining, err := tftypes.WalkAttributePath(s, path.ToTerraformProto())
 	if err != nil {
 		return nil, fmt.Errorf("%v still remains in the path: %w", remaining, err)
 	}
@@ -148,8 +149,8 @@ func (s Schema) TerraformType(ctx context.Context) tftypes.Type {
 // AttributeAtPath returns the Attribute at the passed path. If the path points
 // to an element or attribute of a complex type, rather than to an Attribute,
 // it will return an ErrPathInsideAtomicAttribute error.
-func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) {
-	res, remaining, err := tftypes.WalkAttributePath(s, path)
+func (s Schema) AttributeAtPath(path attrpath.Path) (Attribute, error) {
+	res, remaining, err := tftypes.WalkAttributePath(s, path.ToTerraformProto())
 	if err != nil {
 		return Attribute{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
 	}
@@ -173,8 +174,8 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 // blockAtPath returns the Block at the passed path. If the path points
 // to an element or attribute of a complex type, rather than to a Block,
 // it will return an ErrPathInsideAtomicAttribute error.
-func (s Schema) blockAtPath(path *tftypes.AttributePath) (Block, error) {
-	res, remaining, err := tftypes.WalkAttributePath(s, path)
+func (s Schema) blockAtPath(path attrpath.Path) (Block, error) {
+	res, remaining, err := tftypes.WalkAttributePath(s, path.ToTerraformProto())
 	if err != nil {
 		return Block{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
 	}
@@ -204,7 +205,7 @@ func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) 
 	var blocks []*tfprotov6.SchemaNestedBlock
 
 	for name, attr := range s.Attributes {
-		a, err := attr.tfprotov6SchemaAttribute(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
+		a, err := attr.tfprotov6SchemaAttribute(ctx, name, attrpath.New().Attribute(name))
 
 		if err != nil {
 			return nil, err
@@ -214,7 +215,7 @@ func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) 
 	}
 
 	for name, block := range s.Blocks {
-		proto6, err := block.tfprotov6(ctx, name, tftypes.NewAttributePath().WithAttributeName(name))
+		proto6, err := block.tfprotov6(ctx, name, attrpath.New().Attribute(name))
 
 		if err != nil {
 			return nil, err
@@ -273,7 +274,7 @@ func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *V
 	for name, attribute := range s.Attributes {
 
 		attributeReq := ValidateAttributeRequest{
-			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
+			AttributePath: attrpath.New().Attribute(name),
 			Config:        req.Config,
 		}
 		attributeResp := &ValidateAttributeResponse{
@@ -287,7 +288,7 @@ func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *V
 
 	for name, block := range s.Blocks {
 		attributeReq := ValidateAttributeRequest{
-			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
+			AttributePath: attrpath.New().Attribute(name),
 			Config:        req.Config,
 		}
 		attributeResp := &ValidateAttributeResponse{
@@ -311,7 +312,7 @@ func (s Schema) validate(ctx context.Context, req ValidateSchemaRequest, resp *V
 func (s Schema) modifyPlan(ctx context.Context, req ModifySchemaPlanRequest, resp *ModifySchemaPlanResponse) {
 	for name, attr := range s.Attributes {
 		attrReq := ModifyAttributePlanRequest{
-			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
+			AttributePath: attrpath.New().Attribute(name),
 			Config:        req.Config,
 			State:         req.State,
 			Plan:          req.Plan,
@@ -323,7 +324,7 @@ func (s Schema) modifyPlan(ctx context.Context, req ModifySchemaPlanRequest, res
 
 	for name, block := range s.Blocks {
 		blockReq := ModifyAttributePlanRequest{
-			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),
+			AttributePath: attrpath.New().Attribute(name),
 			Config:        req.Config,
 			State:         req.State,
 			Plan:          req.Plan,

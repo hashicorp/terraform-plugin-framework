@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -14,7 +15,7 @@ import (
 // populates it with the data in `val`.
 //
 // It is meant to be called through `Into`, not directly.
-func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, path attrpath.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	switch target.Kind() {
@@ -55,7 +56,7 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 // FromString returns an attr.Value as produced by `typ` from a string.
 //
 // It is meant to be called through FromValue, not directly.
-func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromString(ctx context.Context, typ attr.Type, val string, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.String, val)
 	if err != nil {
@@ -82,7 +83,7 @@ func FromString(ctx context.Context, typ attr.Type, val string, path *tftypes.At
 // FromBool returns an attr.Value as produced by `typ` from a bool.
 //
 // It is meant to be called through FromValue, not directly.
-func FromBool(ctx context.Context, typ attr.Type, val bool, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromBool(ctx context.Context, typ attr.Type, val bool, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	err := tftypes.ValidateValue(tftypes.Bool, val)
 	if err != nil {

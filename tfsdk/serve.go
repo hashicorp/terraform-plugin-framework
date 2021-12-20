@@ -7,6 +7,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -588,7 +589,7 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
 	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
 		// we are only modifying attributes, not the entire resource
-		if len(path.Steps()) < 1 {
+		if path == nil || len(path.Steps()) < 1 {
 			return val, nil
 		}
 		configVal, _, err := tftypes.WalkAttributePath(config, path)
@@ -599,7 +600,7 @@ func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			tfsdklog.Trace(ctx, "attribute not null in config, not marking unknown", "path", path)
 			return val, nil
 		}
-		attribute, err := resourceSchema.AttributeAtPath(path)
+		attribute, err := resourceSchema.AttributeAtPath(attrpath.FromTerraformProto(path))
 		if err != nil {
 			if errors.Is(err, ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
@@ -622,17 +623,20 @@ func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 type planResourceChangeResponse struct {
 	PlannedState    *tfprotov6.DynamicValue
 	Diagnostics     diag.Diagnostics
-	RequiresReplace []*tftypes.AttributePath
+	RequiresReplace []attrpath.Path
 	PlannedPrivate  []byte
 }
 
 func (r planResourceChangeResponse) toTfprotov6() *tfprotov6.PlanResourceChangeResponse {
-	return &tfprotov6.PlanResourceChangeResponse{
-		PlannedState:    r.PlannedState,
-		Diagnostics:     r.Diagnostics.ToTfprotov6Diagnostics(),
-		RequiresReplace: r.RequiresReplace,
-		PlannedPrivate:  r.PlannedPrivate,
+	resp := &tfprotov6.PlanResourceChangeResponse{
+		PlannedState:   r.PlannedState,
+		Diagnostics:    r.Diagnostics.ToTfprotov6Diagnostics(),
+		PlannedPrivate: r.PlannedPrivate,
 	}
+	for _, rr := range r.RequiresReplace {
+		resp.RequiresReplace = append(resp.RequiresReplace, rr.ToTerraformProto())
+	}
+	return resp
 }
 
 func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanResourceChangeRequest) (*tfprotov6.PlanResourceChangeResponse, error) {
@@ -880,7 +884,7 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 				Schema: resourceSchema,
 				Raw:    plan,
 			},
-			RequiresReplace: []*tftypes.AttributePath{},
+			RequiresReplace: []attrpath.Path{},
 			Diagnostics:     resp.Diagnostics,
 		}
 		resource.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
@@ -921,7 +925,7 @@ func (r applyResourceChangeResponse) toTfprotov6() *tfprotov6.ApplyResourceChang
 // normaliseRequiresReplace sorts and deduplicates the slice of AttributePaths
 // used in the RequiresReplace response field.
 // Sorting is lexical based on the string representation of each AttributePath.
-func normaliseRequiresReplace(ctx context.Context, rs []*tftypes.AttributePath) []*tftypes.AttributePath {
+func normaliseRequiresReplace(ctx context.Context, rs []attrpath.Path) []attrpath.Path {
 	if len(rs) < 2 {
 		return rs
 	}
@@ -930,7 +934,7 @@ func normaliseRequiresReplace(ctx context.Context, rs []*tftypes.AttributePath) 
 		return rs[i].String() < rs[j].String()
 	})
 
-	ret := make([]*tftypes.AttributePath, len(rs))
+	ret := make([]attrpath.Path, len(rs))
 	ret[0] = rs[0]
 
 	// deduplicate

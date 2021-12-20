@@ -3,7 +3,7 @@ package tfsdk
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 )
 
 // ResourceImportStateNotImplemented is a helper function to return an error
@@ -24,8 +24,8 @@ func ResourceImportStateNotImplemented(ctx context.Context, details string, resp
 // ResourceImportStatePassthroughID is a helper function to set the import
 // identifier to a given state attribute path. The attribute must accept a
 // string value.
-func ResourceImportStatePassthroughID(ctx context.Context, path *tftypes.AttributePath, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-	if path == nil || tftypes.NewAttributePath().Equal(path) {
+func ResourceImportStatePassthroughID(ctx context.Context, path attrpath.Path, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
+	if path.IsEmpty() {
 		resp.Diagnostics.AddError(
 			"Resource Import Passthrough Missing Attribute Path",
 			"This is always an error in the provider. Please report the following to the provider developer:\n\n"+

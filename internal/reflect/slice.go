@@ -6,13 +6,14 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // build a slice of elements, matching the type of `target`, and fill it with
 // the data in `val`.
-func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path attrpath.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// this only works with slices, so check that out first
@@ -62,10 +63,11 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 		targetValue := reflect.Zero(elemType)
 
 		// update our path so we can have nice errors
-		valPath := path.WithElementKeyInt(pos)
+		valPath := path.ElementPos(pos)
 
 		if typ.TerraformType(ctx).Is(tftypes.Set{}) {
-			valPath = path.WithElementKeyValue(value)
+			// TODO: fix when we can use set values
+			// valPath = path.WithElementKeyValue(value)
 		}
 
 		// reflect the value into our new target
@@ -91,7 +93,7 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 // `typ` to construct values for them.
 //
 // It is meant to be called through FromValue, not directly.
-func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// TODO: support tuples, which are attr.TypeWithElementTypes
@@ -141,7 +143,7 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		// the index until the value is retrieved, this will pass the
 		// technically incorrect index-based path at first for framework
 		// debugging purposes, then correct the path afterwards.
-		valPath := path.WithElementKeyInt(i)
+		valPath := path.ElementPos(i)
 
 		val, valDiags := FromValue(ctx, elemType, val.Index(i).Interface(), valPath)
 		diags.Append(valDiags...)
@@ -165,7 +167,8 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		tfElemVal := tftypes.NewValue(elemType.TerraformType(ctx), tfVal)
 
 		if tfType.Is(tftypes.Set{}) {
-			valPath = path.WithElementKeyValue(tfElemVal)
+			// TODO: fix when we can use set values
+			//valPath = path.WithElementKeyValue(tfElemVal)
 		}
 
 		if typeWithValidate, ok := elemType.(attr.TypeWithValidate); ok {

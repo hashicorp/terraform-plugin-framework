@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -23,7 +24,7 @@ type Unknownable interface {
 // referencing, if it's a pointer) and calls its SetUnknown method.
 //
 // It is meant to be called through Into, not directly.
-func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path attrpath.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("SetUnknown")
@@ -63,7 +64,7 @@ func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, targe
 // FromUnknownable creates an attr.Value from the data in an Unknownable.
 //
 // It is meant to be called through FromValue, not directly.
-func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if val.GetUnknown(ctx) {
@@ -117,7 +118,7 @@ type Nullable interface {
 // referencing, if it's a pointer) and calls its SetNull method.
 //
 // It is meant to be called through Into, not directly.
-func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path attrpath.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("SetNull")
@@ -157,7 +158,7 @@ func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target r
 // FromNullable creates an attr.Value from the data in a Nullable.
 //
 // It is meant to be called through FromValue, not directly.
-func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if val.GetNull(ctx) {
@@ -204,7 +205,7 @@ func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path *tftype
 // method.
 //
 // It is meant to be called through Into, not directly.
-func NewValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func NewValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path attrpath.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("FromTerraform5Value")
@@ -243,7 +244,7 @@ func NewValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 // the result to an attr.Value using `typ`.
 //
 // It is meant to be called from FromValue, not directly.
-func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreator, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreator, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	raw, err := val.ToTerraform5Value()
 	if err != nil {
@@ -275,7 +276,7 @@ func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreat
 // `attr.Value` is not the same type as `target`.
 //
 // It is meant to be called through Into, not directly.
-func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path attrpath.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
@@ -307,7 +308,7 @@ func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 // `typ`.
 //
 // It is meant to be called through FromValue, not directly.
-func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {

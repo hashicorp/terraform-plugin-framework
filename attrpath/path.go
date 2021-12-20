@@ -1,8 +1,12 @@
-package attr
+package attrpath
 
 import (
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Path is used to identify part of a tfsdk.Schema, attr.Type, or attr.Value.
@@ -13,7 +17,14 @@ type Path struct {
 }
 
 // New returns an Path that is ready to be used.
-func NewPath() Path {
+func New() Path {
+	return Path{}
+}
+
+// FromTerraformProto returns an equivalent Path from the
+// tftypes.AttributePath.
+func FromTerraformProto(in *tftypes.AttributePath) Path {
+	// TODO: gotta implement this
 	return Path{}
 }
 
@@ -70,6 +81,35 @@ func (a Path) Equal(o Path) bool {
 	return true
 }
 
+// NewErrorf returns an error associated with the value indicated by `a`. This
+// is equivalent to calling a.NewError(fmt.Errorf(f, args...)).
+func (a Path) NewErrorf(f string, args ...interface{}) error {
+	return a.NewError(fmt.Errorf(f, args...))
+}
+
+// NewError returns an error that associates `err` with the value indicated by
+// `a`.
+func (a Path) NewError(err error) error {
+	var wrapped Error
+	if errors.As(err, &wrapped) {
+		// TODO: at some point we'll probably want to handle the
+		// AttributePathError-within-AttributePathError situation,
+		// either by de-duplicating the paths we're surfacing, or
+		// privileging one, or something. For now, let's just do the
+		// naive thing and not add our own path.
+		return err
+	}
+	return Error{
+		Path: a,
+		err:  err,
+	}
+}
+
+func (a Path) ToTerraformProto() *tftypes.AttributePath {
+	// TODO: gotta do this conversion
+	return nil
+}
+
 // Attribute returns a copy of `a`, with another step added to select the named
 // attribute of the object that `a` points to.
 func (a Path) Attribute(name string) Path {
@@ -97,11 +137,13 @@ func (a Path) ElementPos(pos int) Path {
 
 // Element returns a copy of `a` with another step added to select the
 // specified element of the set that `a` points to.
-func (a Path) Element(val Value) Path {
+/*
+func (a Path) Element(val attr.Value) Path {
 	return Path{
 		steps: append(copySteps(a.steps), elementKeyValue{Value: val}),
 	}
 }
+*/
 
 // String returns a human-friendly string representation of the Path. There are
 // no compatibility guarantees about its formatting, it is not considered part
@@ -188,6 +230,7 @@ func (e elementKeyInt) String() string {
 // index. It is used on attr.TypeWithElementType types that return a
 // tftypes.Set from their TerraformType method. It is also used on
 // tfsdk.SetNestedAttribute nested attributes.
+/*
 type elementKeyValue struct {
 	Value Value
 }
@@ -205,3 +248,4 @@ func (e elementKeyValue) Equal(o step) bool {
 func (e elementKeyValue) String() string {
 	return "ElementKeyValue(" + e.Value.String() + ")"
 }
+*/

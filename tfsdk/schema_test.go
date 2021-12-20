@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -17,19 +18,13 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 
 	testCases := map[string]struct {
 		schema      Schema
-		path        *tftypes.AttributePath
+		path        attrpath.Path
 		expected    Attribute
 		expectedErr string
 	}{
 		"empty-root": {
 			schema:      Schema{},
-			path:        tftypes.NewAttributePath(),
-			expected:    Attribute{},
-			expectedErr: "got unexpected type tfsdk.Schema",
-		},
-		"empty-nil": {
-			schema:      Schema{},
-			path:        nil,
+			path:        attrpath.New(),
 			expected:    Attribute{},
 			expectedErr: "got unexpected type tfsdk.Schema",
 		},
@@ -42,24 +37,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath(),
+			path:        attrpath.New(),
 			expected:    Attribute{},
 			expectedErr: "got unexpected type tfsdk.Schema",
 		},
-		"nil": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
-					"test": {
-						Type:     types.StringType,
-						Required: true,
-					},
-				},
-			},
-			path:        nil,
-			expected:    Attribute{},
-			expectedErr: "got unexpected type tfsdk.Schema",
-		},
-		"WithAttributeName": {
+		"Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -72,13 +54,13 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: attrpath.New().Attribute("test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
 			},
 		},
-		"WithAttributeName-ListNestedAttributes-WithAttributeName": {
+		"Attribute-ListNestedAttributes-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -100,11 +82,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:        attrpath.New().Attribute("test").Attribute("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to ListNestedAttributes",
 		},
-		"WithAttributeName-ListNestedAttributes-WithElementKeyInt": {
+		"Attribute-ListNestedAttributes-ElementPos": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -126,11 +108,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:        attrpath.New().Attribute("test").ElementPos(0),
 			expected:    Attribute{},
 			expectedErr: ErrPathInsideAtomicAttribute.Error(),
 		},
-		"WithAttributeName-ListNestedAttributes-WithElementKeyInt-WithAttributeName": {
+		"Attribute-ListNestedAttributes-ElementPos-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -152,13 +134,13 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			path: attrpath.New().Attribute("test").ElementPos(0).Attribute("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
 			},
 		},
-		"WithAttributeName-ListNestedAttributes-WithElementKeyString": {
+		"Attribute-ListNestedAttributes-ElementKey": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -180,11 +162,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			path:        attrpath.New().Attribute("test").ElementKey("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to ListNestedAttributes",
 		},
-		"WithAttributeName-ListNestedAttributes-WithElementKeyValue": {
+		"Attribute-ListNestedAttributes-WithElementKeyValue": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -206,11 +188,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
+			path:        attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to ListNestedAttributes",
 		},
-		"WithAttributeName-ListNestedBlocks-WithAttributeName": {
+		"Attribute-ListNestedBlocks-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -243,11 +225,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:        attrpath.New().Attribute("test").Attribute("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeList",
 		},
-		"WithAttributeName-ListNestedBlocks-WithElementKeyInt": {
+		"Attribute-ListNestedBlocks-ElementPos": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -280,11 +262,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:        attrpath.New().Attribute("test").ElementPos(0),
 			expected:    Attribute{},
 			expectedErr: ErrPathInsideAtomicAttribute.Error(),
 		},
-		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
+		"Attribute-ListNestedBlocks-ElementPos-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -317,13 +299,13 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			path: attrpath.New().Attribute("test").ElementPos(0).Attribute("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
 			},
 		},
-		"WithAttributeName-ListNestedBlocks-WithElementKeyString": {
+		"Attribute-ListNestedBlocks-ElementKey": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -356,11 +338,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			path:        attrpath.New().Attribute("test").ElementKey("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeList",
 		},
-		"WithAttributeName-ListNestedBlocks-WithElementKeyValue": {
+		"Attribute-ListNestedBlocks-WithElementKeyValue": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -393,11 +375,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
+			path:        attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to block NestingModeList",
 		},
-		"WithAttributeName-MapNestedAttributes-WithAttributeName": {
+		"Attribute-MapNestedAttributes-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -419,11 +401,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:        attrpath.New().Attribute("test").Attribute("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't use tftypes.AttributeName on maps",
 		},
-		"WithAttributeName-MapNestedAttributes-WithElementKeyInt": {
+		"Attribute-MapNestedAttributes-ElementPos": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -445,11 +427,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:        attrpath.New().Attribute("test").ElementPos(0),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyInt(0) still remains in the path: can't use tftypes.ElementKeyInt on maps",
 		},
-		"WithAttributeName-MapNestedAttributes-WithElementKeyString": {
+		"Attribute-MapNestedAttributes-ElementKey": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -471,11 +453,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			path:        attrpath.New().Attribute("test").ElementKey("sub_test"),
 			expected:    Attribute{},
 			expectedErr: ErrPathInsideAtomicAttribute.Error(),
 		},
-		"WithAttributeName-MapNestedAttributes-WithElementKeyString-WithAttributeName": {
+		"Attribute-MapNestedAttributes-ElementKey-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -497,13 +479,13 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element").WithAttributeName("sub_test"),
+			path: attrpath.New().Attribute("test").ElementKey("element").Attribute("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
 			},
 		},
-		"WithAttributeName-MapNestedAttributes-WithElementKeyValue": {
+		"Attribute-MapNestedAttributes-WithElementKeyValue": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -525,11 +507,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
+			path:        attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't use tftypes.ElementKeyValue on maps",
 		},
-		"WithAttributeName-SetNestedAttributes-WithAttributeName": {
+		"Attribute-SetNestedAttributes-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -551,11 +533,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:        attrpath.New().Attribute("test").Attribute("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't use tftypes.AttributeName on sets",
 		},
-		"WithAttributeName-SetNestedAttributes-WithElementKeyInt": {
+		"Attribute-SetNestedAttributes-ElementPos": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -577,11 +559,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:        attrpath.New().Attribute("test").ElementPos(0),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyInt(0) still remains in the path: can't use tftypes.ElementKeyInt on sets",
 		},
-		"WithAttributeName-SetNestedAttributes-WithElementKeyString": {
+		"Attribute-SetNestedAttributes-ElementKey": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -603,11 +585,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			path:        attrpath.New().Attribute("test").ElementKey("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't use tftypes.ElementKeyString on sets",
 		},
-		"WithAttributeName-SetNestedAttributes-WithElementKeyValue": {
+		"Attribute-SetNestedAttributes-WithElementKeyValue": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -629,11 +611,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
+			path:        attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
 			expected:    Attribute{},
 			expectedErr: ErrPathInsideAtomicAttribute.Error(),
 		},
-		"WithAttributeName-SetNestedAttributes-WithElementKeyValue-WithAttributeName": {
+		"Attribute-SetNestedAttributes-WithElementKeyValue-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -655,13 +637,13 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")).WithAttributeName("sub_test"),
+			path: attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")).Attribute("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
 			},
 		},
-		"WithAttributeName-SetNestedBlocks-WithAttributeName": {
+		"Attribute-SetNestedBlocks-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -694,11 +676,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:        attrpath.New().Attribute("test").Attribute("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeSet",
 		},
-		"WithAttributeName-SetNestedBlocks-WithElementKeyInt": {
+		"Attribute-SetNestedBlocks-ElementPos": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -731,11 +713,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:        attrpath.New().Attribute("test").ElementPos(0),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to block NestingModeSet",
 		},
-		"WithAttributeName-SetNestedBlocks-WithElementKeyString": {
+		"Attribute-SetNestedBlocks-ElementKey": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -768,11 +750,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			path:        attrpath.New().Attribute("test").ElementKey("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeSet",
 		},
-		"WithAttributeName-SetNestedBlocks-WithElementKeyValue": {
+		"Attribute-SetNestedBlocks-WithElementKeyValue": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -805,11 +787,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
+			path:        attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
 			expected:    Attribute{},
 			expectedErr: ErrPathInsideAtomicAttribute.Error(),
 		},
-		"WithAttributeName-SetNestedBlocks-WithElementKeyValue-WithAttributeName": {
+		"Attribute-SetNestedBlocks-WithElementKeyValue-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other_attr": {
@@ -842,13 +824,13 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")).WithAttributeName("sub_test"),
+			path: attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")).Attribute("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
 			},
 		},
-		"WithAttributeName-SingleNestedAttributes-WithAttributeName": {
+		"Attribute-SingleNestedAttributes-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -870,13 +852,13 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path: attrpath.New().Attribute("test").Attribute("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
 			},
 		},
-		"WithAttributeName-SingleNestedAttributes-WithElementKeyInt": {
+		"Attribute-SingleNestedAttributes-ElementPos": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -898,11 +880,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:        attrpath.New().Attribute("test").ElementPos(0),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to Attributes",
 		},
-		"WithAttributeName-SingleNestedAttributes-WithElementKeyString": {
+		"Attribute-SingleNestedAttributes-ElementKey": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -924,11 +906,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			path:        attrpath.New().Attribute("test").ElementKey("sub_test"),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to Attributes",
 		},
-		"WithAttributeName-SingleNestedAttributes-WithElementKeyValue": {
+		"Attribute-SingleNestedAttributes-WithElementKeyValue": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -950,11 +932,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
+			path:        attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to Attributes",
 		},
-		"WithAttributeName-Object-WithAttributeName": {
+		"Attribute-Object-Attribute": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -971,11 +953,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:        attrpath.New().Attribute("test").Attribute("sub_test"),
 			expected:    Attribute{},
 			expectedErr: ErrPathInsideAtomicAttribute.Error(),
 		},
-		"WithAttributeName-WithElementKeyInt-invalid-parent": {
+		"Attribute-ElementPos-invalid-parent": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -988,11 +970,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:        attrpath.New().Attribute("test").ElementPos(0),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to types.StringType",
 		},
-		"WithAttributeName-WithElementKeyInt-valid-parent": {
+		"Attribute-ElementPos-valid-parent": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -1007,11 +989,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:        attrpath.New().Attribute("test").ElementPos(0),
 			expected:    Attribute{},
 			expectedErr: ErrPathInsideAtomicAttribute.Error(),
 		},
-		"WithAttributeName-WithElementKeyString-invalid-parent": {
+		"Attribute-ElementKey-invalid-parent": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -1024,11 +1006,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element"),
+			path:        attrpath.New().Attribute("test").ElementKey("element"),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyString(\"element\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to types.StringType",
 		},
-		"WithAttributeName-WithElementKeyString-valid-parent": {
+		"Attribute-ElementKey-valid-parent": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -1043,11 +1025,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element"),
+			path:        attrpath.New().Attribute("test").ElementKey("element"),
 			expected:    Attribute{},
 			expectedErr: ErrPathInsideAtomicAttribute.Error(),
 		},
-		"WithAttributeName-WithElementKeyValue-invalid-parent": {
+		"Attribute-WithElementKeyValue-invalid-parent": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -1060,11 +1042,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")),
+			path:        attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyValue(tftypes.String<\"element\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to types.StringType",
 		},
-		"WithAttributeName-WithElementKeyValue-valid-parent": {
+		"Attribute-WithElementKeyValue-valid-parent": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"other": {
@@ -1079,11 +1061,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")),
+			path:        attrpath.New().Attribute("test"), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")),
 			expected:    Attribute{},
 			expectedErr: ErrPathInsideAtomicAttribute.Error(),
 		},
-		"WithElementKeyInt": {
+		"ElementPos": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"test": {
@@ -1092,11 +1074,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithElementKeyInt(0),
+			path:        attrpath.New().ElementPos(0),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to schema",
 		},
-		"WithElementKeyString": {
+		"ElementKey": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
 					"test": {
@@ -1105,7 +1087,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithElementKeyString("test"),
+			path:        attrpath.New().ElementKey("test"),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyString(\"test\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to schema",
 		},
@@ -1118,7 +1100,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
+			path:        attrpath.New(), // TODO: restore when we can have set values again: .WithElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
 			expected:    Attribute{},
 			expectedErr: "ElementKeyValue(tftypes.String<\"test\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to schema",
 		},

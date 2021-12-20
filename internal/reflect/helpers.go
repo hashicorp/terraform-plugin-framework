@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 )
 
 // trueReflectValue returns the reflect.Value for `in` after derefencing all
@@ -44,7 +44,7 @@ func commaSeparatedString(in []string) string {
 
 // getStructTags returns a map of Terraform field names to their position in
 // the tags of the struct `in`. `in` must be a struct.
-func getStructTags(ctx context.Context, in reflect.Value, path *tftypes.AttributePath) (map[string]int, error) {
+func getStructTags(ctx context.Context, in reflect.Value, path attrpath.Path) (map[string]int, error) {
 	tags := map[string]int{}
 	typ := trueReflectValue(in).Type()
 	if typ.Kind() != reflect.Struct {
@@ -64,7 +64,7 @@ func getStructTags(ctx context.Context, in reflect.Value, path *tftypes.Attribut
 		if tag == "" {
 			return nil, path.NewErrorf(`need a struct tag for "tfsdk" on %s`, field.Name)
 		}
-		path := path.WithAttributeName(tag)
+		path := path.Attribute(tag)
 		if !isValidFieldName(tag) {
 			return nil, path.NewError(errors.New("invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter"))
 		}

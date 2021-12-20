@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -24,7 +25,7 @@ func TestCreateParentValue(t *testing.T) {
 			expected:   tftypes.Value{},
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test"),
+					attrpath.New().Attribute("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Unknown parent type tftypes.Bool to create value.",
@@ -154,7 +155,7 @@ func TestCreateParentValue(t *testing.T) {
 
 			got, diags := createParentValue(
 				context.Background(),
-				tftypes.NewAttributePath().WithAttributeName("test"),
+				attrpath.New().Attribute("test"),
 				tc.parentType,
 				tc.childValue,
 			)
@@ -210,7 +211,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, []tftypes.Value{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test"),
+					attrpath.New().Attribute("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -246,7 +247,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test"),
+					attrpath.New().Attribute("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -306,7 +307,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test"),
+					attrpath.New().Attribute("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 3 as list currently has 1 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -493,7 +494,7 @@ func TestUpsertChildValue(t *testing.T) {
 
 			got, diags := upsertChildValue(
 				context.Background(),
-				tftypes.NewAttributePath().WithAttributeName("test"),
+				attrpath.New().Attribute("test"),
 				tc.parentValue,
 				tc.childStep,
 				tc.childValue,

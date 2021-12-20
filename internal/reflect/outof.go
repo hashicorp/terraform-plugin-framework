@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -15,7 +16,7 @@ import (
 // into an attr.Value using the attr.Type supplied. `val` will first be
 // transformed into a tftypes.Value, then passed to `typ`'s ValueFromTerraform
 // method.
-func FromValue(ctx context.Context, typ attr.Type, val interface{}, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromValue(ctx context.Context, typ attr.Type, val interface{}, path attrpath.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if v, ok := val.(attr.Value); ok {

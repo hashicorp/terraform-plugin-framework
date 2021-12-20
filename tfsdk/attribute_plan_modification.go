@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attrpath"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -213,7 +214,7 @@ func RequiresReplaceIf(f RequiresReplaceIfFunc, description, markdownDescription
 
 // RequiresReplaceIfFunc is a conditional function used in the RequiresReplaceIf
 // plan modifier to determine whether the attribute requires replacement.
-type RequiresReplaceIfFunc func(ctx context.Context, state, config attr.Value, path *tftypes.AttributePath) (bool, diag.Diagnostics)
+type RequiresReplaceIfFunc func(ctx context.Context, state, config attr.Value, path attrpath.Path) (bool, diag.Diagnostics)
 
 // RequiresReplaceIfModifier is an AttributePlanModifier that sets RequiresReplace
 // on the attribute if the conditional function returns true.
@@ -407,7 +408,7 @@ func (r UseStateForUnknownModifier) MarkdownDescription(ctx context.Context) str
 // function of an attribute's plan modifier(s).
 type ModifyAttributePlanRequest struct {
 	// AttributePath is the path of the attribute.
-	AttributePath *tftypes.AttributePath
+	AttributePath attrpath.Path
 
 	// Config is the configuration the user supplied for the resource.
 	Config Config

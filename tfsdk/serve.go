@@ -64,22 +64,6 @@ func (s *server) cancelRegisteredContexts(ctx context.Context) {
 	s.contextCancels = nil
 }
 
-func (s *server) getResourceType(ctx context.Context, typ string) (ResourceType, diag.Diagnostics) {
-	resourceTypes, diags := s.p.GetResources(ctx)
-	if diags.HasError() {
-		return nil, diags
-	}
-	resourceType, ok := resourceTypes[typ]
-	if !ok {
-		diags.AddError(
-			"Resource not found",
-			fmt.Sprintf("No resource named %q is configured on the provider", typ),
-		)
-		return nil, diags
-	}
-	return resourceType, diags
-}
-
 func (s *server) getDataSourceType(ctx context.Context, typ string) (DataSourceType, diag.Diagnostics) {
 	dataSourceTypes, diags := s.p.GetDataSources(ctx)
 	if diags.HasError() {
@@ -125,102 +109,43 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 }
 
 func (s *server) getProviderSchema(ctx context.Context, resp *getProviderSchemaResponse) {
-	// get the provider schema
-	providerSchema, diags := s.p.GetSchema(ctx)
+	providerSchema, diags := serveGetProviderSchema(ctx, s.p)
 	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
+	if resp.Diagnostics.HasError() {
 		return
 	}
-	// convert the provider schema to a *tfprotov6.Schema
-	provider6Schema, err := providerSchema.tfprotov6Schema(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error converting provider schema",
-			"The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-
 	// don't set the schema on the response yet, we want it to be able to
 	// accrue warning diagnostics and return them on the first error
 	// diagnostic without returning a partial schema, so we need to wait
 	// until the very end to set the schemas on the response
 
 	// if we have a provider_meta schema, get it
-	var providerMeta6Schema *tfprotov6.Schema
-	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
-		providerMetaSchema, diags := pm.GetMetaSchema(ctx)
-
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		pm6Schema, err := providerMetaSchema.tfprotov6Schema(ctx)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting provider_meta schema",
-				"The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		providerMeta6Schema = pm6Schema
+	providerMetaSchema, diags := serveGetProviderMetaSchema(ctx, s.p)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// get our resource schemas
-	resourceSchemas, diags := s.p.GetResources(ctx)
+	resourceSchemas, diags := serveGetResourceSchemas(ctx, s.p)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-	resource6Schemas := map[string]*tfprotov6.Schema{}
-	for k, v := range resourceSchemas {
-		schema, diags := v.GetSchema(ctx)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		schema6, err := schema.tfprotov6Schema(ctx)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting resource schema",
-				"The schema for the resource \""+k+"\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		resource6Schemas[k] = schema6
 	}
 
 	// get our data source schemas
-	dataSourceSchemas, diags := s.p.GetDataSources(ctx)
+	dataSourceSchemas, diags := serveGetDataSourceSchemas(ctx, s.p)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-	dataSource6Schemas := map[string]*tfprotov6.Schema{}
-	for k, v := range dataSourceSchemas {
-		schema, diags := v.GetSchema(ctx)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		schema6, err := schema.tfprotov6Schema(ctx)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting data sourceschema",
-				"The schema for the data source \""+k+"\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		dataSource6Schemas[k] = schema6
 	}
 
 	// ok, we didn't get any error diagnostics, populate the schemas and
 	// send the response
-	resp.Provider = provider6Schema
-	resp.ProviderMeta = providerMeta6Schema
-	resp.ResourceSchemas = resource6Schemas
-	resp.DataSourceSchemas = dataSource6Schemas
+	resp.Provider = providerSchema
+	resp.ProviderMeta = providerMetaSchema
+	resp.ResourceSchemas = resourceSchemas
+	resp.DataSourceSchemas = dataSourceSchemas
 }
 
 // validateProviderConfigResponse is a thin abstraction to allow native Diagnostics usage
@@ -258,61 +183,48 @@ func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 func (s *server) validateProviderConfig(ctx context.Context, req *tfprotov6.ValidateProviderConfigRequest, resp *validateProviderConfigResponse) {
 	schema, diags := s.p.GetSchema(ctx)
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	config, err := req.Config.Unmarshal(schema.TerraformType(ctx))
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing config",
-			"The provider had a problem parsing the config. Report this to the provider developer:\n\n"+err.Error(),
-		)
-
+	config, diags := parseConfig(ctx, req.Config, schema)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	vpcReq := ValidateProviderConfigRequest{
-		Config: Config{
-			Raw:    config,
-			Schema: schema,
-		},
+	// run declarative validators at the provider level
+	// i.e., Provider.ConfigValidators
+	diags = serveValidateProviderWithConfigValidators(ctx, s.p, config, resp.Diagnostics)
+	// we're actually replacing diagnostics here, as they were passed in,
+	// so the validators should have passed them through. This allows
+	// validators to silence diagnostics, if they want to for whatever
+	// reason.
+	resp.Diagnostics = diags
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if provider, ok := s.p.(ProviderWithConfigValidators); ok {
-		for _, configValidator := range provider.ConfigValidators(ctx) {
-			vpcRes := &ValidateProviderConfigResponse{
-				Diagnostics: resp.Diagnostics,
-			}
-
-			configValidator.Validate(ctx, vpcReq, vpcRes)
-
-			resp.Diagnostics = vpcRes.Diagnostics
-		}
-	}
-
-	if provider, ok := s.p.(ProviderWithValidateConfig); ok {
-		vpcRes := &ValidateProviderConfigResponse{
-			Diagnostics: resp.Diagnostics,
-		}
-
-		provider.ValidateConfig(ctx, vpcReq, vpcRes)
-
-		resp.Diagnostics = vpcRes.Diagnostics
+	// run imperative validator at the provider level
+	// i.e., Provider.ValidateConfig
+	diags = serveValidateProviderWithValidateConfig(ctx, s.p, config, resp.Diagnostics)
+	// we're actually replacing diagnostics here, as they were passed in,
+	// so the validators should have passed them through. This allows
+	// validators to silence diagnostics, if they want to for whatever
+	// reason.
+	resp.Diagnostics = diags
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	validateSchemaReq := ValidateSchemaRequest{
-		Config: Config{
-			Raw:    config,
-			Schema: schema,
-		},
+		Config: config,
 	}
 	validateSchemaResp := ValidateSchemaResponse{
 		Diagnostics: resp.Diagnostics,
 	}
 
+	// run all attribute-level validation on the provider schema
 	schema.validate(ctx, validateSchemaReq, &validateSchemaResp)
 
 	resp.Diagnostics = validateSchemaResp.Diagnostics
@@ -344,20 +256,16 @@ func (s *server) configureProvider(ctx context.Context, req *tfprotov6.Configure
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	config, err := req.Config.Unmarshal(schema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing config",
-			"The provider had a problem parsing the config. Report this to the provider developer:\n\n"+err.Error(),
-		)
+
+	config, diags := parseConfig(ctx, req.Config, schema)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	r := ConfigureProviderRequest{
 		TerraformVersion: req.TerraformVersion,
-		Config: Config{
-			Raw:    config,
-			Schema: schema,
-		},
+		Config:           config,
 	}
 	res := &ConfigureProviderResponse{}
 	s.p.Configure(ctx, r, res)
@@ -390,50 +298,28 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 	return resp.toTfprotov6(), nil
 }
 
+// TODO: refactor
 func (s *server) validateResourceConfig(ctx context.Context, req *tfprotov6.ValidateResourceConfigRequest, resp *validateResourceConfigResponse) {
-	// Get the type of resource, so we can get its schema and create an
-	// instance
-	resourceType, diags := s.getResourceType(ctx, req.TypeName)
+	resourceSchema, diags := serveGetResourceSchema(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get the schema from the resource type, so we can embed it in the
-	// config
-	resourceSchema, diags := resourceType.GetSchema(ctx)
+	resource, diags := serveGetResourceInstance(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Create the resource instance, so we can call its methods and handle
-	// the request
-	resource, diags := resourceType.NewResource(ctx, s.p)
+	config, diags := parseConfig(ctx, req.Config, resourceSchema)
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	config, err := req.Config.Unmarshal(resourceSchema.TerraformType(ctx))
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing config",
-			"The provider had a problem parsing the config. Report this to the provider developer:\n\n"+err.Error(),
-		)
-
 		return
 	}
 
 	vrcReq := ValidateResourceConfigRequest{
-		Config: Config{
-			Raw:    config,
-			Schema: resourceSchema,
-		},
+		Config: config,
 	}
 
 	if resource, ok := resource.(ResourceWithConfigValidators); ok {
@@ -459,10 +345,7 @@ func (s *server) validateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 	}
 
 	validateSchemaReq := ValidateSchemaRequest{
-		Config: Config{
-			Raw:    config,
-			Schema: resourceSchema,
-		},
+		Config: config,
 	}
 	validateSchemaResp := ValidateSchemaResponse{
 		Diagnostics: resp.Diagnostics,
@@ -510,7 +393,7 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 }
 
 func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRequest, resp *readResourceResponse) {
-	resourceType, diags := s.getResourceType(ctx, req.TypeName)
+	resourceType, diags := serveGetResourceType(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -647,7 +530,7 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanResourceChangeRequest, resp *planResourceChangeResponse) {
 	// get the type of resource, so we can get its schema and create an
 	// instance
-	resourceType, diags := s.getResourceType(ctx, req.TypeName)
+	resourceType, diags := serveGetResourceType(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -962,7 +845,7 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, resp *applyResourceChangeResponse) {
 	// get the type of resource, so we can get its schema and create an
 	// instance
-	resourceType, diags := s.getResourceType(ctx, req.TypeName)
+	resourceType, diags := serveGetResourceType(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

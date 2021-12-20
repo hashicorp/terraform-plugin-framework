@@ -64,7 +64,7 @@ func (r importResourceStateResponse) toTfprotov6(ctx context.Context) *tfprotov6
 }
 
 func (s *server) importResourceState(ctx context.Context, req *tfprotov6.ImportResourceStateRequest, resp *importResourceStateResponse) {
-	resourceType, diags := s.getResourceType(ctx, req.TypeName)
+	resourceType, diags := serveGetResourceType(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {

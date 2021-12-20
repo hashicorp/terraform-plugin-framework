@@ -1780,7 +1780,7 @@ func TestServerReadResource(t *testing.T) {
 				pmSchema = schema
 			}
 
-			rt, diags := testServer.getResourceType(context.Background(), tc.resource)
+			rt, diags := serveGetResourceType(context.Background(), testServer.p, tc.resource)
 			if len(diags) > 0 {
 				t.Errorf("Unexpected diags: %+v", diags)
 				return
@@ -5336,7 +5336,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 				pmSchema = schema
 			}
 
-			rt, diags := testServer.getResourceType(context.Background(), tc.resource)
+			rt, diags := serveGetResourceType(context.Background(), testServer.p, tc.resource)
 			if len(diags) > 0 {
 				t.Errorf("Unexpected diags: %+v", diags)
 				return

@@ -24,55 +24,38 @@ import (
 // and other mistakes early.
 //
 // Struct is meant to be called from Into, not directly.
-func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Object(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	tfVal, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
 
 	// this only works with object values, so make sure that constraint is
 	// met
 	if target.Kind() != reflect.Struct {
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        object,
+			Val:        tfVal,
 			TargetType: target.Type(),
 			Err:        fmt.Errorf("expected a struct type, got %s", target.Type()),
 		}))
 		return target, diags
 	}
-	if !object.Type().Is(tftypes.Object{}) {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        object,
-			TargetType: target.Type(),
-			Err:        fmt.Errorf("cannot reflect %s into a struct, must be an object", object.Type().String()),
-		}))
-		return target, diags
-	}
-	attrsType, ok := typ.(attr.TypeWithAttributeTypes)
+
+	attributer, ok := val.(attr.ValueWithAttributes)
 	if !ok {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        object,
-			TargetType: target.Type(),
-			Err:        fmt.Errorf("cannot reflect object using type information provided by %T, %T must be an attr.TypeWithAttributeTypes", typ, typ),
-		}))
-		return target, diags
+		// TODO: handle error
 	}
 
-	// collect a map of fields that are in the object passed in
-	var objectFields map[string]tftypes.Value
-	err := object.As(&objectFields)
-	if err != nil {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        object,
-			TargetType: target.Type(),
-			Err:        err,
-		}))
-		return target, diags
-	}
+	attrs := attributer.Attributes(ctx)
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
 	targetFields, err := getStructTags(ctx, target, path)
 	if err != nil {
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        object,
+			Val:        tfVal,
 			TargetType: target.Type(),
 			Err:        fmt.Errorf("error retrieving field names from struct tags: %w", err),
 		}))
@@ -84,11 +67,11 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	// fields defined
 	var objectMissing, targetMissing []string
 	for field := range targetFields {
-		if _, ok := objectFields[field]; !ok {
+		if _, ok := attrs[field]; !ok {
 			objectMissing = append(objectMissing, field)
 		}
 	}
-	for field := range objectFields {
+	for field := range attrs {
 		if _, ok := targetFields[field]; !ok {
 			targetMissing = append(targetMissing, field)
 		}
@@ -102,30 +85,28 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			missing = append(missing, fmt.Sprintf("Object defines fields not found in struct: %s.", commaSeparatedString(targetMissing)))
 		}
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        object,
+			Val:        tfVal,
 			TargetType: target.Type(),
 			Err:        fmt.Errorf("mismatch between struct and object: %s", strings.Join(missing, " ")),
 		}))
 		return target, diags
 	}
 
-	attrTypes := attrsType.AttributeTypes()
-
 	// now that we know they match perfectly, fill the struct with the
 	// values in the object
 	result := reflect.New(target.Type()).Elem()
 	for field, structFieldPos := range targetFields {
-		attrType, ok := attrTypes[field]
+		objectAttr, ok := attrs[field]
 		if !ok {
 			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-				Val:        object,
+				Val:        tfVal,
 				TargetType: target.Type(),
-				Err:        fmt.Errorf("could not find type information for attribute in supplied attr.Type %T", typ),
+				Err:        fmt.Errorf("could not find type information for attribute in supplied attr.Type %T", val.Type(ctx)),
 			}))
 			return target, diags
 		}
 		structField := result.Field(structFieldPos)
-		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.WithAttributeName(field))
+		fieldVal, fieldValDiags := BuildValue(ctx, objectAttr, structField, opts, path.WithAttributeName(field))
 		diags.Append(fieldValDiags...)
 
 		if diags.HasError() {

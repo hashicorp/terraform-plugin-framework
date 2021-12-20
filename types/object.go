@@ -177,19 +177,7 @@ type ObjectAsOptions struct {
 // As populates `target` with the data in the Object, throwing an error if the
 // data cannot be stored in `target`.
 func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions) diag.Diagnostics {
-	// we need a tftypes.Value for this Object to be able to use it with
-	// our reflection code
-	obj := ObjectType{AttrTypes: o.AttrTypes}
-	val, err := o.ToTerraformValue(ctx)
-	if err != nil {
-		return diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"Object Conversion Error",
-				"An unexpected error was encountered trying to convert object. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			),
-		}
-	}
-	return reflect.Into(ctx, obj, val, target, reflect.Options{
+	return reflect.Into(ctx, o, target, reflect.Options{
 		UnhandledNullAsEmpty:    opts.UnhandledNullAsEmpty,
 		UnhandledUnknownAsEmpty: opts.UnhandledUnknownAsEmpty,
 	})
@@ -268,4 +256,8 @@ func (o Object) Equal(c attr.Value) bool {
 	}
 
 	return true
+}
+
+func (o Object) Attributes(ctx context.Context) map[string]attr.Value {
+	return o.Attrs
 }

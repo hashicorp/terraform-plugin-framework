@@ -23,7 +23,7 @@ type Unknownable interface {
 // referencing, if it's a pointer) and calls its SetUnknown method.
 //
 // It is meant to be called through Into, not directly.
-func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func NewUnknownable(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("SetUnknown")
@@ -36,14 +36,18 @@ func NewUnknownable(ctx context.Context, typ attr.Type, val tftypes.Value, targe
 		)
 		return target, diags
 	}
+	tfVal, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
 	results := method.Call([]reflect.Value{
 		reflect.ValueOf(ctx),
-		reflect.ValueOf(!val.IsKnown()),
+		reflect.ValueOf(!tfVal.IsKnown()),
 	})
-	err := results[0].Interface()
-	if err != nil {
+	errI := results[0].Interface()
+	if errI != nil {
 		var underlyingErr error
-		switch e := err.(type) {
+		switch e := errI.(type) {
 		case error:
 			underlyingErr = e
 		default:
@@ -117,7 +121,7 @@ type Nullable interface {
 // referencing, if it's a pointer) and calls its SetNull method.
 //
 // It is meant to be called through Into, not directly.
-func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func NewNullable(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("SetNull")
@@ -130,14 +134,18 @@ func NewNullable(ctx context.Context, typ attr.Type, val tftypes.Value, target r
 		)
 		return target, diags
 	}
+	tfVal, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
 	results := method.Call([]reflect.Value{
 		reflect.ValueOf(ctx),
-		reflect.ValueOf(val.IsNull()),
+		reflect.ValueOf(tfVal.IsNull()),
 	})
-	err := results[0].Interface()
-	if err != nil {
+	errI := results[0].Interface()
+	if errI != nil {
 		var underlyingErr error
-		switch e := err.(type) {
+		switch e := errI.(type) {
 		case error:
 			underlyingErr = e
 		default:
@@ -204,7 +212,7 @@ func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path *tftype
 // method.
 //
 // It is meant to be called through Into, not directly.
-func NewValueConverter(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func NewValueConverter(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	receiver := pointerSafeZeroValue(ctx, target)
 	method := receiver.MethodByName("FromTerraform5Value")
@@ -275,18 +283,15 @@ func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreat
 // `attr.Value` is not the same type as `target`.
 //
 // It is meant to be called through Into, not directly.
-func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func NewAttributeValue(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, val, path)...)
-
-		if diags.HasError() {
-			return target, diags
-		}
+	tfVal, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
 	}
 
-	res, err := typ.ValueFromTerraform(ctx, val)
+	res, err := val.Type(ctx).ValueFromTerraform(ctx, tfVal)
 	if err != nil {
 		return target, append(diags, valueFromTerraformErrorDiag(err, path))
 	}
@@ -294,7 +299,7 @@ func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, ta
 		diags.Append(diag.WithPath(path, DiagNewAttributeValueIntoWrongType{
 			ValType:    reflect.TypeOf(res),
 			TargetType: target.Type(),
-			SchemaType: typ,
+			SchemaType: val.Type(ctx),
 		}))
 		return target, diags
 	}

@@ -35,7 +35,7 @@ type ValidateAttributeRequest struct {
 	AttributeConfig attr.Value
 
 	// Config contains the entire configuration of the data source, provider, or resource.
-	Config Config
+	Config ReadOnlyData
 }
 
 // ValidateAttributeResponse represents a response to a

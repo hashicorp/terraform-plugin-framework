@@ -24,15 +24,19 @@ import (
 // things, as a general rule of thumb.
 //
 // It is meant to be called through Into, not directly.
-func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Number(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
+	tfVal, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
 	result := big.NewFloat(0)
-	err := val.As(&result)
+	err = tfVal.As(&result)
 	if err != nil {
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
 			Err:        err,
 			TargetType: target.Type(),
-			Val:        val,
+			Val:        tfVal,
 		}))
 		return target, diags
 	}

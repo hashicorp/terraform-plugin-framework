@@ -8,7 +8,7 @@ import (
 
 // serveValidateProviderWithConfigValidators runs any declarative validators
 // that the provider may declare.
-func serveValidateProviderWithConfigValidators(ctx context.Context, provider Provider, config Config, diags diag.Diagnostics) diag.Diagnostics {
+func serveValidateProviderWithConfigValidators(ctx context.Context, provider Provider, config ReadOnlyData, diags diag.Diagnostics) diag.Diagnostics {
 	if vpc, ok := provider.(ProviderWithConfigValidators); ok {
 		for _, configValidator := range vpc.ConfigValidators(ctx) {
 			vpcReq := ValidateProviderConfigRequest{
@@ -28,7 +28,7 @@ func serveValidateProviderWithConfigValidators(ctx context.Context, provider Pro
 
 // serveValidateProviderWithValidateConfig runs the imperative validator at the
 // provider level, if one is defined.
-func serveValidateProviderWithValidateConfig(ctx context.Context, provider Provider, config Config, diags diag.Diagnostics) diag.Diagnostics {
+func serveValidateProviderWithValidateConfig(ctx context.Context, provider Provider, config ReadOnlyData, diags diag.Diagnostics) diag.Diagnostics {
 	if vpc, ok := provider.(ProviderWithValidateConfig); ok {
 		vpcReq := ValidateProviderConfigRequest{
 			Config: config,

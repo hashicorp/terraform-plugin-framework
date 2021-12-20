@@ -10,7 +10,7 @@ type ValidateDataSourceConfigRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config ReadOnlyData
 }
 
 // ValidateProviderConfigRequest represents a request to validate the
@@ -23,7 +23,7 @@ type ValidateProviderConfigRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config ReadOnlyData
 }
 
 // ValidateResourceConfigRequest represents a request to validate the
@@ -36,5 +36,5 @@ type ValidateResourceConfigRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config ReadOnlyData
 }

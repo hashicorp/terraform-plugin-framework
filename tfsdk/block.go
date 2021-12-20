@@ -156,7 +156,7 @@ func (b Block) attributeType() attr.Type {
 
 // modifyPlan performs all Block plan modification.
 func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifySchemaPlanResponse) {
-	attributeConfig, diags := req.Config.getAttributeValue(ctx, req.AttributePath)
+	attributeConfig, diags := getAttributeValue(ctx, req.Config.Values, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {
@@ -165,7 +165,7 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 
 	req.AttributeConfig = attributeConfig
 
-	attributePlan, diags := req.Plan.getAttributeValue(ctx, req.AttributePath)
+	attributePlan, diags := getAttributeValue(ctx, req.Plan.ReadOnlyData.Values, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {
@@ -174,7 +174,7 @@ func (b Block) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, r
 
 	req.AttributePlan = attributePlan
 
-	attributeState, diags := req.State.getAttributeValue(ctx, req.AttributePath)
+	attributeState, diags := getAttributeValue(ctx, req.State.ReadOnlyData.Values, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {
@@ -406,7 +406,7 @@ func (b Block) tfprotov6(ctx context.Context, name string, path *tftypes.Attribu
 
 // validate performs all Block validation.
 func (b Block) validate(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
-	attributeConfig, diags := req.Config.getAttributeValue(ctx, req.AttributePath)
+	attributeConfig, diags := getAttributeValue(ctx, req.Config.Values, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {

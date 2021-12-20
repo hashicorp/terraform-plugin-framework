@@ -14,16 +14,21 @@ import (
 // populates it with the data in `val`.
 //
 // It is meant to be called through `Into`, not directly.
-func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Primitive(ctx context.Context, val attr.Value, target reflect.Value, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	tfVal, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle erro
+	}
 
 	switch target.Kind() {
 	case reflect.Bool:
 		var b bool
-		err := val.As(&b)
+		err := tfVal.As(&b)
 		if err != nil {
 			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-				Val:        val,
+				Val:        tfVal,
 				TargetType: target.Type(),
 				Err:        err,
 			}))
@@ -32,10 +37,10 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 		return reflect.ValueOf(b).Convert(target.Type()), nil
 	case reflect.String:
 		var s string
-		err := val.As(&s)
+		err := tfVal.As(&s)
 		if err != nil {
 			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-				Val:        val,
+				Val:        tfVal,
 				TargetType: target.Type(),
 				Err:        err,
 			}))
@@ -44,7 +49,7 @@ func Primitive(ctx context.Context, typ attr.Type, val tftypes.Value, target ref
 		return reflect.ValueOf(s).Convert(target.Type()), nil
 	default:
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
+			Val:        tfVal,
 			TargetType: target.Type(),
 			Err:        errors.New("unknown type"),
 		}))

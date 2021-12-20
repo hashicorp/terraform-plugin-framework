@@ -14,7 +14,7 @@ import (
 // currently designed for the most common use case of single resource import.
 type importedResource struct {
 	Private  []byte
-	State    State
+	State    *Data
 	TypeName string
 }
 

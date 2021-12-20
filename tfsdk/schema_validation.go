@@ -11,7 +11,7 @@ type ValidateSchemaRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config ReadOnlyData
 }
 
 // ValidateSchemaResponse represents a response to a

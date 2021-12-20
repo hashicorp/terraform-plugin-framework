@@ -135,19 +135,7 @@ type Map struct {
 // ElementsAs populates `target` with the elements of the Map, throwing an
 // error if the elements cannot be stored in `target`.
 func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
-	// we need a tftypes.Value for this Map to be able to use it with our
-	// reflection code
-	val, err := m.ToTerraformValue(ctx)
-	if err != nil {
-		err := fmt.Errorf("error getting Terraform value for map: %w", err)
-		return diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"Map Conversion Error",
-				"An unexpected error was encountered trying to convert the map into an equivalent Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			),
-		}
-	}
-	return reflect.Into(ctx, MapType{ElemType: m.ElemType}, val, target, reflect.Options{
+	return reflect.Into(ctx, m, target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,
 	})
@@ -211,4 +199,8 @@ func (m Map) Equal(o attr.Value) bool {
 		}
 	}
 	return true
+}
+
+func (m Map) MapElements(ctx context.Context) map[string]attr.Value {
+	return m.Elems
 }

@@ -8,7 +8,7 @@ import (
 )
 
 // parseConfig turns a *tfprotov6.DynamicValue and a Schema into a Config.
-func parseConfig(ctx context.Context, dv *tfprotov6.DynamicValue, schema Schema) (Config, diag.Diagnostics) {
+func parseConfig(ctx context.Context, dv *tfprotov6.DynamicValue, schema Schema) (ReadOnlyData, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	conf, err := dv.Unmarshal(schema.TerraformType(ctx))
 	if err != nil {
@@ -16,10 +16,13 @@ func parseConfig(ctx context.Context, dv *tfprotov6.DynamicValue, schema Schema)
 			"Error parsing config",
 			"The provider had a problem parsing the config. Report this to the provider developer:\n\n"+err.Error(),
 		)
-		return Config{}, diags
+		return ReadOnlyData{}, diags
 	}
-	return Config{
-		Raw:    conf,
-		Schema: schema,
+	obj, err := objectFromSchemaAndTerraformValue(ctx, schema, conf)
+	if err != nil {
+		// TODO: return error
+	}
+	return ReadOnlyData{
+		Values: obj,
 	}, diags
 }

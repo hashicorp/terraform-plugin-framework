@@ -14,12 +14,17 @@ import (
 // references, populates it with BuildValue, and takes a pointer to it.
 //
 // It is meant to be called through Into, not directly.
-func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Pointer(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	tfVal, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
 
 	if target.Kind() != reflect.Ptr {
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
+			Val:        tfVal,
 			TargetType: target.Type(),
 			Err:        fmt.Errorf("cannot dereference pointer, not a pointer, is a %s (%s)", target.Type(), target.Kind()),
 		}))
@@ -29,7 +34,7 @@ func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target refle
 	// we can set
 	pointer := reflect.New(target.Type().Elem())
 	// build out whatever the pointer is pointing to
-	pointed, pointedDiags := BuildValue(ctx, typ, val, pointer.Elem(), opts, path)
+	pointed, pointedDiags := BuildValue(ctx, val, pointer.Elem(), opts, path)
 	diags.Append(pointedDiags...)
 
 	if diags.HasError() {

@@ -10,77 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// build a slice of elements, matching the type of `target`, and fill it with
-// the data in `val`.
-func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	// this only works with slices, so check that out first
-	if target.Kind() != reflect.Slice {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			Err:        fmt.Errorf("expected a slice type, got %s", target.Type()),
-		}))
-		return target, diags
-	}
-	// TODO: check that the val is a list or set or tuple
-	elemTyper, ok := typ.(attr.TypeWithElementType)
-	if !ok {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			Err:        fmt.Errorf("cannot reflect %s using type information provided by %T, %T must be an attr.TypeWithElementType", val.Type(), typ, typ),
-		}))
-		return target, diags
-	}
-
-	// we need our value to become a list of values so we can iterate over
-	// them and handle them individually
-	var values []tftypes.Value
-	err := val.As(&values)
-	if err != nil {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			Err:        err,
-		}))
-		return target, diags
-	}
-
-	// we need to know the type the slice is wrapping
-	elemType := target.Type().Elem()
-	elemAttrType := elemTyper.ElementType()
-
-	// we want an empty version of the slice
-	slice := reflect.MakeSlice(target.Type(), 0, len(values))
-
-	// go over each of the values passed in, create a Go value of the right
-	// type for them, and add it to our new slice
-	for pos, value := range values {
-		// create a new Go value of the type that can go in the slice
-		targetValue := reflect.Zero(elemType)
-
-		// update our path so we can have nice errors
-		valPath := path.WithElementKeyInt(pos)
-
-		if typ.TerraformType(ctx).Is(tftypes.Set{}) {
-			valPath = path.WithElementKeyValue(value)
-		}
-
-		// reflect the value into our new target
-		val, valDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, valPath)
-		diags.Append(valDiags...)
-
-		if diags.HasError() {
-			return target, diags
-		}
-
-		// add the new target to our slice
-		slice = reflect.Append(slice, val)
-	}
-
-	return slice, diags
+func Tuple(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+	return List(ctx, val, target, opts, path)
 }
 
 // FromSlice returns an attr.Value as produced by `typ` using the data in

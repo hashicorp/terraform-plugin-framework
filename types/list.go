@@ -137,18 +137,7 @@ type List struct {
 // ElementsAs populates `target` with the elements of the List, throwing an
 // error if the elements cannot be stored in `target`.
 func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
-	// we need a tftypes.Value for this List to be able to use it with our
-	// reflection code
-	values, err := l.ToTerraformValue(ctx)
-	if err != nil {
-		return diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"List Element Conversion Error",
-				"An unexpected error was encountered trying to convert list elements. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			),
-		}
-	}
-	return reflect.Into(ctx, ListType{ElemType: l.ElemType}, values, target, reflect.Options{
+	return reflect.Into(ctx, l, target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,
 	})
@@ -212,4 +201,8 @@ func (l List) Equal(o attr.Value) bool {
 		}
 	}
 	return true
+}
+
+func (l List) Elements(ctx context.Context) []attr.Value {
+	return l.Elems
 }

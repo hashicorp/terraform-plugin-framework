@@ -12,53 +12,29 @@ import (
 
 // Map creates a map value that matches the type of `target`, and populates it
 // with the contents of `val`.
-func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Map(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	underlyingValue := trueReflectValue(target)
+	tfVal, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
 
 	// this only works with maps, so check that out first
 	if underlyingValue.Kind() != reflect.Map {
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
+			Val:        tfVal,
 			TargetType: target.Type(),
 			Err:        fmt.Errorf("expected a map type, got %s", target.Type()),
 		}))
 		return target, diags
 	}
-	if !val.Type().Is(tftypes.Map{}) {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			Err:        fmt.Errorf("cannot reflect %s into a map, must be a map", val.Type().String()),
-		}))
-		return target, diags
-	}
-	elemTyper, ok := typ.(attr.TypeWithElementType)
+	valWithMapElems, ok := val.(attr.ValueWithMapElements)
 	if !ok {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			Err:        fmt.Errorf("cannot reflect map using type information provided by %T, %T must be an attr.TypeWithElementType", typ, typ),
-		}))
-		return target, diags
+		// TODO: handle error
 	}
-
-	// we need our value to become a map of values so we can iterate over
-	// them and handle them individually
-	values := map[string]tftypes.Value{}
-	err := val.As(&values)
-	if err != nil {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			Err:        err,
-		}))
-		return target, diags
-	}
-
-	// we need to know the type the slice is wrapping
+	values := valWithMapElems.MapElements(ctx)
 	elemType := underlyingValue.Type().Elem()
-	elemAttrType := elemTyper.ElementType()
 
 	// we want an empty version of the map
 	m := reflect.MakeMapWithSize(underlyingValue.Type(), len(values))
@@ -73,7 +49,7 @@ func Map(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.V
 		path := path.WithElementKeyString(key)
 
 		// reflect the value into our new target
-		result, elemDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, path)
+		result, elemDiags := BuildValue(ctx, value, targetValue, opts, path)
 		diags.Append(elemDiags...)
 
 		if diags.HasError() {

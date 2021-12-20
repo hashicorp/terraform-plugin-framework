@@ -3,7 +3,6 @@ package reflect
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -21,7 +20,7 @@ import (
 // in the tftypes.Value must have a corresponding property in the struct. Into
 // will be called for each struct field. Slices will have Into called for each
 // element.
-func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interface{}, opts Options) diag.Diagnostics {
+func Into(ctx context.Context, val attr.Value, target interface{}, opts Options) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	v := reflect.ValueOf(target)
@@ -33,7 +32,7 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 		)
 		return diags
 	}
-	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, tftypes.NewAttributePath())
+	result, diags := BuildValue(ctx, val, v.Elem(), opts, tftypes.NewAttributePath())
 	if diags.HasError() {
 		return diags
 	}
@@ -46,7 +45,7 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 // to set, making it safe for use with pointer types which may be nil. It tries
 // to give consumers the ability to override its default behaviors wherever
 // possible.
-func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func BuildValue(ctx context.Context, val attr.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// if this isn't a valid reflect.Value, bail before we accidentally
@@ -62,17 +61,25 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 	}
 	// if this is an attr.Value, build the type from that
 	if target.Type().Implements(reflect.TypeOf((*attr.Value)(nil)).Elem()) {
-		return NewAttributeValue(ctx, typ, val, target, opts, path)
+		return NewAttributeValue(ctx, val, target, opts, path)
 	}
 	// if this tells tftypes how to build an instance of it out of a
 	// tftypes.Value, well, that's what we want, so do that instead of our
 	// default logic.
 	if target.Type().Implements(reflect.TypeOf((*tftypes.ValueConverter)(nil)).Elem()) {
-		return NewValueConverter(ctx, typ, val, target, opts, path)
+		return NewValueConverter(ctx, val, target, opts, path)
 	}
+
+	// grab the tftypes.Value behind the attr.Value for easy null/unknown
+	// checking
+	tfVal, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
+
 	// if this can explicitly be set to unknown, do that
 	if target.Type().Implements(reflect.TypeOf((*Unknownable)(nil)).Elem()) {
-		res, unknownableDiags := NewUnknownable(ctx, typ, val, target, opts, path)
+		res, unknownableDiags := NewUnknownable(ctx, val, target, opts, path)
 		diags.Append(unknownableDiags...)
 		if diags.HasError() {
 			return target, diags
@@ -81,13 +88,13 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		// only return if it's unknown; we want to call SetUnknown
 		// either way, but if the value is unknown, there's nothing
 		// else to do, so bail
-		if !val.IsKnown() {
+		if !tfVal.IsKnown() {
 			return target, nil
 		}
 	}
 	// if this can explicitly be set to null, do that
 	if target.Type().Implements(reflect.TypeOf((*Nullable)(nil)).Elem()) {
-		res, nullableDiags := NewNullable(ctx, typ, val, target, opts, path)
+		res, nullableDiags := NewNullable(ctx, val, target, opts, path)
 		diags.Append(nullableDiags...)
 		if diags.HasError() {
 			return target, diags
@@ -96,11 +103,11 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		// only return if it's null; we want to call SetNull either
 		// way, but if the value is null, there's nothing else to do,
 		// so bail
-		if val.IsNull() {
+		if tfVal.IsNull() {
 			return target, nil
 		}
 	}
-	if !val.IsKnown() {
+	if !tfVal.IsKnown() {
 		// we already handled unknown the only ways we can
 		// we checked that target doesn't have a SetUnknown method we
 		// can call
@@ -120,7 +127,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		return reflect.Zero(target.Type()), diags
 	}
 
-	if val.IsNull() {
+	if tfVal.IsNull() {
 		// we already handled null the only ways we can
 		// we checked that target doesn't have a SetNull method we can
 		// call
@@ -139,46 +146,44 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		)
 		return target, diags
 	}
-	// *big.Float and *big.Int are technically pointers, but we want them
-	// handled as numbers
-	if target.Type() == reflect.TypeOf(big.NewFloat(0)) || target.Type() == reflect.TypeOf(big.NewInt(0)) {
-		return Number(ctx, typ, val, target, opts, path)
+
+	if target.Kind() == reflect.Ptr {
+		ptr, ptrDiags := Pointer(ctx, val, target, opts, path)
+		diags.Append(ptrDiags...)
+		return ptr, diags
 	}
-	switch target.Kind() {
-	case reflect.Struct:
-		val, valDiags := Struct(ctx, typ, val, target, opts, path)
+
+	switch {
+	case tfVal.Type().Is(tftypes.String), tfVal.Type().Is(tftypes.Bool):
+		prim, valDiags := Primitive(ctx, val, target, path)
 		diags.Append(valDiags...)
-		return val, diags
-	case reflect.Bool, reflect.String:
-		val, valDiags := Primitive(ctx, typ, val, target, path)
-		diags.Append(valDiags...)
-		return val, diags
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
-		reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16,
-		reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
-		// numbers are the wooooorst and need their own special handling
-		// because we can't just hand them off to tftypes and also
-		// because we can't just make people use *big.Floats, because a
-		// nil *big.Float will crash everything if we don't handle it
-		// as a special case, so let's just special case numbers and
-		// let people use the types they want
-		val, valDiags := Number(ctx, typ, val, target, opts, path)
-		diags.Append(valDiags...)
-		return val, diags
-	case reflect.Slice:
-		val, valDiags := reflectSlice(ctx, typ, val, target, opts, path)
-		diags.Append(valDiags...)
-		return val, diags
-	case reflect.Map:
-		val, valDiags := Map(ctx, typ, val, target, opts, path)
-		diags.Append(valDiags...)
-		return val, diags
-	case reflect.Ptr:
-		val, valDiags := Pointer(ctx, typ, val, target, opts, path)
-		diags.Append(valDiags...)
-		return val, diags
+		return prim, diags
+	case tfVal.Type().Is(tftypes.Number):
+		num, numDiags := Number(ctx, val, target, opts, path)
+		diags.Append(numDiags...)
+		return num, diags
+	case tfVal.Type().Is(tftypes.Object{}):
+		obj, objDiags := Object(ctx, val, target, opts, path)
+		diags.Append(objDiags...)
+		return obj, diags
+	case tfVal.Type().Is(tftypes.List{}):
+		list, listDiags := List(ctx, val, target, opts, path)
+		diags.Append(listDiags...)
+		return list, diags
+	case tfVal.Type().Is(tftypes.Set{}):
+		set, setDiags := Set(ctx, val, target, opts, path)
+		diags.Append(setDiags...)
+		return set, diags
+	case tfVal.Type().Is(tftypes.Tuple{}):
+		tup, tupDiags := Tuple(ctx, val, target, opts, path)
+		diags.Append(tupDiags...)
+		return tup, diags
+	case tfVal.Type().Is(tftypes.Map{}):
+		m, mDiags := Map(ctx, val, target, opts, path)
+		diags.Append(mDiags...)
+		return m, diags
 	default:
-		err := fmt.Errorf("don't know how to reflect %s into %s", val.Type(), target.Type())
+		err := fmt.Errorf("don't know how to reflect %s into %s", val.Type(ctx), target.Type())
 		diags.AddAttributeError(
 			path,
 			"Value Conversion Error",

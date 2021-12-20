@@ -9,22 +9,22 @@ import (
 // attribute plan modification functions.
 type ModifySchemaPlanRequest struct {
 	// Config is the configuration the user supplied for the resource.
-	Config Config
+	Config ReadOnlyData
 
 	// State is the current state of the resource.
-	State State
+	State *Data
 
 	// Plan is the planned new state for the resource.
-	Plan Plan
+	Plan *Data
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta ReadOnlyData
 }
 
 // ModifySchemaPlanResponse represents a response to a ModifySchemaPlanRequest.
 type ModifySchemaPlanResponse struct {
 	// Plan is the planned new state for the resource.
-	Plan Plan
+	Plan *Data
 
 	// RequiresReplace is a list of tftypes.AttributePaths that require the
 	// resource to be replaced. They should point to the specific field

@@ -2,12 +2,12 @@ package tfsdk
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-log/tfsdklog"
 )
 
 // AttributePlanModifier represents a modifier for an attribute at plan time.
@@ -115,27 +115,15 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req ModifyAttribute
 		return
 	}
 
-	if req.State.Raw.IsNull() {
+	if req.State.ReadOnlyData.Values.Null {
 		// if we're creating the resource, no need to delete and
 		// recreate it
 		return
 	}
 
-	if req.Plan.Raw.IsNull() {
+	if req.Plan.ReadOnlyData.Values.Null {
 		// if we're deleting the resource, no need to delete and
 		// recreate it
-		return
-	}
-
-	attrSchema, err := req.State.Schema.AttributeAtPath(req.AttributePath)
-
-	// Path may lead to block instead of attribute. Blocks cannot be Computed.
-	// If ErrPathIsBlock, attrSchema.Computed will still be false later.
-	if err != nil && !errors.Is(err, ErrPathIsBlock) {
-		resp.Diagnostics.AddAttributeError(req.AttributePath,
-			"Error finding attribute schema",
-			fmt.Sprintf("An unexpected error was encountered retrieving the schema for this attribute. This is always a bug in the provider.\n\nError: %s", err),
-		)
 		return
 	}
 
@@ -147,7 +135,7 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req ModifyAttribute
 		)
 		return
 	}
-	if configRaw.IsNull() && attrSchema.Computed {
+	if configRaw.IsNull() && req.AttributeSchema.Computed {
 		// if the config is null and the attribute is computed, this
 		// could be an out of band change, don't require replace
 		return
@@ -255,39 +243,19 @@ func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttribu
 		return
 	}
 
-	if req.State.Raw.IsNull() {
+	if req.State.ReadOnlyData.Values.Null {
 		// if we're creating the resource, no need to delete and
 		// recreate it
 		return
 	}
 
-	if req.Plan.Raw.IsNull() {
+	if req.Plan.ReadOnlyData.Values.Null {
 		// if we're deleting the resource, no need to delete and
 		// recreate it
 		return
 	}
 
-	attrSchema, err := req.State.Schema.AttributeAtPath(req.AttributePath)
-
-	// Path may lead to block instead of attribute. Blocks cannot be Computed.
-	// If ErrPathIsBlock, attrSchema.Computed will still be false later.
-	if err != nil && !errors.Is(err, ErrPathIsBlock) {
-		resp.Diagnostics.AddAttributeError(req.AttributePath,
-			"Error finding attribute schema",
-			fmt.Sprintf("An unexpected error was encountered retrieving the schema for this attribute. This is always a bug in the provider.\n\nError: %s", err),
-		)
-		return
-	}
-
-	configRaw, err := req.AttributeConfig.ToTerraformValue(ctx)
-	if err != nil {
-		resp.Diagnostics.AddAttributeError(req.AttributePath,
-			"Error converting config value",
-			fmt.Sprintf("An unexpected error was encountered converting a %s to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", req.AttributeConfig.Type(ctx), err),
-		)
-		return
-	}
-	if configRaw.IsNull() && attrSchema.Computed {
+	if req.Config.Values.Null && req.AttributeSchema.Computed {
 		// if the config is null and the attribute is computed, this
 		// could be an out of band change, don't require replace
 		return
@@ -308,7 +276,7 @@ func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttribu
 	if res {
 		resp.RequiresReplace = true
 	} else if resp.RequiresReplace {
-		// TODO: log that we didn't override the result
+		tfsdklog.Warn(ctx, "not stopping a previous plan modifier from forcing resource recreation", "path", req.AttributePath)
 	}
 }
 
@@ -406,17 +374,20 @@ func (r UseStateForUnknownModifier) MarkdownDescription(ctx context.Context) str
 // instance of this request struct is supplied as an argument to the Modify
 // function of an attribute's plan modifier(s).
 type ModifyAttributePlanRequest struct {
+	// Schema is the schema for the Attribute
+	AttributeSchema Attribute
+
 	// AttributePath is the path of the attribute.
 	AttributePath *tftypes.AttributePath
 
 	// Config is the configuration the user supplied for the resource.
-	Config Config
+	Config ReadOnlyData
 
 	// State is the current state of the resource.
-	State State
+	State *Data
 
 	// Plan is the planned new state for the resource.
-	Plan Plan
+	Plan *Data
 
 	// AttributeConfig is the configuration the user supplied for the attribute.
 	AttributeConfig attr.Value
@@ -428,7 +399,7 @@ type ModifyAttributePlanRequest struct {
 	AttributePlan attr.Value
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta ReadOnlyData
 }
 
 // ModifyAttributePlanResponse represents a response to a

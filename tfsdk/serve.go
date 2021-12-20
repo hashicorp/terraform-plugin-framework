@@ -298,7 +298,6 @@ func (s *server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 	return resp.toTfprotov6(), nil
 }
 
-// TODO: refactor
 func (s *server) validateResourceConfig(ctx context.Context, req *tfprotov6.ValidateResourceConfigRequest, resp *validateResourceConfigResponse) {
 	resourceSchema, diags := serveGetResourceSchema(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
@@ -393,63 +392,34 @@ func (s *server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 }
 
 func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRequest, resp *readResourceResponse) {
-	resourceType, diags := serveGetResourceType(ctx, s.p, req.TypeName)
+	resource, diags := serveGetResourceInstance(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resourceSchema, diags := resourceType.GetSchema(ctx)
+	resourceSchema, diags := serveGetResourceSchema(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resource, diags := resourceType.NewResource(ctx, s.p)
+	state, diags := parseState(ctx, req.CurrentState, resourceSchema)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-	state, err := req.CurrentState.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing current state",
-			"There was an error parsing the current state. Please report this to the provider developer:\n\n"+err.Error(),
-		)
 		return
 	}
 	readReq := ReadResourceRequest{
-		State: State{
-			Raw:    state,
-			Schema: resourceSchema,
-		},
+		State: state,
 	}
-	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
-		pmSchema, diags := pm.GetMetaSchema(ctx)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		readReq.ProviderMeta = Config{
-			Schema: pmSchema,
-			Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
-		}
-
-		if req.ProviderMeta != nil {
-			pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error parsing provider_meta",
-					"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-				)
-				return
-			}
-			readReq.ProviderMeta.Raw = pmValue
-		}
+	pm, ok, diags := serveParseProviderMeta(ctx, s.p, req.ProviderMeta)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if ok {
+		readReq.ProviderMeta = pm
 	}
 	readResp := ReadResourceResponse{
-		State: State{
-			Raw:    state,
-			Schema: resourceSchema,
-		},
+		State:       state,
 		Diagnostics: resp.Diagnostics,
 	}
 	resource.Read(ctx, readReq, &readResp)
@@ -457,7 +427,11 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	// don't return even if we have error diagnostics, we need to set the
 	// state on the response, first
 
-	newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), readResp.State.Raw)
+	newStateVal, err := readResp.State.ReadOnlyData.Values.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
+	newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), newStateVal)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error converting read response",
@@ -528,46 +502,35 @@ func (s *server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 }
 
 func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanResourceChangeRequest, resp *planResourceChangeResponse) {
-	// get the type of resource, so we can get its schema and create an
-	// instance
-	resourceType, diags := serveGetResourceType(ctx, s.p, req.TypeName)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// get the schema from the resource type, so we can embed it in the
 	// config and plan
-	resourceSchema, diags := resourceType.GetSchema(ctx)
+	schema, diags := serveGetResourceSchema(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	config, err := req.Config.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing configuration",
-			"An unexpected error was encountered trying to parse the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+	config, diags := parseConfig(ctx, req.Config, schema)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	plan, err := req.ProposedNewState.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing plan",
-			"There was an unexpected error parsing the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+	plan, diags := parsePlan(ctx, req.ProposedNewState, schema)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	state, err := req.PriorState.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing prior state",
-			"An unexpected error was encountered trying to parse the prior state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+	state, diags := parseState(ctx, req.PriorState, schema)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	pm, usePM, diags := serveParseProviderMeta(ctx, s.p, req.ProviderMeta)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -575,203 +538,65 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 
 	// create the resource instance, so we can call its methods and handle
 	// the request
-	resource, diags := resourceType.NewResource(ctx, s.p)
+	resource, diags := serveGetResourceInstance(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Execute any AttributePlanModifiers.
-	//
-	// This pass is before any Computed-only attributes are marked as unknown
-	// to ensure any plan changes will trigger that behavior. These plan
-	// modifiers are run again after that marking to allow setting values
-	// and preventing extraneous plan differences.
-	//
-	// We only do this if there's a plan to modify; otherwise, it
-	// represents a resource being deleted and there's no point.
-	//
-	// TODO: Enabling this pass will generate the following test error:
-	//
-	//     --- FAIL: TestServerPlanResourceChange/two_modifyplan_add_list_elem (0.00s)
-	// serve_test.go:3303: An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:
-	//
-	// ElementKeyInt(1).AttributeName("name") still remains in the path: step cannot be applied to this value
-	//
-	// To fix this, (Config).GetAttribute() should return nil instead of the error.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/183
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-	// See also: https://github.com/hashicorp/terraform-plugin-framework/pull/167
+	// Execute any AttributePlanModifiers again. Do this first, to
+	// influence whether there's a plan to modify.
+	plan, rr, diags := serveResourceRunAttributePlanModifiers(ctx, schema, usePM, pm, config, state, plan, resp.Diagnostics)
+	resp.Diagnostics = diags
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.RequiresReplace = append(resp.RequiresReplace, rr...)
 
-	// Execute any resource-level ModifyPlan method.
-	//
-	// This pass is before any Computed-only attributes are marked as unknown
-	// to ensure any plan changes will trigger that behavior. These plan
-	// modifiers be run again after that marking to allow setting values and
-	// preventing extraneous plan differences.
-	//
-	// TODO: Enabling this pass will generate the following test error:
-	//
-	//     --- FAIL: TestServerPlanResourceChange/two_modifyplan_add_list_elem (0.00s)
-	// serve_test.go:3303: An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:
-	//
-	// ElementKeyInt(1).AttributeName("name") still remains in the path: step cannot be applied to this value
-	//
-	// To fix this, (Config).GetAttribute() should return nil instead of the error.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/183
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-	// See also: https://github.com/hashicorp/terraform-plugin-framework/pull/167
+	// Execute any resource-level ModifyPlan method. Do this first, to
+	// influence whether there's a plan to modify.
+	plan, rr, diags = serveResourceRunModifyPlan(ctx, resource, usePM, pm, config, state, plan, resp.Diagnostics)
+	resp.Diagnostics = diags
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.RequiresReplace = append(resp.RequiresReplace, rr...)
 
-	// After ensuring there are proposed changes, mark any computed attributes
-	// that are null in the config as unknown in the plan, so providers have
-	// the choice to update them.
-	//
-	// Later attribute and resource plan modifier passes can override the
-	// unknown with a known value using any plan modifiers.
-	//
-	// We only do this if there's a plan to modify; otherwise, it
-	// represents a resource being deleted and there's no point.
-	if !plan.IsNull() && !plan.Equal(state) {
-		tfsdklog.Trace(ctx, "marking computed null values as unknown")
-		modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, config, resourceSchema))
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error modifying plan",
-				"There was an unexpected error updating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		if !plan.Equal(modifiedPlan) {
-			tfsdklog.Trace(ctx, "at least one value was changed to unknown")
-		}
-		plan = modifiedPlan
+	// set up some sensible default values for the plan, marking any nil
+	// values that are marked as computed in the schema as unknown. This
+	// allows provider developers to set them at apply time without needing
+	// to mark them all as unknown at plan time, which is usually what they
+	// want. But it does mean that if a value is known at plan time, the
+	// provider has to explicitly say so.
+	plan, diags = serveResourcePlanMarkComputedNilsAsUnknown(ctx, config, state, plan, schema)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Execute any AttributePlanModifiers again. This allows overwriting
 	// any unknown values.
-	//
-	// We only do this if there's a plan to modify; otherwise, it
-	// represents a resource being deleted and there's no point.
-	if !plan.IsNull() {
-		modifySchemaPlanReq := ModifySchemaPlanRequest{
-			Config: Config{
-				Schema: resourceSchema,
-				Raw:    config,
-			},
-			State: State{
-				Schema: resourceSchema,
-				Raw:    state,
-			},
-			Plan: Plan{
-				Schema: resourceSchema,
-				Raw:    plan,
-			},
-		}
-		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			if diags != nil {
-				resp.Diagnostics.Append(diags...)
-				if resp.Diagnostics.HasError() {
-					return
-				}
-			}
-			modifySchemaPlanReq.ProviderMeta = Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
-			}
-
-			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Error parsing provider_meta",
-						"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-					)
-					return
-				}
-				modifySchemaPlanReq.ProviderMeta.Raw = pmValue
-			}
-		}
-
-		modifySchemaPlanResp := ModifySchemaPlanResponse{
-			Plan: Plan{
-				Schema: resourceSchema,
-				Raw:    plan,
-			},
-			Diagnostics: resp.Diagnostics,
-		}
-
-		resourceSchema.modifyPlan(ctx, modifySchemaPlanReq, &modifySchemaPlanResp)
-		resp.RequiresReplace = append(resp.RequiresReplace, modifySchemaPlanResp.RequiresReplace...)
-		plan = modifySchemaPlanResp.Plan.Raw
-		resp.Diagnostics = modifySchemaPlanResp.Diagnostics
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	plan, rr, diags = serveResourceRunAttributePlanModifiers(ctx, schema, usePM, pm, config, state, plan, resp.Diagnostics)
+	resp.Diagnostics = diags
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	resp.RequiresReplace = append(resp.RequiresReplace, rr...)
 
 	// Execute any resource-level ModifyPlan method again. This allows
 	// overwriting any unknown values.
-	//
-	// We do this regardless of whether the plan is null or not, because we
-	// want resources to be able to return diagnostics when planning to
-	// delete resources, e.g. to inform practitioners that the resource
-	// _can't_ be deleted in the API and will just be removed from
-	// Terraform's state
-	var modifyPlanResp ModifyResourcePlanResponse
-	if resource, ok := resource.(ResourceWithModifyPlan); ok {
-		modifyPlanReq := ModifyResourcePlanRequest{
-			Config: Config{
-				Schema: resourceSchema,
-				Raw:    config,
-			},
-			State: State{
-				Schema: resourceSchema,
-				Raw:    state,
-			},
-			Plan: Plan{
-				Schema: resourceSchema,
-				Raw:    plan,
-			},
-		}
-		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			modifyPlanReq.ProviderMeta = Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
-			}
-
-			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Error parsing provider_meta",
-						"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-					)
-					return
-				}
-				modifyPlanReq.ProviderMeta.Raw = pmValue
-			}
-		}
-
-		modifyPlanResp = ModifyResourcePlanResponse{
-			Plan: Plan{
-				Schema: resourceSchema,
-				Raw:    plan,
-			},
-			RequiresReplace: []*tftypes.AttributePath{},
-			Diagnostics:     resp.Diagnostics,
-		}
-		resource.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
-		resp.Diagnostics = modifyPlanResp.Diagnostics
-		plan = modifyPlanResp.Plan.Raw
+	plan, rr, diags = serveResourceRunModifyPlan(ctx, resource, usePM, pm, config, state, plan, resp.Diagnostics)
+	resp.Diagnostics = diags
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	resp.RequiresReplace = append(resp.RequiresReplace, rr...)
 
-	plannedState, err := tfprotov6.NewDynamicValue(plan.Type(), plan)
+	tfPlan, err := plan.ReadOnlyData.Values.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
+	plannedState, err := tfprotov6.NewDynamicValue(plan.ReadOnlyData.Values.Type(ctx).TerraformType(ctx), tfPlan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error converting response",
@@ -780,7 +605,6 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 		return
 	}
 	resp.PlannedState = &plannedState
-	resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 
 	// ensure deterministic RequiresReplace by sorting and deduplicating
 	resp.RequiresReplace = normaliseRequiresReplace(ctx, resp.RequiresReplace)

@@ -17,5 +17,5 @@ type ImportResourceStateResponse struct {
 	// State is the state of the resource following the import operation.
 	// It must contain enough information so Terraform can successfully
 	// refresh the resource, e.g. call the Resource Read method.
-	State State
+	State *Data
 }

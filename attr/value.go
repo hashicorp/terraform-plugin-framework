@@ -21,3 +21,34 @@ type Value interface {
 	// to the Value passed as an argument.
 	Equal(Value) bool
 }
+
+type ValueWithMapElements interface {
+	Value
+	MapElements(context.Context) map[string]Value
+}
+
+type ValueWithElements interface {
+	Value
+	Elements(context.Context) []Value
+}
+
+type ValueWithAttributes interface {
+	Value
+	Attributes(context.Context) map[string]Value
+}
+
+func ValueIsNull(ctx context.Context, val Value) (bool, error) {
+	v, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		return false, err
+	}
+	return v.IsNull(), nil
+}
+
+func ValueIsUnknown(ctx context.Context, val Value) (bool, error) {
+	v, err := val.ToTerraformValue(ctx)
+	if err != nil {
+		return false, err
+	}
+	return !v.IsKnown(), nil
+}

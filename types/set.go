@@ -194,18 +194,7 @@ type Set struct {
 // ElementsAs populates `target` with the elements of the Set, throwing an
 // error if the elements cannot be stored in `target`.
 func (s Set) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
-	// we need a tftypes.Value for this Set to be able to use it with our
-	// reflection code
-	val, err := s.ToTerraformValue(ctx)
-	if err != nil {
-		return diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"Set Element Conversion Error",
-				"An unexpected error was encountered trying to convert set elements. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			),
-		}
-	}
-	return reflect.Into(ctx, s.Type(ctx), val, target, reflect.Options{
+	return reflect.Into(ctx, s, target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,
 	})
@@ -278,4 +267,8 @@ func (s Set) contains(v attr.Value) bool {
 	}
 
 	return false
+}
+
+func (s Set) Elements(ctx context.Context) []attr.Value {
+	return s.Elems
 }

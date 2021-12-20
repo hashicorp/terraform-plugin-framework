@@ -15,7 +15,7 @@ type ConfigureProviderRequest struct {
 	// information should usually be persisted to the underlying type
 	// that's implementing the Provider interface, for use in later
 	// resource CRUD operations.
-	Config Config
+	Config ReadOnlyData
 }
 
 // CreateResourceRequest represents a request for the provider to create a
@@ -27,13 +27,13 @@ type CreateResourceRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config ReadOnlyData
 
 	// Plan is the planned state for the resource.
-	Plan Plan
+	Plan *Data
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta ReadOnlyData
 }
 
 // ReadResourceRequest represents a request for the provider to read a
@@ -43,10 +43,10 @@ type CreateResourceRequest struct {
 type ReadResourceRequest struct {
 	// State is the current state of the resource prior to the Read
 	// operation.
-	State State
+	State *Data
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta ReadOnlyData
 }
 
 // UpdateResourceRequest represents a request for the provider to update a
@@ -58,17 +58,17 @@ type UpdateResourceRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config ReadOnlyData
 
 	// Plan is the planned state for the resource.
-	Plan Plan
+	Plan *Data
 
 	// State is the current state of the resource prior to the Update
 	// operation.
-	State State
+	State *Data
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta ReadOnlyData
 }
 
 // DeleteResourceRequest represents a request for the provider to delete a
@@ -77,10 +77,10 @@ type UpdateResourceRequest struct {
 type DeleteResourceRequest struct {
 	// State is the current state of the resource prior to the Delete
 	// operation.
-	State State
+	State *Data
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta ReadOnlyData
 }
 
 // ModifyResourcePlanRequest represents a request for the provider to modify the
@@ -91,16 +91,16 @@ type ModifyResourcePlanRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config ReadOnlyData
 
 	// State is the current state of the resource.
-	State State
+	State *Data
 
 	// Plan is the planned new state for the resource.
-	Plan Plan
+	Plan *Data
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta ReadOnlyData
 }
 
 // ReadDataSourceRequest represents a request for the provider to read a data
@@ -113,8 +113,8 @@ type ReadDataSourceRequest struct {
 	// This configuration may contain unknown values if a user uses
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
-	Config Config
+	Config ReadOnlyData
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
-	ProviderMeta Config
+	ProviderMeta ReadOnlyData
 }

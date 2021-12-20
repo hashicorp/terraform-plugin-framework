@@ -86,15 +86,15 @@ func TestInt64ToTerraformValue(t *testing.T) {
 	tests := map[string]testCase{
 		"value": {
 			input:       Int64{Value: 123},
-			expectation: big.NewFloat(123),
+			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123)),
 		},
 		"unknown": {
 			input:       Int64{Unknown: true},
-			expectation: tftypes.UnknownValue,
+			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 		},
 		"null": {
 			input:       Int64{Null: true},
-			expectation: nil,
+			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 	}
 	for name, test := range tests {

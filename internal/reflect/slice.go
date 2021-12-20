@@ -151,32 +151,22 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		}
 
 		tfVal, err := val.ToTerraformValue(ctx)
-
 		if err != nil {
 			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 
-		err = tftypes.ValidateValue(elemType.TerraformType(ctx), tfVal)
-
-		if err != nil {
-			return nil, append(diags, validateValueErrorDiag(err, path))
-		}
-
-		tfElemVal := tftypes.NewValue(elemType.TerraformType(ctx), tfVal)
-
 		if tfType.Is(tftypes.Set{}) {
-			valPath = path.WithElementKeyValue(tfElemVal)
+			valPath = path.WithElementKeyValue(tfVal)
 		}
 
 		if typeWithValidate, ok := elemType.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfElemVal, valPath)...)
-
+			diags.Append(typeWithValidate.Validate(ctx, tfVal, valPath)...)
 			if diags.HasError() {
 				return nil, diags
 			}
 		}
 
-		tfElems = append(tfElems, tfElemVal)
+		tfElems = append(tfElems, tfVal)
 	}
 
 	err := tftypes.ValidateValue(tfType, tfElems)

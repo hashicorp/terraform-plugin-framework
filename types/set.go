@@ -196,7 +196,7 @@ type Set struct {
 func (s Set) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
 	// we need a tftypes.Value for this Set to be able to use it with our
 	// reflection code
-	values, err := s.ToTerraformValue(ctx)
+	val, err := s.ToTerraformValue(ctx)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(
@@ -205,9 +205,7 @@ func (s Set) ElementsAs(ctx context.Context, target interface{}, allowUnhandled 
 			),
 		}
 	}
-	return reflect.Into(ctx, SetType{ElemType: s.ElemType}, tftypes.NewValue(tftypes.Set{
-		ElementType: s.ElemType.TerraformType(ctx),
-	}, values), target, reflect.Options{
+	return reflect.Into(ctx, s.Type(ctx), val, target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,
 	})
@@ -219,27 +217,27 @@ func (s Set) Type(ctx context.Context) attr.Type {
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as
-// a Go type that tftypes.NewValue will accept.
-func (s Set) ToTerraformValue(ctx context.Context) (interface{}, error) {
+// a tftypes.Value.
+func (s Set) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	setType := tftypes.Set{ElementType: s.ElemType.TerraformType(ctx)}
 	if s.Unknown {
-		return tftypes.UnknownValue, nil
+		return tftypes.NewValue(setType, tftypes.UnknownValue), nil
 	}
 	if s.Null {
-		return nil, nil
+		return tftypes.NewValue(setType, nil), nil
 	}
 	vals := make([]tftypes.Value, 0, len(s.Elems))
 	for _, elem := range s.Elems {
 		val, err := elem.ToTerraformValue(ctx)
 		if err != nil {
-			return nil, err
+			return tftypes.NewValue(setType, tftypes.UnknownValue), err
 		}
-		err = tftypes.ValidateValue(s.ElemType.TerraformType(ctx), val)
-		if err != nil {
-			return nil, fmt.Errorf("error validating terraform type: %w", err)
-		}
-		vals = append(vals, tftypes.NewValue(s.ElemType.TerraformType(ctx), val))
+		vals = append(vals, val)
 	}
-	return vals, nil
+	if err := tftypes.ValidateValue(setType, vals); err != nil {
+		return tftypes.NewValue(setType, tftypes.UnknownValue), err
+	}
+	return tftypes.NewValue(setType, vals), nil
 }
 
 // Equal must return true if the AttributeValue is considered

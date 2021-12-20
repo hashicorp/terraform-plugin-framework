@@ -287,7 +287,7 @@ func TestMapToTerraformValue(t *testing.T) {
 
 	type testCase struct {
 		input       Map
-		expectation interface{}
+		expectation tftypes.Value
 	}
 	tests := map[string]testCase{
 		"value": {
@@ -298,18 +298,18 @@ func TestMapToTerraformValue(t *testing.T) {
 					"w": String{Value: "world"},
 				},
 			},
-			expectation: map[string]tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
 				"h": tftypes.NewValue(tftypes.String, "hello"),
 				"w": tftypes.NewValue(tftypes.String, "world"),
-			},
+			}),
 		},
 		"unknown": {
-			input:       Map{Unknown: true},
-			expectation: tftypes.UnknownValue,
+			input:       Map{ElemType: StringType, Unknown: true},
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       Map{Null: true},
-			expectation: nil,
+			input:       Map{ElemType: StringType, Null: true},
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
 		},
 		"partial-unknown": {
 			input: Map{
@@ -319,10 +319,10 @@ func TestMapToTerraformValue(t *testing.T) {
 					"hw":  String{Value: "hello, world"},
 				},
 			},
-			expectation: map[string]tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
 				"unk": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				"hw":  tftypes.NewValue(tftypes.String, "hello, world"),
-			},
+			}),
 		},
 		"partial-null": {
 			input: Map{
@@ -332,10 +332,10 @@ func TestMapToTerraformValue(t *testing.T) {
 					"hw": String{Value: "hello, world"},
 				},
 			},
-			expectation: map[string]tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
 				"n":  tftypes.NewValue(tftypes.String, nil),
 				"hw": tftypes.NewValue(tftypes.String, "hello, world"),
-			},
+			}),
 		},
 	}
 	for name, test := range tests {

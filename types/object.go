@@ -180,7 +180,6 @@ func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions
 	// we need a tftypes.Value for this Object to be able to use it with
 	// our reflection code
 	obj := ObjectType{AttrTypes: o.AttrTypes}
-	typ := obj.TerraformType(ctx)
 	val, err := o.ToTerraformValue(ctx)
 	if err != nil {
 		return diag.Diagnostics{
@@ -190,16 +189,7 @@ func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions
 			),
 		}
 	}
-	err = tftypes.ValidateValue(typ, val)
-	if err != nil {
-		return diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"Object Conversion Error",
-				"An unexpected error was encountered trying to convert object. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			),
-		}
-	}
-	return reflect.Into(ctx, obj, tftypes.NewValue(typ, val), target, reflect.Options{
+	return reflect.Into(ctx, obj, val, target, reflect.Options{
 		UnhandledNullAsEmpty:    opts.UnhandledNullAsEmpty,
 		UnhandledUnknownAsEmpty: opts.UnhandledUnknownAsEmpty,
 	})
@@ -211,28 +201,32 @@ func (o Object) Type(_ context.Context) attr.Type {
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as
-// a Go type that tftypes.NewValue will accept.
-func (o Object) ToTerraformValue(ctx context.Context) (interface{}, error) {
+// a tftypes.Value.
+func (o Object) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := map[string]tftypes.Type{}
+	for attr, typ := range o.AttrTypes {
+		attrTypes[attr] = typ.TerraformType(ctx)
+	}
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
 	if o.Unknown {
-		return tftypes.UnknownValue, nil
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
 	}
 	if o.Null {
-		return nil, nil
+		return tftypes.NewValue(objectType, nil), nil
 	}
 	vals := map[string]tftypes.Value{}
 
 	for k, v := range o.Attrs {
 		val, err := v.ToTerraformValue(ctx)
 		if err != nil {
-			return nil, err
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
-		err = tftypes.ValidateValue(o.AttrTypes[k].TerraformType(ctx), val)
-		if err != nil {
-			return nil, err
-		}
-		vals[k] = tftypes.NewValue(o.AttrTypes[k].TerraformType(ctx), val)
+		vals[k] = val
 	}
-	return vals, nil
+	if err := tftypes.ValidateValue(objectType, vals); err != nil {
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+	}
+	return tftypes.NewValue(objectType, vals), nil
 }
 
 // Equal must return true if the AttributeValue is considered

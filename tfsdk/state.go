@@ -131,7 +131,7 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 		return diags
 	}
 
-	newStateVal, err := newStateAttrValue.ToTerraformValue(ctx)
+	newState, err := newStateAttrValue.ToTerraformValue(ctx)
 	if err != nil {
 		err = fmt.Errorf("error running ToTerraformValue on state: %w", err)
 		diags.AddError(
@@ -140,8 +140,6 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 		)
 		return diags
 	}
-
-	newState := tftypes.NewValue(s.Schema.AttributeType().TerraformType(ctx), newStateVal)
 
 	s.Raw = newState
 	return diags
@@ -176,7 +174,7 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 		return diags
 	}
 
-	newTfVal, err := newVal.ToTerraformValue(ctx)
+	tfVal, err := newVal.ToTerraformValue(ctx)
 	if err != nil {
 		err = fmt.Errorf("error running ToTerraformValue on new state value: %w", err)
 		diags.AddAttributeError(
@@ -186,8 +184,6 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 		)
 		return diags
 	}
-
-	tfVal := tftypes.NewValue(attrType.TerraformType(ctx), newTfVal)
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)

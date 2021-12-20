@@ -148,9 +148,7 @@ func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled
 			),
 		}
 	}
-	return reflect.Into(ctx, ListType{ElemType: l.ElemType}, tftypes.NewValue(tftypes.List{
-		ElementType: l.ElemType.TerraformType(ctx),
-	}, values), target, reflect.Options{
+	return reflect.Into(ctx, ListType{ElemType: l.ElemType}, values, target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,
 	})
@@ -162,27 +160,27 @@ func (l List) Type(ctx context.Context) attr.Type {
 }
 
 // ToTerraformValue returns the data contained in the AttributeValue as
-// a Go type that tftypes.NewValue will accept.
-func (l List) ToTerraformValue(ctx context.Context) (interface{}, error) {
+// a tftypes.Value.
+func (l List) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	listType := tftypes.List{ElementType: l.ElemType.TerraformType(ctx)}
 	if l.Unknown {
-		return tftypes.UnknownValue, nil
+		return tftypes.NewValue(listType, tftypes.UnknownValue), nil
 	}
 	if l.Null {
-		return nil, nil
+		return tftypes.NewValue(listType, nil), nil
 	}
 	vals := make([]tftypes.Value, 0, len(l.Elems))
 	for _, elem := range l.Elems {
 		val, err := elem.ToTerraformValue(ctx)
 		if err != nil {
-			return nil, err
+			return tftypes.NewValue(listType, tftypes.UnknownValue), err
 		}
-		err = tftypes.ValidateValue(l.ElemType.TerraformType(ctx), val)
-		if err != nil {
-			return nil, fmt.Errorf("error validating terraform type: %w", err)
-		}
-		vals = append(vals, tftypes.NewValue(l.ElemType.TerraformType(ctx), val))
+		vals = append(vals, val)
 	}
-	return vals, nil
+	if err := tftypes.ValidateValue(listType, vals); err != nil {
+		return tftypes.NewValue(listType, tftypes.UnknownValue), err
+	}
+	return tftypes.NewValue(listType, vals), nil
 }
 
 // Equal must return true if the AttributeValue is considered

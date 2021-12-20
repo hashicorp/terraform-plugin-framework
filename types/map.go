@@ -137,33 +137,17 @@ type Map struct {
 func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
 	// we need a tftypes.Value for this Map to be able to use it with our
 	// reflection code
-	values := make(map[string]tftypes.Value, len(m.Elems))
-	for key, elem := range m.Elems {
-		val, err := elem.ToTerraformValue(ctx)
-		if err != nil {
-			err := fmt.Errorf("error getting Terraform value for element %q: %w", key, err)
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Map Element Conversion Error",
-					"An unexpected error was encountered trying to convert map elements. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-				),
-			}
+	val, err := m.ToTerraformValue(ctx)
+	if err != nil {
+		err := fmt.Errorf("error getting Terraform value for map: %w", err)
+		return diag.Diagnostics{
+			diag.NewErrorDiagnostic(
+				"Map Conversion Error",
+				"An unexpected error was encountered trying to convert the map into an equivalent Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			),
 		}
-		err = tftypes.ValidateValue(m.ElemType.TerraformType(ctx), val)
-		if err != nil {
-			err := fmt.Errorf("error using created Terraform value for element %q: %w", key, err)
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Map Element Conversion Error",
-					"An unexpected error was encountered trying to convert map elements. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-				),
-			}
-		}
-		values[key] = tftypes.NewValue(m.ElemType.TerraformType(ctx), val)
 	}
-	return reflect.Into(ctx, MapType{ElemType: m.ElemType}, tftypes.NewValue(tftypes.Map{
-		ElementType: m.ElemType.TerraformType(ctx),
-	}, values), target, reflect.Options{
+	return reflect.Into(ctx, MapType{ElemType: m.ElemType}, val, target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,
 	})
@@ -174,28 +158,28 @@ func (m Map) Type(ctx context.Context) attr.Type {
 	return MapType{ElemType: m.ElemType}
 }
 
-// ToTerraformValue returns the data contained in the AttributeValue as a Go
-// type that tftypes.NewValue will accept.
-func (m Map) ToTerraformValue(ctx context.Context) (interface{}, error) {
+// ToTerraformValue returns the data contained in the AttributeValue as a
+// tftypes.Value.
+func (m Map) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	mapType := tftypes.Map{ElementType: m.ElemType.TerraformType(ctx)}
 	if m.Unknown {
-		return tftypes.UnknownValue, nil
+		return tftypes.NewValue(mapType, tftypes.UnknownValue), nil
 	}
 	if m.Null {
-		return nil, nil
+		return tftypes.NewValue(mapType, nil), nil
 	}
 	vals := make(map[string]tftypes.Value, len(m.Elems))
 	for key, elem := range m.Elems {
 		val, err := elem.ToTerraformValue(ctx)
 		if err != nil {
-			return nil, err
+			return tftypes.NewValue(mapType, tftypes.UnknownValue), err
 		}
-		err = tftypes.ValidateValue(m.ElemType.TerraformType(ctx), val)
-		if err != nil {
-			return nil, err
-		}
-		vals[key] = tftypes.NewValue(m.ElemType.TerraformType(ctx), val)
+		vals[key] = val
 	}
-	return vals, nil
+	if err := tftypes.ValidateValue(mapType, vals); err != nil {
+		return tftypes.NewValue(mapType, tftypes.UnknownValue), err
+	}
+	return tftypes.NewValue(mapType, vals), nil
 }
 
 // Equal must return true if the AttributeValue is considered semantically

@@ -143,24 +143,15 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 
-		tfElemType := elemType.TerraformType(ctx)
-		err = tftypes.ValidateValue(tfElemType, tfVal)
-
-		if err != nil {
-			return nil, append(diags, validateValueErrorDiag(err, path))
-		}
-
-		tfElemVal := tftypes.NewValue(tfElemType, tfVal)
-
 		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfElemVal, path.WithElementKeyString(key.String()))...)
+			diags.Append(typeWithValidate.Validate(ctx, tfVal, path.WithElementKeyString(key.String()))...)
 
 			if diags.HasError() {
 				return nil, diags
 			}
 		}
 
-		tfElems[key.String()] = tfElemVal
+		tfElems[key.String()] = tfVal
 	}
 
 	err := tftypes.ValidateValue(tfType, tfElems)

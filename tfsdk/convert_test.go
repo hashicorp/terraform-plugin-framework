@@ -43,7 +43,7 @@ func TestConvert(t *testing.T) {
 			typ: types.NumberType,
 			expectedDiags: diag.Diagnostics{diag.NewErrorDiagnostic(
 				"Error converting value",
-				"An unexpected error was encountered converting a types.String to a types.NumberType. This is always a problem with the provider. Please tell the provider developers that types.String is not compatible with types.NumberType.",
+				"An unexpected error was encountered converting a types.String to a types.NumberType. This is always a problem with the provider. Please tell the provider developers that types.NumberType returned the following error when calling ValueFromTerraform: can't unmarshal tftypes.String into *big.Float, expected *big.Float",
 			)},
 		},
 	}
@@ -56,6 +56,9 @@ func TestConvert(t *testing.T) {
 			got, diags := ConvertValue(context.Background(), tc.val, tc.typ)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				for _, diag := range diags {
+					t.Logf("Diag summary: %q, Diag details: %q", diag.Summary(), diag.Detail())
+				}
 				t.Fatalf("Unexpected diff in diags (-wanted, +got): %s", diff)
 			}
 

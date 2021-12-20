@@ -45,20 +45,22 @@ func (n Number) Type(_ context.Context) attr.Type {
 	return NumberType
 }
 
-// ToTerraformValue returns the data contained in the *Number as a *big.Float.
-// If Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
-// returns nil.
-func (n Number) ToTerraformValue(_ context.Context) (interface{}, error) {
+// ToTerraformValue returns the data contained in the *Number as a
+// tftypes.Value.
+func (n Number) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	if n.Null {
-		return nil, nil
+		return tftypes.NewValue(tftypes.Number, nil), nil
 	}
 	if n.Unknown {
-		return tftypes.UnknownValue, nil
+		return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
 	}
 	if n.Value == nil {
-		return nil, nil
+		return tftypes.NewValue(tftypes.Number, nil), nil
 	}
-	return n.Value, nil
+	if err := tftypes.ValidateValue(tftypes.Number, n.Value); err != nil {
+		return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), err
+	}
+	return tftypes.NewValue(tftypes.Number, n.Value), nil
 }
 
 // Equal returns true if `other` is a *Number and has the same value as `n`.

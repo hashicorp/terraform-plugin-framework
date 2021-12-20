@@ -147,7 +147,7 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req ModifyAttribute
 		)
 		return
 	}
-	if configRaw == nil && attrSchema.Computed {
+	if configRaw.IsNull() && attrSchema.Computed {
 		// if the config is null and the attribute is computed, this
 		// could be an out of band change, don't require replace
 		return
@@ -287,7 +287,7 @@ func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttribu
 		)
 		return
 	}
-	if configRaw == nil && attrSchema.Computed {
+	if configRaw.IsNull() && attrSchema.Computed {
 		// if the config is null and the attribute is computed, this
 		// could be an out of band change, don't require replace
 		return
@@ -354,7 +354,7 @@ func (r UseStateForUnknownModifier) Modify(ctx context.Context, req ModifyAttrib
 	}
 
 	// if we have no state value, there's nothing to preserve
-	if val == nil {
+	if val.IsNull() {
 		return
 	}
 
@@ -369,7 +369,7 @@ func (r UseStateForUnknownModifier) Modify(ctx context.Context, req ModifyAttrib
 
 	// if it's not planned to be the unknown value, stick with
 	// the concrete plan
-	if val != tftypes.UnknownValue {
+	if val.IsKnown() {
 		return
 	}
 
@@ -384,7 +384,7 @@ func (r UseStateForUnknownModifier) Modify(ctx context.Context, req ModifyAttrib
 
 	// if the config is the unknown value, use the unknown value
 	// otherwise, interpolation gets messed up
-	if val == tftypes.UnknownValue {
+	if !val.IsKnown() {
 		return
 	}
 

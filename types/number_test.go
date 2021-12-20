@@ -85,24 +85,24 @@ func TestNumberToTerraformValue(t *testing.T) {
 
 	type testCase struct {
 		input       Number
-		expectation interface{}
+		expectation tftypes.Value
 	}
 	tests := map[string]testCase{
 		"value": {
 			input:       Number{Value: big.NewFloat(123)},
-			expectation: big.NewFloat(123),
+			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123)),
 		},
 		"value-nil": {
 			input:       Number{Value: nil},
-			expectation: nil,
+			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 		"unknown": {
 			input:       Number{Unknown: true},
-			expectation: tftypes.UnknownValue,
+			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 		},
 		"null": {
 			input:       Number{Null: true},
-			expectation: nil,
+			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 	}
 	for name, test := range tests {

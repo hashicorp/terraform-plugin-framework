@@ -122,7 +122,7 @@ func (p *Plan) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 		return diags
 	}
 
-	newPlanVal, err := newPlanAttrValue.ToTerraformValue(ctx)
+	newPlan, err := newPlanAttrValue.ToTerraformValue(ctx)
 	if err != nil {
 		err = fmt.Errorf("error running ToTerraformValue on plan: %w", err)
 		diags.AddError(
@@ -131,8 +131,6 @@ func (p *Plan) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 		)
 		return diags
 	}
-
-	newPlan := tftypes.NewValue(p.Schema.AttributeType().TerraformType(ctx), newPlanVal)
 
 	p.Raw = newPlan
 	return diags
@@ -167,7 +165,7 @@ func (p *Plan) SetAttribute(ctx context.Context, path *tftypes.AttributePath, va
 		return diags
 	}
 
-	newTfVal, err := newVal.ToTerraformValue(ctx)
+	tfVal, err := newVal.ToTerraformValue(ctx)
 	if err != nil {
 		err = fmt.Errorf("error running ToTerraformValue on new plan value: %w", err)
 		diags.AddAttributeError(
@@ -177,8 +175,6 @@ func (p *Plan) SetAttribute(ctx context.Context, path *tftypes.AttributePath, va
 		)
 		return diags
 	}
-
-	tfVal := tftypes.NewValue(attrType.TerraformType(ctx), newTfVal)
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)

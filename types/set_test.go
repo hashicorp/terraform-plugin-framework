@@ -550,7 +550,7 @@ func TestSetToTerraformValue(t *testing.T) {
 
 	type testCase struct {
 		input       Set
-		expectation interface{}
+		expectation tftypes.Value
 	}
 	tests := map[string]testCase{
 		"value": {
@@ -561,10 +561,10 @@ func TestSetToTerraformValue(t *testing.T) {
 					String{Value: "world"},
 				},
 			},
-			expectation: []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, "world"),
-			},
+			}),
 		},
 		"value-duplicates": {
 			input: Set{
@@ -576,18 +576,18 @@ func TestSetToTerraformValue(t *testing.T) {
 			},
 			// Duplicate validation does not occur during this method.
 			// This is okay, as tftypes allows duplicates.
-			expectation: []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, "hello"),
-			},
+			}),
 		},
 		"unknown": {
-			input:       Set{Unknown: true},
-			expectation: tftypes.UnknownValue,
+			input:       Set{ElemType: StringType, Unknown: true},
+			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       Set{Null: true},
-			expectation: nil,
+			input:       Set{ElemType: StringType, Null: true},
+			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 		},
 		"partial-unknown": {
 			input: Set{
@@ -597,10 +597,10 @@ func TestSetToTerraformValue(t *testing.T) {
 					String{Value: "hello, world"},
 				},
 			},
-			expectation: []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				tftypes.NewValue(tftypes.String, "hello, world"),
-			},
+			}),
 		},
 		"partial-null": {
 			input: Set{
@@ -610,10 +610,10 @@ func TestSetToTerraformValue(t *testing.T) {
 					String{Value: "hello, world"},
 				},
 			},
-			expectation: []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, nil),
 				tftypes.NewValue(tftypes.String, "hello, world"),
-			},
+			}),
 		},
 	}
 	for name, test := range tests {

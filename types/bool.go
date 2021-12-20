@@ -47,17 +47,18 @@ func (b Bool) Type(_ context.Context) attr.Type {
 	return BoolType
 }
 
-// ToTerraformValue returns the data contained in the *Bool as a bool. If
-// Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
-// returns nil.
-func (b Bool) ToTerraformValue(_ context.Context) (interface{}, error) {
+// ToTerraformValue returns the data contained in the *Bool as a tftypes.Value.
+func (b Bool) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	if b.Null {
-		return nil, nil
+		return tftypes.NewValue(tftypes.Bool, nil), nil
 	}
 	if b.Unknown {
-		return tftypes.UnknownValue, nil
+		return tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), nil
 	}
-	return b.Value, nil
+	if err := tftypes.ValidateValue(tftypes.Bool, b.Value); err != nil {
+		return tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), err
+	}
+	return tftypes.NewValue(tftypes.Bool, b.Value), nil
 }
 
 // Equal returns true if `other` is a *Bool and has the same value as `b`.

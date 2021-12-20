@@ -43,17 +43,19 @@ func (s String) Type(_ context.Context) attr.Type {
 	return StringType
 }
 
-// ToTerraformValue returns the data contained in the *String as a string. If
-// Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
-// returns nil.
-func (s String) ToTerraformValue(_ context.Context) (interface{}, error) {
+// ToTerraformValue returns the data contained in the *String as a
+// tftypes.Value.
+func (s String) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	if s.Null {
-		return nil, nil
+		return tftypes.NewValue(tftypes.String, nil), nil
 	}
 	if s.Unknown {
-		return tftypes.UnknownValue, nil
+		return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nil
 	}
-	return s.Value, nil
+	if err := tftypes.ValidateValue(tftypes.String, s.Value); err != nil {
+		return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), err
+	}
+	return tftypes.NewValue(tftypes.String, s.Value), nil
 }
 
 // Equal returns true if `other` is a *String and has the same value as `s`.

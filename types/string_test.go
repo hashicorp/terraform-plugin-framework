@@ -86,15 +86,15 @@ func TestStringToTerraformValue(t *testing.T) {
 	tests := map[string]testCase{
 		"value": {
 			input:       String{Value: "hello"},
-			expectation: "hello",
+			expectation: tftypes.NewValue(tftypes.String, "hello"),
 		},
 		"unknown": {
 			input:       String{Unknown: true},
-			expectation: tftypes.UnknownValue,
+			expectation: tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 		},
 		"null": {
 			input:       String{Null: true},
-			expectation: nil,
+			expectation: tftypes.NewValue(tftypes.String, nil),
 		},
 	}
 	for name, test := range tests {

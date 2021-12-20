@@ -311,14 +311,12 @@ func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, path
 	var diags diag.Diagnostics
 
 	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
-		tfType := typ.TerraformType(ctx)
 		tfVal, err := val.ToTerraformValue(ctx)
-
 		if err != nil {
 			return val, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 
-		diags.Append(typeWithValidate.Validate(ctx, tftypes.NewValue(tfType, tfVal), path)...)
+		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 		if diags.HasError() {
 			return val, diags

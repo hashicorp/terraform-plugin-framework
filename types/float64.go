@@ -114,19 +114,22 @@ func (f Float64) Equal(other attr.Value) bool {
 	return f.Value == o.Value
 }
 
-// ToTerraformValue returns the data contained in the Float64 as a float64.
-// If Unknown is true, it returns a tftypes.UnknownValue. If Null is true, it
-// returns nil.
-func (f Float64) ToTerraformValue(ctx context.Context) (interface{}, error) {
+// ToTerraformValue returns the data contained in the Float64 as a
+// tftypes.Value.
+func (f Float64) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	if f.Null {
-		return nil, nil
+		return tftypes.NewValue(tftypes.Number, nil), nil
 	}
 
 	if f.Unknown {
-		return tftypes.UnknownValue, nil
+		return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
 	}
 
-	return big.NewFloat(f.Value), nil
+	bf := big.NewFloat(f.Value)
+	if err := tftypes.ValidateValue(tftypes.Number, bf); err != nil {
+		return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), err
+	}
+	return tftypes.NewValue(tftypes.Number, bf), nil
 }
 
 // Type returns a NumberType.

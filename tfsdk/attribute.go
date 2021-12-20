@@ -305,7 +305,6 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 
 	if a.DeprecationMessage != "" && attributeConfig != nil {
 		tfValue, err := attributeConfig.ToTerraformValue(ctx)
-
 		if err != nil {
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
@@ -316,7 +315,7 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 			return
 		}
 
-		if tfValue != nil {
+		if !tfValue.IsNull() {
 			resp.Diagnostics.AddAttributeWarning(
 				req.AttributePath,
 				"Attribute Deprecated",
@@ -378,8 +377,7 @@ func (a Attribute) validateAttributes(ctx context.Context, req ValidateAttribute
 		}
 
 		for _, value := range s.Elems {
-			tfValueRaw, err := value.ToTerraformValue(ctx)
-
+			tfValue, err := value.ToTerraformValue(ctx)
 			if err != nil {
 				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
 				resp.Diagnostics.AddAttributeError(
@@ -390,8 +388,6 @@ func (a Attribute) validateAttributes(ctx context.Context, req ValidateAttribute
 
 				return
 			}
-
-			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
 
 			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 				nestedAttrReq := ValidateAttributeRequest{
@@ -584,8 +580,7 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 		}
 
 		for _, value := range s.Elems {
-			tfValueRaw, err := value.ToTerraformValue(ctx)
-
+			tfValue, err := value.ToTerraformValue(ctx)
 			if err != nil {
 				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
 				resp.Diagnostics.AddAttributeError(
@@ -596,8 +591,6 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 
 				return
 			}
-
-			tfValue := tftypes.NewValue(s.ElemType.TerraformType(ctx), tfValueRaw)
 
 			for name, attr := range a.Attributes.GetAttributes() {
 				attrReq := ModifyAttributePlanRequest{

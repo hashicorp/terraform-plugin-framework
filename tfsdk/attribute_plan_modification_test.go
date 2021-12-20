@@ -95,31 +95,30 @@ func TestUseStateForUnknownModifier(t *testing.T) {
 				},
 			}
 
-			var configRaw, planRaw, stateRaw interface{}
+			configVal := tftypes.NewValue(tftypes.String, nil)
+			stateVal := tftypes.NewValue(tftypes.String, nil)
+			planVal := tftypes.NewValue(tftypes.String, nil)
 			if tc.config != nil {
 				val, err := tc.config.ToTerraformValue(context.Background())
 				if err != nil {
 					t.Fatal(err)
 				}
-				configRaw = val
+				configVal = val
 			}
 			if tc.state != nil {
 				val, err := tc.state.ToTerraformValue(context.Background())
 				if err != nil {
 					t.Fatal(err)
 				}
-				stateRaw = val
+				stateVal = val
 			}
 			if tc.plan != nil {
 				val, err := tc.plan.ToTerraformValue(context.Background())
 				if err != nil {
 					t.Fatal(err)
 				}
-				planRaw = val
+				planVal = val
 			}
-			configVal := tftypes.NewValue(tftypes.String, configRaw)
-			stateVal := tftypes.NewValue(tftypes.String, stateRaw)
-			planVal := tftypes.NewValue(tftypes.String, planRaw)
 
 			req := ModifyAttributePlanRequest{
 				AttributePath: tftypes.NewAttributePath(),

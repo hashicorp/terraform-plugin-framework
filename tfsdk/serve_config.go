@@ -18,9 +18,9 @@ func parseConfig(ctx context.Context, dv *tfprotov6.DynamicValue, schema Schema)
 		)
 		return ReadOnlyData{}, diags
 	}
-	obj, err := objectFromSchemaAndTerraformValue(ctx, schema, conf)
-	if err != nil {
-		// TODO: return error
+	obj, diags := objectFromSchemaAndTerraformValue(ctx, schema, conf)
+	if diags.HasError() {
+		return ReadOnlyData{}, diags
 	}
 	return ReadOnlyData{
 		Values: obj,

@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -667,17 +666,9 @@ func (s *server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 }
 
 func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, resp *applyResourceChangeResponse) {
-	// get the type of resource, so we can get its schema and create an
-	// instance
-	resourceType, diags := serveGetResourceType(ctx, s.p, req.TypeName)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// get the schema from the resource type, so we can embed it in the
 	// config and plan
-	resourceSchema, diags := resourceType.GetSchema(ctx)
+	schema, diags := serveGetResourceSchema(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -685,111 +676,53 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 
 	// create the resource instance, so we can call its methods and handle
 	// the request
-	resource, diags := resourceType.NewResource(ctx, s.p)
+	resource, diags := serveGetResourceInstance(ctx, s.p, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	config, err := req.Config.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing configuration",
-			"An unexpected error was encountered trying to parse the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+	config, diags := parseConfig(ctx, req.Config, schema)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	plan, err := req.PlannedState.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing plan",
-			"An unexpected error was encountered trying to parse the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+	plan, diags := parsePlan(ctx, req.PlannedState, schema)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	priorState, err := req.PriorState.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing prior state",
-			"An unexpected error was encountered trying to parse the prior state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
+	state, diags := parseState(ctx, req.PriorState, schema)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	pm, usePM, diags := serveParseProviderMeta(ctx, s.p, req.ProviderMeta)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// figure out what kind of request we're serving
-	create, err := proto6.IsCreate(ctx, req, resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error understanding request",
-			"An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-	update, err := proto6.IsUpdate(ctx, req, resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error understanding request",
-			"An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-	destroy, err := proto6.IsDestroy(ctx, req, resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error understanding request",
-			"An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
+	create := serveResourceApplyIsCreate(ctx, state)
+	update := serveResourceApplyIsUpdate(ctx, state, plan)
+	destroy := serveResourceApplyIsDestroy(ctx, plan)
 
 	switch {
 	case create && !update && !destroy:
-		tfsdklog.Trace(ctx, "running create")
-		createReq := CreateResourceRequest{
-			Config: Config{
-				Schema: resourceSchema,
-				Raw:    config,
-			},
-			Plan: Plan{
-				Schema: resourceSchema,
-				Raw:    plan,
-			},
+		newState, diags := serveResourceApplyCreate(ctx, resource, config, plan, usePM, pm, resp.Diagnostics)
+		resp.Diagnostics = diags
+		if resp.Diagnostics.HasError() {
+			return
 		}
-		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			createReq.ProviderMeta = Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
-			}
-
-			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Error parsing provider_meta",
-						"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-					)
-					return
-				}
-				createReq.ProviderMeta.Raw = pmValue
-			}
+		newStateVal, err := newState.ReadOnlyData.Values.ToTerraformValue(ctx)
+		if err != nil {
+			// TODO: handle error
 		}
-		createResp := CreateResourceResponse{
-			State: State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
-			Diagnostics: resp.Diagnostics,
-		}
-		resource.Create(ctx, createReq, &createResp)
-		resp.Diagnostics = createResp.Diagnostics
-		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), createResp.State.Raw)
+		dv, err := tfprotov6.NewDynamicValue(schema.TerraformType(ctx), newStateVal)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error converting create response",
@@ -797,56 +730,18 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			)
 			return
 		}
-		resp.NewState = &newState
+		resp.NewState = &dv
 	case !create && update && !destroy:
-		tfsdklog.Trace(ctx, "running update")
-		updateReq := UpdateResourceRequest{
-			Config: Config{
-				Schema: resourceSchema,
-				Raw:    config,
-			},
-			Plan: Plan{
-				Schema: resourceSchema,
-				Raw:    plan,
-			},
-			State: State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
+		newState, diags := serveResourceApplyUpdate(ctx, resource, config, plan, state, usePM, pm, resp.Diagnostics)
+		resp.Diagnostics = diags
+		if resp.Diagnostics.HasError() {
+			return
 		}
-		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			updateReq.ProviderMeta = Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
-			}
-
-			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Error parsing provider_meta",
-						"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-					)
-					return
-				}
-				updateReq.ProviderMeta.Raw = pmValue
-			}
+		newStateVal, err := newState.ReadOnlyData.Values.ToTerraformValue(ctx)
+		if err != nil {
+			// TODO: handle error
 		}
-		updateResp := UpdateResourceResponse{
-			State: State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
-			Diagnostics: resp.Diagnostics,
-		}
-		resource.Update(ctx, updateReq, &updateResp)
-		resp.Diagnostics = updateResp.Diagnostics
-		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), updateResp.State.Raw)
+		dv, err := tfprotov6.NewDynamicValue(schema.TerraformType(ctx), newStateVal)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error converting update response",
@@ -854,48 +749,18 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			)
 			return
 		}
-		resp.NewState = &newState
+		resp.NewState = &dv
 	case !create && !update && destroy:
-		tfsdklog.Trace(ctx, "running delete")
-		destroyReq := DeleteResourceRequest{
-			State: State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
+		newState, diags := serveResourceApplyDelete(ctx, resource, state, usePM, pm, resp.Diagnostics)
+		resp.Diagnostics = diags
+		if resp.Diagnostics.HasError() {
+			return
 		}
-		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			destroyReq.ProviderMeta = Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
-			}
-
-			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Error parsing provider_meta",
-						"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-					)
-					return
-				}
-				destroyReq.ProviderMeta.Raw = pmValue
-			}
+		newStateVal, err := newState.ReadOnlyData.Values.ToTerraformValue(ctx)
+		if err != nil {
+			// TODO: handle error
 		}
-		destroyResp := DeleteResourceResponse{
-			State: State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
-			Diagnostics: resp.Diagnostics,
-		}
-		resource.Delete(ctx, destroyReq, &destroyResp)
-		resp.Diagnostics = destroyResp.Diagnostics
-		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), destroyResp.State.Raw)
+		dv, err := tfprotov6.NewDynamicValue(schema.TerraformType(ctx), newStateVal)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error converting delete response",
@@ -903,7 +768,7 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			)
 			return
 		}
-		resp.NewState = &newState
+		resp.NewState = &dv
 	default:
 		resp.Diagnostics.AddError(
 			"Error understanding request",

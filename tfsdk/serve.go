@@ -711,6 +711,8 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 	update := serveResourceApplyIsUpdate(ctx, state, plan)
 	destroy := serveResourceApplyIsDestroy(ctx, plan)
 
+	var respState *Data
+
 	switch {
 	case create && !update && !destroy:
 		newState, diags := serveResourceApplyCreate(ctx, resource, config, plan, usePM, pm, resp.Diagnostics)
@@ -718,63 +720,42 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		newStateVal, err := newState.ReadOnlyData.Values.ToTerraformValue(ctx)
-		if err != nil {
-			// TODO: handle error
-		}
-		dv, err := tfprotov6.NewDynamicValue(schema.TerraformType(ctx), newStateVal)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting create response",
-				"An unexpected error was encountered when converting the create response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		resp.NewState = &dv
+		respState = newState
 	case !create && update && !destroy:
 		newState, diags := serveResourceApplyUpdate(ctx, resource, config, plan, state, usePM, pm, resp.Diagnostics)
 		resp.Diagnostics = diags
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		newStateVal, err := newState.ReadOnlyData.Values.ToTerraformValue(ctx)
-		if err != nil {
-			// TODO: handle error
-		}
-		dv, err := tfprotov6.NewDynamicValue(schema.TerraformType(ctx), newStateVal)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting update response",
-				"An unexpected error was encountered when converting the update response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		resp.NewState = &dv
+		respState = newState
 	case !create && !update && destroy:
 		newState, diags := serveResourceApplyDelete(ctx, resource, state, usePM, pm, resp.Diagnostics)
 		resp.Diagnostics = diags
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		newStateVal, err := newState.ReadOnlyData.Values.ToTerraformValue(ctx)
-		if err != nil {
-			// TODO: handle error
-		}
-		dv, err := tfprotov6.NewDynamicValue(schema.TerraformType(ctx), newStateVal)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting delete response",
-				"An unexpected error was encountered when converting the delete response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		resp.NewState = &dv
+		respState = newState
 	default:
 		resp.Diagnostics.AddError(
 			"Error understanding request",
 			fmt.Sprintf("An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\nRequest matched unexpected number of methods: (create: %v, update: %v, delete: %v)", create, update, destroy),
 		)
+		return
 	}
+
+	newStateVal, err := respState.ReadOnlyData.Values.ToTerraformValue(ctx)
+	if err != nil {
+		// TODO: handle error
+	}
+	dv, err := tfprotov6.NewDynamicValue(schema.TerraformType(ctx), newStateVal)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error converting delete response",
+			"An unexpected error was encountered when converting the delete response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
+		)
+		return
+	}
+	resp.NewState = &dv
 }
 
 // validateDataResourceConfigResponse is a thin abstraction to allow native Diagnostics usage

@@ -28,6 +28,12 @@ type ServeOpts struct {
 	// Name is the name of the provider, in full address form. For example:
 	// registry.terraform.io/hashicorp/random.
 	Name string
+
+	// Debug runs the provider in a mode acceptable for debugging and testing
+	// processes, such as delve, by managing the process lifecycle. Information
+	// needed for Terraform CLI to connect to the provider is output to stdout.
+	// os.Interrupt (Ctrl-c) can be used to stop the provider.
+	Debug bool
 }
 
 // NewProtocol6Server returns a tfprotov6.ProviderServer implementation based
@@ -39,12 +45,18 @@ func NewProtocol6Server(p Provider) tfprotov6.ProviderServer {
 }
 
 // Serve serves a provider, blocking until the context is canceled.
-func Serve(ctx context.Context, factory func() Provider, opts ServeOpts) error {
+func Serve(ctx context.Context, providerFunc func() Provider, opts ServeOpts) error {
+	var tf6serverOpts []tf6server.ServeOpt
+
+	if opts.Debug {
+		tf6serverOpts = append(tf6serverOpts, tf6server.WithManagedDebug())
+	}
+
 	return tf6server.Serve(opts.Name, func() tfprotov6.ProviderServer {
 		return &server{
-			p: factory(),
+			p: providerFunc(),
 		}
-	}) // TODO: set up debug serving if the --debug flag is passed
+	}, tf6serverOpts...)
 }
 
 func (s *server) registerContext(in context.Context) context.Context {

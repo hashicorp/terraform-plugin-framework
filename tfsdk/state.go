@@ -306,7 +306,7 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attr
 	}
 
 	var childValueDiags diag.Diagnostics
-	childStep := path.Steps()[len(path.Steps())-1]
+	childStep := path.LastStep()
 	parentValue, childValueDiags = upsertChildValue(ctx, parentPath, parentValue, childStep, tfVal)
 	diags.Append(childValueDiags...)
 

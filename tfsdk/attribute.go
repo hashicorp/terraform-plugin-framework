@@ -211,10 +211,7 @@ func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, pa
 		return schemaAttribute, nil
 	}
 
-	object := &tfprotov6.SchemaObject{
-		MinItems: a.Attributes.GetMinItems(),
-		MaxItems: a.Attributes.GetMaxItems(),
-	}
+	object := &tfprotov6.SchemaObject{}
 	nm := a.Attributes.GetNestingMode()
 	switch nm {
 	case NestingModeSingle:

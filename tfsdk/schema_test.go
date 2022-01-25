@@ -1305,8 +1305,11 @@ func TestSchemaTfprotov6Schema(t *testing.T) {
 
 	tests := map[string]testCase{
 		"empty-val": {
-			input:       Schema{},
-			expectedErr: "must have at least one attribute or block in the schema",
+			input: Schema{},
+			expected: &tfprotov6.Schema{
+				Block:   &tfprotov6.SchemaBlock{},
+				Version: 0,
+			},
 		},
 		"basic-attrs": {
 			input: Schema{

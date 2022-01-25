@@ -189,13 +189,8 @@ func (s Schema) blockAtPath(path *tftypes.AttributePath) (Block, error) {
 	}
 }
 
-// tfprotov6Schema returns the *tfprotov6.Schema equivalent of a Schema. At least
-// one attribute must be set in the schema, or an error will be returned.
+// tfprotov6Schema returns the *tfprotov6.Schema equivalent of a Schema.
 func (s Schema) tfprotov6Schema(ctx context.Context) (*tfprotov6.Schema, error) {
-	if len(s.Attributes) < 1 && len(s.Blocks) < 1 {
-		return nil, errors.New("must have at least one attribute or block in the schema")
-	}
-
 	result := &tfprotov6.Schema{
 		Version: s.Version,
 	}

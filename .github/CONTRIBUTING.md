@@ -60,7 +60,9 @@ before raising a pull request.
 
 - **Unit and Integration Tests**: It may go without saying, but every new patch should be covered by tests wherever possible (see [Testing](#testing) below).
 
-- **Go Modules**: We use [Go Modules](https://github.com/golang/go/wiki/Modules) to manage and version all our dependencies. Please make sure that you reflect dependency changes in your pull requests appropriately (e.g. `go get`, `go mod tidy` or other commands). Where possible it is better to raise a separate pull request with just dependency changes as it's easier to review such PR(s).
+- **Go Modules**: We use [Go Modules](https://github.com/golang/go/wiki/Modules) to manage and version all our dependencies. Please make sure that you reflect dependency changes in your pull requests appropriately (e.g. `go get`, `go mod tidy` or other commands). Refer to the [dependency updates](#dependency-updates) section for more information about how this project maintains existing dependencies.
+
+- **Changelog**: Refer to the [changelog](#changelog) section for more information about how to create changelog entries.
 
 ### Cosmetic changes, code formatting, and typos
 
@@ -76,6 +78,101 @@ While we appreciate the effort that goes into preparing PRs, there is always a t
 
 We belive that one should "leave the campsite cleaner than you found it", so you are welcome to clean up cosmetic issues in the neighbourhood when submitting a patch that makes functional changes or fixes.
 
+### Dependency Updates
+
+Dependency management is performed by [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/about-dependabot-version-updates). Where possible, dependency updates should occur through that system to ensure all Go module files are appropriately updated and to prevent duplicated effort of concurrent update submissions. Once available, updates are expected to be verified and merged to prevent latent technical debt.
+
+### Changelog
+
+HashiCorp’s open-source projects have always maintained user-friendly, readable CHANGELOGs that allow practitioners and developers to tell at a glance whether a release should have any effect on them, and to gauge the risk of an upgrade. We use the [go-changelog](https://github.com/hashicorp/go-changelog) to generate and update the changelog from files created in the `.changelog/` directory.
+
+#### Changelog Format
+
+The changelog format requires an entry in the following format, where HEADER corresponds to the changelog category, and the entry is the changelog entry itself. The entry should be included in a file in the `.changelog` directory with the naming convention `{PR-NUMBER}.txt`. For example, to create a changelog entry for pull request 1234, there should be a file named `.changelog/1234.txt`.
+
+``````markdown
+```release-note:{HEADER}
+{ENTRY}
+```
+``````
+
+If a pull request should contain multiple changelog entries, then multiple blocks can be added to the same changelog file. For example:
+
+``````markdown
+```release-note:note
+tfsdk: The `Old()` function has been deprecated. Any code using `Old()` should be updated to use the new `New()` function instead.
+```
+
+```release-note:enhancement
+tfsdk: Added `New()` function, which does new and exciting things
+```
+``````
+
+#### Pull Request Types to CHANGELOG
+
+The CHANGELOG is intended to show developer-impacting changes to the codebase for a particular version. If every change or commit to the code resulted in an entry, the CHANGELOG would become less useful for developers. The lists below are general guidelines and examples for when a decision needs to be made to decide whether a change should have an entry.
+
+##### Changes that should not have a CHANGELOG entry
+
+- Documentation updates
+- Testing updates
+- Code refactoring
+
+##### Changes that may have a CHANGELOG entry
+
+- Dependency updates: If the update contains relevant bug fixes or enhancements that affect developers, those should be called out.
+
+##### Changes that should have a CHANGELOG entry
+
+###### Major Features
+
+A major feature entry should use the `release-note:feature` header.
+
+``````markdown
+```release-note:feature
+Added `great` package, which solves all the problems
+```
+``````
+
+###### Bug Fixes
+
+A new bug entry should use the `release-note:bug` header and have a prefix indicating the sub-package it corresponds to, a colon, then followed by a brief summary. Use a `all` prefix should the fix apply to all sub-packages.
+
+``````markdown
+```release-note:bug
+tfsdk: Prevented potential panic in `Example()` function
+```
+``````
+
+###### Enhancements
+
+A new enhancement entry should use the `release-note:enhancement` header and have a prefix indicating the sub-package it corresponds to, a colon, then followed by a brief summary. Use a `all` prefix for enchancements that apply to all sub-packages.
+
+``````markdown
+```release-note:enhancement
+attr: Added `Great` interface for doing great things
+```
+``````
+
+###### Deprecations
+
+A deprecation entry should use the `release-note:note` header and have a prefix indicating the sub-package it corresponds to, a colon, then followed by a brief summary. Use a `all` prefix for changes that apply to all sub-packages.
+
+``````markdown
+```release-note:note
+diag: The `Old()` function is being deprecated in favor of the `New()` function
+```
+``````
+
+###### Breaking Changes and Removals
+
+A breaking-change entry should use the `release-note:breaking-change` header and have a prefix indicating the sub-package it corresponds to, a colon, then followed by a brief summary. Use a `all` prefix for changes that apply to all sub-packages.
+
+``````markdown
+```release-note:breaking-change
+tfsdk: The `Example` type `Old` field has been removed since it is not necessary
+```
+``````
 
 ## Testing
 
@@ -145,3 +242,27 @@ When fixing a bug or adding a new feature to the framework, it is helpful to cre
 6. Make a PR to terraform-provider-corner adding the new acceptance test and noting that it depends on the PR to terraform-plugin-framework.
 
 Maintainers will ensure that the acceptance test is merged into terraform-provider-corner once the terraform-plugin-framework change is merged and released.
+
+## Maintainers Guide
+
+This section is dedicated to the maintainers of this project.
+
+### Releases
+
+Before running a release, the changelog must be constructed from unreleased entries in the `.changelog` directory.
+
+Install the latest version of the [`changelog-build`](https://pkg.go.dev/github.com/hashicorp/go-changelog/cmd/changelog-build) command, if it not already available:
+
+```shell
+go install github.com/hashicorp/go-changelog/cmd/changelog-build
+```
+
+Run the [`changelog-build`](https://pkg.go.dev/github.com/hashicorp/go-changelog/cmd/changelog-build) command from the root directory of the repository:
+
+```shell
+changelog-build -changelog-template .changelog.tmpl -entries-dir .changelog -last-release $(git describe --tags --abbrev=0) -note-template .changelog-note.tmpl -this-release HEAD
+```
+
+This will generate a section of Markdown text for the next release. Open the `CHANGELOG.md` file, add a `# X.Y.Z (Unreleased)` header as the first line, then add the output from the `changelog-build` command. The `(Unreleased)` suffix after the version number is required for the current release process.
+
+Refer to the HashiCorp internal Engineering documentation for information about completing the release process once the changelog has been prepared.

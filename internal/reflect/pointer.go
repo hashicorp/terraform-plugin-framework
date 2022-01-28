@@ -51,7 +51,7 @@ func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target refle
 // wrap it in that number of pointers again. The end result is to wind up with
 // the same exact type, except now you can be sure it's pointing to actual data
 // and will not give you a nil pointer dereference panic unexpectedly.
-func pointerSafeZeroValue(ctx context.Context, target reflect.Value) reflect.Value {
+func pointerSafeZeroValue(_ context.Context, target reflect.Value) reflect.Value {
 	pointer := target.Type()
 	var pointers int
 	for pointer.Kind() == reflect.Ptr {

@@ -106,7 +106,7 @@ func TestValueAs_generic(t *testing.T) {
 	if len(diags) > 0 {
 		t.Fatalf("Unexpected diagnostics: %s", diags)
 	}
-	if !val.Equal(target.(attr.Value)) {
+	if !val.Equal(target) {
 		t.Errorf("Expected target to be %v, got %v", val, target)
 	}
 }

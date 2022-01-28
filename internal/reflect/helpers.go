@@ -44,7 +44,7 @@ func commaSeparatedString(in []string) string {
 
 // getStructTags returns a map of Terraform field names to their position in
 // the tags of the struct `in`. `in` must be a struct.
-func getStructTags(ctx context.Context, in reflect.Value, path *tftypes.AttributePath) (map[string]int, error) {
+func getStructTags(_ context.Context, in reflect.Value, path *tftypes.AttributePath) (map[string]int, error) {
 	tags := map[string]int{}
 	typ := trueReflectValue(in).Type()
 	if typ.Kind() != reflect.Struct {

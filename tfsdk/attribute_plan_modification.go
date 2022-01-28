@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-log/tfsdklog"
 )
 
 // AttributePlanModifier represents a modifier for an attribute at plan time.
@@ -308,7 +309,7 @@ func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttribu
 	if res {
 		resp.RequiresReplace = true
 	} else if resp.RequiresReplace {
-		// TODO: log that we didn't override the result
+		tfsdklog.Debug(ctx, "Keeping previous attribute replacement requirement", "attribute_path", req.AttributePath.String())
 	}
 }
 

@@ -216,7 +216,7 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 
 // pathExists walks the current state and returns true if the path can be reached.
 // The value at the path may be null or unknown.
-func (s State) pathExists(ctx context.Context, path *tftypes.AttributePath) (bool, diag.Diagnostics) {
+func (s State) pathExists(_ context.Context, path *tftypes.AttributePath) (bool, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	_, remaining, err := tftypes.WalkAttributePath(s.Raw, path)

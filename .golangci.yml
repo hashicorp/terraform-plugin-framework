@@ -1,0 +1,24 @@
+issues:
+  max-per-linter: 0
+  max-same-issues: 0
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - durationcheck
+    - errcheck
+    - exportloopref
+    - gofmt
+    - gosimple
+    - ineffassign
+    - makezero
+    - nilerr
+    # - paralleltest # Reference: https://github.com/kunwardeep/paralleltest/issues/14
+    - predeclared
+    - staticcheck
+    # - tenv # TODO: Enable when upgrading Go 1.16 to 1.17
+    - unconvert
+    - unparam
+    - varcheck
+    - vet

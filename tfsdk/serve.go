@@ -67,7 +67,7 @@ func (s *server) registerContext(in context.Context) context.Context {
 	return ctx
 }
 
-func (s *server) cancelRegisteredContexts(ctx context.Context) {
+func (s *server) cancelRegisteredContexts(_ context.Context) {
 	s.contextCancelsMu.Lock()
 	defer s.contextCancelsMu.Unlock()
 	for _, cancel := range s.contextCancels {

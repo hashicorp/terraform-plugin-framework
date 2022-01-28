@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func int64Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func int64Validate(_ context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if !in.Type().Equal(tftypes.Number) {

@@ -1,7 +1,8 @@
 project_name: terraform-plugin-framework
 build:
   skip: true
+milestones:
+  - close: true
 release:
-  github:
-changelog:
-  skip: true
+  ids:
+    - 'none'

@@ -13,6 +13,10 @@ import (
 func int64Validate(_ context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	if in.Type() == nil {
+		return diags
+	}
+
 	if !in.Type().Equal(tftypes.Number) {
 		diags.AddAttributeError(
 			path,

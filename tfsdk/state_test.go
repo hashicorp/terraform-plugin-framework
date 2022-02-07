@@ -2063,7 +2063,133 @@ func TestStateGetAttributeValue(t *testing.T) {
 			})).WithAttributeName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
-		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName": {
+		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Float64": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Number,
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Number,
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: SingleNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type:     types.Float64Type,
+									Optional: true,
+								},
+							}),
+							Optional: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			expected: types.Float64{Null: true},
+		},
+		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Int64": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Number,
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Number,
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: SingleNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type:     types.Int64Type,
+									Optional: true,
+								},
+							}),
+							Optional: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			expected: types.Int64{Null: true},
+		},
+		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Set": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Set{
+									ElementType: tftypes.String,
+								},
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Set{
+								ElementType: tftypes.String,
+							},
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Attributes: SingleNestedAttributes(map[string]Attribute{
+								"sub_test": {
+									Type: types.SetType{
+										ElemType: types.StringType,
+									},
+									Optional: true,
+								},
+							}),
+							Optional: true,
+						},
+						"other": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			expected: types.Set{ElemType: types.StringType, Null: true},
+		},
+		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-String": {
 			state: State{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{

@@ -115,6 +115,10 @@ func (t SetType) String() string {
 func (s SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	if in.Type() == nil {
+		return diags
+	}
+
 	if !in.Type().Is(tftypes.Set{}) {
 		err := fmt.Errorf("expected Set value, received %T with value: %v", in, in)
 		diags.AddAttributeError(

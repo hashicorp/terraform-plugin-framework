@@ -384,6 +384,9 @@ func TestSetTypeValidate(t *testing.T) {
 		in            tftypes.Value
 		expectedDiags diag.Diagnostics
 	}{
+		"empty-struct": {
+			in: tftypes.Value{},
+		},
 		"null": {
 			in: tftypes.NewValue(
 				tftypes.Set{

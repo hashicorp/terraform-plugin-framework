@@ -335,6 +335,28 @@ func TestConfigGetAttribute(t *testing.T) {
 			expected:      &testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
+		"Computed-Computed-object": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "namevalue"),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"name": {
+							Type:     testtypes.StringTypeWithValidateWarning{},
+							Required: true,
+						},
+					},
+				},
+			},
+			target:        new(testtypes.String),
+			expected:      &testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+		},
 	}
 
 	for name, tc := range testCases {
@@ -1584,6 +1606,35 @@ func TestConfigGetAttributeValue(t *testing.T) {
 			path:          tftypes.NewAttributePath().WithAttributeName("test"),
 			expected:      testtypes.String{String: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"))},
+		},
+		"AttrTypeInt64WithValidateError-nested-missing-in-config": {
+			config: Config{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"parent": tftypes.Object{},
+					},
+				}, map[string]tftypes.Value{
+					"parent": tftypes.NewValue(tftypes.Object{}, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"parent": {
+							Attributes: SingleNestedAttributes(map[string]Attribute{
+								"test": {
+									Type:     types.Int64Type,
+									Optional: true,
+									Computed: true,
+								},
+							}),
+							Computed: true,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("parent").WithAttributeName("test"),
+			expected:      types.Int64{Null: true},
+			expectedDiags: nil,
 		},
 	}
 

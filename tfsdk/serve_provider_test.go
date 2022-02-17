@@ -23,6 +23,11 @@ type testServeProvider struct {
 	validateResourceConfigCalledResourceType string
 	validateResourceConfigImpl               func(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 
+	// upgrade resource state
+	// TODO: Implement with UpgradeResourceState support
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/42
+	// upgradeResourceStateCalledResourceType string
+
 	// read resource request
 	readResourceCurrentStateValue  tftypes.Value
 	readResourceCurrentStateSchema Schema
@@ -636,6 +641,7 @@ func (t *testServeProvider) GetResources(_ context.Context) (map[string]Resource
 		"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiers{},
 		"test_config_validators":        testServeResourceTypeConfigValidators{},
 		"test_import_state":             testServeResourceTypeImportState{},
+		"test_upgrade_state":            testServeResourceTypeUpgradeState{},
 		"test_validate_config":          testServeResourceTypeValidateConfig{},
 	}, nil
 }

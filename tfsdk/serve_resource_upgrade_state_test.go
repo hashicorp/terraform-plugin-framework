@@ -71,19 +71,19 @@ var testServeResourceTypeUpgradeStateSchema = &tfprotov6.Schema{
 	},
 }
 
-var testServeResourceTypeUpgradeStateTftype = tftypes.Object{
-	AttributeTypes: map[string]tftypes.Type{
-		"id":              tftypes.String,
-		"optional_string": tftypes.String,
-		"required_string": tftypes.String,
-	},
-}
+// var testServeResourceTypeUpgradeStateTftype = tftypes.Object{
+// 	AttributeTypes: map[string]tftypes.Type{
+// 		"id":              tftypes.String,
+// 		"optional_string": tftypes.String,
+// 		"required_string": tftypes.String,
+// 	},
+// }
 
-type testServeResourceUpgradeStateData struct {
-	Id             string  `tfsdk:"id"`
-	OptionalString *string `tfsdk:"optional_string"`
-	RequiredString string  `tfsdk:"required_string"`
-}
+// type testServeResourceUpgradeStateData struct {
+// 	Id             string  `tfsdk:"id"`
+// 	OptionalString *string `tfsdk:"optional_string"`
+// 	RequiredString string  `tfsdk:"required_string"`
+// }
 
 type testServeResourceUpgradeState struct {
 	provider *testServeProvider

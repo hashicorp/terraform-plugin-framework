@@ -2,6 +2,8 @@ package tfsdk
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -279,6 +281,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
 			"test_import_state":             testServeResourceTypeImportStateSchema,
+			"test_upgrade_state":            testServeResourceTypeUpgradeStateSchema,
 			"test_validate_config":          testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
@@ -314,6 +317,7 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
 			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
 			"test_import_state":             testServeResourceTypeImportStateSchema,
+			"test_upgrade_state":            testServeResourceTypeUpgradeStateSchema,
 			"test_validate_config":          testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
@@ -1397,6 +1401,199 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			}
 			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
 				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestServerUpgradeResourceState(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	schema, _ := testServeResourceTypeUpgradeState{}.GetSchema(ctx)
+	schemaType := schema.TerraformType(ctx)
+
+	validRawStateJSON, err := json.Marshal(map[string]string{
+		"id":              "test-id-value",
+		"required_string": "test-required-value",
+	})
+
+	if err != nil {
+		t.Fatalf("unable to create RawState JSON: %s", err)
+	}
+
+	validRawState := tfprotov6.RawState{
+		JSON: validRawStateJSON,
+	}
+
+	validUpgradedState, err := tfprotov6.NewDynamicValue(schemaType, tftypes.NewValue(schemaType, map[string]tftypes.Value{
+		"id":              tftypes.NewValue(tftypes.String, "test-id-value"),
+		"optional_string": tftypes.NewValue(tftypes.String, nil),
+		"required_string": tftypes.NewValue(tftypes.String, "test-required-value"),
+	}))
+
+	if err != nil {
+		t.Fatalf("unable to create UpgradedState: %s", err)
+	}
+
+	testCases := map[string]struct {
+		request          *tfprotov6.UpgradeResourceStateRequest
+		expectedResponse *tfprotov6.UpgradeResourceStateResponse
+		expectedError    error
+	}{
+		"nil": {
+			request:          nil,
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{},
+		},
+		"RawState-Flatmap": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				TypeName: "test_upgrade_state",
+				RawState: &tfprotov6.RawState{
+					Flatmap: map[string]string{
+						"flatmap": "is not supported",
+					},
+				},
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Unable to Read Previously Saved State for UpgradeResourceState",
+						Detail: "There was an error reading the saved resource state using the current resource schema. " +
+							"This resource was implemented in a Terraform Provider SDK that does not support upgrading resource state yet.\n\n" +
+							"If the resource previously implemented different resource state versions, the provider developers will need to revert back to the previous implementation. " +
+							"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. " +
+							"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. " +
+							"Otherwise, please report this to the provider developer:\n\n" +
+							"flatmap states cannot be unmarshaled, only states written by Terraform 0.12 and higher can be unmarshaled",
+					},
+				},
+			},
+		},
+		"RawState-JSON-passthrough": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				TypeName: "test_upgrade_state",
+				RawState: &validRawState,
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				UpgradedState: &validUpgradedState,
+			},
+		},
+		"RawState-JSON-mismatch": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				TypeName: "test_upgrade_state",
+				RawState: &tfprotov6.RawState{
+					JSON: []byte(`{"nonexistent_attribute":"value"}`),
+				},
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Unable to Read Previously Saved State for UpgradeResourceState",
+						Detail: "There was an error reading the saved resource state using the current resource schema. " +
+							"This resource was implemented in a Terraform Provider SDK that does not support upgrading resource state yet.\n\n" +
+							"If the resource previously implemented different resource state versions, the provider developers will need to revert back to the previous implementation. " +
+							"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. " +
+							"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. " +
+							"Otherwise, please report this to the provider developer:\n\n" +
+							"ElementKeyValue(tftypes.String<unknown>): unsupported attribute \"nonexistent_attribute\"",
+					},
+				},
+			},
+		},
+		"RawState-empty": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: &tfprotov6.RawState{},
+				TypeName: "test_upgrade_state",
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Unable to Read Previously Saved State for UpgradeResourceState",
+						Detail: "There was an error reading the saved resource state using the current resource schema. " +
+							"This resource was implemented in a Terraform Provider SDK that does not support upgrading resource state yet.\n\n" +
+							"If the resource previously implemented different resource state versions, the provider developers will need to revert back to the previous implementation. " +
+							"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. " +
+							"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. " +
+							"Otherwise, please report this to the provider developer:\n\n" +
+							"RawState had no JSON or flatmap data set",
+					},
+				},
+			},
+		},
+		"RawState-missing": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				TypeName: "test_upgrade_state",
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{},
+		},
+		"TypeName-missing": {
+			request: &tfprotov6.UpgradeResourceStateRequest{},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Resource not found",
+						Detail:   "No resource named \"\" is configured on the provider",
+					},
+				},
+			},
+		},
+		"TypeName-unknown": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				TypeName: "unknown",
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Resource not found",
+						Detail:   "No resource named \"unknown\" is configured on the provider",
+					},
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			testProvider := &testServeProvider{}
+			testServer := &server{
+				p: testProvider,
+			}
+
+			got, err := testServer.UpgradeResourceState(ctx, testCase.request)
+
+			if err != nil {
+				if testCase.expectedError == nil {
+					t.Fatalf("expected no error, got: %s", err)
+				}
+
+				if !strings.Contains(err.Error(), testCase.expectedError.Error()) {
+					t.Fatalf("expected error %q, got: %s", testCase.expectedError, err)
+				}
+			}
+
+			if err == nil && testCase.expectedError != nil {
+				t.Fatalf("got no error, expected: %s", testCase.expectedError)
+			}
+
+			// TODO: Implement with UpgradeResourceState support
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/42
+			// if testCase.request != nil && testProvider.upgradeResourceStateCalledResourceType != testCase.request.TypeName {
+			// 	t.Errorf("expected to call resource %q, called: %s", testCase.request.TypeName, testProvider.upgradeResourceStateCalledResourceType)
+			// 	return
+			// }
+
+			if diff := cmp.Diff(got, testCase.expectedResponse); diff != "" {
+				t.Errorf("unexpected difference in response: %s", diff)
 			}
 		})
 	}

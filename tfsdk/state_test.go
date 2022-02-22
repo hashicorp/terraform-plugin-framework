@@ -2282,6 +2282,35 @@ func TestStateGetAttributeValue(t *testing.T) {
 			expected:      testtypes.String{String: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"))},
 		},
+		"AttrTypeInt64WithValidateError-nested-missing-in-config": {
+			state: State{
+				Raw: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"parent": tftypes.Object{},
+					},
+				}, map[string]tftypes.Value{
+					"parent": tftypes.NewValue(tftypes.Object{}, nil),
+				}),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"parent": {
+							Attributes: SingleNestedAttributes(map[string]Attribute{
+								"test": {
+									Type:     types.Int64Type,
+									Optional: true,
+									Computed: true,
+								},
+							}),
+							Computed: true,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("parent").WithAttributeName("test"),
+			expected:      types.Int64{Null: true},
+			expectedDiags: nil,
+		},
 	}
 
 	for name, tc := range testCases {

@@ -91,11 +91,13 @@ func (s State) getAttributeValue(ctx context.Context, path *tftypes.AttributePat
 	//       If found, convert this value to an unknown value.
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/186
 
-	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
-		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)
+	if err == nil {
+		if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+			diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)
 
-		if diags.HasError() {
-			return nil, diags
+			if diags.HasError() {
+				return nil, diags
+			}
 		}
 	}
 

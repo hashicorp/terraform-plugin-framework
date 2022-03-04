@@ -13,6 +13,10 @@ import (
 func float64Validate(_ context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	if !in.IsKnown() || in.IsNull() {
+		return diags
+	}
+
 	if !in.Type().Equal(tftypes.Number) {
 		diags.AddAttributeError(
 			path,
@@ -20,10 +24,6 @@ func float64Validate(_ context.Context, in tftypes.Value, path *tftypes.Attribut
 			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				fmt.Sprintf("Expected Number value, received %T with value: %v", in, in),
 		)
-		return diags
-	}
-
-	if !in.IsKnown() || in.IsNull() {
 		return diags
 	}
 

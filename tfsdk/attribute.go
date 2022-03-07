@@ -56,6 +56,15 @@ type Attribute struct {
 	// Required and Optional are both false, Computed must be true, and the
 	// attribute will be considered "read only" for the practitioner, with
 	// only the provider able to set its value.
+	//
+	// To define an attribute that is Optional and uses PlanModifiers
+	// to set a "default value" when none is provided by configuration,
+	// Computed must also be set: this is necessary because default
+	// values are, in effect, set by the provider.
+	// Failing to do so, will return the error like:
+	//
+	//      planned value ... for a non-computed attribute
+	//
 	Computed bool
 
 	// Sensitive indicates whether the value of this attribute should be
@@ -85,6 +94,8 @@ type Attribute struct {
 	// Plan modification only applies to resources, not data sources or
 	// providers. Setting PlanModifiers on a data source or provider attribute
 	// will have no effect.
+	//
+	// When providing PlanModifiers, it's necessary to set Computed to true.
 	PlanModifiers AttributePlanModifiers
 }
 

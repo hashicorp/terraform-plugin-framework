@@ -49,13 +49,25 @@ type Attribute struct {
 	// Optional indicates whether the practitioner can choose not to enter
 	// a value for this attribute or not. Optional and Required cannot both
 	// be true.
+	//
+	// When defining an attribute that has Optional set to true,
+	// and uses PlanModifiers to set a "default value" when none is provided,
+	// Computed must also be set to true. This is necessary because default
+	// values are, in effect, set by the provider (i.e. computed).
 	Optional bool
 
 	// Computed indicates whether the provider may return its own value for
-	// this attribute or not. Required and Computed cannot both be true. If
+	// this Attribute or not. Required and Computed cannot both be true. If
 	// Required and Optional are both false, Computed must be true, and the
 	// attribute will be considered "read only" for the practitioner, with
 	// only the provider able to set its value.
+	//
+	// When defining an Optional Attribute that has a "default value"
+	// plan modifier, Computed must also be set to true. Otherwise,
+	// Terraform will return an error like:
+	//
+	//      planned value ... for a non-computed attribute
+	//
 	Computed bool
 
 	// Sensitive indicates whether the value of this attribute should be
@@ -85,6 +97,8 @@ type Attribute struct {
 	// Plan modification only applies to resources, not data sources or
 	// providers. Setting PlanModifiers on a data source or provider attribute
 	// will have no effect.
+	//
+	// When providing PlanModifiers, it's necessary to set Computed to true.
 	PlanModifiers AttributePlanModifiers
 }
 

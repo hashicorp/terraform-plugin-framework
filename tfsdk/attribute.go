@@ -62,9 +62,9 @@ type Attribute struct {
 	// attribute will be considered "read only" for the practitioner, with
 	// only the provider able to set its value.
 	//
-	// As mentioned above for Optional, when defining an Attribute
-	// that has "default value", Computed must also be set to true.
-	// Failing to do so, will return the error like:
+	// When defining an Optional Attribute that has a "default value"
+	// plan modifier, Computed must also be set to true. Otherwise,
+	// Terraform will return an error like:
 	//
 	//      planned value ... for a non-computed attribute
 	//

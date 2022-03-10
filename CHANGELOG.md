@@ -1,3 +1,25 @@
+# 0.6.0 (March 10, 2022)
+
+NOTES:
+
+* The underlying `terraform-plugin-log` dependency has been updated to v0.3.0, which includes a breaking change in the optional additional fields parameter of logging function calls to ensure correctness and catch coding errors during compilation. Any early adopter provider logging which calls those functions may require updates. ([#268](https://github.com/hashicorp/terraform-plugin-framework/issues/268))
+
+BREAKING CHANGES:
+
+* The `ToTerraformValue` method of the `attr.Value` interface now returns a `tftypes.Value`, instead of an `interface{}`. Existing types need to be updated to call `tftypes.ValidateValue` and `tftypes.NewValue`, passing the value they were returning before, instead of returning the value directly. ([#231](https://github.com/hashicorp/terraform-plugin-framework/issues/231))
+* tfsdk: The `ListNestedAttributesOptions`, `MapNestedAttributeOptions`, and `SetNestedAttributeOptions` type `MaxItems` and `MinItems` fields have been removed since the protocol and framework never supported this type of nested attribute validation. Use attribute validators instead. ([#249](https://github.com/hashicorp/terraform-plugin-framework/issues/249))
+
+ENHANCEMENTS:
+
+* Added the ability to get an attribute as a generic `attr.Value` when using `GetAttribute`. ([#232](https://github.com/hashicorp/terraform-plugin-framework/issues/232))
+* Logging can now be used by calling `tflog.Trace`, `tflog.Debug`, `tflog.Info`, `tflog.Warn`, or `tflog.Error`. See [the tflog docs](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog) for more information. ([#234](https://github.com/hashicorp/terraform-plugin-framework/issues/234))
+* tfsdk: Added `Debug` field to `ServeOpts` for running providers via debugger and testing processes ([#243](https://github.com/hashicorp/terraform-plugin-framework/issues/243))
+
+BUG FIXES:
+
+* tfsdk: Removed `Schema` restriction that it must contain at least one attribute or block ([#252](https://github.com/hashicorp/terraform-plugin-framework/issues/252))
+* tfsdk: Support protocol version 5 and verify valid resource type in `UpgradeResourceState` RPC ([#263](https://github.com/hashicorp/terraform-plugin-framework/issues/263))
+
 # 0.5.0 (November 30, 2021)
 
 BREAKING CHANGES:

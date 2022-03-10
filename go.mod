@@ -5,13 +5,13 @@ go 1.17
 require (
 	github.com/google/go-cmp v0.5.7
 	github.com/hashicorp/terraform-plugin-go v0.7.1
-	github.com/hashicorp/terraform-plugin-log v0.2.1
+	github.com/hashicorp/terraform-plugin-log v0.3.0
 )
 
 require (
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
-	github.com/hashicorp/go-hclog v1.1.0 // indirect
+	github.com/hashicorp/go-hclog v1.2.0 // indirect
 	github.com/hashicorp/go-plugin v1.4.3 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/terraform-registry-address v0.0.0-20210412075316-9b2996cce896 // indirect

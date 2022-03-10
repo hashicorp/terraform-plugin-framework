@@ -309,7 +309,7 @@ func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttribu
 	if res {
 		resp.RequiresReplace = true
 	} else if resp.RequiresReplace {
-		tfsdklog.Debug(ctx, "Keeping previous attribute replacement requirement", "attribute_path", req.AttributePath.String())
+		tfsdklog.Debug(ctx, "Keeping previous attribute replacement requirement", map[string]interface{}{"attribute_path": req.AttributePath.String()})
 	}
 }
 

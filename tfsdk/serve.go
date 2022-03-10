@@ -689,27 +689,27 @@ func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 		}
 		configVal, _, err := tftypes.WalkAttributePath(config, path)
 		if err != tftypes.ErrInvalidStep && err != nil {
-			tfsdklog.Error(ctx, "error walking attribute path", "path", path)
+			tfsdklog.Error(ctx, "error walking attribute path", map[string]interface{}{"path": path})
 			return val, err
 		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() {
-			tfsdklog.Trace(ctx, "attribute not null in config, not marking unknown", "path", path)
+			tfsdklog.Trace(ctx, "attribute not null in config, not marking unknown", map[string]interface{}{"path": path})
 			return val, nil
 		}
 		attribute, err := resourceSchema.AttributeAtPath(path)
 		if err != nil {
 			if errors.Is(err, ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
-				tfsdklog.Trace(ctx, "attribute is a non-schema attribute, not marking unknown", "path", path)
+				tfsdklog.Trace(ctx, "attribute is a non-schema attribute, not marking unknown", map[string]interface{}{"path": path})
 				return val, nil
 			}
-			tfsdklog.Error(ctx, "couldn't find attribute in resource schema", "path", path)
+			tfsdklog.Error(ctx, "couldn't find attribute in resource schema", map[string]interface{}{"path": path})
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
 		if !attribute.Computed {
-			tfsdklog.Trace(ctx, "attribute is not computed in schema, not marking unknown", "path", path)
+			tfsdklog.Trace(ctx, "attribute is not computed in schema, not marking unknown", map[string]interface{}{"path": path})
 			return val, nil
 		}
-		tfsdklog.Debug(ctx, "marking computed attribute that is null in the config as unknown", "path", path)
+		tfsdklog.Debug(ctx, "marking computed attribute that is null in the config as unknown", map[string]interface{}{"path": path})
 		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
 	}
 }
@@ -1033,7 +1033,7 @@ func normaliseRequiresReplace(ctx context.Context, rs []*tftypes.AttributePath) 
 	j := 1
 	for i := 1; i < len(rs); i++ {
 		if rs[i].Equal(ret[j-1]) {
-			tfsdklog.Debug(ctx, "attribute found multiple times in RequiresReplace, removing duplicate", "path", rs[i])
+			tfsdklog.Debug(ctx, "attribute found multiple times in RequiresReplace, removing duplicate", map[string]interface{}{"path": rs[i]})
 			continue
 		}
 		ret[j] = rs[i]

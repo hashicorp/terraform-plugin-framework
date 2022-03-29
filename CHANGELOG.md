@@ -1,3 +1,9 @@
+# 0.6.1 (March 29, 2022)
+
+BUG FIXES:
+
+* types: Prevented panics with missing type information during `Float64`, `Int64`, and `Set` validation logic ([#259](https://github.com/hashicorp/terraform-plugin-framework/issues/259))
+
 # 0.6.0 (March 10, 2022)
 
 NOTES:

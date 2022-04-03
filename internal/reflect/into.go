@@ -26,7 +26,8 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 
 	v := reflect.ValueOf(target)
 	if v.Kind() != reflect.Ptr {
-		err := fmt.Errorf("target must be a pointer, got %T, which is a %s", target, v.Kind())
+		suggestedPointer := reflect.PointerTo(predictTargetType(ctx, typ, v))
+		err := fmt.Errorf("target must be a pointer, got %T, which is a %s. Maybe change to %s", target, v.Kind(), suggestedPointer)
 		diags.AddError(
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert the value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
@@ -186,4 +187,21 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		)
 		return target, diags
 	}
+}
+
+// predictTargetType tries to do an educated guess, which Go type should be used to store
+// Terraform value. If Terraform type does not provide sufficient information tries to
+// guess based on provided target
+func predictTargetType(ctx context.Context, typ attr.Type, targetValue reflect.Value) reflect.Type {
+	tt := typ.TerraformType(ctx)
+	if tt.Is(tftypes.Bool) {
+		return reflect.TypeOf((*bool)(nil)).Elem()
+	}
+	if tt.Is(tftypes.String) {
+		return reflect.TypeOf((*string)(nil)).Elem()
+	}
+
+	// TODO: In theory this could try to find all structs, which have sufficient
+	// tfsdk tagged fields.
+	return targetValue.Type()
 }

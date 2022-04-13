@@ -106,6 +106,13 @@ type Resource interface {
 }
 ```
 
+Since the underlying [`tfprotov6.ResourceServer`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov6#ResourceServer) interface requires an `UpgradeResourceState` implmentation, the framework currently implements a stub implementation that ensures:
+
+- The resource type exists in this provider.
+- That given state in the request is passed back in the response (e.g. as a passthrough).
+
+The implementation proposals are to handle schema versioning and allow provider developers to adjust the state between each version.
+
 ## Prior Implementations
 
 ### terraform-plugin-sdk

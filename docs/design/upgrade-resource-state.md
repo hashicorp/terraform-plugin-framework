@@ -261,6 +261,26 @@ Additional consideration should be given to:
 
 ## Proposals
 
+### Additional Attribute and Block Fields
+
+The framework could introduce additional fields to the `Attribute` and `Block` types, which signal what to do with schema upgrades. This would allow a singular `Schema` to be a single source of truth for state data over time.
+
+For example in the framework:
+
+```go
+// Existing type
+type Attribute struct {
+    // ... existing fields ...
+
+    // New field
+    // If prior version matches during UpgradeResourceState, do something.
+    // The request and response types would need to allow get/set on whole states
+    StateUpgrades map[int64]func(context.Context, AttributeStateUpgradeRequest, *AttributeStateUpgradeResponse)
+}
+```
+
+However, there is an immediate drawback that there would be no access to the provider client during upgrade state operations. This is considered a non-starter due to the goals of this functionality. There are also quite a few additional drawbacks to this type of implementation including an ever growing `Schema` size over time, when (if ever) it might be safe to remove state upgrades, and no ability to control any potential ordering considerations across multiple attributes.
+
 ### New VersionedResourceType Interface
 
 The framework could wrap the existing `ResourceType` type with a versioning interface, then requiring that provider developers fully define every version of a `ResourceType` and `Resource` when implementing a managed resource. The `Version` field of the `Schema` type would be removed to prevent conflicting code.

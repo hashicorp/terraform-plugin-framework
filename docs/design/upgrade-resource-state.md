@@ -320,7 +320,7 @@ However, there are quite a few drawbacks to this type of implementation:
 - Existing framework provider implementations would require updates to `GetResources` and each `Resource`.
 - Confusing blank `(Resource).UpgradeState()` implementation for single version resources. It could be made as an optional method, but then provider developers need to discover it and know when to use it, removing a main benefit of this type of approach.
 
-### New ResourceTypeWithUpgrades Interface
+### New ResourceTypeWithUpgradeState Interface
 
 The framework could allow provider developers to optionally extend their `ResourceType` with a new `UpgradeState` method.
 

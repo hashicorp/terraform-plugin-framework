@@ -1,6 +1,6 @@
 # Upgrade Resource State
 
-A resource schema captures the structure and types of the resource state. Any state data that is incorrect from the resource schema will generate errors or not be persisted. Over time, it may be necessary for resources to receive updates to the resource schema. Terraform supports versioning of these resource schemas, which is saved into the Terraform state. When the provider advertises a newer schema version, Terraform will call back to the provider to attempt to upgrade from the saved state version to the one advertised. This operation is performed prior to planning, but with a configured provider.
+A resource schema captures the structure and types of the resource state. Any state data that does not conform to the resource schema will generate errors or not be persisted. Over time, it may be necessary for resources to make updates to their schemas. Terraform supports versioning of these resource schemas and the current version is saved into the Terraform state. When the provider advertises a newer schema version, Terraform will call back to the provider to attempt to upgrade from the saved schema version to the one advertised. This operation is performed prior to planning, but with a configured provider.
 
 ## Background
 
@@ -10,7 +10,7 @@ The next sections will outline some of the underlying details relevant to implem
 
 ### Terraform Plugin Protocol
 
-The specification between Terraform CLI and plugins, such as Terraform Providers, is currently implemented via [Protocol Buffers](https://developers.google.com/protocol-buffers). Below highlights some of the service `rpc` (called by the Terraform CLI) and `message` types that are intergral for upgrade resource state support.
+The specification between Terraform CLI and plugins, such as Terraform Providers, is currently implemented via [Protocol Buffers](https://developers.google.com/protocol-buffers). Highlighted below are some of the service `rpc` (called by the Terraform CLI) and `message` types that are integral for upgrade resource state support.
 
 #### `UpgradeResourceState` RPC
 
@@ -565,7 +565,7 @@ Whether to implement separate methods for state upgrade logic is up to the provi
 
 This would ensure framework resources:
 
-- Succintly define state upgrade information in one place (it is a provider developer decision whether to add non-framework methods or other coding techniques to fully expand the details).
+- Succinctly define state upgrade information in one place (it is a provider developer decision whether to add non-framework methods or other coding techniques to fully expand the details).
 - Have a standard methodology for handling version selection, with duplicate detection at compile time. Missing versions can have helpful errors raised.
 - Have access to the provider instance, if desired.
 - Can be unit tested in a relatively straightforward manner.

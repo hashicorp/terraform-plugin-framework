@@ -8,11 +8,11 @@ import (
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"github.com/hashicorp/terraform-plugin-log/tfsdklog"
 )
 
 var _ tfprotov6.ProviderServer = &server{}
@@ -187,6 +187,7 @@ func (s *server) getProviderSchema(ctx context.Context, resp *getProviderSchemaR
 	}
 	resource6Schemas := map[string]*tfprotov6.Schema{}
 	for k, v := range resourceSchemas {
+		logging.FrameworkTrace(ctx, "Found resource type", map[string]interface{}{logging.KeyResourceType: k})
 		schema, diags := v.GetSchema(ctx)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -211,6 +212,7 @@ func (s *server) getProviderSchema(ctx context.Context, resp *getProviderSchemaR
 	}
 	dataSource6Schemas := map[string]*tfprotov6.Schema{}
 	for k, v := range dataSourceSchemas {
+		logging.FrameworkTrace(ctx, "Found data source type", map[string]interface{}{logging.KeyDataSourceType: k})
 		schema, diags := v.GetSchema(ctx)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -689,27 +691,27 @@ func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 		}
 		configVal, _, err := tftypes.WalkAttributePath(config, path)
 		if err != tftypes.ErrInvalidStep && err != nil {
-			tfsdklog.Error(ctx, "error walking attribute path", map[string]interface{}{"path": path})
+			logging.FrameworkError(ctx, "error walking attribute path", map[string]interface{}{logging.KeyAttributePath: path})
 			return val, err
 		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() {
-			tfsdklog.Trace(ctx, "attribute not null in config, not marking unknown", map[string]interface{}{"path": path})
+			logging.FrameworkTrace(ctx, "attribute not null in config, not marking unknown", map[string]interface{}{logging.KeyAttributePath: path})
 			return val, nil
 		}
 		attribute, err := resourceSchema.AttributeAtPath(path)
 		if err != nil {
 			if errors.Is(err, ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
-				tfsdklog.Trace(ctx, "attribute is a non-schema attribute, not marking unknown", map[string]interface{}{"path": path})
+				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown", map[string]interface{}{logging.KeyAttributePath: path})
 				return val, nil
 			}
-			tfsdklog.Error(ctx, "couldn't find attribute in resource schema", map[string]interface{}{"path": path})
+			logging.FrameworkError(ctx, "couldn't find attribute in resource schema", map[string]interface{}{logging.KeyAttributePath: path})
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
 		if !attribute.Computed {
-			tfsdklog.Trace(ctx, "attribute is not computed in schema, not marking unknown", map[string]interface{}{"path": path})
+			logging.FrameworkTrace(ctx, "attribute is not computed in schema, not marking unknown", map[string]interface{}{logging.KeyAttributePath: path})
 			return val, nil
 		}
-		tfsdklog.Debug(ctx, "marking computed attribute that is null in the config as unknown", map[string]interface{}{"path": path})
+		logging.FrameworkDebug(ctx, "marking computed attribute that is null in the config as unknown", map[string]interface{}{logging.KeyAttributePath: path})
 		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
 	}
 }
@@ -845,7 +847,7 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.
 	if !plan.IsNull() && !plan.Equal(state) {
-		tfsdklog.Trace(ctx, "marking computed null values as unknown")
+		logging.FrameworkTrace(ctx, "marking computed null values as unknown")
 		modifiedPlan, err := tftypes.Transform(plan, markComputedNilsAsUnknown(ctx, config, resourceSchema))
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -855,7 +857,7 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 			return
 		}
 		if !plan.Equal(modifiedPlan) {
-			tfsdklog.Trace(ctx, "at least one value was changed to unknown")
+			logging.FrameworkTrace(ctx, "at least one value was changed to unknown")
 		}
 		plan = modifiedPlan
 	}
@@ -1033,7 +1035,7 @@ func normaliseRequiresReplace(ctx context.Context, rs []*tftypes.AttributePath) 
 	j := 1
 	for i := 1; i < len(rs); i++ {
 		if rs[i].Equal(ret[j-1]) {
-			tfsdklog.Debug(ctx, "attribute found multiple times in RequiresReplace, removing duplicate", map[string]interface{}{"path": rs[i]})
+			logging.FrameworkDebug(ctx, "attribute found multiple times in RequiresReplace, removing duplicate", map[string]interface{}{logging.KeyAttributePath: rs[i]})
 			continue
 		}
 		ret[j] = rs[i]
@@ -1135,7 +1137,7 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 
 	switch {
 	case create && !update && !destroy:
-		tfsdklog.Trace(ctx, "running create")
+		logging.FrameworkTrace(ctx, "running create")
 		createReq := CreateResourceRequest{
 			Config: Config{
 				Schema: resourceSchema,
@@ -1188,7 +1190,7 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		}
 		resp.NewState = &newState
 	case !create && update && !destroy:
-		tfsdklog.Trace(ctx, "running update")
+		logging.FrameworkTrace(ctx, "running update")
 		updateReq := UpdateResourceRequest{
 			Config: Config{
 				Schema: resourceSchema,
@@ -1245,7 +1247,7 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		}
 		resp.NewState = &newState
 	case !create && !update && destroy:
-		tfsdklog.Trace(ctx, "running delete")
+		logging.FrameworkTrace(ctx, "running delete")
 		destroyReq := DeleteResourceRequest{
 			State: State{
 				Schema: resourceSchema,

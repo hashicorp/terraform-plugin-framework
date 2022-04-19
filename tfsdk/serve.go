@@ -554,7 +554,7 @@ func (s *server) upgradeResourceState(ctx context.Context, req *tfprotov6.Upgrad
 	// unit test helper.
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/113
 	if req.Version == resourceSchema.Version {
-		tfsdklog.Trace(ctx, "UpgradeResourceState request version matches current Schema version, using framework defined passthrough implementation")
+		logging.FrameworkTrace(ctx, "UpgradeResourceState request version matches current Schema version, using framework defined passthrough implementation")
 
 		resourceSchemaType := resourceSchema.TerraformType(ctx)
 
@@ -635,7 +635,7 @@ func (s *server) upgradeResourceState(ctx context.Context, req *tfprotov6.Upgrad
 	}
 
 	if resourceStateUpgrader.PriorSchema != nil {
-		tfsdklog.Trace(ctx, "Initializing populated UpgradeResourceStateRequest state from provider defined prior schema and request RawState")
+		logging.FrameworkTrace(ctx, "Initializing populated UpgradeResourceStateRequest state from provider defined prior schema and request RawState")
 
 		priorSchemaType := resourceStateUpgrader.PriorSchema.TerraformType(ctx)
 
@@ -667,9 +667,9 @@ func (s *server) upgradeResourceState(ctx context.Context, req *tfprotov6.Upgrad
 	// by calling the equivalent of SetAttribute(GetAttribute()) and skipping
 	// any errors.
 
-	tfsdklog.Debug(ctx, "Calling provider defined StateUpgrader")
+	logging.FrameworkDebug(ctx, "Calling provider defined StateUpgrader")
 	resourceStateUpgrader.StateUpgrader(ctx, upgradeResourceStateRequest, &upgradeResourceStateResponse)
-	tfsdklog.Debug(ctx, "Called provider defined StateUpgrader")
+	logging.FrameworkDebug(ctx, "Called provider defined StateUpgrader")
 
 	resp.Diagnostics.Append(upgradeResourceStateResponse.Diagnostics...)
 
@@ -678,7 +678,7 @@ func (s *server) upgradeResourceState(ctx context.Context, req *tfprotov6.Upgrad
 	}
 
 	if upgradeResourceStateResponse.DynamicValue != nil {
-		tfsdklog.Trace(ctx, "UpgradeResourceStateResponse DynamicValue set, overriding State")
+		logging.FrameworkTrace(ctx, "UpgradeResourceStateResponse DynamicValue set, overriding State")
 		resp.UpgradedState = upgradeResourceStateResponse.DynamicValue
 		return
 	}

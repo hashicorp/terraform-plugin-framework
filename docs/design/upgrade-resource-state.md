@@ -419,7 +419,7 @@ func (r ExampleResource) UpgradeState(context.Context, req tfsdk.UpgradeResource
 }
 ```
 
-In this setup, the framework could only implement a thin abstraction over the request data since it has no previous schema information. One framework workaround to remove this hurdle for provider developers might be to introduce additional method on `ResourceType` or `Resource` to fetch previous schema.
+In this setup, the framework could only implement a thin abstraction over the request data since it has no previous schema information. One framework workaround to remove this hurdle for provider developers might be to introduce an additional method on `ResourceType` or `Resource` to fetch previous schema.
 
 ```go
 // New type

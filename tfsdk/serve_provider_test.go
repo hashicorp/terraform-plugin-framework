@@ -24,9 +24,7 @@ type testServeProvider struct {
 	validateResourceConfigImpl               func(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 
 	// upgrade resource state
-	// TODO: Implement with UpgradeResourceState support
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/42
-	// upgradeResourceStateCalledResourceType string
+	upgradeResourceStateCalledResourceType string
 
 	// read resource request
 	readResourceCurrentStateValue  tftypes.Value
@@ -635,14 +633,16 @@ var testServeProviderProviderType = tftypes.Object{
 
 func (t *testServeProvider) GetResources(_ context.Context) (map[string]ResourceType, diag.Diagnostics) {
 	return map[string]ResourceType{
-		"test_one":                      testServeResourceTypeOne{},
-		"test_two":                      testServeResourceTypeTwo{},
-		"test_three":                    testServeResourceTypeThree{},
-		"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiers{},
-		"test_config_validators":        testServeResourceTypeConfigValidators{},
-		"test_import_state":             testServeResourceTypeImportState{},
-		"test_upgrade_state":            testServeResourceTypeUpgradeState{},
-		"test_validate_config":          testServeResourceTypeValidateConfig{},
+		"test_one":                           testServeResourceTypeOne{},
+		"test_two":                           testServeResourceTypeTwo{},
+		"test_three":                         testServeResourceTypeThree{},
+		"test_attribute_plan_modifiers":      testServeResourceTypeAttributePlanModifiers{},
+		"test_config_validators":             testServeResourceTypeConfigValidators{},
+		"test_import_state":                  testServeResourceTypeImportState{},
+		"test_upgrade_state":                 testServeResourceTypeUpgradeState{},
+		"test_upgrade_state_empty":           testServeResourceTypeUpgradeStateEmpty{},
+		"test_upgrade_state_not_implemented": testServeResourceTypeUpgradeStateNotImplemented{},
+		"test_validate_config":               testServeResourceTypeValidateConfig{},
 	}, nil
 }
 

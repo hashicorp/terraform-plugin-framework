@@ -557,16 +557,6 @@ func (s *server) upgradeResourceState(ctx context.Context, req *tfprotov6.Upgrad
 		return
 	}
 
-	// This implementation assumes the current schema is the only valid schema
-	// for the given resource and will return an error if any mismatched prior
-	// state is given. This matches prior behavior of the framework, but is now
-	// more explicit in error handling, rather than just passing through any
-	// potentially errant prior state, which should have resulted in a similar
-	// error further in the resource lifecycle.
-	//
-	// TODO: Implement resource state upgrades, rather than just using the
-	//       current resource schema.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/42
 	resourceSchema, diags := resourceType.GetSchema(ctx)
 
 	resp.Diagnostics.Append(diags...)
@@ -575,32 +565,167 @@ func (s *server) upgradeResourceState(ctx context.Context, req *tfprotov6.Upgrad
 		return
 	}
 
-	resourceSchemaType := resourceSchema.TerraformType(ctx)
+	// Terraform CLI can call UpgradeResourceState even if the stored state
+	// version matches the current schema. Presumably this is to account for
+	// the previous terraform-plugin-sdk implementation, which handled some
+	// state fixups on behalf of Terraform CLI. When this happens, we do not
+	// want to return errors for a missing ResourceWithUpgradeState
+	// implementation or an undefined version within an existing
+	// ResourceWithUpgradeState implementation as that would be confusing
+	// detail for provider developers. Instead, the framework will attempt to
+	// roundtrip the prior RawState to a State matching the current Schema.
+	//
+	// TODO: To prevent provider developers from accidentially implementing
+	// ResourceWithUpgradeState with a version matching the current schema
+	// version which would never get called, the framework can introduce a
+	// unit test helper.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/113
+	if req.Version == resourceSchema.Version {
+		logging.FrameworkTrace(ctx, "UpgradeResourceState request version matches current Schema version, using framework defined passthrough implementation")
 
-	rawStateValue, err := req.RawState.Unmarshal(resourceSchemaType)
+		resourceSchemaType := resourceSchema.TerraformType(ctx)
 
-	if err != nil {
+		rawStateValue, err := req.RawState.Unmarshal(resourceSchemaType)
+
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Read Previously Saved State for UpgradeResourceState",
+				"There was an error reading the saved resource state using the current resource schema.\n\n"+
+					"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. "+
+					"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. "+
+					"Otherwise, please report this to the provider developer:\n\n"+err.Error(),
+			)
+			return
+		}
+
+		// NewDynamicValue will ensure the Msgpack field is set for Terraform CLI
+		// 0.12 through 0.14 compatibility when using terraform-plugin-mux tf6to5server.
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/262
+		upgradedStateValue, err := tfprotov6.NewDynamicValue(resourceSchemaType, rawStateValue)
+
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Convert Previously Saved State for UpgradeResourceState",
+				"There was an error converting the saved resource state using the current resource schema. "+
+					"This is always an issue in the Terraform Provider SDK used to implement the resource and should be reported to the provider developers.\n\n"+
+					"Please report this to the provider developer:\n\n"+err.Error(),
+			)
+			return
+		}
+
+		resp.UpgradedState = &upgradedStateValue
+
+		return
+	}
+
+	resource, diags := resourceType.NewResource(ctx, s.p)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resourceWithUpgradeState, ok := resource.(ResourceWithUpgradeState)
+
+	if !ok {
 		resp.Diagnostics.AddError(
-			"Unable to Read Previously Saved State for UpgradeResourceState",
-			"There was an error reading the saved resource state using the current resource schema. "+
-				"This resource was implemented in a Terraform Provider SDK that does not support upgrading resource state yet.\n\n"+
-				"If the resource previously implemented different resource state versions, the provider developers will need to revert back to the previous implementation. "+
-				"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. "+
-				"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. "+
-				"Otherwise, please report this to the provider developer:\n\n"+err.Error(),
+			"Unable to Upgrade Resource State",
+			"This resource was implemented without an UpgradeState() method, "+
+				fmt.Sprintf("however Terraform was expecting an implementation for version %d upgrade.\n\n", req.Version)+
+				"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
 		)
 		return
 	}
 
-	// NewDynamicValue will ensure the Msgpack field is set for Terraform CLI
-	// 0.12 through 0.14 compatibility when using terraform-plugin-mux tf6to5server.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/262
-	upgradedStateValue, err := tfprotov6.NewDynamicValue(resourceSchemaType, rawStateValue)
+	resourceStateUpgraders := resourceWithUpgradeState.UpgradeState(ctx)
+
+	// Panic prevention
+	if resourceStateUpgraders == nil {
+		resourceStateUpgraders = make(map[int64]ResourceStateUpgrader, 0)
+	}
+
+	resourceStateUpgrader, ok := resourceStateUpgraders[req.Version]
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unable to Upgrade Resource State",
+			"This resource was implemented with an UpgradeState() method, "+
+				fmt.Sprintf("however Terraform was expecting an implementation for version %d upgrade.\n\n", req.Version)+
+				"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
+		)
+		return
+	}
+
+	upgradeResourceStateRequest := UpgradeResourceStateRequest{
+		RawState: req.RawState,
+	}
+
+	if resourceStateUpgrader.PriorSchema != nil {
+		logging.FrameworkTrace(ctx, "Initializing populated UpgradeResourceStateRequest state from provider defined prior schema and request RawState")
+
+		priorSchemaType := resourceStateUpgrader.PriorSchema.TerraformType(ctx)
+
+		rawStateValue, err := req.RawState.Unmarshal(priorSchemaType)
+
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Read Previously Saved State for UpgradeResourceState",
+				fmt.Sprintf("There was an error reading the saved resource state using the prior resource schema defined for version %d upgrade.\n\n", req.Version)+
+					"Please report this to the provider developer:\n\n"+err.Error(),
+			)
+			return
+		}
+
+		upgradeResourceStateRequest.State = &State{
+			Raw:    rawStateValue,
+			Schema: *resourceStateUpgrader.PriorSchema,
+		}
+	}
+
+	upgradeResourceStateResponse := UpgradeResourceStateResponse{
+		State: State{
+			Schema: resourceSchema,
+		},
+	}
+
+	// To simplify provider logic, this could perform a best effort attempt
+	// to populate the response State by looping through all Attribute/Block
+	// by calling the equivalent of SetAttribute(GetAttribute()) and skipping
+	// any errors.
+
+	logging.FrameworkDebug(ctx, "Calling provider defined StateUpgrader")
+	resourceStateUpgrader.StateUpgrader(ctx, upgradeResourceStateRequest, &upgradeResourceStateResponse)
+	logging.FrameworkDebug(ctx, "Called provider defined StateUpgrader")
+
+	resp.Diagnostics.Append(upgradeResourceStateResponse.Diagnostics...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if upgradeResourceStateResponse.DynamicValue != nil {
+		logging.FrameworkTrace(ctx, "UpgradeResourceStateResponse DynamicValue set, overriding State")
+		resp.UpgradedState = upgradeResourceStateResponse.DynamicValue
+		return
+	}
+
+	if upgradeResourceStateResponse.State.Raw.Type() == nil || upgradeResourceStateResponse.State.Raw.IsNull() {
+		resp.Diagnostics.AddError(
+			"Missing Upgraded Resource State",
+			fmt.Sprintf("After attempting a resource state upgrade to version %d, the provider did not return any state data. ", req.Version)+
+				"Preventing the unexpected loss of resource state data. "+
+				"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
+		)
+		return
+	}
+
+	upgradedStateValue, err := tfprotov6.NewDynamicValue(upgradeResourceStateResponse.State.Schema.TerraformType(ctx), upgradeResourceStateResponse.State.Raw)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to Convert Previously Saved State for UpgradeResourceState",
-			"There was an error converting the saved resource state using the current resource schema. "+
+			"Unable to Convert Upgraded Resource State",
+			fmt.Sprintf("An unexpected error was encountered when converting the state returned for version %d upgrade to a usable type. ", req.Version)+
 				"This is always an issue in the Terraform Provider SDK used to implement the resource and should be reported to the provider developers.\n\n"+
 				"Please report this to the provider developer:\n\n"+err.Error(),
 		)

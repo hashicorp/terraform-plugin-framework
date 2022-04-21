@@ -36,17 +36,6 @@ type ServeOpts struct {
 	Debug bool
 }
 
-// NewProtocol6Server returns a tfprotov6.ProviderServer implementation based
-// on the passed Provider implementation.
-//
-// Deprecated: Use NewProtocol6ProviderServer instead. This will be removed
-// in an upcoming minor version before v1.0.0.
-func NewProtocol6Server(p Provider) tfprotov6.ProviderServer {
-	return &server{
-		p: p,
-	}
-}
-
 // Returns a protocol version 6 ProviderServer implementation based on the
 // given Provider and suitable for usage with the terraform-plugin-go
 // tf6server.Serve() function and various terraform-plugin-mux functions.

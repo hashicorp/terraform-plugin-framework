@@ -49,16 +49,6 @@ var testServeResourceTypeImportStateNotImplementedSchema = &tfprotov6.Schema{
 	},
 }
 
-var testServeResourceTypeImportStateNotImplementedTftype = tftypes.Object{
-	AttributeTypes: map[string]tftypes.Type{
-		"id": tftypes.String,
-	},
-}
-
-type testServeResourceImportStateNotImplementedData struct {
-	Id string `tfsdk:"id"`
-}
-
 type testServeResourceImportStateNotImplemented struct {
 	provider *testServeProvider
 }

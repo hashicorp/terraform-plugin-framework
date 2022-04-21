@@ -38,10 +38,37 @@ type ServeOpts struct {
 
 // NewProtocol6Server returns a tfprotov6.ProviderServer implementation based
 // on the passed Provider implementation.
+//
+// Deprecated: Use NewProtocol6ProviderServer instead. This will be removed
+// in an upcoming minor version before v1.0.0.
 func NewProtocol6Server(p Provider) tfprotov6.ProviderServer {
 	return &server{
 		p: p,
 	}
+}
+
+// Returns a protocol version 6 ProviderServer implementation based on the
+// given Provider and suitable for usage with the terraform-plugin-go
+// tf6server.Serve() function and various terraform-plugin-mux functions.
+func NewProtocol6ProviderServer(p Provider) func() tfprotov6.ProviderServer {
+	return func() tfprotov6.ProviderServer {
+		return &server{
+			p: p,
+		}
+	}
+}
+
+// Returns a protocol version 6 ProviderServer implementation based on the
+// given Provider and suitable for usage with the terraform-plugin-sdk
+// acceptance testing helper/resource.TestCase.ProtoV6ProviderFactories.
+//
+// The error return is not currently used, but it may be in the future.
+func NewProtocol6ProviderServerWithError(p Provider) (func() tfprotov6.ProviderServer, error) {
+	return func() tfprotov6.ProviderServer {
+		return &server{
+			p: p,
+		}
+	}, nil
 }
 
 // Serve serves a provider, blocking until the context is canceled.

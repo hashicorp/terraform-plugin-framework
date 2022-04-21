@@ -16,6 +16,39 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func TestNewProtocol6ProviderServer(t *testing.T) {
+	provider := &testServeProvider{}
+
+	providerServerFunc := NewProtocol6ProviderServer(provider)
+	providerServer := providerServerFunc()
+
+	// Simple verification
+	_, err := providerServer.GetProviderSchema(context.Background(), &tfprotov6.GetProviderSchemaRequest{})
+
+	if err != nil {
+		t.Fatalf("unexpected error calling ProviderServer: %s", err)
+	}
+}
+
+func TestNewProtocol6ProviderServerWithError(t *testing.T) {
+	provider := &testServeProvider{}
+
+	providerServerFunc, err := NewProtocol6ProviderServerWithError(provider)
+
+	if err != nil {
+		t.Fatalf("unexpected error creating ProviderServer: %s", err)
+	}
+
+	providerServer := providerServerFunc()
+
+	// Simple verification
+	_, err = providerServer.GetProviderSchema(context.Background(), &tfprotov6.GetProviderSchemaRequest{})
+
+	if err != nil {
+		t.Fatalf("unexpected error calling ProviderServer: %s", err)
+	}
+}
+
 func TestServerCancelInFlightContexts(t *testing.T) {
 	t.Parallel()
 

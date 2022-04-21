@@ -125,7 +125,3 @@ func (r testServeResourceOne) Delete(ctx context.Context, req DeleteResourceRequ
 	r.provider.applyResourceChangeCalledAction = "delete"
 	r.provider.deleteFunc(ctx, req, resp)
 }
-
-func (r testServeResourceOne) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-	ResourceImportStateNotImplemented(ctx, "Not expected to be called during testing.", resp)
-}

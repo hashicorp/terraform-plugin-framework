@@ -87,9 +87,6 @@ func (r testServeResourceUpgradeStateEmpty) Update(ctx context.Context, req Upda
 func (r testServeResourceUpgradeStateEmpty) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
 	// Intentionally blank. Not expected to be called during testing.
 }
-func (r testServeResourceUpgradeStateEmpty) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-	ResourceImportStateNotImplemented(ctx, "intentionally not implemented", resp)
-}
 
 func (r testServeResourceUpgradeStateEmpty) UpgradeState(ctx context.Context) map[int64]ResourceStateUpgrader {
 	return nil

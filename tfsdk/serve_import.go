@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -85,6 +86,26 @@ func (s *server) importResourceState(ctx context.Context, req *tfprotov6.ImportR
 		return
 	}
 
+	resourceWithImportState, ok := resource.(ResourceWithImportState)
+
+	if !ok {
+		// If there is a feature request for customizing this messaging,
+		// provider developers can implement a ImportState method that
+		// immediately returns a custom error diagnostic.
+		//
+		// However, implementing the ImportState method could cause issues
+		// with automated documentation generation, which likely would check
+		// if the resource implements the ResourceWithImportState interface.
+		// Instead, a separate "ResourceWithoutImportState" interface could be
+		// created with a method such as:
+		//    ImportNotImplementedMessage(context.Context) string.
+		resp.Diagnostics.AddError(
+			"Resource Import Not Implemented",
+			"This resource does not support import. Please contact the provider developer for additional information.",
+		)
+		return
+	}
+
 	emptyState := tftypes.NewValue(resourceSchema.TerraformType(ctx), nil)
 	importReq := ImportResourceStateRequest{
 		ID: req.ID,
@@ -96,7 +117,9 @@ func (s *server) importResourceState(ctx context.Context, req *tfprotov6.ImportR
 		},
 	}
 
-	resource.ImportState(ctx, importReq, &importResp)
+	logging.FrameworkDebug(ctx, "Calling provider defined ImportState")
+	resourceWithImportState.ImportState(ctx, importReq, &importResp)
+	logging.FrameworkDebug(ctx, "Called provider defined ImportState")
 	resp.Diagnostics.Append(importResp.Diagnostics...)
 
 	if resp.Diagnostics.HasError() {

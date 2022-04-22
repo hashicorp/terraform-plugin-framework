@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -309,7 +310,23 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 	req.AttributeConfig = attributeConfig
 
 	for _, validator := range a.Validators {
+		logging.FrameworkDebug(
+			ctx,
+			"Calling provider defined AttributeValidator",
+			map[string]interface{}{
+				logging.KeyAttributePath: req.AttributePath.String(),
+				logging.KeyDescription:   validator.Description(ctx),
+			},
+		)
 		validator.Validate(ctx, req, resp)
+		logging.FrameworkDebug(
+			ctx,
+			"Called provider defined AttributeValidator",
+			map[string]interface{}{
+				logging.KeyAttributePath: req.AttributePath.String(),
+				logging.KeyDescription:   validator.Description(ctx),
+			},
+		)
 	}
 
 	a.validateAttributes(ctx, req, resp)
@@ -520,7 +537,23 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 			RequiresReplace: requiresReplace,
 		}
 
+		logging.FrameworkDebug(
+			ctx,
+			"Calling provider defined AttributePlanModifier",
+			map[string]interface{}{
+				logging.KeyAttributePath: req.AttributePath.String(),
+				logging.KeyDescription:   planModifier.Description(ctx),
+			},
+		)
 		planModifier.Modify(ctx, req, modifyResp)
+		logging.FrameworkDebug(
+			ctx,
+			"Called provider defined AttributePlanModifier",
+			map[string]interface{}{
+				logging.KeyAttributePath: req.AttributePath.String(),
+				logging.KeyDescription:   planModifier.Description(ctx),
+			},
+		)
 
 		req.AttributePlan = modifyResp.AttributePlan
 		resp.Diagnostics.Append(modifyResp.Diagnostics...)

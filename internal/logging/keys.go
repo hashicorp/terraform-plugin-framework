@@ -15,6 +15,10 @@ const (
 	// The type of data source being operated on, such as "archive_file"
 	KeyDataSourceType = "tf_data_source_type"
 
+	// Human readable string when calling a provider defined type that must
+	// implement the Description() method, such as validators.
+	KeyDescription = "description"
+
 	// Underlying Go error string when logging an error.
 	KeyError = "error"
 

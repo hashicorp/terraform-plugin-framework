@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -71,14 +72,18 @@ func (s *server) importResourceState(ctx context.Context, req *tfprotov6.ImportR
 		return
 	}
 
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
 	resourceSchema, diags := resourceType.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
 	resource, diags := resourceType.NewResource(ctx, s.p)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
@@ -96,7 +101,9 @@ func (s *server) importResourceState(ctx context.Context, req *tfprotov6.ImportR
 		},
 	}
 
+	logging.FrameworkDebug(ctx, "Calling provider defined Resource ImportState")
 	resource.ImportState(ctx, importReq, &importResp)
+	logging.FrameworkDebug(ctx, "Called provider defined Resource ImportState")
 	resp.Diagnostics.Append(importResp.Diagnostics...)
 
 	if resp.Diagnostics.HasError() {

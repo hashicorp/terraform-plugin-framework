@@ -1438,6 +1438,12 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 		}
 		resource.Delete(ctx, destroyReq, &destroyResp)
 		resp.Diagnostics = destroyResp.Diagnostics
+
+		if !resp.Diagnostics.HasError() {
+			logging.FrameworkTrace(ctx, "No provider defined Delete errors detected, ensuring State is cleared")
+			destroyResp.State.RemoveResource(ctx)
+		}
+
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), destroyResp.State.Raw)
 		if err != nil {
 			resp.Diagnostics.AddError(

@@ -1,0 +1,7 @@
+```release-note:note
+tfsdk: Providers may now optionally remove `RemoveResource()` calls from `Resource` type `Delete` methods
+```
+
+```release-note:enhancement
+tfsdk: Added automatic `(DeleteResourceResponse.State).RemoveResource()` call after `Resource` type `Delete` method execution if there are no errors
+```

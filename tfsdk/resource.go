@@ -44,6 +44,10 @@ type Resource interface {
 
 	// Delete is called when the provider must delete the resource. Config
 	// values may be read from the DeleteResourceRequest.
+	//
+	// If execution completes without error, the framework will automatically
+	// call DeleteResourceResponse.State.RemoveResource(), so it can be omitted
+	// from provider logic.
 	Delete(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
 }
 

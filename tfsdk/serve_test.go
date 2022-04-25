@@ -33,13 +33,11 @@ func TestNewProtocol6ProviderServer(t *testing.T) {
 func TestNewProtocol6ProviderServerWithError(t *testing.T) {
 	provider := &testServeProvider{}
 
-	providerServerFunc, err := NewProtocol6ProviderServerWithError(provider)
+	providerServer, err := NewProtocol6ProviderServerWithError(provider)()
 
 	if err != nil {
 		t.Fatalf("unexpected error creating ProviderServer: %s", err)
 	}
-
-	providerServer := providerServerFunc()
 
 	// Simple verification
 	_, err = providerServer.GetProviderSchema(context.Background(), &tfprotov6.GetProviderSchemaRequest{})
@@ -4578,7 +4576,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 			action:       "delete",
 			resourceType: testServeResourceTypeOneType,
 			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
+				// Removing the state prior to the framework should not generate errors
+				resp.State.RemoveResource(ctx)
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
 		},
@@ -4594,7 +4593,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 			action:       "delete",
 			resourceType: testServeResourceTypeOneType,
 			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
+				// Removing the state prior to the framework should not generate errors
+				resp.State.RemoveResource(ctx)
 				resp.Diagnostics.AddAttributeWarning(
 					tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
 					"This is a warning",
@@ -4623,6 +4623,84 @@ func TestServerApplyResourceChange(t *testing.T) {
 			action:       "delete",
 			resourceType: testServeResourceTypeOneType,
 			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				resp.Diagnostics.AddError(
+					"This is an error",
+					"Something went wrong, keep the old state around",
+				)
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "This is an error",
+					Detail:   "Something went wrong, keep the old state around",
+				},
+			},
+		},
+		"one_delete_automatic_removeresource": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				// The framework should automatically call resp.State.RemoveResource()
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+		},
+		"one_delete_diags_warning_automatic_removeresource": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				// The framework should automatically call resp.State.RemoveResource()
+				resp.Diagnostics.AddAttributeWarning(
+					tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
+					"This is a warning",
+					"just a warning diagnostic, no behavior changes",
+				)
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Summary:   "This is a warning",
+					Detail:    "just a warning diagnostic, no behavior changes",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
+				},
+			},
+		},
+		"one_delete_diags_error_no_automatic_removeresource": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				// The framework should NOT automatically call resp.State.RemoveResource()
 				resp.Diagnostics.AddError(
 					"This is an error",
 					"Something went wrong, keep the old state around",

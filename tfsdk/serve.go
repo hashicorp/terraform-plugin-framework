@@ -50,12 +50,12 @@ func NewProtocol6ProviderServer(p Provider) func() tfprotov6.ProviderServer {
 // acceptance testing helper/resource.TestCase.ProtoV6ProviderFactories.
 //
 // The error return is not currently used, but it may be in the future.
-func NewProtocol6ProviderServerWithError(p Provider) (func() tfprotov6.ProviderServer, error) {
-	return func() tfprotov6.ProviderServer {
+func NewProtocol6ProviderServerWithError(p Provider) func() (tfprotov6.ProviderServer, error) {
+	return func() (tfprotov6.ProviderServer, error) {
 		return &server{
 			p: p,
-		}
-	}, nil
+		}, nil
+	}
 }
 
 // Serve serves a provider, blocking until the context is canceled.

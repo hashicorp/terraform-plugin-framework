@@ -33,13 +33,11 @@ func TestNewProtocol6ProviderServer(t *testing.T) {
 func TestNewProtocol6ProviderServerWithError(t *testing.T) {
 	provider := &testServeProvider{}
 
-	providerServerFunc, err := NewProtocol6ProviderServerWithError(provider)
+	providerServer, err := NewProtocol6ProviderServerWithError(provider)()
 
 	if err != nil {
 		t.Fatalf("unexpected error creating ProviderServer: %s", err)
 	}
-
-	providerServer := providerServerFunc()
 
 	// Simple verification
 	_, err = providerServer.GetProviderSchema(context.Background(), &tfprotov6.GetProviderSchemaRequest{})

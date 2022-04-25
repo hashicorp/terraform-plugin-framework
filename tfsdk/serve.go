@@ -97,7 +97,11 @@ func (s *server) cancelRegisteredContexts(_ context.Context) {
 }
 
 func (s *server) getResourceType(ctx context.Context, typ string) (ResourceType, diag.Diagnostics) {
+	// TODO: Cache GetResources call in GetProviderSchema and reference cache instead
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/299
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetResources")
 	resourceTypes, diags := s.p.GetResources(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider GetResources")
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -113,7 +117,11 @@ func (s *server) getResourceType(ctx context.Context, typ string) (ResourceType,
 }
 
 func (s *server) getDataSourceType(ctx context.Context, typ string) (DataSourceType, diag.Diagnostics) {
+	// TODO: Cache GetDataSources call in GetProviderSchema and reference cache instead
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/299
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetDataSources")
 	dataSourceTypes, diags := s.p.GetDataSources(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider GetDataSources")
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -157,8 +165,9 @@ func (s *server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProvider
 }
 
 func (s *server) getProviderSchema(ctx context.Context, resp *getProviderSchemaResponse) {
-	// get the provider schema
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
 	providerSchema, diags := s.p.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
 	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
 		return
@@ -181,7 +190,10 @@ func (s *server) getProviderSchema(ctx context.Context, resp *getProviderSchemaR
 	// if we have a provider_meta schema, get it
 	var providerMeta6Schema *tfprotov6.Schema
 	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+		logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
 		providerMetaSchema, diags := pm.GetMetaSchema(ctx)
+		logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
 
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -199,16 +211,22 @@ func (s *server) getProviderSchema(ctx context.Context, resp *getProviderSchemaR
 		providerMeta6Schema = pm6Schema
 	}
 
-	// get our resource schemas
+	// TODO: Cache GetDataSources call
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/299
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetResources")
 	resourceSchemas, diags := s.p.GetResources(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider GetResources")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	resource6Schemas := map[string]*tfprotov6.Schema{}
 	for k, v := range resourceSchemas {
+		// KeyResourceType field only necessary here since we are in GetProviderSchema RPC
 		logging.FrameworkTrace(ctx, "Found resource type", map[string]interface{}{logging.KeyResourceType: k})
+		logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema", map[string]interface{}{logging.KeyResourceType: k})
 		schema, diags := v.GetSchema(ctx)
+		logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema", map[string]interface{}{logging.KeyResourceType: k})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -224,16 +242,22 @@ func (s *server) getProviderSchema(ctx context.Context, resp *getProviderSchemaR
 		resource6Schemas[k] = schema6
 	}
 
-	// get our data source schemas
+	// TODO: Cache GetDataSources call
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/299
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetDataSources")
 	dataSourceSchemas, diags := s.p.GetDataSources(ctx)
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetDataSources")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	dataSource6Schemas := map[string]*tfprotov6.Schema{}
 	for k, v := range dataSourceSchemas {
+		// KeyDataSourceType field only necessary here since we are in GetProviderSchema RPC
 		logging.FrameworkTrace(ctx, "Found data source type", map[string]interface{}{logging.KeyDataSourceType: k})
+		logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType GetSchema", map[string]interface{}{logging.KeyDataSourceType: k})
 		schema, diags := v.GetSchema(ctx)
+		logging.FrameworkDebug(ctx, "Called provider defined DataSourceType GetSchema", map[string]interface{}{logging.KeyDataSourceType: k})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -290,7 +314,9 @@ func (s *server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 }
 
 func (s *server) validateProviderConfig(ctx context.Context, req *tfprotov6.ValidateProviderConfigRequest, resp *validateProviderConfigResponse) {
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
 	schema, diags := s.p.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
@@ -316,23 +342,41 @@ func (s *server) validateProviderConfig(ctx context.Context, req *tfprotov6.Vali
 	}
 
 	if provider, ok := s.p.(ProviderWithConfigValidators); ok {
+		logging.FrameworkTrace(ctx, "Provider implements ProviderWithConfigValidators")
 		for _, configValidator := range provider.ConfigValidators(ctx) {
 			vpcRes := &ValidateProviderConfigResponse{
 				Diagnostics: resp.Diagnostics,
 			}
 
+			logging.FrameworkDebug(
+				ctx,
+				"Calling provider defined ProviderConfigValidator",
+				map[string]interface{}{
+					logging.KeyDescription: configValidator.Description(ctx),
+				},
+			)
 			configValidator.Validate(ctx, vpcReq, vpcRes)
+			logging.FrameworkDebug(
+				ctx,
+				"Called provider defined ProviderConfigValidator",
+				map[string]interface{}{
+					logging.KeyDescription: configValidator.Description(ctx),
+				},
+			)
 
 			resp.Diagnostics = vpcRes.Diagnostics
 		}
 	}
 
 	if provider, ok := s.p.(ProviderWithValidateConfig); ok {
+		logging.FrameworkTrace(ctx, "Provider implements ProviderWithValidateConfig")
 		vpcRes := &ValidateProviderConfigResponse{
 			Diagnostics: resp.Diagnostics,
 		}
 
+		logging.FrameworkDebug(ctx, "Calling provider defined Provider ValidateConfig")
 		provider.ValidateConfig(ctx, vpcReq, vpcRes)
+		logging.FrameworkDebug(ctx, "Called provider defined Provider ValidateConfig")
 
 		resp.Diagnostics = vpcRes.Diagnostics
 	}
@@ -373,7 +417,9 @@ func (s *server) ConfigureProvider(ctx context.Context, req *tfprotov6.Configure
 }
 
 func (s *server) configureProvider(ctx context.Context, req *tfprotov6.ConfigureProviderRequest, resp *configureProviderResponse) {
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
 	schema, diags := s.p.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -394,7 +440,9 @@ func (s *server) configureProvider(ctx context.Context, req *tfprotov6.Configure
 		},
 	}
 	res := &ConfigureProviderResponse{}
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider Configure")
 	s.p.Configure(ctx, r, res)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider Configure")
 	resp.Diagnostics.Append(res.Diagnostics...)
 }
 
@@ -436,7 +484,9 @@ func (s *server) validateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 
 	// Get the schema from the resource type, so we can embed it in the
 	// config
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
 	resourceSchema, diags := resourceType.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
@@ -445,7 +495,9 @@ func (s *server) validateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 
 	// Create the resource instance, so we can call its methods and handle
 	// the request
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
 	resource, diags := resourceType.NewResource(ctx, s.p)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
@@ -471,23 +523,41 @@ func (s *server) validateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 	}
 
 	if resource, ok := resource.(ResourceWithConfigValidators); ok {
+		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigValidators")
 		for _, configValidator := range resource.ConfigValidators(ctx) {
 			vrcRes := &ValidateResourceConfigResponse{
 				Diagnostics: resp.Diagnostics,
 			}
 
+			logging.FrameworkDebug(
+				ctx,
+				"Calling provider defined ResourceConfigValidator",
+				map[string]interface{}{
+					logging.KeyDescription: configValidator.Description(ctx),
+				},
+			)
 			configValidator.Validate(ctx, vrcReq, vrcRes)
+			logging.FrameworkDebug(
+				ctx,
+				"Called provider defined ResourceConfigValidator",
+				map[string]interface{}{
+					logging.KeyDescription: configValidator.Description(ctx),
+				},
+			)
 
 			resp.Diagnostics = vrcRes.Diagnostics
 		}
 	}
 
 	if resource, ok := resource.(ResourceWithValidateConfig); ok {
+		logging.FrameworkTrace(ctx, "Resource implements ResourceWithValidateConfig")
 		vrcRes := &ValidateResourceConfigResponse{
 			Diagnostics: resp.Diagnostics,
 		}
 
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource ValidateConfig")
 		resource.ValidateConfig(ctx, vrcReq, vrcRes)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource ValidateConfig")
 
 		resp.Diagnostics = vrcRes.Diagnostics
 	}
@@ -550,7 +620,9 @@ func (s *server) upgradeResourceState(ctx context.Context, req *tfprotov6.Upgrad
 		return
 	}
 
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
 	resourceSchema, diags := resourceType.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
 
 	resp.Diagnostics.Append(diags...)
 
@@ -611,7 +683,9 @@ func (s *server) upgradeResourceState(ctx context.Context, req *tfprotov6.Upgrad
 		return
 	}
 
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
 	resource, diags := resourceType.NewResource(ctx, s.p)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 
 	resp.Diagnostics.Append(diags...)
 
@@ -631,7 +705,11 @@ func (s *server) upgradeResourceState(ctx context.Context, req *tfprotov6.Upgrad
 		return
 	}
 
+	logging.FrameworkTrace(ctx, "Resource implements ResourceWithUpgradeState")
+
+	logging.FrameworkDebug(ctx, "Calling provider defined Resource UpgradeState")
 	resourceStateUpgraders := resourceWithUpgradeState.UpgradeState(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined Resource UpgradeState")
 
 	// Panic prevention
 	if resourceStateUpgraders == nil {
@@ -758,12 +836,16 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
 	resourceSchema, diags := resourceType.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
 	resource, diags := resourceType.NewResource(ctx, s.p)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -783,7 +865,10 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 		},
 	}
 	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+		logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
 		pmSchema, diags := pm.GetMetaSchema(ctx)
+		logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -812,7 +897,9 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 		},
 		Diagnostics: resp.Diagnostics,
 	}
+	logging.FrameworkDebug(ctx, "Calling provider defined Resource Read")
 	resource.Read(ctx, readReq, &readResp)
+	logging.FrameworkDebug(ctx, "Called provider defined Resource Read")
 	resp.Diagnostics = readResp.Diagnostics
 	// don't return even if we have error diagnostics, we need to set the
 	// state on the response, first
@@ -830,33 +917,35 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 
 func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
 	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
+		ctx = logging.FrameworkWithAttributePath(ctx, path.String())
+
 		// we are only modifying attributes, not the entire resource
 		if len(path.Steps()) < 1 {
 			return val, nil
 		}
 		configVal, _, err := tftypes.WalkAttributePath(config, path)
 		if err != tftypes.ErrInvalidStep && err != nil {
-			logging.FrameworkError(ctx, "error walking attribute path", map[string]interface{}{logging.KeyAttributePath: path})
+			logging.FrameworkError(ctx, "error walking attribute path")
 			return val, err
 		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() {
-			logging.FrameworkTrace(ctx, "attribute not null in config, not marking unknown", map[string]interface{}{logging.KeyAttributePath: path})
+			logging.FrameworkTrace(ctx, "attribute not null in config, not marking unknown")
 			return val, nil
 		}
 		attribute, err := resourceSchema.AttributeAtPath(path)
 		if err != nil {
 			if errors.Is(err, ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
-				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown", map[string]interface{}{logging.KeyAttributePath: path})
+				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown")
 				return val, nil
 			}
-			logging.FrameworkError(ctx, "couldn't find attribute in resource schema", map[string]interface{}{logging.KeyAttributePath: path})
+			logging.FrameworkError(ctx, "couldn't find attribute in resource schema")
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
 		if !attribute.Computed {
-			logging.FrameworkTrace(ctx, "attribute is not computed in schema, not marking unknown", map[string]interface{}{logging.KeyAttributePath: path})
+			logging.FrameworkTrace(ctx, "attribute is not computed in schema, not marking unknown")
 			return val, nil
 		}
-		logging.FrameworkDebug(ctx, "marking computed attribute that is null in the config as unknown", map[string]interface{}{logging.KeyAttributePath: path})
+		logging.FrameworkDebug(ctx, "marking computed attribute that is null in the config as unknown")
 		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
 	}
 }
@@ -898,7 +987,9 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 
 	// get the schema from the resource type, so we can embed it in the
 	// config and plan
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
 	resourceSchema, diags := resourceType.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -935,7 +1026,9 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 
 	// create the resource instance, so we can call its methods and handle
 	// the request
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
 	resource, diags := resourceType.NewResource(ctx, s.p)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -1028,7 +1121,10 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 			},
 		}
 		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
 			pmSchema, diags := pm.GetMetaSchema(ctx)
+			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
 			if diags != nil {
 				resp.Diagnostics.Append(diags...)
 				if resp.Diagnostics.HasError() {
@@ -1080,6 +1176,7 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	// Terraform's state
 	var modifyPlanResp ModifyResourcePlanResponse
 	if resource, ok := resource.(ResourceWithModifyPlan); ok {
+		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 		modifyPlanReq := ModifyResourcePlanRequest{
 			Config: Config{
 				Schema: resourceSchema,
@@ -1095,7 +1192,10 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 			},
 		}
 		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
 			pmSchema, diags := pm.GetMetaSchema(ctx)
+			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
 			resp.Diagnostics.Append(diags...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -1126,7 +1226,9 @@ func (s *server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 			RequiresReplace: []*tftypes.AttributePath{},
 			Diagnostics:     resp.Diagnostics,
 		}
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource ModifyPlan")
 		resource.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource ModifyPlan")
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		plan = modifyPlanResp.Plan.Raw
 	}
@@ -1213,7 +1315,9 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 
 	// get the schema from the resource type, so we can embed it in the
 	// config and plan
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
 	resourceSchema, diags := resourceType.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -1221,7 +1325,9 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 
 	// create the resource instance, so we can call its methods and handle
 	// the request
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
 	resource, diags := resourceType.NewResource(ctx, s.p)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -1294,7 +1400,10 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			},
 		}
 		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
 			pmSchema, diags := pm.GetMetaSchema(ctx)
+			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
 			resp.Diagnostics.Append(diags...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -1323,7 +1432,9 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			},
 			Diagnostics: resp.Diagnostics,
 		}
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource Create")
 		resource.Create(ctx, createReq, &createResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource Create")
 		resp.Diagnostics = createResp.Diagnostics
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), createResp.State.Raw)
 		if err != nil {
@@ -1351,7 +1462,10 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			},
 		}
 		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
 			pmSchema, diags := pm.GetMetaSchema(ctx)
+			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
 			resp.Diagnostics.Append(diags...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -1380,7 +1494,9 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			},
 			Diagnostics: resp.Diagnostics,
 		}
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource Update")
 		resource.Update(ctx, updateReq, &updateResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource Update")
 		resp.Diagnostics = updateResp.Diagnostics
 		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), updateResp.State.Raw)
 		if err != nil {
@@ -1400,7 +1516,10 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			},
 		}
 		if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
 			pmSchema, diags := pm.GetMetaSchema(ctx)
+			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
 			resp.Diagnostics.Append(diags...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -1429,7 +1548,9 @@ func (s *server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 			},
 			Diagnostics: resp.Diagnostics,
 		}
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource Delete")
 		resource.Delete(ctx, destroyReq, &destroyResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource Delete")
 		resp.Diagnostics = destroyResp.Diagnostics
 
 		if !resp.Diagnostics.HasError() {
@@ -1487,7 +1608,9 @@ func (s *server) validateDataResourceConfig(ctx context.Context, req *tfprotov6.
 
 	// Get the schema from the data source type, so we can embed it in the
 	// config
+	logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType GetSchema")
 	dataSourceSchema, diags := dataSourceType.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined DataSourceType GetSchema")
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
@@ -1496,7 +1619,9 @@ func (s *server) validateDataResourceConfig(ctx context.Context, req *tfprotov6.
 
 	// Create the data source instance, so we can call its methods and handle
 	// the request
+	logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType NewDataSource")
 	dataSource, diags := dataSourceType.NewDataSource(ctx, s.p)
+	logging.FrameworkDebug(ctx, "Called provider defined DataSourceType NewDataSource")
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
@@ -1522,23 +1647,41 @@ func (s *server) validateDataResourceConfig(ctx context.Context, req *tfprotov6.
 	}
 
 	if dataSource, ok := dataSource.(DataSourceWithConfigValidators); ok {
+		logging.FrameworkTrace(ctx, "DataSource implements DataSourceWithConfigValidators")
 		for _, configValidator := range dataSource.ConfigValidators(ctx) {
 			vrcRes := &ValidateDataSourceConfigResponse{
 				Diagnostics: resp.Diagnostics,
 			}
 
+			logging.FrameworkDebug(
+				ctx,
+				"Calling provider defined DataSourceConfigValidator",
+				map[string]interface{}{
+					logging.KeyDescription: configValidator.Description(ctx),
+				},
+			)
 			configValidator.Validate(ctx, vrcReq, vrcRes)
+			logging.FrameworkDebug(
+				ctx,
+				"Called provider defined DataSourceConfigValidator",
+				map[string]interface{}{
+					logging.KeyDescription: configValidator.Description(ctx),
+				},
+			)
 
 			resp.Diagnostics = vrcRes.Diagnostics
 		}
 	}
 
 	if dataSource, ok := dataSource.(DataSourceWithValidateConfig); ok {
+		logging.FrameworkTrace(ctx, "DataSource implements DataSourceWithValidateConfig")
 		vrcRes := &ValidateDataSourceConfigResponse{
 			Diagnostics: resp.Diagnostics,
 		}
 
+		logging.FrameworkDebug(ctx, "Calling provider defined DataSource ValidateConfig")
 		dataSource.ValidateConfig(ctx, vrcReq, vrcRes)
+		logging.FrameworkDebug(ctx, "Called provider defined DataSource ValidateConfig")
 
 		resp.Diagnostics = vrcRes.Diagnostics
 	}
@@ -1586,12 +1729,16 @@ func (s *server) readDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType GetSchema")
 	dataSourceSchema, diags := dataSourceType.GetSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined DataSourceType GetSchema")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType NewDataSource")
 	dataSource, diags := dataSourceType.NewDataSource(ctx, s.p)
+	logging.FrameworkDebug(ctx, "Called provider defined DataSourceType NewDataSource")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -1611,7 +1758,10 @@ func (s *server) readDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 		},
 	}
 	if pm, ok := s.p.(ProviderWithProviderMeta); ok {
+		logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
 		pmSchema, diags := pm.GetMetaSchema(ctx)
+		logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -1643,7 +1793,9 @@ func (s *server) readDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 		},
 		Diagnostics: resp.Diagnostics,
 	}
+	logging.FrameworkDebug(ctx, "Calling provider defined DataSource Read")
 	dataSource.Read(ctx, readReq, &readResp)
+	logging.FrameworkDebug(ctx, "Called provider defined DataSource Read")
 	resp.Diagnostics = readResp.Diagnostics
 	// don't return even if we have error diagnostics, we need to set the
 	// state on the response, first

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -25,6 +26,8 @@ func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 // GetAttribute retrieves the attribute found at `path` and populates the
 // `target` with the value.
 func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath, target interface{}) diag.Diagnostics {
+	ctx = logging.FrameworkWithAttributePath(ctx, path.String())
+
 	attrValue, diags := s.getAttributeValue(ctx, path)
 
 	if diags.HasError() {
@@ -92,7 +95,10 @@ func (s State) getAttributeValue(ctx context.Context, path *tftypes.AttributePat
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/186
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
+		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)
+		logging.FrameworkDebug(ctx, "Called provider defined Type Validate")
 
 		if diags.HasError() {
 			return nil, diags
@@ -156,6 +162,8 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, val interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	ctx = logging.FrameworkWithAttributePath(ctx, path.String())
+
 	attrType, err := s.Schema.AttributeTypeAtPath(path)
 	if err != nil {
 		err = fmt.Errorf("error getting attribute type in schema: %w", err)
@@ -186,7 +194,10 @@ func (s *State) SetAttribute(ctx context.Context, path *tftypes.AttributePath, v
 	}
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
+		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)
+		logging.FrameworkDebug(ctx, "Called provider defined Type Validate")
 
 		if diags.HasError() {
 			return diags
@@ -315,7 +326,10 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attr
 	}
 
 	if attrTypeWithValidate, ok := parentAttrType.(attr.TypeWithValidate); ok {
+		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
+		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, parentValue, parentPath)...)
+		logging.FrameworkDebug(ctx, "Called provider defined Type Validate")
 
 		if diags.HasError() {
 			return nil, diags

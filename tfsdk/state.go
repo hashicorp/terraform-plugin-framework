@@ -26,6 +26,8 @@ func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 // GetAttribute retrieves the attribute found at `path` and populates the
 // `target` with the value.
 func (s State) GetAttribute(ctx context.Context, path *tftypes.AttributePath, target interface{}) diag.Diagnostics {
+	ctx = logging.FrameworkWithAttributePath(ctx, path.String())
+
 	attrValue, diags := s.getAttributeValue(ctx, path)
 
 	if diags.HasError() {
@@ -93,11 +95,10 @@ func (s State) getAttributeValue(ctx context.Context, path *tftypes.AttributePat
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/186
 
 	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
-		attributePathCtx := logging.FrameworkWithAttributePath(ctx, path.String())
-		logging.FrameworkTrace(attributePathCtx, "Type implements TypeWithValidate")
-		logging.FrameworkDebug(attributePathCtx, "Calling provider defined Type Validate")
+		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
+		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)
-		logging.FrameworkDebug(attributePathCtx, "Called provider defined Type Validate")
+		logging.FrameworkDebug(ctx, "Called provider defined Type Validate")
 
 		if diags.HasError() {
 			return nil, diags
@@ -325,11 +326,10 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attr
 	}
 
 	if attrTypeWithValidate, ok := parentAttrType.(attr.TypeWithValidate); ok {
-		attributePathCtx := logging.FrameworkWithAttributePath(ctx, path.String())
-		logging.FrameworkTrace(attributePathCtx, "Type implements TypeWithValidate")
-		logging.FrameworkDebug(attributePathCtx, "Calling provider defined Type Validate")
+		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
+		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, parentValue, parentPath)...)
-		logging.FrameworkDebug(attributePathCtx, "Called provider defined Type Validate")
+		logging.FrameworkDebug(ctx, "Called provider defined Type Validate")
 
 		if diags.HasError() {
 			return nil, diags

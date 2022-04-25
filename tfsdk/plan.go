@@ -317,7 +317,10 @@ func (p Plan) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attri
 	}
 
 	if attrTypeWithValidate, ok := parentAttrType.(attr.TypeWithValidate); ok {
+		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
+		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, parentValue, parentPath)...)
+		logging.FrameworkDebug(ctx, "Called provider defined Type Validate")
 
 		if diags.HasError() {
 			return nil, diags

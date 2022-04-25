@@ -30,3 +30,11 @@ func FrameworkTrace(ctx context.Context, msg string, additionalFields ...map[str
 func FrameworkWarn(ctx context.Context, msg string, additionalFields ...map[string]interface{}) {
 	tfsdklog.SubsystemWarn(ctx, SubsystemFramework, msg, additionalFields...)
 }
+
+// FrameworkWithAttributePath returns a new Context with KeyAttributePath set.
+// The attribute path is expected to be string, so the logging package does not
+// need to import path handling code.
+func FrameworkWithAttributePath(ctx context.Context, attributePath string) context.Context {
+	ctx = tfsdklog.SubsystemWith(ctx, SubsystemFramework, KeyAttributePath, attributePath)
+	return ctx
+}

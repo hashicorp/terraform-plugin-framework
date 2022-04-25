@@ -270,6 +270,8 @@ func (a Attribute) tfprotov6SchemaAttribute(ctx context.Context, name string, pa
 
 // validate performs all Attribute validation.
 func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
+
 	if !a.definesAttributes() && a.Type == nil {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
@@ -314,8 +316,7 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 			ctx,
 			"Calling provider defined AttributeValidator",
 			map[string]interface{}{
-				logging.KeyAttributePath: req.AttributePath.String(),
-				logging.KeyDescription:   validator.Description(ctx),
+				logging.KeyDescription: validator.Description(ctx),
 			},
 		)
 		validator.Validate(ctx, req, resp)
@@ -323,8 +324,7 @@ func (a Attribute) validate(ctx context.Context, req ValidateAttributeRequest, r
 			ctx,
 			"Called provider defined AttributeValidator",
 			map[string]interface{}{
-				logging.KeyAttributePath: req.AttributePath.String(),
-				logging.KeyDescription:   validator.Description(ctx),
+				logging.KeyDescription: validator.Description(ctx),
 			},
 		)
 	}
@@ -503,6 +503,8 @@ func (a Attribute) validateAttributes(ctx context.Context, req ValidateAttribute
 
 // modifyPlan runs all AttributePlanModifiers
 func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanRequest, resp *ModifySchemaPlanResponse) {
+	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
+
 	attrConfig, diags := req.Config.getAttributeValue(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
@@ -541,8 +543,7 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 			ctx,
 			"Calling provider defined AttributePlanModifier",
 			map[string]interface{}{
-				logging.KeyAttributePath: req.AttributePath.String(),
-				logging.KeyDescription:   planModifier.Description(ctx),
+				logging.KeyDescription: planModifier.Description(ctx),
 			},
 		)
 		planModifier.Modify(ctx, req, modifyResp)
@@ -550,8 +551,7 @@ func (a Attribute) modifyPlan(ctx context.Context, req ModifyAttributePlanReques
 			ctx,
 			"Called provider defined AttributePlanModifier",
 			map[string]interface{}{
-				logging.KeyAttributePath: req.AttributePath.String(),
-				logging.KeyDescription:   planModifier.Description(ctx),
+				logging.KeyDescription: planModifier.Description(ctx),
 			},
 		)
 

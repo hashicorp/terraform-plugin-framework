@@ -917,33 +917,35 @@ func (s *server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 
 func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
 	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
+		ctx = logging.FrameworkWithAttributePath(ctx, path.String())
+
 		// we are only modifying attributes, not the entire resource
 		if len(path.Steps()) < 1 {
 			return val, nil
 		}
 		configVal, _, err := tftypes.WalkAttributePath(config, path)
 		if err != tftypes.ErrInvalidStep && err != nil {
-			logging.FrameworkError(ctx, "error walking attribute path", map[string]interface{}{logging.KeyAttributePath: path})
+			logging.FrameworkError(ctx, "error walking attribute path")
 			return val, err
 		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() {
-			logging.FrameworkTrace(ctx, "attribute not null in config, not marking unknown", map[string]interface{}{logging.KeyAttributePath: path})
+			logging.FrameworkTrace(ctx, "attribute not null in config, not marking unknown")
 			return val, nil
 		}
 		attribute, err := resourceSchema.AttributeAtPath(path)
 		if err != nil {
 			if errors.Is(err, ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
-				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown", map[string]interface{}{logging.KeyAttributePath: path})
+				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown")
 				return val, nil
 			}
-			logging.FrameworkError(ctx, "couldn't find attribute in resource schema", map[string]interface{}{logging.KeyAttributePath: path})
+			logging.FrameworkError(ctx, "couldn't find attribute in resource schema")
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
 		if !attribute.Computed {
-			logging.FrameworkTrace(ctx, "attribute is not computed in schema, not marking unknown", map[string]interface{}{logging.KeyAttributePath: path})
+			logging.FrameworkTrace(ctx, "attribute is not computed in schema, not marking unknown")
 			return val, nil
 		}
-		logging.FrameworkDebug(ctx, "marking computed attribute that is null in the config as unknown", map[string]interface{}{logging.KeyAttributePath: path})
+		logging.FrameworkDebug(ctx, "marking computed attribute that is null in the config as unknown")
 		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
 	}
 }

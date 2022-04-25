@@ -309,7 +309,7 @@ func (r RequiresReplaceIfModifier) Modify(ctx context.Context, req ModifyAttribu
 	if res {
 		resp.RequiresReplace = true
 	} else if resp.RequiresReplace {
-		logging.FrameworkDebug(ctx, "Keeping previous attribute replacement requirement", map[string]interface{}{logging.KeyAttributePath: req.AttributePath.String()})
+		logging.FrameworkDebug(ctx, "Keeping previous attribute replacement requirement")
 	}
 }
 

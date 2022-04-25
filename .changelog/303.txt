@@ -1,3 +1,0 @@
-```release-note:bug
-tfsdk: Correct `NewProtocol6ProviderServerWithError` function signature to align to sdk v2 `TestCase.ProtoV6ProviderFactories`
-```

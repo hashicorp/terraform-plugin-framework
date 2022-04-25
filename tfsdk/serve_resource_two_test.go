@@ -207,10 +207,6 @@ func (r testServeResourceTwo) Delete(ctx context.Context, req DeleteResourceRequ
 	r.provider.deleteFunc(ctx, req, resp)
 }
 
-func (r testServeResourceTwo) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-	ResourceImportStateNotImplemented(ctx, "Not expected to be called during testing.", resp)
-}
-
 func (r testServeResourceTwo) ModifyPlan(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
 	r.provider.planResourceChangePriorStateValue = req.State.Raw
 	r.provider.planResourceChangePriorStateSchema = req.State.Schema

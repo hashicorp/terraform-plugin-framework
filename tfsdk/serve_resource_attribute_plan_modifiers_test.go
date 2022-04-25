@@ -342,7 +342,3 @@ func (r testServeAttributePlanModifiers) Update(ctx context.Context, req UpdateR
 func (r testServeAttributePlanModifiers) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
 	// Intentionally blank. Not expected to be called during testing.
 }
-
-func (r testServeAttributePlanModifiers) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-	ResourceImportStateNotImplemented(ctx, "Not expected to be called during testing.", resp)
-}

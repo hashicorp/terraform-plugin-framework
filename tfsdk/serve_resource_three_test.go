@@ -136,7 +136,3 @@ func (r testServeResourceThree) Update(ctx context.Context, req UpdateResourceRe
 func (r testServeResourceThree) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
 	// Intentionally blank. Not expected to be called during testing.
 }
-
-func (r testServeResourceThree) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-	ResourceImportStateNotImplemented(ctx, "Not expected to be called during testing.", resp)
-}

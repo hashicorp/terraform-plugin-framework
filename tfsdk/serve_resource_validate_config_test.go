@@ -71,9 +71,6 @@ func (r testServeResourceValidateConfig) Update(ctx context.Context, req UpdateR
 func (r testServeResourceValidateConfig) Delete(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
 	// Intentionally blank. Not expected to be called during testing.
 }
-func (r testServeResourceValidateConfig) ImportState(ctx context.Context, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-	ResourceImportStateNotImplemented(ctx, "Not expected to be called during testing.", resp)
-}
 
 func (r testServeResourceValidateConfig) ValidateConfig(ctx context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
 	r.provider.validateResourceConfigCalledResourceType = "test_validate_config"

@@ -23,19 +23,6 @@ type server struct {
 	contextCancelsMu sync.Mutex
 }
 
-// ServeOpts are options for serving the provider.
-type ServeOpts struct {
-	// Name is the name of the provider, in full address form. For example:
-	// registry.terraform.io/hashicorp/random.
-	Name string
-
-	// Debug runs the provider in a mode acceptable for debugging and testing
-	// processes, such as delve, by managing the process lifecycle. Information
-	// needed for Terraform CLI to connect to the provider is output to stdout.
-	// os.Interrupt (Ctrl-c) can be used to stop the provider.
-	Debug bool
-}
-
 // NewProtocol6Server returns a tfprotov6.ProviderServer implementation based
 // on the passed Provider implementation.
 //
@@ -73,13 +60,19 @@ func NewProtocol6ProviderServerWithError(p Provider) func() (tfprotov6.ProviderS
 
 // Serve serves a provider, blocking until the context is canceled.
 func Serve(ctx context.Context, providerFunc func() Provider, opts ServeOpts) error {
+	err := opts.validate(ctx)
+
+	if err != nil {
+		return fmt.Errorf("unable to validate ServeOpts: %w", err)
+	}
+
 	var tf6serverOpts []tf6server.ServeOpt
 
 	if opts.Debug {
 		tf6serverOpts = append(tf6serverOpts, tf6server.WithManagedDebug())
 	}
 
-	return tf6server.Serve(opts.Name, func() tfprotov6.ProviderServer {
+	return tf6server.Serve(opts.address(ctx), func() tfprotov6.ProviderServer {
 		return &server{
 			p: providerFunc(),
 		}

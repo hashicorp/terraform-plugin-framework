@@ -326,6 +326,9 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path *tftypes.Attr
 }
 
 // RemoveResource removes the entire resource from state.
+//
+// If a Resource type Delete method is completed without error, this is
+// automatically called on the DeleteResourceResponse.State.
 func (s *State) RemoveResource(ctx context.Context) {
 	s.Raw = tftypes.NewValue(s.Schema.TerraformType(ctx), nil)
 }

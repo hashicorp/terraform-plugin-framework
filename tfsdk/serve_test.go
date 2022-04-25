@@ -308,14 +308,16 @@ func TestServerGetProviderSchema(t *testing.T) {
 	expected := &tfprotov6.GetProviderSchemaResponse{
 		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_one":                      testServeResourceTypeOneSchema,
-			"test_two":                      testServeResourceTypeTwoSchema,
-			"test_three":                    testServeResourceTypeThreeSchema,
-			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
-			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
-			"test_import_state":             testServeResourceTypeImportStateSchema,
-			"test_upgrade_state":            testServeResourceTypeUpgradeStateSchema,
-			"test_validate_config":          testServeResourceTypeValidateConfigSchema,
+			"test_one":                           testServeResourceTypeOneSchema,
+			"test_two":                           testServeResourceTypeTwoSchema,
+			"test_three":                         testServeResourceTypeThreeSchema,
+			"test_attribute_plan_modifiers":      testServeResourceTypeAttributePlanModifiersSchema,
+			"test_config_validators":             testServeResourceTypeConfigValidatorsSchema,
+			"test_import_state":                  testServeResourceTypeImportStateSchema,
+			"test_upgrade_state":                 testServeResourceTypeUpgradeStateSchema,
+			"test_upgrade_state_empty":           testServeResourceTypeUpgradeStateEmptySchema,
+			"test_upgrade_state_not_implemented": testServeResourceTypeUpgradeStateNotImplementedSchema,
+			"test_validate_config":               testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one":               testServeDataSourceTypeOneSchema,
@@ -344,14 +346,16 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 	expected := &tfprotov6.GetProviderSchemaResponse{
 		Provider: testServeProviderProviderSchema,
 		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_one":                      testServeResourceTypeOneSchema,
-			"test_two":                      testServeResourceTypeTwoSchema,
-			"test_three":                    testServeResourceTypeThreeSchema,
-			"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiersSchema,
-			"test_config_validators":        testServeResourceTypeConfigValidatorsSchema,
-			"test_import_state":             testServeResourceTypeImportStateSchema,
-			"test_upgrade_state":            testServeResourceTypeUpgradeStateSchema,
-			"test_validate_config":          testServeResourceTypeValidateConfigSchema,
+			"test_one":                           testServeResourceTypeOneSchema,
+			"test_two":                           testServeResourceTypeTwoSchema,
+			"test_three":                         testServeResourceTypeThreeSchema,
+			"test_attribute_plan_modifiers":      testServeResourceTypeAttributePlanModifiersSchema,
+			"test_config_validators":             testServeResourceTypeConfigValidatorsSchema,
+			"test_import_state":                  testServeResourceTypeImportStateSchema,
+			"test_upgrade_state":                 testServeResourceTypeUpgradeStateSchema,
+			"test_upgrade_state_empty":           testServeResourceTypeUpgradeStateEmptySchema,
+			"test_upgrade_state_not_implemented": testServeResourceTypeUpgradeStateNotImplementedSchema,
+			"test_validate_config":               testServeResourceTypeValidateConfigSchema,
 		},
 		DataSourceSchemas: map[string]*tfprotov6.Schema{
 			"test_one":               testServeDataSourceTypeOneSchema,
@@ -1446,29 +1450,6 @@ func TestServerUpgradeResourceState(t *testing.T) {
 	schema, _ := testServeResourceTypeUpgradeState{}.GetSchema(ctx)
 	schemaType := schema.TerraformType(ctx)
 
-	validRawStateJSON, err := json.Marshal(map[string]string{
-		"id":              "test-id-value",
-		"required_string": "test-required-value",
-	})
-
-	if err != nil {
-		t.Fatalf("unable to create RawState JSON: %s", err)
-	}
-
-	validRawState := tfprotov6.RawState{
-		JSON: validRawStateJSON,
-	}
-
-	validUpgradedState, err := tfprotov6.NewDynamicValue(schemaType, tftypes.NewValue(schemaType, map[string]tftypes.Value{
-		"id":              tftypes.NewValue(tftypes.String, "test-id-value"),
-		"optional_string": tftypes.NewValue(tftypes.String, nil),
-		"required_string": tftypes.NewValue(tftypes.String, "test-required-value"),
-	}))
-
-	if err != nil {
-		t.Fatalf("unable to create UpgradedState: %s", err)
-	}
-
 	testCases := map[string]struct {
 		request          *tfprotov6.UpgradeResourceStateRequest
 		expectedResponse *tfprotov6.UpgradeResourceStateResponse
@@ -1478,87 +1459,9 @@ func TestServerUpgradeResourceState(t *testing.T) {
 			request:          nil,
 			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{},
 		},
-		"RawState-Flatmap": {
-			request: &tfprotov6.UpgradeResourceStateRequest{
-				TypeName: "test_upgrade_state",
-				RawState: &tfprotov6.RawState{
-					Flatmap: map[string]string{
-						"flatmap": "is not supported",
-					},
-				},
-			},
-			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Summary:  "Unable to Read Previously Saved State for UpgradeResourceState",
-						Detail: "There was an error reading the saved resource state using the current resource schema. " +
-							"This resource was implemented in a Terraform Provider SDK that does not support upgrading resource state yet.\n\n" +
-							"If the resource previously implemented different resource state versions, the provider developers will need to revert back to the previous implementation. " +
-							"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. " +
-							"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. " +
-							"Otherwise, please report this to the provider developer:\n\n" +
-							"flatmap states cannot be unmarshaled, only states written by Terraform 0.12 and higher can be unmarshaled",
-					},
-				},
-			},
-		},
-		"RawState-JSON-passthrough": {
-			request: &tfprotov6.UpgradeResourceStateRequest{
-				TypeName: "test_upgrade_state",
-				RawState: &validRawState,
-			},
-			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
-				UpgradedState: &validUpgradedState,
-			},
-		},
-		"RawState-JSON-mismatch": {
-			request: &tfprotov6.UpgradeResourceStateRequest{
-				TypeName: "test_upgrade_state",
-				RawState: &tfprotov6.RawState{
-					JSON: []byte(`{"nonexistent_attribute":"value"}`),
-				},
-			},
-			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Summary:  "Unable to Read Previously Saved State for UpgradeResourceState",
-						Detail: "There was an error reading the saved resource state using the current resource schema. " +
-							"This resource was implemented in a Terraform Provider SDK that does not support upgrading resource state yet.\n\n" +
-							"If the resource previously implemented different resource state versions, the provider developers will need to revert back to the previous implementation. " +
-							"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. " +
-							"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. " +
-							"Otherwise, please report this to the provider developer:\n\n" +
-							"ElementKeyValue(tftypes.String<unknown>): unsupported attribute \"nonexistent_attribute\"",
-					},
-				},
-			},
-		},
-		"RawState-empty": {
-			request: &tfprotov6.UpgradeResourceStateRequest{
-				RawState: &tfprotov6.RawState{},
-				TypeName: "test_upgrade_state",
-			},
-			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Summary:  "Unable to Read Previously Saved State for UpgradeResourceState",
-						Detail: "There was an error reading the saved resource state using the current resource schema. " +
-							"This resource was implemented in a Terraform Provider SDK that does not support upgrading resource state yet.\n\n" +
-							"If the resource previously implemented different resource state versions, the provider developers will need to revert back to the previous implementation. " +
-							"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. " +
-							"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. " +
-							"Otherwise, please report this to the provider developer:\n\n" +
-							"RawState had no JSON or flatmap data set",
-					},
-				},
-			},
-		},
 		"RawState-missing": {
 			request: &tfprotov6.UpgradeResourceStateRequest{
-				TypeName: "test_upgrade_state",
+				TypeName: "test_upgrade_state_not_implemented",
 			},
 			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{},
 		},
@@ -1574,6 +1477,48 @@ func TestServerUpgradeResourceState(t *testing.T) {
 				},
 			},
 		},
+		"TypeName-UpgradeState-not-implemented": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TypeName: "test_upgrade_state_not_implemented",
+				Version:  0,
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Unable to Upgrade Resource State",
+						Detail: "This resource was implemented without an UpgradeState() method, " +
+							"however Terraform was expecting an implementation for version 0 upgrade.\n\n" +
+							"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
+					},
+				},
+			},
+		},
+		"TypeName-UpgradeState-empty": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TypeName: "test_upgrade_state_empty",
+				Version:  0,
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Unable to Upgrade Resource State",
+						Detail: "This resource was implemented with an UpgradeState() method, " +
+							"however Terraform was expecting an implementation for version 0 upgrade.\n\n" +
+							"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
+					},
+				},
+			},
+		},
 		"TypeName-unknown": {
 			request: &tfprotov6.UpgradeResourceStateRequest{
 				TypeName: "unknown",
@@ -1584,6 +1529,183 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Summary:  "Resource not found",
 						Detail:   "No resource named \"unknown\" is configured on the provider",
+					},
+				},
+			},
+		},
+		"Version-0": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TypeName: "test_upgrade_state",
+				Version:  0,
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				UpgradedState: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+					"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+					"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+					"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+				}),
+			},
+		},
+		"Version-1": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TypeName: "test_upgrade_state",
+				Version:  1,
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				UpgradedState: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+					"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+					"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+					"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+				}),
+			},
+		},
+		"Version-2": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TypeName: "test_upgrade_state",
+				Version:  2,
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				UpgradedState: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+					"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+					"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+					"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+				}),
+			},
+		},
+		"Version-3": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TypeName: "test_upgrade_state",
+				Version:  3,
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Unable to Read Previously Saved State for UpgradeResourceState",
+						Detail: "There was an error reading the saved resource state using the prior resource schema defined for version 3 upgrade.\n\n" +
+							"Please report this to the provider developer:\n\n" +
+							"AttributeName(\"required_attribute\"): unsupported type bool sent as tftypes.Number",
+					},
+				},
+			},
+		},
+		"Version-4": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TypeName: "test_upgrade_state",
+				Version:  4,
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Missing Upgraded Resource State",
+						Detail: "After attempting a resource state upgrade to version 4, the provider did not return any state data. " +
+							"Preventing the unexpected loss of resource state data. " +
+							"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
+					},
+				},
+			},
+		},
+		"Version-current-flatmap": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: &tfprotov6.RawState{
+					Flatmap: map[string]string{
+						"flatmap": "is not supported",
+					},
+				},
+				TypeName: "test_upgrade_state_not_implemented", // Framework should allow non-ResourceWithUpgradeState
+				Version:  1,                                    // Must match current Schema version to trigger framework implementation
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Unable to Read Previously Saved State for UpgradeResourceState",
+						Detail: "There was an error reading the saved resource state using the current resource schema.\n\n" +
+							"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. " +
+							"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. " +
+							"Otherwise, please report this to the provider developer:\n\n" +
+							"flatmap states cannot be unmarshaled, only states written by Terraform 0.12 and higher can be unmarshaled",
+					},
+				},
+			},
+		},
+		"Version-current-json-match": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": "true",
+				}),
+				TypeName: "test_upgrade_state_not_implemented", // Framework should allow non-ResourceWithUpgradeState
+				Version:  1,                                    // Must match current Schema version to trigger framework implementation
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				UpgradedState: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+					"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+					"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+					"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+				}),
+			},
+		},
+		"Version-current-json-mismatch": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: &tfprotov6.RawState{
+					JSON: []byte(`{"nonexistent_attribute":"value"}`),
+				},
+				TypeName: "test_upgrade_state_not_implemented", // Framework should allow non-ResourceWithUpgradeState
+				Version:  1,                                    // Must match current Schema version to trigger framework implementation
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Unable to Read Previously Saved State for UpgradeResourceState",
+						Detail: "There was an error reading the saved resource state using the current resource schema.\n\n" +
+							"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. " +
+							"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. " +
+							"Otherwise, please report this to the provider developer:\n\n" +
+							"ElementKeyValue(tftypes.String<unknown>): unsupported attribute \"nonexistent_attribute\"",
+					},
+				},
+			},
+		},
+		"Version-not-implemented": {
+			request: &tfprotov6.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TypeName: "test_upgrade_state",
+				Version:  999,
+			},
+			expectedResponse: &tfprotov6.UpgradeResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Unable to Upgrade Resource State",
+						Detail: "This resource was implemented with an UpgradeState() method, " +
+							"however Terraform was expecting an implementation for version 999 upgrade.\n\n" +
+							"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
 					},
 				},
 			},
@@ -1618,17 +1740,41 @@ func TestServerUpgradeResourceState(t *testing.T) {
 				t.Fatalf("got no error, expected: %s", testCase.expectedError)
 			}
 
-			// TODO: Implement with UpgradeResourceState support
-			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/42
-			// if testCase.request != nil && testProvider.upgradeResourceStateCalledResourceType != testCase.request.TypeName {
-			// 	t.Errorf("expected to call resource %q, called: %s", testCase.request.TypeName, testProvider.upgradeResourceStateCalledResourceType)
-			// 	return
-			// }
+			if testCase.request != nil && testCase.request.TypeName == "test_upgrade_state" && testProvider.upgradeResourceStateCalledResourceType != testCase.request.TypeName {
+				t.Errorf("expected to call resource %q, called: %s", testCase.request.TypeName, testProvider.upgradeResourceStateCalledResourceType)
+				return
+			}
 
 			if diff := cmp.Diff(got, testCase.expectedResponse); diff != "" {
 				t.Errorf("unexpected difference in response: %s", diff)
 			}
 		})
+	}
+}
+
+func testNewDynamicValue(t *testing.T, schemaType tftypes.Type, schemaValue map[string]tftypes.Value) *tfprotov6.DynamicValue {
+	t.Helper()
+
+	dynamicValue, err := tfprotov6.NewDynamicValue(schemaType, tftypes.NewValue(schemaType, schemaValue))
+
+	if err != nil {
+		t.Fatalf("unable to create DynamicValue: %s", err)
+	}
+
+	return &dynamicValue
+}
+
+func testNewRawState(t *testing.T, jsonMap map[string]interface{}) *tfprotov6.RawState {
+	t.Helper()
+
+	rawStateJSON, err := json.Marshal(jsonMap)
+
+	if err != nil {
+		t.Fatalf("unable to create RawState JSON: %s", err)
+	}
+
+	return &tfprotov6.RawState{
+		JSON: rawStateJSON,
 	}
 }
 
@@ -4430,7 +4576,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 			action:       "delete",
 			resourceType: testServeResourceTypeOneType,
 			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
+				// Removing the state prior to the framework should not generate errors
+				resp.State.RemoveResource(ctx)
 			},
 			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
 		},
@@ -4446,7 +4593,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 			action:       "delete",
 			resourceType: testServeResourceTypeOneType,
 			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
+				// Removing the state prior to the framework should not generate errors
+				resp.State.RemoveResource(ctx)
 				resp.Diagnostics.AddAttributeWarning(
 					tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
 					"This is a warning",
@@ -4475,6 +4623,84 @@ func TestServerApplyResourceChange(t *testing.T) {
 			action:       "delete",
 			resourceType: testServeResourceTypeOneType,
 			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				resp.Diagnostics.AddError(
+					"This is an error",
+					"Something went wrong, keep the old state around",
+				)
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "This is an error",
+					Detail:   "Something went wrong, keep the old state around",
+				},
+			},
+		},
+		"one_delete_automatic_removeresource": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				// The framework should automatically call resp.State.RemoveResource()
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+		},
+		"one_delete_diags_warning_automatic_removeresource": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				// The framework should automatically call resp.State.RemoveResource()
+				resp.Diagnostics.AddAttributeWarning(
+					tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
+					"This is a warning",
+					"just a warning diagnostic, no behavior changes",
+				)
+			},
+			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
+			expectedDiags: []*tfprotov6.Diagnostic{
+				{
+					Severity:  tfprotov6.DiagnosticSeverityWarning,
+					Summary:   "This is a warning",
+					Detail:    "just a warning diagnostic, no behavior changes",
+					Attribute: tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
+				},
+			},
+		},
+		"one_delete_diags_error_no_automatic_removeresource": {
+			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "hello, world"),
+				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "red"),
+				}),
+				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
+			}),
+			resource:     "test_one",
+			action:       "delete",
+			resourceType: testServeResourceTypeOneType,
+			destroy: func(ctx context.Context, req DeleteResourceRequest, resp *DeleteResourceResponse) {
+				// The framework should NOT automatically call resp.State.RemoveResource()
 				resp.Diagnostics.AddError(
 					"This is an error",
 					"Something went wrong, keep the old state around",

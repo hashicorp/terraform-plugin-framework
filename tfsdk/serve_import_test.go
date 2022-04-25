@@ -155,6 +155,21 @@ func TestServerImportResourceState(t *testing.T) {
 				},
 			},
 		},
+		"TypeName-ImportState-not-implemented": {
+			req: &tfprotov6.ImportResourceStateRequest{
+				ID:       "test",
+				TypeName: "test_import_state_not_implemented",
+			},
+			resp: &tfprotov6.ImportResourceStateResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Summary:  "Resource Import Not Implemented",
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Detail:   "This resource does not support import. Please contact the provider developer for additional information.",
+					},
+				},
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -177,7 +192,7 @@ func TestServerImportResourceState(t *testing.T) {
 				return
 			}
 
-			if s.importResourceStateCalledResourceType != tc.req.TypeName {
+			if tc.req.TypeName == "test_import_state" && s.importResourceStateCalledResourceType != tc.req.TypeName {
 				t.Errorf("Called wrong resource. Expected to call %q, actually called %q", tc.req.TypeName, s.importResourceStateCalledResourceType)
 				return
 			}

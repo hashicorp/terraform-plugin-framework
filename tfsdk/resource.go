@@ -19,6 +19,10 @@ type ResourceType interface {
 
 // Resource represents a resource instance. This is the core interface that all
 // resources must implement.
+//
+// It is also conventional for resources to implement the
+// ResourceWithImportState interface, which enables practitioners to import
+// existing infrastructure into Terraform.
 type Resource interface {
 	// Create is called when the provider must create a new resource. Config
 	// and planned state values should be read from the
@@ -45,15 +49,6 @@ type Resource interface {
 	// call DeleteResourceResponse.State.RemoveResource(), so it can be omitted
 	// from provider logic.
 	Delete(context.Context, DeleteResourceRequest, *DeleteResourceResponse)
-
-	// ImportState is called when the provider must import the resource.
-	//
-	// If import is not supported, it is recommended to use the
-	// ResourceImportStateNotImplemented() call in this method.
-	//
-	// If setting an attribute with the import identifier, it is recommended
-	// to use the ResourceImportStatePassthroughID() call in this method.
-	ImportState(context.Context, ImportResourceStateRequest, *ImportResourceStateResponse)
 }
 
 // ResourceWithModifyPlan represents a resource instance with a ModifyPlan

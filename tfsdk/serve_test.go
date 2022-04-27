@@ -16,37 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestNewProtocol6ProviderServer(t *testing.T) {
-	provider := &testServeProvider{}
-
-	providerServerFunc := NewProtocol6ProviderServer(provider)
-	providerServer := providerServerFunc()
-
-	// Simple verification
-	_, err := providerServer.GetProviderSchema(context.Background(), &tfprotov6.GetProviderSchemaRequest{})
-
-	if err != nil {
-		t.Fatalf("unexpected error calling ProviderServer: %s", err)
-	}
-}
-
-func TestNewProtocol6ProviderServerWithError(t *testing.T) {
-	provider := &testServeProvider{}
-
-	providerServer, err := NewProtocol6ProviderServerWithError(provider)()
-
-	if err != nil {
-		t.Fatalf("unexpected error creating ProviderServer: %s", err)
-	}
-
-	// Simple verification
-	_, err = providerServer.GetProviderSchema(context.Background(), &tfprotov6.GetProviderSchemaRequest{})
-
-	if err != nil {
-		t.Fatalf("unexpected error calling ProviderServer: %s", err)
-	}
-}
-
 func TestServerCancelInFlightContexts(t *testing.T) {
 	t.Parallel()
 
@@ -56,7 +25,7 @@ func TestServerCancelInFlightContexts(t *testing.T) {
 
 	// first, let's create a bunch of goroutines
 	wg := new(sync.WaitGroup)
-	s := &server{}
+	s := &Server{}
 	testCtx := context.Background()
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
@@ -295,8 +264,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 	t.Parallel()
 
 	s := new(testServeProvider)
-	testServer := &server{
-		p: s,
+	testServer := &Server{
+		Provider: s,
 	}
 	got, err := testServer.GetProviderSchema(context.Background(), new(tfprotov6.GetProviderSchemaRequest))
 	if err != nil {
@@ -334,8 +303,8 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 	t.Parallel()
 
 	s := new(testServeProviderWithMetaSchema)
-	testServer := &server{
-		p: s,
+	testServer := &Server{
+		Provider: s,
 	}
 	got, err := testServer.GetProviderSchema(context.Background(), new(tfprotov6.GetProviderSchemaRequest))
 	if err != nil {
@@ -816,8 +785,8 @@ func TestServerValidateProviderConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			testServer := &server{
-				p: tc.provider,
+			testServer := &Server{
+				Provider: tc.provider,
 			}
 
 			dv, err := tfprotov6.NewDynamicValue(tc.providerType, tc.config)
@@ -1173,8 +1142,8 @@ func TestServerConfigureProvider(t *testing.T) {
 			t.Parallel()
 
 			s := new(testServeProvider)
-			testServer := &server{
-				p: s,
+			testServer := &Server{
+				Provider: s,
 			}
 			dv, err := tfprotov6.NewDynamicValue(testServeProviderProviderType, tc.config)
 			if err != nil {
@@ -1414,8 +1383,8 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			s := &testServeProvider{
 				validateResourceConfigImpl: tc.impl,
 			}
-			testServer := &server{
-				p: s,
+			testServer := &Server{
+				Provider: s,
 			}
 
 			dv, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.config)
@@ -1720,8 +1689,8 @@ func TestServerUpgradeResourceState(t *testing.T) {
 
 			ctx := context.Background()
 			testProvider := &testServeProvider{}
-			testServer := &server{
-				p: testProvider,
+			testServer := &Server{
+				Provider: testProvider,
 			}
 
 			got, err := testServer.UpgradeResourceState(ctx, testCase.request)
@@ -2141,13 +2110,13 @@ func TestServerReadResource(t *testing.T) {
 			s := &testServeProvider{
 				readResourceImpl: tc.impl,
 			}
-			testServer := &server{
-				p: s,
+			testServer := &Server{
+				Provider: s,
 			}
 			var pmSchema Schema
 			if tc.providerMeta.Type() != nil {
 				sWithMeta := &testServeProviderWithMetaSchema{s}
-				testServer.p = sWithMeta
+				testServer.Provider = sWithMeta
 				schema, diags := sWithMeta.GetMetaSchema(context.Background())
 				if len(diags) > 0 {
 					t.Errorf("Unexpected diags: %+v", diags)
@@ -4217,8 +4186,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 			s := &testServeProvider{
 				modifyPlanFunc: tc.modifyPlanFunc,
 			}
-			testServer := &server{
-				p: s,
+			testServer := &Server{
+				Provider: s,
 			}
 
 			priorStateDV, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.priorState)
@@ -5777,13 +5746,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 				updateFunc: tc.update,
 				deleteFunc: tc.destroy,
 			}
-			testServer := &server{
-				p: s,
+			testServer := &Server{
+				Provider: s,
 			}
 			var pmSchema Schema
 			if tc.providerMeta.Type() != nil {
 				sWithMeta := &testServeProviderWithMetaSchema{s}
-				testServer.p = sWithMeta
+				testServer.Provider = sWithMeta
 				schema, diags := sWithMeta.GetMetaSchema(context.Background())
 				if len(diags) > 0 {
 					t.Errorf("Unexpected diags: %+v", diags)
@@ -6107,8 +6076,8 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			s := &testServeProvider{
 				validateDataSourceConfigImpl: tc.impl,
 			}
-			testServer := &server{
-				p: s,
+			testServer := &Server{
+				Provider: s,
 			}
 
 			dv, err := tfprotov6.NewDynamicValue(tc.dataSourceType, tc.config)
@@ -6299,13 +6268,13 @@ func TestServerReadDataSource(t *testing.T) {
 			s := &testServeProvider{
 				readDataSourceImpl: tc.impl,
 			}
-			testServer := &server{
-				p: s,
+			testServer := &Server{
+				Provider: s,
 			}
 			var pmSchema Schema
 			if tc.providerMeta.Type() != nil {
 				sWithMeta := &testServeProviderWithMetaSchema{s}
-				testServer.p = sWithMeta
+				testServer.Provider = sWithMeta
 				schema, diags := sWithMeta.GetMetaSchema(context.Background())
 				if len(diags) > 0 {
 					t.Errorf("Unexpected diags: %+v", diags)

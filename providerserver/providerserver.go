@@ -9,9 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 )
 
-// Returns a protocol version 6 ProviderServer implementation based on the
-// given Provider and suitable for usage with the terraform-plugin-go
-// tf6server.Serve() function and various terraform-plugin-mux functions.
+// NewProtocol6 returns a protocol version 6 ProviderServer implementation
+// based on the given Provider and suitable for usage with the
+// github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server.Serve()
+// function and various terraform-plugin-mux functions.
 func NewProtocol6(p tfsdk.Provider) func() tfprotov6.ProviderServer {
 	return func() tfprotov6.ProviderServer {
 		return &tfsdk.Server{
@@ -20,9 +21,9 @@ func NewProtocol6(p tfsdk.Provider) func() tfprotov6.ProviderServer {
 	}
 }
 
-// Returns a protocol version 6 ProviderServer implementation based on the
-// given Provider and suitable for usage with the terraform-plugin-sdk
-// acceptance testing helper/resource.TestCase.ProtoV6ProviderFactories.
+// NewProtocol6WithError returns a protocol version 6 ProviderServer
+// implementation based on the given Provider and suitable for usage with
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource.TestCase.ProtoV6ProviderFactories.
 //
 // The error return is not currently used, but it may be in the future.
 func NewProtocol6WithError(p tfsdk.Provider) func() (tfprotov6.ProviderServer, error) {

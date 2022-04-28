@@ -1,3 +1,26 @@
+# 0.7.0 (April 28, 2022)
+
+NOTES:
+
+* tfsdk: Providers may now optionally remove `RemoveResource()` calls from `Resource` type `Delete` methods ([#301](https://github.com/hashicorp/terraform-plugin-framework/issues/301))
+* tfsdk: The `NewProtocol6Server()` function has been deprecated in preference of `providerserver.NewProtocol6()` and `providerserver.NewProtocol6WithError()` functions, which will simplify muxing and testing implementations. The `tfsdk.NewProtocol6Server()` function will be removed in the next minor version. ([#308](https://github.com/hashicorp/terraform-plugin-framework/issues/308))
+* tfsdk: The `ResourceImportStateNotImplemented()` function has been deprecated. Instead, the `ImportState` method can be removed from the `Resource` and the framework will automatically return an error diagnostic if import is attempted. ([#297](https://github.com/hashicorp/terraform-plugin-framework/issues/297))
+* tfsdk: The `Resource` interface no longer requires the `ImportState` method. A separate `ResourceWithImportState` interface now defines the same `ImportState` method. ([#297](https://github.com/hashicorp/terraform-plugin-framework/issues/297))
+* tfsdk: The `Serve()` function has been deprecated in preference of the `providerserver.Serve()` function. The `tfsdk.Serve()` function will be removed in the next minor version. ([#308](https://github.com/hashicorp/terraform-plugin-framework/issues/308))
+* tfsdk: The `ServeOpts` type has been deprecated in preference of the `providerserver.ServeOpts` type. When migrating, the `Name` field has been replaced with `Address`. The `tfsdk.ServeOpts` type will be removed in the next minor version. ([#308](https://github.com/hashicorp/terraform-plugin-framework/issues/308))
+* tfsdk: The previously unexported `server` type has been temporarily exported to aid in the migration to the new `providerserver` package. It is not intended for provider developer usage and will be moved into an internal package in the next minor version. ([#308](https://github.com/hashicorp/terraform-plugin-framework/issues/308))
+
+FEATURES:
+
+* Introduced `providerserver` package, which contains all functions and types necessary for serving a provider in production or acceptance testing. ([#308](https://github.com/hashicorp/terraform-plugin-framework/issues/308))
+* tfsdk: Added optional `ResourceWithUpgradeState` interface, which allows for provider defined logic when the `UpgradeResourceState` RPC is called ([#292](https://github.com/hashicorp/terraform-plugin-framework/issues/292))
+
+ENHANCEMENTS:
+
+* tfsdk: Added `DEBUG` level logging for all framework handoffs to provider defined logic ([#300](https://github.com/hashicorp/terraform-plugin-framework/issues/300))
+* tfsdk: Added `ResourceWithImportState` interface, which allows `Resource` implementations to optionally define the `ImportState` method. ([#297](https://github.com/hashicorp/terraform-plugin-framework/issues/297))
+* tfsdk: Added automatic `(DeleteResourceResponse.State).RemoveResource()` call after `Resource` type `Delete` method execution if there are no errors ([#301](https://github.com/hashicorp/terraform-plugin-framework/issues/301))
+
 # 0.6.1 (March 29, 2022)
 
 BUG FIXES:

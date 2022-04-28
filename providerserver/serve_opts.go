@@ -1,4 +1,4 @@
-package tfsdk
+package providerserver
 
 import (
 	"context"
@@ -7,9 +7,6 @@ import (
 )
 
 // ServeOpts are options for serving the provider.
-//
-// Deprecated: Use providerserver.ServeOpts instead. This will be removed in
-// the next minor version.
 type ServeOpts struct {
 	// Address is the full address of the provider. Full address form has three
 	// parts separated by forward slashes (/): Hostname, namespace, and
@@ -18,28 +15,11 @@ type ServeOpts struct {
 	// For example: registry.terraform.io/hashicorp/random.
 	Address string
 
-	// Name is the name of the provider, in full address form. For example:
-	// registry.terraform.io/hashicorp/random.
-	//
-	// Deprecated: Use Address field instead.
-	Name string
-
 	// Debug runs the provider in a mode acceptable for debugging and testing
 	// processes, such as delve, by managing the process lifecycle. Information
 	// needed for Terraform CLI to connect to the provider is output to stdout.
 	// os.Interrupt (Ctrl-c) can be used to stop the provider.
 	Debug bool
-}
-
-// Get provider address, based on whether Address or Name is specified.
-//
-// Deprecated: Will be removed in preference of just using the Address field.
-func (opts ServeOpts) address(_ context.Context) string {
-	if opts.Address != "" {
-		return opts.Address
-	}
-
-	return opts.Name
 }
 
 // Validate a given provider address. This is only used for the Address field
@@ -68,24 +48,17 @@ func (opts ServeOpts) validateAddress(_ context.Context) error {
 //
 // Current checks which return errors:
 //
-//    - If both Address and Name are set
-//    - If neither Address nor Name is set
-//    - If Address is set, it is a valid full provider address
+//    - If Address is not set
+//    - Address is a valid full provider address
 func (opts ServeOpts) validate(ctx context.Context) error {
-	if opts.Address == "" && opts.Name == "" {
-		return fmt.Errorf("either Address or Name must be provided")
+	if opts.Address == "" {
+		return fmt.Errorf("Address must be provided")
 	}
 
-	if opts.Address != "" && opts.Name != "" {
-		return fmt.Errorf("only one of Address or Name should be provided")
-	}
+	err := opts.validateAddress(ctx)
 
-	if opts.Address != "" {
-		err := opts.validateAddress(ctx)
-
-		if err != nil {
-			return fmt.Errorf("unable to validate Address: %w", err)
-		}
+	if err != nil {
+		return fmt.Errorf("unable to validate Address: %w", err)
 	}
 
 	return nil

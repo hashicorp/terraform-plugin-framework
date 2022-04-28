@@ -181,8 +181,8 @@ func TestServerImportResourceState(t *testing.T) {
 			s := &testServeProvider{
 				importStateFunc: tc.impl,
 			}
-			testServer := &server{
-				p: s,
+			testServer := &Server{
+				Provider: s,
 			}
 
 			got, err := testServer.ImportResourceState(context.Background(), tc.req)

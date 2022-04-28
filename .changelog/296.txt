@@ -1,7 +1,0 @@
-```release-note:note
-tfsdk: The `ServeOpts` type `Name` field has been deprecated in preference of the `Address` field. The `Name` field will be removed prior to version 1.0.0.
-```
-
-```release-note:enhancement
-tfsdk: Added `ServeOpts` type `Address` field, which should contain the full provider address in hostname/namespace/type format.
-```

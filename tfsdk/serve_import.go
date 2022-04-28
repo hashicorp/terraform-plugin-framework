@@ -64,7 +64,7 @@ func (r importResourceStateResponse) toTfprotov6(ctx context.Context) *tfprotov6
 	return resp
 }
 
-func (s *server) importResourceState(ctx context.Context, req *tfprotov6.ImportResourceStateRequest, resp *importResourceStateResponse) {
+func (s *Server) importResourceState(ctx context.Context, req *tfprotov6.ImportResourceStateRequest, resp *importResourceStateResponse) {
 	resourceType, diags := s.getResourceType(ctx, req.TypeName)
 	resp.Diagnostics.Append(diags...)
 
@@ -82,7 +82,7 @@ func (s *server) importResourceState(ctx context.Context, req *tfprotov6.ImportR
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := resourceType.NewResource(ctx, s.p)
+	resource, diags := resourceType.NewResource(ctx, s.Provider)
 	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 	resp.Diagnostics.Append(diags...)
 
@@ -148,7 +148,7 @@ func (s *server) importResourceState(ctx context.Context, req *tfprotov6.ImportR
 }
 
 // ImportResourceState satisfies the tfprotov6.ProviderServer interface.
-func (s *server) ImportResourceState(ctx context.Context, req *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
+func (s *Server) ImportResourceState(ctx context.Context, req *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
 	ctx = s.registerContext(ctx)
 	resp := &importResourceStateResponse{}
 

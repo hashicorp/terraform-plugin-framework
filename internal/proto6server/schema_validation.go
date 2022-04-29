@@ -48,6 +48,7 @@ func SchemaValidate(ctx context.Context, s tfsdk.Schema, req ValidateSchemaReque
 		resp.Diagnostics = attributeResp.Diagnostics
 	}
 
+	//nolint:staticcheck // Block support is required within the framework.
 	for name, block := range s.Blocks {
 		attributeReq := tfsdk.ValidateAttributeRequest{
 			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),

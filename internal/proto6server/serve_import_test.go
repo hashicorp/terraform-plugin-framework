@@ -103,6 +103,7 @@ func TestServerImportResourceState(t *testing.T) {
 			},
 
 			impl: func(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+				//nolint:staticcheck // This will be removed before the next minor release.
 				tfsdk.ResourceImportStateNotImplemented(ctx, "", resp)
 			},
 

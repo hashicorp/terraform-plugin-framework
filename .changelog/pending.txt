@@ -1,0 +1,7 @@
+```release-note:breaking-change
+tfsdk: The `NewProtocol6Server()` function, `Serve()` function, and `ServeOpts` type have been removed. Use the `providerserver` package instead.
+```
+
+```release-note:breaking-change
+tfsdk: The `ModifySchemaPlanRequest`, `ModifySchemaPlanResponse`, `ValidateSchemaRequest`, and `ValidateSchemaResponse` types have been removed. These were not intended for provider developer usage.
+```

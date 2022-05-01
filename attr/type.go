@@ -86,6 +86,17 @@ type TypeWithValidate interface {
 	Validate(context.Context, tftypes.Value, *tftypes.AttributePath) diag.Diagnostics
 }
 
+// TypeWithModifyPlan extends the Type interface to include a ModifyPlan method,
+// used to bundle consistent plan modification logic with the Type.
+type TypeWithModifyPlan interface {
+	Type
+
+	// ModifyPlan returns the Value that should be used in the plan. It is
+	// generally used to suppress diffs that do not correspond to semantic
+	// differences. In these cases, the `state` Value should be returned.
+	ModifyPlan(ctx context.Context, state, plan Value, path *tftypes.AttributePath) (Value, diag.Diagnostics)
+}
+
 // TypeWithPlaintextDescription extends the Type interface to include a
 // Description method, used to bundle extra information to include in attribute
 // descriptions with the Type. It expects the description to be written as

@@ -1,0 +1,71 @@
+[
+  {
+    "heading": "Framework"
+  },
+  {
+    "title": "Overview",
+    "path": ""
+  },
+  {
+    "title": "Tutorial: Implement Create and Read",
+    "href": "https://learn.hashicorp.com/tutorials/terraform/plugin-framework-create?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS"
+  },
+  {
+    "title": "Providers",
+    "path": "providers"
+  },
+  {
+    "title": "Resources",
+    "routes": [
+      { "title": "Overview", "path": "resources" },
+      {
+        "title": "Import",
+        "path": "resources/import"
+      },
+      {
+        "title": "Plan Modification",
+        "path": "resources/plan-modification"
+      },
+      {
+        "title": "State Upgrade",
+        "path": "resources/state-upgrade"
+      }
+    ]
+  },
+  {
+    "title": "Data Sources",
+    "path": "data-sources"
+  },
+  {
+    "title": "Schemas",
+    "path": "schemas"
+  },
+  {
+    "title": "Attribute Types",
+    "path": "types"
+  },
+  {
+    "title": "Accessing State, Config, and Plan",
+    "path": "accessing-values"
+  },
+  {
+    "title": "Writing State",
+    "path": "writing-state"
+  },
+  {
+    "title": "Returning Errors and Warnings",
+    "path": "diagnostics"
+  },
+  {
+    "title": "Validation",
+    "path": "validation"
+  },
+  {
+    "title": "Acceptance Tests",
+    "path": "acctests"
+  },
+  {
+    "title": "Debugging",
+    "path": "debugging"
+  }
+]

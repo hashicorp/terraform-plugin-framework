@@ -1,0 +1,170 @@
+---
+page_title: 'Plugin Development - Framework: Resources'
+description: >-
+  How to build resources in the provider development framework. Resources allow
+  Terraform to manage infrastructure objects.
+---
+
+# Resources
+
+[Resources](/language/resources) are an abstraction that allow Terraform to manage infrastructure objects, such as a compute instance, an access policy, or disk. Terraform assumes that every resource:
+
+- operates as a pure key/value store, with values getting returned exactly as they were written.
+- needs only one API call to update or return its state.
+- can be be created, read, updated, and deleted.
+
+Providers act as a translation layer between Terraform and an API, offering one or more resources for practitioners to define in a configuration. To create resources for your provider, you need to define both the resource archetype and actions on specific resource instances.
+
+## Define Resource Archetype
+
+Implement the [`tfsdk.ResourceType`
+interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceType) for every type of
+resource you want to support: compute instances, disks, access policies, etc. It
+allows you to describe the resource archetype, which is the functionality related to all instances of that resource type in the configuration, state, plan, and API. `ResourceType` has the following methods:
+
+### GetSchema
+
+`GetSchema` returns a [schema](/plugin/framework/schemas) describing what fields are available in the resource's configuration and state.
+
+### NewResource
+
+`NewResource` returns a new instance of that resource type. It instantiates a new [`tfsdk.Resource` implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Resource)
+that expects to operate on data with the structure defined in `GetSchema`. It does not need to create the instance on the API.
+
+The `NewResource` method is passed a [`tfsdk.Provider` implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Provider).
+This is the [provider type](/plugin/framework/providers) after its
+`Configure` method was called. The `NewResource` method can type-assert on this
+and inject it into the `Resource`, allowing the `Resource` to have
+strongly-typed access to the configured API client or other provider
+configuration data.
+
+<br />
+**Example**
+
+```go
+type computeInstanceResourceType struct{}
+
+func (c computeInstanceResourceType) GetSchema(_ context.Context) (tfsdk.Schema,
+	diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"name": {
+				Type: types.StringType,
+				Required: true,
+			},
+		},
+	}, nil
+}
+
+func (c computeInstanceResourceType) NewResource(_ context.Context,
+	p tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+	return computeInstanceResource{
+		client: p.(*provider).client,
+	}, nil
+}
+```
+
+## Define Resources
+
+Resources are scoped to a single instance of a resource type. They modify a specific resource in the API and in the state, given that resource's configuration, state, and plan values. They do this through the following methods.
+
+### Create
+
+`Create` makes the necessary API calls to create the resource and then persist that resource's data into the Terraform state. This is usually accomplished by:
+
+1. [Reading the plan data](/plugin/framework/accessing-values) from the [`tfsdk.CreateResourceRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#CreateResourceRequest)
+1. Using the configured API client injected into the resource by the resource type's `NewResource` method
+1. [Writing to the state](/plugin/framework/writing-state).
+
+It is very important that every known value in the plan ends up in state as a
+byte-for-byte match, or Terraform will throw errors. The plan is the provider's
+contract with Terraform: the provider can only change values that are
+[unknown](/plugin/framework/types#unknown) in the plan. It's also
+very important that every unknown value in the plan gets a known, concrete
+value when it's set in the state; the state can never hold any unknown values.
+
+### Read
+
+`Read` updates Terraform's state to reflect the latest state of the resource in the API.
+
+There is no plan or config to work with in `Read`. Resources should [retrieve the data they need](/plugin/framework/accessing-values) from the current state included in the [`tfsdk.ReadResourceRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ReadResourceRequest). They can then use the configured API client injected into the resource by the
+resource type's `NewResource` method, and [write the results to the
+state](/plugin/framework/writing-state).
+
+The provider can set any value in state, but you should be mindful of values that:
+
+- represent "drift," or instances when the API's state has
+  deviated from the source of truth defined in the configuration file. This is
+  usually (but not always) the result of someone or something other than
+  Terraform modifying a resource Terraform "owns". When this happens, the value
+  should always be updated in state to reflect the drifted value.
+- are semantically equivalent with values
+  currently in state. Some values are semantically the same even if they are not a byte-for-byte match. JSON strings that change the order of keys or change the
+  semantically-insignificant whitespace, for example, may not represent drift but
+  are just different representations of the same value. When this happens, the
+  _existing_ value should always be maintained in state and should not be
+  replaced with the new representation that the API is returning.
+
+### Update
+
+`Update` makes the necessary API calls to modify the existing resource to match the configuration and then to persist that resource's data into the Terraform state. This is usually accomplished by:
+
+1. [Reading the plan data](/plugin/framework/accessing-values) from the [`tfsdk.UpdateResourceRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UpdateResourceRequest)
+1. Using the configured API client injected into the resource by the resource
+   type's `NewResource` method
+1. [Writing to the state](/plugin/framework/writing-state).
+
+It is very important that every known value in the plan ends up in state as a
+byte-for-byte match, or Terraform will throw errors. The plan is the provider's
+contract with Terraform: the provider can only change values that are
+[unknown](/plugin/framework/types#unknown) in the plan. It's also
+very important that every unknown value in the plan gets a known, concrete
+value when it's set in the state; the state can never hold any unknown values.
+
+### Delete
+
+`Delete` makes the necessary API calls to destroy a resource and then to remove that resource from the Terraform state. This is usually accomplished by:
+
+1. [Reading the prior state data](/plugin/framework/accessing-values) from the
+   [`tfsdk.DeleteResourceRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DeleteResourceRequest)
+1. Using the configured API client injected into the resource by the resource
+   type's `NewResource` method
+
+### ImportState
+
+`ImportState` is an optional method that implements resource [import](/cli/import). This functionality creates an initial Terraform state to bring the resource under management via the [`terraform import` command](/cli/commands/import). This method must provide enough state for the resource to be successfully refreshed via the `Read` method. This is usually accomplished by:
+
+1. Using the import identifier from the [`tfsdk.ImportResourceStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ImportResourceStateRequest) to [set state data](/plugin/framework/writing-state) in the
+   [`tfsdk.ImportResourceStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ImportResourceStateResponse).
+
+The [`tfsdk.ResourceImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceImportStatePassthroughID) is available to simplify writing the import identifier to an attribute.
+
+Refer to [Resource Import](/plugin/framework/resources/import) for more details and code examples.
+
+### UpgradeState
+
+`UpgradeState` is an optional method that implements resource [state](/language/state) upgrades when there are breaking changes to the [schema](/plugin/framework/schemas).
+
+Refer to [State Upgrades](/plugin/framework/resources/state-upgrade) for more details and code examples.
+
+## Add Resource to Provider
+
+To make new resources available to practitioners, add them to the `GetResources` method on the [provider](/plugin/framework/providers).
+The key must be the name of the resource, including the provider prefix, and
+the value must be an instance of the resource type.
+
+**Example**
+
+```go
+func (p *provider) GetResources(_ context.Context) (map[string]tfsdk.ResourceType,
+	diag.Diagnostics) {
+	return map[string]tfsdk.ResourceType{
+		"example_compute_instance": computeInstanceResourceType{},
+	}, nil
+}
+```
+
+## Further Resource Capabilities
+
+- [Plan modification](/plugin/framework/resources/plan-modification) helps practitioners understand expected behaviors for your resource during changes, such as default values for missing configurations or requiring replacement.
+- [Validation](/plugin/framework/validation) helps practitioners understand the required syntax, types, and acceptable values for your resource.

@@ -1,0 +1,256 @@
+---
+page_title: 'Plugin Development - Framework: Schemas'
+description: >-
+  How to define a schema using the provider development framework. Schemas
+  specify the constraints of Terraform configuration blocks.
+---
+
+# Schemas
+
+Schemas specify the constraints of Terraform configuration blocks. They define what fields a provider,
+resource, or data source configuration block has, and give Terraform metadata
+about those fields. You can think of the schema as the "type information" or
+the "shape" of a resource, data source, or provider.
+
+[The
+`tfsdk.Schema`
+struct](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Schema)
+defines schemas that are returned from methods on the
+[provider](/plugin/framework/providers),
+[resources](/plugin/framework/resources), and [data
+sources](/plugin/framework/data-sources).
+
+## Version
+
+Every schema has a version, which is an integer that allows you to track changes to your schemas. It is generally only used when
+[upgrading resource state](/plugin/framework/resources/state-upgrade), to help massage resources created with earlier
+schemas into the shape defined by the current schema. It will never be used for
+provider or data source schemas and can be omitted.
+
+## DeprecationMessage
+
+Not every resource, data source, or provider will be supported forever.
+Sometimes designs change or APIs are deprecated. Schemas that have their
+`DeprecationMessage` property set will display that message as a warning when
+that provider, data source, or resource is used. A good message will tell
+practitioners that the provider, resource, or data source is deprecated, and
+will indicate a migration strategy.
+
+## Description
+
+Various tooling like
+[terraform-plugin-docs](https://github.com/hashicorp/terraform-plugin-docs) and
+the [language server](https://github.com/hashicorp/terraform-ls) can use
+metadata in the schema to generate documentation or offer a better editor
+experience for practitioners. Use the `Description` property to add a description of a resource, data source, or provider that these tools can leverage.
+
+## MarkdownDescription
+
+Similar to the `Description` property, the `MarkdownDescription` is used to
+provide a markdown-formatted version of the description to tooling like
+[terraform-plugin-docs](https://github.com/hashicorp/terraform-plugin-docs). It
+is a best practice to only alter the formatting, not the content, between the
+`Description` and `MarkdownDescription`.
+
+At the moment, if the `MarkdownDescription` property is set it will always be
+used instead of the `Description` property. It is possible that a different strategy may be employed in the future to surface descriptions to other tooling in a different format, so we recommend specifying both fields.
+
+## Attributes
+
+Attributes are the main point of a schema. They are used to describe the fields
+of a provider, resource, or data source. Attributes are defined as a map of
+[`tfsdk.Attribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute)s,
+with string keys.
+
+The keys are the names of the fields, and should only contain lowercase
+letters, numbers, and underscores. Practitioners will enter these strings in
+the configuration block of the provider, resource, or data source to set a
+value for that field.
+
+The values are descriptions of the constraints on that field and the metadata
+about it, expressed as a `tfsdk.Attribute` struct value.
+
+### Type
+
+The `Type` property of a `tfsdk.Attribute` is used to specify the [attribute
+type](/plugin/framework/types) of the attribute. If the practitioner
+enters data of the wrong type, Terraform will automatically return a validation
+error to the practitioner, and this type determines what kind of attribute
+value is used when [accessing state, config, and plan
+values](/plugin/framework/accessing-values).
+
+You must specify one of the `Type` and `Attributes` properties of
+`tfsdk.Attribute`. You cannot specify both.
+
+### Attributes
+
+The `Attributes` property of a `tfsdk.Attribute` is used to specify the
+attribute's nested attributes. Nested attributes are attributes that are
+grouped beneath another attribute:
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = {
+    hello = "world"
+    demo = true
+  }
+}
+```
+
+In this example, `hello` and `demo` are nested attributes of the
+`nested_attribute` attribute. Nested attributes have their own computed,
+optional, required, and sensitive flags, and their own properties to hold
+descriptions, markdown-formatted descriptions, and deprecation messages.
+
+If an attribute is required and its nested attribute is optional, the attribute
+must be specified, and the nested attribute can be omitted inside the curly
+braces. If an attribute is optional and its nested attribute is required, the
+attribute can be omitted, but if it is specified, the nested attribute must be
+specified as well.
+
+If an attribute is computed, all its nested attributes are considered computed,
+as well. Likewise, if an attribute is considered sensitive or deprecated, all
+its nested attributes are considered sensitive or deprecated.
+
+You must specify one of the `Type` and `Attributes` properties of
+`tfsdk.Attribute`. You cannot specify both.
+
+-> **Note**: We recommend using an attribute with nested attributes when any of the inner fields should have their own flags or metadata (required, optional, computed, deprecated, sensitive, descriptions, etc.).  If the attribute is an atomic unit, we recommend using an object or list of objects instead.
+
+#### SingleNestedAttributes
+
+When the `Attributes` property of a `tfsdk.Attribute` is set to the
+[`schema.SingleNestedAttributes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#SingleNestedAttributes)
+type, the nested attributes behave like an object. There can only be one group
+of the nested attributes.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = {
+    hello = "world"
+    demo = true
+  }
+}
+```
+
+#### ListNestedAttributes
+
+When the `Attributes` property of a `tfsdk.Attribute` is set to the
+[`schema.ListNestedAttributes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#ListNestedAttributes)
+type, the nested attributes behave like a list of objects. The practitioner can
+specify any number of groups of these attributes.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = [
+    {
+      hello = "world"
+      demo = true
+    },
+    {
+      hello = "moon"
+      demo = false
+    },
+  ]
+}
+```
+
+In addition to a map of the attributes, `ListNestedAttributes` accepts a
+[`schema.ListNestedAttributesOptions`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#ListNestedAttributesOptions)
+struct that can be used to specify a minimum or maximum number of instances of
+that group of fields. If the user enters fewer than or more than those numbers
+of groups, Terraform will automatically return a validation error.
+
+#### MapNestedAttributes
+
+When the `Attributes` property of a `tfsdk.Attribute` is set to the
+[`schema.MapNestedAttributes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#MapNestedAttributes)
+type, the nested attributes behave like a map of objects. The practitioner can
+specify any number of groups of these attributes, with string keys associated
+with each group.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = {
+    "red" = {
+      hello = "world"
+      demo = true
+    },
+    "blue" = {
+      hello = "moon"
+      demo = false
+    },
+  }
+}
+```
+
+In addition to a map of the attributes, `MapNestedAttributes` accepts a
+[`schema.MapNestedAttributesOptions`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#MapNestedAttributesOptions)
+struct that can be used to specify a minimum or maximum number of instances of
+that group of fields. If the user enters fewer than or more than those numbers
+of groups, Terraform will automatically return a validation error.
+
+### Required
+
+Setting the `Required` property to `true` indicates that the attribute is
+required. Practitioners will be automatically given a validation error if they
+omit the attribute in their configuration.
+
+Attributes that set `Required` to `true` cannot set `Optional` or `Computed` to
+`true`.
+
+### Optional
+
+Setting the `Optional` property to `true` indicates that the attribute is
+optional. Practitioners are free to specify that attribute or omit it, and
+Terraform will not automatically generate a validation error based on the
+presence or absence of that attribute.
+
+Attributes that set `Optional` to `true` cannot set `Required` to `true`, but
+may set `Computed` to `true`, in which case the behavior of `Computed` applies,
+too.
+
+### Computed
+
+Setting the `Computed` property to `true` indicates that the attribute can be
+set by the provider. Any attribute that does not have `Computed` set to `true`
+cannot be influenced by the provider; it can only be changed via the config or
+via state refreshing.
+
+If `Computed` is set to `true` and `Optional` is not set to `true`, the
+attribute will be considered read-only and Terraform will automatically
+generate a validation error if the practitioner attempts to enter a
+configuration value for that attribute.
+
+If `Computed` is set to `true` and `Optional` is set to `true`, Terraform will
+not do any validation on the presence or absence of the value.
+
+If `Computed` is set to `true`, `Required` must not be set to `true`.
+
+Because providers don't set provider configuration values in state, provider
+schemas should never set `Computed` to `true`.
+
+### Sensitive
+
+Setting the `Sensitive` property to `true` indicates to Terraform that the
+value should always be considered
+[sensitive](/language/state/sensitive-data). This does not at this
+time add any encryption or otherwise hide the value from Terraform; see [the
+documentation for SDKv2](/plugin/sdkv2/best-practices/sensitive-state) for
+more information on sensitive state and Terraform. It does, however, hide the
+value in Terraform's outputs and in Terraform Cloud.
+
+### Description
+
+Much like [resources, data sources, and providers can have a
+description](#description), so too can individual attributes.
+
+### MarkdownDescription
+
+Much like [resources, data sources, and providers can have a markdown-formatted
+description](#markdowndescription), so too can individual attributes.
+
+### DeprecationMessage
+
+Much like [resources, data sources, and providers can be
+deprecated](#deprecationmessage), so too can individual attributes.

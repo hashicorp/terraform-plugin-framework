@@ -1,0 +1,305 @@
+---
+page_title: 'Plugin Development - Framework: State Upgrade'
+description: >-
+  How to upgrade state data after breaking schema changes using the provider
+  development framework.
+---
+
+# State Upgrade
+
+A resource schema captures the structure and types of the resource [state](/language/state). Any state data that does not conform to the resource schema will generate errors or may not be persisted properly. Over time, it may be necessary for resources to make breaking changes to their schemas, such as changing an attribute type. Terraform supports versioning of these resource schemas and the current version is saved into the Terraform state. When the provider advertises a newer schema version, Terraform will call back to the provider to attempt to upgrade from the saved schema version to the one advertised. This operation is performed prior to planning, but with a configured provider.
+
+-> Some versions of Terraform CLI will also request state upgrades even when the current schema version matches the state version. The framework will automatically handle this request.
+
+## State Upgrade Process
+
+1. When generating a plan, Terraform CLI will request the current resource schema, which contains a version.
+1. If Terraform CLI detects that an existing state with its saved version does not match the current version, Terraform CLI will request a state upgrade from the provider with the prior state version and expecting the state to match the current version.
+1. The framework will check the resource to see if it defines state upgrade support:
+    * If no state upgrade support is defined, an error diagnostic is returned.
+    * If state upgrade support is defined, but not for the requested prior state version, an error diagnostic is returned.
+    * If state upgrade support is defined and has an implementation for the requested prior state version, the provider defined implementation is executed.
+
+## Implementing State Upgrade Support
+
+Ensure the [`tfsdk.Schema` type `Version` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Schema.Version) for the [`tfsdk.ResourceType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceType) is greater than `0`, then implement the [`tfsdk.ResourceWithStateUpgrade` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceWithStateUpgrade) for the [`tfsdk.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Resource). Conventionally the version is incremented by `1` for each state upgrade.
+
+This example shows a `ResourceType` which incremented the `Schema` type `Version` field:
+
+```go
+// Other ResourceType methods are omitted in this example
+var _ tfsdk.ResourceType = exampleResourceType{}
+
+type exampleResourceType struct{/* ... */}
+
+func (t exampleResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        // ... other fields ...
+
+        // This example conventionally declares that the resource has prior
+        // state versions of 0 and 1, while the current version is 2.
+        Version: 2,
+    }
+}
+```
+
+This example shows a `Resource` with the necessary `StateUpgrade` method to implement the `ResourceWithStateUpgrade` interface:
+
+```go
+// Other Resource methods are omitted in this example
+var _ tfsdk.Resource = exampleResource{}
+var _ tfsdk.ResourceWithUpgradeState = exampleResource{}
+
+type exampleResource struct{/* ... */}
+
+func (r exampleResource) UpgradeState(ctx context.Context) map[int64]tfsdk.ResourceStateUpgrader {
+    return map[int64]tfsdk.ResourceStateUpgrader{
+        // State upgrade implementation from 0 (prior state version) to 2 (Schema.Version)
+        0: {
+            // Optionally, the PriorSchema field can be defined.
+            StateUpgrader: func(ctx context.Context, req tfsdk.UpgradeResourceStateRequest, resp *tfsdk.UpgradeResourceStateResponse) { /* ... */ },
+        },
+        // State upgrade implementation from 1 (prior state version) to 2 (Schema.Version)
+        1: {
+            // Optionally, the PriorSchema field can be defined.
+            StateUpgrader: func(ctx context.Context, req tfsdk.UpgradeResourceStateRequest, resp *tfsdk.UpgradeResourceStateResponse) { /* ... */ },
+        },
+    }
+}
+```
+
+Each [`tfsdk.ResourceStateUpgrader`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceStateUpgrader) implementation is expected to wholly upgrade the resource state from the prior version to the current version. The framework does not iterate through intermediate version implementations as incrementing versions by 1 is only conventional and not required.
+
+All state data must be populated in the [`tfsdk.UpgradeResourceStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UpgradeResourceStateResponse). The framework does not copy any prior state data from the [`tfsdk.UpgradeResourceStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UpgradeResourceStateRequest).
+
+There are two approaches to implementing the provider logic for state upgrades in `ResourceStateUpgrader`. The recommended approach is defining the prior schema matching the resource state, which allows for prior state access similar to other parts of the framework. The second, more advanced, approach is accessing the prior resource state using lower level data handlers.
+
+### ResourceStateUpgrader With PriorSchema
+
+Implement the [`ResourceStateUpgrader` type `PriorSchema` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceStateUpgrader.PriorSchema) to enable the framework to populate the [`tfsdk.UpgradeResourceStateRequest` type `State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UpgradeResourceStateRequest.State) for the provider defined state upgrade logic. Access the request `State` using methods such as [`Get()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.Get) or [`GetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.GetAttribute). Write the [`tfsdk.UpgradeResourceStateResponse` type `State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UpgradeResourceStateResponse.State) using methods such as [`Set()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.Set) or [`SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute).
+
+This example shows a resource that changes the type for two attributes, using the `PriorSchema` approach:
+
+```go
+// Other ResourceType methods are omitted in this example
+var _ tfsdk.ResourceType = exampleResourceType{}
+// Other Resource methods are omitted in this example
+var _ tfsdk.Resource = exampleResource{}
+var _ tfsdk.ResourceWithUpgradeState = exampleResource{}
+
+type exampleResourceType struct{/* ... */}
+type exampleResource struct{/* ... */}
+
+type exampleResourceDataV0 struct {
+    Id                string `tfsdk:"id"`
+    OptionalAttribute *bool  `tfsdk:"optional_attribute"`
+    RequiredAttribute bool   `tfsdk:"required_attribute"`
+}
+
+type exampleResourceDataV1 struct {
+    Id                string  `tfsdk:"id"`
+    OptionalAttribute *string `tfsdk:"optional_attribute"`
+    RequiredAttribute string  `tfsdk:"required_attribute"`
+}
+
+func (t exampleResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]Attribute{
+            "id": {
+                Type:     types.StringType,
+                Computed: true,
+            },
+            "optional_attribute": {
+                Type:     types.StringType, // As compared to prior types.BoolType below
+                Optional: true,
+            },
+            "required_attribute": {
+                Type:     types.StringType, // As compared to prior types.BoolType below
+                Required: true,
+            },
+        },
+        // The resource has a prior state version of 0, which had the attribute
+        // types of types.BoolType as shown below.
+        Version: 1,
+    }
+}
+
+func (r exampleResource) UpgradeState(ctx context.Context) map[int64]tfsdk.ResourceStateUpgrader {
+    return map[int64]tfsdk.ResourceStateUpgrader{
+        // State upgrade implementation from 0 (prior state version) to 1 (Schema.Version)
+        0: {
+            PriorSchema: &tfsdk.Schema{
+                Attributes: map[string]Attribute{
+                    "id": {
+                        Type:     types.StringType,
+                        Computed: true,
+                    },
+                    "optional_attribute": {
+                        Type:     types.BoolType, // As compared to current types.StringType above
+                        Optional: true,
+                    },
+                    "required_attribute": {
+                        Type:     types.BoolType, // As compared to current types.StringType above
+                        Required: true,
+                    },
+                },
+            },
+            StateUpgrader: func(ctx context.Context, req tfsdk.UpgradeResourceStateRequest, resp *tfsdk.UpgradeResourceStateResponse) {
+                var priorStateData exampleResourceDataV0
+
+                resp.Diagnostics.Append(req.State.Get(ctx, &priorStateData)...)
+
+                if resp.Diagnostics.HasError() {
+                    return
+                }
+
+                upgradedStateData := exampleResourceDataV1{
+                    Id:                priorStateData.Id,
+                    RequiredAttribute: fmt.Sprintf("%t", priorStateData.RequiredAttribute),
+                }
+
+                if priorStateData.OptionalAttribute != nil {
+                    v := fmt.Sprintf("%t", *priorStateData.OptionalAttribute)
+                    upgradedStateData.OptionalAttribute = &v
+                }
+
+                resp.Diagnostics.Append(resp.State.Set(ctx, upgradedStateData)...)
+            },
+        },
+    }
+}
+```
+
+### ResourceStateUpgrader Without PriorSchema
+
+Read prior state data from the [`tfsdk.UpgradeResourceStateRequest` type `RawState` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UpgradeResourceStateRequest.RawState). Write the [`tfsdk.UpgradeResourceStateResponse` type `State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UpgradeResourceStateResponse.State) using methods such as [`Set()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.Set) or [`SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute), or for more advanced use cases, write the [`tfsdk.UpgradeResourceStateResponse` type `DynamicValue` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UpgradeResourceStateResponse.DynamicValue).
+
+This example shows a resource that changes the type for two attributes, using the `RawState` approach for the request and `DynamicValue` approach for the response:
+
+```go
+// Other ResourceType methods are omitted in this example
+var _ tfsdk.ResourceType = exampleResourceType{}
+// Other Resource methods are omitted in this example
+var _ tfsdk.Resource = exampleResource{}
+var _ tfsdk.ResourceWithUpgradeState = exampleResource{}
+
+var exampleResourceTftypesDataV0 = tftypes.Object{
+    AttributeTypes: map[string]tftypes.Type{
+        "id":                 tftypes.String,
+        "optional_attribute": tftypes.Bool,
+        "required_attribute": tftypes.Bool,
+    },
+}
+
+var exampleResourceTftypesDataV1 = tftypes.Object{
+    AttributeTypes: map[string]tftypes.Type{
+        "id":                 tftypes.String,
+        "optional_attribute": tftypes.String,
+        "required_attribute": tftypes.String,
+    },
+}
+
+type exampleResourceType struct{/* ... */}
+type exampleResource struct{/* ... */}
+
+func (t exampleResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]Attribute{
+            "id": {
+                Type:     types.StringType,
+                Computed: true,
+            },
+            "optional_attribute": {
+                Type:     types.StringType, // As compared to prior types.BoolType below
+                Optional: true,
+            },
+            "required_attribute": {
+                Type:     types.StringType, // As compared to prior types.BoolType below
+                Required: true,
+            },
+        },
+        // The resource has a prior state version of 0, which had the attribute
+        // types of types.BoolType as shown below.
+        Version: 1,
+    }
+}
+
+func (r exampleResource) UpgradeState(ctx context.Context) map[int64]tfsdk.ResourceStateUpgrader {
+    return map[int64]tfsdk.ResourceStateUpgrader{
+        // State upgrade implementation from 0 (prior state version) to 1 (Schema.Version)
+        0: {
+            StateUpgrader: func(ctx context.Context, req tfsdk.UpgradeResourceStateRequest, resp *tfsdk.UpgradeResourceStateResponse) {
+                // Refer also to the RawState type JSON field which can be used
+                // with json.Unmarshal()
+                rawStateValue, err := req.RawState.Unmarshal(exampleResourceTftypesDataV0)
+
+                if err != nil {
+                    resp.Diagnostics.AddError(
+                        "Unable to Unmarshal Prior State",
+                        err.Error(),
+                    )
+                    return
+                }
+
+                var rawState map[string]tftypes.Value
+
+                if err := rawStateValue.As(&rawState); err != nil {
+                    resp.Diagnostics.AddError(
+                        "Unable to Convert Prior State",
+                        err.Error(),
+                    )
+                    return
+                }
+
+                var optionalAttributeString *string
+
+                if !rawState["optional_attribute"].IsNull() {
+                    var optionalAttribute bool
+
+                    if err := rawState["optional_attribute"].As(&optionalAttribute); err != nil {
+                        resp.Diagnostics.AddAttributeError(
+                            tftypes.NewAttributePath().WithAttributeName("optional_attribute"),
+                            "Unable to Convert Prior State",
+                            err.Error(),
+                        )
+                        return
+                    }
+
+                    v := fmt.Sprintf("%t", optionalAttribute)
+                    optionalAttributeString = &v
+                }
+
+                var requiredAttribute bool
+
+                if err := rawState["required_attribute"].As(&requiredAttribute); err != nil {
+                    resp.Diagnostics.AddAttributeError(
+                        tftypes.NewAttributePath().WithAttributeName("required_attribute"),
+                        "Unable to Convert Prior State",
+                        err.Error(),
+                    )
+                    return
+                }
+
+                dynamicValue, err := tfprotov6.NewDynamicValue(
+                    exampleResourceTftypesDataV1,
+                    tftypes.NewValue(exampleResourceTftypesDataV1, map[string]tftypes.Value{
+                        "id":                 rawState["id"],
+                        "optional_attribute": tftypes.NewValue(tftypes.String, optionalAttributeString),
+                        "required_attribute": tftypes.NewValue(tftypes.String, fmt.Sprintf("%t", requiredAttribute)),
+                    }),
+                )
+
+                if err != nil {
+                    resp.Diagnostics.AddError(
+                        "Unable to Convert Upgraded State",
+                        err.Error(),
+                    )
+                    return
+                }
+
+                resp.DynamicValue = &dynamicValue
+            },
+        },
+    }
+}
+```

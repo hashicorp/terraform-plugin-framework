@@ -1,0 +1,103 @@
+---
+page_title: 'Plugin Development - Framework: Resource Import'
+description: >-
+  How to support resource import using the provider development framework.
+---
+
+# Resource Import
+
+Practitioners can use the  [`terraform import` command](/cli/commands/import) to let Terraform begin managing existing infrastructure resources. Resources can implement the `ImportState` method, which must either specify enough Terraform state for the `Read` method to refresh [`tfsdk.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Resource) or return an error.
+
+## Single Attribute
+
+When the `Read` method requires a single attribute to refresh, use the [`tfsdk.ResourceImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceImportStatePassthroughID) to write the import identifier argument for `terraform import`.
+
+In the following example, the `terraform import` command passes the import identifier to the `id` attribute in Terraform state.
+
+```go
+func (r exampleResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+    tfsdk.ResourceImportStatePassthroughID(ctx, tftypes.NewAttributePath().WithAttributeName("id"), req, resp)
+}
+```
+
+## Multiple Attributes
+
+When the `Read` method requires multiple attributes to refresh, you must write custom logic in the `ImportState` method. Specifically, the implementation must:
+
+1. Use the import identifier from the [`tfsdk.ImportResourceStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ImportResourceStateRequest). 
+1. Perform the custom logic.
+1. [Set state data](/plugin/framework/writing-state) in the [`tfsdk.ImportResourceStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ImportResourceStateResponse).
+
+For example, if the `tfsdk.ResourceType` implementation has the following `GetSchema` method:
+
+```go
+func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "attr_one": {
+                Type:     types.StringType,
+                Required: true,
+            },
+            "attr_two": {
+                Type:     types.StringType,
+                Required: true,
+            },
+            // ... potentially other Attributes ...
+        },
+    }, nil
+}
+```
+
+Along with a `tfsdk.Resource` implementation with the following `Read` method:
+
+```go
+func (r exampleResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+    var attrOne, attrTwo string
+
+    resp.Diagnostics.Append(req.State.GetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("attr_one"), &attrOne)...)
+    resp.Diagnostics.Append(req.State.GetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("attr_two"), &attrTwo)...)
+
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    // API call using attrOne and attrTwo
+}
+```
+
+The `terraform import` command will need to accept both attribute values as a single import identifier string. A typical convention is to use a separator character, such as a comma (`,`), between the values. The `ImportState` method will then need to parse the import identifier string into the two separate values and save them appropriately into the Terraform state.
+
+You could define the `ImportState` method using a comma-separated value as follows:
+
+```go
+func (r exampleResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+    idParts := strings.Split(req.ID, ",")
+
+    if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+        resp.Diagnostics.AddError(
+            "Unexpected Import Identifier",
+            fmt.Sprintf("Expected import identifier with format: attr_one,attr_two. Got: %q", req.ID),
+        )
+        return
+    }
+
+    resp.Diagnostics.Append(resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("attr_one"), idParts[0])...)
+    resp.Diagnostics.Append(resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("attr_two"), idParts[1])...)
+}
+```
+
+## Not Implemented
+
+If the resource does not support `terraform import`, skip the `ImportState` method implementation.
+
+When a practitioner runs `terraform import`, Terraform CLI will return:
+
+```console
+$ terraform import example_resource.example some-identifier
+example_resource.example: Importing from ID "some-identifier"...
+╷
+│ Error: Resource Import Not Implemented
+│ 
+│ This resource does not support import. Please contact the provider developer for additional information.
+╵
+```

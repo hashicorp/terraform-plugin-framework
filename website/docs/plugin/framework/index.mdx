@@ -1,0 +1,34 @@
+---
+page_title: "Home - Plugin Development: Framework"
+description: |-
+  An overview of terraform-plugin-framework, a next-generation SDK for
+  Terraform plugin development.
+---
+
+# Terraform Plugin Framework
+
+The plugin framework is a new way to develop Terraform Plugins on [protocol version 6](/plugin/how-terraform-works#protocol-version-6). It offers improvements and new features from [Teraform Plugin SDKv2](/plugin/sdkv2).
+
+~> **Important**: [Which SDK Should I Use?](/plugin/which-sdk) explains the differences between [Teraform Plugin SDKv2](/plugin/sdkv2) and Terraform Plugin Framework to help you decide which option is right for your provider.
+
+## Get Started
+
+- Try the [Implement Create and Read with the Terraform Plugin Framework](https://learn.hashicorp.com/tutorials/terraform/plugin-framework-create?in=terraform/providers) tutorial on HashiCorp Learn.
+- Clone the [terraform-provider-scaffolding-framework](https://github.com/hashicorp/terraform-provider-scaffolding-framework) template repository on GitHub.
+
+## Key Concepts
+
+- [Providers](/plugin/framework/providers) are Terraform plugins that supply resources and data sources for practitioners to use. They are implemented as binaries that the Terraform CLI downloads, starts, and stops.
+- [Schemas](/plugin/framework/schemas) define available fields for provider, resource, or provisioner configuration block, and give Terraform metadata about those fields.
+- [Resources](/plugin/framework/resources) are an abstraction that allow Terraform to manage infrastructure objects, such as a compute instance, an access policy, or disk. Providers act as a translation layer between Terraform and an API, offering one or more resources for practitioners to define in a configuration.
+- [Data Sources](/plugin/framework/data-sources) are an abstraction that allow Terraform to reference external data. Providers have data sources that tell Terraform how to request external data and how to convert the response into a format that practitioners can interpolate.
+
+## Test and Publish
+
+- Learn to write [acceptance tests](/plugin/framework/acctests) for your provider.
+- Learn to [publish your provider](/registry/providers/publishing) to the Terraform Registry.
+
+## Combine or Translate
+
+- [Combine your provider](/plugin/mux/combining-protocol-version-6-providers) with other [protocol version 6](/plugin/how-terraform-works#protocol-version-6) providers.
+- [Translate your provider](/plugin/mux/translating-protocol-version-6-to-5) into a [protocol version 5](/plugin/how-terraform-works#protocol-version-5) provider for compatibility with Terraform 0.12 and later. [Protocol version 6](/plugin/how-terraform-works#protocol-version-6) features cannot be used.

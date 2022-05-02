@@ -1,0 +1,116 @@
+---
+page_title: 'Plugin Development - Framework: Providers'
+description: >-
+  How to implement a provider in the provider development framework. Providers
+  are plugins that allow Terraform to interact with APIs.
+---
+
+# Providers
+
+Providers are Terraform plugins that supply
+[resources](/plugin/framework/resources) and [data
+sources](/plugin/framework/data-sources) for practitioners to use.
+They are implemented as binaries that the Terraform CLI downloads, starts,
+and stops. The provider is responsible for:
+
+- providing a [gRPC](https://grpc.io) server that can correctly handle
+  Terraform's handshake.
+- providing Terraform with information about how to connect to the server.
+
+## Implement Provider Interface
+
+Any type that fills an
+[interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Provider)
+can be a provider. We recommend that you define a `struct` type to fill this
+interface.
+
+The provider has four methods it needs to handle: `GetSchema`, `Configure`,
+`GetResources`, and `GetDataSources`.
+
+### GetSchema
+
+`GetSchema` returns a
+[schema](/plugin/framework/schemas) that describes the provider's
+configuration block. This configuration block is used to offer practitioners
+the opportunity to supply values to the provider and configure its behavior,
+rather than needing to include those values in every resource and data source.
+It is usually used to gather credentials, endpoints, and the other data used to
+authenticate with the API, but it is not limited to those uses.
+
+```tf
+provider "example" {
+  endpoint = "https://example.test/"
+  api_token = "v3rYs3cr3tt0k3n"
+}
+```
+
+Even if the provider does not want to accept practitioner configuration, it must return
+an empty schema.
+
+The schema is meant to be immutable. It should not change at runtime, and
+should consistently return the same value.
+
+### Configure
+
+`Configure` handles and stores the
+values the practitioner entered in the provider's configuration block. This
+can mean creating the API client, storing the data on the type that
+implements the provider interface, or otherwise handling the values. This is
+the only time those values will be made available to the provider, so they
+need to be persisted if the provider will need to reference them from within
+a resource or data source. This is why we recommend using a struct
+to represent the provider, as it can hold multiple values in a strongly-typed
+way.
+
+#### Unknown Values
+
+Not all values are guaranteed to be
+[known](/plugin/framework/types#unknown) when `Configure` is called.
+For example, if a practitioner interpolates a resource's unknown value into the block,
+that value may show up as unknown depending on how the graph executes:
+
+```tf
+resource "example_foo" "bar" {
+  id = 123
+}
+
+provider "example" {
+  endpoint = "https://example.test/"
+  api_token = example_foo.bar.name
+}
+```
+
+In the example above, `example_foo.bar.name` is a read-only field on
+`example_foo.bar` that won't be set until after `example_foo.bar` has been
+applied. So the `Configure` method for the provider may report that the value
+is unknown. You can choose how your provider handles this. If
+some resources or data sources can be used without knowing that value, it may
+be worthwhile to [emit a warning](/plugin/framework/diagnostics) and
+check whether the value is set in resources and data sources before attempting
+to use it. If resources and data sources can't provide any functionality
+without knowing that value, it's often better to [return an
+error](/plugin/framework/diagnostics), which will halt the apply.
+
+### GetResources
+
+`GetResources` returns a map of [resource
+types](/plugin/framework/resources). The keys of the
+map entries must be the name of the resource as it would appear in the
+configuration, including the provider prefix.
+
+The list of resources is meant to be immutable. It should not change at
+runtime, and should consistently return the same values.
+
+### GetDataSources
+
+`GetDataSources` returns a map of [data
+source types](/plugin/framework/data-sources). The
+keys of the map entries must be the name of the data source as it would appear
+in the configuration, including the provider prefix.
+
+The list of data sources is meant to be immutable. It should not change at
+runtime, and should consistently return the same values.
+
+## Further Provider Capabilities
+
+- [Validation](/plugin/framework/validation) helps practitioners understand the required syntax, types, and acceptable values for your provider.

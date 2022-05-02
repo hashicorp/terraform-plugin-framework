@@ -1,0 +1,263 @@
+---
+page_title: 'Plugin Development - Framework: Access State, Config, and Plan'
+description: |-
+  How to read values from state, config, and plan in the Terraform provider
+  development framework.
+---
+
+# Accessing State, Config, and Plan
+
+There are various points at which the provider needs access to the data from
+the practitioner's configuration, Terraform's state, or generated plan.
+The same patterns are used for accessing this data, regardless of
+its source.
+
+The data is usually stored in a request object:
+
+```go
+func (m myResource) Create(ctx context.Context,
+	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse)
+```
+
+In this example, `req` holds the configuration and plan, and there is no state
+value because the resource does not yet exist in state.
+
+## Get the Entire Configuration, Plan, or State
+
+One way to interact with configuration, plan, and state values is to convert
+the entire configuration, plan, or state into a Go type, then treat them as
+regular Go values. This has the benefit of letting the compiler check all your
+code that accesses values, but requires defining a type to contain the values.
+
+```go
+type resourceData struct {
+	Name types.String `tfsdk:"name"`
+	Age types.Number `tfsdk:"age"`
+	Registered types.Bool `tfsdk:"registered"`
+	Pets types.List `tfsdk:"pets"`
+	Tags types.Map `tfsdk:"tags"`
+	Address types.Object `tfsdk:"address"`
+}
+
+func (m myResource) Create(ctx context.Context,
+	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+	var plan resourceData
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	// values can now be accessed like plan.Name.Value
+	// check if things are null with plan.Name.Null
+	// check if things are unknown with plan.Name.Unknown
+}
+```
+
+The configuration, plan, and state data is represented as an object, and
+accessed like an object. See the [conversion rules](#conversion-rules) for an
+explanation on how objects can be converted into Go types.
+
+However, using the [`attr.Value` implementations](/plugin/framework/types)
+can surface unnecessary complexity. For example, in a create function,
+non-computed values are guaranteed to be defined. Likewise, a required value
+will never be null.
+
+To aid in this, `Get` can do some conversion to Go types that can hold the data:
+
+```go
+type resourceData struct {
+  Name string `tfsdk:"name"`
+  Age int64 `tfsdk:"age"`
+  Registered bool `tfsdk:"registered"`
+  Pets []string `tfsdk:"pets"`
+  Tags map[string]string `tfsdk:"tags"`
+  Address struct{
+  	Street string `tfsdk:"street"`
+	City string `tfsdk:"city"`
+	State string `tfsdk:"state"`
+	Zip int64 `tfsdk:"zip"`
+  } `tfsdk:"address"`
+}
+```
+
+See [below](#conversion-rules) for the rules about conversion.
+
+## Get a Single Attribute's Value
+
+Another way to interact with configuration, plan, and state values is to
+retrieve a single value from the configuration, plan, or state and convert it
+into a Go type. This does not require defining a type (except for objects), but
+means each attribute access steps outside of what the compiler can check, and
+may return an error at runtime. It also requires a type assertion, though the
+type will always be the type produced by that attribute's `attr.Type`.
+
+```go
+func (m myResource) Create(ctx context.Context,
+	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+	attr, diags := req.Config.GetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("age"))
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	age := attr.(types.Number)
+}
+```
+
+-> **Note:** The call to `tftypes.NewAttributePath` is creating an [attribute
+path](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#AttributePath)
+pointing to the specific attribute. A less-verbose way to specify attribute
+paths is coming soon.
+
+-> **Note:** Helpers to access `attr.Value`s using the same reflection rules
+`Get` has are planned, to avoid the need to type assert. We hope to release
+them soon.
+
+## When Can a Value Be Unknown or Null?
+
+A lot of conversion rules say an error will be returned if a value is unknown
+or null. It is safe to assume:
+
+* Required attributes will never be null or unknown in Create, Read, Update, or
+  Delete methods.
+* Optional attributes that are not computed will never be unknown in Create,
+  Read, Update, or Delete methods.
+* Computed attributes, whether optional or not, will never be null in the plan
+  for Create, Read, Update, or Delete methods.
+* Computed attributes that are read-only (`Optional` is not `true`) will always
+  be unknown in the plan for Create, Read, Update, or Delete methods. They will
+  always be null in the configuration for Create, Read, Update, and Delete
+  methods.
+* Required attributes will never be null in a provider's Configure method. They
+  may be unknown.
+* The state never contains unknown values.
+* The configuration for Create, Read, Update, and Delete methods never contains
+  unknown values.
+
+In any other circumstances, the provider is responsible for handling the
+possibility that an unknown or null value may be presented to it.
+
+## Conversion Rules
+
+!> **Warning:** It can be tempting to use Go types instead of `attr.Value`
+implementations when the provider doesn't care about the distinction between an
+empty value, unknown, and null. But if Terraform has a null or unknown value
+and the provider asks the framework to store it in a type that can't hold it,
+`Get` will return an error. Make sure the types you are using can hold the
+values they might contain! An opt-in conversion of null or unknown values to
+the empty value is coming in the future.
+
+### String
+
+Strings can be automatically converted to Go's `string` type (or any aliases of
+it, like `type MyString string`) as long as the string value is not null or
+unknown.
+
+### Number
+
+Numbers can be automatically converted to the following numeric types (or any
+aliases of them, like `type MyNumber int`) as long as the number value is not
+null or unknown:
+
+* `int`, `int8`, `int16`, `int32`, `int64`
+* `uint`, `uint8`, `uint16`, `uint32`, `uint64`
+* `float32`, `float64`
+* [`*big.Int`](https://pkg.go.dev/math/big#Int), [`*big.Float`](https://pkg.go.dev/math/big#Float)
+
+An error will be returned if the value of the number cannot be stored in the numeric type supplied because of an overflow or other loss of precision.
+
+### Boolean
+
+Booleans can be automatically converted to Go's `bool` type (or any aliases of
+it, like `type MyBoolean bool`) as long as the boolean value is not null or
+unknown.
+
+### List
+
+Lists can be automatically converted to any Go slice type (or alias of a Go
+slice type, like `type MyList []string`), with the elements either being
+`attr.Value` implementations or being converted according to these rules. Go
+slice types are considered capable of handling null values; the slice will be
+set to nil. The `Get` method will still return an error for unknown list
+values.
+
+### Map
+
+Maps can be automatically converted to any Go map type with string keys (or any
+alias of a Go map type with string keys, like `type MyMap map[string]int`),
+with the elements either being `attr.Value` implementations or being converted
+according to these rules. Go map types are considered capable of handling null
+values; the map will be set to nil. The `Get` method will still return an error
+for unknown map values.
+
+### Object
+
+Objects can be automatically converted to any Go struct type with that follows these constraints:
+
+* Every property on the struct must have a `tfsdk` struct tag.
+* The `tfsdk` struct tag must name an attribute in the object that it is being
+  mapped to or be set to `-` to explicitly declare it does not map to an
+  attribute in the object.
+* Every attribute in the object must have a corresponding struct tag.
+
+These rules help prevent typos and human error from unwittingly discarding
+information by failing as early, consistently, and loudly as possible.
+
+Properties can either be `attr.Value` implementations or will be converted
+according to these rules.
+
+Unknown and null objects cannot be represented as structs and will return an
+error. Their attributes may contain unknown or null values if the attribute's
+type can hold them.
+
+### Pointers
+
+Pointers behave exactly like the type they are referencing, except they can hold
+null values. A pointer will be set to `nil` when representing a null value;
+otherwise, the conversion rules for that type will apply.
+
+### Detected Interfaces
+
+`Get` detects and utilizes the following interfaces, if the target implements
+them.
+
+#### ValueConverter
+
+If a value is being set on a Go type that implements the [`tftypes.ValueConverter`
+interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#ValueConverter),
+that interface will be delegated to to handle the conversion.
+
+#### Unknownable
+
+If the value is being set on a Go type that fills the `Unknownable` interface:
+
+```go
+type Unknownable interface {
+	SetUnknown(context.Context, bool) error
+	SetValue(context.Context, interface{}) error
+	GetUnknown(context.Context) bool
+	GetValue(context.Context) interface{}
+}
+```
+
+It will be considered capable of handling unknown values, and those methods
+will be used to populate it and retrieve its value. The `interface{}` being
+passed and retrieved will be of a type that can be passed to
+[`tftypes.NewValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#NewValue).
+
+#### Nullable
+
+If the value is being set on a Go type that fills the `Nullable` interface:
+
+```go
+type Nullable interface {
+	SetNull(context.Context, bool) error
+	SetValue(context.Context, interface{}) error
+	GetNull(context.Context) bool
+	GetValue(context.Context) interface{}
+}
+```
+
+It will be considered capable of handling null values, and those methods will
+be used to populate it and retrieve its value. The `interface{}` being passed
+and retrieved will be of a type that can be passed to
+[`tftypes.NewValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#NewValue).

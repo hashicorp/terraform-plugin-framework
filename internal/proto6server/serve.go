@@ -101,7 +101,7 @@ func (r getProviderSchemaResponse) toTfprotov6() *tfprotov6.GetProviderSchemaRes
 		ProviderMeta:      r.ProviderMeta,
 		ResourceSchemas:   r.ResourceSchemas,
 		DataSourceSchemas: r.DataSourceSchemas,
-		Diagnostics:       r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics:       toproto6.Diagnostics(r.Diagnostics),
 	}
 }
 
@@ -240,7 +240,7 @@ type validateProviderConfigResponse struct {
 func (r validateProviderConfigResponse) toTfprotov6() *tfprotov6.ValidateProviderConfigResponse {
 	return &tfprotov6.ValidateProviderConfigResponse{
 		PreparedConfig: r.PreparedConfig,
-		Diagnostics:    r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics:    toproto6.Diagnostics(r.Diagnostics),
 	}
 }
 
@@ -353,7 +353,7 @@ type configureProviderResponse struct {
 
 func (r configureProviderResponse) toTfprotov6() *tfprotov6.ConfigureProviderResponse {
 	return &tfprotov6.ConfigureProviderResponse{
-		Diagnostics: r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
 	}
 }
 
@@ -409,7 +409,7 @@ type validateResourceConfigResponse struct {
 
 func (r validateResourceConfigResponse) toTfprotov6() *tfprotov6.ValidateResourceConfigResponse {
 	return &tfprotov6.ValidateResourceConfigResponse{
-		Diagnostics: r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
 	}
 }
 
@@ -536,7 +536,7 @@ type upgradeResourceStateResponse struct {
 
 func (r upgradeResourceStateResponse) toTfprotov6() *tfprotov6.UpgradeResourceStateResponse {
 	return &tfprotov6.UpgradeResourceStateResponse{
-		Diagnostics:   r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics:   toproto6.Diagnostics(r.Diagnostics),
 		UpgradedState: r.UpgradedState,
 	}
 }
@@ -766,7 +766,7 @@ type readResourceResponse struct {
 func (r readResourceResponse) toTfprotov6() *tfprotov6.ReadResourceResponse {
 	return &tfprotov6.ReadResourceResponse{
 		NewState:    r.NewState,
-		Diagnostics: r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
 		Private:     r.Private,
 	}
 }
@@ -911,7 +911,7 @@ type planResourceChangeResponse struct {
 func (r planResourceChangeResponse) toTfprotov6() *tfprotov6.PlanResourceChangeResponse {
 	return &tfprotov6.PlanResourceChangeResponse{
 		PlannedState:    r.PlannedState,
-		Diagnostics:     r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics:     toproto6.Diagnostics(r.Diagnostics),
 		RequiresReplace: r.RequiresReplace,
 		PlannedPrivate:  r.PlannedPrivate,
 	}
@@ -1209,7 +1209,7 @@ func (r applyResourceChangeResponse) toTfprotov6() *tfprotov6.ApplyResourceChang
 	return &tfprotov6.ApplyResourceChangeResponse{
 		NewState:    r.NewState,
 		Private:     r.Private,
-		Diagnostics: r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
 	}
 }
 
@@ -1532,7 +1532,7 @@ type validateDataResourceConfigResponse struct {
 
 func (r validateDataResourceConfigResponse) toTfprotov6() *tfprotov6.ValidateDataResourceConfigResponse {
 	return &tfprotov6.ValidateDataResourceConfigResponse{
-		Diagnostics: r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
 	}
 }
 
@@ -1660,7 +1660,7 @@ type readDataSourceResponse struct {
 func (r readDataSourceResponse) toTfprotov6() *tfprotov6.ReadDataSourceResponse {
 	return &tfprotov6.ReadDataSourceResponse{
 		State:       r.State,
-		Diagnostics: r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
 	}
 }
 

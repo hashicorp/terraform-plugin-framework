@@ -1,7 +1,6 @@
 package diag
 
 import (
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -70,28 +69,4 @@ func (diags Diagnostics) HasError() bool {
 	}
 
 	return false
-}
-
-// ToTfprotov6Diagnostics converts the diagnostics into the tfprotov6 collection type.
-//
-// Usage of this method outside the framework is not supported nor considered
-// for backwards compatibility promises.
-func (diags Diagnostics) ToTfprotov6Diagnostics() []*tfprotov6.Diagnostic {
-	var results []*tfprotov6.Diagnostic
-
-	for _, diag := range diags {
-		tfprotov6Diagnostic := &tfprotov6.Diagnostic{
-			Detail:   diag.Detail(),
-			Severity: diag.Severity().ToTfprotov6DiagnosticSeverity(),
-			Summary:  diag.Summary(),
-		}
-
-		if diagWithPath, ok := diag.(DiagnosticWithPath); ok {
-			tfprotov6Diagnostic.Attribute = diagWithPath.Path()
-		}
-
-		results = append(results, tfprotov6Diagnostic)
-	}
-
-	return results
 }

@@ -96,27 +96,6 @@ func TestServerImportResourceState(t *testing.T) {
 				},
 			},
 		},
-		"ResourceImportStateNotImplemented": {
-			req: &tfprotov6.ImportResourceStateRequest{
-				ID:       "test",
-				TypeName: "test_import_state",
-			},
-
-			impl: func(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-				//nolint:staticcheck // This will be removed before the next minor release.
-				tfsdk.ResourceImportStateNotImplemented(ctx, "", resp)
-			},
-
-			resp: &tfprotov6.ImportResourceStateResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Summary:  "Resource Import Not Implemented",
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail:   "This resource does not support import. Please contact the provider developer for additional information.",
-					},
-				},
-			},
-		},
 		"imported_resource_conversion_error": {
 			req: &tfprotov6.ImportResourceStateRequest{
 				ID:       "test",
@@ -153,7 +132,7 @@ func TestServerImportResourceState(t *testing.T) {
 						Summary:  "Missing Resource Import State",
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Detail: "An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n" +
-							"Resource ImportState method returned no State in response. If import is intentionally not supported, call the ResourceImportStateNotImplemented() function or return an error.",
+							"Resource ImportState method returned no State in response. If import is intentionally not supported, remove the Resource type ImportState method or return an error.",
 					},
 				},
 			},

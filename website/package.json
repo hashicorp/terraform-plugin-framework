@@ -1,5 +1,5 @@
 {
-  "name": "terraform-plugin-docs-preview",
+  "name": "terraform-plugin-framework-docs-preview",
   "private": "true",
   "scripts": {
     "build": "./scripts/website-build.sh"

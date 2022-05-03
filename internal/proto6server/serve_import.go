@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -50,12 +51,12 @@ type importResourceStateResponse struct {
 
 func (r importResourceStateResponse) toTfprotov6(ctx context.Context) *tfprotov6.ImportResourceStateResponse {
 	resp := &tfprotov6.ImportResourceStateResponse{
-		Diagnostics: r.Diagnostics.ToTfprotov6Diagnostics(),
+		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
 	}
 
 	for _, ir := range r.ImportedResources {
 		irProto6, diags := ir.toTfprotov6(ctx)
-		resp.Diagnostics = append(resp.Diagnostics, diags.ToTfprotov6Diagnostics()...)
+		resp.Diagnostics = append(resp.Diagnostics, toproto6.Diagnostics(diags)...)
 		if diags.HasError() {
 			continue
 		}

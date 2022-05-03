@@ -86,7 +86,3 @@ func (r testServeResourceUpgradeStateNotImplemented) Update(ctx context.Context,
 func (r testServeResourceUpgradeStateNotImplemented) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
 	// Intentionally blank. Not expected to be called during testing.
 }
-func (r testServeResourceUpgradeStateNotImplemented) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	//nolint:staticcheck // This will be removed before the next minor release.
-	tfsdk.ResourceImportStateNotImplemented(ctx, "intentionally not implemented", resp)
-}

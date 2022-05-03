@@ -135,7 +135,7 @@ func (s *Server) importResourceState(ctx context.Context, req *tfprotov6.ImportR
 		resp.Diagnostics.AddError(
 			"Missing Resource Import State",
 			"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
-				"Resource ImportState method returned no State in response. If import is intentionally not supported, call the ResourceImportStateNotImplemented() function or return an error.",
+				"Resource ImportState method returned no State in response. If import is intentionally not supported, remove the Resource type ImportState method or return an error.",
 		)
 		return
 	}

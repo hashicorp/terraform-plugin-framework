@@ -107,6 +107,7 @@ func (r getProviderSchemaResponse) toTfprotov6() *tfprotov6.GetProviderSchemaRes
 
 func (s *Server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := new(getProviderSchemaResponse)
 
 	s.getProviderSchema(ctx, resp)
@@ -246,6 +247,7 @@ func (r validateProviderConfigResponse) toTfprotov6() *tfprotov6.ValidateProvide
 
 func (s *Server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.ValidateProviderConfigRequest) (*tfprotov6.ValidateProviderConfigResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &validateProviderConfigResponse{
 		// This RPC allows a modified configuration to be returned. This was
 		// previously used to allow a "required" provider attribute (as defined
@@ -359,6 +361,7 @@ func (r configureProviderResponse) toTfprotov6() *tfprotov6.ConfigureProviderRes
 
 func (s *Server) ConfigureProvider(ctx context.Context, req *tfprotov6.ConfigureProviderRequest) (*tfprotov6.ConfigureProviderResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &configureProviderResponse{}
 
 	s.configureProvider(ctx, req, resp)
@@ -415,6 +418,7 @@ func (r validateResourceConfigResponse) toTfprotov6() *tfprotov6.ValidateResourc
 
 func (s *Server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.ValidateResourceConfigRequest) (*tfprotov6.ValidateResourceConfigResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &validateResourceConfigResponse{}
 
 	s.validateResourceConfig(ctx, req, resp)
@@ -543,6 +547,7 @@ func (r upgradeResourceStateResponse) toTfprotov6() *tfprotov6.UpgradeResourceSt
 
 func (s *Server) UpgradeResourceState(ctx context.Context, req *tfprotov6.UpgradeResourceStateRequest) (*tfprotov6.UpgradeResourceStateResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &upgradeResourceStateResponse{}
 
 	s.upgradeResourceState(ctx, req, resp)
@@ -773,6 +778,7 @@ func (r readResourceResponse) toTfprotov6() *tfprotov6.ReadResourceResponse {
 
 func (s *Server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRequest) (*tfprotov6.ReadResourceResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &readResourceResponse{}
 
 	s.readResource(ctx, req, resp)
@@ -919,6 +925,7 @@ func (r planResourceChangeResponse) toTfprotov6() *tfprotov6.PlanResourceChangeR
 
 func (s *Server) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanResourceChangeRequest) (*tfprotov6.PlanResourceChangeResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &planResourceChangeResponse{}
 
 	s.planResourceChange(ctx, req, resp)
@@ -1243,6 +1250,7 @@ func normaliseRequiresReplace(ctx context.Context, rs []*tftypes.AttributePath) 
 
 func (s *Server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest) (*tfprotov6.ApplyResourceChangeResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &applyResourceChangeResponse{
 		// default to the prior state, so the state won't change unless
 		// we choose to change it
@@ -1538,6 +1546,7 @@ func (r validateDataResourceConfigResponse) toTfprotov6() *tfprotov6.ValidateDat
 
 func (s *Server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &validateDataResourceConfigResponse{}
 
 	s.validateDataResourceConfig(ctx, req, resp)
@@ -1666,6 +1675,7 @@ func (r readDataSourceResponse) toTfprotov6() *tfprotov6.ReadDataSourceResponse 
 
 func (s *Server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSourceRequest) (*tfprotov6.ReadDataSourceResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &readDataSourceResponse{}
 
 	s.readDataSource(ctx, req, resp)

@@ -152,6 +152,7 @@ func (s *Server) importResourceState(ctx context.Context, req *tfprotov6.ImportR
 // ImportResourceState satisfies the tfprotov6.ProviderServer interface.
 func (s *Server) ImportResourceState(ctx context.Context, req *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 	resp := &importResourceStateResponse{}
 
 	s.importResourceState(ctx, req, resp)

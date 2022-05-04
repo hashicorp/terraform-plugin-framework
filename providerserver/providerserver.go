@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/internal/proto6server"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
@@ -15,7 +16,7 @@ import (
 // function and various terraform-plugin-mux functions.
 func NewProtocol6(p tfsdk.Provider) func() tfprotov6.ProviderServer {
 	return func() tfprotov6.ProviderServer {
-		return &tfsdk.Server{
+		return &proto6server.Server{
 			Provider: p,
 		}
 	}
@@ -28,7 +29,7 @@ func NewProtocol6(p tfsdk.Provider) func() tfprotov6.ProviderServer {
 // The error return is not currently used, but it may be in the future.
 func NewProtocol6WithError(p tfsdk.Provider) func() (tfprotov6.ProviderServer, error) {
 	return func() (tfprotov6.ProviderServer, error) {
-		return &tfsdk.Server{
+		return &proto6server.Server{
 			Provider: p,
 		}, nil
 	}
@@ -51,7 +52,7 @@ func Serve(ctx context.Context, providerFunc func() tfsdk.Provider, opts ServeOp
 	return tf6server.Serve(
 		opts.Address,
 		func() tfprotov6.ProviderServer {
-			return &tfsdk.Server{
+			return &proto6server.Server{
 				Provider: providerFunc(),
 			}
 		},

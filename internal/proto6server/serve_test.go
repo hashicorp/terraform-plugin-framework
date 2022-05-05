@@ -1,6 +1,7 @@
 package proto6server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"strings"
@@ -11,10 +12,13 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/emptyprovider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-log/tfsdklogtest"
 )
 
 func TestServerCancelInFlightContexts(t *testing.T) {
@@ -297,6 +301,68 @@ func TestServerGetProviderSchema(t *testing.T) {
 	}
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("Unexpected diff (-wanted, +got): %s", diff)
+	}
+}
+
+func TestServerGetProviderSchema_logging(t *testing.T) {
+	t.Parallel()
+
+	var output bytes.Buffer
+
+	ctx := tfsdklogtest.RootLogger(context.Background(), &output)
+	ctx = logging.InitContext(ctx)
+
+	testServer := &Server{
+		Provider: &emptyprovider.Provider{},
+	}
+
+	_, err := testServer.GetProviderSchema(ctx, new(tfprotov6.GetProviderSchemaRequest))
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	entries, err := tfsdklogtest.MultilineJSONDecode(&output)
+
+	if err != nil {
+		t.Fatalf("unable to read multiple line JSON: %s", err)
+	}
+
+	expectedEntries := []map[string]interface{}{
+		{
+			"@level":   "debug",
+			"@message": "Calling provider defined Provider GetSchema",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "debug",
+			"@message": "Called provider defined Provider GetSchema",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "debug",
+			"@message": "Calling provider defined Provider GetResources",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "debug",
+			"@message": "Called provider defined Provider GetResources",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "debug",
+			"@message": "Calling provider defined Provider GetDataSources",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "debug",
+			"@message": "Called provider defined Provider GetDataSources",
+			"@module":  "sdk.framework",
+		},
+	}
+
+	if diff := cmp.Diff(entries, expectedEntries); diff != "" {
+		t.Errorf("unexpected difference: %s", diff)
 	}
 }
 

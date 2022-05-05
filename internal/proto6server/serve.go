@@ -197,7 +197,7 @@ func (s *Server) getProviderSchema(ctx context.Context, resp *getProviderSchemaR
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/299
 	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetDataSources")
 	dataSourceSchemas, diags := s.Provider.GetDataSources(ctx)
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetDataSources")
+	logging.FrameworkDebug(ctx, "Called provider defined Provider GetDataSources")
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

@@ -1,0 +1,83 @@
+---
+page_title: 'Plugin Development - Framework: Acceptance Tests'
+description: >-
+  How to write acceptance tests for providers built on the framework. Acceptance
+  tests imitate applying configuration files.
+---
+
+# Acceptance Tests
+
+You can implement testing with the [acceptance test framework](/plugin/sdkv2/testing/acceptance-tests) shipped with SDKv2.
+
+Writing and running tests is similar to SDKv2 providers, with the following exceptions:
+
+- [`TestCase`](/plugin/sdkv2/testing/acceptance-tests/testcase): Specify the provider with [`ProtoV6ProviderFactories`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV6ProviderFactories).
+- [`Schema`](/plugin/framework/schemas): A root level `id` attribute is required for resources and data sources.
+
+## Specify Providers
+
+In SDKv2, providers were specified by using the [`Providers` property of the
+`resource.TestCase`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.Providers) to supply a map of
+[`schema.Provider`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema/#Provider)s.
+
+For the framework, the same pattern applies, but instead use the
+[`ProtoV6ProviderFactories` property of
+`resource.TestCase`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV6ProviderFactories)
+to supply a map of functions that return a
+[`tfprotov6.ProviderServer`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov6/#ProviderServer).
+To get a `tfprotov6.ProviderServer` from a
+[`tfsdk.Provider`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Provider),
+you need to use the
+[`providerserver.NewProtocol6WithError`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/providerserver#NewProtocol6WithError)
+helper. For example:
+
+```go
+resource.Test(t, resource.TestCase{
+	PreCheck: func() { testAccPreCheck(t) },
+	ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error) {
+		// newProvider is your function that returns a tfsdk.Provider
+		"example_provider": providerserver.NewProtocol6WithError(newProvider()),
+	},
+	CheckDestroy: testAccCheckExampleResourceDestroy,
+	Steps: []resource.TestStep{
+		{
+			Config: testAccExampleResource,
+			Check: testAccCheckExampleResourceExists,
+		},
+	},
+})
+```
+
+See the [`TestCase`
+documentation](/plugin/sdkv2/testing/acceptance-tests/testcase) for more
+information on using `resource.TestCase`.
+
+## Implement id Attribute
+
+In SDKv2, resources and data sources automatically included an implicit, root level `id` attribute. In the framework, the `id` attribute is not implicitly added.
+
+When testing resources and data sources without the `id` attribute, the acceptance testing framework will return errors such as:
+
+```text
+testing_new_config.go:111: no "id" found in attributes
+testing_new.go:53: no "id" found in attributes
+```
+
+To avoid this, add a root level `id` attribute to resource and data source schemas. Ensure the attribute value is appropriately [written to state](/plugin/framework/writing-state). Conventionally, `id` is a computed attribute that contains the identifier for the resource.
+
+For example, in the `GetSchema` method implementation of a [`DataSourceType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DataSourceType) or [`ResourceType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceType):
+
+```go
+func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		// ... potentially other schema configuration ...
+		Attributes: map[string]tfsdk.Attribute{
+			// ... potentially other schema attributes ...
+			"id": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+		},
+	}, nil
+}
+```

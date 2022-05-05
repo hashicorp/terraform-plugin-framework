@@ -1,0 +1,363 @@
+---
+page_title: 'Plugin Development - Framework: Attribute Types'
+description: >-
+  Learn the attributes in the provider development framework and how to make
+  your own. Attributes are fields in a resource, data source, or provider.
+---
+
+# Attribute Types
+
+Attributes are the fields in a resource, data source, or provider. They hold
+the values that end up in state. Every attribute has an attribute type, which
+describes the constraints on the data the attribute can hold. When you access an
+attribute from the configuration, state, or plan, you are
+accessing attribute values, which are the actual data that was found in the
+configuration, state, or plan.
+
+You can either use the built-in attribute type and value implementations or
+implement your own.
+
+## Null and Unknown Values
+
+There are two values every attribute in Terraform can hold, regardless of their
+type: null and unknown.
+
+### Null
+
+Null represents the absence of a Terraform value. It is usually
+encountered with optional attributes that the practitioner neglected to specify
+a value for, but can show up on any non-required attribute. Required attributes
+can never be null.
+
+### Unknown
+
+Unknown represents a Terraform value that is not yet known. Terraform
+uses a graph of providers, resources, and data sources to do things in the
+right order, and when a provider, resource, or data source relies on a value
+from another provider, resource, or data source that has not been resolved yet,
+it represents that state by using the unknown value. For example:
+
+```tf
+resource "example_foo" "bar" {
+  hello = "world"
+  demo = true
+}
+
+resource "example_baz" "quux" {
+  foo_id = example_foo.bar.id
+}
+```
+
+In the example above, `example_baz.quux` is relying on the `id` attribute of
+`example_foo.bar`. The `id` attribute of `example_foo.bar` isn't known until
+after the apply. The plan would list it as `(known after apply)`.  During the
+plan phase, `example_baz.quux` would get an unknown value as the value for
+`foo_id`.
+
+Because they can result from interpolations in the practitioner's config,
+you have no control over what attributes may contain an unknown
+value. However, by the time a resource is expected to be created, read, updated, or
+deleted, only its computed attributes can be unknown. The rest are
+guaranteed to have known values (or be null).
+
+Provider configuration values can be unknown, and providers should handle that
+situation, even if that means just returning an error.
+
+## Built-In Types and Values
+
+A collection of attribute type and attribute value implementations is available
+in the
+[`types`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types)
+package.
+
+### StringType and String
+
+Strings are a UTF-8 encoded collection of bytes.
+
+```tf
+hello = "world"
+```
+
+They are used by specifying the `types.StringType` constant in your
+`tfsdk.Attribute`'s `Type` property, and are represented by a `types.String`
+struct in config, state, and plan. The `types.String` struct has the following
+properties:
+
+* `Value` contains the string's value as a Go `string` type.
+* `Null` is set to `true` when the string's value is null.
+* `Unknown` is set to `true` when the string's value is unknown.
+
+### Int64Type and Int64
+
+Int64 are 64-bit integer values, such as `1234`.
+
+```tf
+hello = 1234
+```
+
+They are used by specifying the `types.Int64Type` constant in your
+`tfsdk.Attribute`'s `Type` property, and are represented by a `types.Int64`
+struct in config, state, and plan. The `types.Int64` struct has the following
+properties:
+
+* `Value` contains the number's value as a Go `int64` type.
+* `Null` is set to `true` when the number's value is null.
+* `Unknown` is set to `true` when the number's value is unknown.
+
+For 64-bit floating point numbers, see [`Float64Type` and
+`Float64`](#float64type-and-float64). For generic number handling, see
+[`NumberType` and `Number64`](#numbertype-and-number).
+
+### Float64Type and Float64
+
+Float64 are 64-bit floating point values, such as `1234.5`.
+
+```tf
+hello = 1234.5
+```
+
+They are used by specifying the `types.Float64Type` constant in your
+`tfsdk.Attribute`'s `Type` property, and are represented by a `types.Float64`
+struct in config, state, and plan. The `types.Float64` struct has the following
+properties:
+
+* `Value` contains the number's value as a Go `float64` type.
+* `Null` is set to `true` when the number's value is null.
+* `Unknown` is set to `true` when the number's value is unknown.
+
+For 64-bit integer numbers, see [`Int64Type` and
+`Int64`](#int64type-and-int64). For generic number handling, see
+[`NumberType` and `Number64`](#numbertype-and-number).
+
+### NumberType and Number
+
+Numbers are numeric values, both whole values like `12` or fractional values
+like `3.14`.
+
+```tf
+hello = 123
+```
+
+They are used by specifying the `types.NumberType` constant in your
+`tfsdk.Attribute`'s `Type` property, and are represented by a `types.Number`
+struct in config, state, and plan. The `types.Number` struct has the following
+properties:
+
+* `Value` contains the number's value as a Go
+  [`*big.Float`](https://pkg.go.dev/math/big#Float) type.
+* `Null` is set to `true` when the number's value is null.
+* `Unknown` is set to `true` when the number's value is unknown.
+
+For 64-bit integer numbers, see [`Int64Type` and
+`Int64`](#int64type-and-int64). For 64-bit floating point numbers, see
+[`Float64Type` and `Float64`](#float64type-and-float64).
+
+### BoolType and Bool
+
+Bools are boolean values that can either be true or false.
+
+```tf
+hello = true
+```
+
+They are used by specifying the `types.BoolType` constant in your
+`tfsdk.Attribute`'s `Type` property, and are represented by a `types.Bool`
+struct in config, state, and plan. The `types.Bool` struct has the following
+properties:
+
+* `Value` contains the boolean's value as a Go `bool` type.
+* `Null` is set to `true` when the boolean's value is null.
+* `Unknown` is set to `true` when the boolean's value is unknown.
+
+### ListType and List
+
+Lists are ordered collections of other types. Their elements, the values inside
+the list, must all be of the same type.
+
+```tf
+hello = ["red", "blue", "green"]
+```
+
+They are used by specifying a `types.ListType` value in your
+`tfsdk.Attribute`'s `Type` property. You must specify an `ElemType` property
+for your list, indicating what type the elements should be. Lists are
+represented by a `types.List` struct in config, state, and plan. The
+`types.List` struct has the following properties:
+
+* `ElemType` will always contain the same type as the `ElemType` property of
+  the `types.ListType` that created the `types.List`.
+* `Elem` contains a list of values, one for each element in the list. The
+  values will all be of the value type produced by the `ElemType` for the list.
+* `Null` is set to `true` when the entire list's value is null. Individual
+  elements may still be null even if the list's `Null` property is `false`.
+* `Unknown` is set to `true` when the entire list's value is unknown.
+  Individual elements may still be unknown even if the list's `Unknown`
+  property is `false`.
+
+Elements of a `types.List` with a non-null, non-unknown value can be accessed
+without using type assertions by using the `types.List`'s [`ElementsAs`
+method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.ElementsAs),
+which uses the same conversion rules as the `Get` methods described in [Access
+State, Config, and Plan](/plugin/framework/accessing-values).
+
+For an unordered collection with uniqueness constraints, see [`SetType` and
+`Set`](#settype-and-set).
+
+### MapType and Map
+
+Maps are unordered collections of other types with unique string indexes.
+Their elements, the values inside the map, must all be of the same type. The keys used to index the elements must be strings, but there are (theoretically) no limitations on what keys are acceptable or how many there
+can be.
+
+```tf
+hello = {
+  pi = 3.14
+  random = 4
+  "meaning of life" = 42
+}
+```
+
+They are used by specifying a `types.MapType` value in your
+`tfsdk.Attribute`'s `Type` property. You must specify an `ElemType` property
+for your map, indicating what type the elements should be. Maps are
+represented by a `types.Map` struct in config, state, and plan. The
+`types.Map` struct has the following properties:
+
+* `ElemType` will always contain the same type as the `ElemType` property of
+  the `types.MapType` that created the `types.Map`.
+* `Elem` contains a map of values, one for each element in the map. The keys
+  will be the keys defined in the config, state, or plan, and the values will
+  all be of the value type produced by the `ElemType` for the map.
+* `Null` is set to `true` when the entire map's value is null. Individual
+  elements may still be null even if the map's `Null` property is `false`.
+* `Unknown` is set to `true` when the entire map's value is unknown.
+  Individual elements may still be unknown even if the map's `Unknown` property
+  is `false`.
+
+Elements of a `types.Map` with a non-null, non-unknown value can be accessed
+without using type assertions by using the `types.Map`'s [`ElementsAs`
+method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.ElementsAs),
+which uses the same conversion rules as the `Get` methods described in [Access
+State, Config, and Plan](/plugin/framework/accessing-values).
+
+### ObjectType and Object
+
+Objects are unordered collections of other types with unique, pre-specified
+attributes. The attributes have names represented by strings, and each
+attribute can specify its own type, similar to a Go `struct` type. The
+attributes and their types are considered part of the object's type; two
+objects are not the same type unless they have the same attributes, and those
+attributes have the same types.
+
+```tf
+hello = {
+  pi = 3.14
+  demo = true
+  color = "red"
+}
+```
+
+They are used by specifying a `types.ObjectType` value in your
+`tfsdk.Attribute`'s `Type` property. You must specify an `AttrTypes` property
+for your object, indicating a map of the attribute names and the types of those
+attributes. Objects are represented by a `types.Object` struct in config,
+state, and plan. The `types.Object` struct has the following properties:
+
+* `AttrTypes` will always contain the same attribute names and associated types
+  as the `AttrTypes` property of the `types.ObjectType` that created the
+  `types.Object`.
+* `Attrs` contains a map of attribute names to values. Each attribute is
+  guaranteed to always be present in the map. The values will always be of the
+  value type for that attribute in the `AttrTypes` of the object.
+* `Null` is set to `true` when the entire object's value is null. Individual
+  attributes may still be null even if the object's `Null` property is false.
+* `Unknown` is set to `true` when the entire object's value is unknown.
+  Individual attributes may still be unknown even if the object's `Unknown`
+  property is `false`.
+
+A non-null, non-unknown `types.Object` value can be converted to a Go struct
+without using type assertions by using the `types.Object`'s [`As`
+method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.As),
+which uses the same conversion rules as the `Get` methods described in [Access
+State, Config, and Plan](/plugin/framework/accessing-values).
+
+### SetType and Set
+
+Sets are unordered collections of other types. Their elements, the values inside
+the set, must all be of the same type and must be unique.
+
+```tf
+hello = ["red", "blue", "green"]
+```
+
+They are used by specifying a `types.SetType` value in your
+`tfsdk.Attribute`'s `Type` property. You must specify an `ElemType` property
+for your set, indicating what type the elements should be. Sets are
+represented by a `types.Set` struct in config, state, and plan. The
+`types.Set` struct has the following properties:
+
+* `ElemType` will always contain the same type as the `ElemType` property of
+  the `types.SetType` that created the `types.Set`.
+* `Elem` contains a list of values, one for each element in the set. The
+  values will all be of the value type produced by the `ElemType` for the list.
+  Each element must be unique.
+* `Null` is set to `true` when the entire set's value is null. Individual
+  elements may still be null even if the set's `Null` property is `false`.
+* `Unknown` is set to `true` when the entire set's value is unknown.
+  Individual elements may still be unknown even if the set's `Unknown`
+  property is `false`.
+
+Elements of a `types.Set` with a non-null, non-unknown value can be accessed
+without using type assertions by using the `types.Set`'s [`ElementsAs`
+method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.ElementsAs),
+which uses the same conversion rules as the `Get` methods described in [Access
+State, Config, and Plan](/plugin/framework/accessing-values).
+
+For an ordered collection without uniqueness constraints, see [`ListType` and
+`List`](#listtype-and-list).
+
+## Create Provider-Defined Types and Values
+
+You may want to build your own attribute value and type implementations to allow your provider to combine validation, description, and plan customization behaviors into a reusable bundle. This helps avoid duplication or reimplementation and ensures consistency.
+
+~> **Important:** Specifying plan customization for attribute types is not yet
+supported, limiting their utility. Support is expected in the near future.
+
+### `attr.Type` Interface
+
+Use the [`attr.Type`
+interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Type)
+to implement an attribute type. It tells Terraform about its constraints and tells the framework how to create new attribute values from the information Terraform supplies. `attr.Type` has the following methods.
+
+| Method               | Description                                                                                                                                                                                                                                                                                                                |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TerraformType`      | Returns the [`tftypes.Type` value](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#Type) that describes its type constraints. This is how Terraform will know what type of values it can accept.                                                                                                       |
+| `ValueFromTerraform` | Returns an attribute value from the [`tftypes.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#Value) that Terraform supplies, or to return an error if it cannot. This error should not be used for validation purposes, and is expected to indicate programmer error, not practitioner error. |
+| `Equal`              | Returns true if the attribute type is considered equal to the passed attribute type.                                                                                                                                                                                                                                       |
+
+### `AttributePathStepper` Interface
+
+All attribute types must implement the [`tftypes.AttributePathStepper`
+interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#AttributePathStepper),
+so the framework can access element or attribute types using attribute paths.
+
+### Type-Specific Interfaces
+
+| Case                        | Interface                                                                                                                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Elements of the same type   | [`TypeWithElementType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithElementType)       | Attribute types that contain elements of the same type, like maps and lists, are required to implement `attr.TypeWithElementType`, which adds `WithElementType` and `ElementType` methods to the `attr.Type` interface. `WithElementType` must return a copy of the attribute type, but with its element type set to the passed type. `ElementType` must return the attribute type's element type.                         |
+| Elements of different types | [`TypeWithElementTypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithElementType)      | Attribute types that contain elements of differing types, like tuples, are required to implement the `attr.TypeWithElementTypes`, which adds `WithElementTypes` and `ElementTypes` methods to the `attr.Type` interface. `WithElementTypes` must return a copy of the attribute type, but with its element types set to the passed element types. `ElementTypes` must return the attribute type's element types.           |
+| Contain attributes          | [`TypeWithAttributeTypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithAttributeTypes) | Attribute types that contain attributes, like objects, are required to implement the `attr.TypeWithAttributeTypes` interface, which adds `WithAttributeTypes` and `AttributeTypes` methods to the `attr.Type` interface. `WithAttributeTypes` must return a copy of the attribute type, but with its attribute types set to the passed attribute types. `AttributeTypes` must return the attribute type's attribute types. |
+
+### `attr.Value` Interface
+
+Use the [`attr.Value`
+interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value)
+to implement an attribute value. It tells the framework how to express that
+attribute value in a way that Terraform will understand. `attr.Value` has the
+following methods.
+
+| Method             | Description                                                                                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ToTerraformValue` | Returns a Go type that is valid input for [`tftypes.NewValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#NewValue) for the `tftypes.Type` specified by the `attr.Type` that creates the `attr.Value`. |
+| `Equal`            | Returns true if the passed attribute value should be considered to the attribute value the method is being called on. The passed attribute value is not guaranteed to be of the same Go type.                                   |

@@ -17,25 +17,25 @@ DOCKER_RUN_FLAGS=--interactive \
 	-e "CURRENT_GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD)"
 
 
+# Run the terraform.io website to preview local content changes 
 website:
 	@echo "==> Downloading latest Docker image..."
 	@docker pull ${DOCKER_IMAGE}
 	@echo "==> Starting website in Docker..."
 	@docker run ${DOCKER_RUN_FLAGS} ${DOCKER_IMAGE} npm start
 
+# Run the terraform.io website via a locally built docker image
+# 
+# This is useful for development as you may be building an image
+# with local changes from the `terraform-website` repo.
 website/local:
 	@echo "==> Starting website in Docker..."
 	@docker run ${DOCKER_RUN_FLAGS} ${DOCKER_IMAGE_LOCAL} npm start
 
-.PHONY: website/build-local
+# Build the terraform.io image using `terraform-website` git repo as the build context
 website/build-local:
 	@echo "==> Building local Docker image"
 	@docker build https://github.com/hashicorp/terraform-website.git\#$(BRANCH) \
 		-t $(DOCKER_IMAGE_LOCAL)
-
-# disallow any parallelism (-j) for Make. This is necessary since some
-# commands during the build process create temporary files that collide
-# under parallel conditions.
-.NOTPARALLEL:
 
 .PHONY: website website/local website/build-local

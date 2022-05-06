@@ -8,6 +8,8 @@ import (
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
@@ -19,11 +21,10 @@ import (
 var _ tfprotov6.ProviderServer = &Server{}
 
 // Provider server implementation.
-//
-// Depecated: This type is temporarily exported in this package and is not
-// intended for provider developer usage. This will be moved to an internal
-// package in the next minor version.
 type Server struct {
+	FrameworkServer fwserver.Server
+
+	// Provider will be migrated to FrameworkServer over time.
 	Provider         tfsdk.Provider
 	contextCancels   []context.CancelFunc
 	contextCancelsMu sync.Mutex
@@ -86,150 +87,16 @@ func (s *Server) getDataSourceType(ctx context.Context, typ string) (tfsdk.DataS
 	return dataSourceType, diags
 }
 
-// getProviderSchemaResponse is a thin abstraction to allow native Diagnostics usage
-type getProviderSchemaResponse struct {
-	Provider          *tfprotov6.Schema
-	ProviderMeta      *tfprotov6.Schema
-	ResourceSchemas   map[string]*tfprotov6.Schema
-	DataSourceSchemas map[string]*tfprotov6.Schema
-	Diagnostics       diag.Diagnostics
-}
-
-func (r getProviderSchemaResponse) toTfprotov6() *tfprotov6.GetProviderSchemaResponse {
-	return &tfprotov6.GetProviderSchemaResponse{
-		Provider:          r.Provider,
-		ProviderMeta:      r.ProviderMeta,
-		ResourceSchemas:   r.ResourceSchemas,
-		DataSourceSchemas: r.DataSourceSchemas,
-		Diagnostics:       toproto6.Diagnostics(r.Diagnostics),
-	}
-}
-
-func (s *Server) GetProviderSchema(ctx context.Context, _ *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
+func (s *Server) GetProviderSchema(ctx context.Context, req *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
-	resp := new(getProviderSchemaResponse)
 
-	s.getProviderSchema(ctx, resp)
+	fwReq := fromproto6.GetProviderSchemaRequest(ctx, req)
+	fwResp := &fwserver.GetProviderSchemaResponse{}
 
-	return resp.toTfprotov6(), nil
-}
+	s.FrameworkServer.GetProviderSchema(ctx, fwReq, fwResp)
 
-func (s *Server) getProviderSchema(ctx context.Context, resp *getProviderSchemaResponse) {
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
-	providerSchema, diags := s.Provider.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
-		return
-	}
-	// convert the provider schema to a *tfprotov6.Schema
-	provider6Schema, err := toproto6.Schema(ctx, providerSchema)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error converting provider schema",
-			"The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-
-	// don't set the schema on the response yet, we want it to be able to
-	// accrue warning diagnostics and return them on the first error
-	// diagnostic without returning a partial schema, so we need to wait
-	// until the very end to set the schemas on the response
-
-	// if we have a provider_meta schema, get it
-	var providerMeta6Schema *tfprotov6.Schema
-	if pm, ok := s.Provider.(tfsdk.ProviderWithProviderMeta); ok {
-		logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
-		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-		providerMetaSchema, diags := pm.GetMetaSchema(ctx)
-		logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
-
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		pm6Schema, err := toproto6.Schema(ctx, providerMetaSchema)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting provider_meta schema",
-				"The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		providerMeta6Schema = pm6Schema
-	}
-
-	// TODO: Cache GetDataSources call
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/299
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetResources")
-	resourceSchemas, diags := s.Provider.GetResources(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider GetResources")
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	resource6Schemas := map[string]*tfprotov6.Schema{}
-	for k, v := range resourceSchemas {
-		// KeyResourceType field only necessary here since we are in GetProviderSchema RPC
-		logging.FrameworkTrace(ctx, "Found resource type", map[string]interface{}{logging.KeyResourceType: k})
-		logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema", map[string]interface{}{logging.KeyResourceType: k})
-		schema, diags := v.GetSchema(ctx)
-		logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema", map[string]interface{}{logging.KeyResourceType: k})
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		schema6, err := toproto6.Schema(ctx, schema)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting resource schema",
-				"The schema for the resource \""+k+"\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		resource6Schemas[k] = schema6
-	}
-
-	// TODO: Cache GetDataSources call
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/299
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetDataSources")
-	dataSourceSchemas, diags := s.Provider.GetDataSources(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider GetDataSources")
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	dataSource6Schemas := map[string]*tfprotov6.Schema{}
-	for k, v := range dataSourceSchemas {
-		// KeyDataSourceType field only necessary here since we are in GetProviderSchema RPC
-		logging.FrameworkTrace(ctx, "Found data source type", map[string]interface{}{logging.KeyDataSourceType: k})
-		logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType GetSchema", map[string]interface{}{logging.KeyDataSourceType: k})
-		schema, diags := v.GetSchema(ctx)
-		logging.FrameworkDebug(ctx, "Called provider defined DataSourceType GetSchema", map[string]interface{}{logging.KeyDataSourceType: k})
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		schema6, err := toproto6.Schema(ctx, schema)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting data sourceschema",
-				"The schema for the data source \""+k+"\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		dataSource6Schemas[k] = schema6
-	}
-
-	// ok, we didn't get any error diagnostics, populate the schemas and
-	// send the response
-	resp.Provider = provider6Schema
-	resp.ProviderMeta = providerMeta6Schema
-	resp.ResourceSchemas = resource6Schemas
-	resp.DataSourceSchemas = dataSource6Schemas
+	return toproto6.GetProviderSchemaResponse(ctx, fwResp), nil
 }
 
 // validateProviderConfigResponse is a thin abstraction to allow native Diagnostics usage

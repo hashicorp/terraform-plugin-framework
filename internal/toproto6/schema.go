@@ -10,7 +10,11 @@ import (
 )
 
 // Schema returns the *tfprotov6.Schema equivalent of a Schema.
-func Schema(ctx context.Context, s tfsdk.Schema) (*tfprotov6.Schema, error) {
+func Schema(ctx context.Context, s *tfsdk.Schema) (*tfprotov6.Schema, error) {
+	if s == nil {
+		return nil, nil
+	}
+
 	result := &tfprotov6.Schema{
 		Version: s.Version,
 	}

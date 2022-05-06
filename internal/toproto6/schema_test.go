@@ -17,21 +17,25 @@ func TestSchema(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       tfsdk.Schema
+		input       *tfsdk.Schema
 		expected    *tfprotov6.Schema
 		expectedErr string
 	}
 
 	tests := map[string]testCase{
+		"nil": {
+			input:    nil,
+			expected: nil,
+		},
 		"empty-val": {
-			input: tfsdk.Schema{},
+			input: &tfsdk.Schema{},
 			expected: &tfprotov6.Schema{
 				Block:   &tfprotov6.SchemaBlock{},
 				Version: 0,
 			},
 		},
 		"basic-attrs": {
-			input: tfsdk.Schema{
+			input: &tfsdk.Schema{
 				Version: 1,
 				Attributes: map[string]tfsdk.Attribute{
 					"string": {
@@ -72,7 +76,7 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"complex-attrs": {
-			input: tfsdk.Schema{
+			input: &tfsdk.Schema{
 				Version: 2,
 				Attributes: map[string]tfsdk.Attribute{
 					"list": {
@@ -131,7 +135,7 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"nested-attrs": {
-			input: tfsdk.Schema{
+			input: &tfsdk.Schema{
 				Version: 3,
 				Attributes: map[string]tfsdk.Attribute{
 					"single": {
@@ -355,7 +359,7 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"nested-blocks": {
-			input: tfsdk.Schema{
+			input: &tfsdk.Schema{
 				Version: 3,
 				Blocks: map[string]tfsdk.Block{
 					"list": {
@@ -471,7 +475,7 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"markdown-description": {
-			input: tfsdk.Schema{
+			input: &tfsdk.Schema{
 				Version: 1,
 				Attributes: map[string]tfsdk.Attribute{
 					"string": {
@@ -497,7 +501,7 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"plaintext-description": {
-			input: tfsdk.Schema{
+			input: &tfsdk.Schema{
 				Version: 1,
 				Attributes: map[string]tfsdk.Attribute{
 					"string": {
@@ -523,7 +527,7 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"deprecated": {
-			input: tfsdk.Schema{
+			input: &tfsdk.Schema{
 				Version: 1,
 				Attributes: map[string]tfsdk.Attribute{
 					"string": {

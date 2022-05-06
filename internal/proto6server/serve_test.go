@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/emptyprovider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -270,7 +271,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 
 	s := new(testServeProvider)
 	testServer := &Server{
-		Provider: s,
+		FrameworkServer: fwserver.Server{
+			Provider: s,
+		},
 	}
 	got, err := testServer.GetProviderSchema(context.Background(), new(tfprotov6.GetProviderSchemaRequest))
 	if err != nil {
@@ -313,7 +316,9 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 	ctx = logging.InitContext(ctx)
 
 	testServer := &Server{
-		Provider: &emptyprovider.Provider{},
+		FrameworkServer: fwserver.Server{
+			Provider: &emptyprovider.Provider{},
+		},
 	}
 
 	_, err := testServer.GetProviderSchema(ctx, new(tfprotov6.GetProviderSchemaRequest))
@@ -371,7 +376,9 @@ func TestServerGetProviderSchemaWithProviderMeta(t *testing.T) {
 
 	s := new(testServeProviderWithMetaSchema)
 	testServer := &Server{
-		Provider: s,
+		FrameworkServer: fwserver.Server{
+			Provider: s,
+		},
 	}
 	got, err := testServer.GetProviderSchema(context.Background(), new(tfprotov6.GetProviderSchemaRequest))
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -794,7 +795,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			block, err := SchemaBlockAtPath(tc.req.Config.Schema, tc.req.AttributePath)
+			block, err := fwserver.SchemaBlockAtPath(tc.req.Config.Schema, tc.req.AttributePath)
 
 			if err != nil {
 				t.Fatalf("Unexpected error getting %s", err)

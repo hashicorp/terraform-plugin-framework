@@ -1,4 +1,4 @@
-package proto6server
+package fwserver
 
 import (
 	"fmt"

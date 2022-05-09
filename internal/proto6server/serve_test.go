@@ -335,6 +335,11 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 
 	expectedEntries := []map[string]interface{}{
 		{
+			"@level":   "trace",
+			"@message": "Checking ProviderSchema lock",
+			"@module":  "sdk.framework",
+		},
+		{
 			"@level":   "debug",
 			"@message": "Calling provider defined Provider GetSchema",
 			"@module":  "sdk.framework",
@@ -862,7 +867,9 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			t.Parallel()
 
 			testServer := &Server{
-				Provider: tc.provider,
+				FrameworkServer: fwserver.Server{
+					Provider: tc.provider,
+				},
 			}
 
 			dv, err := tfprotov6.NewDynamicValue(tc.providerType, tc.config)

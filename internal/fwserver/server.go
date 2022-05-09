@@ -37,6 +37,7 @@ func (s *Server) ProviderSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagno
 	s.providerSchemaMutex.Lock()
 
 	if s.providerSchema != nil {
+		s.providerSchemaMutex.Unlock()
 		return s.providerSchema, nil
 	}
 

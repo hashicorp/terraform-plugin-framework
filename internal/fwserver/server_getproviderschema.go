@@ -24,9 +24,7 @@ type GetProviderSchemaResponse struct {
 
 // GetProviderSchema implements the framework server GetProviderSchema RPC.
 func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRequest, resp *GetProviderSchemaResponse) {
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
-	providerSchema, diags := s.Provider.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
+	providerSchema, diags := s.ProviderSchema(ctx)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -34,7 +32,7 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 		return
 	}
 
-	resp.Provider = &providerSchema
+	resp.Provider = providerSchema
 
 	if pm, ok := s.Provider.(tfsdk.ProviderWithProviderMeta); ok {
 		logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")

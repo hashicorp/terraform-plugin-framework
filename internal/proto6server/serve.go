@@ -87,11 +87,11 @@ func (s *Server) getDataSourceType(ctx context.Context, typ string) (tfsdk.DataS
 	return dataSourceType, diags
 }
 
-func (s *Server) GetProviderSchema(ctx context.Context, req *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
+func (s *Server) GetProviderSchema(ctx context.Context, proto6Req *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
 
-	fwReq := fromproto6.GetProviderSchemaRequest(ctx, req)
+	fwReq := fromproto6.GetProviderSchemaRequest(ctx, proto6Req)
 	fwResp := &fwserver.GetProviderSchemaResponse{}
 
 	s.FrameworkServer.GetProviderSchema(ctx, fwReq, fwResp)
@@ -99,120 +99,31 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *tfprotov6.GetProvid
 	return toproto6.GetProviderSchemaResponse(ctx, fwResp), nil
 }
 
-// validateProviderConfigResponse is a thin abstraction to allow native Diagnostics usage
-type validateProviderConfigResponse struct {
-	PreparedConfig *tfprotov6.DynamicValue
-	Diagnostics    diag.Diagnostics
-}
-
-func (r validateProviderConfigResponse) toTfprotov6() *tfprotov6.ValidateProviderConfigResponse {
-	return &tfprotov6.ValidateProviderConfigResponse{
-		PreparedConfig: r.PreparedConfig,
-		Diagnostics:    toproto6.Diagnostics(r.Diagnostics),
-	}
-}
-
-func (s *Server) ValidateProviderConfig(ctx context.Context, req *tfprotov6.ValidateProviderConfigRequest) (*tfprotov6.ValidateProviderConfigResponse, error) {
+func (s *Server) ValidateProviderConfig(ctx context.Context, proto6Req *tfprotov6.ValidateProviderConfigRequest) (*tfprotov6.ValidateProviderConfigResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
-	resp := &validateProviderConfigResponse{
-		// This RPC allows a modified configuration to be returned. This was
-		// previously used to allow a "required" provider attribute (as defined
-		// by a schema) to still be "optional" with a default value, typically
-		// through an environment variable. Other tooling based on the provider
-		// schema information could not determine this implementation detail.
-		// To ensure accuracy going forward, this implementation is opinionated
-		// towards accurate provider schema definitions and optional values
-		// can be filled in or return errors during ConfigureProvider().
-		PreparedConfig: req.Config,
+
+	fwResp := &fwserver.ValidateProviderConfigResponse{}
+
+	providerSchema, diags := s.FrameworkServer.ProviderSchema(ctx)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ValidateProviderConfigResponse(ctx, fwResp), nil
 	}
 
-	s.validateProviderConfig(ctx, req, resp)
+	fwReq, diags := fromproto6.ValidateProviderConfigRequest(ctx, proto6Req, providerSchema)
 
-	return resp.toTfprotov6(), nil
-}
+	fwResp.Diagnostics.Append(diags...)
 
-func (s *Server) validateProviderConfig(ctx context.Context, req *tfprotov6.ValidateProviderConfigRequest, resp *validateProviderConfigResponse) {
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
-	schema, diags := s.Provider.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
-	resp.Diagnostics.Append(diags...)
-
-	if resp.Diagnostics.HasError() {
-		return
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ValidateProviderConfigResponse(ctx, fwResp), nil
 	}
 
-	config, err := req.Config.Unmarshal(schema.TerraformType(ctx))
+	s.FrameworkServer.ValidateProviderConfig(ctx, fwReq, fwResp)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing config",
-			"The provider had a problem parsing the config. Report this to the provider developer:\n\n"+err.Error(),
-		)
-
-		return
-	}
-
-	vpcReq := tfsdk.ValidateProviderConfigRequest{
-		Config: tfsdk.Config{
-			Raw:    config,
-			Schema: schema,
-		},
-	}
-
-	if provider, ok := s.Provider.(tfsdk.ProviderWithConfigValidators); ok {
-		logging.FrameworkTrace(ctx, "Provider implements ProviderWithConfigValidators")
-		for _, configValidator := range provider.ConfigValidators(ctx) {
-			vpcRes := &tfsdk.ValidateProviderConfigResponse{
-				Diagnostics: resp.Diagnostics,
-			}
-
-			logging.FrameworkDebug(
-				ctx,
-				"Calling provider defined ProviderConfigValidator",
-				map[string]interface{}{
-					logging.KeyDescription: configValidator.Description(ctx),
-				},
-			)
-			configValidator.Validate(ctx, vpcReq, vpcRes)
-			logging.FrameworkDebug(
-				ctx,
-				"Called provider defined ProviderConfigValidator",
-				map[string]interface{}{
-					logging.KeyDescription: configValidator.Description(ctx),
-				},
-			)
-
-			resp.Diagnostics = vpcRes.Diagnostics
-		}
-	}
-
-	if provider, ok := s.Provider.(tfsdk.ProviderWithValidateConfig); ok {
-		logging.FrameworkTrace(ctx, "Provider implements ProviderWithValidateConfig")
-		vpcRes := &tfsdk.ValidateProviderConfigResponse{
-			Diagnostics: resp.Diagnostics,
-		}
-
-		logging.FrameworkDebug(ctx, "Calling provider defined Provider ValidateConfig")
-		provider.ValidateConfig(ctx, vpcReq, vpcRes)
-		logging.FrameworkDebug(ctx, "Called provider defined Provider ValidateConfig")
-
-		resp.Diagnostics = vpcRes.Diagnostics
-	}
-
-	validateSchemaReq := ValidateSchemaRequest{
-		Config: tfsdk.Config{
-			Raw:    config,
-			Schema: schema,
-		},
-	}
-	validateSchemaResp := ValidateSchemaResponse{
-		Diagnostics: resp.Diagnostics,
-	}
-
-	SchemaValidate(ctx, schema, validateSchemaReq, &validateSchemaResp)
-
-	resp.Diagnostics = validateSchemaResp.Diagnostics
+	return toproto6.ValidateProviderConfigResponse(ctx, fwResp), nil
 }
 
 // configureProviderResponse is a thin abstraction to allow native Diagnostics usage
@@ -383,17 +294,17 @@ func (s *Server) validateResourceConfig(ctx context.Context, req *tfprotov6.Vali
 		resp.Diagnostics = vrcRes.Diagnostics
 	}
 
-	validateSchemaReq := ValidateSchemaRequest{
+	validateSchemaReq := fwserver.ValidateSchemaRequest{
 		Config: tfsdk.Config{
 			Raw:    config,
 			Schema: resourceSchema,
 		},
 	}
-	validateSchemaResp := ValidateSchemaResponse{
+	validateSchemaResp := fwserver.ValidateSchemaResponse{
 		Diagnostics: resp.Diagnostics,
 	}
 
-	SchemaValidate(ctx, resourceSchema, validateSchemaReq, &validateSchemaResp)
+	fwserver.SchemaValidate(ctx, resourceSchema, validateSchemaReq, &validateSchemaResp)
 
 	resp.Diagnostics = validateSchemaResp.Diagnostics
 }
@@ -1512,17 +1423,17 @@ func (s *Server) validateDataResourceConfig(ctx context.Context, req *tfprotov6.
 		resp.Diagnostics = vrcRes.Diagnostics
 	}
 
-	validateSchemaReq := ValidateSchemaRequest{
+	validateSchemaReq := fwserver.ValidateSchemaRequest{
 		Config: tfsdk.Config{
 			Raw:    config,
 			Schema: dataSourceSchema,
 		},
 	}
-	validateSchemaResp := ValidateSchemaResponse{
+	validateSchemaResp := fwserver.ValidateSchemaResponse{
 		Diagnostics: resp.Diagnostics,
 	}
 
-	SchemaValidate(ctx, dataSourceSchema, validateSchemaReq, &validateSchemaResp)
+	fwserver.SchemaValidate(ctx, dataSourceSchema, validateSchemaReq, &validateSchemaResp)
 
 	resp.Diagnostics = validateSchemaResp.Diagnostics
 }

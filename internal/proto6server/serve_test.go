@@ -360,6 +360,16 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@module":  "sdk.framework",
 		},
 		{
+			"@level":   "trace",
+			"@message": "Checking DataSourceSchemas lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Checking DataSourceTypes lock",
+			"@module":  "sdk.framework",
+		},
+		{
 			"@level":   "debug",
 			"@message": "Calling provider defined Provider GetDataSources",
 			"@module":  "sdk.framework",
@@ -6164,7 +6174,9 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 				validateDataSourceConfigImpl: tc.impl,
 			}
 			testServer := &Server{
-				Provider: s,
+				FrameworkServer: fwserver.Server{
+					Provider: s,
+				},
 			}
 
 			dv, err := tfprotov6.NewDynamicValue(tc.dataSourceType, tc.config)

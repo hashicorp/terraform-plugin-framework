@@ -35,10 +35,10 @@ type Server struct {
 func (s *Server) ProviderSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagnostics) {
 	logging.FrameworkTrace(ctx, "Checking ProviderSchema lock")
 	s.providerSchemaMutex.Lock()
+	defer s.providerSchemaMutex.Unlock()
 
 	if s.providerSchema != nil {
-		s.providerSchemaMutex.Unlock()
-		return s.providerSchema, nil
+		return s.providerSchema, s.providerSchemaDiags
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
@@ -47,8 +47,6 @@ func (s *Server) ProviderSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagno
 
 	s.providerSchema = &providerSchema
 	s.providerSchemaDiags = diags
-
-	s.providerSchemaMutex.Unlock()
 
 	return s.providerSchema, s.providerSchemaDiags
 }

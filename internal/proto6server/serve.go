@@ -1298,120 +1298,39 @@ func (r validateDataResourceConfigResponse) toTfprotov6() *tfprotov6.ValidateDat
 	}
 }
 
-func (s *Server) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {
+func (s *Server) ValidateDataResourceConfig(ctx context.Context, proto6Req *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
-	resp := &validateDataResourceConfigResponse{}
 
-	s.validateDataResourceConfig(ctx, req, resp)
+	fwResp := &fwserver.ValidateDataSourceConfigResponse{}
 
-	return resp.toTfprotov6(), nil
-}
+	dataSourceType, diags := s.FrameworkServer.DataSourceType(ctx, proto6Req.TypeName)
 
-func (s *Server) validateDataResourceConfig(ctx context.Context, req *tfprotov6.ValidateDataResourceConfigRequest, resp *validateDataResourceConfigResponse) {
+	fwResp.Diagnostics.Append(diags...)
 
-	// Get the type of data source, so we can get its schema and create an
-	// instance
-	dataSourceType, diags := s.getDataSourceType(ctx, req.TypeName)
-	resp.Diagnostics.Append(diags...)
-
-	if resp.Diagnostics.HasError() {
-		return
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ValidateDataSourceConfigResponse(ctx, fwResp), nil
 	}
 
-	// Get the schema from the data source type, so we can embed it in the
-	// config
-	logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType GetSchema")
-	dataSourceSchema, diags := dataSourceType.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined DataSourceType GetSchema")
-	resp.Diagnostics.Append(diags...)
+	dataSourceSchema, diags := s.FrameworkServer.DataSourceSchema(ctx, proto6Req.TypeName)
 
-	if resp.Diagnostics.HasError() {
-		return
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ValidateDataSourceConfigResponse(ctx, fwResp), nil
 	}
 
-	// Create the data source instance, so we can call its methods and handle
-	// the request
-	logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType NewDataSource")
-	dataSource, diags := dataSourceType.NewDataSource(ctx, s.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined DataSourceType NewDataSource")
-	resp.Diagnostics.Append(diags...)
+	fwReq, diags := fromproto6.ValidateDataSourceConfigRequest(ctx, proto6Req, dataSourceType, dataSourceSchema)
 
-	if resp.Diagnostics.HasError() {
-		return
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ValidateDataSourceConfigResponse(ctx, fwResp), nil
 	}
 
-	config, err := req.Config.Unmarshal(dataSourceSchema.TerraformType(ctx))
+	s.FrameworkServer.ValidateDataSourceConfig(ctx, fwReq, fwResp)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing config",
-			"The provider had a problem parsing the config. Report this to the provider developer:\n\n"+err.Error(),
-		)
-
-		return
-	}
-
-	vrcReq := tfsdk.ValidateDataSourceConfigRequest{
-		Config: tfsdk.Config{
-			Raw:    config,
-			Schema: dataSourceSchema,
-		},
-	}
-
-	if dataSource, ok := dataSource.(tfsdk.DataSourceWithConfigValidators); ok {
-		logging.FrameworkTrace(ctx, "DataSource implements DataSourceWithConfigValidators")
-		for _, configValidator := range dataSource.ConfigValidators(ctx) {
-			vrcRes := &tfsdk.ValidateDataSourceConfigResponse{
-				Diagnostics: resp.Diagnostics,
-			}
-
-			logging.FrameworkDebug(
-				ctx,
-				"Calling provider defined DataSourceConfigValidator",
-				map[string]interface{}{
-					logging.KeyDescription: configValidator.Description(ctx),
-				},
-			)
-			configValidator.Validate(ctx, vrcReq, vrcRes)
-			logging.FrameworkDebug(
-				ctx,
-				"Called provider defined DataSourceConfigValidator",
-				map[string]interface{}{
-					logging.KeyDescription: configValidator.Description(ctx),
-				},
-			)
-
-			resp.Diagnostics = vrcRes.Diagnostics
-		}
-	}
-
-	if dataSource, ok := dataSource.(tfsdk.DataSourceWithValidateConfig); ok {
-		logging.FrameworkTrace(ctx, "DataSource implements DataSourceWithValidateConfig")
-		vrcRes := &tfsdk.ValidateDataSourceConfigResponse{
-			Diagnostics: resp.Diagnostics,
-		}
-
-		logging.FrameworkDebug(ctx, "Calling provider defined DataSource ValidateConfig")
-		dataSource.ValidateConfig(ctx, vrcReq, vrcRes)
-		logging.FrameworkDebug(ctx, "Called provider defined DataSource ValidateConfig")
-
-		resp.Diagnostics = vrcRes.Diagnostics
-	}
-
-	validateSchemaReq := fwserver.ValidateSchemaRequest{
-		Config: tfsdk.Config{
-			Raw:    config,
-			Schema: dataSourceSchema,
-		},
-	}
-	validateSchemaResp := fwserver.ValidateSchemaResponse{
-		Diagnostics: resp.Diagnostics,
-	}
-
-	fwserver.SchemaValidate(ctx, dataSourceSchema, validateSchemaReq, &validateSchemaResp)
-
-	resp.Diagnostics = validateSchemaResp.Diagnostics
+	return toproto6.ValidateDataSourceConfigResponse(ctx, fwResp), nil
 }
 
 // readDataSourceResponse is a thin abstraction to allow native Diagnostics usage

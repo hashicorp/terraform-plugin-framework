@@ -83,11 +83,7 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 		resp.ResourceSchemas[k] = &schema
 	}
 
-	// TODO: Cache GetDataSources call
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/299
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetDataSources")
-	dataSourceSchemas, diags := s.Provider.GetDataSources(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider GetDataSources")
+	dataSourceSchemas, diags := s.DataSourceSchemas(ctx)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -95,24 +91,5 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 		return
 	}
 
-	if len(dataSourceSchemas) > 0 {
-		resp.DataSourceSchemas = map[string]*tfsdk.Schema{}
-	}
-
-	for k, v := range dataSourceSchemas {
-		// KeyDataSourceType field only necessary here since we are in GetProviderSchema RPC
-		logging.FrameworkTrace(ctx, "Found data source type", map[string]interface{}{logging.KeyDataSourceType: k})
-
-		logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType GetSchema", map[string]interface{}{logging.KeyDataSourceType: k})
-		schema, diags := v.GetSchema(ctx)
-		logging.FrameworkDebug(ctx, "Called provider defined DataSourceType GetSchema", map[string]interface{}{logging.KeyDataSourceType: k})
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		resp.DataSourceSchemas[k] = &schema
-	}
+	resp.DataSourceSchemas = dataSourceSchemas
 }

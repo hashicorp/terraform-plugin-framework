@@ -126,55 +126,31 @@ func (s *Server) ValidateProviderConfig(ctx context.Context, proto6Req *tfprotov
 	return toproto6.ValidateProviderConfigResponse(ctx, fwResp), nil
 }
 
-// configureProviderResponse is a thin abstraction to allow native Diagnostics usage
-type configureProviderResponse struct {
-	Diagnostics diag.Diagnostics
-}
-
-func (r configureProviderResponse) toTfprotov6() *tfprotov6.ConfigureProviderResponse {
-	return &tfprotov6.ConfigureProviderResponse{
-		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
-	}
-}
-
-func (s *Server) ConfigureProvider(ctx context.Context, req *tfprotov6.ConfigureProviderRequest) (*tfprotov6.ConfigureProviderResponse, error) {
+func (s *Server) ConfigureProvider(ctx context.Context, proto6Req *tfprotov6.ConfigureProviderRequest) (*tfprotov6.ConfigureProviderResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
-	resp := &configureProviderResponse{}
 
-	s.configureProvider(ctx, req, resp)
+	fwResp := &tfsdk.ConfigureProviderResponse{}
 
-	return resp.toTfprotov6(), nil
-}
+	providerSchema, diags := s.FrameworkServer.ProviderSchema(ctx)
 
-func (s *Server) configureProvider(ctx context.Context, req *tfprotov6.ConfigureProviderRequest, resp *configureProviderResponse) {
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
-	schema, diags := s.Provider.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ConfigureProviderResponse(ctx, fwResp), nil
 	}
-	config, err := req.Config.Unmarshal(schema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing config",
-			"The provider had a problem parsing the config. Report this to the provider developer:\n\n"+err.Error(),
-		)
-		return
+
+	fwReq, diags := fromproto6.ConfigureProviderRequest(ctx, proto6Req, providerSchema)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ConfigureProviderResponse(ctx, fwResp), nil
 	}
-	r := tfsdk.ConfigureProviderRequest{
-		TerraformVersion: req.TerraformVersion,
-		Config: tfsdk.Config{
-			Raw:    config,
-			Schema: schema,
-		},
-	}
-	res := &tfsdk.ConfigureProviderResponse{}
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider Configure")
-	s.Provider.Configure(ctx, r, res)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider Configure")
-	resp.Diagnostics.Append(res.Diagnostics...)
+
+	s.FrameworkServer.ConfigureProvider(ctx, fwReq, fwResp)
+
+	return toproto6.ConfigureProviderResponse(ctx, fwResp), nil
 }
 
 func (s *Server) StopProvider(ctx context.Context, _ *tfprotov6.StopProviderRequest) (*tfprotov6.StopProviderResponse, error) {

@@ -1226,7 +1226,9 @@ func TestServerConfigureProvider(t *testing.T) {
 
 			s := new(testServeProvider)
 			testServer := &Server{
-				Provider: s,
+				FrameworkServer: fwserver.Server{
+					Provider: s,
+				},
 			}
 			dv, err := tfprotov6.NewDynamicValue(testServeProviderProviderType, tc.config)
 			if err != nil {

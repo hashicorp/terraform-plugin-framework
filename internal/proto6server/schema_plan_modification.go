@@ -61,7 +61,6 @@ func SchemaModifyPlan(ctx context.Context, s tfsdk.Schema, req ModifySchemaPlanR
 		AttributeModifyPlan(ctx, attr, attrReq, resp)
 	}
 
-	//nolint:staticcheck // Block support is required within the framework.
 	for name, block := range s.Blocks {
 		blockReq := tfsdk.ModifyAttributePlanRequest{
 			AttributePath: tftypes.NewAttributePath().WithAttributeName(name),

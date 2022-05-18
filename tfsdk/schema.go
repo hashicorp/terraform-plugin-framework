@@ -54,9 +54,9 @@ type Schema struct {
 	//   https://www.terraform.io/docs/language/syntax/configuration.html
 	//   https://www.terraform.io/docs/language/expressions/dynamic-blocks.html
 	//
-	// Deprecated: Attributes are preferred over Blocks. Blocks should only be
-	// used for configuration compatibility with previously existing schemas
-	// from an older Terraform Plugin SDK. Efforts should be made to convert
+	// Attributes are preferred over Blocks. Blocks should typically be used
+	// for configuration compatibility with previously existing schemas from
+	// an older Terraform Plugin SDK. Efforts should be made to convert from
 	// Blocks to Attributes as a breaking change for practitioners.
 	Blocks map[string]Block
 

@@ -32,7 +32,6 @@ func Schema(ctx context.Context, s *tfsdk.Schema) (*tfprotov6.Schema, error) {
 		attrs = append(attrs, a)
 	}
 
-	//nolint:staticcheck // Block support is required within the framework.
 	for name, block := range s.Blocks {
 		proto6, err := Block(ctx, name, tftypes.NewAttributePath().WithAttributeName(name), block)
 

@@ -1549,8 +1549,8 @@ func TestServerUpgradeResourceState(t *testing.T) {
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
-						Summary:  "Resource not found",
-						Detail:   "No resource named \"\" is configured on the provider",
+						Summary:  "Resource Type Not Found",
+						Detail:   "No resource type named \"\" was found in the provider.",
 					},
 				},
 			},
@@ -1605,8 +1605,8 @@ func TestServerUpgradeResourceState(t *testing.T) {
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
-						Summary:  "Resource not found",
-						Detail:   "No resource named \"unknown\" is configured on the provider",
+						Summary:  "Resource Type Not Found",
+						Detail:   "No resource type named \"unknown\" was found in the provider.",
 					},
 				},
 			},
@@ -1799,7 +1799,9 @@ func TestServerUpgradeResourceState(t *testing.T) {
 			ctx := context.Background()
 			testProvider := &testServeProvider{}
 			testServer := &Server{
-				Provider: testProvider,
+				FrameworkServer: fwserver.Server{
+					Provider: testProvider,
+				},
 			}
 
 			got, err := testServer.UpgradeResourceState(ctx, testCase.request)
@@ -2220,12 +2222,14 @@ func TestServerReadResource(t *testing.T) {
 				readResourceImpl: tc.impl,
 			}
 			testServer := &Server{
-				Provider: s,
+				FrameworkServer: fwserver.Server{
+					Provider: s,
+				},
 			}
 			var pmSchema tfsdk.Schema
 			if tc.providerMeta.Type() != nil {
 				sWithMeta := &testServeProviderWithMetaSchema{s}
-				testServer.Provider = sWithMeta
+				testServer.FrameworkServer.Provider = sWithMeta
 				schema, diags := sWithMeta.GetMetaSchema(context.Background())
 				if len(diags) > 0 {
 					t.Errorf("Unexpected diags: %+v", diags)
@@ -2234,7 +2238,7 @@ func TestServerReadResource(t *testing.T) {
 				pmSchema = schema
 			}
 
-			rt, diags := testServer.getResourceType(context.Background(), tc.resource)
+			rt, diags := testServer.FrameworkServer.ResourceType(context.Background(), tc.resource)
 			if len(diags) > 0 {
 				t.Errorf("Unexpected diags: %+v", diags)
 				return
@@ -4296,7 +4300,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 				modifyPlanFunc: tc.modifyPlanFunc,
 			}
 			testServer := &Server{
-				Provider: s,
+				FrameworkServer: fwserver.Server{
+					Provider: s,
+				},
 			}
 
 			priorStateDV, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.priorState)
@@ -5856,12 +5862,14 @@ func TestServerApplyResourceChange(t *testing.T) {
 				deleteFunc: tc.destroy,
 			}
 			testServer := &Server{
-				Provider: s,
+				FrameworkServer: fwserver.Server{
+					Provider: s,
+				},
 			}
 			var pmSchema tfsdk.Schema
 			if tc.providerMeta.Type() != nil {
 				sWithMeta := &testServeProviderWithMetaSchema{s}
-				testServer.Provider = sWithMeta
+				testServer.FrameworkServer.Provider = sWithMeta
 				schema, diags := sWithMeta.GetMetaSchema(context.Background())
 				if len(diags) > 0 {
 					t.Errorf("Unexpected diags: %+v", diags)
@@ -5870,7 +5878,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 				pmSchema = schema
 			}
 
-			rt, diags := testServer.getResourceType(context.Background(), tc.resource)
+			rt, diags := testServer.FrameworkServer.ResourceType(context.Background(), tc.resource)
 			if len(diags) > 0 {
 				t.Errorf("Unexpected diags: %+v", diags)
 				return
@@ -6382,12 +6390,14 @@ func TestServerReadDataSource(t *testing.T) {
 				readDataSourceImpl: tc.impl,
 			}
 			testServer := &Server{
-				Provider: s,
+				FrameworkServer: fwserver.Server{
+					Provider: s,
+				},
 			}
 			var pmSchema tfsdk.Schema
 			if tc.providerMeta.Type() != nil {
 				sWithMeta := &testServeProviderWithMetaSchema{s}
-				testServer.Provider = sWithMeta
+				testServer.FrameworkServer.Provider = sWithMeta
 				schema, diags := sWithMeta.GetMetaSchema(context.Background())
 				if len(diags) > 0 {
 					t.Errorf("Unexpected diags: %+v", diags)
@@ -6396,7 +6406,7 @@ func TestServerReadDataSource(t *testing.T) {
 				pmSchema = schema
 			}
 
-			rt, diags := testServer.getDataSourceType(context.Background(), tc.dataSource)
+			rt, diags := testServer.FrameworkServer.DataSourceType(context.Background(), tc.dataSource)
 			if len(diags) > 0 {
 				t.Errorf("Unexpected diags: %+v", diags)
 				return

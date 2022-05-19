@@ -159,130 +159,39 @@ func (s *Server) StopProvider(ctx context.Context, _ *tfprotov6.StopProviderRequ
 	return &tfprotov6.StopProviderResponse{}, nil
 }
 
-// validateResourceConfigResponse is a thin abstraction to allow native Diagnostics usage
-type validateResourceConfigResponse struct {
-	Diagnostics diag.Diagnostics
-}
-
-func (r validateResourceConfigResponse) toTfprotov6() *tfprotov6.ValidateResourceConfigResponse {
-	return &tfprotov6.ValidateResourceConfigResponse{
-		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
-	}
-}
-
-func (s *Server) ValidateResourceConfig(ctx context.Context, req *tfprotov6.ValidateResourceConfigRequest) (*tfprotov6.ValidateResourceConfigResponse, error) {
+func (s *Server) ValidateResourceConfig(ctx context.Context, proto6Req *tfprotov6.ValidateResourceConfigRequest) (*tfprotov6.ValidateResourceConfigResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
-	resp := &validateResourceConfigResponse{}
 
-	s.validateResourceConfig(ctx, req, resp)
+	fwResp := &fwserver.ValidateResourceConfigResponse{}
 
-	return resp.toTfprotov6(), nil
-}
+	resourceType, diags := s.FrameworkServer.ResourceType(ctx, proto6Req.TypeName)
 
-func (s *Server) validateResourceConfig(ctx context.Context, req *tfprotov6.ValidateResourceConfigRequest, resp *validateResourceConfigResponse) {
-	// Get the type of resource, so we can get its schema and create an
-	// instance
-	resourceType, diags := s.getResourceType(ctx, req.TypeName)
-	resp.Diagnostics.Append(diags...)
+	fwResp.Diagnostics.Append(diags...)
 
-	if resp.Diagnostics.HasError() {
-		return
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ValidateResourceConfigResponse(ctx, fwResp), nil
 	}
 
-	// Get the schema from the resource type, so we can embed it in the
-	// config
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
-	resourceSchema, diags := resourceType.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
-	resp.Diagnostics.Append(diags...)
+	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto6Req.TypeName)
 
-	if resp.Diagnostics.HasError() {
-		return
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ValidateResourceConfigResponse(ctx, fwResp), nil
 	}
 
-	// Create the resource instance, so we can call its methods and handle
-	// the request
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := resourceType.NewResource(ctx, s.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
-	resp.Diagnostics.Append(diags...)
+	fwReq, diags := fromproto6.ValidateResourceConfigRequest(ctx, proto6Req, resourceType, resourceSchema)
 
-	if resp.Diagnostics.HasError() {
-		return
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ValidateResourceConfigResponse(ctx, fwResp), nil
 	}
 
-	config, err := req.Config.Unmarshal(resourceSchema.TerraformType(ctx))
+	s.FrameworkServer.ValidateResourceConfig(ctx, fwReq, fwResp)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing config",
-			"The provider had a problem parsing the config. Report this to the provider developer:\n\n"+err.Error(),
-		)
-
-		return
-	}
-
-	vrcReq := tfsdk.ValidateResourceConfigRequest{
-		Config: tfsdk.Config{
-			Raw:    config,
-			Schema: resourceSchema,
-		},
-	}
-
-	if resource, ok := resource.(tfsdk.ResourceWithConfigValidators); ok {
-		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigValidators")
-		for _, configValidator := range resource.ConfigValidators(ctx) {
-			vrcRes := &tfsdk.ValidateResourceConfigResponse{
-				Diagnostics: resp.Diagnostics,
-			}
-
-			logging.FrameworkDebug(
-				ctx,
-				"Calling provider defined ResourceConfigValidator",
-				map[string]interface{}{
-					logging.KeyDescription: configValidator.Description(ctx),
-				},
-			)
-			configValidator.Validate(ctx, vrcReq, vrcRes)
-			logging.FrameworkDebug(
-				ctx,
-				"Called provider defined ResourceConfigValidator",
-				map[string]interface{}{
-					logging.KeyDescription: configValidator.Description(ctx),
-				},
-			)
-
-			resp.Diagnostics = vrcRes.Diagnostics
-		}
-	}
-
-	if resource, ok := resource.(tfsdk.ResourceWithValidateConfig); ok {
-		logging.FrameworkTrace(ctx, "Resource implements ResourceWithValidateConfig")
-		vrcRes := &tfsdk.ValidateResourceConfigResponse{
-			Diagnostics: resp.Diagnostics,
-		}
-
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource ValidateConfig")
-		resource.ValidateConfig(ctx, vrcReq, vrcRes)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource ValidateConfig")
-
-		resp.Diagnostics = vrcRes.Diagnostics
-	}
-
-	validateSchemaReq := fwserver.ValidateSchemaRequest{
-		Config: tfsdk.Config{
-			Raw:    config,
-			Schema: resourceSchema,
-		},
-	}
-	validateSchemaResp := fwserver.ValidateSchemaResponse{
-		Diagnostics: resp.Diagnostics,
-	}
-
-	fwserver.SchemaValidate(ctx, resourceSchema, validateSchemaReq, &validateSchemaResp)
-
-	resp.Diagnostics = validateSchemaResp.Diagnostics
+	return toproto6.ValidateResourceConfigResponse(ctx, fwResp), nil
 }
 
 // upgradeResourceStateResponse is a thin abstraction to allow native

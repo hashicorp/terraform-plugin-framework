@@ -350,6 +350,16 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@module":  "sdk.framework",
 		},
 		{
+			"@level":   "trace",
+			"@message": "Checking ResourceSchemas lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Checking ResourceTypes lock",
+			"@module":  "sdk.framework",
+		},
+		{
 			"@level":   "debug",
 			"@message": "Calling provider defined Provider GetResources",
 			"@module":  "sdk.framework",
@@ -1481,7 +1491,9 @@ func TestServerValidateResourceConfig(t *testing.T) {
 				validateResourceConfigImpl: tc.impl,
 			}
 			testServer := &Server{
-				Provider: s,
+				FrameworkServer: fwserver.Server{
+					Provider: s,
+				},
 			}
 
 			dv, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.config)

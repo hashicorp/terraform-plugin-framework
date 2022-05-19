@@ -7,7 +7,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/emptyprovider"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // TODO: Migrate tfsdk.Provider bits of proto6server.testProviderServer to
@@ -15,26 +14,22 @@ import (
 // method implementations via struct fields. Then, create additional test
 // cases in this unit test.
 //
-// For now this testing is covered by proto6server.GetProviderSchema.
+// For now this testing is covered by proto6server.ValidateResourceConfig.
 //
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
-func TestServerGetProviderSchema(t *testing.T) {
+func TestServerValidateResourceConfig(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		server           *fwserver.Server
-		request          *fwserver.GetProviderSchemaRequest
-		expectedResponse *fwserver.GetProviderSchemaResponse
+		request          *fwserver.ValidateResourceConfigRequest
+		expectedResponse *fwserver.ValidateResourceConfigResponse
 	}{
 		"empty-provider": {
 			server: &fwserver.Server{
 				Provider: &emptyprovider.Provider{},
 			},
-			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfsdk.Schema{},
-				Provider:          &tfsdk.Schema{},
-				ResourceSchemas:   map[string]*tfsdk.Schema{},
-			},
+			expectedResponse: &fwserver.ValidateResourceConfigResponse{},
 		},
 	}
 
@@ -44,8 +39,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			response := &fwserver.GetProviderSchemaResponse{}
-			testCase.server.GetProviderSchema(context.Background(), testCase.request, response)
+			response := &fwserver.ValidateResourceConfigResponse{}
+			testCase.server.ValidateResourceConfig(context.Background(), testCase.request, response)
 
 			if diff := cmp.Diff(response, testCase.expectedResponse); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

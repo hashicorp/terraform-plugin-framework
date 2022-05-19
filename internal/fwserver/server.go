@@ -58,6 +58,20 @@ type Server struct {
 	// access from race conditions.
 	providerSchemaMutex sync.Mutex
 
+	// providerMetaSchema is the cached Provider Meta Schema for RPCs that need
+	// to convert configuration data from the protocol. If not found, it will
+	// be fetched from the Provider.GetMetaSchema() method.
+	providerMetaSchema *tfsdk.Schema
+
+	// providerMetaSchemaDiags is the cached Diagnostics obtained while populating
+	// providerMetaSchema. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching providerMetaSchema.
+	providerMetaSchemaDiags diag.Diagnostics
+
+	// providerMetaSchemaMutex is a mutex to protect concurrent providerMetaSchema
+	// access from race conditions.
+	providerMetaSchemaMutex sync.Mutex
+
 	// resourceSchemas is the cached Resource Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the ResourceType.GetSchema() method.
@@ -201,6 +215,35 @@ func (s *Server) ProviderSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagno
 	s.providerSchemaDiags = diags
 
 	return s.providerSchema, s.providerSchemaDiags
+}
+
+// ProviderMetaSchema returns the Meta Schema associated with the Provider, if
+// it implements the ProviderWithProviderMeta interface. The Schema and
+// Diagnostics are cached on first use.
+func (s *Server) ProviderMetaSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagnostics) {
+	providerWithProviderMeta, ok := s.Provider.(tfsdk.ProviderWithProviderMeta)
+
+	if !ok {
+		return nil, nil
+	}
+
+	logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+	logging.FrameworkTrace(ctx, "Checking ProviderMetaSchema lock")
+	s.providerMetaSchemaMutex.Lock()
+	defer s.providerMetaSchemaMutex.Unlock()
+
+	if s.providerMetaSchema != nil {
+		return s.providerMetaSchema, s.providerMetaSchemaDiags
+	}
+
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
+	providerMetaSchema, diags := providerWithProviderMeta.GetMetaSchema(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
+
+	s.providerMetaSchema = &providerMetaSchema
+	s.providerMetaSchemaDiags = diags
+
+	return s.providerMetaSchema, s.providerMetaSchemaDiags
 }
 
 // ResourceSchema returns the Schema associated with the ResourceType for

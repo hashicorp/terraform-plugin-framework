@@ -350,6 +350,16 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@module":  "sdk.framework",
 		},
 		{
+			"@level":   "trace",
+			"@message": "Checking ResourceSchemas lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Checking ResourceTypes lock",
+			"@module":  "sdk.framework",
+		},
+		{
 			"@level":   "debug",
 			"@message": "Calling provider defined Provider GetResources",
 			"@module":  "sdk.framework",

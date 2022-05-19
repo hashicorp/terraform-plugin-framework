@@ -33,6 +33,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfsdk.Schema{},
 				Provider:          &tfsdk.Schema{},
+				ResourceSchemas:   map[string]*tfsdk.Schema{},
 			},
 		},
 	}

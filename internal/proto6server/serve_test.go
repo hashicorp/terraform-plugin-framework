@@ -1481,7 +1481,9 @@ func TestServerValidateResourceConfig(t *testing.T) {
 				validateResourceConfigImpl: tc.impl,
 			}
 			testServer := &Server{
-				Provider: s,
+				FrameworkServer: fwserver.Server{
+					Provider: s,
+				},
 			}
 
 			dv, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.config)

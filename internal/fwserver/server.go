@@ -57,6 +57,34 @@ type Server struct {
 	// providerSchemaMutex is a mutex to protect concurrent providerSchema
 	// access from race conditions.
 	providerSchemaMutex sync.Mutex
+
+	// resourceSchemas is the cached Resource Schemas for RPCs that need to
+	// convert configuration data from the protocol. If not found, it will be
+	// fetched from the ResourceType.GetSchema() method.
+	resourceSchemas map[string]*tfsdk.Schema
+
+	// resourceSchemasDiags is the cached Diagnostics obtained while populating
+	// resourceSchemas. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching resourceSchemas.
+	resourceSchemasDiags diag.Diagnostics
+
+	// resourceSchemasMutex is a mutex to protect concurrent resourceSchemas
+	// access from race conditions.
+	resourceSchemasMutex sync.Mutex
+
+	// resourceTypes is the cached ResourceTypes for RPCs that need to
+	// access resources. If not found, it will be fetched from the
+	// Provider.GetResources() method.
+	resourceTypes map[string]tfsdk.ResourceType
+
+	// resourceTypesDiags is the cached Diagnostics obtained while populating
+	// resourceTypes. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching resourceTypes.
+	resourceTypesDiags diag.Diagnostics
+
+	// resourceTypesMutex is a mutex to protect concurrent resourceTypes
+	// access from race conditions.
+	resourceTypesMutex sync.Mutex
 }
 
 // DataSourceSchema returns the Schema associated with the DataSourceType for
@@ -173,4 +201,99 @@ func (s *Server) ProviderSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagno
 	s.providerSchemaDiags = diags
 
 	return s.providerSchema, s.providerSchemaDiags
+}
+
+// ResourceSchema returns the Schema associated with the ResourceType for
+// the given type name.
+func (s *Server) ResourceSchema(ctx context.Context, typeName string) (*tfsdk.Schema, diag.Diagnostics) {
+	resourceSchemas, diags := s.ResourceSchemas(ctx)
+
+	resourceSchema, ok := resourceSchemas[typeName]
+
+	if !ok {
+		diags.AddError(
+			"Resource Schema Not Found",
+			fmt.Sprintf("No resource type named %q was found in the provider to fetch the schema. ", typeName)+
+				"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.",
+		)
+
+		return nil, diags
+	}
+
+	return resourceSchema, diags
+}
+
+// ResourceSchemas returns the map of ResourceType Schemas. The results are
+// cached on first use.
+func (s *Server) ResourceSchemas(ctx context.Context) (map[string]*tfsdk.Schema, diag.Diagnostics) {
+	logging.FrameworkTrace(ctx, "Checking ResourceSchemas lock")
+	s.resourceSchemasMutex.Lock()
+	defer s.resourceSchemasMutex.Unlock()
+
+	if s.resourceSchemas != nil {
+		return s.resourceSchemas, s.resourceSchemasDiags
+	}
+
+	resourceTypes, diags := s.ResourceTypes(ctx)
+
+	s.resourceSchemas = map[string]*tfsdk.Schema{}
+	s.resourceSchemasDiags = diags
+
+	if s.resourceSchemasDiags.HasError() {
+		return s.resourceSchemas, s.resourceSchemasDiags
+	}
+
+	for resourceTypeName, resourceType := range resourceTypes {
+		logging.FrameworkTrace(ctx, "Found resource type", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+
+		logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+		schema, diags := resourceType.GetSchema(ctx)
+		logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+
+		s.resourceSchemasDiags.Append(diags...)
+
+		if s.resourceSchemasDiags.HasError() {
+			return s.resourceSchemas, s.resourceSchemasDiags
+		}
+
+		s.resourceSchemas[resourceTypeName] = &schema
+	}
+
+	return s.resourceSchemas, s.resourceSchemasDiags
+}
+
+// ResourceType returns the ResourceType for a given type name.
+func (s *Server) ResourceType(ctx context.Context, typeName string) (tfsdk.ResourceType, diag.Diagnostics) {
+	resourceTypes, diags := s.ResourceTypes(ctx)
+
+	resourceType, ok := resourceTypes[typeName]
+
+	if !ok {
+		diags.AddError(
+			"Resource Type Not Found",
+			fmt.Sprintf("No resource type named %q was found in the provider.", typeName),
+		)
+
+		return nil, diags
+	}
+
+	return resourceType, diags
+}
+
+// ResourceTypes returns the map of ResourceTypes. The results are cached
+// on first use.
+func (s *Server) ResourceTypes(ctx context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+	logging.FrameworkTrace(ctx, "Checking ResourceTypes lock")
+	s.resourceTypesMutex.Lock()
+	defer s.resourceTypesMutex.Unlock()
+
+	if s.resourceTypes != nil {
+		return s.resourceTypes, s.resourceTypesDiags
+	}
+
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetResources")
+	s.resourceTypes, s.resourceTypesDiags = s.Provider.GetResources(ctx)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider GetResources")
+
+	return s.resourceTypes, s.resourceTypesDiags
 }

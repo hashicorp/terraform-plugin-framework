@@ -18,8 +18,7 @@ type ValidateDataSourceConfigRequest struct {
 // ValidateDataSourceConfigResponse is the framework server response for the
 // ValidateDataSourceConfig RPC.
 type ValidateDataSourceConfigResponse struct {
-	PreparedConfig *tfsdk.Config
-	Diagnostics    diag.Diagnostics
+	Diagnostics diag.Diagnostics
 }
 
 // ValidateDataSourceConfig implements the framework server ValidateDataSourceConfig RPC.
@@ -78,9 +77,9 @@ func (s *Server) ValidateDataSourceConfig(ctx context.Context, req *ValidateData
 			Diagnostics: resp.Diagnostics,
 		}
 
-		logging.FrameworkDebug(ctx, "Calling provider defined Provider ValidateConfig")
+		logging.FrameworkDebug(ctx, "Calling provider defined DataSource ValidateConfig")
 		dataSource.ValidateConfig(ctx, vdscReq, vdscResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Provider ValidateConfig")
+		logging.FrameworkDebug(ctx, "Called provider defined DataSource ValidateConfig")
 
 		resp.Diagnostics = vdscResp.Diagnostics
 	}

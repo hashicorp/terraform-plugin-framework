@@ -1196,17 +1196,6 @@ func (s *Server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 	}
 }
 
-// validateDataResourceConfigResponse is a thin abstraction to allow native Diagnostics usage
-type validateDataResourceConfigResponse struct {
-	Diagnostics diag.Diagnostics
-}
-
-func (r validateDataResourceConfigResponse) toTfprotov6() *tfprotov6.ValidateDataResourceConfigResponse {
-	return &tfprotov6.ValidateDataResourceConfigResponse{
-		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
-	}
-}
-
 func (s *Server) ValidateDataResourceConfig(ctx context.Context, proto6Req *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)

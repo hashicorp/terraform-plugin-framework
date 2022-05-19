@@ -21,7 +21,6 @@ func NewProtocol6(p tfsdk.Provider) func() tfprotov6.ProviderServer {
 			FrameworkServer: fwserver.Server{
 				Provider: p,
 			},
-			Provider: p,
 		}
 	}
 }
@@ -37,7 +36,6 @@ func NewProtocol6WithError(p tfsdk.Provider) func() (tfprotov6.ProviderServer, e
 			FrameworkServer: fwserver.Server{
 				Provider: p,
 			},
-			Provider: p,
 		}, nil
 	}
 }
@@ -65,7 +63,6 @@ func Serve(ctx context.Context, providerFunc func() tfsdk.Provider, opts ServeOp
 				FrameworkServer: fwserver.Server{
 					Provider: provider,
 				},
-				Provider: provider,
 			}
 		},
 		tf6serverOpts...,

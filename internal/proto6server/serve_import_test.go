@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -164,7 +165,9 @@ func TestServerImportResourceState(t *testing.T) {
 				importStateFunc: tc.impl,
 			}
 			testServer := &Server{
-				Provider: s,
+				FrameworkServer: fwserver.Server{
+					Provider: s,
+				},
 			}
 
 			got, err := testServer.ImportResourceState(context.Background(), tc.req)

@@ -110,9 +110,10 @@ func TestServerImportResourceState(t *testing.T) {
 			resp: &tfprotov6.ImportResourceStateResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
-						Summary:  "Error converting imported resource response",
+						Summary:  "Unable to Convert State",
 						Severity: tfprotov6.DiagnosticSeverityError,
-						Detail: "An unexpected error was encountered when converting the imported resource response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n" +
+						Detail: "An unexpected error was encountered when converting the state to the protocol type. This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n" +
+							"Please report this to the provider developer:\n\n" +
 							`unexpected value type string, tftypes.Object["id":tftypes.String, "optional_string":tftypes.String, "required_string":tftypes.String] values must be of type map[string]tftypes.Value`,
 					},
 				},

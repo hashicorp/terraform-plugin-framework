@@ -6,10 +6,16 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+)
+
+var (
+	_ attr.Type  = ObjectType{}
+	_ attr.Value = &Object{}
 )
 
 // ObjectType is an AttributeType representing an object.
@@ -268,4 +274,12 @@ func (o Object) Equal(c attr.Value) bool {
 	}
 
 	return true
+}
+
+func (o Object) IsNull() bool {
+	return o.Null
+}
+
+func (o Object) IsUnknown() bool {
+	return o.Unknown
 }

@@ -5,9 +5,14 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+)
+
+var (
+	_ attr.Value = Float64{}
 )
 
 func float64Validate(_ context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
@@ -83,8 +88,6 @@ func float64ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Valu
 	return Float64{Value: f}, nil
 }
 
-var _ attr.Value = Float64{}
-
 // Float64 represents a 64-bit floating point value, exposed as an float64.
 type Float64 struct {
 	// Unknown will be true if the value is not yet known.
@@ -139,4 +142,12 @@ func (f Float64) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 // Type returns a NumberType.
 func (f Float64) Type(ctx context.Context) attr.Type {
 	return Float64Type
+}
+
+func (f Float64) IsNull() bool {
+	return f.Null
+}
+
+func (f Float64) IsUnknown() bool {
+	return f.Unknown
 }

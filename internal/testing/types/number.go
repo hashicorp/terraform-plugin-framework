@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.Type = NumberType{}
+	_ attr.Type  = NumberType{}
+	_ attr.Value = Number{}
 )
 
 // NumberType is a reimplementation of types.NumberType that can be used as a base
@@ -78,4 +80,12 @@ func (n Number) Equal(o attr.Value) bool {
 		return false
 	}
 	return n.Number.Equal(on.Number)
+}
+
+func (n Number) IsNull() bool {
+	return n.Number.IsNull()
+}
+
+func (n Number) IsUnknown() bool {
+	return n.Number.IsUnknown()
 }

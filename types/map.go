@@ -4,10 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+)
+
+var (
+	_ attr.Type  = MapType{}
+	_ attr.Value = &Map{}
 )
 
 // MapType is an AttributeType representing a map of values. All values must
@@ -211,4 +217,12 @@ func (m Map) Equal(o attr.Value) bool {
 		}
 	}
 	return true
+}
+
+func (m Map) IsNull() bool {
+	return m.Null
+}
+
+func (m Map) IsUnknown() bool {
+	return m.Unknown
 }

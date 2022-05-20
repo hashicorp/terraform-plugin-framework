@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.Type = BoolType{}
+	_ attr.Type  = BoolType{}
+	_ attr.Value = Bool{}
 )
 
 // BoolType is a reimplementation of types.BoolType that can be used as a base
@@ -60,6 +62,7 @@ func (t BoolType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 
 type Bool struct {
 	types.Bool
+
 	CreatedBy attr.Type
 }
 
@@ -73,4 +76,12 @@ func (b Bool) Equal(o attr.Value) bool {
 		return false
 	}
 	return b.Bool.Equal(ob.Bool)
+}
+
+func (b Bool) IsNull() bool {
+	return b.Bool.IsNull()
+}
+
+func (b Bool) IsUnknown() bool {
+	return b.Bool.IsUnknown()
 }

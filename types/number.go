@@ -4,8 +4,13 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+)
+
+var (
+	_ attr.Value = Number{}
 )
 
 func numberValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
@@ -22,8 +27,6 @@ func numberValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value
 	}
 	return Number{Value: n}, nil
 }
-
-var _ attr.Value = Number{}
 
 // Number represents a number value, exposed as a *big.Float. Numbers can be
 // floats or integers.
@@ -82,4 +85,12 @@ func (n Number) Equal(other attr.Value) bool {
 		return false
 	}
 	return n.Value.Cmp(o.Value) == 0
+}
+
+func (n Number) IsNull() bool {
+	return n.Null
+}
+
+func (n Number) IsUnknown() bool {
+	return n.Unknown
 }

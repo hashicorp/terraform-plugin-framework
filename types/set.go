@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
@@ -282,4 +283,12 @@ func (s Set) contains(v attr.Value) bool {
 	}
 
 	return false
+}
+
+func (s Set) IsNull() bool {
+	return s.Null
+}
+
+func (s Set) IsUnknown() bool {
+	return s.Unknown
 }

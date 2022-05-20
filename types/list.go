@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
@@ -212,4 +213,12 @@ func (l List) Equal(o attr.Value) bool {
 		}
 	}
 	return true
+}
+
+func (l List) IsNull() bool {
+	return l.Null
+}
+
+func (l List) IsUnknown() bool {
+	return l.Unknown
 }

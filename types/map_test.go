@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestMapTypeTerraformType(t *testing.T) {

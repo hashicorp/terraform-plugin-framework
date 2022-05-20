@@ -3,9 +3,8 @@ package types
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (

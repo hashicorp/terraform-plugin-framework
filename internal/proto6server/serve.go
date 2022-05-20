@@ -441,22 +441,23 @@ func (s *Server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRe
 			Schema: resourceSchema,
 		},
 	}
-	if pm, ok := s.FrameworkServer.Provider.(tfsdk.ProviderWithProviderMeta); ok {
-		logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
-		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-		pmSchema, diags := pm.GetMetaSchema(ctx)
-		logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+
+	providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if providerMetaSchema != nil {
 		readReq.ProviderMeta = tfsdk.Config{
-			Schema: pmSchema,
-			Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+			Schema: *providerMetaSchema,
+			Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
 		}
 
 		if req.ProviderMeta != nil {
-			pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+			pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Error parsing provider_meta",
@@ -698,24 +699,23 @@ func (s *Server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 				Raw:    plan,
 			},
 		}
-		if pm, ok := s.FrameworkServer.Provider.(tfsdk.ProviderWithProviderMeta); ok {
-			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
-			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
-			if diags != nil {
-				resp.Diagnostics.Append(diags...)
-				if resp.Diagnostics.HasError() {
-					return
-				}
-			}
+
+		providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
+
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if providerMetaSchema != nil {
 			modifySchemaPlanReq.ProviderMeta = tfsdk.Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+				Schema: *providerMetaSchema,
+				Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
 			}
 
 			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
 				if err != nil {
 					resp.Diagnostics.AddError(
 						"Error parsing provider_meta",
@@ -769,22 +769,23 @@ func (s *Server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 				Raw:    plan,
 			},
 		}
-		if pm, ok := s.FrameworkServer.Provider.(tfsdk.ProviderWithProviderMeta); ok {
-			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
-			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
+
+		providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
+
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if providerMetaSchema != nil {
 			modifyPlanReq.ProviderMeta = tfsdk.Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+				Schema: *providerMetaSchema,
+				Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
 			}
 
 			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
 				if err != nil {
 					resp.Diagnostics.AddError(
 						"Error parsing provider_meta",
@@ -978,22 +979,23 @@ func (s *Server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				Raw:    plan,
 			},
 		}
-		if pm, ok := s.FrameworkServer.Provider.(tfsdk.ProviderWithProviderMeta); ok {
-			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
-			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
+
+		providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
+
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if providerMetaSchema != nil {
 			createReq.ProviderMeta = tfsdk.Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+				Schema: *providerMetaSchema,
+				Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
 			}
 
 			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
 				if err != nil {
 					resp.Diagnostics.AddError(
 						"Error parsing provider_meta",
@@ -1004,6 +1006,7 @@ func (s *Server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				createReq.ProviderMeta.Raw = pmValue
 			}
 		}
+
 		createResp := tfsdk.CreateResourceResponse{
 			State: tfsdk.State{
 				Schema: resourceSchema,
@@ -1040,22 +1043,23 @@ func (s *Server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				Raw:    priorState,
 			},
 		}
-		if pm, ok := s.FrameworkServer.Provider.(tfsdk.ProviderWithProviderMeta); ok {
-			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
-			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
+
+		providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
+
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if providerMetaSchema != nil {
 			updateReq.ProviderMeta = tfsdk.Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+				Schema: *providerMetaSchema,
+				Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
 			}
 
 			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
 				if err != nil {
 					resp.Diagnostics.AddError(
 						"Error parsing provider_meta",
@@ -1066,6 +1070,7 @@ func (s *Server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				updateReq.ProviderMeta.Raw = pmValue
 			}
 		}
+
 		updateResp := tfsdk.UpdateResourceResponse{
 			State: tfsdk.State{
 				Schema: resourceSchema,
@@ -1094,22 +1099,23 @@ func (s *Server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				Raw:    priorState,
 			},
 		}
-		if pm, ok := s.FrameworkServer.Provider.(tfsdk.ProviderWithProviderMeta); ok {
-			logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
-			logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-			pmSchema, diags := pm.GetMetaSchema(ctx)
-			logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
+
+		providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
+
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if providerMetaSchema != nil {
 			destroyReq.ProviderMeta = tfsdk.Config{
-				Schema: pmSchema,
-				Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+				Schema: *providerMetaSchema,
+				Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
 			}
 
 			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+				pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
 				if err != nil {
 					resp.Diagnostics.AddError(
 						"Error parsing provider_meta",
@@ -1120,6 +1126,7 @@ func (s *Server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyRe
 				destroyReq.ProviderMeta.Raw = pmValue
 			}
 		}
+
 		destroyResp := tfsdk.DeleteResourceResponse{
 			State: tfsdk.State{
 				Schema: resourceSchema,
@@ -1246,22 +1253,23 @@ func (s *Server) readDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 			Schema: dataSourceSchema,
 		},
 	}
-	if pm, ok := s.FrameworkServer.Provider.(tfsdk.ProviderWithProviderMeta); ok {
-		logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
-		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-		pmSchema, diags := pm.GetMetaSchema(ctx)
-		logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+
+	providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if providerMetaSchema != nil {
 		readReq.ProviderMeta = tfsdk.Config{
-			Schema: pmSchema,
-			Raw:    tftypes.NewValue(pmSchema.TerraformType(ctx), nil),
+			Schema: *providerMetaSchema,
+			Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
 		}
 
 		if req.ProviderMeta != nil {
-			pmValue, err := req.ProviderMeta.Unmarshal(pmSchema.TerraformType(ctx))
+			pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Error parsing provider_meta",
@@ -1272,6 +1280,7 @@ func (s *Server) readDataSource(ctx context.Context, req *tfprotov6.ReadDataSour
 			readReq.ProviderMeta.Raw = pmValue
 		}
 	}
+
 	readResp := tfsdk.ReadDataSourceResponse{
 		State: tfsdk.State{
 			Schema: dataSourceSchema,

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -34,21 +33,15 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 
 	resp.Provider = providerSchema
 
-	if pm, ok := s.Provider.(tfsdk.ProviderWithProviderMeta); ok {
-		logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+	providerMetaSchema, diags := s.ProviderMetaSchema(ctx)
 
-		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-		providerMetaSchema, diags := pm.GetMetaSchema(ctx)
-		logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
+	resp.Diagnostics.Append(diags...)
 
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		resp.ProviderMeta = &providerMetaSchema
+	if diags.HasError() {
+		return
 	}
+
+	resp.ProviderMeta = providerMetaSchema
 
 	resourceSchemas, diags := s.ResourceSchemas(ctx)
 

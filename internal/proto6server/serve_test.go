@@ -2228,14 +2228,13 @@ func TestServerReadResource(t *testing.T) {
 			}
 			var pmSchema tfsdk.Schema
 			if tc.providerMeta.Type() != nil {
-				sWithMeta := &testServeProviderWithMetaSchema{s}
-				testServer.FrameworkServer.Provider = sWithMeta
-				schema, diags := sWithMeta.GetMetaSchema(context.Background())
+				testServer.FrameworkServer.Provider = &testServeProviderWithMetaSchema{s}
+				schema, diags := testServer.FrameworkServer.ProviderMetaSchema(context.Background())
 				if len(diags) > 0 {
 					t.Errorf("Unexpected diags: %+v", diags)
 					return
 				}
-				pmSchema = schema
+				pmSchema = *schema
 			}
 
 			rt, diags := testServer.FrameworkServer.ResourceType(context.Background(), tc.resource)
@@ -5868,14 +5867,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 			}
 			var pmSchema tfsdk.Schema
 			if tc.providerMeta.Type() != nil {
-				sWithMeta := &testServeProviderWithMetaSchema{s}
-				testServer.FrameworkServer.Provider = sWithMeta
-				schema, diags := sWithMeta.GetMetaSchema(context.Background())
+				testServer.FrameworkServer.Provider = &testServeProviderWithMetaSchema{s}
+				schema, diags := testServer.FrameworkServer.ProviderMetaSchema(context.Background())
 				if len(diags) > 0 {
 					t.Errorf("Unexpected diags: %+v", diags)
 					return
 				}
-				pmSchema = schema
+				pmSchema = *schema
 			}
 
 			rt, diags := testServer.FrameworkServer.ResourceType(context.Background(), tc.resource)
@@ -6396,14 +6394,13 @@ func TestServerReadDataSource(t *testing.T) {
 			}
 			var pmSchema tfsdk.Schema
 			if tc.providerMeta.Type() != nil {
-				sWithMeta := &testServeProviderWithMetaSchema{s}
-				testServer.FrameworkServer.Provider = sWithMeta
-				schema, diags := sWithMeta.GetMetaSchema(context.Background())
+				testServer.FrameworkServer.Provider = &testServeProviderWithMetaSchema{s}
+				schema, diags := testServer.FrameworkServer.ProviderMetaSchema(context.Background())
 				if len(diags) > 0 {
 					t.Errorf("Unexpected diags: %+v", diags)
 					return
 				}
-				pmSchema = schema
+				pmSchema = *schema
 			}
 
 			rt, diags := testServer.FrameworkServer.DataSourceType(context.Background(), tc.dataSource)

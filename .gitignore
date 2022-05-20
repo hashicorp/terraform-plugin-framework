@@ -1,2 +1,7 @@
+# Website generation artifacts
 node_modules
 website-preview
+
+# Jetbrains IDEs
+.idea/
+*.iws

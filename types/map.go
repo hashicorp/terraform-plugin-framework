@@ -10,6 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+var (
+	_ attr.Type  = MapType{}
+	_ attr.Value = &Map{}
+)
+
 // MapType is an AttributeType representing a map of values. All values must
 // be of the same type, which the provider must specify as the ElemType
 // property. Keys will always be strings.
@@ -211,4 +216,12 @@ func (m Map) Equal(o attr.Value) bool {
 		}
 	}
 	return true
+}
+
+func (m Map) IsNull() bool {
+	return m.Null
+}
+
+func (m Map) IsUnknown() bool {
+	return m.Unknown
 }

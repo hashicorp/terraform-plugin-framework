@@ -283,3 +283,11 @@ func (s Set) contains(v attr.Value) bool {
 
 	return false
 }
+
+func (s Set) IsNull() bool {
+	return s.Null
+}
+
+func (s Set) IsUnknown() bool {
+	return s.Unknown
+}

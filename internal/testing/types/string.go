@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	_ attr.Type = StringType{}
+	_ attr.Type  = StringType{}
+	_ attr.Value = String{}
 )
 
 // StringType is a reimplementation of types.StringType that can be used as a base
@@ -63,6 +64,7 @@ func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 
 type String struct {
 	types.String
+
 	CreatedBy attr.Type
 }
 
@@ -76,4 +78,12 @@ func (s String) Equal(o attr.Value) bool {
 		return false
 	}
 	return s.String.Equal(os.String)
+}
+
+func (s String) IsNull() bool {
+	return s.String.IsNull()
+}
+
+func (s String) IsUnknown() bool {
+	return s.String.IsUnknown()
 }

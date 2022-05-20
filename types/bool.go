@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+var (
+	_ attr.Value = Bool{}
+)
+
 func boolValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if in.IsNull() {
 		return Bool{
@@ -25,8 +29,6 @@ func boolValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, 
 	}
 	return Bool{Value: b}, nil
 }
-
-var _ attr.Value = Bool{}
 
 // Bool represents a boolean value.
 type Bool struct {
@@ -74,4 +76,12 @@ func (b Bool) Equal(other attr.Value) bool {
 		return false
 	}
 	return b.Value == o.Value
+}
+
+func (b Bool) IsNull() bool {
+	return b.Null
+}
+
+func (b Bool) IsUnknown() bool {
+	return b.Unknown
 }

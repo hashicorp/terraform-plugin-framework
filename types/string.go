@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+var (
+	_ attr.Value = String{}
+)
+
 func stringValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
 		return String{Unknown: true}, nil
@@ -21,8 +25,6 @@ func stringValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value
 	}
 	return String{Value: s}, nil
 }
-
-var _ attr.Value = String{}
 
 // String represents a UTF-8 string value.
 type String struct {
@@ -71,4 +73,12 @@ func (s String) Equal(other attr.Value) bool {
 		return false
 	}
 	return s.Value == o.Value
+}
+
+func (s String) IsNull() bool {
+	return s.Null
+}
+
+func (s String) IsUnknown() bool {
+	return s.Unknown
 }

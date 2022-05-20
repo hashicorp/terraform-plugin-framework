@@ -20,4 +20,10 @@ type Value interface {
 	// Equal must return true if the Value is considered semantically equal
 	// to the Value passed as an argument.
 	Equal(Value) bool
+
+	// IsNull returns true if the Value is not set, or is explicitly set to null.
+	IsNull() bool
+
+	// IsUnknown returns true if the value is not yet known.
+	IsUnknown() bool
 }

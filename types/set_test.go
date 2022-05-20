@@ -229,6 +229,12 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 			if diff := cmp.Diff(got, test.expected); diff != "" {
 				t.Errorf("Unexpected diff (-expected, +got): %s", diff)
 			}
+			if test.expected != nil && test.expected.IsNull() != test.input.IsNull() {
+				t.Errorf("Expected null-ness match: expected %t, got %t", test.expected.IsNull(), test.input.IsNull())
+			}
+			if test.expected != nil && test.expected.IsUnknown() != !test.input.IsKnown() {
+				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expected.IsUnknown(), !test.input.IsKnown())
+			}
 		})
 	}
 }

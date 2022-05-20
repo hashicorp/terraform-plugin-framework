@@ -1,0 +1,7 @@
+```release-note:breaking-change
+attr: The `Value` interface now includes the `IsNull()` and `IsUnknown()` methods
+```
+
+```release-note:enhancement
+types: Added `IsNull()` and `IsUnknown()` methods to all types
+```

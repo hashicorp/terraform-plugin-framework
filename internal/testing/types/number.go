@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	_ attr.Type = NumberType{}
+	_ attr.Type  = NumberType{}
+	_ attr.Value = Number{}
 )
 
 // NumberType is a reimplementation of types.NumberType that can be used as a base
@@ -78,4 +79,12 @@ func (n Number) Equal(o attr.Value) bool {
 		return false
 	}
 	return n.Number.Equal(on.Number)
+}
+
+func (n Number) IsNull() bool {
+	return n.Number.IsNull()
+}
+
+func (n Number) IsUnknown() bool {
+	return n.Number.IsUnknown()
 }

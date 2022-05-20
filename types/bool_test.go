@@ -75,6 +75,12 @@ func testBoolValueFromTerraform(t *testing.T, direct bool) {
 			if !got.Equal(test.expectation) {
 				t.Errorf("Expected %+v, got %+v", test.expectation, got)
 			}
+			if test.expectation.IsNull() != test.input.IsNull() {
+				t.Errorf("Expected null-ness match: expected %t, got %t", test.expectation.IsNull(), test.input.IsNull())
+			}
+			if test.expectation.IsUnknown() != !test.input.IsKnown() {
+				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expectation.IsUnknown(), !test.input.IsKnown())
+			}
 		})
 	}
 }

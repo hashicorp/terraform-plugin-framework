@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 func TestListTypeTerraformType(t *testing.T) {
@@ -202,6 +203,12 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 			}
 			if diff := cmp.Diff(got, test.expected); diff != "" {
 				t.Errorf("Unexpected diff (-expected, +got): %s", diff)
+			}
+			if test.expected != nil && test.expected.IsNull() != test.input.IsNull() {
+				t.Errorf("Expected null-ness match: expected %t, got %t", test.expected.IsNull(), test.input.IsNull())
+			}
+			if test.expected != nil && test.expected.IsUnknown() != !test.input.IsKnown() {
+				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expected.IsUnknown(), !test.input.IsKnown())
 			}
 		})
 	}

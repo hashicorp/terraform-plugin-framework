@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -75,6 +76,12 @@ func testFloat64ValueFromTerraform(t *testing.T, direct bool) {
 			}
 			if diff := cmp.Diff(got, test.expectation); diff != "" {
 				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
+			}
+			if test.expectation.IsNull() != test.input.IsNull() {
+				t.Errorf("Expected null-ness match: expected %t, got %t", test.expectation.IsNull(), test.input.IsNull())
+			}
+			if test.expectation.IsUnknown() != !test.input.IsKnown() {
+				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expectation.IsUnknown(), !test.input.IsKnown())
 			}
 		})
 	}

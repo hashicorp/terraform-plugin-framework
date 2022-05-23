@@ -152,234 +152,43 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, proto6Req *tfprotov
 	return toproto6.ValidateResourceConfigResponse(ctx, fwResp), nil
 }
 
-// upgradeResourceStateResponse is a thin abstraction to allow native
-// Diagnostics usage.
-type upgradeResourceStateResponse struct {
-	Diagnostics   diag.Diagnostics
-	UpgradedState *tfprotov6.DynamicValue
-}
-
-func (r upgradeResourceStateResponse) toTfprotov6() *tfprotov6.UpgradeResourceStateResponse {
-	return &tfprotov6.UpgradeResourceStateResponse{
-		Diagnostics:   toproto6.Diagnostics(r.Diagnostics),
-		UpgradedState: r.UpgradedState,
-	}
-}
-
-func (s *Server) UpgradeResourceState(ctx context.Context, req *tfprotov6.UpgradeResourceStateRequest) (*tfprotov6.UpgradeResourceStateResponse, error) {
+func (s *Server) UpgradeResourceState(ctx context.Context, proto6Req *tfprotov6.UpgradeResourceStateRequest) (*tfprotov6.UpgradeResourceStateResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
-	resp := &upgradeResourceStateResponse{}
 
-	s.upgradeResourceState(ctx, req, resp)
+	fwResp := &fwserver.UpgradeResourceStateResponse{}
 
-	return resp.toTfprotov6(), nil
-}
-
-func (s *Server) upgradeResourceState(ctx context.Context, req *tfprotov6.UpgradeResourceStateRequest, resp *upgradeResourceStateResponse) {
-	if req == nil {
-		return
+	if proto6Req == nil {
+		return toproto6.UpgradeResourceStateResponse(ctx, fwResp), nil
 	}
 
-	resourceType, diags := s.FrameworkServer.ResourceType(ctx, req.TypeName)
+	resourceType, diags := s.FrameworkServer.ResourceType(ctx, proto6Req.TypeName)
 
-	resp.Diagnostics.Append(diags...)
+	fwResp.Diagnostics.Append(diags...)
 
-	if resp.Diagnostics.HasError() {
-		return
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.UpgradeResourceStateResponse(ctx, fwResp), nil
 	}
 
-	// No UpgradedState to return. This could return an error diagnostic about
-	// the odd scenario, but seems best to allow Terraform CLI to handle the
-	// situation itself in case it might be expected behavior.
-	if req.RawState == nil {
-		return
+	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.UpgradeResourceStateResponse(ctx, fwResp), nil
 	}
 
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
-	resourceSchema, diags := resourceType.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
+	fwReq, diags := fromproto6.UpgradeResourceStateRequest(ctx, proto6Req, resourceType, resourceSchema)
 
-	resp.Diagnostics.Append(diags...)
+	fwResp.Diagnostics.Append(diags...)
 
-	if resp.Diagnostics.HasError() {
-		return
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.UpgradeResourceStateResponse(ctx, fwResp), nil
 	}
 
-	// Terraform CLI can call UpgradeResourceState even if the stored state
-	// version matches the current schema. Presumably this is to account for
-	// the previous terraform-plugin-sdk implementation, which handled some
-	// state fixups on behalf of Terraform CLI. When this happens, we do not
-	// want to return errors for a missing ResourceWithUpgradeState
-	// implementation or an undefined version within an existing
-	// ResourceWithUpgradeState implementation as that would be confusing
-	// detail for provider developers. Instead, the framework will attempt to
-	// roundtrip the prior RawState to a State matching the current Schema.
-	//
-	// TODO: To prevent provider developers from accidentially implementing
-	// ResourceWithUpgradeState with a version matching the current schema
-	// version which would never get called, the framework can introduce a
-	// unit test helper.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/113
-	if req.Version == resourceSchema.Version {
-		logging.FrameworkTrace(ctx, "UpgradeResourceState request version matches current Schema version, using framework defined passthrough implementation")
+	s.FrameworkServer.UpgradeResourceState(ctx, fwReq, fwResp)
 
-		resourceSchemaType := resourceSchema.TerraformType(ctx)
-
-		rawStateValue, err := req.RawState.Unmarshal(resourceSchemaType)
-
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Unable to Read Previously Saved State for UpgradeResourceState",
-				"There was an error reading the saved resource state using the current resource schema.\n\n"+
-					"If this resource state was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. "+
-					"If you manually modified the resource state, you will need to manually modify it to match the current resource schema. "+
-					"Otherwise, please report this to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-
-		// NewDynamicValue will ensure the Msgpack field is set for Terraform CLI
-		// 0.12 through 0.14 compatibility when using terraform-plugin-mux tf6to5server.
-		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/262
-		upgradedStateValue, err := tfprotov6.NewDynamicValue(resourceSchemaType, rawStateValue)
-
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Unable to Convert Previously Saved State for UpgradeResourceState",
-				"There was an error converting the saved resource state using the current resource schema. "+
-					"This is always an issue in the Terraform Provider SDK used to implement the resource and should be reported to the provider developers.\n\n"+
-					"Please report this to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-
-		resp.UpgradedState = &upgradedStateValue
-
-		return
-	}
-
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := resourceType.NewResource(ctx, s.FrameworkServer.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
-
-	resp.Diagnostics.Append(diags...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resourceWithUpgradeState, ok := resource.(tfsdk.ResourceWithUpgradeState)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unable to Upgrade Resource State",
-			"This resource was implemented without an UpgradeState() method, "+
-				fmt.Sprintf("however Terraform was expecting an implementation for version %d upgrade.\n\n", req.Version)+
-				"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
-		)
-		return
-	}
-
-	logging.FrameworkTrace(ctx, "Resource implements ResourceWithUpgradeState")
-
-	logging.FrameworkDebug(ctx, "Calling provider defined Resource UpgradeState")
-	resourceStateUpgraders := resourceWithUpgradeState.UpgradeState(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Resource UpgradeState")
-
-	// Panic prevention
-	if resourceStateUpgraders == nil {
-		resourceStateUpgraders = make(map[int64]tfsdk.ResourceStateUpgrader, 0)
-	}
-
-	resourceStateUpgrader, ok := resourceStateUpgraders[req.Version]
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unable to Upgrade Resource State",
-			"This resource was implemented with an UpgradeState() method, "+
-				fmt.Sprintf("however Terraform was expecting an implementation for version %d upgrade.\n\n", req.Version)+
-				"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
-		)
-		return
-	}
-
-	upgradeResourceStateRequest := tfsdk.UpgradeResourceStateRequest{
-		RawState: req.RawState,
-	}
-
-	if resourceStateUpgrader.PriorSchema != nil {
-		logging.FrameworkTrace(ctx, "Initializing populated UpgradeResourceStateRequest state from provider defined prior schema and request RawState")
-
-		priorSchemaType := resourceStateUpgrader.PriorSchema.TerraformType(ctx)
-
-		rawStateValue, err := req.RawState.Unmarshal(priorSchemaType)
-
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Unable to Read Previously Saved State for UpgradeResourceState",
-				fmt.Sprintf("There was an error reading the saved resource state using the prior resource schema defined for version %d upgrade.\n\n", req.Version)+
-					"Please report this to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-
-		upgradeResourceStateRequest.State = &tfsdk.State{
-			Raw:    rawStateValue,
-			Schema: *resourceStateUpgrader.PriorSchema,
-		}
-	}
-
-	upgradeResourceStateResponse := tfsdk.UpgradeResourceStateResponse{
-		State: tfsdk.State{
-			Schema: resourceSchema,
-		},
-	}
-
-	// To simplify provider logic, this could perform a best effort attempt
-	// to populate the response State by looping through all Attribute/Block
-	// by calling the equivalent of SetAttribute(GetAttribute()) and skipping
-	// any errors.
-
-	logging.FrameworkDebug(ctx, "Calling provider defined StateUpgrader")
-	resourceStateUpgrader.StateUpgrader(ctx, upgradeResourceStateRequest, &upgradeResourceStateResponse)
-	logging.FrameworkDebug(ctx, "Called provider defined StateUpgrader")
-
-	resp.Diagnostics.Append(upgradeResourceStateResponse.Diagnostics...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if upgradeResourceStateResponse.DynamicValue != nil {
-		logging.FrameworkTrace(ctx, "UpgradeResourceStateResponse DynamicValue set, overriding State")
-		resp.UpgradedState = upgradeResourceStateResponse.DynamicValue
-		return
-	}
-
-	if upgradeResourceStateResponse.State.Raw.Type() == nil || upgradeResourceStateResponse.State.Raw.IsNull() {
-		resp.Diagnostics.AddError(
-			"Missing Upgraded Resource State",
-			fmt.Sprintf("After attempting a resource state upgrade to version %d, the provider did not return any state data. ", req.Version)+
-				"Preventing the unexpected loss of resource state data. "+
-				"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
-		)
-		return
-	}
-
-	upgradedStateValue, err := tfprotov6.NewDynamicValue(upgradeResourceStateResponse.State.Schema.TerraformType(ctx), upgradeResourceStateResponse.State.Raw)
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to Convert Upgraded Resource State",
-			fmt.Sprintf("An unexpected error was encountered when converting the state returned for version %d upgrade to a usable type. ", req.Version)+
-				"This is always an issue in the Terraform Provider SDK used to implement the resource and should be reported to the provider developers.\n\n"+
-				"Please report this to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-
-	resp.UpgradedState = &upgradedStateValue
+	return toproto6.UpgradeResourceStateResponse(ctx, fwResp), nil
 }
 
 func (s *Server) ReadResource(ctx context.Context, proto6Req *tfprotov6.ReadResourceRequest) (*tfprotov6.ReadResourceResponse, error) {

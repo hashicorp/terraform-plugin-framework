@@ -77,6 +77,9 @@ type UpgradeResourceStateRequest struct {
 	// redeclaration of older schemas and instead use lower level handlers to
 	// transform data. A typical implementation for working with this data will
 	// call the Unmarshal() method.
+	//
+	// TODO: Create framework defined type that is not protocol specific.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/340
 	RawState *tfprotov6.RawState
 
 	// Previous state of the resource if the wrapping ResourceStateUpgrader
@@ -106,6 +109,10 @@ type UpgradeResourceStateResponse struct {
 	//
 	// All data must be populated to prevent data loss during the upgrade
 	// operation. No prior state data is copied automatically.
+	//
+	// TODO: Remove in preference of requiring State, rather than using either
+	// a new framework defined type or keeping this protocol specific type.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/340
 	DynamicValue *tfprotov6.DynamicValue
 
 	// Upgraded state of the resource, which should match the current schema

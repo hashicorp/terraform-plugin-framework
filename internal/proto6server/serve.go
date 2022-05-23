@@ -191,115 +191,47 @@ func (s *Server) UpgradeResourceState(ctx context.Context, proto6Req *tfprotov6.
 	return toproto6.UpgradeResourceStateResponse(ctx, fwResp), nil
 }
 
-// readResourceResponse is a thin abstraction to allow native Diagnostics usage
-type readResourceResponse struct {
-	NewState    *tfprotov6.DynamicValue
-	Diagnostics diag.Diagnostics
-	Private     []byte
-}
-
-func (r readResourceResponse) toTfprotov6() *tfprotov6.ReadResourceResponse {
-	return &tfprotov6.ReadResourceResponse{
-		NewState:    r.NewState,
-		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
-		Private:     r.Private,
-	}
-}
-
-func (s *Server) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRequest) (*tfprotov6.ReadResourceResponse, error) {
+func (s *Server) ReadResource(ctx context.Context, proto6Req *tfprotov6.ReadResourceRequest) (*tfprotov6.ReadResourceResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
-	resp := &readResourceResponse{}
 
-	s.readResource(ctx, req, resp)
+	fwResp := &fwserver.ReadResourceResponse{}
 
-	return resp.toTfprotov6(), nil
-}
+	resourceType, diags := s.FrameworkServer.ResourceType(ctx, proto6Req.TypeName)
 
-func (s *Server) readResource(ctx context.Context, req *tfprotov6.ReadResourceRequest, resp *readResourceResponse) {
-	resourceType, diags := s.FrameworkServer.ResourceType(ctx, req.TypeName)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadResourceResponse(ctx, fwResp), nil
 	}
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
-	resourceSchema, diags := resourceType.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := resourceType.NewResource(ctx, s.FrameworkServer.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	state, err := req.CurrentState.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing current state",
-			"There was an error parsing the current state. Please report this to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-	readReq := tfsdk.ReadResourceRequest{
-		State: tfsdk.State{
-			Raw:    state,
-			Schema: resourceSchema,
-		},
+
+	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadResourceResponse(ctx, fwResp), nil
 	}
 
 	providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
 
-	resp.Diagnostics.Append(diags...)
+	fwResp.Diagnostics.Append(diags...)
 
-	if resp.Diagnostics.HasError() {
-		return
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadResourceResponse(ctx, fwResp), nil
 	}
 
-	if providerMetaSchema != nil {
-		readReq.ProviderMeta = tfsdk.Config{
-			Schema: *providerMetaSchema,
-			Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
-		}
+	fwReq, diags := fromproto6.ReadResourceRequest(ctx, proto6Req, resourceType, resourceSchema, providerMetaSchema)
 
-		if req.ProviderMeta != nil {
-			pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error parsing provider_meta",
-					"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-				)
-				return
-			}
-			readReq.ProviderMeta.Raw = pmValue
-		}
-	}
-	readResp := tfsdk.ReadResourceResponse{
-		State: tfsdk.State{
-			Raw:    state,
-			Schema: resourceSchema,
-		},
-		Diagnostics: resp.Diagnostics,
-	}
-	logging.FrameworkDebug(ctx, "Calling provider defined Resource Read")
-	resource.Read(ctx, readReq, &readResp)
-	logging.FrameworkDebug(ctx, "Called provider defined Resource Read")
-	resp.Diagnostics = readResp.Diagnostics
-	// don't return even if we have error diagnostics, we need to set the
-	// state on the response, first
+	fwResp.Diagnostics.Append(diags...)
 
-	newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), readResp.State.Raw)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error converting read response",
-			"An unexpected error was encountered when converting the read response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
-		)
-		return
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadResourceResponse(ctx, fwResp), nil
 	}
-	resp.NewState = &newState
+
+	s.FrameworkServer.ReadResource(ctx, fwReq, fwResp)
+
+	return toproto6.ReadResourceResponse(ctx, fwResp), nil
 }
 
 func markComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema tfsdk.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
@@ -1005,115 +937,45 @@ func (s *Server) ValidateDataResourceConfig(ctx context.Context, proto6Req *tfpr
 	return toproto6.ValidateDataSourceConfigResponse(ctx, fwResp), nil
 }
 
-// readDataSourceResponse is a thin abstraction to allow native Diagnostics usage
-type readDataSourceResponse struct {
-	State       *tfprotov6.DynamicValue
-	Diagnostics diag.Diagnostics
-}
-
-func (r readDataSourceResponse) toTfprotov6() *tfprotov6.ReadDataSourceResponse {
-	return &tfprotov6.ReadDataSourceResponse{
-		State:       r.State,
-		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
-	}
-}
-
-func (s *Server) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSourceRequest) (*tfprotov6.ReadDataSourceResponse, error) {
+func (s *Server) ReadDataSource(ctx context.Context, proto6Req *tfprotov6.ReadDataSourceRequest) (*tfprotov6.ReadDataSourceResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
-	resp := &readDataSourceResponse{}
 
-	s.readDataSource(ctx, req, resp)
+	fwResp := &fwserver.ReadDataSourceResponse{}
 
-	return resp.toTfprotov6(), nil
-}
+	dataSourceType, diags := s.FrameworkServer.DataSourceType(ctx, proto6Req.TypeName)
 
-func (s *Server) readDataSource(ctx context.Context, req *tfprotov6.ReadDataSourceRequest, resp *readDataSourceResponse) {
-	dataSourceType, diags := s.FrameworkServer.DataSourceType(ctx, req.TypeName)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadDataSourceResponse(ctx, fwResp), nil
 	}
-	logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType GetSchema")
-	dataSourceSchema, diags := dataSourceType.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined DataSourceType GetSchema")
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType NewDataSource")
-	dataSource, diags := dataSourceType.NewDataSource(ctx, s.FrameworkServer.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined DataSourceType NewDataSource")
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	config, err := req.Config.Unmarshal(dataSourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing current state",
-			"There was an error parsing the current state. Please report this to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-	readReq := tfsdk.ReadDataSourceRequest{
-		Config: tfsdk.Config{
-			Raw:    config,
-			Schema: dataSourceSchema,
-		},
+
+	dataSourceSchema, diags := s.FrameworkServer.DataSourceSchema(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadDataSourceResponse(ctx, fwResp), nil
 	}
 
 	providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
 
-	resp.Diagnostics.Append(diags...)
+	fwResp.Diagnostics.Append(diags...)
 
-	if resp.Diagnostics.HasError() {
-		return
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadDataSourceResponse(ctx, fwResp), nil
 	}
 
-	if providerMetaSchema != nil {
-		readReq.ProviderMeta = tfsdk.Config{
-			Schema: *providerMetaSchema,
-			Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
-		}
+	fwReq, diags := fromproto6.ReadDataSourceRequest(ctx, proto6Req, dataSourceType, dataSourceSchema, providerMetaSchema)
 
-		if req.ProviderMeta != nil {
-			pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error parsing provider_meta",
-					"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-				)
-				return
-			}
-			readReq.ProviderMeta.Raw = pmValue
-		}
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadDataSourceResponse(ctx, fwResp), nil
 	}
 
-	readResp := tfsdk.ReadDataSourceResponse{
-		State: tfsdk.State{
-			Schema: dataSourceSchema,
-			// default to the config values
-			// they should be of the same type
-			// we just want SetAttribute to not find an empty value
-			Raw: config,
-		},
-		Diagnostics: resp.Diagnostics,
-	}
-	logging.FrameworkDebug(ctx, "Calling provider defined DataSource Read")
-	dataSource.Read(ctx, readReq, &readResp)
-	logging.FrameworkDebug(ctx, "Called provider defined DataSource Read")
-	resp.Diagnostics = readResp.Diagnostics
-	// don't return even if we have error diagnostics, we need to set the
-	// state on the response, first
+	s.FrameworkServer.ReadDataSource(ctx, fwReq, fwResp)
 
-	state, err := tfprotov6.NewDynamicValue(dataSourceSchema.TerraformType(ctx), readResp.State.Raw)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error converting read response",
-			"An unexpected error was encountered when converting the read response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-	resp.State = &state
+	return toproto6.ReadDataSourceResponse(ctx, fwResp), nil
 }

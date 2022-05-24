@@ -1,10 +1,9 @@
-package proto6server
+package fwserver
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -19,7 +18,7 @@ import (
 func AttributeModifyPlan(ctx context.Context, a tfsdk.Attribute, req tfsdk.ModifyAttributePlanRequest, resp *ModifySchemaPlanResponse) {
 	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
 
-	attrConfig, diags := fwserver.ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
+	attrConfig, diags := ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	// Only on new errors.

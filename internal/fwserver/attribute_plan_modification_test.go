@@ -1,4 +1,4 @@
-package proto6server
+package fwserver
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -649,8 +650,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testAttrPlanValueModifierOne{},
-									testAttrPlanValueModifierTwo{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierTwo{},
 								},
 							},
 						},
@@ -670,8 +671,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testAttrPlanValueModifierOne{},
-									testAttrPlanValueModifierTwo{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierTwo{},
 								},
 							},
 						},
@@ -691,8 +692,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testAttrPlanValueModifierOne{},
-									testAttrPlanValueModifierTwo{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierTwo{},
 								},
 							},
 						},
@@ -715,8 +716,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testAttrPlanValueModifierOne{},
-									testAttrPlanValueModifierTwo{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierTwo{},
 								},
 							},
 						},
@@ -741,8 +742,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testAttrPlanValueModifierOne{},
-									testAttrPlanValueModifierTwo{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierTwo{},
 								},
 							},
 						},
@@ -762,8 +763,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testAttrPlanValueModifierOne{},
-									testAttrPlanValueModifierTwo{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierTwo{},
 								},
 							},
 						},
@@ -783,8 +784,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testAttrPlanValueModifierOne{},
-									testAttrPlanValueModifierTwo{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierTwo{},
 								},
 							},
 						},
@@ -820,8 +821,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testAttrPlanValueModifierOne{},
-									testAttrPlanValueModifierTwo{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierTwo{},
 								},
 							},
 						},
@@ -1035,7 +1036,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
 									tfsdk.RequiresReplace(),
 								},
 							},
@@ -1057,7 +1058,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
 									tfsdk.RequiresReplace(),
-									testAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
 								},
 							},
 						},
@@ -1078,7 +1079,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
 									tfsdk.RequiresReplace(),
-									testAttrPlanValueModifierOne{},
+									planmodifiers.TestAttrPlanValueModifierOne{},
 								},
 							},
 						},
@@ -1127,7 +1128,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
 									tfsdk.RequiresReplace(),
-									testRequiresReplaceFalseModifier{},
+									planmodifiers.TestRequiresReplaceFalseModifier{},
 								},
 							},
 						},
@@ -1148,7 +1149,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
 									tfsdk.RequiresReplace(),
-									testRequiresReplaceFalseModifier{},
+									planmodifiers.TestRequiresReplaceFalseModifier{},
 								},
 							},
 						},
@@ -1169,7 +1170,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
 									tfsdk.RequiresReplace(),
-									testRequiresReplaceFalseModifier{},
+									planmodifiers.TestRequiresReplaceFalseModifier{},
 								},
 							},
 						},
@@ -1214,8 +1215,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testWarningDiagModifier{},
-									testWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
 								},
 							},
 						},
@@ -1235,8 +1236,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testWarningDiagModifier{},
-									testWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
 								},
 							},
 						},
@@ -1256,8 +1257,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testWarningDiagModifier{},
-									testWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
 								},
 							},
 						},
@@ -1289,8 +1290,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testWarningDiagModifier{},
-									testWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
 								},
 							},
 						},
@@ -1315,8 +1316,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testWarningDiagModifier{},
-									testWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
 								},
 							},
 						},
@@ -1336,8 +1337,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testWarningDiagModifier{},
-									testWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
 								},
 							},
 						},
@@ -1357,8 +1358,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testWarningDiagModifier{},
-									testWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
 								},
 							},
 						},
@@ -1401,8 +1402,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testWarningDiagModifier{},
-									testWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
+									planmodifiers.TestWarningDiagModifier{},
 								},
 							},
 						},
@@ -1427,8 +1428,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testErrorDiagModifier{},
-									testErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
 								},
 							},
 						},
@@ -1448,8 +1449,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testErrorDiagModifier{},
-									testErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
 								},
 							},
 						},
@@ -1469,8 +1470,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testErrorDiagModifier{},
-									testErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
 								},
 							},
 						},
@@ -1499,8 +1500,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testErrorDiagModifier{},
-									testErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
 								},
 							},
 						},
@@ -1525,8 +1526,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testErrorDiagModifier{},
-									testErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
 								},
 							},
 						},
@@ -1546,8 +1547,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testErrorDiagModifier{},
-									testErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
 								},
 							},
 						},
@@ -1567,8 +1568,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testErrorDiagModifier{},
-									testErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
 								},
 							},
 						},
@@ -1608,8 +1609,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									testErrorDiagModifier{},
-									testErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
+									planmodifiers.TestErrorDiagModifier{},
 								},
 							},
 						},

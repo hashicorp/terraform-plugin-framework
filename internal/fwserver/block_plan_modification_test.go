@@ -1,4 +1,4 @@
-package proto6server
+package fwserver
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -298,7 +298,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
-					testRequiresReplaceFalseModifier{},
+					planmodifiers.TestRequiresReplaceFalseModifier{},
 				}, nil),
 				modifyAttributePlanValues{
 					config: "newtestvalue",
@@ -312,7 +312,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema([]tfsdk.AttributePlanModifier{
 						tfsdk.RequiresReplace(),
-						testRequiresReplaceFalseModifier{},
+						planmodifiers.TestRequiresReplaceFalseModifier{},
 					}, nil),
 				},
 			},
@@ -321,8 +321,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema([]tfsdk.AttributePlanModifier{
-					testWarningDiagModifier{},
-					testWarningDiagModifier{},
+					planmodifiers.TestWarningDiagModifier{},
+					planmodifiers.TestWarningDiagModifier{},
 				}, nil),
 				modifyAttributePlanValues{
 					config: "TESTDIAG",
@@ -344,8 +344,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("TESTDIAG"),
 					Schema: schema([]tfsdk.AttributePlanModifier{
-						testWarningDiagModifier{},
-						testWarningDiagModifier{},
+						planmodifiers.TestWarningDiagModifier{},
+						planmodifiers.TestWarningDiagModifier{},
 					}, nil),
 				},
 			},
@@ -354,8 +354,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema([]tfsdk.AttributePlanModifier{
-					testWarningDiagModifier{},
-					testWarningDiagModifier{},
+					planmodifiers.TestWarningDiagModifier{},
+					planmodifiers.TestWarningDiagModifier{},
 				}, nil),
 				modifyAttributePlanValues{
 					config: "TESTDIAG",
@@ -388,8 +388,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("TESTDIAG"),
 					Schema: schema([]tfsdk.AttributePlanModifier{
-						testWarningDiagModifier{},
-						testWarningDiagModifier{},
+						planmodifiers.TestWarningDiagModifier{},
+						planmodifiers.TestWarningDiagModifier{},
 					}, nil),
 				},
 			},
@@ -398,8 +398,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema([]tfsdk.AttributePlanModifier{
-					testErrorDiagModifier{},
-					testErrorDiagModifier{},
+					planmodifiers.TestErrorDiagModifier{},
+					planmodifiers.TestErrorDiagModifier{},
 				}, nil),
 				modifyAttributePlanValues{
 					config: "TESTDIAG",
@@ -418,8 +418,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("TESTDIAG"),
 					Schema: schema([]tfsdk.AttributePlanModifier{
-						testErrorDiagModifier{},
-						testErrorDiagModifier{},
+						planmodifiers.TestErrorDiagModifier{},
+						planmodifiers.TestErrorDiagModifier{},
 					}, nil),
 				},
 			},
@@ -428,8 +428,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema([]tfsdk.AttributePlanModifier{
-					testErrorDiagModifier{},
-					testErrorDiagModifier{},
+					planmodifiers.TestErrorDiagModifier{},
+					planmodifiers.TestErrorDiagModifier{},
 				}, nil),
 				modifyAttributePlanValues{
 					config: "TESTDIAG",
@@ -459,8 +459,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("TESTDIAG"),
 					Schema: schema([]tfsdk.AttributePlanModifier{
-						testErrorDiagModifier{},
-						testErrorDiagModifier{},
+						planmodifiers.TestErrorDiagModifier{},
+						planmodifiers.TestErrorDiagModifier{},
 					}, nil),
 				},
 			},
@@ -469,8 +469,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					testAttrPlanValueModifierOne{},
-					testAttrPlanValueModifierTwo{},
+					planmodifiers.TestAttrPlanValueModifierOne{},
+					planmodifiers.TestAttrPlanValueModifierTwo{},
 				}),
 				modifyAttributePlanValues{
 					config: "TESTATTRONE",
@@ -483,8 +483,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("MODIFIED_TWO"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						testAttrPlanValueModifierOne{},
-						testAttrPlanValueModifierTwo{},
+						planmodifiers.TestAttrPlanValueModifierOne{},
+						planmodifiers.TestAttrPlanValueModifierTwo{},
 					}),
 				},
 			},
@@ -493,8 +493,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					testAttrPlanValueModifierOne{},
-					testAttrPlanValueModifierTwo{},
+					planmodifiers.TestAttrPlanValueModifierOne{},
+					planmodifiers.TestAttrPlanValueModifierTwo{},
 				}),
 				modifyAttributePlanValues{
 					config: "TESTATTRONE",
@@ -520,8 +520,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("MODIFIED_TWO"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						testAttrPlanValueModifierOne{},
-						testAttrPlanValueModifierTwo{},
+						planmodifiers.TestAttrPlanValueModifierOne{},
+						planmodifiers.TestAttrPlanValueModifierTwo{},
 					}),
 				},
 			},
@@ -594,7 +594,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
-					testAttrPlanValueModifierOne{},
+					planmodifiers.TestAttrPlanValueModifierOne{},
 				}),
 				modifyAttributePlanValues{
 					config: "TESTATTRONE",
@@ -608,7 +608,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					Raw: schemaTfValue("TESTATTRTWO"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
 						tfsdk.RequiresReplace(),
-						testAttrPlanValueModifierOne{},
+						planmodifiers.TestAttrPlanValueModifierOne{},
 					}),
 				},
 				RequiresReplace: []*tftypes.AttributePath{
@@ -621,7 +621,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
-					testRequiresReplaceFalseModifier{},
+					planmodifiers.TestRequiresReplaceFalseModifier{},
 				}),
 				modifyAttributePlanValues{
 					config: "newtestvalue",
@@ -635,7 +635,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
 						tfsdk.RequiresReplace(),
-						testRequiresReplaceFalseModifier{},
+						planmodifiers.TestRequiresReplaceFalseModifier{},
 					}),
 				},
 			},
@@ -644,8 +644,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					testWarningDiagModifier{},
-					testWarningDiagModifier{},
+					planmodifiers.TestWarningDiagModifier{},
+					planmodifiers.TestWarningDiagModifier{},
 				}),
 				modifyAttributePlanValues{
 					config: "TESTDIAG",
@@ -667,8 +667,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("TESTDIAG"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						testWarningDiagModifier{},
-						testWarningDiagModifier{},
+						planmodifiers.TestWarningDiagModifier{},
+						planmodifiers.TestWarningDiagModifier{},
 					}),
 				},
 			},
@@ -677,8 +677,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					testWarningDiagModifier{},
-					testWarningDiagModifier{},
+					planmodifiers.TestWarningDiagModifier{},
+					planmodifiers.TestWarningDiagModifier{},
 				}),
 				modifyAttributePlanValues{
 					config: "TESTDIAG",
@@ -711,8 +711,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("TESTDIAG"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						testWarningDiagModifier{},
-						testWarningDiagModifier{},
+						planmodifiers.TestWarningDiagModifier{},
+						planmodifiers.TestWarningDiagModifier{},
 					}),
 				},
 			},
@@ -721,8 +721,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					testErrorDiagModifier{},
-					testErrorDiagModifier{},
+					planmodifiers.TestErrorDiagModifier{},
+					planmodifiers.TestErrorDiagModifier{},
 				}),
 				modifyAttributePlanValues{
 					config: "TESTDIAG",
@@ -741,8 +741,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("TESTDIAG"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						testErrorDiagModifier{},
-						testErrorDiagModifier{},
+						planmodifiers.TestErrorDiagModifier{},
+						planmodifiers.TestErrorDiagModifier{},
 					}),
 				},
 			},
@@ -751,8 +751,8 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				tftypes.NewAttributePath().WithAttributeName("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					testErrorDiagModifier{},
-					testErrorDiagModifier{},
+					planmodifiers.TestErrorDiagModifier{},
+					planmodifiers.TestErrorDiagModifier{},
 				}),
 				modifyAttributePlanValues{
 					config: "TESTDIAG",
@@ -782,8 +782,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("TESTDIAG"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						testErrorDiagModifier{},
-						testErrorDiagModifier{},
+						planmodifiers.TestErrorDiagModifier{},
+						planmodifiers.TestErrorDiagModifier{},
 					}),
 				},
 			},
@@ -795,7 +795,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			block, err := fwserver.SchemaBlockAtPath(tc.req.Config.Schema, tc.req.AttributePath)
+			block, err := SchemaBlockAtPath(tc.req.Config.Schema, tc.req.AttributePath)
 
 			if err != nil {
 				t.Fatalf("Unexpected error getting %s", err)

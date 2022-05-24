@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -20,12 +21,12 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 				Required: true,
 				Type:     types.StringType,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					testWarningDiagModifier{},
+					planmodifiers.TestWarningDiagModifier{},
 					// For the purposes of testing, these plan modifiers behave
 					// differently for certain values of the attribute.
 					// By default, they do nothing.
-					testAttrPlanValueModifierOne{},
-					testAttrPlanValueModifierTwo{},
+					planmodifiers.TestAttrPlanValueModifierOne{},
+					planmodifiers.TestAttrPlanValueModifierTwo{},
 				},
 			},
 			"size": {
@@ -63,7 +64,7 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 						Required: true,
 						Type:     types.StringType,
 						PlanModifiers: []tfsdk.AttributePlanModifier{
-							testAttrPlanValueModifierTwo{},
+							planmodifiers.TestAttrPlanValueModifierTwo{},
 						},
 					},
 					"interface": {
@@ -90,7 +91,7 @@ func (rt testServeResourceTypeAttributePlanModifiers) GetSchema(_ context.Contex
 			"region": {
 				Optional:      true,
 				Type:          types.StringType,
-				PlanModifiers: []tfsdk.AttributePlanModifier{testAttrDefaultValueModifier{}},
+				PlanModifiers: []tfsdk.AttributePlanModifier{planmodifiers.TestAttrDefaultValueModifier{}},
 			},
 			"computed_string_no_modifiers": {
 				Computed: true,
@@ -206,127 +207,6 @@ type testServeAttributePlanModifiers struct {
 }
 
 type testServeResourceTypeAttributePlanModifiers struct{}
-
-type testWarningDiagModifier struct{}
-
-func (t testWarningDiagModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	resp.Diagnostics.AddWarning(
-		"Warning diag",
-		"This is a warning",
-	)
-}
-
-func (t testWarningDiagModifier) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t testWarningDiagModifier) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-type testErrorDiagModifier struct{}
-
-func (t testErrorDiagModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	resp.Diagnostics.AddError(
-		"Error diag",
-		"This is an error",
-	)
-}
-
-func (t testErrorDiagModifier) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t testErrorDiagModifier) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-type testAttrPlanValueModifierOne struct{}
-
-func (t testAttrPlanValueModifierOne) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	attrVal, ok := req.AttributePlan.(types.String)
-	if !ok {
-		return
-	}
-
-	if attrVal.Value == "TESTATTRONE" {
-		resp.AttributePlan = types.String{
-			Value: "TESTATTRTWO",
-		}
-	}
-}
-
-func (t testAttrPlanValueModifierOne) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t testAttrPlanValueModifierOne) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-type testAttrPlanValueModifierTwo struct{}
-
-func (t testAttrPlanValueModifierTwo) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	attrVal, ok := req.AttributePlan.(types.String)
-	if !ok {
-		return
-	}
-
-	if attrVal.Value == "TESTATTRTWO" {
-		resp.AttributePlan = types.String{
-			Value: "MODIFIED_TWO",
-		}
-	}
-}
-
-func (t testAttrPlanValueModifierTwo) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t testAttrPlanValueModifierTwo) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-type testAttrDefaultValueModifier struct{}
-
-func (t testAttrDefaultValueModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	if req.AttributeState == nil && req.AttributeConfig == nil {
-		return
-	}
-
-	configVal := req.AttributeConfig.(types.String)
-
-	if configVal.Null {
-		resp.AttributePlan = types.String{Value: "DEFAULTVALUE"}
-	}
-}
-
-func (t testAttrDefaultValueModifier) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t testAttrDefaultValueModifier) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-// testRequiresReplaceModifier is an AttributePlanModifier that sets RequiresReplace
-// on the attribute.
-type testRequiresReplaceFalseModifier struct{}
-
-// Modify sets RequiresReplace on the response to true.
-func (m testRequiresReplaceFalseModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	resp.RequiresReplace = false
-}
-
-// Description returns a human-readable description of the plan modifier.
-func (m testRequiresReplaceFalseModifier) Description(ctx context.Context) string {
-	return "Always unsets requires replace."
-}
-
-// MarkdownDescription returns a markdown description of the plan modifier.
-func (m testRequiresReplaceFalseModifier) MarkdownDescription(ctx context.Context) string {
-	return "Always unsets requires replace."
-}
 
 func (r testServeAttributePlanModifiers) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
 	// Intentionally blank. Not expected to be called during testing.

@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -45,29 +44,6 @@ func (rt testServeResourceTypeOne) NewResource(_ context.Context, p tfsdk.Provid
 	return testServeResourceOne{
 		provider: provider,
 	}, nil
-}
-
-var testServeResourceTypeOneSchema = &tfprotov6.Schema{
-	Version: 1,
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "created_timestamp",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "favorite_colors",
-				Optional: true,
-				Type:     tftypes.List{ElementType: tftypes.String},
-			},
-			{
-				Name:     "name",
-				Required: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
 }
 
 var testServeResourceTypeOneType = tftypes.Object{

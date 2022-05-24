@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -36,18 +35,6 @@ func (dt testServeDataSourceTypeConfigValidators) NewDataSource(_ context.Contex
 	return testServeDataSourceConfigValidators{
 		provider: provider,
 	}, nil
-}
-
-var testServeDataSourceTypeConfigValidatorsSchema = &tfprotov6.Schema{
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "string",
-				Optional: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
 }
 
 var testServeDataSourceTypeConfigValidatorsType = tftypes.Object{

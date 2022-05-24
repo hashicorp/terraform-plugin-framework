@@ -7,8 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type testServeResourceTypeUpgradeStateNotImplemented struct{}
@@ -45,29 +43,6 @@ func (t testServeResourceTypeUpgradeStateNotImplemented) NewResource(_ context.C
 	return testServeResourceUpgradeStateNotImplemented{
 		provider: provider,
 	}, nil
-}
-
-var testServeResourceTypeUpgradeStateNotImplementedSchema = &tfprotov6.Schema{
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "id",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "optional_attribute",
-				Optional: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "required_attribute",
-				Required: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
-	Version: 1,
 }
 
 type testServeResourceUpgradeStateNotImplemented struct {

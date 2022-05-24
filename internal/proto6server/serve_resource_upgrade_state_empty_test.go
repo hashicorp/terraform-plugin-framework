@@ -7,8 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ tfsdk.ResourceWithUpgradeState = testServeResourceUpgradeStateEmpty{}
@@ -47,29 +45,6 @@ func (t testServeResourceTypeUpgradeStateEmpty) NewResource(_ context.Context, p
 	return testServeResourceUpgradeStateEmpty{
 		provider: provider,
 	}, nil
-}
-
-var testServeResourceTypeUpgradeStateEmptySchema = &tfprotov6.Schema{
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "id",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "optional_attribute",
-				Optional: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "required_attribute",
-				Required: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
-	Version: 1,
 }
 
 type testServeResourceUpgradeStateEmpty struct {

@@ -7,8 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type testServeResourceTypeImportStateNotImplemented struct{}
@@ -36,18 +34,6 @@ func (dt testServeResourceTypeImportStateNotImplemented) NewResource(_ context.C
 	return testServeResourceImportStateNotImplemented{
 		provider: provider,
 	}, nil
-}
-
-var testServeResourceTypeImportStateNotImplementedSchema = &tfprotov6.Schema{
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "id",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
 }
 
 type testServeResourceImportStateNotImplemented struct {

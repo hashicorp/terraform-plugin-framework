@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -44,28 +43,6 @@ func (dt testServeResourceTypeImportState) NewResource(_ context.Context, p tfsd
 	return testServeResourceImportState{
 		provider: provider,
 	}, nil
-}
-
-var testServeResourceTypeImportStateSchema = &tfprotov6.Schema{
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "id",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "optional_string",
-				Optional: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "required_string",
-				Required: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
 }
 
 var testServeResourceTypeImportStateTftype = tftypes.Object{

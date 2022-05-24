@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -113,72 +112,6 @@ func (rt testServeResourceTypeAttributePlanModifiers) NewResource(_ context.Cont
 	return testServeAttributePlanModifiers{
 		provider: provider,
 	}, nil
-}
-
-var testServeResourceTypeAttributePlanModifiersSchema = &tfprotov6.Schema{
-	Version: 1,
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "computed_string_no_modifiers",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "name",
-				Required: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "region",
-				Optional: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "scratch_disk",
-				Optional: true,
-				NestedType: &tfprotov6.SchemaObject{
-					Attributes: []*tfprotov6.SchemaAttribute{
-						{
-							Name:     "filesystem",
-							Optional: true,
-							NestedType: &tfprotov6.SchemaObject{
-								Attributes: []*tfprotov6.SchemaAttribute{
-									{
-										Name:     "format",
-										Optional: true,
-										Type:     tftypes.String,
-									},
-									{
-										Name:     "size",
-										Optional: true,
-										Type:     tftypes.Number,
-									},
-								},
-								Nesting: tfprotov6.SchemaObjectNestingModeSingle,
-							},
-						},
-						{
-							Name:     "id",
-							Required: true,
-							Type:     tftypes.String,
-						},
-						{
-							Name:     "interface",
-							Required: true,
-							Type:     tftypes.String,
-						},
-					},
-					Nesting: tfprotov6.SchemaObjectNestingModeSingle,
-				},
-			},
-			{
-				Name:     "size",
-				Required: true,
-				Type:     tftypes.Number,
-			},
-		},
-	},
 }
 
 var testServeResourceTypeAttributePlanModifiersType = tftypes.Object{

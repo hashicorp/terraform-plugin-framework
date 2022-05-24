@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/internal/proto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -568,21 +567,6 @@ func (s *Server) planResourceChange(ctx context.Context, req *tfprotov6.PlanReso
 	resp.RequiresReplace = normaliseRequiresReplace(ctx, resp.RequiresReplace)
 }
 
-// applyResourceChangeResponse is a thin abstraction to allow native Diagnostics usage
-type applyResourceChangeResponse struct {
-	NewState    *tfprotov6.DynamicValue
-	Private     []byte
-	Diagnostics diag.Diagnostics
-}
-
-func (r applyResourceChangeResponse) toTfprotov6() *tfprotov6.ApplyResourceChangeResponse {
-	return &tfprotov6.ApplyResourceChangeResponse{
-		NewState:    r.NewState,
-		Private:     r.Private,
-		Diagnostics: toproto6.Diagnostics(r.Diagnostics),
-	}
-}
-
 // normaliseRequiresReplace sorts and deduplicates the slice of AttributePaths
 // used in the RequiresReplace response field.
 // Sorting is lexical based on the string representation of each AttributePath.
@@ -611,295 +595,47 @@ func normaliseRequiresReplace(ctx context.Context, rs []*tftypes.AttributePath) 
 	return ret[:j]
 }
 
-func (s *Server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest) (*tfprotov6.ApplyResourceChangeResponse, error) {
+func (s *Server) ApplyResourceChange(ctx context.Context, proto6Req *tfprotov6.ApplyResourceChangeRequest) (*tfprotov6.ApplyResourceChangeResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
-	resp := &applyResourceChangeResponse{
-		// default to the prior state, so the state won't change unless
-		// we choose to change it
-		NewState: req.PriorState,
+
+	fwResp := &fwserver.ApplyResourceChangeResponse{}
+
+	resourceType, diags := s.FrameworkServer.ResourceType(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ApplyResourceChangeResponse(ctx, fwResp), nil
 	}
 
-	s.applyResourceChange(ctx, req, resp)
+	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto6Req.TypeName)
 
-	return resp.toTfprotov6(), nil
-}
+	fwResp.Diagnostics.Append(diags...)
 
-func (s *Server) applyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest, resp *applyResourceChangeResponse) {
-	// get the type of resource, so we can get its schema and create an
-	// instance
-	resourceType, diags := s.FrameworkServer.ResourceType(ctx, req.TypeName)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ApplyResourceChangeResponse(ctx, fwResp), nil
 	}
 
-	// get the schema from the resource type, so we can embed it in the
-	// config and plan
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType GetSchema")
-	resourceSchema, diags := resourceType.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType GetSchema")
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ApplyResourceChangeResponse(ctx, fwResp), nil
 	}
 
-	// create the resource instance, so we can call its methods and handle
-	// the request
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := resourceType.NewResource(ctx, s.FrameworkServer.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	fwReq, diags := fromproto6.ApplyResourceChangeRequest(ctx, proto6Req, resourceType, resourceSchema, providerMetaSchema)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ApplyResourceChangeResponse(ctx, fwResp), nil
 	}
 
-	config, err := req.Config.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing configuration",
-			"An unexpected error was encountered trying to parse the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
+	s.FrameworkServer.ApplyResourceChange(ctx, fwReq, fwResp)
 
-	plan, err := req.PlannedState.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing plan",
-			"An unexpected error was encountered trying to parse the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-
-	priorState, err := req.PriorState.Unmarshal(resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing prior state",
-			"An unexpected error was encountered trying to parse the prior state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-
-	// figure out what kind of request we're serving
-	create, err := proto6.IsCreate(ctx, req, resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error understanding request",
-			"An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-	update, err := proto6.IsUpdate(ctx, req, resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error understanding request",
-			"An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-	destroy, err := proto6.IsDestroy(ctx, req, resourceSchema.TerraformType(ctx))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error understanding request",
-			"An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-
-	switch {
-	case create && !update && !destroy:
-		logging.FrameworkTrace(ctx, "running create")
-		createReq := tfsdk.CreateResourceRequest{
-			Config: tfsdk.Config{
-				Schema: resourceSchema,
-				Raw:    config,
-			},
-			Plan: tfsdk.Plan{
-				Schema: resourceSchema,
-				Raw:    plan,
-			},
-		}
-
-		providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		if providerMetaSchema != nil {
-			createReq.ProviderMeta = tfsdk.Config{
-				Schema: *providerMetaSchema,
-				Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
-			}
-
-			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Error parsing provider_meta",
-						"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-					)
-					return
-				}
-				createReq.ProviderMeta.Raw = pmValue
-			}
-		}
-
-		createResp := tfsdk.CreateResourceResponse{
-			State: tfsdk.State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
-			Diagnostics: resp.Diagnostics,
-		}
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource Create")
-		resource.Create(ctx, createReq, &createResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource Create")
-		resp.Diagnostics = createResp.Diagnostics
-		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), createResp.State.Raw)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting create response",
-				"An unexpected error was encountered when converting the create response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		resp.NewState = &newState
-	case !create && update && !destroy:
-		logging.FrameworkTrace(ctx, "running update")
-		updateReq := tfsdk.UpdateResourceRequest{
-			Config: tfsdk.Config{
-				Schema: resourceSchema,
-				Raw:    config,
-			},
-			Plan: tfsdk.Plan{
-				Schema: resourceSchema,
-				Raw:    plan,
-			},
-			State: tfsdk.State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
-		}
-
-		providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		if providerMetaSchema != nil {
-			updateReq.ProviderMeta = tfsdk.Config{
-				Schema: *providerMetaSchema,
-				Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
-			}
-
-			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Error parsing provider_meta",
-						"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-					)
-					return
-				}
-				updateReq.ProviderMeta.Raw = pmValue
-			}
-		}
-
-		updateResp := tfsdk.UpdateResourceResponse{
-			State: tfsdk.State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
-			Diagnostics: resp.Diagnostics,
-		}
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource Update")
-		resource.Update(ctx, updateReq, &updateResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource Update")
-		resp.Diagnostics = updateResp.Diagnostics
-		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), updateResp.State.Raw)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting update response",
-				"An unexpected error was encountered when converting the update response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		resp.NewState = &newState
-	case !create && !update && destroy:
-		logging.FrameworkTrace(ctx, "running delete")
-		destroyReq := tfsdk.DeleteResourceRequest{
-			State: tfsdk.State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
-		}
-
-		providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		if providerMetaSchema != nil {
-			destroyReq.ProviderMeta = tfsdk.Config{
-				Schema: *providerMetaSchema,
-				Raw:    tftypes.NewValue(providerMetaSchema.TerraformType(ctx), nil),
-			}
-
-			if req.ProviderMeta != nil {
-				pmValue, err := req.ProviderMeta.Unmarshal(providerMetaSchema.TerraformType(ctx))
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Error parsing provider_meta",
-						"There was an error parsing the provider_meta block. Please report this to the provider developer:\n\n"+err.Error(),
-					)
-					return
-				}
-				destroyReq.ProviderMeta.Raw = pmValue
-			}
-		}
-
-		destroyResp := tfsdk.DeleteResourceResponse{
-			State: tfsdk.State{
-				Schema: resourceSchema,
-				Raw:    priorState,
-			},
-			Diagnostics: resp.Diagnostics,
-		}
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource Delete")
-		resource.Delete(ctx, destroyReq, &destroyResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource Delete")
-		resp.Diagnostics = destroyResp.Diagnostics
-
-		if !resp.Diagnostics.HasError() {
-			logging.FrameworkTrace(ctx, "No provider defined Delete errors detected, ensuring State is cleared")
-			destroyResp.State.RemoveResource(ctx)
-		}
-
-		newState, err := tfprotov6.NewDynamicValue(resourceSchema.TerraformType(ctx), destroyResp.State.Raw)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error converting delete response",
-				"An unexpected error was encountered when converting the delete response to a usable type. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-		resp.NewState = &newState
-	default:
-		resp.Diagnostics.AddError(
-			"Error understanding request",
-			fmt.Sprintf("An unexpected error was encountered trying to understand the type of request being made. This is always an error in the provider. Please report the following to the provider developer:\n\nRequest matched unexpected number of methods: (create: %v, update: %v, delete: %v)", create, update, destroy),
-		)
-	}
+	return toproto6.ApplyResourceChangeResponse(ctx, fwResp), nil
 }
 
 func (s *Server) ValidateDataResourceConfig(ctx context.Context, proto6Req *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {

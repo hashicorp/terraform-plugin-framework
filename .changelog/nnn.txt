@@ -1,0 +1,7 @@
+```release-note:enhancement
+tfsdk: Removed `ListNestedAttributesOptions`, `SetNestedAttributesOptions` and `MapNestedAttributesOptions` types, as they were empty (no fields) and unused.
+```
+
+```release-note:breaking-change
+tfsdk: `ListNestedAttributes`, `SetNestedAttributes` and `MapNestedAttributes` functions lost the second argument `opts`, as it was unused.
+```

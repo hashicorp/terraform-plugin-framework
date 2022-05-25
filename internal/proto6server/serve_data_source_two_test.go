@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -46,30 +45,6 @@ func (dt testServeDataSourceTypeTwo) NewDataSource(_ context.Context, p tfsdk.Pr
 	return testServeDataSourceTwo{
 		provider: provider,
 	}, nil
-}
-
-var testServeDataSourceTypeTwoSchema = &tfprotov6.Schema{
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "family",
-				Optional: true,
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "id",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "name",
-				Optional: true,
-				Computed: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
 }
 
 var testServeDataSourceTypeTwoType = tftypes.Object{

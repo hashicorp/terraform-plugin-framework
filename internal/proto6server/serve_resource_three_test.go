@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -56,48 +55,6 @@ func (rt testServeResourceTypeThree) NewResource(_ context.Context, p tfsdk.Prov
 	return testServeResourceThree{
 		provider: provider,
 	}, nil
-}
-
-var testServeResourceTypeThreeSchema = &tfprotov6.Schema{
-	Version: 1,
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "first_updated",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "last_updated",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "map_nested",
-				Required: true,
-				NestedType: &tfprotov6.SchemaObject{
-					Nesting: tfprotov6.SchemaObjectNestingModeMap,
-					Attributes: []*tfprotov6.SchemaAttribute{
-						{
-							Name:     "computed_string",
-							Computed: true,
-							Type:     tftypes.String,
-						},
-						{
-							Name:     "string",
-							Optional: true,
-							Type:     tftypes.String,
-						},
-					},
-				},
-			},
-			{
-				Name:     "name",
-				Required: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
 }
 
 var testServeResourceTypeThreeType = tftypes.Object{

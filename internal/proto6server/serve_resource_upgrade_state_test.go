@@ -50,29 +50,6 @@ func (t testServeResourceTypeUpgradeState) NewResource(_ context.Context, p tfsd
 	}, nil
 }
 
-var testServeResourceTypeUpgradeStateSchema = &tfprotov6.Schema{
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "id",
-				Computed: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "optional_attribute",
-				Optional: true,
-				Type:     tftypes.String,
-			},
-			{
-				Name:     "required_attribute",
-				Required: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
-	Version: 5,
-}
-
 var (
 	testServeResourceTypeUpgradeStateTftypeV0 = tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{

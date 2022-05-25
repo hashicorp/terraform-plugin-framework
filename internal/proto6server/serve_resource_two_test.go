@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -74,69 +73,6 @@ func (rt testServeResourceTypeTwo) NewResource(_ context.Context, p tfsdk.Provid
 	return testServeResourceTwo{
 		provider: provider,
 	}, nil
-}
-
-var testServeResourceTypeTwoSchema = &tfprotov6.Schema{
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "disks",
-				Optional: true,
-				Computed: true,
-				NestedType: &tfprotov6.SchemaObject{
-					Attributes: []*tfprotov6.SchemaAttribute{
-						{
-							Name:     "boot",
-							Required: true,
-							Type:     tftypes.Bool,
-						},
-						{
-							Name:     "name",
-							Required: true,
-							Type:     tftypes.String,
-						},
-						{
-							Name:     "size_gb",
-							Required: true,
-							Type:     tftypes.Number,
-						},
-					},
-					Nesting: tfprotov6.SchemaObjectNestingModeList,
-				},
-			},
-			{
-				Name:     "id",
-				Optional: true,
-				Computed: true,
-				Type:     tftypes.String,
-			},
-		},
-		BlockTypes: []*tfprotov6.SchemaNestedBlock{
-			{
-				Block: &tfprotov6.SchemaBlock{
-					Attributes: []*tfprotov6.SchemaAttribute{
-						{
-							Name:     "required_bool",
-							Required: true,
-							Type:     tftypes.Bool,
-						},
-						{
-							Name:     "required_number",
-							Required: true,
-							Type:     tftypes.Number,
-						},
-						{
-							Name:     "required_string",
-							Required: true,
-							Type:     tftypes.String,
-						},
-					},
-				},
-				Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
-				TypeName: "list_nested_blocks",
-			},
-		},
-	},
 }
 
 var testServeResourceTypeTwoType = tftypes.Object{

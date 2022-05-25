@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -36,18 +35,6 @@ func (dt testServeResourceTypeConfigValidators) NewResource(_ context.Context, p
 	return testServeResourceConfigValidators{
 		provider: provider,
 	}, nil
-}
-
-var testServeResourceTypeConfigValidatorsSchema = &tfprotov6.Schema{
-	Block: &tfprotov6.SchemaBlock{
-		Attributes: []*tfprotov6.SchemaAttribute{
-			{
-				Name:     "string",
-				Optional: true,
-				Type:     tftypes.String,
-			},
-		},
-	},
 }
 
 var testServeResourceTypeConfigValidatorsType = tftypes.Object{

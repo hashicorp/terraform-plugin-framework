@@ -179,7 +179,7 @@ func TestSchema(t *testing.T) {
 								Computed: true,
 								Optional: true,
 							},
-						}, tfsdk.ListNestedAttributesOptions{}),
+						}),
 						Optional: true,
 					},
 					"set": {
@@ -201,7 +201,7 @@ func TestSchema(t *testing.T) {
 								Computed: true,
 								Optional: true,
 							},
-						}, tfsdk.SetNestedAttributesOptions{}),
+						}),
 						Computed: true,
 					},
 					"map": {
@@ -223,7 +223,7 @@ func TestSchema(t *testing.T) {
 								Computed: true,
 								Optional: true,
 							},
-						}, tfsdk.MapNestedAttributesOptions{}),
+						}),
 						Optional: true,
 						Computed: true,
 					},

@@ -36,7 +36,7 @@ func (rt testServeResourceTypeTwo) GetSchema(_ context.Context) (tfsdk.Schema, d
 						Required: true,
 						Type:     types.BoolType,
 					},
-				}, tfsdk.ListNestedAttributesOptions{}),
+				}),
 			},
 		},
 		Blocks: map[string]tfsdk.Block{

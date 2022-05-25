@@ -230,7 +230,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Dia
 						Type:     types.NumberType,
 						Required: true,
 					},
-				}, tfsdk.ListNestedAttributesOptions{}),
+				}),
 				Optional: true,
 			},
 			"map-nested-attributes": {
@@ -244,7 +244,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Dia
 						Type:     types.NumberType,
 						Required: true,
 					},
-				}, tfsdk.MapNestedAttributesOptions{}),
+				}),
 				Optional: true,
 			},
 			"set-nested-attributes": {
@@ -258,7 +258,7 @@ func (t *testServeProvider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Dia
 						Type:     types.NumberType,
 						Required: true,
 					},
-				}, tfsdk.SetNestedAttributesOptions{}),
+				}),
 				Optional: true,
 			},
 		},

@@ -519,7 +519,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 									Type:     types.StringType,
 									Required: true,
 								},
-							}, ListNestedAttributesOptions{}),
+							}),
 							Required: true,
 						},
 						"other": {
@@ -576,7 +576,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 									}),
 									Optional: true,
 								},
-							}, ListNestedAttributesOptions{}),
+							}),
 							Optional: true,
 						},
 						"other": {
@@ -631,7 +631,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 									Type:     types.StringType,
 									Required: true,
 								},
-							}, ListNestedAttributesOptions{}),
+							}),
 							Required: true,
 						},
 						"other": {
@@ -925,7 +925,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 									Type:     types.StringType,
 									Required: true,
 								},
-							}, MapNestedAttributesOptions{}),
+							}),
 							Required: true,
 						},
 						"other": {
@@ -977,7 +977,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 									Type:     types.StringType,
 									Required: true,
 								},
-							}, MapNestedAttributesOptions{}),
+							}),
 							Required: true,
 						},
 						"other": {
@@ -1131,7 +1131,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 									Type:     types.StringType,
 									Required: true,
 								},
-							}, SetNestedAttributesOptions{}),
+							}),
 							Required: true,
 						},
 						"other": {
@@ -1189,7 +1189,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 									Type:     types.StringType,
 									Required: true,
 								},
-							}, SetNestedAttributesOptions{}),
+							}),
 							Required: true,
 						},
 						"other": {

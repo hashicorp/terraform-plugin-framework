@@ -37,7 +37,7 @@ func (rt testServeResourceTypeThree) GetSchema(_ context.Context) (tfsdk.Schema,
 						Optional: true,
 						Type:     types.StringType,
 					},
-				}, tfsdk.MapNestedAttributesOptions{}),
+				}),
 			},
 		},
 	}, nil

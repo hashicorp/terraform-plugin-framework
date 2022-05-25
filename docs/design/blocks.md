@@ -522,7 +522,7 @@ func (t exampleThingResourceType) GetSchema(_ context.Context) (Schema, diag.Dia
 						Required: true,
 						Type:     types.StringType,
 					},
-				}, ListNestedAttributesOptions{}),
+				}),
 			},
 		},
 	}, nil
@@ -572,7 +572,7 @@ For example:
 			Type:     types.StringType,
 			Required: true,
 		},
-	}, ListNestedBlocksOptions{}),
+	}),
 },
 ```
 
@@ -591,7 +591,7 @@ For example:
 			Type:     types.StringType,
 			Required: true,
 		},
-	}, ListNestedBlocksOptions{}),
+	}),
 },
 ```
 
@@ -599,7 +599,6 @@ This allows the framework to differentiate between block and nested attributes b
 
 - Rename `Blocks` field identifier to `Attributes`
 - Rename `ListNestedBlocks`/`SetNestedBlocks` call expressions to `ListNestedAttributes`/`SetNestedAttributes`
-- Rename `ListNestedBlocksOptions`/`SetNestedBlocksOptions` declarations to `ListNestedAttributesOptions`/`SetNestedBlocksOptions`
 - Either default to adding `Required`/`Optional`/`Computed` field identifier(s) and `true` value(s) or its a manual step for provider developers
 
 However, this does introduce the possibility of creating a schema that passes compilation checks, but is not a valid schema. For example, `Attributes` that contains `Blocks` which is not possible in the protocol. At best the framework could introduce unit testable schema validation logic to catch this situation, or worse case, it would result in runtime errors for practitioners that get reported back to provider developers.

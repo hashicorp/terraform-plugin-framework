@@ -73,7 +73,7 @@ type NestedAttributes interface {
 type nestedAttributes map[string]Attribute
 
 func (n nestedAttributes) GetAttributes() map[string]Attribute {
-	return map[string]Attribute(n)
+	return n
 }
 
 func (n nestedAttributes) unimplementable() {}
@@ -111,7 +111,7 @@ func (n nestedAttributes) AttributeType() attr.Type {
 // configuration.
 func SingleNestedAttributes(attributes map[string]Attribute) NestedAttributes {
 	return singleNestedAttributes{
-		nestedAttributes(attributes),
+		attributes,
 	}
 }
 
@@ -145,9 +145,8 @@ func (s singleNestedAttributes) Equal(o NestedAttributes) bool {
 
 // ListNestedAttributes nests `attributes` under another attribute, allowing
 // multiple instances of that group of attributes to appear in the
-// configuration. Minimum and maximum numbers of times the group can appear in
-// the configuration can be set using `opts`.
-func ListNestedAttributes(attributes map[string]Attribute, opts ListNestedAttributesOptions) NestedAttributes {
+// configuration.
+func ListNestedAttributes(attributes map[string]Attribute) NestedAttributes {
 	return listNestedAttributes{
 		nestedAttributes: nestedAttributes(attributes),
 	}
@@ -156,10 +155,6 @@ func ListNestedAttributes(attributes map[string]Attribute, opts ListNestedAttrib
 type listNestedAttributes struct {
 	nestedAttributes
 }
-
-// ListNestedAttributesOptions captures additional, optional parameters for
-// ListNestedAttributes.
-type ListNestedAttributesOptions struct{}
 
 func (l listNestedAttributes) GetNestingMode() NestingMode {
 	return NestingModeList
@@ -202,10 +197,8 @@ func (l listNestedAttributes) Equal(o NestedAttributes) bool {
 
 // SetNestedAttributes nests `attributes` under another attribute, allowing
 // multiple instances of that group of attributes to appear in the
-// configuration, while requiring each group of values be unique. Minimum and
-// maximum numbers of times the group can appear in the configuration can be
-// set using `opts`.
-func SetNestedAttributes(attributes map[string]Attribute, opts SetNestedAttributesOptions) NestedAttributes {
+// configuration, while requiring each group of values be unique.
+func SetNestedAttributes(attributes map[string]Attribute) NestedAttributes {
 	return setNestedAttributes{
 		nestedAttributes: nestedAttributes(attributes),
 	}
@@ -214,10 +207,6 @@ func SetNestedAttributes(attributes map[string]Attribute, opts SetNestedAttribut
 type setNestedAttributes struct {
 	nestedAttributes
 }
-
-// SetNestedAttributesOptions captures additional, optional parameters for
-// SetNestedAttributes.
-type SetNestedAttributesOptions struct{}
 
 func (s setNestedAttributes) GetNestingMode() NestingMode {
 	return NestingModeSet
@@ -261,9 +250,8 @@ func (s setNestedAttributes) Equal(o NestedAttributes) bool {
 // MapNestedAttributes nests `attributes` under another attribute, allowing
 // multiple instances of that group of attributes to appear in the
 // configuration. Each group will need to be associated with a unique string by
-// the user. Minimum and maximum numbers of times the group can appear in the
-// configuration can be set using `opts`.
-func MapNestedAttributes(attributes map[string]Attribute, opts MapNestedAttributesOptions) NestedAttributes {
+// the user.
+func MapNestedAttributes(attributes map[string]Attribute) NestedAttributes {
 	return mapNestedAttributes{
 		nestedAttributes: nestedAttributes(attributes),
 	}
@@ -272,10 +260,6 @@ func MapNestedAttributes(attributes map[string]Attribute, opts MapNestedAttribut
 type mapNestedAttributes struct {
 	nestedAttributes
 }
-
-// MapNestedAttributesOptions captures additional, optional parameters for
-// MapNestedAttributes.
-type MapNestedAttributesOptions struct{}
 
 func (m mapNestedAttributes) GetNestingMode() NestingMode {
 	return NestingModeMap

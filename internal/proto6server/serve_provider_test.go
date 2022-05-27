@@ -295,68 +295,6 @@ func (t *testServeProvider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Dia
 	}, nil
 }
 
-var testServeProviderProviderType = tftypes.Object{
-	AttributeTypes: map[string]tftypes.Type{
-		"required":          tftypes.String,
-		"optional":          tftypes.String,
-		"computed":          tftypes.String,
-		"optional_computed": tftypes.String,
-		"sensitive":         tftypes.String,
-		"deprecated":        tftypes.String,
-		"string":            tftypes.String,
-		"number":            tftypes.Number,
-		"bool":              tftypes.Bool,
-		"int64":             tftypes.Number,
-		"float64":           tftypes.Number,
-		"list-string":       tftypes.List{ElementType: tftypes.String},
-		"list-list-string":  tftypes.List{ElementType: tftypes.List{ElementType: tftypes.String}},
-		"list-object": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-			"foo": tftypes.String,
-			"bar": tftypes.Bool,
-			"baz": tftypes.Number,
-		}}},
-		"map": tftypes.Map{ElementType: tftypes.Number},
-		"object": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-			"foo":  tftypes.String,
-			"bar":  tftypes.Bool,
-			"baz":  tftypes.Number,
-			"quux": tftypes.List{ElementType: tftypes.String},
-		}},
-		"set-string":     tftypes.Set{ElementType: tftypes.String},
-		"set-set-string": tftypes.Set{ElementType: tftypes.Set{ElementType: tftypes.String}},
-		"set-object": tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-			"foo": tftypes.String,
-			"bar": tftypes.Bool,
-			"baz": tftypes.Number,
-		}}},
-		"empty-object": tftypes.Object{AttributeTypes: map[string]tftypes.Type{}},
-		"single-nested-attributes": tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-			"foo": tftypes.String,
-			"bar": tftypes.Number,
-		}},
-		"list-nested-attributes": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-			"foo": tftypes.String,
-			"bar": tftypes.Number,
-		}}},
-		"list-nested-blocks": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-			"foo": tftypes.String,
-			"bar": tftypes.Number,
-		}}},
-		"map-nested-attributes": tftypes.Map{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-			"foo": tftypes.String,
-			"bar": tftypes.Number,
-		}}},
-		"set-nested-attributes": tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-			"foo": tftypes.String,
-			"bar": tftypes.Number,
-		}}},
-		"set-nested-blocks": tftypes.Set{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-			"foo": tftypes.String,
-			"bar": tftypes.Number,
-		}}},
-	},
-}
-
 func (t *testServeProvider) GetResources(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
 	return map[string]tfsdk.ResourceType{
 		"test_one":                           testServeResourceTypeOne{},

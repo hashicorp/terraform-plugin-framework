@@ -297,17 +297,14 @@ func (t *testServeProvider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Dia
 
 func (t *testServeProvider) GetResources(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
 	return map[string]tfsdk.ResourceType{
-		"test_one":                           testServeResourceTypeOne{},
-		"test_two":                           testServeResourceTypeTwo{},
-		"test_three":                         testServeResourceTypeThree{},
-		"test_attribute_plan_modifiers":      testServeResourceTypeAttributePlanModifiers{},
-		"test_config_validators":             testServeResourceTypeConfigValidators{},
-		"test_import_state":                  testServeResourceTypeImportState{},
-		"test_import_state_not_implemented":  testServeResourceTypeImportStateNotImplemented{},
-		"test_upgrade_state":                 testServeResourceTypeUpgradeState{},
-		"test_upgrade_state_empty":           testServeResourceTypeUpgradeStateEmpty{},
-		"test_upgrade_state_not_implemented": testServeResourceTypeUpgradeStateNotImplemented{},
-		"test_validate_config":               testServeResourceTypeValidateConfig{},
+		"test_one":                          testServeResourceTypeOne{},
+		"test_two":                          testServeResourceTypeTwo{},
+		"test_three":                        testServeResourceTypeThree{},
+		"test_attribute_plan_modifiers":     testServeResourceTypeAttributePlanModifiers{},
+		"test_config_validators":            testServeResourceTypeConfigValidators{},
+		"test_import_state":                 testServeResourceTypeImportState{},
+		"test_import_state_not_implemented": testServeResourceTypeImportStateNotImplemented{},
+		"test_validate_config":              testServeResourceTypeValidateConfig{},
 	}, nil
 }
 

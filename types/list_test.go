@@ -312,6 +312,7 @@ func TestListToTerraformValue(t *testing.T) {
 	type testCase struct {
 		input       List
 		expectation interface{}
+		expectedErr string
 	}
 	tests := map[string]testCase{
 		"value": {
@@ -361,16 +362,32 @@ func TestListToTerraformValue(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello, world"),
 			}),
 		},
+		"no-elem-type": {
+			input: List{
+				Elems: []attr.Value{
+					String{Null: true},
+					String{Value: "hello, world"},
+				},
+			},
+			expectedErr: "cannot convert List to Terraform Value if ElemType field is null",
+			expectation: tftypes.Value{},
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := test.input.ToTerraformValue(context.Background())
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
+			got, gotErr := test.input.ToTerraformValue(context.Background())
+			if gotErr != nil {
+				if test.expectedErr == "" {
+					t.Errorf("Unexpected error: %s", gotErr)
+					return
+				}
+				if gotErr.Error() != test.expectedErr {
+					t.Errorf("Expected error to be %q, got %q", test.expectedErr, gotErr.Error())
+					return
+				}
 			}
 			if diff := cmp.Diff(got, test.expectation); diff != "" {
 				t.Errorf("Unexpected result (+got, -expected): %s", diff)

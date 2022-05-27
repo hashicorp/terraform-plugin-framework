@@ -223,6 +223,9 @@ func (s Set) Type(ctx context.Context) attr.Type {
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a tftypes.Value.
 func (s Set) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	if s.ElemType == nil {
+		return tftypes.Value{}, fmt.Errorf("cannot convert Set to Terraform Value if ElemType field is null")
+	}
 	setType := tftypes.Set{ElementType: s.ElemType.TerraformType(ctx)}
 	if s.Unknown {
 		return tftypes.NewValue(setType, tftypes.UnknownValue), nil

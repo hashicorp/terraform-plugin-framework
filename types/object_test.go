@@ -1074,6 +1074,39 @@ func TestObjectToTerraformValue(t *testing.T) {
 				}),
 			}),
 		},
+		"no-attr-types": {
+			receiver: Object{
+				Attrs: map[string]attr.Value{
+					"a": List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+					"b": String{Value: "woohoo"},
+					"c": Bool{Value: true},
+					"d": Number{Value: big.NewFloat(1234)},
+					"e": Object{
+						AttrTypes: map[string]attr.Type{
+							"name": StringType,
+						},
+						Attrs: map[string]attr.Value{
+							"name": String{Value: "testing123"},
+						},
+					},
+					"f": Set{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+				},
+			},
+			expected:    tftypes.Value{},
+			expectedErr: "cannot convert Object to Terraform Value if AttrTypes field is null",
+		},
 	}
 
 	for name, test := range tests {

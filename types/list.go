@@ -162,6 +162,9 @@ func (l List) Type(ctx context.Context) attr.Type {
 // ToTerraformValue returns the data contained in the AttributeValue as
 // a tftypes.Value.
 func (l List) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	if l.ElemType == nil {
+		return tftypes.Value{}, fmt.Errorf("cannot convert List to Terraform Value if ElemType field is null")
+	}
 	listType := tftypes.List{ElementType: l.ElemType.TerraformType(ctx)}
 	if l.Unknown {
 		return tftypes.NewValue(listType, tftypes.UnknownValue), nil

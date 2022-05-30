@@ -1,0 +1,3 @@
+```release-note:enhancement
+tfsdk: New function `ValueFrom` that takes a Go value and populates a compatible `attr.Value`, given a descriptive `attr.Type`.
+```

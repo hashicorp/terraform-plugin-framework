@@ -8,12 +8,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func newStringPointer(in string) *string {
@@ -27,6 +28,22 @@ func newStringPointerPointer(in string) **string {
 
 func newInt64Pointer(in int64) *int64 {
 	return &in
+}
+
+type personAsFWTypes struct {
+	Name    types.String `tfsdk:"name"`
+	Age     types.Int64  `tfsdk:"age"`
+	OptedIn types.Bool   `tfsdk:"opted_in"`
+	Address types.Map    `tfsdk:"address"`
+	Colours types.List   `tfsdk:"colours"`
+}
+
+type personAsGoTypes struct {
+	Name    string            `tfsdk:"name"`
+	Age     int64             `tfsdk:"age"`
+	OptedIn bool              `tfsdk:"opted_in"`
+	Address map[string]string `tfsdk:"address"`
+	Colours []string          `tfsdk:"colours"`
 }
 
 func TestValueAs(t *testing.T) {
@@ -44,6 +61,100 @@ func TestValueAs(t *testing.T) {
 			val:      types.String{Value: "hello"},
 			target:   newStringPointer(""),
 			expected: newStringPointer("hello"),
+		},
+		"struct - FW": {
+			val: types.Object{
+				Attrs: map[string]attr.Value{
+					"name":     types.String{Value: "Boris"},
+					"age":      types.Int64{Value: 25},
+					"opted_in": types.Bool{Value: true},
+					"address": types.Map{
+						Elems: map[string]attr.Value{
+							"first_line": types.String{Value: "10 Downing Street"},
+							"postcode":   types.String{Value: "SW1A 2AA"},
+						},
+						ElemType: types.StringType,
+					},
+					"colours": types.List{
+						Elems: []attr.Value{
+							types.String{Value: "red"},
+							types.String{Value: "green"},
+							types.String{Value: "blue"},
+						},
+						ElemType: types.StringType,
+					},
+				},
+				AttrTypes: map[string]attr.Type{
+					"name":     types.StringType,
+					"age":      types.Int64Type,
+					"opted_in": types.BoolType,
+					"address":  types.MapType{ElemType: types.StringType},
+					"colours":  types.ListType{ElemType: types.StringType},
+				},
+			},
+			target: &personAsFWTypes{},
+			expected: &personAsFWTypes{
+				Name:    types.String{Value: "Boris"},
+				Age:     types.Int64{Value: 25},
+				OptedIn: types.Bool{Value: true},
+				Address: types.Map{
+					Elems: map[string]attr.Value{
+						"first_line": types.String{Value: "10 Downing Street"},
+						"postcode":   types.String{Value: "SW1A 2AA"},
+					},
+					ElemType: types.StringType,
+				},
+				Colours: types.List{
+					Elems: []attr.Value{
+						types.String{Value: "red"},
+						types.String{Value: "green"},
+						types.String{Value: "blue"},
+					},
+					ElemType: types.StringType,
+				},
+			},
+		},
+		"struct - Go": {
+			val: types.Object{
+				Attrs: map[string]attr.Value{
+					"name":     types.String{Value: "Boris"},
+					"age":      types.Int64{Value: 25},
+					"opted_in": types.Bool{Value: true},
+					"address": types.Map{
+						Elems: map[string]attr.Value{
+							"first_line": types.String{Value: "10 Downing Street"},
+							"postcode":   types.String{Value: "SW1A 2AA"},
+						},
+						ElemType: types.StringType,
+					},
+					"colours": types.List{
+						Elems: []attr.Value{
+							types.String{Value: "red"},
+							types.String{Value: "green"},
+							types.String{Value: "blue"},
+						},
+						ElemType: types.StringType,
+					},
+				},
+				AttrTypes: map[string]attr.Type{
+					"name":     types.StringType,
+					"age":      types.Int64Type,
+					"opted_in": types.BoolType,
+					"address":  types.MapType{ElemType: types.StringType},
+					"colours":  types.ListType{ElemType: types.StringType},
+				},
+			},
+			target: &personAsGoTypes{},
+			expected: &personAsGoTypes{
+				Name:    "Boris",
+				Age:     25,
+				OptedIn: true,
+				Address: map[string]string{
+					"first_line": "10 Downing Street",
+					"postcode":   "SW1A 2AA",
+				},
+				Colours: []string{"red", "green", "blue"},
+			},
 		},
 		"incompatible-type": {
 			val:    types.String{Value: "hello"},

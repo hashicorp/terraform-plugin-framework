@@ -12,10 +12,11 @@ import (
 )
 
 type person struct {
-	Name    types.String `tfsdk:"name"`
-	Age     types.Int64  `tfsdk:"age"`
-	OptedIn types.Bool   `tfsdk:"opted_in"`
-	Address types.List   `tfsdk:"address"`
+	Name     types.String `tfsdk:"name"`
+	Age      types.Int64  `tfsdk:"age"`
+	OptedIn  types.Bool   `tfsdk:"opted_in"`
+	Address  types.List   `tfsdk:"address"`
+	FullName types.Map    `tfsdk:"full_name"`
 }
 
 func TestValueFrom(t *testing.T) {
@@ -26,6 +27,9 @@ func TestValueFrom(t *testing.T) {
 		"age":      types.Int64Type,
 		"opted_in": types.BoolType,
 		"address": types.ListType{
+			ElemType: types.StringType,
+		},
+		"full_name": types.MapType{
 			ElemType: types.StringType,
 		},
 	}
@@ -42,6 +46,14 @@ func TestValueFrom(t *testing.T) {
 				types.String{Value: "Gotham"},
 			},
 		},
+		FullName: types.Map{
+			ElemType: types.StringType,
+			Elems: map[string]attr.Value{
+				"first":  types.String{Value: "x"},
+				"middle": types.String{Value: "b"},
+				"last":   types.String{Value: "c"},
+			},
+		},
 	}
 
 	mrsY := person{
@@ -54,6 +66,14 @@ func TestValueFrom(t *testing.T) {
 				types.String{Value: "2"},
 				types.String{Value: "Windmill Close"},
 				types.String{Value: "Smallville"},
+			},
+		},
+		FullName: types.Map{
+			ElemType: types.StringType,
+			Elems: map[string]attr.Value{
+				"first":  types.String{Value: "y"},
+				"middle": types.String{Value: "e"},
+				"last":   types.String{Value: "f"},
 			},
 		},
 	}
@@ -72,6 +92,14 @@ func TestValueFrom(t *testing.T) {
 					types.String{Value: "Gotham"},
 				},
 			},
+			"full_name": types.Map{
+				ElemType: types.StringType,
+				Elems: map[string]attr.Value{
+					"first":  types.String{Value: "x"},
+					"middle": types.String{Value: "b"},
+					"last":   types.String{Value: "c"},
+				},
+			},
 		},
 	}
 
@@ -87,6 +115,14 @@ func TestValueFrom(t *testing.T) {
 					types.String{Value: "2"},
 					types.String{Value: "Windmill Close"},
 					types.String{Value: "Smallville"},
+				},
+			},
+			"full_name": types.Map{
+				ElemType: types.StringType,
+				Elems: map[string]attr.Value{
+					"first":  types.String{Value: "y"},
+					"middle": types.String{Value: "e"},
+					"last":   types.String{Value: "f"},
 				},
 			},
 		},
@@ -124,6 +160,26 @@ func TestValueFrom(t *testing.T) {
 					AttrTypes: personAttrTypes,
 				},
 				Elems: []attr.Value{expectedMrXObj, expectedMrsYObj},
+			},
+		},
+		"map": {
+			val: map[string]person{
+				"x": mrX,
+				"y": mrsY,
+			},
+			target: types.Map{
+				ElemType: types.ObjectType{
+					AttrTypes: personAttrTypes,
+				},
+			},
+			expected: types.Map{
+				ElemType: types.ObjectType{
+					AttrTypes: personAttrTypes,
+				},
+				Elems: map[string]attr.Value{
+					"x": expectedMrXObj,
+					"y": expectedMrsYObj,
+				},
 			},
 		},
 		"incompatible-type": {

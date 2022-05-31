@@ -17,6 +17,42 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+func newBoolPointer(in bool) *bool {
+	return &in
+}
+
+func newBoolPointerPointer(in bool) **bool {
+	boolPointer := &in
+	return &boolPointer
+}
+
+func newFloatPointer(in float64) *float64 {
+	return &in
+}
+
+func newFloatPointerPointer(in float64) **float64 {
+	floatPointer := &in
+	return &floatPointer
+}
+
+func newInt64Pointer(in int64) *int64 {
+	return &in
+}
+
+func newInt64PointerPointer(in int64) **int64 {
+	intPointer := &in
+	return &intPointer
+}
+
+func newBigFloatPointer(in uint64) *big.Float {
+	return new(big.Float)
+}
+
+func newBigFloatPointerPointer(in uint64) **big.Float {
+	bf := new(big.Float).SetUint64(in)
+	return &bf
+}
+
 func newStringPointer(in string) *string {
 	return &in
 }
@@ -24,10 +60,6 @@ func newStringPointer(in string) *string {
 func newStringPointerPointer(in string) **string {
 	stringPointer := &in
 	return &stringPointer
-}
-
-func newInt64Pointer(in int64) *int64 {
-	return &in
 }
 
 type personAsFWTypes struct {
@@ -57,11 +89,62 @@ func TestValueAs(t *testing.T) {
 	}
 
 	tests := map[string]testCase{
-		"primitive": {
+		"primitive bool pointer": {
+			val:      types.Bool{Value: true},
+			target:   newBoolPointer(false),
+			expected: newBoolPointer(true),
+		},
+		"primitive bool pointer pointer": {
+			val:      types.Bool{Value: true},
+			target:   newBoolPointerPointer(false),
+			expected: newBoolPointerPointer(true),
+		},
+		"primitive float64 pointer": {
+			val:      types.Float64{Value: 12.3},
+			target:   newFloatPointer(0.0),
+			expected: newFloatPointer(12.3),
+		},
+		"primitive float64 pointer pointer": {
+			val:      types.Float64{Value: 12.3},
+			target:   newFloatPointerPointer(0.0),
+			expected: newFloatPointerPointer(12.3),
+		},
+		"primitive int64 pointer": {
+			val:      types.Int64{Value: 12},
+			target:   newInt64Pointer(0),
+			expected: newInt64Pointer(12),
+		},
+		"primitive int64 pointer pointer": {
+			val:      types.Int64{Value: 12},
+			target:   newInt64PointerPointer(0),
+			expected: newInt64PointerPointer(12),
+		},
+		// Following test fails as target.Type() is big.Float not *bigFloat.
+		//  See https://github.com/hashicorp/terraform-plugin-framework/blob/main/internal/reflect/into.go#L144
+		// The switch on target.Kind() then identifies big.Float as reflect.Struct and the reflection fails
+		// with "cannot reflect tftypes.Number into a struct, must be an object".
+		// See https://github.com/hashicorp/terraform-plugin-framework/blob/main/internal/reflect/into.go#L148
+		// "primitive number pointer": {
+		// 	val:      types.Number{Value: new(big.Float).SetUint64(722770156065510359)},
+		// 	target:   newBigFloatPointer(0),
+		// 	expected: newBigFloatPointer(722770156065510359),
+		// },
+		"primitive number pointer pointer": {
+			val:      types.Number{Value: new(big.Float).SetUint64(722770156065510359)},
+			target:   newBigFloatPointerPointer(0),
+			expected: newBigFloatPointerPointer(722770156065510359),
+		},
+		"primitive string pointer": {
 			val:      types.String{Value: "hello"},
 			target:   newStringPointer(""),
 			expected: newStringPointer("hello"),
 		},
+		"primitive string pointer pointer": {
+			val:      types.String{Value: "hello"},
+			target:   newStringPointerPointer(""),
+			expected: newStringPointerPointer("hello"),
+		},
+
 		"struct - FW": {
 			val: types.Object{
 				Attrs: map[string]attr.Value{
@@ -201,8 +284,20 @@ func TestValueAs(t *testing.T) {
 				return
 			}
 
-			if diff := cmp.Diff(tc.expected, tc.target); diff != "" {
-				t.Fatalf("Unexpected diff in results (-wanted, +got): %s", diff)
+			// Cannot use cmp.Diff for comparing big.Float
+			switch tc.expected.(type) {
+			case *big.Float:
+				if diff := tc.expected.(*big.Float).Cmp(tc.target.(*big.Float)); diff != 0 {
+					t.Fatalf("Unexpected diff in results: %d", diff)
+				}
+			case **big.Float:
+				if diff := (*tc.expected.(**big.Float)).Cmp(*tc.target.(**big.Float)); diff != 0 {
+					t.Fatalf("Unexpected diff in results: %d", diff)
+				}
+			default:
+				if diff := cmp.Diff(tc.expected, tc.target); diff != "" {
+					t.Fatalf("Unexpected diff in results (-wanted, +got): %s", diff)
+				}
 			}
 		})
 	}

@@ -44,10 +44,6 @@ func newInt64PointerPointer(in int64) **int64 {
 	return &intPointer
 }
 
-func newBigFloatPointer(in uint64) *big.Float {
-	return new(big.Float)
-}
-
 func newBigFloatPointerPointer(in uint64) **big.Float {
 	bf := new(big.Float).SetUint64(in)
 	return &bf

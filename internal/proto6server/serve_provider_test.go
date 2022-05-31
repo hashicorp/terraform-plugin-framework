@@ -301,19 +301,15 @@ func (t *testServeProvider) GetResources(_ context.Context) (map[string]tfsdk.Re
 		"test_two":                          testServeResourceTypeTwo{},
 		"test_three":                        testServeResourceTypeThree{},
 		"test_attribute_plan_modifiers":     testServeResourceTypeAttributePlanModifiers{},
-		"test_config_validators":            testServeResourceTypeConfigValidators{},
 		"test_import_state":                 testServeResourceTypeImportState{},
 		"test_import_state_not_implemented": testServeResourceTypeImportStateNotImplemented{},
-		"test_validate_config":              testServeResourceTypeValidateConfig{},
 	}, nil
 }
 
 func (t *testServeProvider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
 	return map[string]tfsdk.DataSourceType{
-		"test_one":               testServeDataSourceTypeOne{},
-		"test_two":               testServeDataSourceTypeTwo{},
-		"test_config_validators": testServeDataSourceTypeConfigValidators{},
-		"test_validate_config":   testServeDataSourceTypeValidateConfig{},
+		"test_one": testServeDataSourceTypeOne{},
+		"test_two": testServeDataSourceTypeTwo{},
 	}, nil
 }
 

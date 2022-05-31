@@ -312,6 +312,7 @@ func TestListToTerraformValue(t *testing.T) {
 	type testCase struct {
 		input       List
 		expectation interface{}
+		expectedErr string
 	}
 	tests := map[string]testCase{
 		"value": {
@@ -361,17 +362,41 @@ func TestListToTerraformValue(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello, world"),
 			}),
 		},
+		"no-elem-type": {
+			input: List{
+				Elems: []attr.Value{
+					String{Null: true},
+					String{Value: "hello, world"},
+				},
+			},
+			expectedErr: "cannot convert List to tftypes.Value if ElemType field is not set",
+			expectation: tftypes.Value{},
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := test.input.ToTerraformValue(context.Background())
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
+			got, gotErr := test.input.ToTerraformValue(context.Background())
+
+			if test.expectedErr == "" && gotErr != nil {
+				t.Errorf("Unexpected error: %s", gotErr)
 				return
 			}
+
+			if test.expectedErr != "" {
+				if gotErr == nil {
+					t.Errorf("Expected error to be %q, got none", test.expectedErr)
+					return
+				}
+
+				if test.expectedErr != gotErr.Error() {
+					t.Errorf("Expected error to be %q, got %q", test.expectedErr, gotErr.Error())
+					return
+				}
+			}
+
 			if diff := cmp.Diff(got, test.expectation); diff != "" {
 				t.Errorf("Unexpected result (+got, -expected): %s", diff)
 			}

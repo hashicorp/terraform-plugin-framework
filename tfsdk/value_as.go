@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 )
 
-// ValueAs populates the Go value passed as `target` with
-// the contents of `val`, using the reflection rules
-// defined for `Get` and `GetAttribute`.
+// ValueAs takes the attr.Value `val` and populates the Go value `target` with its content.
+//
+// This is achieved using reflection rules provided by the internal/reflect package.
 func ValueAs(ctx context.Context, val attr.Value, target interface{}) diag.Diagnostics {
 	if reflect.IsGenericAttrValue(ctx, target) {
 		*(target.(*attr.Value)) = val

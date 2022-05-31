@@ -209,7 +209,7 @@ func (o Object) Type(_ context.Context) attr.Type {
 // a tftypes.Value.
 func (o Object) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	if o.AttrTypes == nil {
-		return tftypes.Value{}, fmt.Errorf("cannot convert Object to Terraform Value if AttrTypes field is null")
+		return tftypes.Value{}, fmt.Errorf("cannot convert Object to tftypes.Value if AttrTypes field is not set")
 	}
 	attrTypes := map[string]tftypes.Type{}
 	for attr, typ := range o.AttrTypes {

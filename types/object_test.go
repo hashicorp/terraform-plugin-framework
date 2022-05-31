@@ -1105,7 +1105,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 				},
 			},
 			expected:    tftypes.Value{},
-			expectedErr: "cannot convert Object to Terraform Value if AttrTypes field is null",
+			expectedErr: "cannot convert Object to tftypes.Value if AttrTypes field is not set",
 		},
 	}
 
@@ -1114,22 +1114,25 @@ func TestObjectToTerraformValue(t *testing.T) {
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			got, err := test.receiver.ToTerraformValue(context.Background())
-			if err != nil {
-				if test.expectedErr == "" {
-					t.Errorf("unexpected error: %s", err)
-					return
-				}
-				if test.expectedErr != err.Error() {
-					t.Errorf("expected error to be %q, got %q", test.expectedErr, err.Error())
-					return
-				}
+			got, gotErr := test.receiver.ToTerraformValue(context.Background())
+
+			if test.expectedErr == "" && gotErr != nil {
+				t.Errorf("Unexpected error: %s", gotErr)
 				return
 			}
-			if err == nil && test.expectedErr != "" {
-				t.Errorf("expected error to be %q, got nil", test.expectedErr)
-				return
+
+			if test.expectedErr != "" {
+				if gotErr == nil {
+					t.Errorf("Expected error to be %q, got none", test.expectedErr)
+					return
+				}
+
+				if test.expectedErr != gotErr.Error() {
+					t.Errorf("Expected error to be %q, got %q", test.expectedErr, gotErr.Error())
+					return
+				}
 			}
+
 			if diff := cmp.Diff(test.expected, got); diff != "" {
 				t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
 			}

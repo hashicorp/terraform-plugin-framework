@@ -369,7 +369,7 @@ func TestListToTerraformValue(t *testing.T) {
 					String{Value: "hello, world"},
 				},
 			},
-			expectedErr: "cannot convert List to Terraform Value if ElemType field is null",
+			expectedErr: "cannot convert List to tftypes.Value if ElemType field is not set",
 			expectation: tftypes.Value{},
 		},
 	}
@@ -379,16 +379,24 @@ func TestListToTerraformValue(t *testing.T) {
 			t.Parallel()
 
 			got, gotErr := test.input.ToTerraformValue(context.Background())
-			if gotErr != nil {
-				if test.expectedErr == "" {
-					t.Errorf("Unexpected error: %s", gotErr)
+
+			if test.expectedErr == "" && gotErr != nil {
+				t.Errorf("Unexpected error: %s", gotErr)
+				return
+			}
+
+			if test.expectedErr != "" {
+				if gotErr == nil {
+					t.Errorf("Expected error to be %q, got none", test.expectedErr)
 					return
 				}
-				if gotErr.Error() != test.expectedErr {
+
+				if test.expectedErr != gotErr.Error() {
 					t.Errorf("Expected error to be %q, got %q", test.expectedErr, gotErr.Error())
 					return
 				}
 			}
+
 			if diff := cmp.Diff(got, test.expectation); diff != "" {
 				t.Errorf("Unexpected result (+got, -expected): %s", diff)
 			}

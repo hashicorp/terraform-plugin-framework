@@ -167,7 +167,7 @@ func (m Map) Type(ctx context.Context) attr.Type {
 // tftypes.Value.
 func (m Map) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	if m.ElemType == nil {
-		return tftypes.Value{}, fmt.Errorf("cannot convert Map to Terraform Value if ElemType field is null")
+		return tftypes.Value{}, fmt.Errorf("cannot convert Map to tftypes.Value if ElemType field is not set")
 	}
 	mapType := tftypes.Map{ElementType: m.ElemType.TerraformType(ctx)}
 	if m.Unknown {

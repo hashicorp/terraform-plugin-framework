@@ -62,7 +62,7 @@ func newStringPointerPointer(in string) **string {
 	return &stringPointer
 }
 
-type personAsFWTypes struct {
+type personFrameworkTypes struct {
 	Name    types.String `tfsdk:"name"`
 	Age     types.Int64  `tfsdk:"age"`
 	OptedIn types.Bool   `tfsdk:"opted_in"`
@@ -70,7 +70,7 @@ type personAsFWTypes struct {
 	Colours types.List   `tfsdk:"colours"`
 }
 
-type personAsGoTypes struct {
+type personGoTypes struct {
 	Name    string            `tfsdk:"name"`
 	Age     int64             `tfsdk:"age"`
 	OptedIn bool              `tfsdk:"opted_in"`
@@ -120,7 +120,7 @@ func TestValueAs(t *testing.T) {
 			expected: newInt64PointerPointer(12),
 		},
 		// Following test fails as target.Type() is big.Float not *bigFloat.
-		//  See https://github.com/hashicorp/terraform-plugin-framework/blob/main/internal/reflect/into.go#L144
+		// See https://github.com/hashicorp/terraform-plugin-framework/blob/main/internal/reflect/into.go#L144
 		// The switch on target.Kind() then identifies big.Float as reflect.Struct and the reflection fails
 		// with "cannot reflect tftypes.Number into a struct, must be an object".
 		// See https://github.com/hashicorp/terraform-plugin-framework/blob/main/internal/reflect/into.go#L148
@@ -144,8 +144,77 @@ func TestValueAs(t *testing.T) {
 			target:   newStringPointerPointer(""),
 			expected: newStringPointerPointer("hello"),
 		},
-
-		"struct - FW": {
+		"list": {
+			val: types.List{
+				Elems: []attr.Value{
+					types.String{Value: "hello"},
+					types.String{Value: "world"},
+				},
+				ElemType: types.StringType,
+			},
+			target: &[]string{},
+			expected: &[]string{
+				"hello",
+				"world",
+			},
+		},
+		"map": {
+			val: types.Map{
+				Elems: map[string]attr.Value{
+					"hello":   types.String{Value: "world"},
+					"goodbye": types.String{Value: "world"},
+				},
+				ElemType: types.StringType,
+			},
+			target: &map[string]string{},
+			expected: &map[string]string{
+				"hello":   "world",
+				"goodbye": "world",
+			},
+		},
+		"object": {
+			val: types.Object{
+				Attrs: map[string]attr.Value{
+					"name":     types.String{Value: "Boris"},
+					"age":      types.Int64{Value: 25},
+					"opted_in": types.Bool{Value: true},
+				},
+				AttrTypes: map[string]attr.Type{
+					"name":     types.StringType,
+					"age":      types.Int64Type,
+					"opted_in": types.BoolType,
+				},
+			},
+			target: &struct {
+				Name    string `tfsdk:"name"`
+				Age     int64  `tfsdk:"age"`
+				OptedIn bool   `tfsdk:"opted_in"`
+			}{},
+			expected: &struct {
+				Name    string `tfsdk:"name"`
+				Age     int64  `tfsdk:"age"`
+				OptedIn bool   `tfsdk:"opted_in"`
+			}{
+				Name:    "Boris",
+				Age:     25,
+				OptedIn: true,
+			},
+		},
+		"set": {
+			val: types.Set{
+				Elems: []attr.Value{
+					types.Bool{Value: true},
+					types.Bool{},
+				},
+				ElemType: types.BoolType,
+			},
+			target: &[]bool{},
+			expected: &[]bool{
+				true,
+				false,
+			},
+		},
+		"struct framework types": {
 			val: types.Object{
 				Attrs: map[string]attr.Value{
 					"name":     types.String{Value: "Boris"},
@@ -175,8 +244,8 @@ func TestValueAs(t *testing.T) {
 					"colours":  types.ListType{ElemType: types.StringType},
 				},
 			},
-			target: &personAsFWTypes{},
-			expected: &personAsFWTypes{
+			target: &personFrameworkTypes{},
+			expected: &personFrameworkTypes{
 				Name:    types.String{Value: "Boris"},
 				Age:     types.Int64{Value: 25},
 				OptedIn: types.Bool{Value: true},
@@ -197,7 +266,7 @@ func TestValueAs(t *testing.T) {
 				},
 			},
 		},
-		"struct - Go": {
+		"struct go types": {
 			val: types.Object{
 				Attrs: map[string]attr.Value{
 					"name":     types.String{Value: "Boris"},
@@ -227,8 +296,8 @@ func TestValueAs(t *testing.T) {
 					"colours":  types.ListType{ElemType: types.StringType},
 				},
 			},
-			target: &personAsGoTypes{},
-			expected: &personAsGoTypes{
+			target: &personGoTypes{},
+			expected: &personGoTypes{
 				Name:    "Boris",
 				Age:     25,
 				OptedIn: true,
@@ -284,7 +353,7 @@ func TestValueAs(t *testing.T) {
 				return
 			}
 
-			// Cannot use cmp.Diff for comparing big.Float
+			// Cannot use cmp.Diff for comparing big.Float, requires usage of *big.Float.Cmp()
 			switch tc.expected.(type) {
 			case *big.Float:
 				if diff := tc.expected.(*big.Float).Cmp(tc.target.(*big.Float)); diff != 0 {

@@ -349,20 +349,18 @@ func TestValueAs(t *testing.T) {
 				return
 			}
 
-			// Cannot use cmp.Diff for comparing big.Float, requires usage of *big.Float.Cmp()
-			switch tc.expected.(type) {
-			case *big.Float:
-				if diff := tc.expected.(*big.Float).Cmp(tc.target.(*big.Float)); diff != 0 {
-					t.Fatalf("Unexpected diff in results: %d", diff)
-				}
-			case **big.Float:
+			// cmp.Comparer is used to generate a type-specific comparison for big.Float as cmp.Diff
+			// cannot be used owing to the unexported (*big.Float).prec field.
+			opt := cmp.Comparer(func(expected **big.Float, target **big.Float) bool {
 				if diff := (*tc.expected.(**big.Float)).Cmp(*tc.target.(**big.Float)); diff != 0 {
-					t.Fatalf("Unexpected diff in results: %d", diff)
+					return false
 				}
-			default:
-				if diff := cmp.Diff(tc.expected, tc.target); diff != "" {
-					t.Fatalf("Unexpected diff in results (-wanted, +got): %s", diff)
-				}
+
+				return true
+			})
+
+			if diff := cmp.Diff(tc.expected, tc.target, opt); diff != "" {
+				t.Fatalf("Unexpected diff in results (-wanted, +got): %s", diff)
 			}
 		})
 	}

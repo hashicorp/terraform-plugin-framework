@@ -105,6 +105,40 @@ func TestServerReadDataSource(t *testing.T) {
 				State: testStateUnchanged,
 			},
 		},
+		"request-providermeta": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadDataSourceRequest{
+				Config:           testConfig,
+				DataSourceSchema: testSchema,
+				DataSourceType: &testprovider.DataSourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+						return &testprovider.DataSource{
+							ReadMethod: func(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+								var config struct {
+									TestComputed types.String `tfsdk:"test_computed"`
+									TestRequired types.String `tfsdk:"test_required"`
+								}
+
+								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &config)...)
+
+								if config.TestRequired.Value != "test-config-value" {
+									resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.Value)
+								}
+							},
+						}, nil
+					},
+				},
+				ProviderMeta: testConfig,
+			},
+			expectedResponse: &fwserver.ReadDataSourceResponse{
+				State: testStateUnchanged,
+			},
+		},
 		"response-diagnostics": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},

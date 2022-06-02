@@ -23,7 +23,7 @@ func (r *Resource) Create(ctx context.Context, req tfsdk.CreateResourceRequest, 
 		return
 	}
 
-	r.Create(ctx, req, resp)
+	r.CreateMethod(ctx, req, resp)
 }
 
 // Delete satisfies the tfsdk.Resource interface.
@@ -32,7 +32,7 @@ func (r *Resource) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, 
 		return
 	}
 
-	r.Delete(ctx, req, resp)
+	r.DeleteMethod(ctx, req, resp)
 }
 
 // Read satisfies the tfsdk.Resource interface.
@@ -41,7 +41,7 @@ func (r *Resource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp
 		return
 	}
 
-	r.Read(ctx, req, resp)
+	r.ReadMethod(ctx, req, resp)
 }
 
 // Update satisfies the tfsdk.Resource interface.
@@ -50,5 +50,5 @@ func (r *Resource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, 
 		return
 	}
 
-	r.Update(ctx, req, resp)
+	r.UpdateMethod(ctx, req, resp)
 }

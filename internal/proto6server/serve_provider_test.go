@@ -297,20 +297,15 @@ func (t *testServeProvider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Dia
 
 func (t *testServeProvider) GetResources(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
 	return map[string]tfsdk.ResourceType{
-		"test_one":                          testServeResourceTypeOne{},
-		"test_two":                          testServeResourceTypeTwo{},
-		"test_three":                        testServeResourceTypeThree{},
-		"test_attribute_plan_modifiers":     testServeResourceTypeAttributePlanModifiers{},
-		"test_import_state":                 testServeResourceTypeImportState{},
-		"test_import_state_not_implemented": testServeResourceTypeImportStateNotImplemented{},
+		"test_one":                      testServeResourceTypeOne{},
+		"test_two":                      testServeResourceTypeTwo{},
+		"test_three":                    testServeResourceTypeThree{},
+		"test_attribute_plan_modifiers": testServeResourceTypeAttributePlanModifiers{},
 	}, nil
 }
 
 func (t *testServeProvider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
-	return map[string]tfsdk.DataSourceType{
-		"test_one": testServeDataSourceTypeOne{},
-		"test_two": testServeDataSourceTypeTwo{},
-	}, nil
+	return map[string]tfsdk.DataSourceType{}, nil
 }
 
 func (t *testServeProvider) Configure(_ context.Context, req tfsdk.ConfigureProviderRequest, _ *tfsdk.ConfigureProviderResponse) {

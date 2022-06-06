@@ -5,8 +5,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -14,248 +17,257 @@ import (
 func TestServerReadDataSource(t *testing.T) {
 	t.Parallel()
 
-	type testCase struct {
-		// request input
-		config         tftypes.Value
-		providerMeta   tftypes.Value
-		dataSource     string
-		dataSourceType tftypes.Type
-
-		impl func(context.Context, tfsdk.ReadDataSourceRequest, *tfsdk.ReadDataSourceResponse)
-
-		// response expectations
-		expectedNewState tftypes.Value
-		expectedDiags    []*tfprotov6.Diagnostic
+	testType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_computed": tftypes.String,
+			"test_required": tftypes.String,
+		},
 	}
 
-	tests := map[string]testCase{
-		"one_basic": {
-			config: tftypes.NewValue(testServeDataSourceTypeOneType, map[string]tftypes.Value{
-				"current_date": tftypes.NewValue(tftypes.String, nil),
-				"current_time": tftypes.NewValue(tftypes.String, nil),
-				"is_dst":       tftypes.NewValue(tftypes.Bool, nil),
-			}),
-			dataSource:     "test_one",
-			dataSourceType: testServeDataSourceTypeOneType,
+	testConfigDynamicValue := testNewDynamicValue(t, testType, map[string]tftypes.Value{
+		"test_computed": tftypes.NewValue(tftypes.String, nil),
+		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+	})
 
-			impl: func(_ context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeDataSourceTypeOneType, map[string]tftypes.Value{
-					"current_date": tftypes.NewValue(tftypes.String, "today"),
-					"current_time": tftypes.NewValue(tftypes.String, "now"),
-					"is_dst":       tftypes.NewValue(tftypes.Bool, true),
-				})
+	testEmptyDynamicValue := testNewDynamicValue(t, tftypes.Object{}, nil)
+
+	testStateDynamicValue := testNewDynamicValue(t, testType, map[string]tftypes.Value{
+		"test_computed": tftypes.NewValue(tftypes.String, "test-state-value"),
+		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+	})
+
+	testSchema := tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"test_computed": {
+				Computed: true,
+				Type:     types.StringType,
 			},
-
-			expectedNewState: tftypes.NewValue(testServeDataSourceTypeOneType, map[string]tftypes.Value{
-				"current_date": tftypes.NewValue(tftypes.String, "today"),
-				"current_time": tftypes.NewValue(tftypes.String, "now"),
-				"is_dst":       tftypes.NewValue(tftypes.Bool, true),
-			}),
-		},
-		"one_provider_meta": {
-			config: tftypes.NewValue(testServeDataSourceTypeOneType, map[string]tftypes.Value{
-				"current_date": tftypes.NewValue(tftypes.String, nil),
-				"current_time": tftypes.NewValue(tftypes.String, nil),
-				"is_dst":       tftypes.NewValue(tftypes.Bool, nil),
-			}),
-			dataSource:     "test_one",
-			dataSourceType: testServeDataSourceTypeOneType,
-
-			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
-				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
-			}),
-
-			impl: func(_ context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeDataSourceTypeOneType, map[string]tftypes.Value{
-					"current_date": tftypes.NewValue(tftypes.String, "today"),
-					"current_time": tftypes.NewValue(tftypes.String, "now"),
-					"is_dst":       tftypes.NewValue(tftypes.Bool, true),
-				})
-			},
-
-			expectedNewState: tftypes.NewValue(testServeDataSourceTypeOneType, map[string]tftypes.Value{
-				"current_date": tftypes.NewValue(tftypes.String, "today"),
-				"current_time": tftypes.NewValue(tftypes.String, "now"),
-				"is_dst":       tftypes.NewValue(tftypes.Bool, true),
-			}),
-		},
-		"one_remove": {
-			config: tftypes.NewValue(testServeDataSourceTypeOneType, map[string]tftypes.Value{
-				"current_date": tftypes.NewValue(tftypes.String, nil),
-				"current_time": tftypes.NewValue(tftypes.String, nil),
-				"is_dst":       tftypes.NewValue(tftypes.Bool, nil),
-			}),
-			dataSource:     "test_one",
-			dataSourceType: testServeDataSourceTypeOneType,
-
-			impl: func(_ context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeDataSourceTypeOneType, nil)
-			},
-
-			expectedNewState: tftypes.NewValue(testServeDataSourceTypeOneType, nil),
-		},
-		"two_basic": {
-			config: tftypes.NewValue(testServeDataSourceTypeTwoType, map[string]tftypes.Value{
-				"family": tftypes.NewValue(tftypes.String, "123foo"),
-				"name":   tftypes.NewValue(tftypes.String, "123foo-askjgsio"),
-				"id":     tftypes.NewValue(tftypes.String, nil),
-			}),
-			dataSource:     "test_two",
-			dataSourceType: testServeDataSourceTypeTwoType,
-
-			impl: func(_ context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeDataSourceTypeTwoType, map[string]tftypes.Value{
-					"family": tftypes.NewValue(tftypes.String, "123foo"),
-					"name":   tftypes.NewValue(tftypes.String, "123foo-askjgsio"),
-					"id":     tftypes.NewValue(tftypes.String, "a random id or something I dunno"),
-				})
-			},
-
-			expectedNewState: tftypes.NewValue(testServeDataSourceTypeTwoType, map[string]tftypes.Value{
-				"family": tftypes.NewValue(tftypes.String, "123foo"),
-				"name":   tftypes.NewValue(tftypes.String, "123foo-askjgsio"),
-				"id":     tftypes.NewValue(tftypes.String, "a random id or something I dunno"),
-			}),
-		},
-		"two_diags": {
-			config: tftypes.NewValue(testServeDataSourceTypeTwoType, map[string]tftypes.Value{
-				"family": tftypes.NewValue(tftypes.String, "123foo"),
-				"name":   tftypes.NewValue(tftypes.String, "123foo-askjgsio"),
-				"id":     tftypes.NewValue(tftypes.String, nil),
-			}),
-			dataSource:     "test_two",
-			dataSourceType: testServeDataSourceTypeTwoType,
-
-			impl: func(_ context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeDataSourceTypeTwoType, map[string]tftypes.Value{
-					"family": tftypes.NewValue(tftypes.String, "123foo"),
-					"name":   tftypes.NewValue(tftypes.String, "123foo-askjgsio"),
-					"id":     tftypes.NewValue(tftypes.String, "a random id or something I dunno"),
-				})
-				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-					"This is a warning",
-					"This is your final warning",
-				)
-				resp.Diagnostics.AddError(
-					"This is an error",
-					"Oops.",
-				)
-			},
-
-			expectedNewState: tftypes.NewValue(testServeDataSourceTypeTwoType, map[string]tftypes.Value{
-				"family": tftypes.NewValue(tftypes.String, "123foo"),
-				"name":   tftypes.NewValue(tftypes.String, "123foo-askjgsio"),
-				"id":     tftypes.NewValue(tftypes.String, "a random id or something I dunno"),
-			}),
-
-			expectedDiags: []*tfprotov6.Diagnostic{
-				{
-					Summary:   "This is a warning",
-					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Detail:    "This is your final warning",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
-				},
-				{
-					Summary:  "This is an error",
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Detail:   "Oops.",
-				},
+			"test_required": {
+				Required: true,
+				Type:     types.StringType,
 			},
 		},
 	}
 
-	for name, tc := range tests {
-		name, tc := name, tc
+	testCases := map[string]struct {
+		server           *Server
+		request          *tfprotov6.ReadDataSourceRequest
+		expectedError    error
+		expectedResponse *tfprotov6.ReadDataSourceResponse
+	}{
+		"no-schema": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
+							return map[string]tfsdk.DataSourceType{
+								"test_data_source": &testprovider.DataSourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{}, nil
+									},
+									NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+										return &testprovider.DataSource{}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ReadDataSourceRequest{
+				Config:   testEmptyDynamicValue,
+				TypeName: "test_data_source",
+			},
+			expectedResponse: &tfprotov6.ReadDataSourceResponse{
+				State: testEmptyDynamicValue,
+			},
+		},
+		"request-config": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
+							return map[string]tfsdk.DataSourceType{
+								"test_data_source": &testprovider.DataSourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+										return &testprovider.DataSource{
+											ReadMethod: func(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+												var config struct {
+													TestComputed types.String `tfsdk:"test_computed"`
+													TestRequired types.String `tfsdk:"test_required"`
+												}
+
+												resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+
+												if config.TestRequired.Value != "test-config-value" {
+													resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.Value)
+												}
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ReadDataSourceRequest{
+				Config:   testConfigDynamicValue,
+				TypeName: "test_data_source",
+			},
+			expectedResponse: &tfprotov6.ReadDataSourceResponse{
+				State: testConfigDynamicValue,
+			},
+		},
+		"request-providermeta": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithProviderMeta{
+						Provider: &testprovider.Provider{
+							GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
+								return map[string]tfsdk.DataSourceType{
+									"test_data_source": &testprovider.DataSourceType{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return tfsdk.Schema{}, nil
+										},
+										NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+											return &testprovider.DataSource{
+												ReadMethod: func(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+													var config struct {
+														TestComputed types.String `tfsdk:"test_computed"`
+														TestRequired types.String `tfsdk:"test_required"`
+													}
+
+													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &config)...)
+
+													if config.TestRequired.Value != "test-config-value" {
+														resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.Value)
+													}
+												},
+											}, nil
+										},
+									},
+								}, nil
+							},
+						},
+						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+							return testSchema, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ReadDataSourceRequest{
+				Config:       testEmptyDynamicValue,
+				ProviderMeta: testConfigDynamicValue,
+				TypeName:     "test_data_source",
+			},
+			expectedResponse: &tfprotov6.ReadDataSourceResponse{
+				State: testEmptyDynamicValue,
+			},
+		},
+		"response-diagnostics": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
+							return map[string]tfsdk.DataSourceType{
+								"test_data_source": &testprovider.DataSourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+										return &testprovider.DataSource{
+											ReadMethod: func(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+												resp.Diagnostics.AddWarning("warning summary", "warning detail")
+												resp.Diagnostics.AddError("error summary", "error detail")
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ReadDataSourceRequest{
+				Config:   testConfigDynamicValue,
+				TypeName: "test_data_source",
+			},
+			expectedResponse: &tfprotov6.ReadDataSourceResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityWarning,
+						Summary:  "warning summary",
+						Detail:   "warning detail",
+					},
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "error summary",
+						Detail:   "error detail",
+					},
+				},
+				State: testConfigDynamicValue,
+			},
+		},
+		"response-state": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
+							return map[string]tfsdk.DataSourceType{
+								"test_data_source": &testprovider.DataSourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+										return &testprovider.DataSource{
+											ReadMethod: func(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+												var data struct {
+													TestComputed types.String `tfsdk:"test_computed"`
+													TestRequired types.String `tfsdk:"test_required"`
+												}
+
+												resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+												data.TestComputed = types.String{Value: "test-state-value"}
+
+												resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ReadDataSourceRequest{
+				Config:   testConfigDynamicValue,
+				TypeName: "test_data_source",
+			},
+			expectedResponse: &tfprotov6.ReadDataSourceResponse{
+				State: testStateDynamicValue,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			s := &testServeProvider{
-				readDataSourceImpl: tc.impl,
-			}
-			testServer := &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: s,
-				},
-			}
-			var pmSchema tfsdk.Schema
-			if tc.providerMeta.Type() != nil {
-				testServer.FrameworkServer.Provider = &testServeProviderWithMetaSchema{s}
-				schema, diags := testServer.FrameworkServer.ProviderMetaSchema(context.Background())
-				if len(diags) > 0 {
-					t.Errorf("Unexpected diags: %+v", diags)
-					return
-				}
-				pmSchema = *schema
+			got, err := testCase.server.ReadDataSource(context.Background(), testCase.request)
+
+			if diff := cmp.Diff(testCase.expectedError, err); diff != "" {
+				t.Errorf("unexpected error difference: %s", diff)
 			}
 
-			rt, diags := testServer.FrameworkServer.DataSourceType(context.Background(), tc.dataSource)
-			if len(diags) > 0 {
-				t.Errorf("Unexpected diags: %+v", diags)
-				return
-			}
-			schema, diags := rt.GetSchema(context.Background())
-			if len(diags) > 0 {
-				t.Errorf("Unexpected diags: %+v", diags)
-				return
-			}
-
-			dv, err := tfprotov6.NewDynamicValue(tc.dataSourceType, tc.config)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
-			}
-			req := &tfprotov6.ReadDataSourceRequest{
-				TypeName: tc.dataSource,
-				Config:   &dv,
-			}
-			if tc.providerMeta.Type() != nil {
-				providerMeta, err := tfprotov6.NewDynamicValue(testServeProviderMetaType, tc.providerMeta)
-				if err != nil {
-					t.Errorf("Unexpected error: %s", err)
-					return
-				}
-				req.ProviderMeta = &providerMeta
-			}
-			got, err := testServer.ReadDataSource(context.Background(), req)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
-			}
-			if s.readDataSourceCalledDataSourceType != tc.dataSource {
-				t.Errorf("Called wrong dataSource. Expected to call %q, actually called %q", tc.dataSource, s.readDataSourceCalledDataSourceType)
-				return
-			}
-			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
-			}
-			if diff := cmp.Diff(s.readDataSourceConfigValue, tc.config); diff != "" {
-				t.Errorf("Unexpected diff in config (+wanted, -got): %s", diff)
-				return
-			}
-			if diff := cmp.Diff(s.readDataSourceConfigSchema, schema); diff != "" {
-				t.Errorf("Unexpected diff in config schema (+wanted, -got): %s", diff)
-				return
-			}
-			if tc.providerMeta.Type() != nil {
-				if diff := cmp.Diff(s.readDataSourceProviderMetaValue, tc.providerMeta); diff != "" {
-					t.Errorf("Unexpected diff in provider meta (+wanted, -got): %s", diff)
-					return
-				}
-				if diff := cmp.Diff(s.readDataSourceProviderMetaSchema, pmSchema); diff != "" {
-					t.Errorf("Unexpected diff in provider meta schema (+wanted, -got): %s", diff)
-					return
-				}
-			}
-			gotNewState, err := got.State.Unmarshal(tc.dataSourceType)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
-			}
-			if diff := cmp.Diff(gotNewState, tc.expectedNewState); diff != "" {
-				t.Errorf("Unexpected diff in new state (+wanted, -got): %s", diff)
-				return
+			if diff := cmp.Diff(testCase.expectedResponse, got); diff != "" {
+				t.Errorf("unexpected response difference: %s", diff)
 			}
 		})
 	}

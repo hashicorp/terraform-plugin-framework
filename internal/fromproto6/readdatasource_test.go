@@ -56,17 +56,26 @@ func TestReadDataSourceRequest(t *testing.T) {
 		},
 		"empty": {
 			input:    &tfprotov6.ReadDataSourceRequest{},
-			expected: &fwserver.ReadDataSourceRequest{},
+			expected: nil,
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Missing DataSource Schema",
+					"An unexpected error was encountered when handling the request. "+
+						"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n"+
+						"Please report this to the provider developer:\n\n"+
+						"Missing schema.",
+				),
+			},
 		},
 		"config-missing-schema": {
 			input: &tfprotov6.ReadDataSourceRequest{
 				Config: &testProto6DynamicValue,
 			},
-			expected: &fwserver.ReadDataSourceRequest{},
+			expected: nil,
 			expectedDiagnostics: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Unable to Convert Configuration",
-					"An unexpected error was encountered when converting the configuration from the protocol type. "+
+					"Missing DataSource Schema",
+					"An unexpected error was encountered when handling the request. "+
 						"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n"+
 						"Please report this to the provider developer:\n\n"+
 						"Missing schema.",
@@ -83,12 +92,15 @@ func TestReadDataSourceRequest(t *testing.T) {
 					Raw:    testProto6Value,
 					Schema: *testFwSchema,
 				},
+				DataSourceSchema: *testFwSchema,
 			},
 		},
 		"providermeta-missing-data": {
 			input:              &tfprotov6.ReadDataSourceRequest{},
+			dataSourceSchema:   testFwSchema,
 			providerMetaSchema: testFwSchema,
 			expected: &fwserver.ReadDataSourceRequest{
+				DataSourceSchema: *testFwSchema,
 				ProviderMeta: &tfsdk.Config{
 					Raw:    tftypes.NewValue(testProto6Type, nil),
 					Schema: *testFwSchema,
@@ -99,7 +111,9 @@ func TestReadDataSourceRequest(t *testing.T) {
 			input: &tfprotov6.ReadDataSourceRequest{
 				ProviderMeta: &testProto6DynamicValue,
 			},
+			dataSourceSchema: testFwSchema,
 			expected: &fwserver.ReadDataSourceRequest{
+				DataSourceSchema: *testFwSchema,
 				// This intentionally should not include ProviderMeta
 			},
 		},
@@ -107,8 +121,10 @@ func TestReadDataSourceRequest(t *testing.T) {
 			input: &tfprotov6.ReadDataSourceRequest{
 				ProviderMeta: &testProto6DynamicValue,
 			},
+			dataSourceSchema:   testFwSchema,
 			providerMetaSchema: testFwSchema,
 			expected: &fwserver.ReadDataSourceRequest{
+				DataSourceSchema: *testFwSchema,
 				ProviderMeta: &tfsdk.Config{
 					Raw:    testProto6Value,
 					Schema: *testFwSchema,

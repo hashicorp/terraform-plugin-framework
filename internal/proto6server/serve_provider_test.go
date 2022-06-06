@@ -307,10 +307,7 @@ func (t *testServeProvider) GetResources(_ context.Context) (map[string]tfsdk.Re
 }
 
 func (t *testServeProvider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
-	return map[string]tfsdk.DataSourceType{
-		"test_one": testServeDataSourceTypeOne{},
-		"test_two": testServeDataSourceTypeTwo{},
-	}, nil
+	return map[string]tfsdk.DataSourceType{}, nil
 }
 
 func (t *testServeProvider) Configure(_ context.Context, req tfsdk.ConfigureProviderRequest, _ *tfsdk.ConfigureProviderResponse) {

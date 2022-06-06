@@ -11,9 +11,10 @@ import (
 // ReadDataSourceRequest is the framework server request for the
 // ReadDataSource RPC.
 type ReadDataSourceRequest struct {
-	Config         *tfsdk.Config
-	DataSourceType tfsdk.DataSourceType
-	ProviderMeta   *tfsdk.Config
+	Config           *tfsdk.Config
+	DataSourceSchema tfsdk.Schema
+	DataSourceType   tfsdk.DataSourceType
+	ProviderMeta     *tfsdk.Config
 }
 
 // ReadDataSourceResponse is the framework server response for the
@@ -40,10 +41,14 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 		return
 	}
 
-	readReq := tfsdk.ReadDataSourceRequest{}
+	readReq := tfsdk.ReadDataSourceRequest{
+		Config: tfsdk.Config{
+			Schema: req.DataSourceSchema,
+		},
+	}
 	readResp := tfsdk.ReadDataSourceResponse{
 		State: tfsdk.State{
-			Schema: req.Config.Schema,
+			Schema: req.DataSourceSchema,
 		},
 	}
 

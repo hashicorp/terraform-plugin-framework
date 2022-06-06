@@ -18,8 +18,23 @@ func ReadDataSourceRequest(ctx context.Context, proto6 *tfprotov6.ReadDataSource
 
 	var diags diag.Diagnostics
 
+	// Panic prevention here to simplify the calling implementations.
+	// This should not happen, but just in case.
+	if dataSourceSchema == nil {
+		diags.AddError(
+			"Missing DataSource Schema",
+			"An unexpected error was encountered when handling the request. "+
+				"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n"+
+				"Please report this to the provider developer:\n\n"+
+				"Missing schema.",
+		)
+
+		return nil, diags
+	}
+
 	fw := &fwserver.ReadDataSourceRequest{
-		DataSourceType: dataSourceType,
+		DataSourceSchema: *dataSourceSchema,
+		DataSourceType:   dataSourceType,
 	}
 
 	config, configDiags := Config(ctx, proto6.Config, dataSourceSchema)

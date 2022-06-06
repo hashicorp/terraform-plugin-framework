@@ -20,5 +20,5 @@ func (d *DataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceRequest, 
 		return
 	}
 
-	d.Read(ctx, req, resp)
+	d.ReadMethod(ctx, req, resp)
 }

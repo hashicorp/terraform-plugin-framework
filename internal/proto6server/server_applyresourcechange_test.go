@@ -5,8 +5,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -14,1625 +17,905 @@ import (
 func TestServerApplyResourceChange(t *testing.T) {
 	t.Parallel()
 
-	type testCase struct {
-		// request input
-		priorState     tftypes.Value
-		plannedState   tftypes.Value
-		config         tftypes.Value
-		plannedPrivate []byte
-		providerMeta   tftypes.Value
-		resource       string
-		action         string
-		resourceType   tftypes.Type
-
-		create  func(context.Context, tfsdk.CreateResourceRequest, *tfsdk.CreateResourceResponse)
-		update  func(context.Context, tfsdk.UpdateResourceRequest, *tfsdk.UpdateResourceResponse)
-		destroy func(context.Context, tfsdk.DeleteResourceRequest, *tfsdk.DeleteResourceResponse)
-
-		// response expectations
-		expectedNewState tftypes.Value
-		expectedDiags    []*tfprotov6.Diagnostic
-		expectedPrivate  []byte
-	}
-
-	tests := map[string]testCase{
-		"one_create": {
-			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
-			}),
-			resource:     "test_one",
-			action:       "create",
-			resourceType: testServeResourceTypeOneType,
-			create: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "hello, world"),
-					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "red"),
-					}),
-					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-				})
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-		},
-		"one_create_diags": {
-			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
-			}),
-			resource:     "test_one",
-			action:       "create",
-			resourceType: testServeResourceTypeOneType,
-			create: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "hello, world"),
-					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "red"),
-					}),
-					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-				})
-				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("favorite_colors").WithElementKeyInt(0),
-					"This is a warning",
-					"I'm warning you",
-				)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				{
-					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Summary:   "This is a warning",
-					Detail:    "I'm warning you",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("favorite_colors").WithElementKeyInt(0),
-				},
-			},
-		},
-		"one_update": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
-			}),
-			resource:     "test_one",
-			action:       "update",
-			resourceType: testServeResourceTypeOneType,
-			update: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "hello, world"),
-					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "red"),
-						tftypes.NewValue(tftypes.String, "orange"),
-						tftypes.NewValue(tftypes.String, "yellow"),
-					}),
-					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-				})
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-		},
-		"one_update_diags": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
-			}),
-			resource:     "test_one",
-			action:       "update",
-			resourceType: testServeResourceTypeOneType,
-			update: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "hello, world"),
-					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "red"),
-						tftypes.NewValue(tftypes.String, "orange"),
-						tftypes.NewValue(tftypes.String, "yellow"),
-					}),
-					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-				})
-				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("name"),
-					"I'm warning you...",
-					"This is a warning!",
-				)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				{
-					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Summary:   "I'm warning you...",
-					Detail:    "This is a warning!",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("name"),
-				},
-			},
-		},
-		"one_update_diags_error": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
-			}),
-			resource:     "test_one",
-			action:       "update",
-			resourceType: testServeResourceTypeOneType,
-			update: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "hello, world"),
-					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "red"),
-						tftypes.NewValue(tftypes.String, "orange"),
-						tftypes.NewValue(tftypes.String, "yellow"),
-					}),
-					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-				})
-				resp.Diagnostics.AddAttributeError(
-					tftypes.NewAttributePath().WithAttributeName("name"),
-					"Oops!",
-					"This is an error! Don't update the state!",
-				)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				{
-					Severity:  tfprotov6.DiagnosticSeverityError,
-					Summary:   "Oops!",
-					Detail:    "This is an error! Don't update the state!",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("name"),
-				},
-			},
-		},
-		"one_delete": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			resource:     "test_one",
-			action:       "delete",
-			resourceType: testServeResourceTypeOneType,
-			destroy: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-				// Removing the state prior to the framework should not generate errors
-				resp.State.RemoveResource(ctx)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
-		},
-		"one_delete_diags": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			resource:     "test_one",
-			action:       "delete",
-			resourceType: testServeResourceTypeOneType,
-			destroy: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-				// Removing the state prior to the framework should not generate errors
-				resp.State.RemoveResource(ctx)
-				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
-					"This is a warning",
-					"just a warning diagnostic, no behavior changes",
-				)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				{
-					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Summary:   "This is a warning",
-					Detail:    "just a warning diagnostic, no behavior changes",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
-				},
-			},
-		},
-		"one_delete_diags_error": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			resource:     "test_one",
-			action:       "delete",
-			resourceType: testServeResourceTypeOneType,
-			destroy: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-				resp.Diagnostics.AddError(
-					"This is an error",
-					"Something went wrong, keep the old state around",
-				)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				{
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Summary:  "This is an error",
-					Detail:   "Something went wrong, keep the old state around",
-				},
-			},
-		},
-		"one_delete_automatic_removeresource": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			resource:     "test_one",
-			action:       "delete",
-			resourceType: testServeResourceTypeOneType,
-			destroy: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-				// The framework should automatically call resp.State.RemoveResource()
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
-		},
-		"one_delete_diags_warning_automatic_removeresource": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			resource:     "test_one",
-			action:       "delete",
-			resourceType: testServeResourceTypeOneType,
-			destroy: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-				// The framework should automatically call resp.State.RemoveResource()
-				resp.Diagnostics.AddAttributeWarning(
-					tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
-					"This is a warning",
-					"just a warning diagnostic, no behavior changes",
-				)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				{
-					Severity:  tfprotov6.DiagnosticSeverityWarning,
-					Summary:   "This is a warning",
-					Detail:    "just a warning diagnostic, no behavior changes",
-					Attribute: tftypes.NewAttributePath().WithAttributeName("created_timestamp"),
-				},
-			},
-		},
-		"one_delete_diags_error_no_automatic_removeresource": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			resource:     "test_one",
-			action:       "delete",
-			resourceType: testServeResourceTypeOneType,
-			destroy: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-				// The framework should NOT automatically call resp.State.RemoveResource()
-				resp.Diagnostics.AddError(
-					"This is an error",
-					"Something went wrong, keep the old state around",
-				)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			expectedDiags: []*tfprotov6.Diagnostic{
-				{
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Summary:  "This is an error",
-					Detail:   "Something went wrong, keep the old state around",
-				},
-			},
-		},
-		"two_create": {
-			plannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, tftypes.UnknownValue),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, tftypes.UnknownValue),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, nil),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, nil),
-			}),
-			resource:     "test_two",
-			action:       "create",
-			resourceType: testServeResourceTypeTwoType,
-			create: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-					"id": tftypes.NewValue(tftypes.String, "test-instance"),
-					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}}, []tftypes.Value{
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"name":    tftypes.String,
-								"size_gb": tftypes.Number,
-								"boot":    tftypes.Bool,
-							},
-						}, map[string]tftypes.Value{
-							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-							"size_gb": tftypes.NewValue(tftypes.Number, 123),
-							"boot":    tftypes.NewValue(tftypes.Bool, true),
-						}),
-					}),
-					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}}, []tftypes.Value{
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"required_bool":   tftypes.Bool,
-								"required_number": tftypes.Number,
-								"required_string": tftypes.String,
-							},
-						}, map[string]tftypes.Value{
-							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-							"required_number": tftypes.NewValue(tftypes.Number, 123),
-							"required_string": tftypes.NewValue(tftypes.String, "stringvalue"),
-						}),
-					}),
-				})
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 123),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "stringvalue"),
-					}),
-				}),
-			}),
-		},
-		"two_update": {
-			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 123),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-				}),
-			}),
-			plannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-						"boot":    tftypes.NewValue(tftypes.Bool, false),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, false),
-						"required_number": tftypes.NewValue(tftypes.Number, 456),
-						"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
-					}),
-				}),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-						"boot":    tftypes.NewValue(tftypes.Bool, false),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, false),
-						"required_number": tftypes.NewValue(tftypes.Number, 456),
-						"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
-					}),
-				}),
-			}),
-			resource:     "test_two",
-			action:       "update",
-			resourceType: testServeResourceTypeTwoType,
-			update: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-					"id": tftypes.NewValue(tftypes.String, "test-instance"),
-					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}}, []tftypes.Value{
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"name":    tftypes.String,
-								"size_gb": tftypes.Number,
-								"boot":    tftypes.Bool,
-							},
-						}, map[string]tftypes.Value{
-							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-							"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-							"boot":    tftypes.NewValue(tftypes.Bool, true),
-						}),
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"name":    tftypes.String,
-								"size_gb": tftypes.Number,
-								"boot":    tftypes.Bool,
-							},
-						}, map[string]tftypes.Value{
-							"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-							"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-							"boot":    tftypes.NewValue(tftypes.Bool, false),
-						}),
-					}),
-					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}}, []tftypes.Value{
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"required_bool":   tftypes.Bool,
-								"required_number": tftypes.Number,
-								"required_string": tftypes.String,
-							},
-						}, map[string]tftypes.Value{
-							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-							"required_number": tftypes.NewValue(tftypes.Number, 123),
-							"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-						}),
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"required_bool":   tftypes.Bool,
-								"required_number": tftypes.Number,
-								"required_string": tftypes.String,
-							},
-						}, map[string]tftypes.Value{
-							"required_bool":   tftypes.NewValue(tftypes.Bool, false),
-							"required_number": tftypes.NewValue(tftypes.Number, 456),
-							"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
-						}),
-					}),
-				})
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-						"boot":    tftypes.NewValue(tftypes.Bool, false),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, false),
-						"required_number": tftypes.NewValue(tftypes.Number, 456),
-						"required_string": tftypes.NewValue(tftypes.String, "newvalue"),
-					}),
-				}),
-			}),
-		},
-		"two_delete": {
-			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-						"boot":    tftypes.NewValue(tftypes.Bool, false),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-				}),
-			}),
-			resource:     "test_two",
-			action:       "delete",
-			resourceType: testServeResourceTypeTwoType,
-			destroy: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, nil)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
-		},
-		"one_meta_create": {
-			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
-			}),
-			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
-				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
-			}),
-			resource:     "test_one",
-			action:       "create",
-			resourceType: testServeResourceTypeOneType,
-			create: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "hello, world"),
-					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "red"),
-					}),
-					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-				})
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-		},
-		"one_meta_update": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			plannedState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, nil),
-			}),
-			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
-				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
-			}),
-			resource:     "test_one",
-			action:       "update",
-			resourceType: testServeResourceTypeOneType,
-			update: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "hello, world"),
-					"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "red"),
-						tftypes.NewValue(tftypes.String, "orange"),
-						tftypes.NewValue(tftypes.String, "yellow"),
-					}),
-					"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-				})
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-					tftypes.NewValue(tftypes.String, "orange"),
-					tftypes.NewValue(tftypes.String, "yellow"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-		},
-		"one_meta_delete": {
-			priorState: tftypes.NewValue(testServeResourceTypeOneType, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "hello, world"),
-				"favorite_colors": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "red"),
-				}),
-				"created_timestamp": tftypes.NewValue(tftypes.String, "right now I guess"),
-			}),
-			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
-				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
-			}),
-			resource:     "test_one",
-			action:       "delete",
-			resourceType: testServeResourceTypeOneType,
-			destroy: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeOneType, nil)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeOneType, nil),
-		},
-		"two_meta_create": {
-			plannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, tftypes.UnknownValue),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, tftypes.UnknownValue),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, nil),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, nil),
-			}),
-			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
-				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
-			}),
-			resource:     "test_two",
-			action:       "create",
-			resourceType: testServeResourceTypeTwoType,
-			create: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-					"id": tftypes.NewValue(tftypes.String, "test-instance"),
-					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}}, []tftypes.Value{
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"name":    tftypes.String,
-								"size_gb": tftypes.Number,
-								"boot":    tftypes.Bool,
-							},
-						}, map[string]tftypes.Value{
-							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-							"size_gb": tftypes.NewValue(tftypes.Number, 123),
-							"boot":    tftypes.NewValue(tftypes.Bool, true),
-						}),
-					}),
-					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}}, []tftypes.Value{
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"required_bool":   tftypes.Bool,
-								"required_number": tftypes.Number,
-								"required_string": tftypes.String,
-							},
-						}, map[string]tftypes.Value{
-							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-							"required_number": tftypes.NewValue(tftypes.Number, 123),
-							"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-						}),
-					}),
-				})
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 123),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-				}),
-			}),
-		},
-		"two_meta_update": {
-			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 123),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-				}),
-			}),
-			plannedState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-						"boot":    tftypes.NewValue(tftypes.Bool, false),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-				}),
-			}),
-			config: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-						"boot":    tftypes.NewValue(tftypes.Bool, false),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-				}),
-			}),
-			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
-				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
-			}),
-			resource:     "test_two",
-			action:       "update",
-			resourceType: testServeResourceTypeTwoType,
-			update: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-					"id": tftypes.NewValue(tftypes.String, "test-instance"),
-					"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}}, []tftypes.Value{
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"name":    tftypes.String,
-								"size_gb": tftypes.Number,
-								"boot":    tftypes.Bool,
-							},
-						}, map[string]tftypes.Value{
-							"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-							"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-							"boot":    tftypes.NewValue(tftypes.Bool, true),
-						}),
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"name":    tftypes.String,
-								"size_gb": tftypes.Number,
-								"boot":    tftypes.Bool,
-							},
-						}, map[string]tftypes.Value{
-							"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-							"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-							"boot":    tftypes.NewValue(tftypes.Bool, false),
-						}),
-					}),
-					"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}}, []tftypes.Value{
-						tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"required_bool":   tftypes.Bool,
-								"required_number": tftypes.Number,
-								"required_string": tftypes.String,
-							},
-						}, map[string]tftypes.Value{
-							"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-							"required_number": tftypes.NewValue(tftypes.Number, 123),
-							"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-						}),
-					}),
-				})
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-						"boot":    tftypes.NewValue(tftypes.Bool, false),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-				}),
-			}),
-		},
-		"two_meta_delete": {
-			priorState: tftypes.NewValue(testServeResourceTypeTwoType, map[string]tftypes.Value{
-				"id": tftypes.NewValue(tftypes.String, "test-instance"),
-				"disks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name":    tftypes.String,
-						"size_gb": tftypes.Number,
-						"boot":    tftypes.Bool,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 1234),
-						"boot":    tftypes.NewValue(tftypes.Bool, true),
-					}),
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"name":    tftypes.String,
-							"size_gb": tftypes.Number,
-							"boot":    tftypes.Bool,
-						},
-					}, map[string]tftypes.Value{
-						"name":    tftypes.NewValue(tftypes.String, "my-other-disk"),
-						"size_gb": tftypes.NewValue(tftypes.Number, 2345),
-						"boot":    tftypes.NewValue(tftypes.Bool, false),
-					}),
-				}),
-				"list_nested_blocks": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"required_bool":   tftypes.Bool,
-						"required_number": tftypes.Number,
-						"required_string": tftypes.String,
-					},
-				}}, []tftypes.Value{
-					tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"required_bool":   tftypes.Bool,
-							"required_number": tftypes.Number,
-							"required_string": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"required_bool":   tftypes.NewValue(tftypes.Bool, true),
-						"required_number": tftypes.NewValue(tftypes.Number, 123),
-						"required_string": tftypes.NewValue(tftypes.String, "statevalue"),
-					}),
-				}),
-			}),
-			providerMeta: tftypes.NewValue(testServeProviderMetaType, map[string]tftypes.Value{
-				"foo": tftypes.NewValue(tftypes.String, "my provider_meta value"),
-			}),
-			resource:     "test_two",
-			action:       "delete",
-			resourceType: testServeResourceTypeTwoType,
-			destroy: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-				resp.State.Raw = tftypes.NewValue(testServeResourceTypeTwoType, nil)
-			},
-			expectedNewState: tftypes.NewValue(testServeResourceTypeTwoType, nil),
+	testSchemaType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_computed": tftypes.String,
+			"test_required": tftypes.String,
 		},
 	}
 
-	for name, tc := range tests {
-		name, tc := name, tc
+	testEmptyDynamicValue, _ := tfprotov6.NewDynamicValue(testSchemaType, tftypes.NewValue(testSchemaType, nil))
+
+	testSchema := tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"test_computed": {
+				Computed: true,
+				Type:     types.StringType,
+			},
+			"test_required": {
+				Required: true,
+				Type:     types.StringType,
+			},
+		},
+	}
+
+	type testSchemaData struct {
+		TestComputed types.String `tfsdk:"test_computed"`
+		TestRequired types.String `tfsdk:"test_required"`
+	}
+
+	testProviderMetaType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_provider_meta_attribute": tftypes.String,
+		},
+	}
+
+	testProviderMetaValue := testNewDynamicValue(t, testProviderMetaType, map[string]tftypes.Value{
+		"test_provider_meta_attribute": tftypes.NewValue(tftypes.String, "test-provider-meta-value"),
+	})
+
+	testProviderMetaSchema := tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"test_provider_meta_attribute": {
+				Optional: true,
+				Type:     types.StringType,
+			},
+		},
+	}
+
+	type testProviderMetaData struct {
+		TestProviderMetaAttribute types.String `tfsdk:"test_provider_meta_attribute"`
+	}
+
+	testCases := map[string]struct {
+		server           *Server
+		request          *tfprotov6.ApplyResourceChangeRequest
+		expectedError    error
+		expectedResponse *tfprotov6.ApplyResourceChangeResponse
+	}{
+		"create-request-config": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												var data testSchemaData
+
+												resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+												if data.TestRequired.Value != "test-config-value" {
+													resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+												}
+											},
+											DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+											},
+											UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PriorState: &testEmptyDynamicValue,
+				TypeName:   "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				// Intentionally empty, Create implementation does not call resp.State.Set()
+				NewState: &testEmptyDynamicValue,
+			},
+		},
+		"create-request-plannedstate": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												var data testSchemaData
+
+												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+												if data.TestComputed.Value != "test-plannedstate-value" {
+													resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
+												}
+											},
+											DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+											},
+											UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PriorState: &testEmptyDynamicValue,
+				TypeName:   "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				// Intentionally empty, Create implementation does not call resp.State.Set()
+				NewState: &testEmptyDynamicValue,
+			},
+		},
+		"create-request-providermeta": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithProviderMeta{
+						Provider: &testprovider.Provider{
+							GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+								return map[string]tfsdk.ResourceType{
+									"test_resource": &testprovider.ResourceType{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+											return &testprovider.Resource{
+												CreateMethod: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+													var data testProviderMetaData
+
+													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+
+													if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+														resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
+													}
+												},
+												DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+												},
+												UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
+												},
+											}, nil
+										},
+									},
+								}, nil
+							},
+						},
+						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+							return testProviderMetaSchema, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PriorState:   &testEmptyDynamicValue,
+				ProviderMeta: testProviderMetaValue,
+				TypeName:     "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				// Intentionally empty, Create implementation does not call resp.State.Set()
+				NewState: &testEmptyDynamicValue,
+			},
+		},
+		"create-response-diagnostics": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												resp.Diagnostics.AddWarning("warning summary", "warning detail")
+												resp.Diagnostics.AddError("error summary", "error detail")
+											},
+											DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+											},
+											UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PriorState: &testEmptyDynamicValue,
+				TypeName:   "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityWarning,
+						Summary:  "warning summary",
+						Detail:   "warning detail",
+					},
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "error summary",
+						Detail:   "error detail",
+					},
+				},
+				NewState: &testEmptyDynamicValue,
+			},
+		},
+		"create-response-newstate": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												var data testSchemaData
+
+												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+											},
+											DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+											},
+											UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PriorState: &testEmptyDynamicValue,
+				TypeName:   "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+			},
+		},
+		"delete-request-priorstate": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+											},
+											DeleteMethod: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												var data testSchemaData
+
+												resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+												if data.TestRequired.Value != "test-priorstate-value" {
+													resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.Value)
+												}
+											},
+											UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				PlannedState: &testEmptyDynamicValue,
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				NewState: &testEmptyDynamicValue,
+			},
+		},
+		"delete-request-providermeta": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithProviderMeta{
+						Provider: &testprovider.Provider{
+							GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+								return map[string]tfsdk.ResourceType{
+									"test_resource": &testprovider.ResourceType{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+											return &testprovider.Resource{
+												CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+												},
+												DeleteMethod: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+													var data testProviderMetaData
+
+													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+
+													if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+														resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
+													}
+												},
+												UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
+												},
+											}, nil
+										},
+									},
+								}, nil
+							},
+						},
+						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+							return testProviderMetaSchema, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				PlannedState: &testEmptyDynamicValue,
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+				}),
+				ProviderMeta: testProviderMetaValue,
+				TypeName:     "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				NewState: &testEmptyDynamicValue,
+			},
+		},
+		"delete-response-diagnostics": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+											},
+											DeleteMethod: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddWarning("warning summary", "warning detail")
+												resp.Diagnostics.AddError("error summary", "error detail")
+											},
+											UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				PlannedState: &testEmptyDynamicValue,
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityWarning,
+						Summary:  "warning summary",
+						Detail:   "warning detail",
+					},
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "error summary",
+						Detail:   "error detail",
+					},
+				},
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+				}),
+			},
+		},
+		"delete-response-newstate": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+											},
+											DeleteMethod: func(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												// Intentionally empty, should call resp.State.RemoveResource() automatically.
+											},
+											UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				PlannedState: &testEmptyDynamicValue,
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				NewState: &testEmptyDynamicValue,
+			},
+		},
+		"update-request-config": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+
+											},
+											DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+											},
+											UpdateMethod: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												var data testSchemaData
+
+												resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+												if data.TestRequired.Value != "test-new-value" {
+													resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+												}
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				// Intentionally old, Update implementation does not call resp.State.Set()
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+			},
+		},
+		"update-request-plannedstate": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+
+											},
+											DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+											},
+											UpdateMethod: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												var data testSchemaData
+
+												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+												if data.TestComputed.Value != "test-plannedstate-value" {
+													resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
+												}
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				// Intentionally old, Update implementation does not call resp.State.Set()
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+			},
+		},
+		"update-request-priorstate": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+											},
+											DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+											},
+											UpdateMethod: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												var data testSchemaData
+
+												resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+												if data.TestRequired.Value != "test-old-value" {
+													resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.Value)
+												}
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				// Intentionally old, Update implementation does not call resp.State.Set()
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+			},
+		},
+		"update-request-providermeta": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithProviderMeta{
+						Provider: &testprovider.Provider{
+							GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+								return map[string]tfsdk.ResourceType{
+									"test_resource": &testprovider.ResourceType{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+											return &testprovider.Resource{
+												CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+												},
+												DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+												},
+												UpdateMethod: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+													var data testProviderMetaData
+
+													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+
+													if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+														resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
+													}
+												},
+											}, nil
+										},
+									},
+								}, nil
+							},
+						},
+						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+							return testProviderMetaSchema, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+				ProviderMeta: testProviderMetaValue,
+				TypeName:     "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				// Intentionally old, Update implementation does not call resp.State.Set()
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+			},
+		},
+		"update-response-diagnostics": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+											},
+											DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+											},
+											UpdateMethod: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												resp.Diagnostics.AddWarning("warning summary", "warning detail")
+												resp.Diagnostics.AddError("error summary", "error detail")
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityWarning,
+						Summary:  "warning summary",
+						Detail:   "warning detail",
+					},
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "error summary",
+						Detail:   "error detail",
+					},
+				},
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+			},
+		},
+		"update-response-newstate": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+							return map[string]tfsdk.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+											},
+											DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+											},
+											UpdateMethod: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+												var data testSchemaData
+
+												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+				}),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			s := &testServeProvider{
-				createFunc: tc.create,
-				updateFunc: tc.update,
-				deleteFunc: tc.destroy,
-			}
-			testServer := &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: s,
-				},
-			}
-			var pmSchema tfsdk.Schema
-			if tc.providerMeta.Type() != nil {
-				testServer.FrameworkServer.Provider = &testServeProviderWithMetaSchema{s}
-				schema, diags := testServer.FrameworkServer.ProviderMetaSchema(context.Background())
-				if len(diags) > 0 {
-					t.Errorf("Unexpected diags: %+v", diags)
-					return
-				}
-				pmSchema = *schema
+			got, err := testCase.server.ApplyResourceChange(context.Background(), testCase.request)
+
+			if diff := cmp.Diff(testCase.expectedError, err); diff != "" {
+				t.Errorf("unexpected error difference: %s", diff)
 			}
 
-			rt, diags := testServer.FrameworkServer.ResourceType(context.Background(), tc.resource)
-			if len(diags) > 0 {
-				t.Errorf("Unexpected diags: %+v", diags)
-				return
-			}
-			schema, diags := rt.GetSchema(context.Background())
-			if len(diags) > 0 {
-				t.Errorf("Unexpected diags: %+v", diags)
-				return
-			}
-
-			priorState, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.priorState)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
-			}
-			plannedState, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.plannedState)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
-			}
-			config, err := tfprotov6.NewDynamicValue(tc.resourceType, tc.config)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
-			}
-			req := &tfprotov6.ApplyResourceChangeRequest{
-				TypeName:       tc.resource,
-				PlannedPrivate: tc.plannedPrivate,
-				PriorState:     &priorState,
-				PlannedState:   &plannedState,
-				Config:         &config,
-			}
-			if tc.providerMeta.Type() != nil {
-				providerMeta, err := tfprotov6.NewDynamicValue(testServeProviderMetaType, tc.providerMeta)
-				if err != nil {
-					t.Errorf("Unexpected error: %s", err)
-					return
-				}
-				req.ProviderMeta = &providerMeta
-			}
-			got, err := testServer.ApplyResourceChange(context.Background(), req)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
-			}
-			if diff := cmp.Diff(got.Diagnostics, tc.expectedDiags); diff != "" {
-				t.Errorf("Unexpected diff in diagnostics (+wanted, -got): %s", diff)
-			}
-			if s.applyResourceChangeCalledResourceType != tc.resource {
-				t.Errorf("Called wrong resource. Expected to call %q, actually called %q", tc.resource, s.applyResourceChangeCalledResourceType)
-				return
-			}
-			if s.applyResourceChangeCalledAction != tc.action {
-				t.Errorf("Called wrong action. Expected to call %q, actually called %q", tc.action, s.applyResourceChangeCalledAction)
-				return
-			}
-			if tc.priorState.Type() != nil {
-				if diff := cmp.Diff(s.applyResourceChangePriorStateValue, tc.priorState); diff != "" {
-					t.Errorf("Unexpected diff in prior state (+wanted, -got): %s", diff)
-					return
-				}
-				if diff := cmp.Diff(s.applyResourceChangePriorStateSchema, schema); diff != "" {
-					t.Errorf("Unexpected diff in prior state schema (+wanted, -got): %s", diff)
-					return
-				}
-			}
-			if tc.plannedState.Type() != nil {
-				if diff := cmp.Diff(s.applyResourceChangePlannedStateValue, tc.plannedState); diff != "" {
-					t.Errorf("Unexpected diff in planned state (+wanted, -got): %s", diff)
-					return
-				}
-				if diff := cmp.Diff(s.applyResourceChangePlannedStateSchema, schema); diff != "" {
-					t.Errorf("Unexpected diff in planned state schema (+wanted, -got): %s", diff)
-					return
-				}
-			}
-			if tc.config.Type() != nil {
-				if diff := cmp.Diff(s.applyResourceChangeConfigValue, tc.config); diff != "" {
-					t.Errorf("Unexpected diff in config (+wanted, -got): %s", diff)
-					return
-				}
-				if diff := cmp.Diff(s.applyResourceChangeConfigSchema, schema); diff != "" {
-					t.Errorf("Unexpected diff in config schema (+wanted, -got): %s", diff)
-					return
-				}
-			}
-			if tc.providerMeta.Type() != nil {
-				if diff := cmp.Diff(s.applyResourceChangeProviderMetaValue, tc.providerMeta); diff != "" {
-					t.Errorf("Unexpected diff in provider meta (+wanted, -got): %s", diff)
-					return
-				}
-				if diff := cmp.Diff(s.applyResourceChangeProviderMetaSchema, pmSchema); diff != "" {
-					t.Errorf("Unexpected diff in provider meta schema (+wanted, -got): %s", diff)
-					return
-				}
-			}
-			gotNewState, err := got.NewState.Unmarshal(tc.resourceType)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
-			}
-			if diff := cmp.Diff(gotNewState, tc.expectedNewState); diff != "" {
-				t.Errorf("Unexpected diff in new state (+wanted, -got): %s", diff)
-				return
-			}
-			if string(got.Private) != string(tc.expectedPrivate) {
-				t.Errorf("Expected private to be %q, got %q", tc.expectedPrivate, got.Private)
-				return
+			if diff := cmp.Diff(testCase.expectedResponse, got); diff != "" {
+				t.Errorf("unexpected response difference: %s", diff)
 			}
 		})
 	}

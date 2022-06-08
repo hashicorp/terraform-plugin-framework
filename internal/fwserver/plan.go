@@ -21,7 +21,7 @@ import (
 // TODO: Clean up this abstraction back into an internal Plan type method.
 // The extra Plan parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
 func PlanGetAttributeValue(ctx context.Context, p tfsdk.Plan, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -88,7 +88,7 @@ func PlanGetAttributeValue(ctx context.Context, p tfsdk.Plan, path *tftypes.Attr
 // TODO: Clean up this abstraction back into an internal Plan type method.
 // The extra Plan parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
 func PlanTerraformValueAtPath(p tfsdk.Plan, path *tftypes.AttributePath) (tftypes.Value, error) {
 	rawValue, remaining, err := tftypes.WalkAttributePath(p.Raw, path)
 	if err != nil {

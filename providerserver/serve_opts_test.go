@@ -35,6 +35,25 @@ func TestServeOptsValidate(t *testing.T) {
 			},
 			expectedError: fmt.Errorf("unable to validate Address: expected hostname/namespace/type format, got: hashicorp/testing"),
 		},
+		"ProtocolVersion-invalid": {
+			serveOpts: ServeOpts{
+				Address:         "registry.terraform.io/hashicorp/testing",
+				ProtocolVersion: 999,
+			},
+			expectedError: fmt.Errorf("ProtocolVersion, if set, must be 5 or 6"),
+		},
+		"ProtocolVersion-5": {
+			serveOpts: ServeOpts{
+				Address:         "registry.terraform.io/hashicorp/testing",
+				ProtocolVersion: 5,
+			},
+		},
+		"ProtocolVersion-6": {
+			serveOpts: ServeOpts{
+				Address:         "registry.terraform.io/hashicorp/testing",
+				ProtocolVersion: 6,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -5,6 +5,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
+// DiagnosticSeverity converts diag.Severity into tfprotov6.DiagnosticSeverity.
+func DiagnosticSeverity(s diag.Severity) tfprotov6.DiagnosticSeverity {
+	switch s {
+	case diag.SeverityError:
+		return tfprotov6.DiagnosticSeverityError
+	case diag.SeverityWarning:
+		return tfprotov6.DiagnosticSeverityWarning
+	default:
+		return tfprotov6.DiagnosticSeverityInvalid
+	}
+}
+
 // Diagnostics converts the diagnostics into the tfprotov6 collection type.
 func Diagnostics(diagnostics diag.Diagnostics) []*tfprotov6.Diagnostic {
 	var results []*tfprotov6.Diagnostic
@@ -12,7 +24,7 @@ func Diagnostics(diagnostics diag.Diagnostics) []*tfprotov6.Diagnostic {
 	for _, diagnostic := range diagnostics {
 		tfprotov6Diagnostic := &tfprotov6.Diagnostic{
 			Detail:   diagnostic.Detail(),
-			Severity: diagnostic.Severity().ToTfprotov6DiagnosticSeverity(),
+			Severity: DiagnosticSeverity(diagnostic.Severity()),
 			Summary:  diagnostic.Summary(),
 		}
 

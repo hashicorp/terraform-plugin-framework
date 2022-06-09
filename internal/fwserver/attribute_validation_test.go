@@ -235,6 +235,78 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"config-optional-computed-null": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Computed: true,
+								Optional: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"config-optional-computed-unknown": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					}),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Computed: true,
+								Optional: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"config-optional-computed-value": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Computed: true,
+								Optional: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
 		"config-required-null": {
 			req: tfsdk.ValidateAttributeRequest{
 				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),

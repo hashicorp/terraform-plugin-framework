@@ -60,7 +60,7 @@ func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.Validat
 	// until Terraform CLI versions 0.12 through the release containing the
 	// checks are considered end-of-life.
 	// Reference: https://github.com/hashicorp/terraform/issues/30669
-	if a.Computed && !attributeConfig.IsNull() {
+	if a.Computed && !a.Optional && !attributeConfig.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Configuration for Read-Only Attribute",

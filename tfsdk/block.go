@@ -134,7 +134,7 @@ func (b Block) attributeType() attr.Type {
 		attrType.AttrTypes[attrName] = attr.attributeType()
 	}
 
-	for blockName, block := range b.Attributes {
+	for blockName, block := range b.Blocks {
 		attrType.AttrTypes[blockName] = block.attributeType()
 	}
 

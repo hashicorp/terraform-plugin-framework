@@ -148,6 +148,171 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"config-computed-null": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Computed: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"config-computed-unknown": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					}),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Computed: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Invalid Configuration for Read-Only Attribute",
+						"Cannot set value for this attribute as the provider has marked it as read-only. Remove the configuration line setting the value.\n\n"+
+							"Refer to the provider documentation or contact the provider developers for additional information about configurable and read-only attributes that are supported.",
+					),
+				},
+			},
+		},
+		"config-computed-value": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Computed: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Invalid Configuration for Read-Only Attribute",
+						"Cannot set value for this attribute as the provider has marked it as read-only. Remove the configuration line setting the value.\n\n"+
+							"Refer to the provider documentation or contact the provider developers for additional information about configurable and read-only attributes that are supported.",
+					),
+				},
+			},
+		},
+		"config-required-null": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Required: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						tftypes.NewAttributePath().WithAttributeName("test"),
+						"Missing Configuration for Required Attribute",
+						"Must set a configuration value for the AttributeName(\"test\") attribute as the provider has marked it as required.\n\n"+
+							"Refer to the provider documentation or contact the provider developers for additional information about configurable attributes that are required.",
+					),
+				},
+			},
+		},
+		"config-required-unknown": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					}),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Required: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"config-required-value": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Required: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
 		"no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
 				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),

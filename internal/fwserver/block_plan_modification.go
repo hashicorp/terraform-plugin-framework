@@ -13,7 +13,7 @@ import (
 // TODO: Clean up this abstraction back into an internal Block type method.
 // The extra Block parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
 func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttributePlanRequest, resp *ModifySchemaPlanResponse) {
 	attributeConfig, diags := ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
 	resp.Diagnostics.Append(diags...)

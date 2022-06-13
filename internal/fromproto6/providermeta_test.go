@@ -72,7 +72,7 @@ func TestProviderMeta(t *testing.T) {
 				diag.NewErrorDiagnostic(
 					"Unable to Convert Provider Meta Configuration",
 					"An unexpected error was encountered when converting the provider meta configuration from the protocol type. "+
-						"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n"+
+						"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 						"Please report this to the provider developer:\n\n"+
 						"AttributeName(\"test_attribute\"): couldn't decode bool: msgpack: invalid code=aa decoding bool",
 				),

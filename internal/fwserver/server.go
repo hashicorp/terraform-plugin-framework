@@ -112,7 +112,7 @@ func (s *Server) DataSourceSchema(ctx context.Context, typeName string) (*tfsdk.
 		diags.AddError(
 			"Data Source Schema Not Found",
 			fmt.Sprintf("No data source type named %q was found in the provider to fetch the schema. ", typeName)+
-				"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.",
+				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.",
 		)
 
 		return nil, diags
@@ -257,7 +257,7 @@ func (s *Server) ResourceSchema(ctx context.Context, typeName string) (*tfsdk.Sc
 		diags.AddError(
 			"Resource Schema Not Found",
 			fmt.Sprintf("No resource type named %q was found in the provider to fetch the schema. ", typeName)+
-				"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.",
+				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.",
 		)
 
 		return nil, diags

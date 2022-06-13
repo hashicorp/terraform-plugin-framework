@@ -1,0 +1,3 @@
+```release-note:bug
+tfsdk: Prevented configuration handling error when `Schema` contained `Blocks`
+```

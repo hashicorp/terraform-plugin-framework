@@ -1,0 +1,11 @@
+```release-note:feature
+providerserver: Implemented native protocol version 5 support
+```
+
+```release-note:enhancement
+providerserver: Added `NewProtocol5()` and `NewProtocol5WithError()` functions, which return a protocol version 5 compatible provider server
+```
+
+```release-note:enhancement
+providerserver: Added `ServeOpts` type `ProtocolVersion` field, which can be set to `5` or `6` and defaults to `6`
+```

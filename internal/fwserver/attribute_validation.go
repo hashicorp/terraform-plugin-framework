@@ -55,6 +55,34 @@ func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.Validat
 		return
 	}
 
+	// Terraform CLI does not automatically perform certain configuration
+	// checks yet. If it eventually does, this logic should remain at least
+	// until Terraform CLI versions 0.12 through the release containing the
+	// checks are considered end-of-life.
+	// Reference: https://github.com/hashicorp/terraform/issues/30669
+	if a.Computed && !a.Optional && !attributeConfig.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Configuration for Read-Only Attribute",
+			"Cannot set value for this attribute as the provider has marked it as read-only. Remove the configuration line setting the value.\n\n"+
+				"Refer to the provider documentation or contact the provider developers for additional information about configurable and read-only attributes that are supported.",
+		)
+	}
+
+	// Terraform CLI does not automatically perform certain configuration
+	// checks yet. If it eventually does, this logic should remain at least
+	// until Terraform CLI versions 0.12 through the release containing the
+	// checks are considered end-of-life.
+	// Reference: https://github.com/hashicorp/terraform/issues/30669
+	if a.Required && attributeConfig.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Missing Configuration for Required Attribute",
+			fmt.Sprintf("Must set a configuration value for the %s attribute as the provider has marked it as required.\n\n", req.AttributePath.String())+
+				"Refer to the provider documentation or contact the provider developers for additional information about configurable attributes that are required.",
+		)
+	}
+
 	req.AttributeConfig = attributeConfig
 
 	for _, validator := range a.Validators {

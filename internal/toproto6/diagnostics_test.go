@@ -10,6 +10,42 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func TestDiagnosticSeverity(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		severity diag.Severity
+		expected tfprotov6.DiagnosticSeverity
+	}{
+		"error": {
+			severity: diag.SeverityError,
+			expected: tfprotov6.DiagnosticSeverityError,
+		},
+		"invalid": {
+			severity: diag.SeverityInvalid,
+			expected: tfprotov6.DiagnosticSeverityInvalid,
+		},
+		"warning": {
+			severity: diag.SeverityWarning,
+			expected: tfprotov6.DiagnosticSeverityWarning,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := toproto6.DiagnosticSeverity(testCase.severity)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestDiagnostics(t *testing.T) {
 	t.Parallel()
 

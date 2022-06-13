@@ -1,7 +1,5 @@
 package diag
 
-import "github.com/hashicorp/terraform-plugin-go/tfprotov6"
-
 // Severity represents the level of feedback for a diagnostic.
 //
 // Each severity implies behavior changes for the feedback and potentially the
@@ -36,20 +34,5 @@ func (s Severity) String() string {
 		return "Warning"
 	default:
 		return "Invalid"
-	}
-}
-
-// ToTfprotov6DiagnosticSeverity converts the severity into the tfprotov6 type.
-//
-// Usage of this method outside the framework is not supported nor considered
-// for backwards compatibility promises.
-func (s Severity) ToTfprotov6DiagnosticSeverity() tfprotov6.DiagnosticSeverity {
-	switch s {
-	case SeverityError:
-		return tfprotov6.DiagnosticSeverityError
-	case SeverityWarning:
-		return tfprotov6.DiagnosticSeverityWarning
-	default:
-		return tfprotov6.DiagnosticSeverityInvalid
 	}
 }

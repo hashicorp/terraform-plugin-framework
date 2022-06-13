@@ -21,7 +21,7 @@ import (
 // TODO: Clean up this abstraction back into an internal Config type method.
 // The extra Config parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
 func ConfigGetAttributeValue(ctx context.Context, c tfsdk.Config, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -88,7 +88,7 @@ func ConfigGetAttributeValue(ctx context.Context, c tfsdk.Config, path *tftypes.
 // TODO: Clean up this abstraction back into an internal Config type method.
 // The extra Config parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
 func ConfigTerraformValueAtPath(c tfsdk.Config, path *tftypes.AttributePath) (tftypes.Value, error) {
 	rawValue, remaining, err := tftypes.WalkAttributePath(c.Raw, path)
 	if err != nil {

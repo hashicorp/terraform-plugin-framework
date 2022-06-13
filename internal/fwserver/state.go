@@ -21,7 +21,7 @@ import (
 // TODO: Clean up this abstraction back into an internal State type method.
 // The extra State parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
 func StateGetAttributeValue(ctx context.Context, s tfsdk.State, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -88,7 +88,7 @@ func StateGetAttributeValue(ctx context.Context, s tfsdk.State, path *tftypes.At
 // TODO: Clean up this abstraction back into an internal State type method.
 // The extra State parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
 func StateTerraformValueAtPath(s tfsdk.State, path *tftypes.AttributePath) (tftypes.Value, error) {
 	rawValue, remaining, err := tftypes.WalkAttributePath(s.Raw, path)
 	if err != nil {

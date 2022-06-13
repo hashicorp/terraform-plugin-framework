@@ -5,11 +5,43 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/proto5server"
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6server"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 )
+
+// NewProtocol5 returns a protocol version 5 ProviderServer implementation
+// based on the given Provider and suitable for usage with the
+// github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server.Serve()
+// function and various terraform-plugin-mux functions.
+func NewProtocol5(p tfsdk.Provider) func() tfprotov5.ProviderServer {
+	return func() tfprotov5.ProviderServer {
+		return &proto5server.Server{
+			FrameworkServer: fwserver.Server{
+				Provider: p,
+			},
+		}
+	}
+}
+
+// NewProtocol5WithError returns a protocol version 5 ProviderServer
+// implementation based on the given Provider and suitable for usage with
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource.TestCase.ProtoV5ProviderFactories.
+//
+// The error return is not currently used, but it may be in the future.
+func NewProtocol5WithError(p tfsdk.Provider) func() (tfprotov5.ProviderServer, error) {
+	return func() (tfprotov5.ProviderServer, error) {
+		return &proto5server.Server{
+			FrameworkServer: fwserver.Server{
+				Provider: p,
+			},
+		}, nil
+	}
+}
 
 // NewProtocol6 returns a protocol version 6 ProviderServer implementation
 // based on the given Provider and suitable for usage with the
@@ -48,23 +80,46 @@ func Serve(ctx context.Context, providerFunc func() tfsdk.Provider, opts ServeOp
 		return fmt.Errorf("unable to validate ServeOpts: %w", err)
 	}
 
-	var tf6serverOpts []tf6server.ServeOpt
+	switch opts.ProtocolVersion {
+	case 5:
+		var tf5serverOpts []tf5server.ServeOpt
 
-	if opts.Debug {
-		tf6serverOpts = append(tf6serverOpts, tf6server.WithManagedDebug())
+		if opts.Debug {
+			tf5serverOpts = append(tf5serverOpts, tf5server.WithManagedDebug())
+		}
+
+		return tf5server.Serve(
+			opts.Address,
+			func() tfprotov5.ProviderServer {
+				provider := providerFunc()
+
+				return &proto5server.Server{
+					FrameworkServer: fwserver.Server{
+						Provider: provider,
+					},
+				}
+			},
+			tf5serverOpts...,
+		)
+	default:
+		var tf6serverOpts []tf6server.ServeOpt
+
+		if opts.Debug {
+			tf6serverOpts = append(tf6serverOpts, tf6server.WithManagedDebug())
+		}
+
+		return tf6server.Serve(
+			opts.Address,
+			func() tfprotov6.ProviderServer {
+				provider := providerFunc()
+
+				return &proto6server.Server{
+					FrameworkServer: fwserver.Server{
+						Provider: provider,
+					},
+				}
+			},
+			tf6serverOpts...,
+		)
 	}
-
-	return tf6server.Serve(
-		opts.Address,
-		func() tfprotov6.ProviderServer {
-			provider := providerFunc()
-
-			return &proto6server.Server{
-				FrameworkServer: fwserver.Server{
-					Provider: provider,
-				},
-			}
-		},
-		tf6serverOpts...,
-	)
 }

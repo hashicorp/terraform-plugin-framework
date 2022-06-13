@@ -31,7 +31,7 @@ type ValidateSchemaResponse struct {
 // TODO: Clean up this abstraction back into an internal Schema type method.
 // The extra Schema parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
 func SchemaValidate(ctx context.Context, s tfsdk.Schema, req ValidateSchemaRequest, resp *ValidateSchemaResponse) {
 	for name, attribute := range s.Attributes {
 

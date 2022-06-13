@@ -14,7 +14,7 @@ import (
 // TODO: Clean up this abstraction back into an internal Attribute type method.
 // The extra Attribute parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
 func AttributeModifyPlan(ctx context.Context, a tfsdk.Attribute, req tfsdk.ModifyAttributePlanRequest, resp *ModifySchemaPlanResponse) {
 	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
 

@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/testing/emptyprovider"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 func TestNewProtocol6(t *testing.T) {
-	provider := &emptyprovider.Provider{}
+	provider := &testprovider.Provider{}
 
 	providerServerFunc := NewProtocol6(provider)
 	providerServer := providerServerFunc()
@@ -23,7 +23,7 @@ func TestNewProtocol6(t *testing.T) {
 }
 
 func TestNewProtocol6WithError(t *testing.T) {
-	provider := &emptyprovider.Provider{}
+	provider := &testprovider.Provider{}
 
 	providerServer, err := NewProtocol6WithError(provider)()
 

@@ -14,7 +14,7 @@ import (
 // TODO: Clean up this abstraction back into an internal Schema type method.
 // The extra Schema parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/215
+// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
 func SchemaBlockAtPath(s tfsdk.Schema, path *tftypes.AttributePath) (tfsdk.Block, error) {
 	res, remaining, err := tftypes.WalkAttributePath(s, path)
 	if err != nil {

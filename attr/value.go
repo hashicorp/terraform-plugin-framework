@@ -6,6 +6,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+const (
+	// UnknownString should be returned by Value.String() implementations, when Value.IsUnknown() returns true.
+	UnknownString = "<unknown>"
+
+	// NullString should be returned by Value.String() implementations, when Value.IsNull() returns true.
+	NullString = "<null>"
+)
+
 // Value defines an interface for describing data associated with an attribute.
 // Values allow provider developers to specify data in a convenient format, and
 // have it transparently be converted to formats Terraform understands.
@@ -26,4 +34,12 @@ type Value interface {
 
 	// IsUnknown returns true if the value is not yet known.
 	IsUnknown() bool
+
+	// String returns a summary representation of either the underlying Value,
+	// or UnknownString (`<unknown>`) when IsUnknown() returns true,
+	// or NullString (`<null>`) when IsNull() return true.
+	//
+	// This is an intentionally lossy representation, that it's best used for
+	// logging and error reporting.
+	String() string
 }

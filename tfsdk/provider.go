@@ -21,12 +21,22 @@ type Provider interface {
 	// Provider interface.
 	Configure(context.Context, ConfigureProviderRequest, *ConfigureProviderResponse)
 
-	// GetResources returns a map of the resource types this provider
-	// supports.
+	// GetResources returns a mapping of resource names to type
+	// implementations.
+	//
+	// Conventionally, resource names should each include a prefix of the
+	// provider name and an underscore. For example, a provider named
+	// "examplecloud" with resources "thing" and "widget" should use
+	// "examplecloud_thing" and "examplecloud_widget" as resource names.
 	GetResources(context.Context) (map[string]ResourceType, diag.Diagnostics)
 
-	// GetDataSources returns a map of the data source types this provider
-	// supports.
+	// GetDataSources returns a mapping of data source name to types
+	// implementations.
+	//
+	// Conventionally, data source names should each include a prefix of the
+	// provider name and an underscore. For example, a provider named
+	// "examplecloud" with data sources "thing" and "widget" should use
+	// "examplecloud_thing" and "examplecloud_widget" as data source names.
 	GetDataSources(context.Context) (map[string]DataSourceType, diag.Diagnostics)
 }
 

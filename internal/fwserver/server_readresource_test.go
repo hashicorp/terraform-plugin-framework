@@ -87,7 +87,7 @@ func TestServerReadResource(t *testing.T) {
 					diag.NewErrorDiagnostic(
 						"Unexpected Read Request",
 						"An unexpected error was encountered when reading the resource. The current state was missing.\n\n"+
-							"This is always a problem with Terraform or the Terraform Provider SDK. Please report this to the provider developer.",
+							"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 					),
 				},
 			},

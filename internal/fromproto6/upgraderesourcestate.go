@@ -24,7 +24,7 @@ func UpgradeResourceStateRequest(ctx context.Context, proto6 *tfprotov6.UpgradeR
 		diags.AddError(
 			"Unable to Create Empty State",
 			"An unexpected error was encountered when creating the empty state. "+
-				"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n"+
+				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 				"Please report this to the provider developer:\n\n"+
 				"Missing schema.",
 		)

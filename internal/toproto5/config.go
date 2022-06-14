@@ -22,7 +22,7 @@ func Config(ctx context.Context, fw *tfsdk.Config) (*tfprotov5.DynamicValue, dia
 		diags.AddError(
 			"Unable to Convert Configuration",
 			"An unexpected error was encountered when converting the configuration to the protocol type. "+
-				"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n"+
+				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 				"Please report this to the provider developer:\n\n"+err.Error(),
 		)
 

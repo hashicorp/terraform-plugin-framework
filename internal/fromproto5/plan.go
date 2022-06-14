@@ -23,7 +23,7 @@ func Plan(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValue, schem
 		diags.AddError(
 			"Unable to Convert Plan",
 			"An unexpected error was encountered when converting the plan from the protocol type. "+
-				"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n"+
+				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 				"Please report this to the provider developer:\n\n"+
 				"Missing schema.",
 		)
@@ -37,7 +37,7 @@ func Plan(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValue, schem
 		diags.AddError(
 			"Unable to Convert Plan",
 			"An unexpected error was encountered when converting the plan from the protocol type. "+
-				"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n"+
+				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 				"Please report this to the provider developer:\n\n"+err.Error(),
 		)
 

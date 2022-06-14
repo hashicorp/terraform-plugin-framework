@@ -72,7 +72,7 @@ func TestState(t *testing.T) {
 				diag.NewErrorDiagnostic(
 					"Unable to Convert State",
 					"An unexpected error was encountered when converting the state to the protocol type. "+
-						"This is always an issue in the Terraform Provider SDK used to implement the provider and should be reported to the provider developers.\n\n"+
+						"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 						"Please report this to the provider developer:\n\n"+
 						"AttributeName(\"test_attribute\"): unexpected value type string, tftypes.Bool values must be of type bool",
 				),

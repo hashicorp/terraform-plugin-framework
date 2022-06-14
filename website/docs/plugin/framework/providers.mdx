@@ -24,9 +24,14 @@ var _ tfsdk.Provider = &exampleProvider{}
 // will be passed to data sources and resources as the tfsdk.Provider parameter
 // in each NewDataSource and NewResource method call respectively.
 type exampleProvider struct{
-		// Typically fields including API clients or configuration necessary for
-		// resource and data source operations. For example:
-		client exampleApiClient
+	// Typically fields including API clients or configuration necessary for
+	// resource and data source operations. For example:
+	Client exampleApiClient
+
+	// version is an example field that can be set with an actual provider
+	// version on release, "dev" when the provider is built and ran locally,
+	// and "test" when running acceptance testing.
+	Version string
 }
 
 // GetSchema satisfies the tfsdk.Provider interface for exampleProvider.
@@ -55,6 +60,18 @@ func (p *exampleProvider) GetResources(ctx context.Context) (map[string]tfsdk.Re
 	return map[string]tfsdk.ResourceType{
 		// Provider specific implementation
 	}, nil
+}
+```
+
+Conventionally, many providers also create a helper function named `New` which can simplify [provider server](/plugin/framework/provider-servers) implementations.
+
+```go
+func New(version string) func() tfsdk.Provider {
+	return func() tfsdk.Provider {
+		return &exampleProvider{
+			Version: version,
+		}
+	}
 }
 ```
 

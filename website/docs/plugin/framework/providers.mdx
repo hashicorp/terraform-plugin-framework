@@ -1,31 +1,62 @@
 ---
 page_title: 'Plugin Development - Framework: Providers'
 description: >-
-  How to implement a provider in the provider development framework. Providers
-  are plugins that allow Terraform to interact with APIs.
+  How to implement a provider in the provider development framework. Providers,
+  wrapped by a provider server, are plugins that allow Terraform to interact
+  with APIs.
 ---
 
 # Providers
 
-Providers are Terraform plugins that supply
-[resources](/plugin/framework/resources) and [data
-sources](/plugin/framework/data-sources) for practitioners to use.
-They are implemented as binaries that the Terraform CLI downloads, starts,
-and stops. The provider is responsible for:
-
-- providing a [gRPC](https://grpc.io) server that can correctly handle
-  Terraform's handshake.
-- providing Terraform with information about how to connect to the server.
+Providers are Terraform plugins that define [resources](/plugin/framework/resources) and [data sources](/plugin/framework/data-sources) for practitioners to use. Providers are wrapped by a [provider server](/plugin/framework/provider-servers) for interacting with Terraform.
 
 ## Implement Provider Interface
 
-Any type that fills an
-[interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Provider)
-can be a provider. We recommend that you define a `struct` type to fill this
-interface.
+Any type that fills the [tfsdk.Provider interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Provider) can be a provider. The provider interface has four required methods: `GetSchema`, `Configure`, `GetResources`, and `GetDataSources`. We recommend that you define a `struct` type to fill this interface.
 
-The provider has four methods it needs to handle: `GetSchema`, `Configure`,
-`GetResources`, and `GetDataSources`.
+An example provider implementation with a field storing an example API client:
+
+```go
+// Ensure the implementation satisfies the tfsdk.Provider interface.
+var _ tfsdk.Provider = &exampleProvider{}
+
+// exampleProvider implements the tfsdk.Provider interface. This implementation
+// will be passed to data sources and resources as the tfsdk.Provider parameter
+// in each NewDataSource and NewResource method call respectively.
+type exampleProvider struct{
+		// Typically fields including API clients or configuration necessary for
+		// resource and data source operations. For example:
+		client exampleApiClient
+}
+
+// GetSchema satisfies the tfsdk.Provider interface for exampleProvider.
+func (p *exampleProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			// Provider specific implementation.
+		},
+	}, nil
+}
+
+// Configure satisfies the tfsdk.Provider interface for exampleProvider.
+func (p *exampleProvider) Configure(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+	// Provider specific implementation.
+}
+
+// GetDataSources satisfies the tfsdk.Provider interface for exampleProvider.
+func (p *exampleProvider) GetDataSources(ctx context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
+	return map[string]tfsdk.DataSourceType{
+		// Provider specific implementation
+	}, nil
+}
+
+// GetResources satisfies the tfsdk.Provider interface for exampleProvider.
+func (p *exampleProvider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+	return map[string]tfsdk.ResourceType{
+		// Provider specific implementation
+	}, nil
+}
+```
 
 ### GetSchema
 

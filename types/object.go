@@ -297,7 +297,7 @@ func (o Object) String() string {
 
 	// We want the output to be consistent, so we sort the output by key
 	keys := make([]string, 0, len(o.Attrs))
-	for k, _ := range o.Attrs {
+	for k := range o.Attrs {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

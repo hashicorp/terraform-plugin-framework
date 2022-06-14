@@ -2,7 +2,6 @@ package types
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -263,7 +262,7 @@ func TestStringString(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := fmt.Sprintf("%s", test.input)
+			got := test.input.String()
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}

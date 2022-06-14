@@ -981,7 +981,7 @@ func TestSetString(t *testing.T) {
 			},
 			expectation: "(hello,world)",
 		},
-		"list-of-lists": {
+		"set-of-sets": {
 			input: Set{
 				ElemType: SetType{
 					ElemType: StringType,

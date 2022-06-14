@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -84,4 +85,16 @@ func (b Bool) IsNull() bool {
 
 func (b Bool) IsUnknown() bool {
 	return b.Unknown
+}
+
+func (b Bool) String() string {
+	if b.Unknown {
+		return attr.UnknownString
+	}
+
+	if b.Null {
+		return attr.NullString
+	}
+
+	return fmt.Sprintf("%t", b.Value)
 }

@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -218,6 +219,53 @@ func TestStringEqual(t *testing.T) {
 			got := test.input.Equal(test.candidate)
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestStringString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       String
+		expectation string
+	}
+	tests := map[string]testCase{
+		"simple": {
+			input:       String{Value: "simple"},
+			expectation: "simple",
+		},
+		"long-string": {
+			input:       String{Value: "a really, really, really long string"},
+			expectation: "a really, really, really long string",
+		},
+		"empty-stirng": {
+			input:       String{Value: ""},
+			expectation: "",
+		},
+		"unknown": {
+			input:       String{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       String{Null: true},
+			expectation: "<null>",
+		},
+		"default-0": {
+			input:       String{},
+			expectation: "",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := fmt.Sprintf("%s", test.input)
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}
 		})
 	}

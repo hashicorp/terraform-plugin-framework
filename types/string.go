@@ -82,3 +82,15 @@ func (s String) IsNull() bool {
 func (s String) IsUnknown() bool {
 	return s.Unknown
 }
+
+func (s String) String() string {
+	if s.Unknown {
+		return attr.UnknownString
+	}
+
+	if s.Null {
+		return attr.NullString
+	}
+
+	return s.Value
+}

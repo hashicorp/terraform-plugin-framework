@@ -150,3 +150,15 @@ func (f Float64) IsNull() bool {
 func (f Float64) IsUnknown() bool {
 	return f.Unknown
 }
+
+func (f Float64) String() string {
+	if f.Unknown {
+		return attr.UnknownString
+	}
+
+	if f.Null {
+		return attr.NullString
+	}
+
+	return fmt.Sprintf("%g", f.Value)
+}

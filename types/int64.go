@@ -162,3 +162,15 @@ func (i Int64) IsNull() bool {
 func (i Int64) IsUnknown() bool {
 	return i.Unknown
 }
+
+func (i Int64) String() string {
+	if i.Unknown {
+		return attr.UnknownString
+	}
+
+	if i.Null {
+		return attr.NullString
+	}
+
+	return fmt.Sprintf("%d", i.Value)
+}

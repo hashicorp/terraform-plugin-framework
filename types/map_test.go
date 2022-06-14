@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -694,6 +695,81 @@ func TestMapEqual(t *testing.T) {
 			got := test.receiver.Equal(test.input)
 			if got != test.expected {
 				t.Errorf("Expected %v, got %v", test.expected, got)
+			}
+		})
+	}
+}
+
+func TestMapString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Map
+		expectation string
+	}
+	tests := map[string]testCase{
+		"simple": {
+			input: Map{
+				ElemType: Int64Type,
+				Elems: map[string]attr.Value{
+					"alpha": Int64{Value: 1234},
+					"beta":  Int64{Value: 56789},
+					"gamma": Int64{Value: 9817},
+					"sigma": Int64{Value: 62534},
+				},
+			},
+			expectation: "[alpha:1234,beta:56789,gamma:9817,sigma:62534]",
+		},
+		"map-of-maps": {
+			input: Map{
+				ElemType: MapType{
+					ElemType: StringType,
+				},
+				Elems: map[string]attr.Value{
+					"first": Map{
+						ElemType: StringType,
+						Elems: map[string]attr.Value{
+							"alpha": String{Value: "hello"},
+							"beta":  String{Value: "world"},
+							"gamma": String{Value: "foo"},
+							"sigma": String{Value: "bar"},
+						},
+					},
+					"second": Map{
+						ElemType: StringType,
+						Elems: map[string]attr.Value{
+							"x": String{Value: "0"},
+							"y": String{Value: "0"},
+							"z": String{Value: "0"},
+							"t": String{Value: "0"},
+						},
+					},
+				},
+			},
+			expectation: "[first:[alpha:hello,beta:world,gamma:foo,sigma:bar],second:[t:0,x:0,y:0,z:0]]",
+		},
+		"unknown": {
+			input:       Map{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       Map{Null: true},
+			expectation: "<null>",
+		},
+		"default-empty": {
+			input:       Map{},
+			expectation: "[]",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := fmt.Sprintf("%s", test.input)
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}
 		})
 	}

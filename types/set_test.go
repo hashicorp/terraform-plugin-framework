@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -958,6 +959,75 @@ func TestSetEqual(t *testing.T) {
 			got := test.receiver.Equal(test.input)
 			if got != test.expected {
 				t.Errorf("Expected %v, got %v", test.expected, got)
+			}
+		})
+	}
+}
+
+func TestSetString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Set
+		expectation string
+	}
+	tests := map[string]testCase{
+		"simple": {
+			input: Set{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			},
+			expectation: "(hello,world)",
+		},
+		"list-of-lists": {
+			input: Set{
+				ElemType: SetType{
+					ElemType: StringType,
+				},
+				Elems: []attr.Value{
+					Set{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+					Set{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "foo"},
+							String{Value: "bar"},
+						},
+					},
+				},
+			},
+			expectation: "((hello,world),(foo,bar))",
+		},
+		"unknown": {
+			input:       Set{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       Set{Null: true},
+			expectation: "<null>",
+		},
+		"default-empty": {
+			input:       Set{},
+			expectation: "()",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := fmt.Sprintf("%s", test.input)
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}
 		})
 	}

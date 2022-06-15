@@ -254,7 +254,7 @@ func (m Map) String() string {
 		if i != 0 {
 			res.WriteString(",")
 		}
-		res.WriteString(fmt.Sprintf(`"%s":%s`, k, m.Elems[k].String()))
+		res.WriteString(fmt.Sprintf("%q:%s", k, m.Elems[k].String()))
 	}
 	res.WriteString("}")
 

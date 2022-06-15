@@ -11,31 +11,22 @@ You can implement testing with the [acceptance test framework](/plugin/sdkv2/tes
 
 Writing and running tests is similar to SDKv2 providers, with the following exceptions:
 
-- [`TestCase`](/plugin/sdkv2/testing/acceptance-tests/testcase): Specify the provider with [`ProtoV6ProviderFactories`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV6ProviderFactories).
+- [`TestCase`](/plugin/sdkv2/testing/acceptance-tests/testcase): Specify the provider with [`ProtoV6ProviderFactories`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV6ProviderFactories) or [`ProtoV5ProviderFactories`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV5ProviderFactories), depending on the intended [provider server](/plugin/framework/provider-servers) setup.
 - [`Schema`](/plugin/framework/schemas): A root level `id` attribute is required for resources and data sources.
 
 ## Specify Providers
 
-In SDKv2, providers were specified by using the [`Providers` property of the
-`resource.TestCase`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.Providers) to supply a map of
-[`schema.Provider`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema/#Provider)s.
+Use one of the [`resource.TestCase` type](/plugin/sdkv2/testing/acceptance-tests/testcase) [`ProtoV6ProviderFactories` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV6ProviderFactories) for [protocol version 6](/plugin/how-terraform-works#protocol-version-6) or [`ProtoV5ProviderFactories` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV5ProviderFactories) for [protocol version 5](/plugin/how-terraform-works#protocol-version-5). It is only necessary to test with the single protocol version matching the intended provider server.
 
-For the framework, the same pattern applies, but instead use the
-[`ProtoV6ProviderFactories` property of
-`resource.TestCase`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV6ProviderFactories)
-to supply a map of functions that return a
-[`tfprotov6.ProviderServer`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov6/#ProviderServer).
-To get a `tfprotov6.ProviderServer` from a
-[`tfsdk.Provider`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Provider),
-you need to use the
-[`providerserver.NewProtocol6WithError`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/providerserver#NewProtocol6WithError)
-helper. For example:
+### Protocol Version 6
+
+Use the [`providerserver.NewProtocol6WithError`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/providerserver#NewProtocol6WithError) helper function to implement the provider server in the [`ProtoV6ProviderFactories` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV6ProviderFactories).
 
 ```go
 resource.Test(t, resource.TestCase{
 	PreCheck: func() { testAccPreCheck(t) },
 	ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error) {
-		// newProvider is your function that returns a tfsdk.Provider
+		// newProvider is an example function that returns a tfsdk.Provider
 		"example_provider": providerserver.NewProtocol6WithError(newProvider()),
 	},
 	CheckDestroy: testAccCheckExampleResourceDestroy,
@@ -48,9 +39,26 @@ resource.Test(t, resource.TestCase{
 })
 ```
 
-See the [`TestCase`
-documentation](/plugin/sdkv2/testing/acceptance-tests/testcase) for more
-information on using `resource.TestCase`.
+### Protocol Version 5
+
+Use the [`providerserver.NewProtocol5WithError`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/providerserver#NewProtocol5WithError) helper function to implement the provider server in the [`ProtoV5ProviderFactories` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV5ProviderFactories).
+
+```go
+resource.Test(t, resource.TestCase{
+	PreCheck: func() { testAccPreCheck(t) },
+	ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error) {
+		// newProvider is an example function that returns a tfsdk.Provider
+		"example_provider": providerserver.NewProtocol5WithError(newProvider()),
+	},
+	CheckDestroy: testAccCheckExampleResourceDestroy,
+	Steps: []resource.TestStep{
+		{
+			Config: testAccExampleResource,
+			Check: testAccCheckExampleResourceExists,
+		},
+	},
+})
+```
 
 ## Implement id Attribute
 

@@ -243,6 +243,10 @@ func TestStringString(t *testing.T) {
 			input:       String{Value: ""},
 			expectation: `""`,
 		},
+		"quotes": {
+			input:       String{Value: `testing is "fun"`},
+			expectation: `"testing is \"fun\""`,
+		},
 		"unknown": {
 			input:       String{Unknown: true},
 			expectation: "<unknown>",

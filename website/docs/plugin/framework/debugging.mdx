@@ -5,13 +5,13 @@ description: How to implement debugger support in Framework Terraform providers.
 
 # Debugging Framework Providers
 
-This page contains implementation details for inspecting runtime information of a Terraform provider developed with Framework via a debugger tool. Review the top level [Debugging](/plugin/debugging) page for information pertaining to the overall Terraform provider debugging process and other inspection options, such as log-based debugging.
+This page contains implementation details for inspecting runtime information of a Terraform provider developed with Framework via a debugger tool by adjusting the [provider server](/plugin/framework/provider-servers) implementation. Review the top level [Debugging](/plugin/debugging) page for information pertaining to the overall Terraform provider debugging process and other inspection options, such as log-based debugging.
 
 ## Code Implementation
 
 Update the `main` function for the project to conditionally enable the [`providerserver/ServeOpts.Debug` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/providerserver#ServeOpts.Debug). Conventionally, a `-debug` flag is used to control the `Debug` value.
 
-This example uses a `-debug` flag to enable debugging, otherwise starting the provider normally:
+This example uses a `-debug` flag to enable debugging, otherwise starting the provider normally on protocol version 6:
 
 ```go
 func main() {

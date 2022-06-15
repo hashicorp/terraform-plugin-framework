@@ -14,6 +14,9 @@ var _ tftypes.AttributePathStepper = Block{}
 
 // Block defines the constraints and behaviors of a single structural field in a
 // schema.
+//
+// The NestingMode field must be set or a runtime error will be raised by the
+// framework when fetching the schema.
 type Block struct {
 	// Attributes are value fields inside the block. This map of attributes
 	// behaves exactly like the map of attributes on the Schema type.
@@ -49,7 +52,8 @@ type Block struct {
 	// this configuration as required.
 	MinItems int64
 
-	// NestingMode indicates the block kind.
+	// NestingMode indicates the block kind. This field must be set or a
+	// runtime error will be raised by the framework when fetching the schema.
 	NestingMode BlockNestingMode
 
 	// PlanModifiers defines a sequence of modifiers for this block at

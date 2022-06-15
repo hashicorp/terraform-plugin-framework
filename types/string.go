@@ -93,5 +93,5 @@ func (s String) String() string {
 		return attr.NullValueString
 	}
 
-	return fmt.Sprintf(`"%s"`, s.Value)
+	return fmt.Sprintf("%q", s.Value)
 }

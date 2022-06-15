@@ -747,6 +747,15 @@ func TestMapString(t *testing.T) {
 			},
 			expectation: `{"first":{"alpha":"hello","beta":"world","gamma":"foo","sigma":"bar"},"second":{"t":0,"x":0,"y":0,"z":0}}`,
 		},
+		"key-quotes": {
+			input: Map{
+				ElemType: BoolType,
+				Elems: map[string]attr.Value{
+					`testing is "fun"`: Bool{Value: true},
+				},
+			},
+			expectation: `{"testing is \"fun\"":true}`,
+		},
 		"unknown": {
 			input:       Map{Unknown: true},
 			expectation: "<unknown>",

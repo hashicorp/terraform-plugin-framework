@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -223,4 +224,27 @@ func (l List) IsNull() bool {
 
 func (l List) IsUnknown() bool {
 	return l.Unknown
+}
+
+func (l List) String() string {
+	if l.Unknown {
+		return attr.UnknownValueString
+	}
+
+	if l.Null {
+		return attr.NullValueString
+	}
+
+	var res strings.Builder
+
+	res.WriteString("[")
+	for i, e := range l.Elems {
+		if i != 0 {
+			res.WriteString(",")
+		}
+		res.WriteString(e.String())
+	}
+	res.WriteString("]")
+
+	return res.String()
 }

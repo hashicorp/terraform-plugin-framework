@@ -698,3 +698,87 @@ func TestMapEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestMapString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Map
+		expectation string
+	}
+	tests := map[string]testCase{
+		"simple": {
+			input: Map{
+				ElemType: Int64Type,
+				Elems: map[string]attr.Value{
+					"alpha": Int64{Value: 1234},
+					"beta":  Int64{Value: 56789},
+					"gamma": Int64{Value: 9817},
+					"sigma": Int64{Value: 62534},
+				},
+			},
+			expectation: `{"alpha":1234,"beta":56789,"gamma":9817,"sigma":62534}`,
+		},
+		"map-of-maps": {
+			input: Map{
+				ElemType: MapType{
+					ElemType: StringType,
+				},
+				Elems: map[string]attr.Value{
+					"first": Map{
+						ElemType: StringType,
+						Elems: map[string]attr.Value{
+							"alpha": String{Value: "hello"},
+							"beta":  String{Value: "world"},
+							"gamma": String{Value: "foo"},
+							"sigma": String{Value: "bar"},
+						},
+					},
+					"second": Map{
+						ElemType: Int64Type,
+						Elems: map[string]attr.Value{
+							"x": Int64{Value: 0},
+							"y": Int64{Value: 0},
+							"z": Int64{Value: 0},
+							"t": Int64{Value: 0},
+						},
+					},
+				},
+			},
+			expectation: `{"first":{"alpha":"hello","beta":"world","gamma":"foo","sigma":"bar"},"second":{"t":0,"x":0,"y":0,"z":0}}`,
+		},
+		"key-quotes": {
+			input: Map{
+				ElemType: BoolType,
+				Elems: map[string]attr.Value{
+					`testing is "fun"`: Bool{Value: true},
+				},
+			},
+			expectation: `{"testing is \"fun\"":true}`,
+		},
+		"unknown": {
+			input:       Map{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       Map{Null: true},
+			expectation: "<null>",
+		},
+		"default-empty": {
+			input:       Map{},
+			expectation: "{}",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}

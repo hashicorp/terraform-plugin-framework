@@ -96,7 +96,7 @@ func TestFromString(t *testing.T) {
 			val: "mystring",
 			typ: testtypes.StringTypeWithValidateWarning{},
 			expected: testtypes.String{
-				String: types.String{
+				InternalString: types.String{
 					Value: "mystring",
 				},
 				CreatedBy: testtypes.StringTypeWithValidateWarning{},

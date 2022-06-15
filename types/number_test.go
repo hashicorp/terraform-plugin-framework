@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"math"
 	"math/big"
 	"testing"
 
@@ -241,6 +242,65 @@ func TestNumberEqual(t *testing.T) {
 			got := test.input.Equal(test.candidate)
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestNumberString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Number
+		expectation string
+	}
+	tests := map[string]testCase{
+		"less-than-one": {
+			input:       Number{Value: big.NewFloat(0.12340984302980000)},
+			expectation: "0.123409843",
+		},
+		"more-than-one": {
+			input:       Number{Value: big.NewFloat(92387938173219.327663)},
+			expectation: "9.238793817e+13",
+		},
+		"negative-more-than-one": {
+			input:       Number{Value: big.NewFloat(-0.12340984302980000)},
+			expectation: "-0.123409843",
+		},
+		"negative-less-than-one": {
+			input:       Number{Value: big.NewFloat(-92387938173219.327663)},
+			expectation: "-9.238793817e+13",
+		},
+		"min-float64": {
+			input:       Number{Value: big.NewFloat(math.SmallestNonzeroFloat64)},
+			expectation: "4.940656458e-324",
+		},
+		"max-float64": {
+			input:       Number{Value: big.NewFloat(math.MaxFloat64)},
+			expectation: "1.797693135e+308",
+		},
+		"unknown": {
+			input:       Number{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       Number{Null: true},
+			expectation: "<null>",
+		},
+		"default-null": {
+			input:       Number{},
+			expectation: "<null>",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}
 		})
 	}

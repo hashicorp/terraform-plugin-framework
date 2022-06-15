@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"math"
 	"math/big"
 	"testing"
 
@@ -218,6 +219,57 @@ func TestInt64Equal(t *testing.T) {
 			got := test.input.Equal(test.candidate)
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestInt64String(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Int64
+		expectation string
+	}
+	tests := map[string]testCase{
+		"less-than-one": {
+			input:       Int64{Value: -12340984302980000},
+			expectation: "-12340984302980000",
+		},
+		"more-than-one": {
+			input:       Int64{Value: 92387938173219327},
+			expectation: "92387938173219327",
+		},
+		"min-int64": {
+			input:       Int64{Value: math.MinInt64},
+			expectation: "-9223372036854775808",
+		},
+		"max-int64": {
+			input:       Int64{Value: math.MaxInt64},
+			expectation: "9223372036854775807",
+		},
+		"unknown": {
+			input:       Int64{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       Int64{Null: true},
+			expectation: "<null>",
+		},
+		"default-0": {
+			input:       Int64{},
+			expectation: "0",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}
 		})
 	}

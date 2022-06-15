@@ -699,3 +699,72 @@ func TestListEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestListString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       List
+		expectation string
+	}
+	tests := map[string]testCase{
+		"simple": {
+			input: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			},
+			expectation: `["hello","world"]`,
+		},
+		"list-of-lists": {
+			input: List{
+				ElemType: ListType{
+					ElemType: StringType,
+				},
+				Elems: []attr.Value{
+					List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+					List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "foo"},
+							String{Value: "bar"},
+						},
+					},
+				},
+			},
+			expectation: `[["hello","world"],["foo","bar"]]`,
+		},
+		"unknown": {
+			input:       List{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       List{Null: true},
+			expectation: "<null>",
+		},
+		"default-empty": {
+			input:       List{},
+			expectation: "[]",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}

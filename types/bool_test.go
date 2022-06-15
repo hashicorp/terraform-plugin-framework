@@ -269,3 +269,46 @@ func TestBoolEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestBoolString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Bool
+		expectation string
+	}
+	tests := map[string]testCase{
+		"true": {
+			input:       Bool{Value: true},
+			expectation: "true",
+		},
+		"false": {
+			input:       Bool{Value: false},
+			expectation: "false",
+		},
+		"unknown": {
+			input:       Bool{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       Bool{Null: true},
+			expectation: "<null>",
+		},
+		"default-false": {
+			input:       Bool{},
+			expectation: "false",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}

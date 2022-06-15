@@ -26,14 +26,14 @@ func TestConvert(t *testing.T) {
 			val: types.String{Value: "hello"},
 			typ: testtypes.StringType{},
 			expected: testtypes.String{
-				String:    types.String{Value: "hello"},
-				CreatedBy: testtypes.StringType{},
+				InternalString: types.String{Value: "hello"},
+				CreatedBy:      testtypes.StringType{},
 			},
 		},
 		"testtype-string-to-string": {
 			val: testtypes.String{
-				String:    types.String{Value: "hello"},
-				CreatedBy: testtypes.StringType{},
+				InternalString: types.String{Value: "hello"},
+				CreatedBy:      testtypes.StringType{},
 			},
 			typ:      types.StringType,
 			expected: types.String{Value: "hello"},

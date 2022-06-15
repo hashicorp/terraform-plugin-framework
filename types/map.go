@@ -3,6 +3,8 @@ package types
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -227,4 +229,34 @@ func (m Map) IsNull() bool {
 
 func (m Map) IsUnknown() bool {
 	return m.Unknown
+}
+
+func (m Map) String() string {
+	if m.Unknown {
+		return attr.UnknownValueString
+	}
+
+	if m.Null {
+		return attr.NullValueString
+	}
+
+	// We want the output to be consistent, so we sort the output by key
+	keys := make([]string, 0, len(m.Elems))
+	for k := range m.Elems {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var res strings.Builder
+
+	res.WriteString("{")
+	for i, k := range keys {
+		if i != 0 {
+			res.WriteString(",")
+		}
+		res.WriteString(fmt.Sprintf("%q:%s", k, m.Elems[k].String()))
+	}
+	res.WriteString("}")
+
+	return res.String()
 }

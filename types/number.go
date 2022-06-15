@@ -93,3 +93,19 @@ func (n Number) IsNull() bool {
 func (n Number) IsUnknown() bool {
 	return n.Unknown
 }
+
+func (n Number) String() string {
+	if n.Unknown {
+		return attr.UnknownValueString
+	}
+
+	if n.Null {
+		return attr.NullValueString
+	}
+
+	if n.Value == nil {
+		return attr.NullValueString
+	}
+
+	return n.Value.String()
+}

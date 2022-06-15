@@ -41,14 +41,14 @@ func (t StringType) TerraformType(_ context.Context) tftypes.Type {
 func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
 		return String{
-			String:    types.String{Unknown: true},
-			CreatedBy: t,
+			InternalString: types.String{Unknown: true},
+			CreatedBy:      t,
 		}, nil
 	}
 	if in.IsNull() {
 		return String{
-			String:    types.String{Null: true},
-			CreatedBy: t,
+			InternalString: types.String{Null: true},
+			CreatedBy:      t,
 		}, nil
 	}
 	var s string
@@ -57,15 +57,19 @@ func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 		return nil, err
 	}
 	return String{
-		String:    types.String{Value: s},
-		CreatedBy: t,
+		InternalString: types.String{Value: s},
+		CreatedBy:      t,
 	}, nil
 }
 
 type String struct {
-	types.String
+	InternalString types.String
 
 	CreatedBy attr.Type
+}
+
+func (s String) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	return s.InternalString.ToTerraformValue(ctx)
 }
 
 func (s String) Type(_ context.Context) attr.Type {
@@ -77,13 +81,17 @@ func (s String) Equal(o attr.Value) bool {
 	if !ok {
 		return false
 	}
-	return s.String.Equal(os.String)
+	return s.InternalString.Equal(os.InternalString)
 }
 
 func (s String) IsNull() bool {
-	return s.String.IsNull()
+	return s.InternalString.IsNull()
 }
 
 func (s String) IsUnknown() bool {
-	return s.String.IsUnknown()
+	return s.InternalString.IsUnknown()
+}
+
+func (s String) String() string {
+	return s.InternalString.String()
 }

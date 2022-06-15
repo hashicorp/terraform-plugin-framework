@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"math"
 	"math/big"
 	"testing"
 
@@ -226,6 +227,65 @@ func TestFloat64Equal(t *testing.T) {
 			got := test.input.Equal(test.candidate)
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestFloat64String(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Float64
+		expectation string
+	}
+	tests := map[string]testCase{
+		"less-than-one": {
+			input:       Float64{Value: 0.12340984302980000},
+			expectation: "0.123410",
+		},
+		"more-than-one": {
+			input:       Float64{Value: 92387938173219.327663},
+			expectation: "92387938173219.328125",
+		},
+		"negative-more-than-one": {
+			input:       Float64{Value: -0.12340984302980000},
+			expectation: "-0.123410",
+		},
+		"negative-less-than-one": {
+			input:       Float64{Value: -92387938173219.327663},
+			expectation: "-92387938173219.328125",
+		},
+		"min-float64": {
+			input:       Float64{Value: math.SmallestNonzeroFloat64},
+			expectation: "0.000000",
+		},
+		"max-float64": {
+			input:       Float64{Value: math.MaxFloat64},
+			expectation: "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000",
+		},
+		"unknown": {
+			input:       Float64{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       Float64{Null: true},
+			expectation: "<null>",
+		},
+		"default-0": {
+			input:       Float64{},
+			expectation: "0.000000",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}
 		})
 	}

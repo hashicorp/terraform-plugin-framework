@@ -1507,3 +1507,100 @@ func TestObjectEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestObjectString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Object
+		expectation string
+	}
+	tests := map[string]testCase{
+		"simple": {
+			input: Object{
+				AttrTypes: map[string]attr.Type{
+					"alpha": StringType,
+					"beta":  Int64Type,
+					"gamma": Float64Type,
+					"sigma": NumberType,
+					"theta": BoolType,
+				},
+				Attrs: map[string]attr.Value{
+					"alpha": String{Value: "hello"},
+					"beta":  Int64{Value: 98719827987189},
+					"gamma": Float64{Value: -9876.782378},
+					"sigma": Number{Unknown: true},
+					"theta": Bool{Null: true},
+				},
+			},
+			expectation: `{"alpha":"hello","beta":98719827987189,"gamma":-9876.782378,"sigma":<unknown>,"theta":<null>}`,
+		},
+		"object-of-objects": {
+			input: Object{
+				AttrTypes: map[string]attr.Type{
+					"alpha": ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"one":   StringType,
+							"two":   BoolType,
+							"three": NumberType,
+						},
+					},
+					"beta": ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"uno": Int64Type,
+							"due": BoolType,
+							"tre": StringType,
+						},
+					},
+					"gamma": Float64Type,
+					"sigma": NumberType,
+					"theta": BoolType,
+				},
+				Attrs: map[string]attr.Value{
+					"alpha": Object{
+						Attrs: map[string]attr.Value{
+							"one":   String{Value: "1"},
+							"two":   Bool{Value: true},
+							"three": Number{Value: big.NewFloat(0.3)},
+						},
+					},
+					"beta": Object{
+						Attrs: map[string]attr.Value{
+							"uno": Int64{Value: 1},
+							"due": Bool{Value: false},
+							"tre": String{Value: "3"},
+						},
+					},
+					"gamma": Float64{Value: -9876.782378},
+					"sigma": Number{Unknown: true},
+					"theta": Bool{Null: true},
+				},
+			},
+			expectation: `{"alpha":{"one":"1","three":0.3,"two":true},"beta":{"due":false,"tre":"3","uno":1},"gamma":-9876.782378,"sigma":<unknown>,"theta":<null>}`,
+		},
+		"unknown": {
+			input:       Object{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       Object{Null: true},
+			expectation: "<null>",
+		},
+		"default-empty": {
+			input:       Object{},
+			expectation: "{}",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}

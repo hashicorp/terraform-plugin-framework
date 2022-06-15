@@ -222,3 +222,50 @@ func TestStringEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestStringString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       String
+		expectation string
+	}
+	tests := map[string]testCase{
+		"simple": {
+			input:       String{Value: "simple"},
+			expectation: `"simple"`,
+		},
+		"long-string": {
+			input:       String{Value: "a really, really, really long string"},
+			expectation: `"a really, really, really long string"`,
+		},
+		"empty-string": {
+			input:       String{Value: ""},
+			expectation: `""`,
+		},
+		"unknown": {
+			input:       String{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       String{Null: true},
+			expectation: "<null>",
+		},
+		"default-0": {
+			input:       String{},
+			expectation: `""`,
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}

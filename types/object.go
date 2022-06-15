@@ -285,3 +285,33 @@ func (o Object) IsNull() bool {
 func (o Object) IsUnknown() bool {
 	return o.Unknown
 }
+
+func (o Object) String() string {
+	if o.Unknown {
+		return attr.UnknownValueString
+	}
+
+	if o.Null {
+		return attr.NullValueString
+	}
+
+	// We want the output to be consistent, so we sort the output by key
+	keys := make([]string, 0, len(o.Attrs))
+	for k := range o.Attrs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var res strings.Builder
+
+	res.WriteString("{")
+	for i, k := range keys {
+		if i != 0 {
+			res.WriteString(",")
+		}
+		res.WriteString(fmt.Sprintf(`"%s":%s`, k, o.Attrs[k].String()))
+	}
+	res.WriteString("}")
+
+	return res.String()
+}

@@ -106,7 +106,7 @@ func TestConfigGet_testTypes(t *testing.T) {
 				},
 			},
 			expected: testConfigGetData{
-				Name: testtypes.String{String: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
+				Name: testtypes.String{InternalString: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 			},
 			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
@@ -129,7 +129,7 @@ func TestConfigGet_testTypes(t *testing.T) {
 				},
 			},
 			expected: testConfigGetData{
-				Name: testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+				Name: testtypes.String{InternalString: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
@@ -332,7 +332,7 @@ func TestConfigGetAttribute(t *testing.T) {
 				},
 			},
 			target:        new(testtypes.String),
-			expected:      &testtypes.String{String: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expected:      &testtypes.String{InternalString: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
 		},
 	}
@@ -1708,7 +1708,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 				},
 			},
 			path:          tftypes.NewAttributePath().WithAttributeName("test"),
-			expected:      testtypes.String{String: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expected:      testtypes.String{InternalString: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"))},
 		},
 	}

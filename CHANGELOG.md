@@ -1,3 +1,30 @@
+# 0.9.0 (June 15, 2022)
+
+BREAKING CHANGES:
+
+* attr: The `Value` interface now includes the `IsNull()` and `IsUnknown()` methods ([#335](https://github.com/hashicorp/terraform-plugin-framework/issues/335))
+* attr: The `Value` interface now includes the `String()` method ([#376](https://github.com/hashicorp/terraform-plugin-framework/issues/376))
+* tfsdk: `ListNestedAttributes`, `SetNestedAttributes` and `MapNestedAttributes` functions lost the second argument `opts`, as it was unused. ([#349](https://github.com/hashicorp/terraform-plugin-framework/issues/349))
+
+FEATURES:
+
+* providerserver: Implemented native protocol version 5 support ([#368](https://github.com/hashicorp/terraform-plugin-framework/issues/368))
+
+ENHANCEMENTS:
+
+* providerserver: Added `NewProtocol5()` and `NewProtocol5WithError()` functions, which return a protocol version 5 compatible provider server ([#368](https://github.com/hashicorp/terraform-plugin-framework/issues/368))
+* providerserver: Added `ServeOpts` type `ProtocolVersion` field, which can be set to `5` or `6` and defaults to `6` ([#368](https://github.com/hashicorp/terraform-plugin-framework/issues/368))
+* tfsdk: New function `ValueFrom` that takes a Go value and populates a compatible `attr.Value`, given a descriptive `attr.Type`. ([#350](https://github.com/hashicorp/terraform-plugin-framework/issues/350))
+* tfsdk: Removed `ListNestedAttributesOptions`, `SetNestedAttributesOptions` and `MapNestedAttributesOptions` types, as they were empty (no fields) and unused. ([#349](https://github.com/hashicorp/terraform-plugin-framework/issues/349))
+* types: Added `IsNull()` and `IsUnknown()` methods to all types ([#335](https://github.com/hashicorp/terraform-plugin-framework/issues/335))
+* types: Added `String()` method to all types ([#376](https://github.com/hashicorp/terraform-plugin-framework/issues/376))
+
+BUG FIXES:
+
+* tfsdk: Prevented configuration handling error when `Schema` contained `Blocks` ([#371](https://github.com/hashicorp/terraform-plugin-framework/issues/371))
+* types: Prevented panic being thrown when `.ToTerraformValue` is called on an `attr.Value` type where `ElemType / AttrsType` were not set. ([#354](https://github.com/hashicorp/terraform-plugin-framework/issues/354))
+* types: Prevented potential loss of number precision with `Int64` between 54 and 64 bits ([#325](https://github.com/hashicorp/terraform-plugin-framework/issues/325))
+
 # 0.8.0 (May 6, 2022)
 
 BREAKING CHANGES:

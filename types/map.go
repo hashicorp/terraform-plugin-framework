@@ -233,11 +233,11 @@ func (m Map) IsUnknown() bool {
 
 func (m Map) String() string {
 	if m.Unknown {
-		return attr.UnknownString
+		return attr.UnknownValueString
 	}
 
 	if m.Null {
-		return attr.NullString
+		return attr.NullValueString
 	}
 
 	// We want the output to be consistent, so we sort the output by key
@@ -249,14 +249,14 @@ func (m Map) String() string {
 
 	var res strings.Builder
 
-	res.WriteString("[")
+	res.WriteString("{")
 	for i, k := range keys {
 		if i != 0 {
 			res.WriteString(",")
 		}
-		res.WriteString(fmt.Sprintf("%s:%s", k, m.Elems[k].String()))
+		res.WriteString(fmt.Sprintf(`"%s":%s`, k, m.Elems[k].String()))
 	}
-	res.WriteString("]")
+	res.WriteString("}")
 
 	return res.String()
 }

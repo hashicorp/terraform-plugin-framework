@@ -96,15 +96,15 @@ func (n Number) IsUnknown() bool {
 
 func (n Number) String() string {
 	if n.Unknown {
-		return attr.UnknownString
+		return attr.UnknownValueString
 	}
 
 	if n.Null {
-		return attr.NullString
+		return attr.NullValueString
 	}
 
 	if n.Value == nil {
-		return attr.NullString
+		return attr.NullValueString
 	}
 
 	return n.Value.String()

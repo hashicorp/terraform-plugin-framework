@@ -228,11 +228,11 @@ func (l List) IsUnknown() bool {
 
 func (l List) String() string {
 	if l.Unknown {
-		return attr.UnknownString
+		return attr.UnknownValueString
 	}
 
 	if l.Null {
-		return attr.NullString
+		return attr.NullValueString
 	}
 
 	var res strings.Builder

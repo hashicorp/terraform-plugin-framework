@@ -288,11 +288,11 @@ func (o Object) IsUnknown() bool {
 
 func (o Object) String() string {
 	if o.Unknown {
-		return attr.UnknownString
+		return attr.UnknownValueString
 	}
 
 	if o.Null {
-		return attr.NullString
+		return attr.NullValueString
 	}
 
 	// We want the output to be consistent, so we sort the output by key
@@ -304,14 +304,14 @@ func (o Object) String() string {
 
 	var res strings.Builder
 
-	res.WriteString("(")
+	res.WriteString("{")
 	for i, k := range keys {
 		if i != 0 {
 			res.WriteString(",")
 		}
-		res.WriteString(fmt.Sprintf("%s:%s", k, o.Attrs[k].String()))
+		res.WriteString(fmt.Sprintf(`"%s":%s`, k, o.Attrs[k].String()))
 	}
-	res.WriteString(")")
+	res.WriteString("}")
 
 	return res.String()
 }

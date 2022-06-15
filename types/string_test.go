@@ -233,15 +233,15 @@ func TestStringString(t *testing.T) {
 	tests := map[string]testCase{
 		"simple": {
 			input:       String{Value: "simple"},
-			expectation: "simple",
+			expectation: `"simple"`,
 		},
 		"long-string": {
 			input:       String{Value: "a really, really, really long string"},
-			expectation: "a really, really, really long string",
+			expectation: `"a really, really, really long string"`,
 		},
-		"empty-stirng": {
+		"empty-string": {
 			input:       String{Value: ""},
-			expectation: "",
+			expectation: `""`,
 		},
 		"unknown": {
 			input:       String{Unknown: true},
@@ -253,7 +253,7 @@ func TestStringString(t *testing.T) {
 		},
 		"default-0": {
 			input:       String{},
-			expectation: "",
+			expectation: `""`,
 		},
 	}
 

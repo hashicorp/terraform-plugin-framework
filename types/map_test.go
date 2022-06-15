@@ -717,7 +717,7 @@ func TestMapString(t *testing.T) {
 					"sigma": Int64{Value: 62534},
 				},
 			},
-			expectation: "[alpha:1234,beta:56789,gamma:9817,sigma:62534]",
+			expectation: `{"alpha":1234,"beta":56789,"gamma":9817,"sigma":62534}`,
 		},
 		"map-of-maps": {
 			input: Map{
@@ -735,17 +735,17 @@ func TestMapString(t *testing.T) {
 						},
 					},
 					"second": Map{
-						ElemType: StringType,
+						ElemType: Int64Type,
 						Elems: map[string]attr.Value{
-							"x": String{Value: "0"},
-							"y": String{Value: "0"},
-							"z": String{Value: "0"},
-							"t": String{Value: "0"},
+							"x": Int64{Value: 0},
+							"y": Int64{Value: 0},
+							"z": Int64{Value: 0},
+							"t": Int64{Value: 0},
 						},
 					},
 				},
 			},
-			expectation: "[first:[alpha:hello,beta:world,gamma:foo,sigma:bar],second:[t:0,x:0,y:0,z:0]]",
+			expectation: `{"first":{"alpha":"hello","beta":"world","gamma":"foo","sigma":"bar"},"second":{"t":0,"x":0,"y":0,"z":0}}`,
 		},
 		"unknown": {
 			input:       Map{Unknown: true},
@@ -757,7 +757,7 @@ func TestMapString(t *testing.T) {
 		},
 		"default-empty": {
 			input:       Map{},
-			expectation: "[]",
+			expectation: "{}",
 		},
 	}
 

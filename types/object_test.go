@@ -1533,7 +1533,7 @@ func TestObjectString(t *testing.T) {
 					"theta": Bool{Null: true},
 				},
 			},
-			expectation: "(alpha:hello,beta:98719827987189,gamma:-9876.782378,sigma:<unknown>,theta:<null>)",
+			expectation: `{"alpha":"hello","beta":98719827987189,"gamma":-9876.782378,"sigma":<unknown>,"theta":<null>}`,
 		},
 		"object-of-objects": {
 			input: Object{
@@ -1576,7 +1576,7 @@ func TestObjectString(t *testing.T) {
 					"theta": Bool{Null: true},
 				},
 			},
-			expectation: "(alpha:(one:1,three:0.3,two:true),beta:(due:false,tre:3,uno:1),gamma:-9876.782378,sigma:<unknown>,theta:<null>)",
+			expectation: `{"alpha":{"one":"1","three":0.3,"two":true},"beta":{"due":false,"tre":"3","uno":1},"gamma":-9876.782378,"sigma":<unknown>,"theta":<null>}`,
 		},
 		"unknown": {
 			input:       Object{Unknown: true},
@@ -1588,7 +1588,7 @@ func TestObjectString(t *testing.T) {
 		},
 		"default-empty": {
 			input:       Object{},
-			expectation: "()",
+			expectation: "{}",
 		},
 	}
 

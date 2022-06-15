@@ -89,11 +89,11 @@ func (b Bool) IsUnknown() bool {
 
 func (b Bool) String() string {
 	if b.Unknown {
-		return attr.UnknownString
+		return attr.UnknownValueString
 	}
 
 	if b.Null {
-		return attr.NullString
+		return attr.NullValueString
 	}
 
 	return fmt.Sprintf("%t", b.Value)

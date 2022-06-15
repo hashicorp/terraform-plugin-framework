@@ -298,23 +298,23 @@ func (s Set) IsUnknown() bool {
 
 func (s Set) String() string {
 	if s.Unknown {
-		return attr.UnknownString
+		return attr.UnknownValueString
 	}
 
 	if s.Null {
-		return attr.NullString
+		return attr.NullValueString
 	}
 
 	var res strings.Builder
 
-	res.WriteString("(")
+	res.WriteString("[")
 	for i, e := range s.Elems {
 		if i != 0 {
 			res.WriteString(",")
 		}
 		res.WriteString(e.String())
 	}
-	res.WriteString(")")
+	res.WriteString("]")
 
 	return res.String()
 }

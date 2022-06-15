@@ -165,11 +165,11 @@ func (i Int64) IsUnknown() bool {
 
 func (i Int64) String() string {
 	if i.Unknown {
-		return attr.UnknownString
+		return attr.UnknownValueString
 	}
 
 	if i.Null {
-		return attr.NullString
+		return attr.NullValueString
 	}
 
 	return fmt.Sprintf("%d", i.Value)

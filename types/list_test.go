@@ -716,7 +716,7 @@ func TestListString(t *testing.T) {
 					String{Value: "world"},
 				},
 			},
-			expectation: "[hello,world]",
+			expectation: `["hello","world"]`,
 		},
 		"list-of-lists": {
 			input: List{
@@ -740,7 +740,7 @@ func TestListString(t *testing.T) {
 					},
 				},
 			},
-			expectation: "[[hello,world],[foo,bar]]",
+			expectation: `[["hello","world"],["foo","bar"]]`,
 		},
 		"unknown": {
 			input:       List{Unknown: true},

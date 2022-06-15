@@ -7,11 +7,13 @@ import (
 )
 
 const (
-	// UnknownString should be returned by Value.String() implementations, when Value.IsUnknown() returns true.
-	UnknownString = "<unknown>"
+	// UnknownValueString should be returned by Value.String() implementations,
+	// when Value.IsUnknown() returns true.
+	UnknownValueString = "<unknown>"
 
-	// NullString should be returned by Value.String() implementations, when Value.IsNull() returns true.
-	NullString = "<null>"
+	// NullValueString should be returned by Value.String() implementations
+	// when Value.IsNull() returns true.
+	NullValueString = "<null>"
 )
 
 // Value defines an interface for describing data associated with an attribute.
@@ -36,10 +38,11 @@ type Value interface {
 	IsUnknown() bool
 
 	// String returns a summary representation of either the underlying Value,
-	// or UnknownString (`<unknown>`) when IsUnknown() returns true,
-	// or NullString (`<null>`) when IsNull() return true.
+	// or UnknownValueString (`<unknown>`) when IsUnknown() returns true,
+	// or NullValueString (`<null>`) when IsNull() return true.
 	//
-	// This is an intentionally lossy representation, that it's best used for
-	// logging and error reporting.
+	// This is an intentionally lossy representation, that are best suited for
+	// logging and error reporting, as they are not protected by
+	// compatibility guarantees within the framework.
 	String() string
 }

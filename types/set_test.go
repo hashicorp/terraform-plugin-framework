@@ -979,7 +979,7 @@ func TestSetString(t *testing.T) {
 					String{Value: "world"},
 				},
 			},
-			expectation: "(hello,world)",
+			expectation: `["hello","world"]`,
 		},
 		"set-of-sets": {
 			input: Set{
@@ -1003,7 +1003,7 @@ func TestSetString(t *testing.T) {
 					},
 				},
 			},
-			expectation: "((hello,world),(foo,bar))",
+			expectation: `[["hello","world"],["foo","bar"]]`,
 		},
 		"unknown": {
 			input:       Set{Unknown: true},
@@ -1015,7 +1015,7 @@ func TestSetString(t *testing.T) {
 		},
 		"default-empty": {
 			input:       Set{},
-			expectation: "()",
+			expectation: "[]",
 		},
 	}
 

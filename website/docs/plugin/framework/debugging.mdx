@@ -32,14 +32,3 @@ func main() {
 	}
 }
 ```
-
-To configure the provider server for protocol version 5, set the [`providerserver.ServeOpts` type `ProtocolVersion` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/providerserver#ServeOpts.ProtocolVersion) to `5`:
-
-```go
-opts := providerserver.ServeOpts{
-	// TODO: Update this string with the published name of your provider.
-	Address:         "registry.terraform.io/example-namespace/example",
-	Debug:           debug,
-	ProtocolVersion: 5,
-}
-```

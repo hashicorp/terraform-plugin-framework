@@ -53,15 +53,9 @@ var (
 )
 
 func main() {
-	var debug bool
-
-	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
-	flag.Parse()
-
 	opts := providerserver.ServeOpts{
 		// TODO: Update this string with the published name of your provider.
 		Address: "registry.terraform.io/example-namespace/example",
-		Debug:   debug,
 	}
 
 	err := providerserver.Serve(context.Background(), provider.New(version), opts)
@@ -78,7 +72,6 @@ To configure the provider server for protocol version 5, set the [`providerserve
 opts := providerserver.ServeOpts{
 	// TODO: Update this string with the published name of your provider.
 	Address:         "registry.terraform.io/example-namespace/example",
-	Debug:           debug,
 	ProtocolVersion: 5,
 }
 ```
@@ -92,4 +85,3 @@ Refer to the [acceptance testing](/plugin/framework/acctests) page for implement
 ### Debugging
 
 Refer to the [debugging](/plugin/framework/) page for implementation details.
-

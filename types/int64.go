@@ -150,19 +150,24 @@ func (i Int64) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	return tftypes.NewValue(tftypes.Number, bf), nil
 }
 
-// Type returns a NumberType.
+// Type returns a Int64Type.
 func (i Int64) Type(ctx context.Context) attr.Type {
 	return Int64Type
 }
 
+// IsNull returns true if the Int64 represents a null value.
 func (i Int64) IsNull() bool {
 	return i.Null
 }
 
+// IsUnknown returns true if the Int64 represents a currently unknown value.
 func (i Int64) IsUnknown() bool {
 	return i.Unknown
 }
 
+// String returns a human-readable representation of the Int64 value.
+// The string returned here is not protected by any compatibility guarantees,
+// and is intended for logging and error reporting.
 func (i Int64) String() string {
 	if i.Unknown {
 		return attr.UnknownValueString

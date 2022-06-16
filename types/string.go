@@ -46,8 +46,7 @@ func (s String) Type(_ context.Context) attr.Type {
 	return StringType
 }
 
-// ToTerraformValue returns the data contained in the *String as a
-// tftypes.Value.
+// ToTerraformValue returns the data contained in the *String as a tftypes.Value.
 func (s String) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	if s.Null {
 		return tftypes.NewValue(tftypes.String, nil), nil
@@ -61,7 +60,7 @@ func (s String) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	return tftypes.NewValue(tftypes.String, s.Value), nil
 }
 
-// Equal returns true if `other` is a *String and has the same value as `s`.
+// Equal returns true if `other` is a String and has the same value as `s`.
 func (s String) Equal(other attr.Value) bool {
 	o, ok := other.(String)
 	if !ok {
@@ -76,14 +75,19 @@ func (s String) Equal(other attr.Value) bool {
 	return s.Value == o.Value
 }
 
+// IsNull returns true if the String represents a null value.
 func (s String) IsNull() bool {
 	return s.Null
 }
 
+// IsUnknown returns true if the String represents a currently unknown value.
 func (s String) IsUnknown() bool {
 	return s.Unknown
 }
 
+// String returns a human-readable representation of the String value.
+// The string returned here is not protected by any compatibility guarantees,
+// and is intended for logging and error reporting.
 func (s String) String() string {
 	if s.Unknown {
 		return attr.UnknownValueString

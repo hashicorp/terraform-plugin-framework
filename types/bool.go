@@ -50,7 +50,7 @@ func (b Bool) Type(_ context.Context) attr.Type {
 	return BoolType
 }
 
-// ToTerraformValue returns the data contained in the *Bool as a tftypes.Value.
+// ToTerraformValue returns the data contained in the Bool as a tftypes.Value.
 func (b Bool) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	if b.Null {
 		return tftypes.NewValue(tftypes.Bool, nil), nil
@@ -79,14 +79,19 @@ func (b Bool) Equal(other attr.Value) bool {
 	return b.Value == o.Value
 }
 
+// IsNull returns true if the Bool represents a null value.
 func (b Bool) IsNull() bool {
 	return b.Null
 }
 
+// IsUnknown returns true if the Bool represents a currently unknown value.
 func (b Bool) IsUnknown() bool {
 	return b.Unknown
 }
 
+// String returns a human-readable representation of the Bool value.
+// The string returned here is not protected by any compatibility guarantees,
+// and is intended for logging and error reporting.
 func (b Bool) String() string {
 	if b.Unknown {
 		return attr.UnknownValueString

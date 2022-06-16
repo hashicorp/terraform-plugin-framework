@@ -13,7 +13,7 @@ import (
 
 // Into uses the data in `val` to populate `target`, using the reflection
 // package to recursively reflect into structs and slices. If `target` is an
-// AttributeValue, its assignment method will be used instead of reflecting. If
+// attr.Value, its assignment method will be used instead of reflecting. If
 // `target` is a tftypes.ValueConverter, the FromTerraformValue method will be
 // used instead of using reflection. Primitives are set using the val.As
 // method. Structs use reflection: each exported struct field must have a
@@ -104,7 +104,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		// we already handled unknown the only ways we can
 		// we checked that target doesn't have a SetUnknown method we
 		// can call
-		// we checked that target isn't an AttributeValue
+		// we checked that target isn't an attr.Value
 		// all that's left to us now is to set it as an empty value or
 		// throw an error, depending on what's in opts
 		if !opts.UnhandledUnknownAsEmpty {
@@ -124,7 +124,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		// we already handled null the only ways we can
 		// we checked that target doesn't have a SetNull method we can
 		// call
-		// we checked that target isn't an AttributeValue
+		// we checked that target isn't an attr.Value
 		// all that's left to us now is to set it as an empty value or
 		// throw an error, depending on what's in opts
 		if canBeNil(target) || opts.UnhandledNullAsEmpty {

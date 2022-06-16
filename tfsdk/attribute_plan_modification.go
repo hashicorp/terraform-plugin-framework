@@ -55,9 +55,11 @@ type AttributePlanModifier interface {
 type AttributePlanModifiers []AttributePlanModifier
 
 // RequiresReplace returns an AttributePlanModifier specifying the attribute as
-// requiring replacement. This behaviour is identical to the ForceNew behaviour
-// in terraform-plugin-sdk and will result in the resource being destroyed and
-// recreated when the following conditions are met:
+// requiring replacement. This behaviour is very similar to the ForceNew
+// behaviour in terraform-plugin-sdk but differs in that a replacement will not
+// be triggered if the attribute has a null config and is computed. The
+// resource will be destroyed and recreated when the following conditions are
+// met:
 //
 // 1. The resource's state is not null; a null state indicates that we're
 // creating a resource, and we never need to destroy and recreate a resource

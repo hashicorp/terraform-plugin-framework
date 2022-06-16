@@ -87,7 +87,7 @@ func float64ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Valu
 	return Float64{Value: f}, nil
 }
 
-// Float64 represents a 64-bit floating point value, exposed as an float64.
+// Float64 represents a 64-bit floating point value, exposed as a float64.
 type Float64 struct {
 	// Unknown will be true if the value is not yet known.
 	Unknown bool
@@ -101,7 +101,7 @@ type Float64 struct {
 	Value float64
 }
 
-// Equal returns true if `other` is an Float64 and has the same value as `i`.
+// Equal returns true if `other` is a Float64 and has the same value as `f`.
 func (f Float64) Equal(other attr.Value) bool {
 	o, ok := other.(Float64)
 
@@ -120,8 +120,7 @@ func (f Float64) Equal(other attr.Value) bool {
 	return f.Value == o.Value
 }
 
-// ToTerraformValue returns the data contained in the Float64 as a
-// tftypes.Value.
+// ToTerraformValue returns the data contained in the Float64 as a tftypes.Value.
 func (f Float64) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	if f.Null {
 		return tftypes.NewValue(tftypes.Number, nil), nil
@@ -138,19 +137,24 @@ func (f Float64) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	return tftypes.NewValue(tftypes.Number, bf), nil
 }
 
-// Type returns a NumberType.
+// Type returns a Float64Type.
 func (f Float64) Type(ctx context.Context) attr.Type {
 	return Float64Type
 }
 
+// IsNull returns true if the Float64 represents null value.
 func (f Float64) IsNull() bool {
 	return f.Null
 }
 
+// IsUnknown returns true if the Float64 represents currently unknown value.
 func (f Float64) IsUnknown() bool {
 	return f.Unknown
 }
 
+// String returns a summary and lossy representation of the Float64.
+// The string returned here is not protected by any compatibility guarantees,
+// and it's better suited for logging and error reporting.
 func (f Float64) String() string {
 	if f.Unknown {
 		return attr.UnknownValueString

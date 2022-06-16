@@ -45,7 +45,7 @@ func (l ListType) TerraformType(ctx context.Context) tftypes.Type {
 	}
 }
 
-// ValueFromTerraform returns an AttributeValue given a tftypes.Value.
+// ValueFromTerraform returns an attr.Value given a tftypes.Value.
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
 func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
@@ -111,12 +111,12 @@ func (l ListType) String() string {
 	return "types.ListType[" + l.ElemType.String() + "]"
 }
 
-// List represents a list of AttributeValues, all of the same type, indicated
+// List represents a list of attr.Values, all of the same type, indicated
 // by ElemType.
 type List struct {
 	// Unknown will be set to true if the entire list is an unknown value.
 	// If only some of the elements in the list are unknown, their known or
-	// unknown status will be represented however that AttributeValue
+	// unknown status will be represented however that attr.Value
 	// surfaces that information. The List's Unknown property only tracks
 	// if the number of elements in a List is known, not whether the
 	// elements that are in the list are known.
@@ -160,8 +160,7 @@ func (l List) Type(ctx context.Context) attr.Type {
 	return ListType{ElemType: l.ElemType}
 }
 
-// ToTerraformValue returns the data contained in the AttributeValue as
-// a tftypes.Value.
+// ToTerraformValue returns the data contained in the List as a tftypes.Value.
 func (l List) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	if l.ElemType == nil {
 		return tftypes.Value{}, fmt.Errorf("cannot convert List to tftypes.Value if ElemType field is not set")
@@ -187,8 +186,8 @@ func (l List) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	return tftypes.NewValue(listType, vals), nil
 }
 
-// Equal must return true if the AttributeValue is considered
-// semantically equal to the AttributeValue passed as an argument.
+// Equal returns true if the List is considered semantically equal
+// (same type and same value) to the attr.Value passed as an argument.
 func (l List) Equal(o attr.Value) bool {
 	other, ok := o.(List)
 	if !ok {
@@ -218,14 +217,19 @@ func (l List) Equal(o attr.Value) bool {
 	return true
 }
 
+// IsNull returns true if the List  represents null value.
 func (l List) IsNull() bool {
 	return l.Null
 }
 
+// IsUnknown returns true if the List represents currently unknown value.
 func (l List) IsUnknown() bool {
 	return l.Unknown
 }
 
+// String returns a summary and lossy representation of the List.
+// The string returned here is not protected by any compatibility guarantees,
+// and it's better suited for logging and error reporting.
 func (l List) String() string {
 	if l.Unknown {
 		return attr.UnknownValueString

@@ -50,7 +50,7 @@ func (o ObjectType) TerraformType(ctx context.Context) tftypes.Type {
 	}
 }
 
-// ValueFromTerraform returns an AttributeValue given a tftypes.Value.
+// ValueFromTerraform returns an attr.Value given a tftypes.Value.
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
 func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
@@ -147,7 +147,7 @@ func (o ObjectType) String() string {
 type Object struct {
 	// Unknown will be set to true if the entire object is an unknown value.
 	// If only some of the elements in the object are unknown, their known or
-	// unknown status will be represented however that AttributeValue
+	// unknown status will be represented however that attr.Value
 	// surfaces that information. The Object's Unknown property only tracks
 	// if the number of elements in a Object is known, not whether the
 	// elements that are in the object are known.
@@ -205,7 +205,7 @@ func (o Object) Type(_ context.Context) attr.Type {
 	return ObjectType{AttrTypes: o.AttrTypes}
 }
 
-// ToTerraformValue returns the data contained in the AttributeValue as
+// ToTerraformValue returns the data contained in the attr.Value as
 // a tftypes.Value.
 func (o Object) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	if o.AttrTypes == nil {
@@ -237,8 +237,8 @@ func (o Object) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	return tftypes.NewValue(objectType, vals), nil
 }
 
-// Equal must return true if the AttributeValue is considered
-// semantically equal to the AttributeValue passed as an argument.
+// Equal returns true if the Object is considered semantically equal
+// (same type and same value) to the attr.Value passed as an argument.
 func (o Object) Equal(c attr.Value) bool {
 	other, ok := c.(Object)
 	if !ok {
@@ -278,14 +278,19 @@ func (o Object) Equal(c attr.Value) bool {
 	return true
 }
 
+// IsNull returns true if the Object represents null value.
 func (o Object) IsNull() bool {
 	return o.Null
 }
 
+// IsUnknown returns true if the Object represents currently unknown value.
 func (o Object) IsUnknown() bool {
 	return o.Unknown
 }
 
+// String returns a summary and lossy representation of the Object.
+// The string returned here is not protected by any compatibility guarantees,
+// and it's better suited for logging and error reporting.
 func (o Object) String() string {
 	if o.Unknown {
 		return attr.UnknownValueString

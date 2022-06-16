@@ -24,13 +24,13 @@ type SetType struct {
 }
 
 // ElementType returns the attr.Type elements will be created from.
-func (t SetType) ElementType() attr.Type {
-	return t.ElemType
+func (st SetType) ElementType() attr.Type {
+	return st.ElemType
 }
 
 // WithElementType returns a SetType that is identical to `l`, but with the
 // element type set to `typ`.
-func (t SetType) WithElementType(typ attr.Type) attr.TypeWithElementType {
+func (st SetType) WithElementType(typ attr.Type) attr.TypeWithElementType {
 	return SetType{ElemType: typ}
 }
 
@@ -39,25 +39,25 @@ func (t SetType) WithElementType(typ attr.Type) attr.TypeWithElementType {
 // accepted and what kind of data can be set in state. The framework
 // will use this to translate the AttributeType to something Terraform
 // can understand.
-func (t SetType) TerraformType(ctx context.Context) tftypes.Type {
+func (st SetType) TerraformType(ctx context.Context) tftypes.Type {
 	return tftypes.Set{
-		ElementType: t.ElemType.TerraformType(ctx),
+		ElementType: st.ElemType.TerraformType(ctx),
 	}
 }
 
-// ValueFromTerraform returns an AttributeValue given a tftypes.Value.
+// ValueFromTerraform returns an attr.Value given a tftypes.Value.
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
-func (t SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	set := Set{
-		ElemType: t.ElemType,
+		ElemType: st.ElemType,
 	}
 	if in.Type() == nil {
 		set.Null = true
 		return set, nil
 	}
-	if !in.Type().Equal(t.TerraformType(ctx)) {
-		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), t.ElemType, t.ElemType.TerraformType(ctx).String())
+	if !in.Type().Equal(st.TerraformType(ctx)) {
+		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), st.ElemType, st.ElemType.TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
 		set.Unknown = true
@@ -74,7 +74,7 @@ func (t SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr
 	}
 	elems := make([]attr.Value, 0, len(val))
 	for _, elem := range val {
-		av, err := t.ElemType.ValueFromTerraform(ctx, elem)
+		av, err := st.ElemType.ValueFromTerraform(ctx, elem)
 		if err != nil {
 			return nil, err
 		}
@@ -85,35 +85,35 @@ func (t SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr
 }
 
 // Equal returns true if `o` is also a SetType and has the same ElemType.
-func (t SetType) Equal(o attr.Type) bool {
-	if t.ElemType == nil {
+func (st SetType) Equal(o attr.Type) bool {
+	if st.ElemType == nil {
 		return false
 	}
 	other, ok := o.(SetType)
 	if !ok {
 		return false
 	}
-	return t.ElemType.Equal(other.ElemType)
+	return st.ElemType.Equal(other.ElemType)
 }
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
 // set.
-func (t SetType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+func (st SetType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	if _, ok := step.(tftypes.ElementKeyValue); !ok {
 		return nil, fmt.Errorf("cannot apply step %T to SetType", step)
 	}
 
-	return t.ElemType, nil
+	return st.ElemType, nil
 }
 
 // String returns a human-friendly description of the SetType.
-func (t SetType) String() string {
-	return "types.SetType[" + t.ElemType.String() + "]"
+func (st SetType) String() string {
+	return "types.SetType[" + st.ElemType.String() + "]"
 }
 
 // Validate implements type validation. This type requires all elements to be
 // unique.
-func (s SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func (st SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if in.Type() == nil {
@@ -172,12 +172,12 @@ func (s SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.A
 	return diags
 }
 
-// Set represents a set of AttributeValues, all of the same type, indicated
-// by ElemType.
+// Set represents a set of attr.Value, all of the same type,
+// indicated by ElemType.
 type Set struct {
 	// Unknown will be set to true if the entire set is an unknown value.
 	// If only some of the elements in the set are unknown, their known or
-	// unknown status will be represented however that AttributeValue
+	// unknown status will be represented however that attr.Value
 	// surfaces that information. The Set's Unknown property only tracks
 	// if the number of elements in a Set is known, not whether the
 	// elements that are in the set are known.
@@ -221,8 +221,7 @@ func (s Set) Type(ctx context.Context) attr.Type {
 	return SetType{ElemType: s.ElemType}
 }
 
-// ToTerraformValue returns the data contained in the AttributeValue as
-// a tftypes.Value.
+// ToTerraformValue returns the data contained in the Set as a tftypes.Value.
 func (s Set) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	if s.ElemType == nil {
 		return tftypes.Value{}, fmt.Errorf("cannot convert Set to tftypes.Value if ElemType field is not set")
@@ -248,8 +247,8 @@ func (s Set) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	return tftypes.NewValue(setType, vals), nil
 }
 
-// Equal must return true if the AttributeValue is considered
-// semantically equal to the AttributeValue passed as an argument.
+// Equal returns true if the Set is considered semantically equal
+// (same type and same value) to the attr.Value passed as an argument.
 func (s Set) Equal(o attr.Value) bool {
 	other, ok := o.(Set)
 	if !ok {
@@ -288,14 +287,19 @@ func (s Set) contains(v attr.Value) bool {
 	return false
 }
 
+// IsNull returns true if the Set represents null value.
 func (s Set) IsNull() bool {
 	return s.Null
 }
 
+// IsUnknown returns true if the Set represents currently unknown value.
 func (s Set) IsUnknown() bool {
 	return s.Unknown
 }
 
+// String returns a summary and lossy representation of the Set.
+// The string returned here is not protected by any compatibility guarantees,
+// and it's better suited for logging and error reporting.
 func (s Set) String() string {
 	if s.Unknown {
 		return attr.UnknownValueString

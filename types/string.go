@@ -75,7 +75,7 @@ func (s String) Equal(other attr.Value) bool {
 	return s.Value == o.Value
 }
 
-// IsNull returns true if the String  represents null value.
+// IsNull returns true if the String represents null value.
 func (s String) IsNull() bool {
 	return s.Null
 }

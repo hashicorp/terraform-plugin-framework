@@ -79,7 +79,7 @@ func (b Bool) Equal(other attr.Value) bool {
 	return b.Value == o.Value
 }
 
-// IsNull returns true if the Bool  represents null value.
+// IsNull returns true if the Bool represents null value.
 func (b Bool) IsNull() bool {
 	return b.Null
 }

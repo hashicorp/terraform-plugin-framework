@@ -85,9 +85,9 @@ func (n Number) Equal(other attr.Value) bool {
 	return n.Value.Cmp(o.Value) == 0
 }
 
-// IsNull returns true if the Number  represents null value.
+// IsNull returns true if the Number represents null value.
 func (n Number) IsNull() bool {
-	return n.Null || n.Value == nil
+	return n.Null || (!n.Unknown && n.Value == nil)
 }
 
 // IsUnknown returns true if the Number represents currently unknown value.

@@ -217,7 +217,7 @@ func (l List) Equal(o attr.Value) bool {
 	return true
 }
 
-// IsNull returns true if the List  represents null value.
+// IsNull returns true if the List represents null value.
 func (l List) IsNull() bool {
 	return l.Null
 }

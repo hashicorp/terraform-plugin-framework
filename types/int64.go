@@ -155,7 +155,7 @@ func (i Int64) Type(ctx context.Context) attr.Type {
 	return Int64Type
 }
 
-// IsNull returns true if the Int64  represents null value.
+// IsNull returns true if the Int64 represents null value.
 func (i Int64) IsNull() bool {
 	return i.Null
 }

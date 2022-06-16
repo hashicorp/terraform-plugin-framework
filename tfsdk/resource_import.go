@@ -11,6 +11,8 @@ import (
 // `terraform import` command is executed. Afterwards, the ReadResource RPC
 // is executed to allow providers to fully populate the resource state.
 type ResourceWithImportState interface {
+	Resource
+
 	// ImportState is called when the provider must import the state of a
 	// resource instance. This method must return enough state so the Read
 	// method can properly refresh the full resource.

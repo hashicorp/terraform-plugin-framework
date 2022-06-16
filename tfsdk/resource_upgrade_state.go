@@ -19,6 +19,8 @@ import (
 // existing state. In this situation the framework will not execute any
 // provider defined logic, so declaring it for this version is extraneous.
 type ResourceWithUpgradeState interface {
+	Resource
+
 	// A mapping of prior state version to current schema version state upgrade
 	// implementations. Only the specified state upgrader for the prior state
 	// version is called, rather than each version in between, so it must

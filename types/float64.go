@@ -142,19 +142,19 @@ func (f Float64) Type(ctx context.Context) attr.Type {
 	return Float64Type
 }
 
-// IsNull returns true if the Float64 represents null value.
+// IsNull returns true if the Float64 represents a null value.
 func (f Float64) IsNull() bool {
 	return f.Null
 }
 
-// IsUnknown returns true if the Float64 represents currently unknown value.
+// IsUnknown returns true if the Float64 represents a currently unknown value.
 func (f Float64) IsUnknown() bool {
 	return f.Unknown
 }
 
-// String returns a summary and lossy representation of the Float64.
+// String returns a human-readable representation of the Float64 value.
 // The string returned here is not protected by any compatibility guarantees,
-// and it's better suited for logging and error reporting.
+// and is intended for logging and error reporting.
 func (f Float64) String() string {
 	if f.Unknown {
 		return attr.UnknownValueString

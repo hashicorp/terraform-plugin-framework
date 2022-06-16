@@ -278,19 +278,19 @@ func (o Object) Equal(c attr.Value) bool {
 	return true
 }
 
-// IsNull returns true if the Object represents null value.
+// IsNull returns true if the Object represents a null value.
 func (o Object) IsNull() bool {
 	return o.Null
 }
 
-// IsUnknown returns true if the Object represents currently unknown value.
+// IsUnknown returns true if the Object represents a currently unknown value.
 func (o Object) IsUnknown() bool {
 	return o.Unknown
 }
 
-// String returns a summary and lossy representation of the Object.
+// String returns a human-readable representation of the Object value.
 // The string returned here is not protected by any compatibility guarantees,
-// and it's better suited for logging and error reporting.
+// and is intended for logging and error reporting.
 func (o Object) String() string {
 	if o.Unknown {
 		return attr.UnknownValueString

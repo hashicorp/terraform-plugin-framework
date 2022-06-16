@@ -217,19 +217,19 @@ func (l List) Equal(o attr.Value) bool {
 	return true
 }
 
-// IsNull returns true if the List represents null value.
+// IsNull returns true if the List represents a null value.
 func (l List) IsNull() bool {
 	return l.Null
 }
 
-// IsUnknown returns true if the List represents currently unknown value.
+// IsUnknown returns true if the List represents a currently unknown value.
 func (l List) IsUnknown() bool {
 	return l.Unknown
 }
 
-// String returns a summary and lossy representation of the List.
+// String returns a human-readable representation of the List value.
 // The string returned here is not protected by any compatibility guarantees,
-// and it's better suited for logging and error reporting.
+// and is intended for logging and error reporting.
 func (l List) String() string {
 	if l.Unknown {
 		return attr.UnknownValueString

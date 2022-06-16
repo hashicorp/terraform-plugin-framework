@@ -79,19 +79,19 @@ func (b Bool) Equal(other attr.Value) bool {
 	return b.Value == o.Value
 }
 
-// IsNull returns true if the Bool represents null value.
+// IsNull returns true if the Bool represents a null value.
 func (b Bool) IsNull() bool {
 	return b.Null
 }
 
-// IsUnknown returns true if the Bool represents currently unknown value.
+// IsUnknown returns true if the Bool represents a currently unknown value.
 func (b Bool) IsUnknown() bool {
 	return b.Unknown
 }
 
-// String returns a summary and lossy representation of the Bool.
+// String returns a human-readable representation of the Bool value.
 // The string returned here is not protected by any compatibility guarantees,
-// and it's better suited for logging and error reporting.
+// and is intended for logging and error reporting.
 func (b Bool) String() string {
 	if b.Unknown {
 		return attr.UnknownValueString

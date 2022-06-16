@@ -287,19 +287,19 @@ func (s Set) contains(v attr.Value) bool {
 	return false
 }
 
-// IsNull returns true if the Set represents null value.
+// IsNull returns true if the Set represents a null value.
 func (s Set) IsNull() bool {
 	return s.Null
 }
 
-// IsUnknown returns true if the Set represents currently unknown value.
+// IsUnknown returns true if the Set represents a currently unknown value.
 func (s Set) IsUnknown() bool {
 	return s.Unknown
 }
 
-// String returns a summary and lossy representation of the Set.
+// String returns a human-readable representation of the Set value.
 // The string returned here is not protected by any compatibility guarantees,
-// and it's better suited for logging and error reporting.
+// and is intended for logging and error reporting.
 func (s Set) String() string {
 	if s.Unknown {
 		return attr.UnknownValueString

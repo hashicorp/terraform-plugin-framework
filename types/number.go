@@ -85,25 +85,25 @@ func (n Number) Equal(other attr.Value) bool {
 	return n.Value.Cmp(o.Value) == 0
 }
 
-// IsNull returns true if the Number represents null value.
+// IsNull returns true if the Number represents a null value.
 func (n Number) IsNull() bool {
 	return n.Null || (!n.Unknown && n.Value == nil)
 }
 
-// IsUnknown returns true if the Number represents currently unknown value.
+// IsUnknown returns true if the Number represents a currently unknown value.
 func (n Number) IsUnknown() bool {
 	return n.Unknown
 }
 
-// String returns a summary and lossy representation of the Number.
+// String returns a human-readable representation of the Number value.
 // The string returned here is not protected by any compatibility guarantees,
-// and it's better suited for logging and error reporting.
+// and is intended for logging and error reporting.
 func (n Number) String() string {
 	if n.Unknown {
 		return attr.UnknownValueString
 	}
 
-	if n.Null || n.Value == nil {
+	if n.IsNull() {
 		return attr.NullValueString
 	}
 

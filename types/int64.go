@@ -155,19 +155,19 @@ func (i Int64) Type(ctx context.Context) attr.Type {
 	return Int64Type
 }
 
-// IsNull returns true if the Int64 represents null value.
+// IsNull returns true if the Int64 represents a null value.
 func (i Int64) IsNull() bool {
 	return i.Null
 }
 
-// IsUnknown returns true if the Int64 represents currently unknown value.
+// IsUnknown returns true if the Int64 represents a currently unknown value.
 func (i Int64) IsUnknown() bool {
 	return i.Unknown
 }
 
-// String returns a summary and lossy representation of the Int64.
+// String returns a human-readable representation of the Int64 value.
 // The string returned here is not protected by any compatibility guarantees,
-// and it's better suited for logging and error reporting.
+// and is intended for logging and error reporting.
 func (i Int64) String() string {
 	if i.Unknown {
 		return attr.UnknownValueString

@@ -222,19 +222,19 @@ func (m Map) Equal(o attr.Value) bool {
 	return true
 }
 
-// IsNull returns true if the Map represents null value.
+// IsNull returns true if the Map represents a null value.
 func (m Map) IsNull() bool {
 	return m.Null
 }
 
-// IsUnknown returns true if the Map represents currently unknown value.
+// IsUnknown returns true if the Map represents a currently unknown value.
 func (m Map) IsUnknown() bool {
 	return m.Unknown
 }
 
-// String returns a summary and lossy representation of the Map.
+// String returns a human-readable representation of the Map value.
 // The string returned here is not protected by any compatibility guarantees,
-// and it's better suited for logging and error reporting.
+// and is intended for logging and error reporting.
 func (m Map) String() string {
 	if m.Unknown {
 		return attr.UnknownValueString

@@ -75,19 +75,19 @@ func (s String) Equal(other attr.Value) bool {
 	return s.Value == o.Value
 }
 
-// IsNull returns true if the String represents null value.
+// IsNull returns true if the String represents a null value.
 func (s String) IsNull() bool {
 	return s.Null
 }
 
-// IsUnknown returns true if the String represents currently unknown value.
+// IsUnknown returns true if the String represents a currently unknown value.
 func (s String) IsUnknown() bool {
 	return s.Unknown
 }
 
-// String returns a summary and lossy representation of the String.
+// String returns a human-readable representation of the String value.
 // The string returned here is not protected by any compatibility guarantees,
-// and it's better suited for logging and error reporting.
+// and is intended for logging and error reporting.
 func (s String) String() string {
 	if s.Unknown {
 		return attr.UnknownValueString

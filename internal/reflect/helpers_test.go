@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 func TestTrueReflectValue(t *testing.T) {
@@ -103,7 +103,7 @@ func TestGetStructTags_success(t *testing.T) {
 		ExportedAndExcluded string `tfsdk:"-"`
 	}
 
-	res, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), tftypes.NewAttributePath())
+	res, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.EmptyPath())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -120,11 +120,11 @@ func TestGetStructTags_untagged(t *testing.T) {
 	type testStruct struct {
 		ExportedAndUntagged string
 	}
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), tftypes.NewAttributePath())
+	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.EmptyPath())
 	if err == nil {
 		t.Error("Expected error, got nil")
 	}
-	expected := `need a struct tag for "tfsdk" on ExportedAndUntagged`
+	expected := `: need a struct tag for "tfsdk" on ExportedAndUntagged`
 	if err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
@@ -135,11 +135,11 @@ func TestGetStructTags_invalidTag(t *testing.T) {
 	type testStruct struct {
 		InvalidTag string `tfsdk:"invalidTag"`
 	}
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), tftypes.NewAttributePath())
+	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.EmptyPath())
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
-	expected := `AttributeName("invalidTag"): invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`
+	expected := `invalidTag: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`
 	if err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
@@ -151,11 +151,11 @@ func TestGetStructTags_duplicateTag(t *testing.T) {
 		Field1 string `tfsdk:"my_field"`
 		Field2 string `tfsdk:"my_field"`
 	}
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), tftypes.NewAttributePath())
+	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.EmptyPath())
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
-	expected := `AttributeName("my_field"): can't use field name for both Field1 and Field2`
+	expected := `my_field: can't use field name for both Field1 and Field2`
 	if err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
@@ -165,11 +165,11 @@ func TestGetStructTags_notAStruct(t *testing.T) {
 	t.Parallel()
 	var testStruct string
 
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct), tftypes.NewAttributePath())
+	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct), path.EmptyPath())
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
-	expected := `can't get struct tags of string, is not a struct`
+	expected := `: can't get struct tags of string, is not a struct`
 	if err.Error() != expected {
 		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}

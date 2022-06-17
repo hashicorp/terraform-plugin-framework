@@ -1,7 +1,7 @@
 package diag
 
 import (
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 var _ DiagnosticWithPath = withPath{}
@@ -10,7 +10,7 @@ var _ DiagnosticWithPath = withPath{}
 type withPath struct {
 	Diagnostic
 
-	path *tftypes.AttributePath
+	path path.Path
 }
 
 // Equal returns true if the other diagnostic is wholly equivalent.
@@ -33,12 +33,12 @@ func (d withPath) Equal(other Diagnostic) bool {
 }
 
 // Path returns the diagnostic path.
-func (d withPath) Path() *tftypes.AttributePath {
+func (d withPath) Path() path.Path {
 	return d.path
 }
 
 // WithPath wraps a diagnostic with path information or overwrites the path.
-func WithPath(path *tftypes.AttributePath, d Diagnostic) DiagnosticWithPath {
+func WithPath(path path.Path, d Diagnostic) DiagnosticWithPath {
 	wp, ok := d.(withPath)
 
 	if !ok {

@@ -120,13 +120,16 @@ tfsdk.Attribute{
 
 ### Defining Type Validation
 
-To support validation within a type, you must implement the [`attr.TypeWithValidate` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithValidate). For example:
+To support validation within a type, you must implement the [`xattr.TypeWithValidate` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidate). For example:
 
 ```go
+// Ensure type satisfies xattr.TypeWithValidate interface
+var _ xattr.TypeWithValidate = computeInstanceIdentifierType{}
+
 // Other methods to implement the attr.Type interface are omitted for brevity
 type computeInstanceIdentifierType struct {}
 
-func (t computeInstanceIdentifierType) Validate(ctx context.Context, tfValue tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func (t computeInstanceIdentifierType) Validate(ctx context.Context, tfValue tftypes.Value, path path.Path) diag.Diagnostics {
     var diags diag.Diagnostics
 
     if !tfValue.Type().Equal(tftypes.String) {

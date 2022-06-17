@@ -1,7 +1,10 @@
 package toproto6
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
@@ -18,7 +21,7 @@ func DiagnosticSeverity(s diag.Severity) tfprotov6.DiagnosticSeverity {
 }
 
 // Diagnostics converts the diagnostics into the tfprotov6 collection type.
-func Diagnostics(diagnostics diag.Diagnostics) []*tfprotov6.Diagnostic {
+func Diagnostics(ctx context.Context, diagnostics diag.Diagnostics) []*tfprotov6.Diagnostic {
 	var results []*tfprotov6.Diagnostic
 
 	for _, diagnostic := range diagnostics {
@@ -29,7 +32,13 @@ func Diagnostics(diagnostics diag.Diagnostics) []*tfprotov6.Diagnostic {
 		}
 
 		if diagWithPath, ok := diagnostic.(diag.DiagnosticWithPath); ok {
-			tfprotov6Diagnostic.Attribute = diagWithPath.Path()
+			var diags diag.Diagnostics
+
+			tfprotov6Diagnostic.Attribute, diags = totftypes.AttributePath(ctx, diagWithPath.Path())
+
+			if diags.HasError() {
+				results = append(results, Diagnostics(ctx, diags)...)
+			}
 		}
 
 		results = append(results, tfprotov6Diagnostic)

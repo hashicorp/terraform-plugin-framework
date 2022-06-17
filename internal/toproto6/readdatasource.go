@@ -15,12 +15,12 @@ func ReadDataSourceResponse(ctx context.Context, fw *fwserver.ReadDataSourceResp
 	}
 
 	proto6 := &tfprotov6.ReadDataSourceResponse{
-		Diagnostics: Diagnostics(fw.Diagnostics),
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	state, diags := State(ctx, fw.State)
 
-	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(diags)...)
+	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.State = state
 
 	return proto6

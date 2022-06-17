@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -13,7 +14,7 @@ import (
 // without modification. A null Object or Tuple is converted to known with null
 // children. An unknown Object or Tuple is converted to known with unknown
 // children. List, Map, and Set are created with empty elements.
-func createParentValue(_ context.Context, parentPath *tftypes.AttributePath, parentType tftypes.Type, childValue interface{}) (tftypes.Value, diag.Diagnostics) {
+func createParentValue(_ context.Context, parentPath path.Path, parentType tftypes.Type, childValue interface{}) (tftypes.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var parentValue tftypes.Value
 
@@ -58,13 +59,13 @@ func createParentValue(_ context.Context, parentPath *tftypes.AttributePath, par
 // value will be added.
 //
 // Lists can only have the next element added according to the current length.
-func upsertChildValue(_ context.Context, parentPath *tftypes.AttributePath, parentValue tftypes.Value, childStep tftypes.AttributePathStep, childValue tftypes.Value) (tftypes.Value, diag.Diagnostics) {
+func upsertChildValue(_ context.Context, parentPath path.Path, parentValue tftypes.Value, childStep path.PathStep, childValue tftypes.Value) (tftypes.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// TODO: Add Tuple support
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/54
 	switch childStep := childStep.(type) {
-	case tftypes.AttributeName:
+	case path.PathStepAttributeName:
 		// Set in Object
 		if !parentValue.Type().Is(tftypes.Object{}) {
 			diags.AddAttributeError(
@@ -91,7 +92,7 @@ func upsertChildValue(_ context.Context, parentPath *tftypes.AttributePath, pare
 
 		parentAttrs[string(childStep)] = childValue
 		parentValue = tftypes.NewValue(parentValue.Type(), parentAttrs)
-	case tftypes.ElementKeyInt:
+	case path.PathStepElementKeyInt:
 		// Upsert List element, except past length + 1
 		if !parentValue.Type().Is(tftypes.List{}) {
 			diags.AddAttributeError(
@@ -133,7 +134,7 @@ func upsertChildValue(_ context.Context, parentPath *tftypes.AttributePath, pare
 		}
 
 		parentValue = tftypes.NewValue(parentValue.Type(), parentElems)
-	case tftypes.ElementKeyString:
+	case path.PathStepElementKeyString:
 		// Upsert Map element
 		if !parentValue.Type().Is(tftypes.Map{}) {
 			diags.AddAttributeError(
@@ -160,7 +161,7 @@ func upsertChildValue(_ context.Context, parentPath *tftypes.AttributePath, pare
 
 		parentElems[string(childStep)] = childValue
 		parentValue = tftypes.NewValue(parentValue.Type(), parentElems)
-	case tftypes.ElementKeyValue:
+	case path.PathStepElementKeyValue:
 		// Upsert Set element
 		if !parentValue.Type().Is(tftypes.Set{}) {
 			diags.AddAttributeError(

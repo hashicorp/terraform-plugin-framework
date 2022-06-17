@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -93,7 +94,7 @@ func TestServerImportResourceState(t *testing.T) {
 									resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
 								}
 
-								tfsdk.ResourceImportStatePassthroughID(ctx, tftypes.NewAttributePath().WithAttributeName("id"), req, resp)
+								tfsdk.ResourceImportStatePassthroughID(ctx, path.RootPath("id"), req, resp)
 							},
 						}, nil
 					},
@@ -185,7 +186,7 @@ func TestServerImportResourceState(t *testing.T) {
 						return &testprovider.ResourceWithImportState{
 							Resource: &testprovider.Resource{},
 							ImportStateMethod: func(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-								tfsdk.ResourceImportStatePassthroughID(ctx, tftypes.NewAttributePath().WithAttributeName("id"), req, resp)
+								tfsdk.ResourceImportStatePassthroughID(ctx, path.RootPath("id"), req, resp)
 							},
 						}, nil
 					},

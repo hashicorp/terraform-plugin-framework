@@ -6,13 +6,15 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // build a slice of elements, matching the type of `target`, and fill it with
 // the data in `val`.
-func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path path.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// this only works with slices, so check that out first
@@ -62,10 +64,21 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 		targetValue := reflect.Zero(elemType)
 
 		// update our path so we can have nice errors
-		valPath := path.WithElementKeyInt(pos)
+		valPath := path.AtListIndex(pos)
 
 		if typ.TerraformType(ctx).Is(tftypes.Set{}) {
-			valPath = path.WithElementKeyValue(value)
+			attrVal, err := elemAttrType.ValueFromTerraform(ctx, value)
+
+			if err != nil {
+				diags.AddAttributeError(
+					path,
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert to slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+				)
+				return target, diags
+			}
+
+			valPath = path.AtSetValue(attrVal)
 		}
 
 		// reflect the value into our new target
@@ -91,7 +104,7 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 // `typ` to construct values for them.
 //
 // It is meant to be called through FromValue, not directly.
-func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// TODO: support tuples, which are attr.TypeWithElementTypes
@@ -100,7 +113,7 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 	if val.IsNil() {
 		tfVal := tftypes.NewValue(tfType, nil)
 
-		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 			if diags.HasError() {
@@ -141,7 +154,7 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		// the index until the value is retrieved, this will pass the
 		// technically incorrect index-based path at first for framework
 		// debugging purposes, then correct the path afterwards.
-		valPath := path.WithElementKeyInt(i)
+		valPath := path.AtListIndex(i)
 
 		val, valDiags := FromValue(ctx, elemType, val.Index(i).Interface(), valPath)
 		diags.Append(valDiags...)
@@ -156,10 +169,10 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 		}
 
 		if tfType.Is(tftypes.Set{}) {
-			valPath = path.WithElementKeyValue(tfVal)
+			valPath = path.AtSetValue(val)
 		}
 
-		if typeWithValidate, ok := elemType.(attr.TypeWithValidate); ok {
+		if typeWithValidate, ok := elemType.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfVal, valPath)...)
 			if diags.HasError() {
 				return nil, diags
@@ -176,7 +189,7 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path *tfty
 
 	tfVal := tftypes.NewValue(tfType, tfElems)
 
-	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 		if diags.HasError() {

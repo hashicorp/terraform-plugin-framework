@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -33,7 +34,7 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 		)
 		return diags
 	}
-	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, tftypes.NewAttributePath())
+	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, path.EmptyPath())
 	if diags.HasError() {
 		return diags
 	}
@@ -46,7 +47,7 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 // to set, making it safe for use with pointer types which may be nil. It tries
 // to give consumers the ability to override its default behaviors wherever
 // possible.
-func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path path.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// if this isn't a valid reflect.Value, bail before we accidentally

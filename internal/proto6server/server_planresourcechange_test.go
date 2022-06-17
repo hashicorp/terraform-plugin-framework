@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -345,8 +346,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 												// provider developers to have the framework raise
 												// an error if it is technically valid in the
 												// protocol.
-												resp.RequiresReplace = []*tftypes.AttributePath{
-													tftypes.NewAttributePath().WithAttributeName("test_required"),
+												resp.RequiresReplace = path.Paths{
+													path.RootPath("test_required"),
 												}
 											},
 										}, nil
@@ -597,8 +598,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 												// provider developers to have the framework raise
 												// an error if it is technically valid in the
 												// protocol.
-												resp.RequiresReplace = []*tftypes.AttributePath{
-													tftypes.NewAttributePath().WithAttributeName("test_required"),
+												resp.RequiresReplace = path.Paths{
+													path.RootPath("test_required"),
 												}
 											},
 										}, nil
@@ -956,8 +957,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
 											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
-												resp.RequiresReplace = []*tftypes.AttributePath{
-													tftypes.NewAttributePath().WithAttributeName("test_required"),
+												resp.RequiresReplace = path.Paths{
+													path.RootPath("test_required"),
 												}
 											},
 										}, nil

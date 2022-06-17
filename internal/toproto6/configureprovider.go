@@ -15,7 +15,7 @@ func ConfigureProviderResponse(ctx context.Context, fw *tfsdk.ConfigureProviderR
 	}
 
 	proto6 := &tfprotov6.ConfigureProviderResponse{
-		Diagnostics: Diagnostics(fw.Diagnostics),
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	return proto6

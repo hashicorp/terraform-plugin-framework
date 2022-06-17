@@ -16,7 +16,7 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 
 	protov6 := &tfprotov5.GetProviderSchemaResponse{
 		DataSourceSchemas: map[string]*tfprotov5.Schema{},
-		Diagnostics:       Diagnostics(fw.Diagnostics),
+		Diagnostics:       Diagnostics(ctx, fw.Diagnostics),
 		ResourceSchemas:   map[string]*tfprotov5.Schema{},
 	}
 

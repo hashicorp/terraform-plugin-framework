@@ -6,10 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func toTerraform5ValueErrorDiag(err error, path *tftypes.AttributePath) diag.DiagnosticWithPath {
+func toTerraform5ValueErrorDiag(err error, path path.Path) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -17,7 +18,7 @@ func toTerraform5ValueErrorDiag(err error, path *tftypes.AttributePath) diag.Dia
 	)
 }
 
-func toTerraformValueErrorDiag(err error, path *tftypes.AttributePath) diag.DiagnosticWithPath {
+func toTerraformValueErrorDiag(err error, path path.Path) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -25,7 +26,7 @@ func toTerraformValueErrorDiag(err error, path *tftypes.AttributePath) diag.Diag
 	)
 }
 
-func validateValueErrorDiag(err error, path *tftypes.AttributePath) diag.DiagnosticWithPath {
+func validateValueErrorDiag(err error, path path.Path) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",
@@ -33,7 +34,7 @@ func validateValueErrorDiag(err error, path *tftypes.AttributePath) diag.Diagnos
 	)
 }
 
-func valueFromTerraformErrorDiag(err error, path *tftypes.AttributePath) diag.DiagnosticWithPath {
+func valueFromTerraformErrorDiag(err error, path path.Path) diag.DiagnosticWithPath {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Value Conversion Error",

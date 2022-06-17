@@ -15,12 +15,12 @@ func UpgradeResourceStateResponse(ctx context.Context, fw *fwserver.UpgradeResou
 	}
 
 	proto6 := &tfprotov6.UpgradeResourceStateResponse{
-		Diagnostics: Diagnostics(fw.Diagnostics),
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	upgradedState, diags := State(ctx, fw.UpgradedState)
 
-	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(diags)...)
+	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.UpgradedState = upgradedState
 
 	return proto6

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -166,8 +167,8 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input    []*tftypes.AttributePath
-		expected []*tftypes.AttributePath
+		input    path.Paths
+		expected path.Paths
 	}
 
 	tests := map[string]testCase{
@@ -176,29 +177,29 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 			expected: nil,
 		},
 		"no-duplicates": {
-			input: []*tftypes.AttributePath{
-				tftypes.NewAttributePath().WithAttributeName("name2"),
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
-				tftypes.NewAttributePath().WithAttributeName("name1").WithElementKeyString("elementkey"),
+			input: path.Paths{
+				path.RootPath("name2"),
+				path.RootPath("name1"),
+				path.EmptyPath().AtListIndex(1234),
+				path.RootPath("name1").AtMapKey("elementkey"),
 			},
-			expected: []*tftypes.AttributePath{
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithAttributeName("name1").WithElementKeyString("elementkey"),
-				tftypes.NewAttributePath().WithAttributeName("name2"),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
+			expected: path.Paths{
+				path.EmptyPath().AtListIndex(1234),
+				path.RootPath("name1"),
+				path.RootPath("name1").AtMapKey("elementkey"),
+				path.RootPath("name2"),
 			},
 		},
 		"duplicates": {
-			input: []*tftypes.AttributePath{
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
+			input: path.Paths{
+				path.RootPath("name1"),
+				path.RootPath("name1"),
+				path.EmptyPath().AtListIndex(1234),
+				path.EmptyPath().AtListIndex(1234),
 			},
-			expected: []*tftypes.AttributePath{
-				tftypes.NewAttributePath().WithAttributeName("name1"),
-				tftypes.NewAttributePath().WithElementKeyInt(1234),
+			expected: path.Paths{
+				path.EmptyPath().AtListIndex(1234),
+				path.RootPath("name1"),
 			},
 		},
 	}
@@ -463,7 +464,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.WithPath(
-						tftypes.NewAttributePath().WithAttributeName("test_required"),
+						path.RootPath("test_required"),
 						diag.NewErrorDiagnostic("error summary", "error detail"),
 					),
 				},
@@ -519,8 +520,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 				// be overly burdensome on provider developers to have the
 				// framework raise an error if it is technically valid in the
 				// protocol.
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test_required"),
+				RequiresReplace: path.Paths{
+					path.RootPath("test_required"),
 				},
 			},
 		},
@@ -808,8 +809,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 								// provider developers to have the framework raise
 								// an error if it is technically valid in the
 								// protocol.
-								resp.RequiresReplace = []*tftypes.AttributePath{
-									tftypes.NewAttributePath().WithAttributeName("test_required"),
+								resp.RequiresReplace = path.Paths{
+									path.RootPath("test_required"),
 								}
 							},
 						}, nil
@@ -824,8 +825,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test_required"),
+				RequiresReplace: path.Paths{
+					path.RootPath("test_required"),
 				},
 			},
 		},
@@ -1060,7 +1061,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				// PlannedState: testEmptyState,
 				Diagnostics: diag.Diagnostics{
 					diag.WithPath(
-						tftypes.NewAttributePath(),
+						path.EmptyPath(),
 						diag.NewErrorDiagnostic(
 							"Value Conversion Error",
 							"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\nunhandled null value",
@@ -1110,8 +1111,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 								// provider developers to have the framework raise
 								// an error if it is technically valid in the
 								// protocol.
-								resp.RequiresReplace = []*tftypes.AttributePath{
-									tftypes.NewAttributePath().WithAttributeName("test_required"),
+								resp.RequiresReplace = path.Paths{
+									path.RootPath("test_required"),
 								}
 							},
 						}, nil
@@ -1120,8 +1121,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: testEmptyState,
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test_required"),
+				RequiresReplace: path.Paths{
+					path.RootPath("test_required"),
 				},
 			},
 		},
@@ -1256,7 +1257,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.WithPath(
-						tftypes.NewAttributePath().WithAttributeName("test_required"),
+						path.RootPath("test_required"),
 						diag.NewErrorDiagnostic("error summary", "error detail"),
 					),
 				},
@@ -1313,8 +1314,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchemaAttributePlanModifierRequiresReplace,
 				},
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test_required"),
+				RequiresReplace: path.Paths{
+					path.RootPath("test_required"),
 				},
 			},
 		},
@@ -1638,8 +1639,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 								// provider developers to have the framework raise
 								// an error if it is technically valid in the
 								// protocol.
-								resp.RequiresReplace = []*tftypes.AttributePath{
-									tftypes.NewAttributePath().WithAttributeName("test_required"),
+								resp.RequiresReplace = path.Paths{
+									path.RootPath("test_required"),
 								}
 							},
 						}, nil
@@ -1654,8 +1655,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test_required"),
+				RequiresReplace: path.Paths{
+					path.RootPath("test_required"),
 				},
 			},
 		},

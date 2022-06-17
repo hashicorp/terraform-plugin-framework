@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -29,11 +31,11 @@ const (
 )
 
 var (
-	_ attr.Type             = StringType
-	_ attr.Type             = NumberType
-	_ attr.Type             = BoolType
-	_ attr.TypeWithValidate = Int64Type
-	_ attr.TypeWithValidate = Float64Type
+	_ attr.Type              = StringType
+	_ attr.Type              = NumberType
+	_ attr.Type              = BoolType
+	_ xattr.TypeWithValidate = Int64Type
+	_ xattr.TypeWithValidate = Float64Type
 )
 
 func (p primitive) String() string {
@@ -113,7 +115,7 @@ func (p primitive) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSt
 }
 
 // Validate implements type validation.
-func (p primitive) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func (p primitive) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	switch p {

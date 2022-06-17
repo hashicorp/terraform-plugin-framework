@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	intreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -108,7 +109,7 @@ func TestPlanGet_testTypes(t *testing.T) {
 			expected: testPlanGetDataTestTypes{
 				Name: testtypes.String{InternalString: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -131,7 +132,7 @@ func TestPlanGet_testTypes(t *testing.T) {
 			expected: testPlanGetDataTestTypes{
 				Name: testtypes.String{InternalString: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("name"))},
 		},
 	}
 
@@ -251,7 +252,7 @@ func TestPlanGetAttribute(t *testing.T) {
 			expected: new(testtypes.String),
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					tftypes.NewAttributePath().WithAttributeName("name"),
+					path.RootPath("name"),
 					intreflect.DiagNewAttributeValueIntoWrongType{
 						ValType:    reflect.TypeOf(types.String{Value: "namevalue"}),
 						TargetType: reflect.TypeOf(testtypes.String{}),
@@ -282,7 +283,7 @@ func TestPlanGetAttribute(t *testing.T) {
 			expected: new(bool),
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					tftypes.NewAttributePath().WithAttributeName("name"),
+					path.RootPath("name"),
 					intreflect.DiagIntoIncompatibleType{
 						Val:        tftypes.NewValue(tftypes.String, "namevalue"),
 						TargetType: reflect.TypeOf(false),
@@ -311,7 +312,7 @@ func TestPlanGetAttribute(t *testing.T) {
 			},
 			target:        new(testtypes.String),
 			expected:      new(testtypes.String),
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -333,7 +334,7 @@ func TestPlanGetAttribute(t *testing.T) {
 			},
 			target:        new(testtypes.String),
 			expected:      &testtypes.String{InternalString: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("name"))},
 		},
 	}
 
@@ -342,7 +343,7 @@ func TestPlanGetAttribute(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := tc.plan.GetAttribute(context.Background(), tftypes.NewAttributePath().WithAttributeName("name"), tc.target)
+			diags := tc.plan.GetAttribute(context.Background(), path.RootPath("name"), tc.target)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -360,7 +361,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 
 	type testCase struct {
 		plan          Plan
-		path          *tftypes.AttributePath
+		path          path.Path
 		expected      attr.Value
 		expectedDiags diag.Diagnostics
 	}
@@ -387,7 +388,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			path:     path.RootPath("test"),
 			expected: nil,
 		},
 		"WithAttributeName-nonexistent": {
@@ -408,11 +409,11 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("other"),
+			path:     path.RootPath("other"),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("other"),
+					path.RootPath("other"),
 					"Plan Read Error",
 					"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"error getting attribute type in schema: AttributeName(\"other\") still remains in the path: could not find attribute or block \"other\" in schema",
@@ -449,7 +450,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:     path.RootPath("test").AtListIndex(0),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-List-WithElementKeyInt": {
@@ -485,7 +486,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:     path.RootPath("test").AtListIndex(0),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
@@ -529,7 +530,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName-Object": {
@@ -586,7 +587,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			path: path.RootPath("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.Object{
 				Null:      true,
 				AttrTypes: map[string]attr.Type{"value": types.StringType},
@@ -641,7 +642,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-ListNestedBlocks-null-WithElementKeyInt-WithAttributeName": {
@@ -710,7 +711,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
@@ -787,7 +788,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Map-null-WithElementKeyString": {
@@ -820,7 +821,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			path:     path.RootPath("test").AtMapKey("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-Map-WithElementKeyString": {
@@ -856,7 +857,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			path:     path.RootPath("test").AtMapKey("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Map-WithElementKeyString-nonexistent": {
@@ -891,7 +892,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("other"),
+			path:     path.RootPath("test").AtMapKey("other"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-MapNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
@@ -935,7 +936,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element").WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtMapKey("element").AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-MapNestedAttributes-WithElementKeyString-WithAttributeName": {
@@ -987,7 +988,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element").WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtMapKey("element").AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Object-WithAttributeName": {
@@ -1028,7 +1029,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Set-null-WithElementKeyValue": {
@@ -1061,7 +1062,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "value")),
+			path:     path.RootPath("test").AtSetValue(types.String{Value: "value"}),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-Set-WithElementKeyValue": {
@@ -1097,7 +1098,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "value")),
+			path:     path.RootPath("test").AtSetValue(types.String{Value: "value"}),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-SetNestedAttributes-null-WithElementKeyValue-WithAttributeName": {
@@ -1141,13 +1142,14 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"sub_test": tftypes.String,
+			path: path.RootPath("test").AtSetValue(types.Object{
+				AttrTypes: map[string]attr.Type{
+					"sub_test": types.StringType,
 				},
-			}, map[string]tftypes.Value{
-				"sub_test": tftypes.NewValue(tftypes.String, "value"),
-			})).WithAttributeName("sub_test"),
+				Attrs: map[string]attr.Value{
+					"sub_test": types.String{Value: "value"},
+				},
+			}).AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-SetNestedAttributes-WithElementKeyValue-WithAttributeName": {
@@ -1199,13 +1201,14 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"sub_test": tftypes.String,
+			path: path.RootPath("test").AtSetValue(types.Object{
+				AttrTypes: map[string]attr.Type{
+					"sub_test": types.StringType,
 				},
-			}, map[string]tftypes.Value{
-				"sub_test": tftypes.NewValue(tftypes.String, "value"),
-			})).WithAttributeName("sub_test"),
+				Attrs: map[string]attr.Value{
+					"sub_test": types.String{Value: "value"},
+				},
+			}).AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-SetNestedBlocks-null-WithElementKeyValue-WithAttributeName": {
@@ -1274,13 +1277,14 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"sub_test": tftypes.String,
+			path: path.RootPath("test").AtSetValue(types.Object{
+				AttrTypes: map[string]attr.Type{
+					"sub_test": types.StringType,
 				},
-			}, map[string]tftypes.Value{
-				"sub_test": tftypes.NewValue(tftypes.String, "value"),
-			})).WithAttributeName("sub_test"),
+				Attrs: map[string]attr.Value{
+					"sub_test": types.String{Value: "value"},
+				},
+			}).AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-SetNestedBlocks-WithElementKeyValue-WithAttributeName": {
@@ -1357,13 +1361,14 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"sub_test": tftypes.String,
+			path: path.RootPath("test").AtSetValue(types.Object{
+				AttrTypes: map[string]attr.Type{
+					"sub_test": types.StringType,
 				},
-			}, map[string]tftypes.Value{
-				"sub_test": tftypes.NewValue(tftypes.String, "value"),
-			})).WithAttributeName("sub_test"),
+				Attrs: map[string]attr.Value{
+					"sub_test": types.String{Value: "value"},
+				},
+			}).AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Float64": {
@@ -1403,7 +1408,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtName("sub_test"),
 			expected: types.Float64{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Int64": {
@@ -1443,7 +1448,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtName("sub_test"),
 			expected: types.Int64{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Set": {
@@ -1489,7 +1494,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtName("sub_test"),
 			expected: types.Set{ElemType: types.StringType, Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-String": {
@@ -1529,7 +1534,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-WithAttributeName": {
@@ -1571,7 +1576,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path:     path.RootPath("test").AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-String-null": {
@@ -1598,7 +1603,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			path:     path.RootPath("test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-String-unknown": {
@@ -1625,7 +1630,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			path:     path.RootPath("test"),
 			expected: types.String{Unknown: true},
 		},
 		"WithAttributeName-String-value": {
@@ -1652,7 +1657,7 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			path:     path.RootPath("test"),
 			expected: types.String{Value: "value"},
 		},
 		"AttrTypeWithValidateError": {
@@ -1679,9 +1684,9 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:          tftypes.NewAttributePath().WithAttributeName("test"),
+			path:          path.RootPath("test"),
 			expected:      nil,
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("test"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -1707,9 +1712,9 @@ func TestPlanGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:          tftypes.NewAttributePath().WithAttributeName("test"),
+			path:          path.RootPath("test"),
 			expected:      testtypes.String{InternalString: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("test"))},
 		},
 	}
 
@@ -1735,7 +1740,7 @@ func TestPlanPathExists(t *testing.T) {
 
 	type testCase struct {
 		plan          Plan
-		path          *tftypes.AttributePath
+		path          path.Path
 		expected      bool
 		expectedDiags diag.Diagnostics
 	}
@@ -1743,12 +1748,12 @@ func TestPlanPathExists(t *testing.T) {
 	testCases := map[string]testCase{
 		"empty-path": {
 			plan:     Plan{},
-			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			path:     path.RootPath("test"),
 			expected: false,
 		},
 		"empty-root": {
 			plan:     Plan{},
-			path:     tftypes.NewAttributePath(),
+			path:     path.EmptyPath(),
 			expected: true,
 		},
 		"root": {
@@ -1769,7 +1774,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath(),
+			path:     path.EmptyPath(),
 			expected: true,
 		},
 		"WithAttributeName": {
@@ -1790,7 +1795,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test"),
+			path:     path.RootPath("test"),
 			expected: true,
 		},
 		"WithAttributeName-mismatch": {
@@ -1811,7 +1816,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("other"),
+			path:     path.RootPath("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithAttributeName": {
@@ -1846,7 +1851,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("nested"),
+			path:     path.RootPath("test").AtName("nested"),
 			expected: true,
 		},
 		"WithAttributeName.WithAttributeName-mismatch-child": {
@@ -1881,7 +1886,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("other"),
+			path:     path.RootPath("test").AtName("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithAttributeName-mismatch-parent": {
@@ -1902,7 +1907,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("other"),
+			path:     path.RootPath("test").AtName("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyInt": {
@@ -1931,7 +1936,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:     path.RootPath("test").AtListIndex(0),
 			expected: true,
 		},
 		"WithAttributeName.WithElementKeyInt-mismatch-child": {
@@ -1960,7 +1965,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(1),
+			path:     path.RootPath("test").AtListIndex(1),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyInt-mismatch-parent": {
@@ -1981,7 +1986,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path:     path.RootPath("test").AtListIndex(0),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyString": {
@@ -2010,7 +2015,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key"),
+			path:     path.RootPath("test").AtMapKey("key"),
 			expected: true,
 		},
 		"WithAttributeName.WithElementKeyString-mismatch-child": {
@@ -2039,7 +2044,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("other"),
+			path:     path.RootPath("test").AtMapKey("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyString-mismatch-parent": {
@@ -2060,7 +2065,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("other"),
+			path:     path.RootPath("test").AtMapKey("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyValue": {
@@ -2089,7 +2094,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "testvalue")),
+			path:     path.RootPath("test").AtSetValue(types.String{Value: "testvalue"}),
 			expected: true,
 		},
 		"WithAttributeName.WithElementKeyValue-mismatch-child": {
@@ -2118,7 +2123,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "othervalue")),
+			path:     path.RootPath("test").AtSetValue(types.String{Value: "othervalue"}),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyValue-mismatch-parent": {
@@ -2139,7 +2144,7 @@ func TestPlanPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "othervalue")),
+			path:     path.RootPath("test").AtSetValue(types.String{Value: "othervalue"}),
 			expected: false,
 		},
 	}
@@ -2247,7 +2252,7 @@ func TestPlanSet(t *testing.T) {
 				Name: "newvalue",
 			},
 			expected:      tftypes.Value{},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -2273,7 +2278,7 @@ func TestPlanSet(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("name"))},
 		},
 	}
 
@@ -2300,7 +2305,7 @@ func TestPlanSetAttribute(t *testing.T) {
 
 	type testCase struct {
 		plan          Plan
-		path          *tftypes.AttributePath
+		path          path.Path
 		val           interface{}
 		expected      tftypes.Value
 		expectedDiags diag.Diagnostics
@@ -2365,7 +2370,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(1),
+			path: path.RootPath("disks").AtListIndex(1),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -2474,7 +2479,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(2),
+			path: path.RootPath("disks").AtListIndex(2),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -2517,7 +2522,7 @@ func TestPlanSetAttribute(t *testing.T) {
 			}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("disks"),
+					path.RootPath("disks"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 3 as list currently has 1 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -2572,7 +2577,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+			path: path.RootPath("disks").AtListIndex(0),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -2662,7 +2667,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(1),
+			path: path.RootPath("disks").AtListIndex(1),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -2695,7 +2700,7 @@ func TestPlanSetAttribute(t *testing.T) {
 			}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("disks"),
+					path.RootPath("disks"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -2734,7 +2739,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key2"),
+			path: path.RootPath("test").AtMapKey("key2"),
 			val:  "key2value",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -2783,7 +2788,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key"),
+			path: path.RootPath("test").AtMapKey("key"),
 			val:  "keyvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -2859,15 +2864,16 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"id":                   tftypes.String,
-					"delete_with_instance": tftypes.Bool,
+			path: path.RootPath("disks").AtSetValue(types.Object{
+				AttrTypes: map[string]attr.Type{
+					"id":                   types.StringType,
+					"delete_with_instance": types.BoolType,
 				},
-			}, map[string]tftypes.Value{
-				"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
-				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-			})),
+				Attrs: map[string]attr.Value{
+					"id":                   types.String{Value: "mynewdisk"},
+					"delete_with_instance": types.Bool{Value: true},
+				},
+			}),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -2966,15 +2972,16 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"id":                   tftypes.String,
-					"delete_with_instance": tftypes.Bool,
+			path: path.RootPath("disks").AtSetValue(types.Object{
+				AttrTypes: map[string]attr.Type{
+					"id":                   types.StringType,
+					"delete_with_instance": types.BoolType,
 				},
-			}, map[string]tftypes.Value{
-				"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
-				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-			})),
+				Attrs: map[string]attr.Value{
+					"id":                   types.String{Value: "mynewdisk"},
+					"delete_with_instance": types.Bool{Value: true},
+				},
+			}),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -3040,7 +3047,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: path.RootPath("test"),
 			val:  false,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3084,7 +3091,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("tags"),
+			path: path.RootPath("tags"),
 			val:  []string{"one", "two"},
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3168,7 +3175,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(1),
+			path: path.RootPath("disks").AtListIndex(1),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -3252,7 +3259,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: path.RootPath("test"),
 			val: map[string]string{
 				"newkey": "newvalue",
 			},
@@ -3305,7 +3312,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key"),
+			path: path.RootPath("test").AtMapKey("key"),
 			val:  "newvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3348,7 +3355,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: path.RootPath("test"),
 			val:  2,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3402,7 +3409,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("scratch_disk"),
+			path: path.RootPath("scratch_disk"),
 			val: struct {
 				Interface string `tfsdk:"interface"`
 				Other     string `tfsdk:"other"`
@@ -3471,7 +3478,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("scratch_disk").WithAttributeName("interface"),
+			path: path.RootPath("scratch_disk").AtName("interface"),
 			val:  "NVME",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3525,7 +3532,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("tags"),
+			path: path.RootPath("tags"),
 			val:  []string{"one", "two"},
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3609,15 +3616,16 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"id":                   tftypes.String,
-					"delete_with_instance": tftypes.Bool,
+			path: path.RootPath("disks").AtSetValue(types.Object{
+				AttrTypes: map[string]attr.Type{
+					"id":                   types.StringType,
+					"delete_with_instance": types.BoolType,
 				},
-			}, map[string]tftypes.Value{
-				"id":                   tftypes.NewValue(tftypes.String, "disk1"),
-				"delete_with_instance": tftypes.NewValue(tftypes.Bool, false),
-			})),
+				Attrs: map[string]attr.Value{
+					"id":                   types.String{Value: "disk1"},
+					"delete_with_instance": types.Bool{Value: false},
+				},
+			}),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -3702,7 +3710,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("tags").WithElementKeyValue(tftypes.NewValue(tftypes.String, "three")),
+			path: path.RootPath("tags").AtSetValue(types.String{Value: "three"}),
 			val:  "three",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3746,7 +3754,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: path.RootPath("test"),
 			val:  "newvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3774,7 +3782,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath(),
+			path: path.EmptyPath(),
 			val:  false,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3783,7 +3791,7 @@ func TestPlanSetAttribute(t *testing.T) {
 			}, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath(),
+					path.EmptyPath(),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to convert the Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\nexpected tftypes.Object[\"test\":tftypes.Bool], got tftypes.Bool",
 				),
@@ -3810,7 +3818,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: path.RootPath("test"),
 			val:  false,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3847,7 +3855,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("tags"),
+			path: path.RootPath("tags"),
 			val:  []string{"one", "two"},
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3892,7 +3900,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			path: path.RootPath("test").AtListIndex(0),
 			val:  "testvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3910,7 +3918,7 @@ func TestPlanSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
+				testtypes.TestWarningDiagnostic(path.RootPath("test")),
 			},
 		},
 		"write-List-Element": {
@@ -3951,7 +3959,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+			path: path.RootPath("disks").AtListIndex(0),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -4031,7 +4039,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(1),
+			path: path.RootPath("disks").AtListIndex(1),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -4054,7 +4062,7 @@ func TestPlanSetAttribute(t *testing.T) {
 			}, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("disks"),
+					path.RootPath("disks"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -4089,7 +4097,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0),
+			path: path.RootPath("disks").AtListIndex(0),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -4131,7 +4139,7 @@ func TestPlanSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyInt(0).WithAttributeName("id")),
+				testtypes.TestWarningDiagnostic(path.RootPath("disks").AtListIndex(0).AtName("id")),
 			},
 		},
 		"write-Map": {
@@ -4159,7 +4167,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: path.RootPath("test"),
 			val: map[string]string{
 				"newkey": "newvalue",
 			},
@@ -4206,7 +4214,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key"),
+			path: path.RootPath("test").AtMapKey("key"),
 			val:  "keyvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4224,7 +4232,7 @@ func TestPlanSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
+				testtypes.TestWarningDiagnostic(path.RootPath("test")),
 			},
 		},
 		"write-Map-Element": {
@@ -4252,7 +4260,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key"),
+			path: path.RootPath("test").AtMapKey("key"),
 			val:  "keyvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4295,7 +4303,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key"),
+			path: path.RootPath("test").AtMapKey("key"),
 			val:  "keyvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4313,7 +4321,7 @@ func TestPlanSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("key")),
+				testtypes.TestWarningDiagnostic(path.RootPath("test").AtMapKey("key")),
 			},
 		},
 		"write-Number": {
@@ -4337,7 +4345,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: path.RootPath("test"),
 			val:  1,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4378,7 +4386,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("scratch_disk"),
+			path: path.RootPath("scratch_disk"),
 			val: struct {
 				Interface string `tfsdk:"interface"`
 			}{
@@ -4427,7 +4435,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("tags"),
+			path: path.RootPath("tags"),
 			val:  []string{"one", "two"},
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4482,15 +4490,16 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"id":                   tftypes.String,
-					"delete_with_instance": tftypes.Bool,
+			path: path.RootPath("disks").AtSetValue(types.Object{
+				AttrTypes: map[string]attr.Type{
+					"id":                   types.StringType,
+					"delete_with_instance": types.BoolType,
 				},
-			}, map[string]tftypes.Value{
-				"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
-				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-			})),
+				Attrs: map[string]attr.Value{
+					"id":                   types.String{Value: "mynewdisk"},
+					"delete_with_instance": types.Bool{Value: true},
+				},
+			}),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -4560,7 +4569,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "testvalue")),
+			path: path.RootPath("test").AtSetValue(types.String{Value: "testvalue"}),
 			val:  "testvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4578,7 +4587,7 @@ func TestPlanSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test")),
+				testtypes.TestWarningDiagnostic(path.RootPath("test")),
 			},
 		},
 		"write-Set-Element-AttrTypeWithValidateWarning": {
@@ -4619,15 +4628,16 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"id":                   tftypes.String,
-					"delete_with_instance": tftypes.Bool,
+			path: path.RootPath("disks").AtSetValue(types.Object{
+				AttrTypes: map[string]attr.Type{
+					"id":                   types.StringType,
+					"delete_with_instance": types.BoolType,
 				},
-			}, map[string]tftypes.Value{
-				"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
-				"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-			})),
+				Attrs: map[string]attr.Value{
+					"id":                   types.String{Value: "mynewdisk"},
+					"delete_with_instance": types.Bool{Value: true},
+				},
+			}),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -4669,15 +4679,16 @@ func TestPlanSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("disks").WithElementKeyValue(tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"id":                   tftypes.String,
-						"delete_with_instance": tftypes.Bool,
+				testtypes.TestWarningDiagnostic(path.RootPath("disks").AtSetValue(types.Object{
+					AttrTypes: map[string]attr.Type{
+						"id":                   types.StringType,
+						"delete_with_instance": types.BoolType,
 					},
-				}, map[string]tftypes.Value{
-					"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
-					"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
-				})).WithAttributeName("id")),
+					Attrs: map[string]attr.Value{
+						"id":                   types.String{Value: "mynewdisk"},
+						"delete_with_instance": types.Bool{Value: true},
+					},
+				}).AtName("id")),
 			},
 		},
 		"write-String": {
@@ -4701,7 +4712,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: path.RootPath("test"),
 			val:  "newvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4731,7 +4742,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("name"),
+			path: path.RootPath("name"),
 			val:  "newname",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4740,7 +4751,7 @@ func TestPlanSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "originalname"),
 			}),
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			plan: Plan{
@@ -4760,7 +4771,7 @@ func TestPlanSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("name"),
+			path: path.RootPath("name"),
 			val:  "newname",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4770,7 +4781,7 @@ func TestPlanSetAttribute(t *testing.T) {
 				"name": tftypes.NewValue(tftypes.String, "newname"),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("name")),
+				testtypes.TestWarningDiagnostic(path.RootPath("name")),
 			},
 		},
 	}

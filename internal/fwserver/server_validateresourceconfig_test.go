@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -146,7 +147,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			expectedResponse: &fwserver.ValidateResourceConfigResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						path.RootPath("test"),
 						"error summary",
 						"error detail",
 					),
@@ -172,7 +173,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 										ValidateMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
 											var got types.String
 
-											resp.Diagnostics.Append(req.Config.GetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("test"), &got)...)
+											resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.RootPath("test"), &got)...)
 
 											if resp.Diagnostics.HasError() {
 												return
@@ -241,7 +242,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 							ValidateConfigMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
 								var got types.String
 
-								resp.Diagnostics.Append(req.Config.GetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("test"), &got)...)
+								resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.RootPath("test"), &got)...)
 
 								if resp.Diagnostics.HasError() {
 									return

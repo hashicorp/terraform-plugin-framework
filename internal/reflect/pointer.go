@@ -6,7 +6,9 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -14,7 +16,7 @@ import (
 // references, populates it with BuildValue, and takes a pointer to it.
 //
 // It is meant to be called through Into, not directly.
-func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path path.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if target.Kind() != reflect.Ptr {
@@ -73,7 +75,7 @@ func pointerSafeZeroValue(_ context.Context, target reflect.Value) reflect.Value
 // the pointer is referencing.
 //
 // It is meant to be called through FromValue, not directly.
-func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path path.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if value.Kind() != reflect.Ptr {
@@ -88,7 +90,7 @@ func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path *
 	if value.IsNil() {
 		tfVal := tftypes.NewValue(typ.TerraformType(ctx), nil)
 
-		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 			if diags.HasError() {

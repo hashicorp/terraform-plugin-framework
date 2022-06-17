@@ -6,8 +6,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -22,10 +25,18 @@ import (
 // The extra State parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
-func StateGetAttributeValue(ctx context.Context, s tfsdk.State, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func StateGetAttributeValue(ctx context.Context, s tfsdk.State, path path.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	attrType, err := s.Schema.AttributeTypeAtPath(path)
+	tftypesPath, tftypesPathDiags := totftypes.AttributePath(ctx, path)
+
+	diags.Append(tftypesPathDiags...)
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	attrType, err := s.Schema.AttributeTypeAtPath(tftypesPath)
 	if err != nil {
 		err = fmt.Errorf("error getting attribute type in schema: %w", err)
 		diags.AddAttributeError(
@@ -41,7 +52,7 @@ func StateGetAttributeValue(ctx context.Context, s tfsdk.State, path *tftypes.At
 		return nil, nil
 	}
 
-	tfValue, err := StateTerraformValueAtPath(s, path)
+	tfValue, err := StateTerraformValueAtPath(s, tftypesPath)
 
 	// Ignoring ErrInvalidStep will allow this method to return a null value of the type.
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
@@ -57,7 +68,7 @@ func StateGetAttributeValue(ctx context.Context, s tfsdk.State, path *tftypes.At
 	//       If found, convert this value to an unknown value.
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/186
 
-	if attrTypeWithValidate, ok := attrType.(attr.TypeWithValidate); ok {
+	if attrTypeWithValidate, ok := attrType.(xattr.TypeWithValidate); ok {
 		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
 		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)

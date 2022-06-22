@@ -30,7 +30,7 @@ func TestAttributePaths(t *testing.T) {
 		},
 		"one": {
 			paths: path.Paths{
-				path.RootPath("test"),
+				path.Root("test"),
 			},
 			expected: []*tftypes.AttributePath{
 				tftypes.NewAttributePath().WithAttributeName("test"),
@@ -38,7 +38,7 @@ func TestAttributePaths(t *testing.T) {
 		},
 		"one-diagnostics": {
 			paths: path.Paths{
-				path.RootPath("test").AtSetValue(testtypes.Invalid{}),
+				path.Root("test").AtSetValue(testtypes.Invalid{}),
 			},
 			expected: []*tftypes.AttributePath{},
 			expectedDiags: diag.Diagnostics{
@@ -54,8 +54,8 @@ func TestAttributePaths(t *testing.T) {
 		},
 		"two": {
 			paths: path.Paths{
-				path.RootPath("test1").AtListIndex(1).AtName("test1_nested"),
-				path.RootPath("test2").AtMapKey("test-key2"),
+				path.Root("test1").AtListIndex(1).AtName("test1_nested"),
+				path.Root("test2").AtMapKey("test-key2"),
 			},
 			expected: []*tftypes.AttributePath{
 				tftypes.NewAttributePath().WithAttributeName("test1").WithElementKeyInt(1).WithAttributeName("test1_nested"),
@@ -64,8 +64,8 @@ func TestAttributePaths(t *testing.T) {
 		},
 		"two-diagnostics": {
 			paths: path.Paths{
-				path.RootPath("test1"),
-				path.RootPath("test2").AtSetValue(testtypes.Invalid{}),
+				path.Root("test1"),
+				path.Root("test2").AtSetValue(testtypes.Invalid{}),
 			},
 			expected: []*tftypes.AttributePath{
 				tftypes.NewAttributePath().WithAttributeName("test1"),

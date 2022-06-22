@@ -21,19 +21,19 @@ func TestAttributePath(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"empty": {
-			fw:       path.EmptyPath(),
+			fw:       path.Empty(),
 			expected: tftypes.NewAttributePath(),
 		},
 		"one": {
-			fw:       path.RootPath("test"),
+			fw:       path.Root("test"),
 			expected: tftypes.NewAttributePath().WithAttributeName("test"),
 		},
 		"two": {
-			fw:       path.RootPath("test").AtListIndex(1),
+			fw:       path.Root("test").AtListIndex(1),
 			expected: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(1),
 		},
 		"step-error": {
-			fw:       path.RootPath("test").AtSetValue(testtypes.Invalid{}),
+			fw:       path.Root("test").AtSetValue(testtypes.Invalid{}),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(

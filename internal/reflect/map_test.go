@@ -30,7 +30,7 @@ func TestReflectMap_string(t *testing.T) {
 		"a": tftypes.NewValue(tftypes.String, "red"),
 		"b": tftypes.NewValue(tftypes.String, "blue"),
 		"c": tftypes.NewValue(tftypes.String, "green"),
-	}), reflect.ValueOf(m), refl.Options{}, path.EmptyPath())
+	}), reflect.ValueOf(m), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}

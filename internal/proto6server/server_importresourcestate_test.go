@@ -73,7 +73,7 @@ func TestServerImportResourceState(t *testing.T) {
 													resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
 												}
 
-												tfsdk.ResourceImportStatePassthroughID(ctx, path.RootPath("id"), req, resp)
+												tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 											},
 										}, nil
 									},
@@ -154,7 +154,7 @@ func TestServerImportResourceState(t *testing.T) {
 										return &testprovider.ResourceWithImportState{
 											Resource: &testprovider.Resource{},
 											ImportStateMethod: func(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-												tfsdk.ResourceImportStatePassthroughID(ctx, path.RootPath("id"), req, resp)
+												tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 											},
 										}, nil
 									},

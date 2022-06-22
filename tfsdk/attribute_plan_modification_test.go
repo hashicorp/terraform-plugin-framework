@@ -122,7 +122,7 @@ func TestUseStateForUnknownModifier(t *testing.T) {
 			}
 
 			req := ModifyAttributePlanRequest{
-				AttributePath: path.EmptyPath(),
+				AttributePath: path.Empty(),
 				Config: Config{
 					Schema: schema,
 					Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
@@ -229,7 +229,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			path:         path.RootPath("optional-computed"),
+			path:         path.Root("optional-computed"),
 			expectedPlan: types.String{Value: "foo"},
 			expectedRR:   false,
 		},
@@ -255,7 +255,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
-			path:         path.RootPath("optional-computed"),
+			path:         path.Root("optional-computed"),
 			expectedPlan: nil,
 			expectedRR:   false,
 		},
@@ -284,7 +284,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			expectedPlan: types.String{Value: "bar"},
 			expectedRR:   true,
 		},
@@ -313,7 +313,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,
 		},
@@ -341,7 +341,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			expectedPlan: types.String{Value: "quux"},
 			expectedRR:   true,
 		},
@@ -369,7 +369,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         path.RootPath("optional-computed"),
+			path:         path.Root("optional-computed"),
 			expectedPlan: types.String{Value: "foo"},
 			expectedRR:   false,
 		},
@@ -404,7 +404,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			path:         path.RootPath("optional-computed"),
+			path:         path.Root("optional-computed"),
 			expectedPlan: types.String{Unknown: true},
 			expectedRR:   false,
 		},
@@ -440,7 +440,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,
 		},
@@ -517,7 +517,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						}),
 				}),
 			},
-			path: path.RootPath("block"),
+			path: path.Root("block"),
 			expectedPlan: types.List{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
@@ -631,7 +631,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						}),
 				}),
 			},
-			path: path.RootPath("block"),
+			path: path.Root("block"),
 			expectedPlan: types.List{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
@@ -737,7 +737,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						}),
 				}),
 			},
-			path: path.RootPath("block"),
+			path: path.Root("block"),
 			expectedPlan: types.List{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
@@ -881,7 +881,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			priorRR:      false,
-			path:         path.RootPath("optional-computed"),
+			path:         path.Root("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "foo"},
 			expectedRR:   false,
@@ -909,7 +909,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
 			priorRR:      false,
-			path:         path.RootPath("optional-computed"),
+			path:         path.Root("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: nil,
 			expectedRR:   false,
@@ -940,7 +940,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			priorRR:      false,
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "bar"},
 			expectedRR:   true,
@@ -972,7 +972,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			},
 			priorRR:      false,
 			ifReturn:     true,
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,
 		},
@@ -1002,7 +1002,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			priorRR:      false,
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "quux"},
 			expectedRR:   true,
@@ -1033,7 +1033,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			priorRR:      false,
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			ifReturn:     false,
 			expectedPlan: types.String{Value: "quux"},
 			expectedRR:   false,
@@ -1065,7 +1065,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			priorRR:      true,
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			ifReturn:     false,
 			expectedPlan: types.String{Value: "quux"},
 			expectedRR:   true,
@@ -1095,7 +1095,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			priorRR:      false,
-			path:         path.RootPath("optional-computed"),
+			path:         path.Root("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: types.String{Value: "foo"},
 			expectedRR:   false,
@@ -1132,7 +1132,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			priorRR:      false,
-			path:         path.RootPath("optional-computed"),
+			path:         path.Root("optional-computed"),
 			ifReturn:     true,
 			expectedPlan: types.String{Unknown: true},
 			expectedRR:   false,
@@ -1170,7 +1170,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			priorRR:      false,
-			path:         path.RootPath("optional"),
+			path:         path.Root("optional"),
 			ifReturn:     true,
 			expectedPlan: types.String{Null: true},
 			expectedRR:   true,
@@ -1248,7 +1248,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						}),
 				}),
 			},
-			path: path.RootPath("block"),
+			path: path.Root("block"),
 			expectedPlan: types.List{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
@@ -1363,7 +1363,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						}),
 				}),
 			},
-			path: path.RootPath("block"),
+			path: path.Root("block"),
 			expectedPlan: types.List{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
@@ -1470,7 +1470,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						}),
 				}),
 			},
-			path: path.RootPath("block"),
+			path: path.Root("block"),
 			expectedPlan: types.List{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{

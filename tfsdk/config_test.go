@@ -109,7 +109,7 @@ func TestConfigGet_testTypes(t *testing.T) {
 			expected: testConfigGetData{
 				Name: testtypes.String{InternalString: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			config: Config{
@@ -132,7 +132,7 @@ func TestConfigGet_testTypes(t *testing.T) {
 			expected: testConfigGetData{
 				Name: testtypes.String{InternalString: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("name"))},
 		},
 	}
 
@@ -252,7 +252,7 @@ func TestConfigGetAttribute(t *testing.T) {
 			expected: new(testtypes.String),
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					path.RootPath("name"),
+					path.Root("name"),
 					intreflect.DiagNewAttributeValueIntoWrongType{
 						ValType:    reflect.TypeOf(types.String{Value: "namevalue"}),
 						TargetType: reflect.TypeOf(testtypes.String{}),
@@ -283,7 +283,7 @@ func TestConfigGetAttribute(t *testing.T) {
 			expected: new(bool),
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					path.RootPath("name"),
+					path.Root("name"),
 					intreflect.DiagIntoIncompatibleType{
 						Val:        tftypes.NewValue(tftypes.String, "namevalue"),
 						TargetType: reflect.TypeOf(false),
@@ -312,7 +312,7 @@ func TestConfigGetAttribute(t *testing.T) {
 			},
 			target:        new(testtypes.String),
 			expected:      new(testtypes.String),
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			config: Config{
@@ -334,7 +334,7 @@ func TestConfigGetAttribute(t *testing.T) {
 			},
 			target:        new(testtypes.String),
 			expected:      &testtypes.String{InternalString: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("name"))},
 		},
 	}
 
@@ -343,7 +343,7 @@ func TestConfigGetAttribute(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := tc.config.GetAttribute(context.Background(), path.RootPath("name"), tc.target)
+			diags := tc.config.GetAttribute(context.Background(), path.Root("name"), tc.target)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -388,7 +388,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: nil,
 		},
 		"WithAttributeName-nonexistent": {
@@ -409,11 +409,11 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("other"),
+			path:     path.Root("other"),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.RootPath("other"),
+					path.Root("other"),
 					"Configuration Read Error",
 					"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"AttributeName(\"other\") still remains in the path: could not find attribute or block \"other\" in schema",
@@ -450,7 +450,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0),
+			path:     path.Root("test").AtListIndex(0),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-List-WithElementKeyInt": {
@@ -486,7 +486,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0),
+			path:     path.Root("test").AtListIndex(0),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
@@ -530,7 +530,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName-Object": {
@@ -587,7 +587,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path: path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.Object{
 				Null:      true,
 				AttrTypes: map[string]attr.Type{"value": types.StringType},
@@ -642,7 +642,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-ListNestedBlocks-null-WithElementKeyInt-WithAttributeName": {
@@ -711,7 +711,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
@@ -788,7 +788,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Map-null-WithElementKeyString": {
@@ -821,7 +821,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("sub_test"),
+			path:     path.Root("test").AtMapKey("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-Map-WithElementKeyString": {
@@ -857,7 +857,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("sub_test"),
+			path:     path.Root("test").AtMapKey("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Map-WithElementKeyString-nonexistent": {
@@ -892,7 +892,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("other"),
+			path:     path.Root("test").AtMapKey("other"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-MapNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
@@ -936,7 +936,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("element").AtName("sub_test"),
+			path:     path.Root("test").AtMapKey("element").AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-MapNestedAttributes-WithElementKeyString-WithAttributeName": {
@@ -988,7 +988,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("element").AtName("sub_test"),
+			path:     path.Root("test").AtMapKey("element").AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Object-WithAttributeName": {
@@ -1029,7 +1029,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Set-null-WithElementKeyValue": {
@@ -1062,7 +1062,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtSetValue(types.String{Value: "value"}),
+			path:     path.Root("test").AtSetValue(types.String{Value: "value"}),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-Set-WithElementKeyValue": {
@@ -1098,7 +1098,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtSetValue(types.String{Value: "value"}),
+			path:     path.Root("test").AtSetValue(types.String{Value: "value"}),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-SetNestedAttributes-null-WithElementKeyValue-WithAttributeName": {
@@ -1142,7 +1142,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtSetValue(types.Object{
+			path: path.Root("test").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
@@ -1201,7 +1201,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtSetValue(types.Object{
+			path: path.Root("test").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
@@ -1277,7 +1277,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtSetValue(types.Object{
+			path: path.Root("test").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
@@ -1361,7 +1361,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtSetValue(types.Object{
+			path: path.Root("test").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
@@ -1408,7 +1408,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.Float64{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Int64": {
@@ -1448,7 +1448,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.Int64{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Set": {
@@ -1494,7 +1494,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.Set{ElemType: types.StringType, Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-String": {
@@ -1534,7 +1534,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-WithAttributeName": {
@@ -1576,7 +1576,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-String-null": {
@@ -1603,7 +1603,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-String-unknown": {
@@ -1630,7 +1630,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: types.String{Unknown: true},
 		},
 		"WithAttributeName-String-value": {
@@ -1657,7 +1657,7 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: types.String{Value: "value"},
 		},
 		"AttrTypeWithValidateError": {
@@ -1684,9 +1684,9 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:          path.RootPath("test"),
+			path:          path.Root("test"),
 			expected:      nil,
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("test"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("test"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			config: Config{
@@ -1712,9 +1712,9 @@ func TestConfigGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:          path.RootPath("test"),
+			path:          path.Root("test"),
 			expected:      testtypes.String{InternalString: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("test"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("test"))},
 		},
 	}
 

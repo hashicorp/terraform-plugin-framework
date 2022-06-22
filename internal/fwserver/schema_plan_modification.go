@@ -51,7 +51,7 @@ type ModifySchemaPlanResponse struct {
 func SchemaModifyPlan(ctx context.Context, s tfsdk.Schema, req ModifySchemaPlanRequest, resp *ModifySchemaPlanResponse) {
 	for name, attribute := range s.Attributes {
 		attrReq := tfsdk.ModifyAttributePlanRequest{
-			AttributePath: path.RootPath(name),
+			AttributePath: path.Root(name),
 			Config:        req.Config,
 			State:         req.State,
 			Plan:          req.Plan,
@@ -63,7 +63,7 @@ func SchemaModifyPlan(ctx context.Context, s tfsdk.Schema, req ModifySchemaPlanR
 
 	for name, block := range s.Blocks {
 		blockReq := tfsdk.ModifyAttributePlanRequest{
-			AttributePath: path.RootPath(name),
+			AttributePath: path.Root(name),
 			Config:        req.Config,
 			State:         req.State,
 			Plan:          req.Plan,

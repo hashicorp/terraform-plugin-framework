@@ -347,7 +347,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 												// an error if it is technically valid in the
 												// protocol.
 												resp.RequiresReplace = path.Paths{
-													path.RootPath("test_required"),
+													path.Root("test_required"),
 												}
 											},
 										}, nil
@@ -599,7 +599,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 												// an error if it is technically valid in the
 												// protocol.
 												resp.RequiresReplace = path.Paths{
-													path.RootPath("test_required"),
+													path.Root("test_required"),
 												}
 											},
 										}, nil
@@ -958,7 +958,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 										return &testprovider.ResourceWithModifyPlan{
 											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
 												resp.RequiresReplace = path.Paths{
-													path.RootPath("test_required"),
+													path.Root("test_required"),
 												}
 											},
 										}, nil

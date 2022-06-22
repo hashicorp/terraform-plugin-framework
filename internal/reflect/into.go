@@ -34,7 +34,7 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 		)
 		return diags
 	}
-	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, path.EmptyPath())
+	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, path.Empty())
 	if diags.HasError() {
 		return diags
 	}

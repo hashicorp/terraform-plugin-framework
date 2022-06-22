@@ -26,7 +26,7 @@ func TestCreateParentValue(t *testing.T) {
 			expected:   tftypes.Value{},
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.RootPath("test"),
+					path.Root("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Unknown parent type tftypes.Bool to create value.",
@@ -156,7 +156,7 @@ func TestCreateParentValue(t *testing.T) {
 
 			got, diags := createParentValue(
 				context.Background(),
-				path.RootPath("test"),
+				path.Root("test"),
 				tc.parentType,
 				tc.childValue,
 			)
@@ -212,7 +212,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, []tftypes.Value{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.RootPath("test"),
+					path.Root("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -248,7 +248,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.RootPath("test"),
+					path.Root("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -308,7 +308,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.RootPath("test"),
+					path.Root("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 3 as list currently has 1 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -495,7 +495,7 @@ func TestUpsertChildValue(t *testing.T) {
 
 			got, diags := upsertChildValue(
 				context.Background(),
-				path.RootPath("test"),
+				path.Root("test"),
 				tc.parentValue,
 				tc.childStep,
 				tc.childValue,

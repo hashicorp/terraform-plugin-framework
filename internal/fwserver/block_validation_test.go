@@ -22,7 +22,7 @@ func TestBlockValidate(t *testing.T) {
 	}{
 		"deprecation-message-known": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -79,7 +79,7 @@ func TestBlockValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Block Deprecated",
 						"Use something else instead.",
 					),
@@ -88,7 +88,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"deprecation-message-null": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -135,7 +135,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"deprecation-message-unknown": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -181,7 +181,7 @@ func TestBlockValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Block Deprecated",
 						"Use something else instead.",
 					),
@@ -190,7 +190,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"warnings": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -256,7 +256,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"errors": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -322,7 +322,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"nested-attr-warnings": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -388,7 +388,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"nested-attr-errors": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -454,7 +454,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"nested-attr-type-with-validate-error": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -509,13 +509,13 @@ func TestBlockValidate(t *testing.T) {
 			},
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestErrorDiagnostic(path.RootPath("test").AtListIndex(0).AtName("nested_attr")),
+					testtypes.TestErrorDiagnostic(path.Root("test").AtListIndex(0).AtName("nested_attr")),
 				},
 			},
 		},
 		"nested-attr-type-with-validate-warning": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -570,13 +570,13 @@ func TestBlockValidate(t *testing.T) {
 			},
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestWarningDiagnostic(path.RootPath("test").AtListIndex(0).AtName("nested_attr")),
+					testtypes.TestWarningDiagnostic(path.Root("test").AtListIndex(0).AtName("nested_attr")),
 				},
 			},
 		},
 		"list-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -633,7 +633,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"list-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -697,7 +697,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"set-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -754,7 +754,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"set-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{

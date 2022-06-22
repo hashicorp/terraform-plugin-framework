@@ -33,7 +33,7 @@ func TestNumber_bigFloat(t *testing.T) {
 
 	var f *big.Float
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456), reflect.ValueOf(f), refl.Options{}, path.EmptyPath())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456), reflect.ValueOf(f), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -52,7 +52,7 @@ func TestNumber_bigInt(t *testing.T) {
 
 	var n *big.Int
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -73,7 +73,7 @@ func TestNumber_bigIntRounded(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456.123), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -93,13 +93,13 @@ func TestNumber_bigIntRoundingError(t *testing.T) {
 	var n *big.Int
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 123456.123 in *big.Int",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456.123), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456.123), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -111,7 +111,7 @@ func TestNumber_int(t *testing.T) {
 
 	var n int
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -128,7 +128,7 @@ func TestNumber_intOverflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -146,13 +146,13 @@ func TestNumber_intOverflowError(t *testing.T) {
 	var n int
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store "+overflowInt.String()+" in int",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -166,7 +166,7 @@ func TestNumber_intUnderflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -184,13 +184,13 @@ func TestNumber_intUnderflowError(t *testing.T) {
 	var n int
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store "+underflowInt.String()+" in int",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -202,7 +202,7 @@ func TestNumber_int8(t *testing.T) {
 
 	var n int8
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -219,7 +219,7 @@ func TestNumber_int8Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt8+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -235,13 +235,13 @@ func TestNumber_int8OverflowError(t *testing.T) {
 	var n int8
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 128 in int8",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt8+1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt8+1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -255,7 +255,7 @@ func TestNumber_int8Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt8-1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -271,13 +271,13 @@ func TestNumber_int8UnderflowError(t *testing.T) {
 	var n int8
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -129 in int8",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt8-1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt8-1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -295,7 +295,7 @@ func TestNumber_int16Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt16+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -311,13 +311,13 @@ func TestNumber_int16OverflowError(t *testing.T) {
 	var n int16
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 32768 in int16",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt16+1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt16+1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -331,7 +331,7 @@ func TestNumber_int16Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt16-1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -347,13 +347,13 @@ func TestNumber_int16UnderflowError(t *testing.T) {
 	var n int16
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -32769 in int16",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt16-1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt16-1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -371,7 +371,7 @@ func TestNumber_int32Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt32+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -387,13 +387,13 @@ func TestNumber_int32OverflowError(t *testing.T) {
 	var n int32
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 2147483648 in int32",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt32+1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt32+1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -407,7 +407,7 @@ func TestNumber_int32Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt32-1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -423,13 +423,13 @@ func TestNumber_int32UnderflowError(t *testing.T) {
 	var n int32
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -2147483649 in int32",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt32-1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt32-1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -441,7 +441,7 @@ func TestNumber_int64(t *testing.T) {
 
 	var n int64
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -458,7 +458,7 @@ func TestNumber_int64Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -474,13 +474,13 @@ func TestNumber_int64OverflowError(t *testing.T) {
 	var n int64
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 9.223372037e+18 in int64",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -494,7 +494,7 @@ func TestNumber_int64Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -510,13 +510,13 @@ func TestNumber_int64UnderflowError(t *testing.T) {
 	var n int64
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -9.223372037e+18 in int64",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -528,7 +528,7 @@ func TestNumber_uint(t *testing.T) {
 
 	var n uint
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -545,7 +545,7 @@ func TestNumber_uintOverflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -563,13 +563,13 @@ func TestNumber_uintOverflowError(t *testing.T) {
 	var n uint
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store "+overflowUint.String()+" in uint",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -583,7 +583,7 @@ func TestNumber_uintUnderflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -599,13 +599,13 @@ func TestNumber_uintUnderflowError(t *testing.T) {
 	var n uint
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -1 in uint",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -617,7 +617,7 @@ func TestNumber_uint8(t *testing.T) {
 
 	var n uint8
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -634,7 +634,7 @@ func TestNumber_uint8Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint8+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -650,13 +650,13 @@ func TestNumber_uint8OverflowError(t *testing.T) {
 	var n uint8
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 256 in uint8",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint8+1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint8+1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -670,7 +670,7 @@ func TestNumber_uint8Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -686,13 +686,13 @@ func TestNumber_uint8UnderflowError(t *testing.T) {
 	var n uint8
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -1 in uint8",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -710,7 +710,7 @@ func TestNumber_uint16Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint16+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -726,13 +726,13 @@ func TestNumber_uint16OverflowError(t *testing.T) {
 	var n uint16
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 65536 in uint16",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint16+1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint16+1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -746,7 +746,7 @@ func TestNumber_uint16Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -762,13 +762,13 @@ func TestNumber_uint16UnderflowError(t *testing.T) {
 	var n uint16
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -1 in uint16",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -786,7 +786,7 @@ func TestNumber_uint32Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint32+1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -802,13 +802,13 @@ func TestNumber_uint32OverflowError(t *testing.T) {
 	var n uint32
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 4294967296 in uint32",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint32+1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint32+1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -822,7 +822,7 @@ func TestNumber_uint32Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -838,13 +838,13 @@ func TestNumber_uint32UnderflowError(t *testing.T) {
 	var n uint32
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -1 in uint32",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -856,7 +856,7 @@ func TestNumber_uint64(t *testing.T) {
 
 	var n uint64
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -873,7 +873,7 @@ func TestNumber_uint64Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -889,13 +889,13 @@ func TestNumber_uint64OverflowError(t *testing.T) {
 	var n uint64
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 1.844674407e+19 in uint64",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -909,7 +909,7 @@ func TestNumber_uint64Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -925,13 +925,13 @@ func TestNumber_uint64UnderflowError(t *testing.T) {
 	var n uint64
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -1 in uint64",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -949,7 +949,7 @@ func TestNumber_float32Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxFloat64), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -965,13 +965,13 @@ func TestNumber_float32OverflowError(t *testing.T) {
 	var n float32
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 1.797693135e+308 in float32",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxFloat64), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxFloat64), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -985,7 +985,7 @@ func TestNumber_float32Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.SmallestNonzeroFloat64), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -1001,13 +1001,13 @@ func TestNumber_float32UnderflowError(t *testing.T) {
 	var n float32
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 4.940656458e-324 in float32",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.SmallestNonzeroFloat64), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.SmallestNonzeroFloat64), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1019,7 +1019,7 @@ func TestNumber_float64(t *testing.T) {
 
 	var n float64
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -1036,7 +1036,7 @@ func TestNumber_float64Overflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowFloat), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -1052,13 +1052,13 @@ func TestNumber_float64OverflowError(t *testing.T) {
 	var n float64
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 1e+10000 in float64",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowFloat), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowFloat), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1072,7 +1072,7 @@ func TestNumber_float64OverflowNegative(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -1088,13 +1088,13 @@ func TestNumber_float64OverflowNegativeError(t *testing.T) {
 	var n float64
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -1e+10000 in float64",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1108,7 +1108,7 @@ func TestNumber_float64Underflow(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -1124,13 +1124,13 @@ func TestNumber_float64UnderflowError(t *testing.T) {
 	var n float64
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 1e-1000 in float64",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1144,7 +1144,7 @@ func TestNumber_float64UnderflowNegative(t *testing.T) {
 
 	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat), reflect.ValueOf(n), refl.Options{
 		AllowRoundingNumbers: true,
-	}, path.EmptyPath())
+	}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
@@ -1160,13 +1160,13 @@ func TestNumber_float64UnderflowNegativeError(t *testing.T) {
 	var n float64
 	expectedDiags := diag.Diagnostics{
 		diag.NewAttributeErrorDiagnostic(
-			path.EmptyPath(),
+			path.Empty(),
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -1e-1000 in float64",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat), reflect.ValueOf(n), refl.Options{}, path.EmptyPath())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1206,14 +1206,14 @@ func TestFromInt(t *testing.T) {
 				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.EmptyPath()),
+				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
 		"WithValidateError": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic(path.EmptyPath()),
+				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
 		},
 	}
@@ -1222,7 +1222,7 @@ func TestFromInt(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, diags := refl.FromInt(context.Background(), tc.typ, tc.val, path.EmptyPath())
+			actualVal, diags := refl.FromInt(context.Background(), tc.typ, tc.val, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1268,14 +1268,14 @@ func TestFromUint(t *testing.T) {
 				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.EmptyPath()),
+				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
 		"WithValidateError": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic(path.EmptyPath()),
+				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
 		},
 	}
@@ -1284,7 +1284,7 @@ func TestFromUint(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, diags := refl.FromUint(context.Background(), tc.typ, tc.val, path.EmptyPath())
+			actualVal, diags := refl.FromUint(context.Background(), tc.typ, tc.val, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1337,14 +1337,14 @@ func TestFromFloat(t *testing.T) {
 				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.EmptyPath()),
+				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
 		"WithValidateError": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic(path.EmptyPath()),
+				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
 		},
 	}
@@ -1353,7 +1353,7 @@ func TestFromFloat(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, diags := refl.FromFloat(context.Background(), tc.typ, tc.val, path.EmptyPath())
+			actualVal, diags := refl.FromFloat(context.Background(), tc.typ, tc.val, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1406,14 +1406,14 @@ func TestFromBigFloat(t *testing.T) {
 				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.EmptyPath()),
+				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
 		"WithValidateError": {
 			val: big.NewFloat(1),
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic(path.EmptyPath()),
+				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
 		},
 	}
@@ -1422,7 +1422,7 @@ func TestFromBigFloat(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, diags := refl.FromBigFloat(context.Background(), tc.typ, tc.val, path.EmptyPath())
+			actualVal, diags := refl.FromBigFloat(context.Background(), tc.typ, tc.val, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1468,14 +1468,14 @@ func TestFromBigInt(t *testing.T) {
 				CreatedBy: testtypes.NumberTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.EmptyPath()),
+				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
 		"WithValidateError": {
 			val: big.NewInt(1),
 			typ: testtypes.NumberTypeWithValidateError{},
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestErrorDiagnostic(path.EmptyPath()),
+				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
 		},
 	}
@@ -1484,7 +1484,7 @@ func TestFromBigInt(t *testing.T) {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			actualVal, diags := refl.FromBigInt(context.Background(), tc.typ, tc.val, path.EmptyPath())
+			actualVal, diags := refl.FromBigInt(context.Background(), tc.typ, tc.val, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)

@@ -18,93 +18,93 @@ func TestPathsContains(t *testing.T) {
 	}{
 		"paths-nil": {
 			paths:    nil,
-			contains: path.RootPath("test"),
+			contains: path.Root("test"),
 			expected: false,
 		},
 		"paths-empty": {
 			paths:    path.Paths{},
-			contains: path.RootPath("test"),
+			contains: path.Root("test"),
 			expected: false,
 		},
 		"contains-empty": {
 			paths: path.Paths{
-				path.RootPath("test"),
+				path.Root("test"),
 			},
-			contains: path.EmptyPath(),
+			contains: path.Empty(),
 			expected: false,
 		},
 		"contains-middle": {
 			paths: path.Paths{
-				path.RootPath("test1").AtName("test1_attr"),
-				path.RootPath("test2").AtName("test2_attr"),
-				path.RootPath("test3").AtName("test3_attr"),
+				path.Root("test1").AtName("test1_attr"),
+				path.Root("test2").AtName("test2_attr"),
+				path.Root("test3").AtName("test3_attr"),
 			},
-			contains: path.RootPath("test2").AtName("test2_attr"),
+			contains: path.Root("test2").AtName("test2_attr"),
 			expected: true,
 		},
 		"contains-end": {
 			paths: path.Paths{
-				path.RootPath("test1").AtName("test1_attr"),
-				path.RootPath("test2").AtName("test2_attr"),
-				path.RootPath("test3").AtName("test3_attr"),
+				path.Root("test1").AtName("test1_attr"),
+				path.Root("test2").AtName("test2_attr"),
+				path.Root("test3").AtName("test3_attr"),
 			},
-			contains: path.RootPath("test3").AtName("test3_attr"),
+			contains: path.Root("test3").AtName("test3_attr"),
 			expected: true,
 		},
 		"AttributeName-different": {
 			paths: path.Paths{
-				path.RootPath("test"),
+				path.Root("test"),
 			},
-			contains: path.RootPath("not-test"),
+			contains: path.Root("not-test"),
 			expected: false,
 		},
 		"AttributeName-equal": {
 			paths: path.Paths{
-				path.RootPath("test"),
+				path.Root("test"),
 			},
-			contains: path.RootPath("test"),
+			contains: path.Root("test"),
 			expected: true,
 		},
 		"ElementKeyInt-different": {
 			paths: path.Paths{
-				path.EmptyPath().AtListIndex(0),
+				path.Empty().AtListIndex(0),
 			},
-			contains: path.EmptyPath().AtListIndex(1),
+			contains: path.Empty().AtListIndex(1),
 			expected: false,
 		},
 		"ElementKeyInt-equal": {
 			paths: path.Paths{
-				path.EmptyPath().AtListIndex(0),
+				path.Empty().AtListIndex(0),
 			},
-			contains: path.EmptyPath().AtListIndex(0),
+			contains: path.Empty().AtListIndex(0),
 			expected: true,
 		},
 		"ElementKeyString-different": {
 			paths: path.Paths{
-				path.EmptyPath().AtMapKey("test"),
+				path.Empty().AtMapKey("test"),
 			},
-			contains: path.EmptyPath().AtMapKey("not-test"),
+			contains: path.Empty().AtMapKey("not-test"),
 			expected: false,
 		},
 		"ElementKeyString-equal": {
 			paths: path.Paths{
-				path.EmptyPath().AtMapKey("test"),
+				path.Empty().AtMapKey("test"),
 			},
-			contains: path.EmptyPath().AtMapKey("test"),
+			contains: path.Empty().AtMapKey("test"),
 			expected: true,
 		},
 		"ElementKeyValue-different": {
 			paths: path.Paths{
-				path.EmptyPath().AtSetValue(types.String{Value: "test"}),
+				path.Empty().AtSetValue(types.String{Value: "test"}),
 			},
-			contains: path.EmptyPath().AtSetValue(types.String{Value: "not-test"}),
+			contains: path.Empty().AtSetValue(types.String{Value: "not-test"}),
 			expected: false,
 		},
 		"ElementKeyValue-equal": {
 			paths: path.Paths{
-				path.EmptyPath().AtSetValue(types.String{Value: "test"}),
+				path.Empty().AtSetValue(types.String{Value: "test"}),
 			},
-			contains: path.EmptyPath().AtSetValue(types.String{Value: "test"}),
+			contains: path.Empty().AtSetValue(types.String{Value: "test"}),
 			expected: true,
 		},
 	}
@@ -141,27 +141,27 @@ func TestPathsString(t *testing.T) {
 		},
 		"one": {
 			paths: path.Paths{
-				path.RootPath("test"),
+				path.Root("test"),
 			},
 			expected: "[test]",
 		},
 		"one-empty": {
 			paths: path.Paths{
-				path.EmptyPath(),
+				path.Empty(),
 			},
 			expected: "[]",
 		},
 		"two": {
 			paths: path.Paths{
-				path.RootPath("test1"),
-				path.RootPath("test2"),
+				path.Root("test1"),
+				path.Root("test2"),
 			},
 			expected: "[test1,test2]",
 		},
 		"two-empty": {
 			paths: path.Paths{
-				path.RootPath("test"),
-				path.EmptyPath(),
+				path.Root("test"),
+				path.Empty(),
 			},
 			expected: "[test]",
 		},

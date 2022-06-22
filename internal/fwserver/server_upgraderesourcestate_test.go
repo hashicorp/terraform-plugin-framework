@@ -116,7 +116,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 
 												if err := rawState["optional_attribute"].As(&optionalAttribute); err != nil {
 													resp.Diagnostics.AddAttributeError(
-														path.RootPath("optional_attribute"),
+														path.Root("optional_attribute"),
 														"Unable to Convert Prior State",
 														err.Error(),
 													)
@@ -131,7 +131,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 
 											if err := rawState["required_attribute"].As(&requiredAttribute); err != nil {
 												resp.Diagnostics.AddAttributeError(
-													path.RootPath("required_attribute"),
+													path.Root("required_attribute"),
 													"Unable to Convert Prior State",
 													err.Error(),
 												)

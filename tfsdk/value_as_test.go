@@ -310,7 +310,7 @@ func TestValueAs(t *testing.T) {
 			target: newInt64Pointer(0),
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					path.EmptyPath(),
+					path.Empty(),
 					reflect.DiagIntoIncompatibleType{
 						Val:        tftypes.NewValue(tftypes.String, "hello"),
 						TargetType: goreflect.TypeOf(int64(0)),
@@ -324,7 +324,7 @@ func TestValueAs(t *testing.T) {
 			target: &testtypes.String{},
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					path.EmptyPath(),
+					path.Empty(),
 					reflect.DiagNewAttributeValueIntoWrongType{
 						ValType:    goreflect.TypeOf(types.String{Value: "hello"}),
 						TargetType: goreflect.TypeOf(testtypes.String{}),

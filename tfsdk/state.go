@@ -143,7 +143,7 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 			),
 		}
 	}
-	newStateAttrValue, diags := reflect.FromValue(ctx, s.Schema.AttributeType(), val, path.EmptyPath())
+	newStateAttrValue, diags := reflect.FromValue(ctx, s.Schema.AttributeType(), val, path.Empty())
 	if diags.HasError() {
 		return diags
 	}

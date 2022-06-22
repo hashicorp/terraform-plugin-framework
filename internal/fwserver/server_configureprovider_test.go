@@ -61,7 +61,7 @@ func TestServerConfigureProvider(t *testing.T) {
 					ConfigureMethod: func(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
 						var got types.String
 
-						resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.RootPath("test"), &got)...)
+						resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
 
 						if resp.Diagnostics.HasError() {
 							return

@@ -131,7 +131,7 @@ func TestBlockModifyPlan(t *testing.T) {
 	}{
 		"no-plan-modifiers": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, nil),
 				modifyAttributePlanValues{
 					config: "testvalue",
@@ -149,7 +149,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"block-modified": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					testBlockPlanModifierNullList{},
 				}, nil),
@@ -171,7 +171,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"block-modified-previous-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					testBlockPlanModifierNullList{},
 				}, nil),
@@ -206,7 +206,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"block-requires-replacement": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 				}, nil),
@@ -225,13 +225,13 @@ func TestBlockModifyPlan(t *testing.T) {
 					}, nil),
 				},
 				RequiresReplace: path.Paths{
-					path.RootPath("test"),
+					path.Root("test"),
 				},
 			},
 		},
 		"block-requires-replacement-previous-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 				}, nil),
@@ -263,13 +263,13 @@ func TestBlockModifyPlan(t *testing.T) {
 					}, nil),
 				},
 				RequiresReplace: path.Paths{
-					path.RootPath("test"),
+					path.Root("test"),
 				},
 			},
 		},
 		"block-requires-replacement-passthrough": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 					testBlockPlanModifierNullList{},
@@ -290,13 +290,13 @@ func TestBlockModifyPlan(t *testing.T) {
 					}, nil),
 				},
 				RequiresReplace: path.Paths{
-					path.RootPath("test"),
+					path.Root("test"),
 				},
 			},
 		},
 		"block-requires-replacement-unset": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 					planmodifiers.TestRequiresReplaceFalseModifier{},
@@ -320,7 +320,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"block-warnings": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					planmodifiers.TestWarningDiagModifier{},
 					planmodifiers.TestWarningDiagModifier{},
@@ -353,7 +353,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"block-warnings-previous-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					planmodifiers.TestWarningDiagModifier{},
 					planmodifiers.TestWarningDiagModifier{},
@@ -397,7 +397,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"block-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					planmodifiers.TestErrorDiagModifier{},
 					planmodifiers.TestErrorDiagModifier{},
@@ -427,7 +427,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"block-error-previous-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
 					planmodifiers.TestErrorDiagModifier{},
 					planmodifiers.TestErrorDiagModifier{},
@@ -468,7 +468,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"nested-attribute-modified": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					planmodifiers.TestAttrPlanValueModifierOne{},
 					planmodifiers.TestAttrPlanValueModifierTwo{},
@@ -492,7 +492,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"nested-attribute-modified-previous-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					planmodifiers.TestAttrPlanValueModifierOne{},
 					planmodifiers.TestAttrPlanValueModifierTwo{},
@@ -529,7 +529,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"nested-attribute-requires-replacement": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 				}),
@@ -548,13 +548,13 @@ func TestBlockModifyPlan(t *testing.T) {
 					}),
 				},
 				RequiresReplace: path.Paths{
-					path.RootPath("test").AtListIndex(0).AtName("nested_attr"),
+					path.Root("test").AtListIndex(0).AtName("nested_attr"),
 				},
 			},
 		},
 		"nested-attribute-requires-replacement-previous-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 				}),
@@ -586,13 +586,13 @@ func TestBlockModifyPlan(t *testing.T) {
 					}),
 				},
 				RequiresReplace: path.Paths{
-					path.RootPath("test").AtListIndex(0).AtName("nested_attr"),
+					path.Root("test").AtListIndex(0).AtName("nested_attr"),
 				},
 			},
 		},
 		"nested-attribute-requires-replacement-passthrough": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 					planmodifiers.TestAttrPlanValueModifierOne{},
@@ -613,13 +613,13 @@ func TestBlockModifyPlan(t *testing.T) {
 					}),
 				},
 				RequiresReplace: path.Paths{
-					path.RootPath("test").AtListIndex(0).AtName("nested_attr"),
+					path.Root("test").AtListIndex(0).AtName("nested_attr"),
 				},
 			},
 		},
 		"nested-attribute-requires-replacement-unset": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 					planmodifiers.TestRequiresReplaceFalseModifier{},
@@ -643,7 +643,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"nested-attribute-warnings": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					planmodifiers.TestWarningDiagModifier{},
 					planmodifiers.TestWarningDiagModifier{},
@@ -676,7 +676,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"nested-attribute-warnings-previous-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					planmodifiers.TestWarningDiagModifier{},
 					planmodifiers.TestWarningDiagModifier{},
@@ -720,7 +720,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"nested-attribute-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					planmodifiers.TestErrorDiagModifier{},
 					planmodifiers.TestErrorDiagModifier{},
@@ -750,7 +750,7 @@ func TestBlockModifyPlan(t *testing.T) {
 		},
 		"nested-attribute-error-previous-error": {
 			req: modifyAttributePlanRequest(
-				path.RootPath("test"),
+				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
 					planmodifiers.TestErrorDiagModifier{},
 					planmodifiers.TestErrorDiagModifier{},

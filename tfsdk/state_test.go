@@ -571,7 +571,7 @@ func TestStateGet_testTypes(t *testing.T) {
 					Interface: "",
 				},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -826,7 +826,7 @@ func TestStateGet_testTypes(t *testing.T) {
 					Interface: "SCSI",
 				},
 			},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("name"))},
 		},
 	}
 
@@ -949,7 +949,7 @@ func TestStateGetAttribute(t *testing.T) {
 			expected: new(testtypes.String),
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					path.RootPath("name"),
+					path.Root("name"),
 					intreflect.DiagNewAttributeValueIntoWrongType{
 						ValType:    reflect.TypeOf(types.String{Value: "namevalue"}),
 						TargetType: reflect.TypeOf(testtypes.String{}),
@@ -980,7 +980,7 @@ func TestStateGetAttribute(t *testing.T) {
 			expected: new(bool),
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					path.RootPath("name"),
+					path.Root("name"),
 					intreflect.DiagIntoIncompatibleType{
 						Val:        tftypes.NewValue(tftypes.String, "namevalue"),
 						TargetType: reflect.TypeOf(false),
@@ -1009,7 +1009,7 @@ func TestStateGetAttribute(t *testing.T) {
 			},
 			target:        new(testtypes.String),
 			expected:      new(testtypes.String),
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -1031,7 +1031,7 @@ func TestStateGetAttribute(t *testing.T) {
 			},
 			target:        new(testtypes.String),
 			expected:      &testtypes.String{InternalString: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("name"))},
 		},
 	}
 
@@ -1040,7 +1040,7 @@ func TestStateGetAttribute(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := tc.state.GetAttribute(context.Background(), path.RootPath("name"), tc.target)
+			diags := tc.state.GetAttribute(context.Background(), path.Root("name"), tc.target)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -1085,7 +1085,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: nil,
 		},
 		"WithAttributeName-nonexistent": {
@@ -1106,11 +1106,11 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("other"),
+			path:     path.Root("other"),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.RootPath("other"),
+					path.Root("other"),
 					"State Read Error",
 					"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"error getting attribute type in schema: AttributeName(\"other\") still remains in the path: could not find attribute or block \"other\" in schema",
@@ -1147,7 +1147,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0),
+			path:     path.Root("test").AtListIndex(0),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-List-WithElementKeyInt": {
@@ -1183,7 +1183,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0),
+			path:     path.Root("test").AtListIndex(0),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
@@ -1227,7 +1227,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName-Object": {
@@ -1284,7 +1284,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path: path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.Object{
 				Null:      true,
 				AttrTypes: map[string]attr.Type{"value": types.StringType},
@@ -1339,7 +1339,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-ListNestedBlocks-null-WithElementKeyInt-WithAttributeName": {
@@ -1408,7 +1408,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
@@ -1485,7 +1485,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0).AtName("sub_test"),
+			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Map-null-WithElementKeyString": {
@@ -1518,7 +1518,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("sub_test"),
+			path:     path.Root("test").AtMapKey("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-Map-WithElementKeyString": {
@@ -1554,7 +1554,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("sub_test"),
+			path:     path.Root("test").AtMapKey("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Map-WithElementKeyString-nonexistent": {
@@ -1589,7 +1589,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("other"),
+			path:     path.Root("test").AtMapKey("other"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-MapNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
@@ -1633,7 +1633,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("element").AtName("sub_test"),
+			path:     path.Root("test").AtMapKey("element").AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-MapNestedAttributes-WithElementKeyString-WithAttributeName": {
@@ -1685,7 +1685,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("element").AtName("sub_test"),
+			path:     path.Root("test").AtMapKey("element").AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Object-WithAttributeName": {
@@ -1726,7 +1726,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-Set-null-WithElementKeyValue": {
@@ -1759,7 +1759,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtSetValue(types.String{Value: "value"}),
+			path:     path.Root("test").AtSetValue(types.String{Value: "value"}),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-Set-WithElementKeyValue": {
@@ -1795,7 +1795,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtSetValue(types.String{Value: "value"}),
+			path:     path.Root("test").AtSetValue(types.String{Value: "value"}),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-SetNestedAttributes-null-WithElementKeyValue-WithAttributeName": {
@@ -1839,7 +1839,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtSetValue(types.Object{
+			path: path.Root("test").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
@@ -1898,7 +1898,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtSetValue(types.Object{
+			path: path.Root("test").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
@@ -1974,7 +1974,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtSetValue(types.Object{
+			path: path.Root("test").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
@@ -2058,7 +2058,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtSetValue(types.Object{
+			path: path.Root("test").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
@@ -2105,7 +2105,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.Float64{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Int64": {
@@ -2145,7 +2145,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.Int64{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Set": {
@@ -2191,7 +2191,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.Set{ElemType: types.StringType, Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-String": {
@@ -2231,7 +2231,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-SingleNestedAttributes-WithAttributeName": {
@@ -2273,7 +2273,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("sub_test"),
+			path:     path.Root("test").AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
 		"WithAttributeName-String-null": {
@@ -2300,7 +2300,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: types.String{Null: true},
 		},
 		"WithAttributeName-String-unknown": {
@@ -2327,7 +2327,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: types.String{Unknown: true},
 		},
 		"WithAttributeName-String-value": {
@@ -2354,7 +2354,7 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: types.String{Value: "value"},
 		},
 		"AttrTypeWithValidateError": {
@@ -2381,9 +2381,9 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:          path.RootPath("test"),
+			path:          path.Root("test"),
 			expected:      nil,
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("test"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("test"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -2409,9 +2409,9 @@ func TestStateGetAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			path:          path.RootPath("test"),
+			path:          path.Root("test"),
 			expected:      testtypes.String{InternalString: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("test"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("test"))},
 		},
 	}
 
@@ -2445,12 +2445,12 @@ func TestStatePathExists(t *testing.T) {
 	testCases := map[string]testCase{
 		"empty-path": {
 			state:    State{},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: false,
 		},
 		"empty-root": {
 			state:    State{},
-			path:     path.EmptyPath(),
+			path:     path.Empty(),
 			expected: true,
 		},
 		"root": {
@@ -2471,7 +2471,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.EmptyPath(),
+			path:     path.Empty(),
 			expected: true,
 		},
 		"WithAttributeName": {
@@ -2492,7 +2492,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test"),
+			path:     path.Root("test"),
 			expected: true,
 		},
 		"WithAttributeName-mismatch": {
@@ -2513,7 +2513,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("other"),
+			path:     path.Root("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithAttributeName": {
@@ -2548,7 +2548,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("nested"),
+			path:     path.Root("test").AtName("nested"),
 			expected: true,
 		},
 		"WithAttributeName.WithAttributeName-mismatch-child": {
@@ -2583,7 +2583,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("other"),
+			path:     path.Root("test").AtName("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithAttributeName-mismatch-parent": {
@@ -2604,7 +2604,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtName("other"),
+			path:     path.Root("test").AtName("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyInt": {
@@ -2633,7 +2633,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0),
+			path:     path.Root("test").AtListIndex(0),
 			expected: true,
 		},
 		"WithAttributeName.WithElementKeyInt-mismatch-child": {
@@ -2662,7 +2662,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(1),
+			path:     path.Root("test").AtListIndex(1),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyInt-mismatch-parent": {
@@ -2683,7 +2683,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtListIndex(0),
+			path:     path.Root("test").AtListIndex(0),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyString": {
@@ -2712,7 +2712,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("key"),
+			path:     path.Root("test").AtMapKey("key"),
 			expected: true,
 		},
 		"WithAttributeName.WithElementKeyString-mismatch-child": {
@@ -2741,7 +2741,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("other"),
+			path:     path.Root("test").AtMapKey("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyString-mismatch-parent": {
@@ -2762,7 +2762,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtMapKey("other"),
+			path:     path.Root("test").AtMapKey("other"),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyValue": {
@@ -2791,7 +2791,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtSetValue(types.String{Value: "testvalue"}),
+			path:     path.Root("test").AtSetValue(types.String{Value: "testvalue"}),
 			expected: true,
 		},
 		"WithAttributeName.WithElementKeyValue-mismatch-child": {
@@ -2820,7 +2820,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtSetValue(types.String{Value: "othervalue"}),
+			path:     path.Root("test").AtSetValue(types.String{Value: "othervalue"}),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyValue-mismatch-parent": {
@@ -2841,7 +2841,7 @@ func TestStatePathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.RootPath("test").AtSetValue(types.String{Value: "othervalue"}),
+			path:     path.Root("test").AtSetValue(types.String{Value: "othervalue"}),
 			expected: false,
 		},
 	}
@@ -3462,7 +3462,7 @@ func TestStateSet(t *testing.T) {
 				Name: "newvalue",
 			},
 			expected:      tftypes.Value{},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -3488,7 +3488,7 @@ func TestStateSet(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("name"))},
 		},
 	}
 
@@ -3580,7 +3580,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtListIndex(1),
+			path: path.Root("disks").AtListIndex(1),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -3689,7 +3689,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtListIndex(2),
+			path: path.Root("disks").AtListIndex(2),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -3732,7 +3732,7 @@ func TestStateSetAttribute(t *testing.T) {
 			}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.RootPath("disks"),
+					path.Root("disks"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 3 as list currently has 1 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -3787,7 +3787,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtListIndex(0),
+			path: path.Root("disks").AtListIndex(0),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -3877,7 +3877,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtListIndex(1),
+			path: path.Root("disks").AtListIndex(1),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -3910,7 +3910,7 @@ func TestStateSetAttribute(t *testing.T) {
 			}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.RootPath("disks"),
+					path.Root("disks"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -3949,7 +3949,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtMapKey("key2"),
+			path: path.Root("test").AtMapKey("key2"),
 			val:  "key2value",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -3998,7 +3998,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtMapKey("key"),
+			path: path.Root("test").AtMapKey("key"),
 			val:  "keyvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4074,7 +4074,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtSetValue(types.Object{
+			path: path.Root("disks").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
@@ -4182,7 +4182,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtSetValue(types.Object{
+			path: path.Root("disks").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
@@ -4257,7 +4257,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test"),
+			path: path.Root("test"),
 			val:  false,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4301,7 +4301,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("tags"),
+			path: path.Root("tags"),
 			val:  []string{"one", "two"},
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4385,7 +4385,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtListIndex(1),
+			path: path.Root("disks").AtListIndex(1),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -4469,7 +4469,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test"),
+			path: path.Root("test"),
 			val: map[string]string{
 				"newkey": "newvalue",
 			},
@@ -4522,7 +4522,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtMapKey("key"),
+			path: path.Root("test").AtMapKey("key"),
 			val:  "newvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4565,7 +4565,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test"),
+			path: path.Root("test"),
 			val:  2,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4619,7 +4619,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("scratch_disk"),
+			path: path.Root("scratch_disk"),
 			val: struct {
 				Interface string `tfsdk:"interface"`
 				Other     string `tfsdk:"other"`
@@ -4688,7 +4688,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("scratch_disk").AtName("interface"),
+			path: path.Root("scratch_disk").AtName("interface"),
 			val:  "NVME",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4742,7 +4742,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("tags"),
+			path: path.Root("tags"),
 			val:  []string{"one", "two"},
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4826,7 +4826,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtSetValue(types.Object{
+			path: path.Root("disks").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
@@ -4920,7 +4920,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("tags").AtSetValue(types.String{Value: "three"}),
+			path: path.Root("tags").AtSetValue(types.String{Value: "three"}),
 			val:  "three",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4964,7 +4964,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test"),
+			path: path.Root("test"),
 			val:  "newvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -4992,7 +4992,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.EmptyPath(),
+			path: path.Empty(),
 			val:  false,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5001,7 +5001,7 @@ func TestStateSetAttribute(t *testing.T) {
 			}, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.EmptyPath(),
+					path.Empty(),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to convert the Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\nexpected tftypes.Object[\"test\":tftypes.Bool], got tftypes.Bool",
 				),
@@ -5028,7 +5028,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test"),
+			path: path.Root("test"),
 			val:  false,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5065,7 +5065,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("tags"),
+			path: path.Root("tags"),
 			val:  []string{"one", "two"},
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5110,7 +5110,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtListIndex(0),
+			path: path.Root("test").AtListIndex(0),
 			val:  "testvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5128,7 +5128,7 @@ func TestStateSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.RootPath("test")),
+				testtypes.TestWarningDiagnostic(path.Root("test")),
 			},
 		},
 		"write-List-Element": {
@@ -5169,7 +5169,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtListIndex(0),
+			path: path.Root("disks").AtListIndex(0),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -5249,7 +5249,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtListIndex(1),
+			path: path.Root("disks").AtListIndex(1),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -5272,7 +5272,7 @@ func TestStateSetAttribute(t *testing.T) {
 			}, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.RootPath("disks"),
+					path.Root("disks"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -5307,7 +5307,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtListIndex(0),
+			path: path.Root("disks").AtListIndex(0),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -5349,7 +5349,7 @@ func TestStateSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.RootPath("disks").AtListIndex(0).AtName("id")),
+				testtypes.TestWarningDiagnostic(path.Root("disks").AtListIndex(0).AtName("id")),
 			},
 		},
 		"write-Map": {
@@ -5377,7 +5377,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test"),
+			path: path.Root("test"),
 			val: map[string]string{
 				"newkey": "newvalue",
 			},
@@ -5424,7 +5424,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtMapKey("key"),
+			path: path.Root("test").AtMapKey("key"),
 			val:  "keyvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5442,7 +5442,7 @@ func TestStateSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.RootPath("test")),
+				testtypes.TestWarningDiagnostic(path.Root("test")),
 			},
 		},
 		"write-Map-Element": {
@@ -5470,7 +5470,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtMapKey("key"),
+			path: path.Root("test").AtMapKey("key"),
 			val:  "keyvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5513,7 +5513,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtMapKey("key"),
+			path: path.Root("test").AtMapKey("key"),
 			val:  "keyvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5531,7 +5531,7 @@ func TestStateSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.RootPath("test").AtMapKey("key")),
+				testtypes.TestWarningDiagnostic(path.Root("test").AtMapKey("key")),
 			},
 		},
 		"write-Number": {
@@ -5555,7 +5555,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test"),
+			path: path.Root("test"),
 			val:  1,
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5596,7 +5596,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("scratch_disk"),
+			path: path.Root("scratch_disk"),
 			val: struct {
 				Interface string `tfsdk:"interface"`
 			}{
@@ -5645,7 +5645,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("tags"),
+			path: path.Root("tags"),
 			val:  []string{"one", "two"},
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5700,7 +5700,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtSetValue(types.Object{
+			path: path.Root("disks").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
@@ -5779,7 +5779,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test").AtSetValue(types.String{Value: "testvalue"}),
+			path: path.Root("test").AtSetValue(types.String{Value: "testvalue"}),
 			val:  "testvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5797,7 +5797,7 @@ func TestStateSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.RootPath("test")),
+				testtypes.TestWarningDiagnostic(path.Root("test")),
 			},
 		},
 		"write-Set-Element-AttrTypeWithValidateWarning": {
@@ -5838,7 +5838,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("disks").AtSetValue(types.Object{
+			path: path.Root("disks").AtSetValue(types.Object{
 				AttrTypes: map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
@@ -5889,7 +5889,7 @@ func TestStateSetAttribute(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.RootPath("disks").AtSetValue(types.Object{
+				testtypes.TestWarningDiagnostic(path.Root("disks").AtSetValue(types.Object{
 					AttrTypes: map[string]attr.Type{
 						"id":                   types.StringType,
 						"delete_with_instance": types.BoolType,
@@ -5922,7 +5922,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("test"),
+			path: path.Root("test"),
 			val:  "newvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5952,7 +5952,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("name"),
+			path: path.Root("name"),
 			val:  "newname",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5961,7 +5961,7 @@ func TestStateSetAttribute(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "originalname"),
 			}),
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.RootPath("name"))},
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
 		},
 		"AttrTypeWithValidateWarning": {
 			state: State{
@@ -5981,7 +5981,7 @@ func TestStateSetAttribute(t *testing.T) {
 					},
 				},
 			},
-			path: path.RootPath("name"),
+			path: path.Root("name"),
 			val:  "newname",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -5991,7 +5991,7 @@ func TestStateSetAttribute(t *testing.T) {
 				"name": tftypes.NewValue(tftypes.String, "newname"),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.RootPath("name")),
+				testtypes.TestWarningDiagnostic(path.Root("name")),
 			},
 		},
 	}

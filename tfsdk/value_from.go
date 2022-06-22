@@ -14,7 +14,7 @@ import (
 //
 // This is achieved using reflection rules provided by the internal/reflect package.
 func ValueFrom(ctx context.Context, val interface{}, targetType attr.Type, target interface{}) diag.Diagnostics {
-	v, diags := reflect.FromValue(ctx, targetType, val, path.EmptyPath())
+	v, diags := reflect.FromValue(ctx, targetType, val, path.Empty())
 	if diags.HasError() {
 		return diags
 	}

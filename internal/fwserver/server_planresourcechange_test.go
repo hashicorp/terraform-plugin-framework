@@ -178,28 +178,28 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 		},
 		"no-duplicates": {
 			input: path.Paths{
-				path.RootPath("name2"),
-				path.RootPath("name1"),
-				path.EmptyPath().AtListIndex(1234),
-				path.RootPath("name1").AtMapKey("elementkey"),
+				path.Root("name2"),
+				path.Root("name1"),
+				path.Empty().AtListIndex(1234),
+				path.Root("name1").AtMapKey("elementkey"),
 			},
 			expected: path.Paths{
-				path.EmptyPath().AtListIndex(1234),
-				path.RootPath("name1"),
-				path.RootPath("name1").AtMapKey("elementkey"),
-				path.RootPath("name2"),
+				path.Empty().AtListIndex(1234),
+				path.Root("name1"),
+				path.Root("name1").AtMapKey("elementkey"),
+				path.Root("name2"),
 			},
 		},
 		"duplicates": {
 			input: path.Paths{
-				path.RootPath("name1"),
-				path.RootPath("name1"),
-				path.EmptyPath().AtListIndex(1234),
-				path.EmptyPath().AtListIndex(1234),
+				path.Root("name1"),
+				path.Root("name1"),
+				path.Empty().AtListIndex(1234),
+				path.Empty().AtListIndex(1234),
 			},
 			expected: path.Paths{
-				path.EmptyPath().AtListIndex(1234),
-				path.RootPath("name1"),
+				path.Empty().AtListIndex(1234),
+				path.Root("name1"),
 			},
 		},
 	}
@@ -464,7 +464,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.WithPath(
-						path.RootPath("test_required"),
+						path.Root("test_required"),
 						diag.NewErrorDiagnostic("error summary", "error detail"),
 					),
 				},
@@ -521,7 +521,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				// framework raise an error if it is technically valid in the
 				// protocol.
 				RequiresReplace: path.Paths{
-					path.RootPath("test_required"),
+					path.Root("test_required"),
 				},
 			},
 		},
@@ -810,7 +810,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 								// an error if it is technically valid in the
 								// protocol.
 								resp.RequiresReplace = path.Paths{
-									path.RootPath("test_required"),
+									path.Root("test_required"),
 								}
 							},
 						}, nil
@@ -826,7 +826,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				RequiresReplace: path.Paths{
-					path.RootPath("test_required"),
+					path.Root("test_required"),
 				},
 			},
 		},
@@ -1061,7 +1061,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				// PlannedState: testEmptyState,
 				Diagnostics: diag.Diagnostics{
 					diag.WithPath(
-						path.EmptyPath(),
+						path.Empty(),
 						diag.NewErrorDiagnostic(
 							"Value Conversion Error",
 							"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\nunhandled null value",
@@ -1112,7 +1112,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 								// an error if it is technically valid in the
 								// protocol.
 								resp.RequiresReplace = path.Paths{
-									path.RootPath("test_required"),
+									path.Root("test_required"),
 								}
 							},
 						}, nil
@@ -1122,7 +1122,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: testEmptyState,
 				RequiresReplace: path.Paths{
-					path.RootPath("test_required"),
+					path.Root("test_required"),
 				},
 			},
 		},
@@ -1257,7 +1257,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.WithPath(
-						path.RootPath("test_required"),
+						path.Root("test_required"),
 						diag.NewErrorDiagnostic("error summary", "error detail"),
 					),
 				},
@@ -1315,7 +1315,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchemaAttributePlanModifierRequiresReplace,
 				},
 				RequiresReplace: path.Paths{
-					path.RootPath("test_required"),
+					path.Root("test_required"),
 				},
 			},
 		},
@@ -1640,7 +1640,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 								// an error if it is technically valid in the
 								// protocol.
 								resp.RequiresReplace = path.Paths{
-									path.RootPath("test_required"),
+									path.Root("test_required"),
 								}
 							},
 						}, nil
@@ -1656,7 +1656,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				RequiresReplace: path.Paths{
-					path.RootPath("test_required"),
+					path.Root("test_required"),
 				},
 			},
 		},

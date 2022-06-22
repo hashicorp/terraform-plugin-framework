@@ -142,7 +142,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 		"requiresreplace": {
 			input: &fwserver.PlanResourceChangeResponse{
 				RequiresReplace: path.Paths{
-					path.RootPath("test"),
+					path.Root("test"),
 				},
 			},
 			expected: &tfprotov5.PlanResourceChangeResponse{

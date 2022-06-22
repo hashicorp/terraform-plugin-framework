@@ -24,7 +24,7 @@ func TestBuildValue(t *testing.T) {
 			tfValue: tftypes.NewValue(tftypes.String, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.EmptyPath(),
+					path.Empty(),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\nunhandled null value",
 				),
@@ -34,7 +34,7 @@ func TestBuildValue(t *testing.T) {
 			tfValue: tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.EmptyPath(),
+					path.Empty(),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\nunhandled unknown value",
 				),
@@ -48,7 +48,7 @@ func TestBuildValue(t *testing.T) {
 			t.Parallel()
 
 			var s string
-			_, diags := refl.BuildValue(context.Background(), types.StringType, tc.tfValue, reflect.ValueOf(s), refl.Options{}, path.EmptyPath())
+			_, diags := refl.BuildValue(context.Background(), types.StringType, tc.tfValue, reflect.ValueOf(s), refl.Options{}, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)

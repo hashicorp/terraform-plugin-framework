@@ -26,7 +26,7 @@ type ResourceWithImportState interface {
 // identifier to a given state attribute path. The attribute must accept a
 // string value.
 func ResourceImportStatePassthroughID(ctx context.Context, attrPath path.Path, req ImportResourceStateRequest, resp *ImportResourceStateResponse) {
-	if attrPath.Equal(path.EmptyPath()) {
+	if attrPath.Equal(path.Empty()) {
 		resp.Diagnostics.AddError(
 			"Resource Import Passthrough Missing Attribute Path",
 			"This is always an error in the provider. Please report the following to the provider developer:\n\n"+

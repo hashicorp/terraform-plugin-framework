@@ -83,7 +83,7 @@ func (p Path) Equal(o Path) bool {
 // If the current path is empty, an empty path is returned.
 func (p Path) ParentPath() Path {
 	if len(p.steps) == 0 {
-		return EmptyPath()
+		return Empty()
 	}
 
 	_, remainingSteps := p.steps.Copy().LastStep()
@@ -110,17 +110,15 @@ func (p Path) String() string {
 	return p.steps.String()
 }
 
-// EmptyPath creates an empty attribute path. Provider code should use
-// RootPath.
-func EmptyPath() Path {
+// Empty creates an empty attribute path. Provider code should use Root.
+func Empty() Path {
 	return Path{
 		steps: PathSteps{},
 	}
 }
 
-// RootPath creates a new attribute path starting with a root
-// PathStepAttributeName.
-func RootPath(rootAttributeName string) Path {
+// Root creates an attribute path starting with a PathStepAttributeName.
+func Root(rootAttributeName string) Path {
 	return Path{
 		steps: PathSteps{
 			PathStepAttributeName(rootAttributeName),

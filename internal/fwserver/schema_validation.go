@@ -36,7 +36,7 @@ func SchemaValidate(ctx context.Context, s tfsdk.Schema, req ValidateSchemaReque
 	for name, attribute := range s.Attributes {
 
 		attributeReq := tfsdk.ValidateAttributeRequest{
-			AttributePath: path.RootPath(name),
+			AttributePath: path.Root(name),
 			Config:        req.Config,
 		}
 		attributeResp := &tfsdk.ValidateAttributeResponse{
@@ -50,7 +50,7 @@ func SchemaValidate(ctx context.Context, s tfsdk.Schema, req ValidateSchemaReque
 
 	for name, block := range s.Blocks {
 		attributeReq := tfsdk.ValidateAttributeRequest{
-			AttributePath: path.RootPath(name),
+			AttributePath: path.Root(name),
 			Config:        req.Config,
 		}
 		attributeResp := &tfsdk.ValidateAttributeResponse{

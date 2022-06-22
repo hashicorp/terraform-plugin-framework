@@ -187,7 +187,7 @@ func TestValueFrom(t *testing.T) {
 			target: types.String{},
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
-					path.EmptyPath(),
+					path.Empty(),
 					diag.NewErrorDiagnostic(
 						"Value Conversion Error",
 						"An unexpected error was encountered trying to convert the Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\ncan't unmarshal tftypes.Number into *string, expected string",

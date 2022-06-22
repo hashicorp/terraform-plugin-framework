@@ -27,7 +27,7 @@ func (p Paths) String() string {
 	result.WriteString("[")
 
 	for pathIndex, path := range p {
-		if path.Equal(EmptyPath()) {
+		if path.Equal(Empty()) {
 			continue
 		}
 

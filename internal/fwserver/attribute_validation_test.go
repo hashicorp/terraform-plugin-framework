@@ -23,7 +23,7 @@ func TestAttributeValidate(t *testing.T) {
 	}{
 		"no-attributes-or-type": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -44,7 +44,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Invalid Attribute Definition",
 						"Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
 					),
@@ -53,7 +53,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"both-attributes-and-type": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -81,7 +81,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Invalid Attribute Definition",
 						"Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
 					),
@@ -90,7 +90,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"missing-required-optional-and-computed": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -111,7 +111,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Invalid Attribute Definition",
 						"Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
 					),
@@ -120,7 +120,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-error": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -142,7 +142,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Configuration Read Error",
 						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -152,7 +152,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-computed-null": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -175,7 +175,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-computed-unknown": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -197,7 +197,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Invalid Configuration for Read-Only Attribute",
 						"Cannot set value for this attribute as the provider has marked it as read-only. Remove the configuration line setting the value.\n\n"+
 							"Refer to the provider documentation or contact the provider developers for additional information about configurable and read-only attributes that are supported.",
@@ -207,7 +207,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-computed-value": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -229,7 +229,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Invalid Configuration for Read-Only Attribute",
 						"Cannot set value for this attribute as the provider has marked it as read-only. Remove the configuration line setting the value.\n\n"+
 							"Refer to the provider documentation or contact the provider developers for additional information about configurable and read-only attributes that are supported.",
@@ -239,7 +239,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-optional-computed-null": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -263,7 +263,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-optional-computed-unknown": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -287,7 +287,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-optional-computed-value": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -311,7 +311,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-required-null": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -333,7 +333,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Missing Configuration for Required Attribute",
 						"Must set a configuration value for the test attribute as the provider has marked it as required.\n\n"+
 							"Refer to the provider documentation or contact the provider developers for additional information about configurable attributes that are required.",
@@ -343,7 +343,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-required-unknown": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -366,7 +366,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"config-required-value": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -389,7 +389,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -412,7 +412,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"deprecation-message-known": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -435,7 +435,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Attribute Deprecated",
 						"Use something else instead.",
 					),
@@ -444,7 +444,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"deprecation-message-null": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -468,7 +468,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"deprecation-message-unknown": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -491,7 +491,7 @@ func TestAttributeValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
-						path.RootPath("test"),
+						path.Root("test"),
 						"Attribute Deprecated",
 						"Use something else instead.",
 					),
@@ -500,7 +500,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"warnings": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -532,7 +532,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"errors": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -564,7 +564,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"type-with-validate-error": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -585,13 +585,13 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestErrorDiagnostic(path.RootPath("test")),
+					testtypes.TestErrorDiagnostic(path.Root("test")),
 				},
 			},
 		},
 		"type-with-validate-warning": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -612,13 +612,13 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestWarningDiagnostic(path.RootPath("test")),
+					testtypes.TestWarningDiagnostic(path.Root("test")),
 				},
 			},
 		},
 		"nested-attr-list-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -675,7 +675,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-list-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -739,7 +739,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-map-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -796,7 +796,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-map-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -860,7 +860,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-set-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -917,7 +917,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-set-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -981,7 +981,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-single-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -1025,7 +1025,7 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"nested-attr-single-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.RootPath("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{

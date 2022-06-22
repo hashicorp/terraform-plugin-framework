@@ -91,8 +91,8 @@ func TestDiagnostics(t *testing.T) {
 		},
 		"DiagnosticWithPath": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(path.EmptyPath(), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(path.RootPath("test"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
 			},
 			expected: []*tfprotov6.Diagnostic{
 				{

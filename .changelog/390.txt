@@ -1,3 +1,7 @@
+```release-note:note
+Attribute path handling is now included in the `path` package of this Go module, rather than being dependent on low level terraform-plugin-go types. To migrate, `tftypes.NewAttributePath().WithAttributeName(` can be replaced with `path.Root(`, then subsequent step replacements are `WithAttributeName` to `AtName`, `WithElementKeyInt` to `AtListIndex`, `WithElementKeyString` to `AtMapKey`, and `WithElementKeyValue` to `AtSetValue`. For example, `tftypes.NewAttributePath().WithAttributeName("parent_attr").WithElementKeyInt(0).WithAttributeName("nested_attr")` should become `path.Root("parent_attr").AtListIndex(0).AtName("nested_attr")`.
+```
+
 ```release-note:feature
 path: Introduced framework abstraction for attribute path handling
 ```

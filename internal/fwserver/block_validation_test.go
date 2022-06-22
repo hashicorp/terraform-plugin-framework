@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -21,7 +22,7 @@ func TestBlockValidate(t *testing.T) {
 	}{
 		"deprecation-message-known": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -78,7 +79,7 @@ func TestBlockValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						path.Root("test"),
 						"Block Deprecated",
 						"Use something else instead.",
 					),
@@ -87,7 +88,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"deprecation-message-null": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -134,7 +135,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"deprecation-message-unknown": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -180,7 +181,7 @@ func TestBlockValidate(t *testing.T) {
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						path.Root("test"),
 						"Block Deprecated",
 						"Use something else instead.",
 					),
@@ -189,7 +190,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"warnings": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -255,7 +256,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"errors": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -321,7 +322,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"nested-attr-warnings": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -387,7 +388,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"nested-attr-errors": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -453,7 +454,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"nested-attr-type-with-validate-error": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -508,13 +509,13 @@ func TestBlockValidate(t *testing.T) {
 			},
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("nested_attr")),
+					testtypes.TestErrorDiagnostic(path.Root("test").AtListIndex(0).AtName("nested_attr")),
 				},
 			},
 		},
 		"nested-attr-type-with-validate-warning": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -569,13 +570,13 @@ func TestBlockValidate(t *testing.T) {
 			},
 			resp: tfsdk.ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
-					testtypes.TestWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("nested_attr")),
+					testtypes.TestWarningDiagnostic(path.Root("test").AtListIndex(0).AtName("nested_attr")),
 				},
 			},
 		},
 		"list-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -632,7 +633,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"list-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -696,7 +697,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"set-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -753,7 +754,7 @@ func TestBlockValidate(t *testing.T) {
 		},
 		"set-validation": {
 			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
 						tftypes.Object{
@@ -823,10 +824,10 @@ func TestBlockValidate(t *testing.T) {
 			t.Parallel()
 
 			var got tfsdk.ValidateAttributeResponse
-			block, err := SchemaBlockAtPath(tc.req.Config.Schema, tc.req.AttributePath)
+			block, ok := tc.req.Config.Schema.Blocks["test"]
 
-			if err != nil {
-				t.Fatalf("Unexpected error getting %s", err)
+			if !ok {
+				t.Fatalf("Unexpected error getting schema block")
 			}
 
 			BlockValidate(context.Background(), block, tc.req, &got)

@@ -15,12 +15,12 @@ func ValidateProviderConfigResponse(ctx context.Context, fw *fwserver.ValidatePr
 	}
 
 	proto6 := &tfprotov6.ValidateProviderConfigResponse{
-		Diagnostics: Diagnostics(fw.Diagnostics),
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	preparedConfig, diags := Config(ctx, fw.PreparedConfig)
 
-	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(diags)...)
+	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.PreparedConfig = preparedConfig
 
 	return proto6

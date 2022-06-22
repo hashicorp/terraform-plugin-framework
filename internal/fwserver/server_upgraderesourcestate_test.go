@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -115,7 +116,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 
 												if err := rawState["optional_attribute"].As(&optionalAttribute); err != nil {
 													resp.Diagnostics.AddAttributeError(
-														tftypes.NewAttributePath().WithAttributeName("optional_attribute"),
+														path.Root("optional_attribute"),
 														"Unable to Convert Prior State",
 														err.Error(),
 													)
@@ -130,7 +131,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 
 											if err := rawState["required_attribute"].As(&requiredAttribute); err != nil {
 												resp.Diagnostics.AddAttributeError(
-													tftypes.NewAttributePath().WithAttributeName("required_attribute"),
+													path.Root("required_attribute"),
 													"Unable to Convert Prior State",
 													err.Error(),
 												)

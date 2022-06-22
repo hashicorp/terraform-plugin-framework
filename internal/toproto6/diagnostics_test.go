@@ -1,11 +1,13 @@
 package toproto6_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -89,8 +91,8 @@ func TestDiagnostics(t *testing.T) {
 		},
 		"DiagnosticWithPath": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath(), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
 			},
 			expected: []*tfprotov6.Diagnostic{
 				{
@@ -114,7 +116,7 @@ func TestDiagnostics(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := toproto6.Diagnostics(tc.diags)
+			got := toproto6.Diagnostics(context.Background(), tc.diags)
 
 			if diff := cmp.Diff(got, tc.expected); diff != "" {
 				t.Errorf("Unexpected response (+wanted, -got): %s", diff)

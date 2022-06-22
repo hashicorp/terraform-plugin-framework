@@ -112,7 +112,7 @@ func AttributeModifyPlan(ctx context.Context, a tfsdk.Attribute, req tfsdk.Modif
 		for idx := range l.Elems {
 			for name, attr := range a.Attributes.GetAttributes() {
 				attrReq := tfsdk.ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					AttributePath: req.AttributePath.AtListIndex(idx).AtName(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -137,21 +137,9 @@ func AttributeModifyPlan(ctx context.Context, a tfsdk.Attribute, req tfsdk.Modif
 		}
 
 		for _, value := range s.Elems {
-			tfValue, err := value.ToTerraformValue(ctx)
-			if err != nil {
-				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
-				resp.Diagnostics.AddAttributeError(
-					req.AttributePath,
-					"Attribute Plan Modification Error",
-					"Attribute plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
-				)
-
-				return
-			}
-
 			for name, attr := range a.Attributes.GetAttributes() {
 				attrReq := tfsdk.ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					AttributePath: req.AttributePath.AtSetValue(value).AtName(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -178,7 +166,7 @@ func AttributeModifyPlan(ctx context.Context, a tfsdk.Attribute, req tfsdk.Modif
 		for key := range m.Elems {
 			for name, attr := range a.Attributes.GetAttributes() {
 				attrReq := tfsdk.ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyString(key).WithAttributeName(name),
+					AttributePath: req.AttributePath.AtMapKey(key).AtName(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -208,7 +196,7 @@ func AttributeModifyPlan(ctx context.Context, a tfsdk.Attribute, req tfsdk.Modif
 
 		for name, attr := range a.Attributes.GetAttributes() {
 			attrReq := tfsdk.ModifyAttributePlanRequest{
-				AttributePath: req.AttributePath.WithAttributeName(name),
+				AttributePath: req.AttributePath.AtName(name),
 				Config:        req.Config,
 				Plan:          resp.Plan,
 				ProviderMeta:  req.ProviderMeta,

@@ -4,13 +4,15 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.TypeWithValidate = BoolTypeWithValidateError{}
-	_ attr.TypeWithValidate = BoolTypeWithValidateWarning{}
+	_ xattr.TypeWithValidate = BoolTypeWithValidateError{}
+	_ xattr.TypeWithValidate = BoolTypeWithValidateWarning{}
 )
 
 type BoolTypeWithValidateError struct {
@@ -41,10 +43,10 @@ func (b BoolTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, in 
 	return newBool, nil
 }
 
-func (t BoolTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func (t BoolTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	return diag.Diagnostics{TestErrorDiagnostic(path)}
 }
 
-func (t BoolTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func (t BoolTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }

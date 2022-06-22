@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -24,7 +26,7 @@ import (
 // and other mistakes early.
 //
 // Struct is meant to be called from Into, not directly.
-func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target reflect.Value, opts Options, path *tftypes.AttributePath) (reflect.Value, diag.Diagnostics) {
+func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target reflect.Value, opts Options, path path.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// this only works with object values, so make sure that constraint is
@@ -125,7 +127,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			return target, diags
 		}
 		structField := result.Field(structFieldPos)
-		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.WithAttributeName(field))
+		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.AtName(field))
 		diags.Append(fieldValDiags...)
 
 		if diags.HasError() {
@@ -143,7 +145,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 // reported by `typ`.
 //
 // It is meant to be called through FromValue, not directly.
-func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path *tftypes.AttributePath) (attr.Value, diag.Diagnostics) {
+func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflect.Value, path path.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	objTypes := map[string]tftypes.Type{}
 	objValues := map[string]tftypes.Value{}
@@ -163,7 +165,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 
 	attrTypes := typ.AttributeTypes()
 	for name, fieldNo := range targetFields {
-		path := path.WithAttributeName(name)
+		path := path.AtName(name)
 		fieldValue := val.Field(fieldNo)
 
 		attrVal, attrValDiags := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)
@@ -191,7 +193,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 
-		if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfObjVal, path)...)
 
 			if diags.HasError() {
@@ -206,7 +208,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		AttributeTypes: objTypes,
 	}, objValues)
 
-	if typeWithValidate, ok := typ.(attr.TypeWithValidate); ok {
+	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
 		if diags.HasError() {

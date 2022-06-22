@@ -1,8 +1,6 @@
 package diag
 
-import (
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-)
+import "github.com/hashicorp/terraform-plugin-framework/path"
 
 // Diagnostic is an interface for providing enhanced feedback.
 //
@@ -48,5 +46,5 @@ type DiagnosticWithPath interface {
 	//
 	// If present, this enables the display of source configuration context for
 	// supporting implementations such as Terraform CLI commands.
-	Path() *tftypes.AttributePath
+	Path() path.Path
 }

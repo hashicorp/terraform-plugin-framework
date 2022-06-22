@@ -218,8 +218,8 @@ func (m myResource) Create(ctx context.Context,
 
 When creating diagnostics that affect only a single attribute, which is
 typical of attribute-level plan modifiers and validators, the
-[`AddAttributeError(path *tftypes.AttributePath, summary string, detail string)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostics.AddAttributeError)
-and [`AddAttributeWarning(path *tftypes.AttributePath, summary string, detail string)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostics.AddAttributeWarning)
+[`AddAttributeError(path path.Path, summary string, detail string)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostics.AddAttributeError)
+and [`AddAttributeWarning(path path.Path, summary string, detail string)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostics.AddAttributeWarning)
 can append a new error or warning diagnostic pointing specifically at the
 attribute path. This provides additional context to practitioners, such as
 showing the specific line(s) and value(s) of configuration where possible.
@@ -227,7 +227,7 @@ showing the specific line(s) and value(s) of configuration where possible.
 For example:
 
 ```go
-func (s exampleType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func (s exampleType) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
     var diags diag.Diagnostics
 
     if !in.Type().Is(tftypes.Set{}) {
@@ -249,7 +249,7 @@ func (s exampleType) Validate(ctx context.Context, in tftypes.Value, path *tftyp
 
 Advanced provider developers may need to further differentiate or store
 additional data in error and warning types. The
-[`diag.Diagnostic` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework@v0.3.0/diag#Diagnostic)
+[`diag.Diagnostic` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostic)
 is an interface type that can be implemented with these methods:
 
 ```go
@@ -262,12 +262,12 @@ type Diagnostic interface {
 ```
 
 To also include attribute path information, the
-[`diag.DiagnosticWithPath` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework@v0.3.0/diag#DiagnosticWithPath)
+[`diag.DiagnosticWithPath` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#DiagnosticWithPath)
 can be implemented with the additional `Path()` method:
 
 ```go
 type DiagnosticWithPath interface {
     Diagnostic
-    Path() *tftypes.AttributePath
+    Path() path.Path
 }
 ```

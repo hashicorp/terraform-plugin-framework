@@ -91,7 +91,7 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 		for idx := range l.Elems {
 			for name, attr := range b.Attributes {
 				attrReq := tfsdk.ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					AttributePath: req.AttributePath.AtListIndex(idx).AtName(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -103,7 +103,7 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 
 			for name, block := range b.Blocks {
 				blockReq := tfsdk.ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyInt(idx).WithAttributeName(name),
+					AttributePath: req.AttributePath.AtListIndex(idx).AtName(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -128,21 +128,9 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 		}
 
 		for _, value := range s.Elems {
-			tfValue, err := value.ToTerraformValue(ctx)
-			if err != nil {
-				err := fmt.Errorf("error running ToTerraformValue on element value: %v", value)
-				resp.Diagnostics.AddAttributeError(
-					req.AttributePath,
-					"Block Plan Modification Error",
-					"Block plan modification cannot convert element into a Terraform value. Report this to the provider developer:\n\n"+err.Error(),
-				)
-
-				return
-			}
-
 			for name, attr := range b.Attributes {
 				attrReq := tfsdk.ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					AttributePath: req.AttributePath.AtSetValue(value).AtName(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
@@ -154,7 +142,7 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 
 			for name, block := range b.Blocks {
 				blockReq := tfsdk.ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.WithElementKeyValue(tfValue).WithAttributeName(name),
+					AttributePath: req.AttributePath.AtSetValue(value).AtName(name),
 					Config:        req.Config,
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,

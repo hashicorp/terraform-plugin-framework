@@ -1,7 +1,7 @@
 package diag
 
 import (
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 // Diagnostics represents a collection of diagnostics.
@@ -11,12 +11,12 @@ import (
 type Diagnostics []Diagnostic
 
 // AddAttributeError adds a generic attribute error diagnostic to the collection.
-func (diags *Diagnostics) AddAttributeError(path *tftypes.AttributePath, summary string, detail string) {
+func (diags *Diagnostics) AddAttributeError(path path.Path, summary string, detail string) {
 	diags.Append(NewAttributeErrorDiagnostic(path, summary, detail))
 }
 
 // AddAttributeWarning adds a generic attribute warning diagnostic to the collection.
-func (diags *Diagnostics) AddAttributeWarning(path *tftypes.AttributePath, summary string, detail string) {
+func (diags *Diagnostics) AddAttributeWarning(path path.Path, summary string, detail string) {
 	diags.Append(NewAttributeWarningDiagnostic(path, summary, detail))
 }
 

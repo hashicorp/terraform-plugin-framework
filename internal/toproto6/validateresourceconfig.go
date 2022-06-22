@@ -15,7 +15,7 @@ func ValidateResourceConfigResponse(ctx context.Context, fw *fwserver.ValidateRe
 	}
 
 	proto6 := &tfprotov6.ValidateResourceConfigResponse{
-		Diagnostics: Diagnostics(fw.Diagnostics),
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	return proto6

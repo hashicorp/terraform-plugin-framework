@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -140,8 +141,8 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 		},
 		"requiresreplace": {
 			input: &fwserver.PlanResourceChangeResponse{
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test"),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
 				},
 			},
 			expected: &tfprotov5.PlanResourceChangeResponse{

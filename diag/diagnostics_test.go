@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 func TestDiagnosticsAddAttributeError(t *testing.T) {
@@ -13,45 +13,45 @@ func TestDiagnosticsAddAttributeError(t *testing.T) {
 
 	testCases := map[string]struct {
 		diags    diag.Diagnostics
-		path     *tftypes.AttributePath
+		path     path.Path
 		summary  string
 		detail   string
 		expected diag.Diagnostics
 	}{
 		"nil-add": {
 			diags:   nil,
-			path:    tftypes.NewAttributePath().WithAttributeName("test"),
+			path:    path.Root("test"),
 			summary: "one summary",
 			detail:  "one detail",
 			expected: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "one summary", "one detail"),
 			},
 		},
 		"add": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
 			},
-			path:    tftypes.NewAttributePath().WithAttributeName("test"),
+			path:    path.Root("test"),
 			summary: "three summary",
 			detail:  "three detail",
 			expected: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "two summary", "two detail"),
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "three summary", "three detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "three summary", "three detail"),
 			},
 		},
 		"duplicate": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
 			},
-			path:    tftypes.NewAttributePath().WithAttributeName("test"),
+			path:    path.Root("test"),
 			summary: "one summary",
 			detail:  "one detail",
 			expected: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
 			},
 		},
 	}
@@ -75,45 +75,45 @@ func TestDiagnosticsAddAttributeWarning(t *testing.T) {
 
 	testCases := map[string]struct {
 		diags    diag.Diagnostics
-		path     *tftypes.AttributePath
+		path     path.Path
 		summary  string
 		detail   string
 		expected diag.Diagnostics
 	}{
 		"nil-add": {
 			diags:   nil,
-			path:    tftypes.NewAttributePath().WithAttributeName("test"),
+			path:    path.Root("test"),
 			summary: "one summary",
 			detail:  "one detail",
 			expected: diag.Diagnostics{
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "one summary", "one detail"),
 			},
 		},
 		"add": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
 			},
-			path:    tftypes.NewAttributePath().WithAttributeName("test"),
+			path:    path.Root("test"),
 			summary: "three summary",
 			detail:  "three detail",
 			expected: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "two summary", "two detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "three summary", "three detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "three summary", "three detail"),
 			},
 		},
 		"duplicate": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
 			},
-			path:    tftypes.NewAttributePath().WithAttributeName("test"),
+			path:    path.Root("test"),
 			summary: "two summary",
 			detail:  "two detail",
 			expected: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("test"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("test"), "two summary", "two detail"),
 			},
 		},
 	}
@@ -285,16 +285,16 @@ func TestDiagnosticsAppend(t *testing.T) {
 		},
 		"append-less-specific": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 			},
 			in: diag.Diagnostics{
 				diag.NewErrorDiagnostic("one summary", "one detail"),
 				diag.NewWarningDiagnostic("two summary", "two detail"),
 			},
 			expected: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 				diag.NewErrorDiagnostic("one summary", "one detail"),
 				diag.NewWarningDiagnostic("two summary", "two detail"),
 			},
@@ -305,14 +305,14 @@ func TestDiagnosticsAppend(t *testing.T) {
 				diag.NewWarningDiagnostic("two summary", "two detail"),
 			},
 			in: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 			},
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic("one summary", "one detail"),
 				diag.NewWarningDiagnostic("two summary", "two detail"),
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 			},
 		},
 		"empty-diagnostics": {
@@ -388,10 +388,10 @@ func TestDiagnosticsContains(t *testing.T) {
 		},
 		"matching-attribute-path": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 			},
-			in:       diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+			in:       diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 			expected: true,
 		},
 		"nil-diagnostics": {
@@ -409,10 +409,10 @@ func TestDiagnosticsContains(t *testing.T) {
 		},
 		"different-attribute-path": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 			},
-			in:       diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("different"), "two summary", "two detail"),
+			in:       diag.NewAttributeWarningDiagnostic(path.Root("different"), "two summary", "two detail"),
 			expected: false,
 		},
 		"different-detail": {
@@ -441,8 +441,8 @@ func TestDiagnosticsContains(t *testing.T) {
 		},
 		"different-type-less-specific": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 			},
 			in:       diag.NewWarningDiagnostic("two summary", "two detail"),
 			expected: false,
@@ -452,7 +452,7 @@ func TestDiagnosticsContains(t *testing.T) {
 				diag.NewErrorDiagnostic("one summary", "one detail"),
 				diag.NewWarningDiagnostic("two summary", "two detail"),
 			},
-			in:       diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+			in:       diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 			expected: false,
 		},
 	}
@@ -487,8 +487,8 @@ func TestDiagnosticsHasError(t *testing.T) {
 		},
 		"matching-attribute-path": {
 			diags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(tftypes.NewAttributePath().WithAttributeName("error"), "one summary", "one detail"),
-				diag.NewAttributeWarningDiagnostic(tftypes.NewAttributePath().WithAttributeName("warning"), "two summary", "two detail"),
+				diag.NewAttributeErrorDiagnostic(path.Root("error"), "one summary", "one detail"),
+				diag.NewAttributeWarningDiagnostic(path.Root("warning"), "two summary", "two detail"),
 			},
 			expected: true,
 		},

@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -27,13 +28,10 @@ type PlanResourceChangeRequest struct {
 // PlanResourceChangeResponse is the framework server response for the
 // PlanResourceChange RPC.
 type PlanResourceChangeResponse struct {
-	Diagnostics    diag.Diagnostics
-	PlannedPrivate []byte
-	PlannedState   *tfsdk.State
-
-	// TODO: Replace with framework defined type
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/81
-	RequiresReplace []*tftypes.AttributePath
+	Diagnostics     diag.Diagnostics
+	PlannedPrivate  []byte
+	PlannedState    *tfsdk.State
+	RequiresReplace path.Paths
 }
 
 // PlanResourceChange implements the framework server PlanResourceChange RPC.
@@ -207,7 +205,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		modifyPlanResp := tfsdk.ModifyResourcePlanResponse{
 			Diagnostics:     resp.Diagnostics,
 			Plan:            modifyPlanReq.Plan,
-			RequiresReplace: []*tftypes.AttributePath{},
+			RequiresReplace: path.Paths{},
 		}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource ModifyPlan")
@@ -270,7 +268,7 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 // NormaliseRequiresReplace sorts and deduplicates the slice of AttributePaths
 // used in the RequiresReplace response field.
 // Sorting is lexical based on the string representation of each AttributePath.
-func NormaliseRequiresReplace(ctx context.Context, rs []*tftypes.AttributePath) []*tftypes.AttributePath {
+func NormaliseRequiresReplace(ctx context.Context, rs path.Paths) path.Paths {
 	if len(rs) < 2 {
 		return rs
 	}
@@ -279,7 +277,7 @@ func NormaliseRequiresReplace(ctx context.Context, rs []*tftypes.AttributePath) 
 		return rs[i].String() < rs[j].String()
 	})
 
-	ret := make([]*tftypes.AttributePath, len(rs))
+	ret := make(path.Paths, len(rs))
 	ret[0] = rs[0]
 
 	// deduplicate

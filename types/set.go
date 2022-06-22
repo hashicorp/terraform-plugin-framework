@@ -6,14 +6,17 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.TypeWithValidate = SetType{}
-	_ attr.Value            = &Set{}
+	_ attr.Type              = SetType{}
+	_ xattr.TypeWithValidate = SetType{}
+	_ attr.Value             = &Set{}
 )
 
 // SetType is an AttributeType representing a set of values. All values must
@@ -113,7 +116,7 @@ func (st SetType) String() string {
 
 // Validate implements type validation. This type requires all elements to be
 // unique.
-func (st SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.AttributePath) diag.Diagnostics {
+func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if in.Type() == nil {
@@ -161,8 +164,10 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path *tftypes.
 				continue
 			}
 
+			// TODO: Point at element attr.Value when Validate method is converted to attr.Value
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/172
 			diags.AddAttributeError(
-				path.WithElementKeyValue(elemInner),
+				path,
 				"Duplicate Set Element",
 				fmt.Sprintf("This attribute contains duplicate values of: %s", elemInner),
 			)

@@ -6,6 +6,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -24,7 +26,7 @@ func TestCreateParentValue(t *testing.T) {
 			expected:   tftypes.Value{},
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test"),
+					path.Root("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Unknown parent type tftypes.Bool to create value.",
@@ -154,7 +156,7 @@ func TestCreateParentValue(t *testing.T) {
 
 			got, diags := createParentValue(
 				context.Background(),
-				tftypes.NewAttributePath().WithAttributeName("test"),
+				path.Root("test"),
 				tc.parentType,
 				tc.childValue,
 			)
@@ -176,7 +178,7 @@ func TestUpsertChildValue(t *testing.T) {
 	testCases := map[string]struct {
 		parentType    tftypes.Type
 		parentValue   tftypes.Value
-		childStep     tftypes.AttributePathStep
+		childStep     path.PathStep
 		childValue    tftypes.Value
 		expected      tftypes.Value
 		expectedDiags diag.Diagnostics
@@ -188,7 +190,7 @@ func TestUpsertChildValue(t *testing.T) {
 			parentValue: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, []tftypes.Value{}),
-			childStep:  tftypes.ElementKeyInt(0),
+			childStep:  path.PathStepElementKeyInt(0),
 			childValue: tftypes.NewValue(tftypes.String, "one"),
 			expected: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
@@ -203,14 +205,14 @@ func TestUpsertChildValue(t *testing.T) {
 			parentValue: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, []tftypes.Value{}),
-			childStep:  tftypes.ElementKeyInt(1),
+			childStep:  path.PathStepElementKeyInt(1),
 			childValue: tftypes.NewValue(tftypes.String, "two"),
 			expected: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, []tftypes.Value{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test"),
+					path.Root("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -224,7 +226,7 @@ func TestUpsertChildValue(t *testing.T) {
 			parentValue: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, nil),
-			childStep:  tftypes.ElementKeyInt(0),
+			childStep:  path.PathStepElementKeyInt(0),
 			childValue: tftypes.NewValue(tftypes.String, "one"),
 			expected: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
@@ -239,14 +241,14 @@ func TestUpsertChildValue(t *testing.T) {
 			parentValue: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, nil),
-			childStep:  tftypes.ElementKeyInt(1),
+			childStep:  path.PathStepElementKeyInt(1),
 			childValue: tftypes.NewValue(tftypes.String, "two"),
 			expected: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test"),
+					path.Root("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 2 as list currently has 0 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -262,7 +264,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "one"),
 			}),
-			childStep:  tftypes.ElementKeyInt(0),
+			childStep:  path.PathStepElementKeyInt(0),
 			childValue: tftypes.NewValue(tftypes.String, "new"),
 			expected: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
@@ -279,7 +281,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "one"),
 			}),
-			childStep:  tftypes.ElementKeyInt(1),
+			childStep:  path.PathStepElementKeyInt(1),
 			childValue: tftypes.NewValue(tftypes.String, "two"),
 			expected: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
@@ -297,7 +299,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "one"),
 			}),
-			childStep:  tftypes.ElementKeyInt(2),
+			childStep:  path.PathStepElementKeyInt(2),
 			childValue: tftypes.NewValue(tftypes.String, "three"),
 			expected: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
@@ -306,7 +308,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test"),
+					path.Root("test"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to create a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Cannot add list element 3 as list currently has 1 length. To prevent ambiguity, only the next element can be added to a list. Add empty elements into the list prior to this call, if appropriate.",
@@ -320,7 +322,7 @@ func TestUpsertChildValue(t *testing.T) {
 			parentValue: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.String,
 			}, map[string]tftypes.Value{}),
-			childStep:  tftypes.ElementKeyString("key"),
+			childStep:  path.PathStepElementKeyString("key"),
 			childValue: tftypes.NewValue(tftypes.String, "value"),
 			expected: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.String,
@@ -335,7 +337,7 @@ func TestUpsertChildValue(t *testing.T) {
 			parentValue: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.String,
 			}, nil),
-			childStep:  tftypes.ElementKeyString("key"),
+			childStep:  path.PathStepElementKeyString("key"),
 			childValue: tftypes.NewValue(tftypes.String, "value"),
 			expected: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.String,
@@ -352,7 +354,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"key": tftypes.NewValue(tftypes.String, "oldvalue"),
 			}),
-			childStep:  tftypes.ElementKeyString("key"),
+			childStep:  path.PathStepElementKeyString("key"),
 			childValue: tftypes.NewValue(tftypes.String, "newvalue"),
 			expected: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.String,
@@ -369,7 +371,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"keyone": tftypes.NewValue(tftypes.String, "valueone"),
 			}),
-			childStep:  tftypes.ElementKeyString("keytwo"),
+			childStep:  path.PathStepElementKeyString("keytwo"),
 			childValue: tftypes.NewValue(tftypes.String, "valuetwo"),
 			expected: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.String,
@@ -394,7 +396,7 @@ func TestUpsertChildValue(t *testing.T) {
 				"attrone": tftypes.NewValue(tftypes.String, "oldvalue"),
 				"attrtwo": tftypes.NewValue(tftypes.String, nil),
 			}),
-			childStep:  tftypes.AttributeName("attrone"),
+			childStep:  path.PathStepAttributeName("attrone"),
 			childValue: tftypes.NewValue(tftypes.String, "newvalue"),
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -422,7 +424,7 @@ func TestUpsertChildValue(t *testing.T) {
 				"attrone": tftypes.NewValue(tftypes.String, nil),
 				"attrtwo": tftypes.NewValue(tftypes.String, nil),
 			}),
-			childStep:  tftypes.AttributeName("attrone"),
+			childStep:  path.PathStepAttributeName("attrone"),
 			childValue: tftypes.NewValue(tftypes.String, "attronevalue"),
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -441,7 +443,7 @@ func TestUpsertChildValue(t *testing.T) {
 			parentValue: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
 			}, nil),
-			childStep:  tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "one")),
+			childStep:  path.PathStepElementKeyValue{Value: types.String{Value: "one"}},
 			childValue: tftypes.NewValue(tftypes.String, "one"),
 			expected: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -458,7 +460,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "one"),
 			}),
-			childStep:  tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "one")),
+			childStep:  path.PathStepElementKeyValue{Value: types.String{Value: "one"}},
 			childValue: tftypes.NewValue(tftypes.String, "one"),
 			expected: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -475,7 +477,7 @@ func TestUpsertChildValue(t *testing.T) {
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "one"),
 			}),
-			childStep:  tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "two")),
+			childStep:  path.PathStepElementKeyValue{Value: types.String{Value: "two"}},
 			childValue: tftypes.NewValue(tftypes.String, "two"),
 			expected: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -493,7 +495,7 @@ func TestUpsertChildValue(t *testing.T) {
 
 			got, diags := upsertChildValue(
 				context.Background(),
-				tftypes.NewAttributePath().WithAttributeName("test"),
+				path.Root("test"),
 				tc.parentValue,
 				tc.childStep,
 				tc.childValue,

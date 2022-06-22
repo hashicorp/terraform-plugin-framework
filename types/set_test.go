@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -349,7 +350,7 @@ func benchmarkSetTypeValidate(b *testing.B, elementCount int) {
 		},
 		elements,
 	)
-	path := tftypes.NewAttributePath().WithAttributeName("test")
+	path := path.Root("test")
 	set := SetType{}
 
 	for n := 0; n < b.N; n++ {
@@ -423,7 +424,7 @@ func TestSetTypeValidate(t *testing.T) {
 			),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, nil)),
+					path.Root("test"),
 					"Duplicate Set Element",
 					"This attribute contains duplicate values of: tftypes.String<null>",
 				),
@@ -513,7 +514,7 @@ func TestSetTypeValidate(t *testing.T) {
 			),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "hello")),
+					path.Root("test"),
 					"Duplicate Set Element",
 					"This attribute contains duplicate values of: tftypes.String<\"hello\">",
 				),
@@ -533,7 +534,7 @@ func TestSetTypeValidate(t *testing.T) {
 			),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "hello")),
+					path.Root("test"),
 					"Duplicate Set Element",
 					"This attribute contains duplicate values of: tftypes.String<\"hello\">",
 				),
@@ -545,7 +546,7 @@ func TestSetTypeValidate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := SetType{}.Validate(context.Background(), testCase.in, tftypes.NewAttributePath().WithAttributeName("test"))
+			diags := SetType{}.Validate(context.Background(), testCase.in, path.Root("test"))
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
 				t.Errorf("Unexpected diagnostics (+got, -expected): %s", diff)

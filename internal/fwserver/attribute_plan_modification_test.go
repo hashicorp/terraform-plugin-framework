@@ -7,6 +7,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -22,7 +24,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 	}{
 		"config-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -79,7 +81,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						path.Root("test"),
 						"Configuration Read Error",
 						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -106,7 +108,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"config-error-previous-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -174,7 +176,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"This was a previous error",
 					),
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						path.Root("test"),
 						"Configuration Read Error",
 						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -201,7 +203,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"plan-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -258,7 +260,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						path.Root("test"),
 						"Plan Read Error",
 						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -285,7 +287,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"plan-error-previous-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -353,7 +355,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"This was a previous error",
 					),
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						path.Root("test"),
 						"Plan Read Error",
 						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -380,7 +382,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"state-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -437,7 +439,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 			expectedResp: ModifySchemaPlanResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						path.Root("test"),
 						"State Read Error",
 						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -464,7 +466,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"state-error-previous-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -532,7 +534,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"This was a previous error",
 					),
 					diag.NewAttributeErrorDiagnostic(
-						tftypes.NewAttributePath().WithAttributeName("test"),
+						path.Root("test"),
 						"State Read Error",
 						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
@@ -559,7 +561,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"no-plan-modifiers": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -635,7 +637,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"attribute-plan": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -727,7 +729,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"attribute-plan-previous-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -832,7 +834,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"requires-replacement": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -913,14 +915,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				},
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test"),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
 				},
 			},
 		},
 		"requires-replacement-previous-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1014,14 +1016,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				},
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test"),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
 				},
 			},
 		},
 		"requires-replacement-passthrough": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1105,14 +1107,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				},
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test"),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
 				},
 			},
 		},
 		"requires-replacement-unset": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1200,7 +1202,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"warnings": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1301,7 +1303,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"warnings-previous-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1413,7 +1415,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1511,7 +1513,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 		},
 		"error-previous-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributePath: tftypes.NewAttributePath().WithAttributeName("test"),
+				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -1625,7 +1627,19 @@ func TestAttributeModifyPlan(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			attribute, err := tc.req.Config.Schema.AttributeAtPath(tc.req.AttributePath)
+			// TODO: Remove after schema refactoring
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
+			tftypesPath, diags := totftypes.AttributePath(context.Background(), tc.req.AttributePath)
+
+			if diags.HasError() {
+				for _, diagnostic := range diags {
+					t.Errorf("unexpected diagnostic: %s", diagnostic)
+				}
+
+				return
+			}
+
+			attribute, err := tc.req.Config.Schema.AttributeAtPath(tftypesPath)
 
 			if err != nil {
 				t.Fatalf("Unexpected error getting %s", err)

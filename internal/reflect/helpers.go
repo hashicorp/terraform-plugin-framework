@@ -2,12 +2,12 @@ package reflect
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 // trueReflectValue returns the reflect.Value for `in` after derefencing all
@@ -44,11 +44,11 @@ func commaSeparatedString(in []string) string {
 
 // getStructTags returns a map of Terraform field names to their position in
 // the tags of the struct `in`. `in` must be a struct.
-func getStructTags(_ context.Context, in reflect.Value, path *tftypes.AttributePath) (map[string]int, error) {
+func getStructTags(_ context.Context, in reflect.Value, path path.Path) (map[string]int, error) {
 	tags := map[string]int{}
 	typ := trueReflectValue(in).Type()
 	if typ.Kind() != reflect.Struct {
-		return nil, path.NewErrorf("can't get struct tags of %s, is not a struct", in.Type())
+		return nil, fmt.Errorf("%s: can't get struct tags of %s, is not a struct", path, in.Type())
 	}
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
@@ -62,14 +62,14 @@ func getStructTags(_ context.Context, in reflect.Value, path *tftypes.AttributeP
 			continue
 		}
 		if tag == "" {
-			return nil, path.NewErrorf(`need a struct tag for "tfsdk" on %s`, field.Name)
+			return nil, fmt.Errorf(`%s: need a struct tag for "tfsdk" on %s`, path, field.Name)
 		}
-		path := path.WithAttributeName(tag)
+		path := path.AtName(tag)
 		if !isValidFieldName(tag) {
-			return nil, path.NewError(errors.New("invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter"))
+			return nil, fmt.Errorf("%s: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter", path)
 		}
 		if other, ok := tags[tag]; ok {
-			return nil, path.NewErrorf("can't use field name for both %s and %s", typ.Field(other).Name, field.Name)
+			return nil, fmt.Errorf("%s: can't use field name for both %s and %s", path, typ.Field(other).Name, field.Name)
 		}
 		tags[tag] = i
 	}

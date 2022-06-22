@@ -15,7 +15,7 @@ func ValidateDataSourceConfigResponse(ctx context.Context, fw *fwserver.Validate
 	}
 
 	proto5 := &tfprotov5.ValidateDataSourceConfigResponse{
-		Diagnostics: Diagnostics(fw.Diagnostics),
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	return proto5

@@ -15,7 +15,7 @@ func ValidateResourceTypeConfigResponse(ctx context.Context, fw *fwserver.Valida
 	}
 
 	proto5 := &tfprotov5.ValidateResourceTypeConfigResponse{
-		Diagnostics: Diagnostics(fw.Diagnostics),
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	return proto5

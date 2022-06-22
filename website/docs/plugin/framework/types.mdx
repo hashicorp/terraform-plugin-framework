@@ -341,6 +341,14 @@ All attribute types must implement the [`tftypes.AttributePathStepper`
 interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#AttributePathStepper),
 so the framework can access element or attribute types using attribute paths.
 
+### `xattr.TypeWithValidation` Interface
+
+If validation for type values is desired, use the [`xattr.TypeWithValidation` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidation) to include validation logic for type values. The framework will call this functionality when validating all values based on the schema.
+
+| Method     | Description                                                   |
+| ---------- | ------------------------------------------------------------- |
+| `Validate` | Returns any warning or error diagnostics for the given value. |
+
 ### Type-Specific Interfaces
 
 | Case                        | Interface                                                                                                                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                |

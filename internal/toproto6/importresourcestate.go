@@ -15,13 +15,13 @@ func ImportResourceStateResponse(ctx context.Context, fw *fwserver.ImportResourc
 	}
 
 	proto6 := &tfprotov6.ImportResourceStateResponse{
-		Diagnostics: Diagnostics(fw.Diagnostics),
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	for _, fwImportedResource := range fw.ImportedResources {
 		proto6ImportedResource, diags := ImportedResource(ctx, &fwImportedResource)
 
-		proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(diags)...)
+		proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 
 		if diags.HasError() {
 			continue

@@ -84,3 +84,15 @@ func (s PathSteps) String() string {
 
 	return result.String()
 }
+
+// ExpressionSteps returns the ordered collection of expression steps which
+// exactly matches the PathSteps.
+func (s PathSteps) ExpressionSteps() ExpressionSteps {
+	result := make(ExpressionSteps, len(s))
+
+	for stepIndex, pathStep := range s {
+		result[stepIndex] = pathStep.ExpressionStep()
+	}
+
+	return result
+}

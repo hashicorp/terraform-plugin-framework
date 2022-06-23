@@ -311,6 +311,56 @@ func TestPathStepsEqual(t *testing.T) {
 	}
 }
 
+func TestPathStepsExpressionSteps(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		steps    path.PathSteps
+		expected path.ExpressionSteps
+	}{
+		"nil": {
+			steps:    nil,
+			expected: path.ExpressionSteps{},
+		},
+		"empty": {
+			steps:    path.PathSteps{},
+			expected: path.ExpressionSteps{},
+		},
+		"one": {
+			steps: path.PathSteps{
+				path.PathStepAttributeName("test"),
+			},
+			expected: path.ExpressionSteps{
+				path.ExpressionStepAttributeNameExact("test"),
+			},
+		},
+		"two": {
+			steps: path.PathSteps{
+				path.PathStepAttributeName("test"),
+				path.PathStepElementKeyInt(1),
+			},
+			expected: path.ExpressionSteps{
+				path.ExpressionStepAttributeNameExact("test"),
+				path.ExpressionStepElementKeyIntExact(1),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.steps.ExpressionSteps()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestPathStepsLastStep(t *testing.T) {
 	t.Parallel()
 

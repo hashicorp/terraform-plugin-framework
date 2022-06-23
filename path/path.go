@@ -78,6 +78,13 @@ func (p Path) Equal(o Path) bool {
 	return true
 }
 
+// Expression returns an Expression which exactly matches the Path.
+func (p Path) Expression() Expression {
+	return Expression{
+		steps: p.steps.ExpressionSteps(),
+	}
+}
+
 // ParentPath returns a copy of the path with the last step removed.
 //
 // If the current path is empty, an empty path is returned.

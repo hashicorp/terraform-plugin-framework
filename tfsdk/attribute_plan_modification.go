@@ -389,8 +389,13 @@ func (r UseStateForUnknownModifier) MarkdownDescription(ctx context.Context) str
 // instance of this request struct is supplied as an argument to the Modify
 // function of an attribute's plan modifier(s).
 type ModifyAttributePlanRequest struct {
-	// AttributePath is the path of the attribute.
+	// AttributePath is the path of the attribute. Use this path for any
+	// response diagnostics.
 	AttributePath path.Path
+
+	// AttributePathExpression is the expression matching the exact path of the
+	// attribute.
+	AttributePathExpression path.Expression
 
 	// Config is the configuration the user supplied for the resource.
 	Config Config

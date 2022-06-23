@@ -260,6 +260,38 @@ func TestPathEqual(t *testing.T) {
 	}
 }
 
+func TestPathExpression(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		path     path.Path
+		expected path.Expression
+	}{
+		"one": {
+			path:     path.Root("test"),
+			expected: path.MatchRoot("test"),
+		},
+		"two": {
+			path:     path.Root("test").AtListIndex(1),
+			expected: path.MatchRoot("test").AtListIndex(1),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.path.Expression()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestPathParentPath(t *testing.T) {
 	t.Parallel()
 

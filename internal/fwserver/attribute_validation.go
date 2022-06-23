@@ -157,8 +157,9 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 		for idx := range l.Elems {
 			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
-					AttributePath: req.AttributePath.AtListIndex(idx).AtName(nestedName),
-					Config:        req.Config,
+					AttributePath:           req.AttributePath.AtListIndex(idx).AtName(nestedName),
+					AttributePathExpression: req.AttributePathExpression.AtListIndex(idx).AtName(nestedName),
+					Config:                  req.Config,
 				}
 				nestedAttrResp := &tfsdk.ValidateAttributeResponse{
 					Diagnostics: resp.Diagnostics,
@@ -186,8 +187,9 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 		for _, value := range s.Elems {
 			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
-					AttributePath: req.AttributePath.AtSetValue(value).AtName(nestedName),
-					Config:        req.Config,
+					AttributePath:           req.AttributePath.AtSetValue(value).AtName(nestedName),
+					AttributePathExpression: req.AttributePathExpression.AtSetValue(value).AtName(nestedName),
+					Config:                  req.Config,
 				}
 				nestedAttrResp := &tfsdk.ValidateAttributeResponse{
 					Diagnostics: resp.Diagnostics,
@@ -215,8 +217,9 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 		for key := range m.Elems {
 			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
-					AttributePath: req.AttributePath.AtMapKey(key).AtName(nestedName),
-					Config:        req.Config,
+					AttributePath:           req.AttributePath.AtMapKey(key).AtName(nestedName),
+					AttributePathExpression: req.AttributePathExpression.AtMapKey(key).AtName(nestedName),
+					Config:                  req.Config,
 				}
 				nestedAttrResp := &tfsdk.ValidateAttributeResponse{
 					Diagnostics: resp.Diagnostics,
@@ -244,8 +247,9 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 		if !o.Null && !o.Unknown {
 			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
-					AttributePath: req.AttributePath.AtName(nestedName),
-					Config:        req.Config,
+					AttributePath:           req.AttributePath.AtName(nestedName),
+					AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
+					Config:                  req.Config,
 				}
 				nestedAttrResp := &tfsdk.ValidateAttributeResponse{
 					Diagnostics: resp.Diagnostics,

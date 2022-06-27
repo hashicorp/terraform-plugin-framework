@@ -70,3 +70,39 @@ func (diags Diagnostics) HasError() bool {
 
 	return false
 }
+
+// ErrorsCount returns the number of Diagnostic in Diagnostics that are SeverityError.
+func (diags Diagnostics) ErrorsCount() int {
+	return len(diags.Errors())
+}
+
+// WarningsCount returns the number of Diagnostic in Diagnostics that are SeverityWarning.
+func (diags Diagnostics) WarningsCount() int {
+	return len(diags.Warnings())
+}
+
+// Errors returns all the Diagnostic in Diagnostics that are SeverityError.
+func (diags Diagnostics) Errors() Diagnostics {
+	dd := Diagnostics{}
+
+	for _, d := range diags {
+		if SeverityError == d.Severity() {
+			dd = append(dd, d)
+		}
+	}
+
+	return dd
+}
+
+// Warnings returns all the Diagnostic in Diagnostics that are SeverityWarning.
+func (diags Diagnostics) Warnings() Diagnostics {
+	dd := Diagnostics{}
+
+	for _, d := range diags {
+		if SeverityWarning == d.Severity() {
+			dd = append(dd, d)
+		}
+	}
+
+	return dd
+}

@@ -83,7 +83,7 @@ func (diags Diagnostics) WarningsCount() int {
 
 // Errors returns all the Diagnostic in Diagnostics that are SeverityError.
 func (diags Diagnostics) Errors() Diagnostics {
-	var dd Diagnostics
+	dd := Diagnostics{}
 
 	for _, d := range diags {
 		if SeverityError == d.Severity() {
@@ -96,7 +96,7 @@ func (diags Diagnostics) Errors() Diagnostics {
 
 // Warnings returns all the Diagnostic in Diagnostics that are SeverityWarning.
 func (diags Diagnostics) Warnings() Diagnostics {
-	var dd Diagnostics
+	dd := Diagnostics{}
 
 	for _, d := range diags {
 		if SeverityWarning == d.Severity() {

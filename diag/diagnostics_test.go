@@ -528,12 +528,26 @@ func TestDiagnosticsErrorsCount(t *testing.T) {
 		expected int
 	}
 	tests := map[string]testCase{
+		"nil": {
+			diags:    nil,
+			expected: 0,
+		},
+		"empty": {
+			diags:    diag.Diagnostics{},
+			expected: 0,
+		},
 		"errors": {
 			diags: diag.Diagnostics{
 				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
 				diag.NewWarningDiagnostic("Warning Summary", "Warning detail."),
 			},
 			expected: 1,
+		},
+		"warnings": {
+			diags: diag.Diagnostics{
+				diag.NewWarningDiagnostic("Error Summary", "Error detail."),
+			},
+			expected: 0,
 		},
 	}
 
@@ -557,12 +571,26 @@ func TestDiagnosticsWarningsCount(t *testing.T) {
 		expected int
 	}
 	tests := map[string]testCase{
+		"nil": {
+			diags:    nil,
+			expected: 0,
+		},
+		"empty": {
+			diags:    diag.Diagnostics{},
+			expected: 0,
+		},
 		"errors": {
 			diags: diag.Diagnostics{
 				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
 				diag.NewWarningDiagnostic("Warning Summary", "Warning detail."),
 			},
 			expected: 1,
+		},
+		"warnings": {
+			diags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
+			},
+			expected: 0,
 		},
 	}
 
@@ -586,6 +614,14 @@ func TestDiagnosticsErrors(t *testing.T) {
 		expected diag.Diagnostics
 	}
 	tests := map[string]testCase{
+		"nil": {
+			diags:    nil,
+			expected: diag.Diagnostics{},
+		},
+		"empty": {
+			diags:    diag.Diagnostics{},
+			expected: diag.Diagnostics{},
+		},
 		"errors": {
 			diags: diag.Diagnostics{
 				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
@@ -594,6 +630,12 @@ func TestDiagnosticsErrors(t *testing.T) {
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
 			},
+		},
+		"warnings": {
+			diags: diag.Diagnostics{
+				diag.NewWarningDiagnostic("Warning Summary", "Warning detail."),
+			},
+			expected: diag.Diagnostics{},
 		},
 	}
 
@@ -617,7 +659,21 @@ func TestDiagnosticsWarnings(t *testing.T) {
 		expected diag.Diagnostics
 	}
 	tests := map[string]testCase{
+		"nil": {
+			diags:    nil,
+			expected: diag.Diagnostics{},
+		},
+		"empty": {
+			diags:    diag.Diagnostics{},
+			expected: diag.Diagnostics{},
+		},
 		"errors": {
+			diags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
+			},
+			expected: diag.Diagnostics{},
+		},
+		"warnings": {
 			diags: diag.Diagnostics{
 				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
 				diag.NewWarningDiagnostic("Warning Summary", "Warning detail."),

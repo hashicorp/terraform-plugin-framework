@@ -26,16 +26,25 @@ tfsdk.Attribute{
     // ... other Attribute configuration ...
 
     Validators: []AttributeValidators{
-        // These are example validators
-        stringLengthBetween(10, 256),
-        stringRegularExpression(regexp.MustCompile(`^[a-z0-9]+$`)),
+        // These are example validators from terraform-plugin-framework-validators
+        stringvalidator.LengthBetween(10, 256),
+        stringvalidator.RegexMatches(
+            regexp.MustCompile(`^[a-z0-9]+$`),
+            "must contain only lowercase alphanumeric characters",
+        ),
     },
 }
 ```
 
-All validators will always be run, regardless of whether previous validators returned an error or not.
+All validators in the slice will always be run, regardless of whether previous validators returned an error or not.
+
+### Common Use Case Attribute Validators
+
+You can implement attribute validators from the [terraform-plugin-framework-validators Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators), which contains validation handling for many common use cases such as string contents and integer ranges.
 
 ### Creating Attribute Validators
+
+If there is not an attribute validator in `terraform-plugin-framework-validators` that meets a specific use case, a provider-defined attribute validator can be created.
 
 To create an attribute validator, you must implement the [`tfsdk.AttributeValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributeValidator). For example:
 
@@ -113,7 +122,7 @@ tfsdk.Attribute{
     // This is optional, example validation that is checked in addition
     // to any validation performed by the type
     Validators: []AttributeValidators{
-        stringLengthBetween(10, 256),
+        stringvalidator.LengthBetween(10, 256),
     },
 }
 ```

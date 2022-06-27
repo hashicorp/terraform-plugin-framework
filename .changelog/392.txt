@@ -1,0 +1,3 @@
+```release-note:feature
+diag: `ErrorsCount`, `WarningsCount`, `Errors` and `Warnings` functions have been added to `diag.Diagnostics`
+```

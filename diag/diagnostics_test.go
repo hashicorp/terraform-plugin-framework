@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
@@ -514,6 +515,126 @@ func TestDiagnosticsHasError(t *testing.T) {
 
 			if got != tc.expected {
 				t.Errorf("Unexpected response: got: %t, wanted: %t", got, tc.expected)
+			}
+		})
+	}
+}
+
+func TestDiagnosticsErrorsCount(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		diags    diag.Diagnostics
+		expected int
+	}
+	tests := map[string]testCase{
+		"errors": {
+			diags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
+				diag.NewWarningDiagnostic("Warning Summary", "Warning detail."),
+			},
+			expected: 1,
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			got := test.diags.ErrorsCount()
+
+			if diff := cmp.Diff(test.expected, got); diff != "" {
+				t.Fatalf("expected: %q, got: %q", test.expected, got)
+			}
+		})
+	}
+}
+
+func TestDiagnosticsWarningsCount(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		diags    diag.Diagnostics
+		expected int
+	}
+	tests := map[string]testCase{
+		"errors": {
+			diags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
+				diag.NewWarningDiagnostic("Warning Summary", "Warning detail."),
+			},
+			expected: 1,
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			got := test.diags.WarningsCount()
+
+			if diff := cmp.Diff(test.expected, got); diff != "" {
+				t.Fatalf("expected: %q, got: %q", test.expected, got)
+			}
+		})
+	}
+}
+
+func TestDiagnosticsErrors(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		diags    diag.Diagnostics
+		expected diag.Diagnostics
+	}
+	tests := map[string]testCase{
+		"errors": {
+			diags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
+				diag.NewWarningDiagnostic("Warning Summary", "Warning detail."),
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
+			},
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			got := test.diags.Errors()
+
+			if diff := cmp.Diff(test.expected, got); diff != "" {
+				t.Fatalf("expected: %q, got: %q", test.expected, got)
+			}
+		})
+	}
+}
+
+func TestDiagnosticsWarnings(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		diags    diag.Diagnostics
+		expected diag.Diagnostics
+	}
+	tests := map[string]testCase{
+		"errors": {
+			diags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error Summary", "Error detail."),
+				diag.NewWarningDiagnostic("Warning Summary", "Warning detail."),
+			},
+			expected: diag.Diagnostics{
+				diag.NewWarningDiagnostic("Warning Summary", "Warning detail."),
+			},
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			got := test.diags.Warnings()
+
+			if diff := cmp.Diff(test.expected, got); diff != "" {
+				t.Fatalf("expected: %q, got: %q", test.expected, got)
 			}
 		})
 	}

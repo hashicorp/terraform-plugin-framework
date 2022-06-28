@@ -93,7 +93,7 @@ func (m stringDefaultModifier) Modify(ctx context.Context, req tfsdk.ModifyAttri
         return
     }
 
-    if !str.Null {
+    if !str.IsUnknown() {
         return
     }
 

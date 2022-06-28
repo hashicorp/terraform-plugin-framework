@@ -79,7 +79,7 @@ type Attribute struct {
 	DeprecationMessage string
 
 	// Validators define value validation functionality for the attribute. All
-	// elements of the slice of AttributeValidator are ran, regardless of any
+	// elements of the slice of AttributeValidator are run, regardless of any
 	// previous error diagnostics.
 	//
 	// Many common use case validators can be found in the
@@ -87,7 +87,7 @@ type Attribute struct {
 	//
 	// If the Type field points to a custom type that implements the
 	// xattr.TypeWithValidate interface, the validators defined in this field
-	// are ran in addition to the validation defined by the type.
+	// are run in addition to the validation defined by the type.
 	Validators []AttributeValidator
 
 	// PlanModifiers defines a sequence of modifiers for this attribute at

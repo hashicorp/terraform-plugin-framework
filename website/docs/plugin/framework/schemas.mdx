@@ -254,3 +254,7 @@ description](#markdowndescription), so too can individual attributes.
 
 Much like [resources, data sources, and providers can be
 deprecated](#deprecationmessage), so too can individual attributes.
+
+### Validators
+
+Each attribute can implement [value validation](/plugin/framework/validation), either by specifying the [`Attribute` type `Validators` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute.Validators) and/or by declaring a custom type in the `Type` field that [implements its own validators](/plugin/framework/validation#type-validation). Common use case validators can be found in the [terraform-plugin-framework-validators Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators).

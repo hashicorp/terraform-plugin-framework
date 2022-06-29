@@ -58,6 +58,34 @@ func TestPathStepAttributeNameEqual(t *testing.T) {
 	}
 }
 
+func TestPathStepAttributeNameExpressionStep(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		step     path.PathStepAttributeName
+		expected path.ExpressionStep
+	}{
+		"basic": {
+			step:     path.PathStepAttributeName("test"),
+			expected: path.ExpressionStepAttributeNameExact("test"),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.step.ExpressionStep()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestPathStepAttributeNameString(t *testing.T) {
 	t.Parallel()
 

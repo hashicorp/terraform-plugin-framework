@@ -2864,6 +2864,87 @@ func TestStatePathExists(t *testing.T) {
 	}
 }
 
+func TestStatePathMatches(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		state         State
+		expression    path.Expression
+		expected      path.Paths
+		expectedDiags diag.Diagnostics
+	}{
+		// Refer to TestPathMatches for more exhaustive unit testing.
+		// These test cases are to ensure State schema and data values are
+		// passed appropriately to the shared implementation.
+		"AttributeNameExact-match": {
+			state: State{
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.StringType,
+						},
+					},
+				},
+				Raw: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					},
+					map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "test-value"),
+					},
+				),
+			},
+			expression: path.MatchRoot("test"),
+			expected: path.Paths{
+				path.Root("test"),
+			},
+		},
+		"AttributeNameExact-mismatch": {
+			state: State{
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"test": {
+							Type: types.StringType,
+						},
+					},
+				},
+				Raw: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					},
+					map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "test-value"),
+					},
+				),
+			},
+			expression: path.MatchRoot("not-test"),
+			expected:   nil,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := testCase.state.PathMatches(context.Background(), testCase.expression)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestStateSet(t *testing.T) {
 	t.Parallel()
 

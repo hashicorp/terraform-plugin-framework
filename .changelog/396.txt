@@ -1,0 +1,11 @@
+```release-note:feature
+path: Introduced attribute path expressions
+```
+
+```release-note:enhancement
+tfsdk: Added `AttributePathExpression` field to `ModifyAttributePlanRequest` and `ValidateAttributeRequest` types
+```
+
+```release-note:enhancement
+tfsdk: Added `PathMatches` method to `Config`, `Plan`, and `State` types
+```

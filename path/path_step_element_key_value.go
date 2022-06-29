@@ -32,6 +32,11 @@ func (s PathStepElementKeyValue) Equal(o PathStep) bool {
 	return s.Value.Equal(other.Value)
 }
 
+// ExpressionStep returns the ExpressionStep for the PathStep.
+func (s PathStepElementKeyValue) ExpressionStep() ExpressionStep {
+	return ExpressionStepElementKeyValueExact(s)
+}
+
 // String returns the human-readable representation of the element key.
 // It is intended for logging and error messages and is not protected by
 // compatibility guarantees.

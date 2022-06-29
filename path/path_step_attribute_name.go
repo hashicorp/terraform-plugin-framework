@@ -23,6 +23,11 @@ func (s PathStepAttributeName) Equal(o PathStep) bool {
 	return string(s) == string(other)
 }
 
+// ExpressionStep returns the ExpressionStep for the PathStep.
+func (s PathStepAttributeName) ExpressionStep() ExpressionStep {
+	return ExpressionStepAttributeNameExact(s)
+}
+
 // String returns the human-readable representation of the attribute name.
 // It is intended for logging and error messages and is not protected by
 // compatibility guarantees.

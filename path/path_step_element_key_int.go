@@ -25,6 +25,11 @@ func (s PathStepElementKeyInt) Equal(o PathStep) bool {
 	return int64(s) == int64(other)
 }
 
+// ExpressionStep returns the ExpressionStep for the PathStep.
+func (s PathStepElementKeyInt) ExpressionStep() ExpressionStep {
+	return ExpressionStepElementKeyIntExact(s)
+}
+
 // String returns the human-readable representation of the element key.
 // It is intended for logging and error messages and is not protected by
 // compatibility guarantees.

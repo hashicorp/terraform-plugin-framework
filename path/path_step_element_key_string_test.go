@@ -58,6 +58,34 @@ func TestPathStepElementKeyStringEqual(t *testing.T) {
 	}
 }
 
+func TestPathStepElementKeyStringExpressionStep(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		step     path.PathStepElementKeyString
+		expected path.ExpressionStep
+	}{
+		"basic": {
+			step:     path.PathStepElementKeyString("test"),
+			expected: path.ExpressionStepElementKeyStringExact("test"),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.step.ExpressionStep()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestPathStepElementKeyStringString(t *testing.T) {
 	t.Parallel()
 

@@ -21,27 +21,6 @@ func TestPathMatches(t *testing.T) {
 		expected      path.Paths
 		expectedDiags diag.Diagnostics
 	}{
-		"ohno": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
-					"test": {
-						Type: types.StringType,
-					},
-				},
-			},
-			tfTypeValue: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.String, "test-value"),
-				},
-			),
-			expression: path.MatchRoot("test").AtParent().AtParent(),
-			expected:   nil,
-		},
 		"AttributeNameExact-match": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
@@ -582,6 +561,48 @@ func TestPathMatches(t *testing.T) {
 				},
 			),
 			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value4"}),
+			expected:   nil,
+		},
+		"AttributeNameExact-Parent": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"test": {
+						Type: types.StringType,
+					},
+				},
+			},
+			tfTypeValue: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
+					},
+				},
+				map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "test-value"),
+				},
+			),
+			expression: path.MatchRoot("test").AtParent(),
+			expected:   nil,
+		},
+		"AttributeNameExact-Parent-Parent": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"test": {
+						Type: types.StringType,
+					},
+				},
+			},
+			tfTypeValue: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.String,
+					},
+				},
+				map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "test-value"),
+				},
+			),
+			expression: path.MatchRoot("test").AtParent().AtParent(),
 			expected:   nil,
 		},
 	}

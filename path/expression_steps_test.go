@@ -390,7 +390,7 @@ func TestExpressionStepsMatches(t *testing.T) {
 		"empty-empty": {
 			steps:     path.ExpressionSteps{},
 			pathSteps: path.PathSteps{},
-			expected:  true,
+			expected:  false,
 		},
 		"empty-nonempty": {
 			steps: path.ExpressionSteps{},
@@ -603,6 +603,16 @@ func TestExpressionStepsMatches(t *testing.T) {
 				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
 			},
 			expected: true,
+		},
+		"AttributeNameExact-Parent": {
+			steps: path.ExpressionSteps{
+				path.ExpressionStepAttributeNameExact("test1"),
+				path.ExpressionStepParent{},
+			},
+			pathSteps: path.PathSteps{
+				path.PathStepAttributeName("test1"),
+			},
+			expected: false,
 		},
 		"AttributeNameExact-Parent-AttributeNameExact-different": {
 			steps: path.ExpressionSteps{

@@ -66,6 +66,11 @@ func (s ExpressionSteps) LastStep() (ExpressionStep, ExpressionSteps) {
 func (s ExpressionSteps) Matches(pathSteps PathSteps) bool {
 	resolvedExpressionSteps := s.Resolve()
 
+	// Empty expression should not match anything to prevent false positives.
+	if len(resolvedExpressionSteps) == 0 {
+		return false
+	}
+
 	if len(resolvedExpressionSteps) != len(pathSteps) {
 		return false
 	}

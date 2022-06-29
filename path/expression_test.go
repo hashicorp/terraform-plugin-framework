@@ -370,7 +370,7 @@ func TestExpressionMatches(t *testing.T) {
 		"empty-empty": {
 			expression: path.Expression{},
 			path:       path.Empty(),
-			expected:   true,
+			expected:   false,
 		},
 		"empty-nonempty": {
 			expression: path.Expression{},

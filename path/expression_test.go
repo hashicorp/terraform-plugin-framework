@@ -483,7 +483,7 @@ func TestExpressionMatches(t *testing.T) {
 			expected:   true,
 		},
 		"Parent-AttributeNameExact": {
-			expression: path.MatchParent().AtName("test"),
+			expression: path.MatchRelative().AtParent().AtName("test"),
 			path:       path.Root("test"),
 			expected:   false,
 		},
@@ -496,6 +496,93 @@ func TestExpressionMatches(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.expression.Matches(testCase.path)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestExpressionMerge(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		expression path.Expression
+		other      path.Expression
+		expected   path.Expression
+	}{
+		"Relative-further": {
+			expression: path.MatchRoot("test1"),
+			other:      path.MatchRelative().AtName("test2"),
+			expected:   path.MatchRoot("test1").AtName("test2"),
+		},
+		"Relative-Parent-root-level": {
+			expression: path.MatchRoot("test1"),
+			other:      path.MatchRelative().AtParent().AtName("test2"),
+			expected:   path.MatchRoot("test1").AtParent().AtName("test2"),
+		},
+		"Relative-Parent-nested-level": {
+			expression: path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child1"),
+			other:      path.MatchRelative().AtParent().AtName("test_child2"),
+			expected:   path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child1").AtParent().AtName("test_child2"),
+		},
+		"Root": {
+			expression: path.MatchRoot("test1"),
+			other:      path.MatchRoot("test2"),
+			expected:   path.MatchRoot("test2"),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.expression.Merge(testCase.other)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected result difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestExpressionResolve(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		expression path.Expression
+		expected   path.Expression
+	}{
+		// Refer to TestExpressionStepsResolve for more exhaustive unit
+		// testing of the underlying step resolving functionality.
+		"AttributeNameExact": {
+			expression: path.MatchRoot("test1"),
+			expected:   path.MatchRoot("test1"),
+		},
+		"AttributeNameExact-AttributeNameExact": {
+			expression: path.MatchRoot("test1").AtName("test2"),
+			expected:   path.MatchRoot("test1").AtName("test2"),
+		},
+		"AttributeNameExact-Parent-AttributeNameExact": {
+			expression: path.MatchRoot("test1").AtParent().AtName("test2"),
+			expected:   path.MatchRoot("test2"),
+		},
+		"AttributeNameExact-ElementKeyIntExact-AttributeNameExact-Parent-AttributeNameExact": {
+			expression: path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child1").AtParent().AtName("test_child2"),
+			expected:   path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child2"),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.expression.Resolve()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

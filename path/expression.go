@@ -7,6 +7,11 @@ import (
 // Expression represents an attribute path with expression steps, which can
 // represent zero, one, or more actual Paths.
 type Expression struct {
+	// root stores whether an expression was intentionally created to start
+	// from the root of the data. This is used with Merge to overwrite steps
+	// instead of appending steps.
+	root bool
+
 	// steps is the transversals included with the expression. In general,
 	// operations against the path should protect against modification of the
 	// original.
@@ -98,7 +103,7 @@ func (e Expression) AtSetValue(value attr.Value) Expression {
 // affecting the original.
 func (e Expression) Copy() Expression {
 	return Expression{
-		steps: e.Steps(),
+		steps: e.Steps().Copy(),
 	}
 }
 
@@ -119,9 +124,47 @@ func (e Expression) Equal(o Expression) bool {
 	return true
 }
 
-// Matches returns true if the given Path is valid for the Expression.
+// Matches returns true if the given Path is valid for the Expression. Any
+// relative expression steps, such as ExpressionStepParent, are automatically
+// resolved before matching.
 func (e Expression) Matches(path Path) bool {
 	return e.steps.Matches(path.Steps())
+}
+
+// Merge returns a copied expression either with the steps of the given
+// expression added to the end of the existing steps, or overwriting the
+// steps if the given expression was a root expression.
+//
+// Any merged expressions will preserve all expressions steps, such as
+// ExpressionStepParent, for troubleshooting. Methods such as Matches() will
+// automatically resolve the expression when using it. Call the Resolve()
+// method explicitly if a resolved expression without any ExpressionStepParent
+// is desired.
+func (e Expression) Merge(other Expression) Expression {
+	if other.root {
+		return other.Copy()
+	}
+
+	copiedExpression := e.Copy()
+
+	copiedExpression.steps.Append(other.steps...)
+
+	return copiedExpression
+}
+
+// Resolve returns a copied expression with any relative steps, such as
+// ExpressionStepParent, resolved. This is not necessary before calling methods
+// such as Matches(), however it can be useful before returning the String()
+// method so the path information is simplified.
+//
+// Returns an empty expression if any ExpressionStepParent attempt to go
+// beyond the first element.
+func (e Expression) Resolve() Expression {
+	copiedExpression := e.Copy()
+
+	copiedExpression.steps = copiedExpression.steps.Resolve()
+
+	return copiedExpression
 }
 
 // Steps returns a copy of the underlying expression steps. Returns an empty
@@ -141,14 +184,13 @@ func (e Expression) String() string {
 	return e.steps.String()
 }
 
-// MatchParent creates an attribute path expression starting with
-// ExpressionStepParent. This allows creating a relative expression in
-// nested schemas.
-func MatchParent() Expression {
+// MatchRelative creates an empty attribute path expression that is intended
+// to be combined with an existing attribute path expression. This allows
+// creating a relative expression in nested schemas, using AtParent() to
+// traverse up the path or other At methods to traverse further down.
+func MatchRelative() Expression {
 	return Expression{
-		steps: ExpressionSteps{
-			ExpressionStepParent{},
-		},
+		steps: ExpressionSteps{},
 	}
 }
 
@@ -156,6 +198,7 @@ func MatchParent() Expression {
 // ExpressionStepAttributeNameExact.
 func MatchRoot(rootAttributeName string) Expression {
 	return Expression{
+		root: true,
 		steps: ExpressionSteps{
 			ExpressionStepAttributeNameExact(rootAttributeName),
 		},

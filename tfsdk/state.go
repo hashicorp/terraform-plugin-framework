@@ -130,6 +130,11 @@ func (s State) getAttributeValue(ctx context.Context, path path.Path) (attr.Valu
 	return attrValue, diags
 }
 
+// PathMatches returns all matching path.Paths from the given path.Expression.
+func (s State) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
+	return pathMatches(ctx, s.Schema, s.Raw, pathExpr)
+}
+
 // Set populates the entire state using the supplied Go value. The value `val`
 // should be a struct whose values have one of the attr.Value types. Each field
 // must be tagged with the corresponding schema field.

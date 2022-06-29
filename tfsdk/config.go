@@ -59,6 +59,11 @@ func (c Config) GetAttribute(ctx context.Context, path path.Path, target interfa
 	return diags
 }
 
+// PathMatches returns all matching path.Paths from the given path.Expression.
+func (c Config) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
+	return pathMatches(ctx, c.Schema, c.Raw, pathExpr)
+}
+
 // getAttributeValue retrieves the attribute found at `path` and returns it as an
 // attr.Value. Consumers should assert the type of the returned value with the
 // desired attr.Type.

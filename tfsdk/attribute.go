@@ -78,7 +78,16 @@ type Attribute struct {
 	// instructing them on what upgrade steps to take.
 	DeprecationMessage string
 
-	// Validators defines validation functionality for the attribute.
+	// Validators define value validation functionality for the attribute. All
+	// elements of the slice of AttributeValidator are run, regardless of any
+	// previous error diagnostics.
+	//
+	// Many common use case validators can be found in the
+	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
+	//
+	// If the Type field points to a custom type that implements the
+	// xattr.TypeWithValidate interface, the validators defined in this field
+	// are run in addition to the validation defined by the type.
 	Validators []AttributeValidator
 
 	// PlanModifiers defines a sequence of modifiers for this attribute at

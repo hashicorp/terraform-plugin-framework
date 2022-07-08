@@ -323,7 +323,9 @@ func TestServerCreateResource(t *testing.T) {
 					diag.NewErrorDiagnostic(
 						"Missing Resource State After Create",
 						"The Terraform Provider unexpectedly returned no resource state after having no errors in the resource creation. "+
-							"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+							"This is always an issue in the Terraform Provider and should be reported to the provider developers.\n\n"+
+							"The resource may have been successfully created, but Terraform is not tracking it. "+
+							"Applying the configuration again with no other action may result in duplicate resource errors.",
 					),
 				},
 				NewState: testEmptyState,

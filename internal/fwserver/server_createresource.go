@@ -85,10 +85,18 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 	resp.NewState = &createResp.State
 
 	if !resp.Diagnostics.HasError() && createResp.State.Raw.Equal(nullSchemaData) {
+		detail := "The Terraform Provider unexpectedly returned no resource state after having no errors in the resource creation. " +
+			"This is always an issue in the Terraform Provider and should be reported to the provider developers.\n\n" +
+			"The resource may have been successfully created, but Terraform is not tracking it. " +
+			"Applying the configuration again with no other action may result in duplicate resource errors."
+
+		if _, ok := resource.(tfsdk.ResourceWithImportState); ok {
+			detail += " Import the resource if the resource was actually created and Terraform should be tracking it."
+		}
+
 		resp.Diagnostics.AddError(
 			"Missing Resource State After Create",
-			"The Terraform Provider unexpectedly returned no resource state after having no errors in the resource creation. "+
-				"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+			detail,
 		)
 	}
 }

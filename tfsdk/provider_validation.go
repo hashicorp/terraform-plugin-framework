@@ -19,6 +19,10 @@ type ProviderConfigValidator interface {
 	MarkdownDescription(context.Context) string
 
 	// ValidateProvider performs the validation.
+	//
+	// This method name is separate from the DataSourceConfigValidator
+	// interface ValidateDataSource method name and ResourceConfigValidator
+	// interface ValidateResource method name to allow generic validators.
 	ValidateProvider(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
 }
 

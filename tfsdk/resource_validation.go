@@ -19,6 +19,10 @@ type ResourceConfigValidator interface {
 	MarkdownDescription(context.Context) string
 
 	// ValidateResource performs the validation.
+	//
+	// This method name is separate from the DataSourceConfigValidator
+	// interface ValidateDataSource method name and ProviderConfigValidator
+	// interface ValidateProvider method name to allow generic validators.
 	ValidateResource(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 }
 

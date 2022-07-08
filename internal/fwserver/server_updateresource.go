@@ -47,24 +47,26 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		return
 	}
 
+	nullSchemaData := tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil)
+
 	updateReq := tfsdk.UpdateResourceRequest{
 		Config: tfsdk.Config{
 			Schema: req.ResourceSchema,
-			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
+			Raw:    nullSchemaData,
 		},
 		Plan: tfsdk.Plan{
 			Schema: req.ResourceSchema,
-			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
+			Raw:    nullSchemaData,
 		},
 		State: tfsdk.State{
 			Schema: req.ResourceSchema,
-			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
+			Raw:    nullSchemaData,
 		},
 	}
 	updateResp := tfsdk.UpdateResourceResponse{
 		State: tfsdk.State{
 			Schema: req.ResourceSchema,
-			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
+			Raw:    nullSchemaData,
 		},
 	}
 
@@ -92,4 +94,12 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 
 	resp.Diagnostics = updateResp.Diagnostics
 	resp.NewState = &updateResp.State
+
+	if !resp.Diagnostics.HasError() && updateResp.State.Raw.Equal(nullSchemaData) {
+		resp.Diagnostics.AddError(
+			"Missing Resource State After Update",
+			"The Terraform Provider unexpectedly returned no resource state after having no errors in the resource update. "+
+				"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+		)
+	}
 }

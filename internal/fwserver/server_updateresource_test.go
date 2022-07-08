@@ -417,6 +417,60 @@ func TestServerUpdateResource(t *testing.T) {
 				},
 			},
 		},
+		"response-newstate-null": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpdateResourceRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							UpdateMethod: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+								resp.State.RemoveResource(ctx)
+							},
+						}, nil
+					},
+				},
+			},
+			expectedResponse: &fwserver.UpdateResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Missing Resource State After Update",
+						"The Terraform Provider unexpectedly returned no resource state after having no errors in the resource update. "+
+							"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+					),
+				},
+				NewState: &tfsdk.State{
+					Raw:    tftypes.NewValue(testSchemaType, nil),
+					Schema: testSchema,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

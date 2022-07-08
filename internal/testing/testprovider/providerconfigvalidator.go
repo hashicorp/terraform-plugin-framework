@@ -13,7 +13,7 @@ type ProviderConfigValidator struct {
 	// ProviderConfigValidator interface methods
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
-	ValidateMethod            func(context.Context, tfsdk.ValidateProviderConfigRequest, *tfsdk.ValidateProviderConfigResponse)
+	ValidateProviderMethod    func(context.Context, tfsdk.ValidateProviderConfigRequest, *tfsdk.ValidateProviderConfigResponse)
 }
 
 // Description satisfies the tfsdk.ProviderConfigValidator interface.
@@ -35,10 +35,10 @@ func (v *ProviderConfigValidator) MarkdownDescription(ctx context.Context) strin
 }
 
 // Validate satisfies the tfsdk.ProviderConfigValidator interface.
-func (v *ProviderConfigValidator) Validate(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
-	if v.ValidateMethod == nil {
+func (v *ProviderConfigValidator) ValidateProvider(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+	if v.ValidateProviderMethod == nil {
 		return
 	}
 
-	v.ValidateMethod(ctx, req, resp)
+	v.ValidateProviderMethod(ctx, req, resp)
 }

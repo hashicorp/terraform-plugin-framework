@@ -57,7 +57,7 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 					logging.KeyDescription: configValidator.Description(ctx),
 				},
 			)
-			configValidator.Validate(ctx, vdscReq, vdscResp)
+			configValidator.ValidateResource(ctx, vdscReq, vdscResp)
 			logging.FrameworkDebug(
 				ctx,
 				"Called provider defined ResourceConfigValidator",

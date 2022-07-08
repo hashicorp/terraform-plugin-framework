@@ -13,7 +13,7 @@ type DataSourceConfigValidator struct {
 	// DataSourceConfigValidator interface methods
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
-	ValidateMethod            func(context.Context, tfsdk.ValidateDataSourceConfigRequest, *tfsdk.ValidateDataSourceConfigResponse)
+	ValidateDataSourceMethod  func(context.Context, tfsdk.ValidateDataSourceConfigRequest, *tfsdk.ValidateDataSourceConfigResponse)
 }
 
 // Description satisfies the tfsdk.DataSourceConfigValidator interface.
@@ -35,10 +35,10 @@ func (v *DataSourceConfigValidator) MarkdownDescription(ctx context.Context) str
 }
 
 // Validate satisfies the tfsdk.DataSourceConfigValidator interface.
-func (v *DataSourceConfigValidator) Validate(ctx context.Context, req tfsdk.ValidateDataSourceConfigRequest, resp *tfsdk.ValidateDataSourceConfigResponse) {
-	if v.ValidateMethod == nil {
+func (v *DataSourceConfigValidator) ValidateDataSource(ctx context.Context, req tfsdk.ValidateDataSourceConfigRequest, resp *tfsdk.ValidateDataSourceConfigResponse) {
+	if v.ValidateDataSourceMethod == nil {
 		return
 	}
 
-	v.ValidateMethod(ctx, req, resp)
+	v.ValidateDataSourceMethod(ctx, req, resp)
 }

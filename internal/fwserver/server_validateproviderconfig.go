@@ -46,7 +46,7 @@ func (s *Server) ValidateProviderConfig(ctx context.Context, req *ValidateProvid
 					logging.KeyDescription: configValidator.Description(ctx),
 				},
 			)
-			configValidator.Validate(ctx, vpcReq, vpcRes)
+			configValidator.ValidateProvider(ctx, vpcReq, vpcRes)
 			logging.FrameworkDebug(
 				ctx,
 				"Called provider defined ProviderConfigValidator",

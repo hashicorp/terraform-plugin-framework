@@ -18,8 +18,8 @@ type ResourceConfigValidator interface {
 	// descriptions by external tooling.
 	MarkdownDescription(context.Context) string
 
-	// Validate performs the validation.
-	Validate(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
+	// ValidateResource performs the validation.
+	ValidateResource(context.Context, ValidateResourceConfigRequest, *ValidateResourceConfigResponse)
 }
 
 // ResourceWithConfigValidators is an interface type that extends Resource to include declarative validations.

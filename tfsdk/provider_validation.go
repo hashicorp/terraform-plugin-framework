@@ -18,8 +18,8 @@ type ProviderConfigValidator interface {
 	// descriptions by external tooling.
 	MarkdownDescription(context.Context) string
 
-	// Validate performs the validation.
-	Validate(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
+	// ValidateProvider performs the validation.
+	ValidateProvider(context.Context, ValidateProviderConfigRequest, *ValidateProviderConfigResponse)
 }
 
 // ProviderWithConfigValidators is an interface type that extends Provider to include declarative validations.

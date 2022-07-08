@@ -167,7 +167,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 					ConfigValidatorsMethod: func(ctx context.Context) []tfsdk.ProviderConfigValidator {
 						return []tfsdk.ProviderConfigValidator{
 							&testprovider.ProviderConfigValidator{
-								ValidateMethod: func(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+								ValidateProviderMethod: func(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
 									var got types.String
 
 									resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
@@ -203,7 +203,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 					ConfigValidatorsMethod: func(ctx context.Context) []tfsdk.ProviderConfigValidator {
 						return []tfsdk.ProviderConfigValidator{
 							&testprovider.ProviderConfigValidator{
-								ValidateMethod: func(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+								ValidateProviderMethod: func(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
 									resp.Diagnostics.AddError("error summary", "error detail")
 								},
 							},

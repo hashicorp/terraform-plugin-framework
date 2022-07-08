@@ -13,7 +13,7 @@ type ResourceConfigValidator struct {
 	// ResourceConfigValidator interface methods
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
-	ValidateMethod            func(context.Context, tfsdk.ValidateResourceConfigRequest, *tfsdk.ValidateResourceConfigResponse)
+	ValidateResourceMethod    func(context.Context, tfsdk.ValidateResourceConfigRequest, *tfsdk.ValidateResourceConfigResponse)
 }
 
 // Description satisfies the tfsdk.ResourceConfigValidator interface.
@@ -35,10 +35,10 @@ func (v *ResourceConfigValidator) MarkdownDescription(ctx context.Context) strin
 }
 
 // Validate satisfies the tfsdk.ResourceConfigValidator interface.
-func (v *ResourceConfigValidator) Validate(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
-	if v.ValidateMethod == nil {
+func (v *ResourceConfigValidator) ValidateResource(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
+	if v.ValidateResourceMethod == nil {
 		return
 	}
 
-	v.ValidateMethod(ctx, req, resp)
+	v.ValidateResourceMethod(ctx, req, resp)
 }

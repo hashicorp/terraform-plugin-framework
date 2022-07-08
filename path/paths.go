@@ -5,6 +5,24 @@ import "strings"
 // Paths is a collection of exact attribute paths.
 type Paths []Path
 
+// Append adds the given Paths to the collection without duplication and
+// returns the combined result.
+func (p *Paths) Append(paths ...Path) Paths {
+	if p == nil {
+		return paths
+	}
+
+	for _, newPath := range paths {
+		if p.Contains(newPath) {
+			continue
+		}
+
+		*p = append(*p, newPath)
+	}
+
+	return *p
+}
+
 // Contains returns true if the collection of paths includes the given path.
 func (p Paths) Contains(checkPath Path) bool {
 	for _, path := range p {

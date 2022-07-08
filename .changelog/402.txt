@@ -1,0 +1,3 @@
+```release-note:enhancement
+diag: Added `Diagnostics` type `Equal()` method
+```

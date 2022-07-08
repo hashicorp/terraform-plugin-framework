@@ -5,6 +5,36 @@ import "strings"
 // Expressions is a collection of attribute path expressions.
 type Expressions []Expression
 
+// Append adds the given Expressions to the collection without duplication and
+// returns the combined result.
+func (e *Expressions) Append(expressions ...Expression) Expressions {
+	if e == nil {
+		return expressions
+	}
+
+	for _, newExpression := range expressions {
+		if e.Contains(newExpression) {
+			continue
+		}
+
+		*e = append(*e, newExpression)
+	}
+
+	return *e
+}
+
+// Contains returns true if the collection of expressions includes the given
+// expression.
+func (e Expressions) Contains(checkExpression Expression) bool {
+	for _, expression := range e {
+		if expression.Equal(checkExpression) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // String returns the human-readable representation of the expression
 // collection. It is intended for logging and error messages and is not
 // protected by compatibility guarantees.

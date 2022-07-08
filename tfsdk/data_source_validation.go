@@ -18,8 +18,12 @@ type DataSourceConfigValidator interface {
 	// descriptions by external tooling.
 	MarkdownDescription(context.Context) string
 
-	// Validate performs the validation.
-	Validate(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
+	// ValidateDataSource performs the validation.
+	//
+	// This method name is separate from the ProviderConfigValidator
+	// interface ValidateProvider method name and ResourceConfigValidator
+	// interface ValidateResource method name to allow generic validators.
+	ValidateDataSource(context.Context, ValidateDataSourceConfigRequest, *ValidateDataSourceConfigResponse)
 }
 
 // DataSourceWithConfigValidators is an interface type that extends DataSource to include declarative validations.

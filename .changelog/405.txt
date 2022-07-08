@@ -1,0 +1,11 @@
+```release-note:breaking-change
+tfsdk: The `DataSourceConfigValidator` interface `Validate` method is now `ValidateDataSource` to support generic validators that satisfy `DataSourceConfigValidator`, `ProviderConfigValidator`, and `ResourceConfigValidator`
+```
+
+```release-note:breaking-change
+tfsdk: The `ProviderConfigValidator` interface `Validate` method is now `ValidateProvider` to support generic validators that satisfy `DataSourceConfigValidator`, `ProviderConfigValidator`, and `ResourceConfigValidator`
+```
+
+```release-note:breaking-change
+tfsdk: The `ResourceConfigValidator` interface `Validate` method is now `ValidateResource` to support generic validators that satisfy `DataSourceConfigValidator`, `ProviderConfigValidator`, and `ResourceConfigValidator`
+```

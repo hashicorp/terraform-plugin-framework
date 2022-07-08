@@ -60,6 +60,22 @@ func (diags Diagnostics) Contains(in Diagnostic) bool {
 	return false
 }
 
+// Equal returns true if all given diagnostics are equivalent in order and
+// content, based on the underlying (Diagnostic).Equal() method of each.
+func (diags Diagnostics) Equal(other Diagnostics) bool {
+	if len(diags) != len(other) {
+		return false
+	}
+
+	for diagIndex, diag := range diags {
+		if !diag.Equal(other[diagIndex]) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // HasError returns true if the collection has an error severity Diagnostic.
 func (diags Diagnostics) HasError() bool {
 	for _, diag := range diags {

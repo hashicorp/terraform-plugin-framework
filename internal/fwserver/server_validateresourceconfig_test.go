@@ -170,7 +170,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 							ConfigValidatorsMethod: func(ctx context.Context) []tfsdk.ResourceConfigValidator {
 								return []tfsdk.ResourceConfigValidator{
 									&testprovider.ResourceConfigValidator{
-										ValidateMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
+										ValidateResourceMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
 											var got types.String
 
 											resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
@@ -208,7 +208,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 							ConfigValidatorsMethod: func(ctx context.Context) []tfsdk.ResourceConfigValidator {
 								return []tfsdk.ResourceConfigValidator{
 									&testprovider.ResourceConfigValidator{
-										ValidateMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
+										ValidateResourceMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
 											resp.Diagnostics.AddError("error summary", "error detail")
 										},
 									},

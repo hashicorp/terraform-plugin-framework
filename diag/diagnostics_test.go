@@ -472,6 +472,133 @@ func TestDiagnosticsContains(t *testing.T) {
 	}
 }
 
+func TestDiagnosticsEqual(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		diagnostics diag.Diagnostics
+		other       diag.Diagnostics
+		expected    bool
+	}{
+		"nil-nil": {
+			diagnostics: nil,
+			other:       nil,
+			expected:    true,
+		},
+		"nil-empty": {
+			diagnostics: nil,
+			other:       diag.Diagnostics{},
+			expected:    true,
+		},
+		"empty-nil": {
+			diagnostics: diag.Diagnostics{},
+			other:       nil,
+			expected:    true,
+		},
+		"empty-empty": {
+			diagnostics: diag.Diagnostics{},
+			other:       diag.Diagnostics{},
+			expected:    true,
+		},
+		"different-length": {
+			diagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic("one summary", "one detail"),
+				diag.NewErrorDiagnostic("two summary", "two detail"),
+			},
+			other: diag.Diagnostics{
+				diag.NewErrorDiagnostic("one summary", "one detail"),
+			},
+			expected: false,
+		},
+		"Attribute-different": {
+			diagnostics: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "test summary", "test detail"),
+			},
+			other: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Root("not-test"), "test summary", "test detail"),
+			},
+			expected: false,
+		},
+		"Attribute-equal": {
+			diagnostics: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "test summary", "test detail"),
+			},
+			other: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "test summary", "test detail"),
+			},
+			expected: true,
+		},
+		"Detail-different": {
+			diagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "test detail"),
+			},
+			other: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "not test detail"),
+			},
+			expected: false,
+		},
+		"Detail-equal": {
+			diagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "test detail"),
+			},
+			other: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "test detail"),
+			},
+			expected: true,
+		},
+		"Severity-different": {
+			diagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "test detail"),
+			},
+			other: diag.Diagnostics{
+				diag.NewWarningDiagnostic("test summary", "test detail"),
+			},
+			expected: false,
+		},
+		"Severity-equal": {
+			diagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "test detail"),
+			},
+			other: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "test detail"),
+			},
+			expected: true,
+		},
+		"Summary-different": {
+			diagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "test detail"),
+			},
+			other: diag.Diagnostics{
+				diag.NewErrorDiagnostic("not test summary", "test detail"),
+			},
+			expected: false,
+		},
+		"Summary-equal": {
+			diagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "test detail"),
+			},
+			other: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test summary", "test detail"),
+			},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.diagnostics.Equal(testCase.other)
+
+			if got != testCase.expected {
+				t.Errorf("expected %t, got %t", testCase.expected, got)
+			}
+		})
+	}
+}
+
 func TestDiagnosticsHasError(t *testing.T) {
 	t.Parallel()
 

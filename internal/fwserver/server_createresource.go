@@ -46,20 +46,22 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 		return
 	}
 
+	nullSchemaData := tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil)
+
 	createReq := tfsdk.CreateResourceRequest{
 		Config: tfsdk.Config{
 			Schema: req.ResourceSchema,
-			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
+			Raw:    nullSchemaData,
 		},
 		Plan: tfsdk.Plan{
 			Schema: req.ResourceSchema,
-			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
+			Raw:    nullSchemaData,
 		},
 	}
 	createResp := tfsdk.CreateResourceResponse{
 		State: tfsdk.State{
 			Schema: req.ResourceSchema,
-			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
+			Raw:    nullSchemaData,
 		},
 	}
 
@@ -81,4 +83,12 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 
 	resp.Diagnostics = createResp.Diagnostics
 	resp.NewState = &createResp.State
+
+	if !resp.Diagnostics.HasError() && createResp.State.Raw.Equal(nullSchemaData) {
+		resp.Diagnostics.AddError(
+			"Missing Resource State After Create",
+			"The Terraform Provider unexpectedly returned no resource state after having no errors in the resource creation. "+
+				"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+		)
+	}
 }

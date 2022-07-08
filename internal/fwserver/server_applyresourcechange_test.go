@@ -112,6 +112,9 @@ func TestServerApplyResourceChange(t *testing.T) {
 								if data.TestRequired.Value != "test-config-value" {
 									resp.Diagnostics.AddError("unexpected req.Config value: %s", data.TestRequired.Value)
 								}
+
+								// Prevent missing resource state error diagnostic
+								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 							},
 							DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
 								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
@@ -124,8 +127,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.ApplyResourceChangeResponse{
-				// Intentionally empty, Create implementation does not call resp.State.Set()
-				NewState: testEmptyState,
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
 			},
 		},
 		"create-request-plannedstate": {
@@ -156,6 +164,9 @@ func TestServerApplyResourceChange(t *testing.T) {
 								if data.TestRequired.Value != "test-plannedstate-value" {
 									resp.Diagnostics.AddError("unexpected req.Plan value: %s", data.TestRequired.Value)
 								}
+
+								// Prevent missing resource state error diagnostic
+								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 							},
 							DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
 								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
@@ -168,8 +179,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.ApplyResourceChangeResponse{
-				// Intentionally empty, Create implementation does not call resp.State.Set()
-				NewState: testEmptyState,
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
 			},
 		},
 		"create-request-providermeta": {
@@ -177,6 +193,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.ApplyResourceChangeRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
 				ResourceType: &testprovider.ResourceType{
@@ -186,13 +209,19 @@ func TestServerApplyResourceChange(t *testing.T) {
 					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
 						return &testprovider.Resource{
 							CreateMethod: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
-								var data testProviderMetaData
+								var metadata testProviderMetaData
 
-								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &metadata)...)
 
-								if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-									resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestProviderMetaAttribute.Value)
+								if metadata.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+									resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+metadata.TestProviderMetaAttribute.Value)
 								}
+
+								// Prevent missing resource state error diagnostic
+								var data testSchemaData
+
+								resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 							},
 							DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
 								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
@@ -206,8 +235,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 				ProviderMeta: testProviderMetaConfig,
 			},
 			expectedResponse: &fwserver.ApplyResourceChangeResponse{
-				// Intentionally empty, Create implementation does not call resp.State.Set()
-				NewState: testEmptyState,
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
 			},
 		},
 		"create-response-diagnostics": {
@@ -303,6 +337,57 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+			},
+		},
+		"create-response-newstate-null": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState:     testEmptyState,
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							CreateMethod: func(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+								// Intentionally missing resp.State.Set()
+							},
+							DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+							},
+							UpdateMethod: func(_ context.Context, _ tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
+							},
+						}, nil
+					},
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Missing Resource State After Create",
+						"The Terraform Provider unexpectedly returned no resource state after having no errors in the resource creation. "+
+							"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+					),
+				},
+				NewState: testEmptyState,
 			},
 		},
 		"delete-request-priorstate": {
@@ -860,6 +945,63 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+			},
+		},
+		"update-response-newstate-null": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							CreateMethod: func(_ context.Context, _ tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+							},
+							DeleteMethod: func(_ context.Context, _ tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+							},
+							UpdateMethod: func(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+								resp.State.RemoveResource(ctx)
+							},
+						}, nil
+					},
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Missing Resource State After Update",
+						"The Terraform Provider unexpectedly returned no resource state after having no errors in the resource update. "+
+							"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+					),
+				},
+				NewState: testEmptyState,
 			},
 		},
 	}

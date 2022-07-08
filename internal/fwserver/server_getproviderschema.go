@@ -14,15 +14,20 @@ type GetProviderSchemaRequest struct{}
 // GetProviderSchemaResponse is the framework server response for the
 // GetProviderSchema RPC.
 type GetProviderSchemaResponse struct {
-	Provider          *tfsdk.Schema
-	ProviderMeta      *tfsdk.Schema
-	ResourceSchemas   map[string]*tfsdk.Schema
-	DataSourceSchemas map[string]*tfsdk.Schema
-	Diagnostics       diag.Diagnostics
+	ServerCapabilities *ServerCapabilities
+	Provider           *tfsdk.Schema
+	ProviderMeta       *tfsdk.Schema
+	ResourceSchemas    map[string]*tfsdk.Schema
+	DataSourceSchemas  map[string]*tfsdk.Schema
+	Diagnostics        diag.Diagnostics
 }
 
 // GetProviderSchema implements the framework server GetProviderSchema RPC.
 func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRequest, resp *GetProviderSchemaResponse) {
+	resp.ServerCapabilities = &ServerCapabilities{
+		PlanDestroy: true,
+	}
+
 	providerSchema, diags := s.ProviderSchema(ctx)
 
 	resp.Diagnostics.Append(diags...)

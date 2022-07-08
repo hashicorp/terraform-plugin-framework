@@ -2226,6 +2226,15 @@ func TestPlanPathMatches(t *testing.T) {
 			},
 			expression: path.MatchRoot("not-test"),
 			expected:   nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Path Expression for Schema Data",
+					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
+						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
+						"Please report this to the provider developers.\n\n"+
+						"Path Expression: not-test",
+				),
+			},
 		},
 	}
 

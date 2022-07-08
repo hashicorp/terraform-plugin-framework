@@ -84,6 +84,37 @@ func (s ExpressionSteps) Matches(pathSteps PathSteps) bool {
 	return true
 }
 
+// MatchesParent returns true if the given PathSteps match each ExpressionStep
+// until there are no more PathSteps. This is helpful for determining if the
+// PathSteps would potentially match the full ExpressionSteps during
+// depth-first traversal.
+//
+// Any ExpressionStepParent will automatically be resolved.
+func (s ExpressionSteps) MatchesParent(pathSteps PathSteps) bool {
+	resolvedExpressionSteps := s.Resolve()
+
+	// Empty expression should not match anything to prevent false positives.
+	// Ensure to not return false on an empty path since walking a path always
+	// starts with no steps.
+	if len(resolvedExpressionSteps) == 0 {
+		return false
+	}
+
+	// Path steps deeper than or equal to the expression steps should not match
+	// as a potential parent.
+	if len(pathSteps) >= len(resolvedExpressionSteps) {
+		return false
+	}
+
+	for stepIndex, pathStep := range pathSteps {
+		if !resolvedExpressionSteps[stepIndex].Matches(pathStep) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // NextStep returns the first ExpressionStep and the remaining ExpressionSteps.
 func (s ExpressionSteps) NextStep() (ExpressionStep, ExpressionSteps) {
 	if len(s) == 0 {

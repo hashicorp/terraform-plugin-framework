@@ -504,6 +504,211 @@ func TestExpressionMatches(t *testing.T) {
 	}
 }
 
+func TestExpressionMatchesParent(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		expression path.Expression
+		path       path.Path
+		expected   bool
+	}{
+		"empty-empty": {
+			expression: path.Expression{},
+			path:       path.Empty(),
+			expected:   false,
+		},
+		"empty-nonempty": {
+			expression: path.Expression{},
+			path:       path.Root("test"),
+			expected:   false,
+		},
+		"nonempty-empty": {
+			expression: path.MatchRoot("test"),
+			path:       path.Empty(),
+			expected:   true,
+		},
+		"AttributeNameExact-different": {
+			expression: path.MatchRoot("test"),
+			path:       path.Root("not-test"),
+			expected:   false,
+		},
+		"AttributeNameExact-equal": {
+			expression: path.MatchRoot("test"),
+			path:       path.Root("test"),
+			expected:   false,
+		},
+		"AttributeNameExact-parent": {
+			expression: path.MatchRoot("test1").AtName("test2"),
+			path:       path.Root("test1"),
+			expected:   true,
+		},
+		"AttributeNameExact-AttributeNameExact-different-firststep": {
+			expression: path.MatchRoot("test1").AtName("test2"),
+			path:       path.Root("test2").AtName("test2"),
+			expected:   false,
+		},
+		"AttributeNameExact-AttributeNameExact-different-laststep": {
+			expression: path.MatchRoot("test1").AtName("test2"),
+			path:       path.Root("test1").AtName("test3"),
+			expected:   false,
+		},
+		"AttributeNameExact-AttributeNameExact-equal": {
+			expression: path.MatchRoot("test1").AtName("test2"),
+			path:       path.Root("test1").AtName("test2"),
+			expected:   false,
+		},
+		"AttributeNameExact-AttributeNameExact-parent": {
+			expression: path.MatchRoot("test1").AtName("test2").AtName("test3"),
+			path:       path.Root("test1").AtName("test2"),
+			expected:   true,
+		},
+		"AttributeNameExact-AttributeNameExact-Parent-different": {
+			expression: path.MatchRoot("test1").AtName("test2").AtParent(),
+			path:       path.Root("test2"),
+			expected:   false,
+		},
+		"AttributeNameExact-AttributeNameExact-Parent-equal": {
+			expression: path.MatchRoot("test1").AtName("test2").AtParent(),
+			path:       path.Root("test1"),
+			expected:   false,
+		},
+		"AttributeNameExact-AttributeNameExact-Parent-parent": {
+			expression: path.MatchRoot("test1").AtName("test2").AtParent().AtName("test3"),
+			path:       path.Root("test1"),
+			expected:   true,
+		},
+		"AttributeNameExact-AttributeNameExact-Parent-AttributeNameExact-different": {
+			expression: path.MatchRoot("test1").AtName("test2").AtParent().AtName("test3"),
+			path:       path.Root("test1").AtName("test2"),
+			expected:   false,
+		},
+		"AttributeNameExact-AttributeNameExact-Parent-AttributeNameExact-equal": {
+			expression: path.MatchRoot("test1").AtName("test2").AtParent().AtName("test3"),
+			path:       path.Root("test1").AtName("test3"),
+			expected:   false,
+		},
+		"AttributeNameExact-AttributeNameExact-Parent-AttributeNameExact-parent": {
+			expression: path.MatchRoot("test1").AtName("test2").AtParent().AtName("test3").AtName("test4"),
+			path:       path.Root("test1").AtName("test3"),
+			expected:   true,
+		},
+		"AttributeNameExact-ElementKeyIntAny": {
+			expression: path.MatchRoot("test").AtAnyListIndex(),
+			path:       path.Root("test").AtListIndex(0),
+			expected:   false,
+		},
+		"AttributeNameExact-ElementKeyIntAny-parent": {
+			expression: path.MatchRoot("test1").AtAnyListIndex().AtName("test2"),
+			path:       path.Root("test1").AtListIndex(0),
+			expected:   true,
+		},
+		"AttributeNameExact-ElementKeyIntExact-different": {
+			expression: path.MatchRoot("test").AtListIndex(0),
+			path:       path.Root("test").AtListIndex(1),
+			expected:   false,
+		},
+		"AttributeNameExact-ElementKeyIntExact-equal": {
+			expression: path.MatchRoot("test").AtListIndex(0),
+			path:       path.Root("test").AtListIndex(0),
+			expected:   false,
+		},
+		"AttributeNameExact-ElementKeyIntExact-parent": {
+			expression: path.MatchRoot("test1").AtListIndex(0).AtName("test2"),
+			path:       path.Root("test1").AtListIndex(0),
+			expected:   true,
+		},
+		"AttributeNameExact-ElementKeyStringAny": {
+			expression: path.MatchRoot("test").AtAnyMapKey(),
+			path:       path.Root("test").AtMapKey("test-key"),
+			expected:   false,
+		},
+		"AttributeNameExact-ElementKeyStringAny-parent": {
+			expression: path.MatchRoot("test1").AtAnyMapKey().AtName("test2"),
+			path:       path.Root("test1").AtMapKey("test-key"),
+			expected:   true,
+		},
+		"AttributeNameExact-ElementKeyStringExact-different": {
+			expression: path.MatchRoot("test").AtMapKey("test-key"),
+			path:       path.Root("test").AtMapKey("not-test-key"),
+			expected:   false,
+		},
+		"AttributeNameExact-ElementKeyStringExact-equal": {
+			expression: path.MatchRoot("test").AtMapKey("test-key"),
+			path:       path.Root("test").AtMapKey("test-key"),
+			expected:   false,
+		},
+		"AttributeNameExact-ElementKeyStringExact-parent": {
+			expression: path.MatchRoot("test1").AtMapKey("test-key").AtName("test2"),
+			path:       path.Root("test1").AtMapKey("test-key"),
+			expected:   true,
+		},
+		"AttributeNameExact-ElementKeyValueAny": {
+			expression: path.MatchRoot("test").AtAnySetValue(),
+			path:       path.Root("test").AtSetValue(types.String{Value: "test-value"}),
+			expected:   false,
+		},
+		"AttributeNameExact-ElementKeyValueAny-parent": {
+			expression: path.MatchRoot("test1").AtAnySetValue().AtName("test2"),
+			path:       path.Root("test1").AtSetValue(types.String{Value: "test-value"}),
+			expected:   true,
+		},
+		"AttributeNameExact-ElementKeyValueExact-different": {
+			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value"}),
+			path:       path.Root("test").AtSetValue(types.String{Value: "not-test-value"}),
+			expected:   false,
+		},
+		"AttributeNameExact-ElementKeyValueExact-equal": {
+			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value"}),
+			path:       path.Root("test").AtSetValue(types.String{Value: "test-value"}),
+			expected:   false,
+		},
+		"AttributeNameExact-ElementKeyValueExact-parent": {
+			expression: path.MatchRoot("test1").AtSetValue(types.String{Value: "test-value"}).AtName("test2"),
+			path:       path.Root("test1").AtSetValue(types.String{Value: "test-value"}),
+			expected:   true,
+		},
+		"AttributeNameExact-Parent": {
+			expression: path.MatchRoot("test1").AtParent(),
+			path:       path.Root("test1"),
+			expected:   false,
+		},
+		"AttributeNameExact-Parent-AttributeNameExact-different": {
+			expression: path.MatchRoot("test1").AtParent().AtName("test2"),
+			path:       path.Root("test1"),
+			expected:   false,
+		},
+		"AttributeNameExact-Parent-AttributeNameExact-equal": {
+			expression: path.MatchRoot("test1").AtParent().AtName("test2"),
+			path:       path.Root("test2"),
+			expected:   false,
+		},
+		"AttributeNameExact-Parent-AttributeNameExact-parent": {
+			expression: path.MatchRoot("test1").AtParent().AtName("test2").AtName("test3"),
+			path:       path.Root("test2"),
+			expected:   true,
+		},
+		"Parent-AttributeNameExact": {
+			expression: path.MatchRelative().AtParent().AtName("test"),
+			path:       path.Root("test"),
+			expected:   false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.expression.MatchesParent(testCase.path)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestExpressionMerge(t *testing.T) {
 	t.Parallel()
 
@@ -541,6 +746,92 @@ func TestExpressionMerge(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.expression.Merge(testCase.other)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected result difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestExpressionMergeExpressions(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		expression path.Expression
+		others     path.Expressions
+		expected   path.Expressions
+	}{
+		"nil": {
+			expression: path.MatchRoot("test"),
+			others:     nil,
+			expected: path.Expressions{
+				path.MatchRoot("test"),
+			},
+		},
+		"empty": {
+			expression: path.MatchRoot("test"),
+			others:     path.Expressions{},
+			expected: path.Expressions{
+				path.MatchRoot("test"),
+			},
+		},
+		"Relative-further": {
+			expression: path.MatchRoot("test1"),
+			others: path.Expressions{
+				path.MatchRelative().AtName("test2"),
+			},
+			expected: path.Expressions{
+				path.MatchRoot("test1").AtName("test2"),
+			},
+		},
+		"Relative-Parent-root-level": {
+			expression: path.MatchRoot("test1"),
+			others: path.Expressions{
+				path.MatchRelative().AtParent().AtName("test2"),
+			},
+			expected: path.Expressions{
+				path.MatchRoot("test1").AtParent().AtName("test2"),
+			},
+		},
+		"Relative-Parent-nested-level": {
+			expression: path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child1"),
+			others: path.Expressions{
+				path.MatchRelative().AtParent().AtName("test_child2"),
+			},
+			expected: path.Expressions{
+				path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child1").AtParent().AtName("test_child2"),
+			},
+		},
+		"Root": {
+			expression: path.MatchRoot("test1"),
+			others: path.Expressions{
+				path.MatchRoot("test2"),
+			},
+			expected: path.Expressions{
+				path.MatchRoot("test2"),
+			},
+		},
+		"multiple": {
+			expression: path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child1"),
+			others: path.Expressions{
+				path.MatchRelative().AtParent().AtName("test2"),
+				path.MatchRoot("test3"),
+			},
+			expected: path.Expressions{
+				path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child1").AtParent().AtName("test2"),
+				path.MatchRoot("test3"),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.expression.MergeExpressions(testCase.others...)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected result difference: %s", diff)

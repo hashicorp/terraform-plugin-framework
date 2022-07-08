@@ -8,6 +8,96 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+func TestPathsAppend(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		paths    path.Paths
+		add      path.Paths
+		expected path.Paths
+	}{
+		"nil-nil": {
+			paths:    nil,
+			add:      nil,
+			expected: nil,
+		},
+		"nil-nonempty": {
+			paths:    nil,
+			add:      path.Paths{path.Root("test")},
+			expected: path.Paths{path.Root("test")},
+		},
+		"nonempty-nil": {
+			paths:    path.Paths{path.Root("test")},
+			add:      nil,
+			expected: path.Paths{path.Root("test")},
+		},
+		"empty-empty": {
+			paths:    path.Paths{},
+			add:      path.Paths{},
+			expected: path.Paths{},
+		},
+		"empty-nonempty": {
+			paths:    path.Paths{},
+			add:      path.Paths{path.Root("test")},
+			expected: path.Paths{path.Root("test")},
+		},
+		"nonempty-empty": {
+			paths:    path.Paths{path.Root("test")},
+			add:      path.Paths{},
+			expected: path.Paths{path.Root("test")},
+		},
+		"nonempty-nonempty": {
+			paths: path.Paths{
+				path.Root("test1"),
+				path.Root("test2"),
+			},
+			add: path.Paths{
+				path.Root("test3"),
+				path.Root("test4"),
+			},
+			expected: path.Paths{
+				path.Root("test1"),
+				path.Root("test2"),
+				path.Root("test3"),
+				path.Root("test4"),
+			},
+		},
+		"deduplication": {
+			paths: path.Paths{
+				path.Root("test1"),
+				path.Root("test2"),
+			},
+			add: path.Paths{
+				path.Root("test1"),
+				path.Root("test3"),
+			},
+			expected: path.Paths{
+				path.Root("test1"),
+				path.Root("test2"),
+				path.Root("test3"),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.paths.Append(testCase.add...)
+
+			if diff := cmp.Diff(testCase.paths, testCase.expected); diff != "" {
+				t.Errorf("unexpected original difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected result difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestPathsContains(t *testing.T) {
 	t.Parallel()
 

@@ -57,7 +57,7 @@ func (s *Server) ValidateDataSourceConfig(ctx context.Context, req *ValidateData
 					logging.KeyDescription: configValidator.Description(ctx),
 				},
 			)
-			configValidator.Validate(ctx, vdscReq, vdscResp)
+			configValidator.ValidateDataSource(ctx, vdscReq, vdscResp)
 			logging.FrameworkDebug(
 				ctx,
 				"Called provider defined DataSourceConfigValidator",

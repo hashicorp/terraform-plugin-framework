@@ -131,6 +131,10 @@ func (p Plan) getAttributeValue(ctx context.Context, path path.Path) (attr.Value
 }
 
 // PathMatches returns all matching path.Paths from the given path.Expression.
+//
+// If a parent path is null or unknown, which would prevent a full expression
+// from matching, the parent path is returned rather than no match to prevent
+// false positives.
 func (p Plan) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
 	return pathMatches(ctx, p.Schema, p.Raw, pathExpr)
 }

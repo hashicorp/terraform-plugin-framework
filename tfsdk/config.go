@@ -60,6 +60,10 @@ func (c Config) GetAttribute(ctx context.Context, path path.Path, target interfa
 }
 
 // PathMatches returns all matching path.Paths from the given path.Expression.
+//
+// If a parent path is null or unknown, which would prevent a full expression
+// from matching, the parent path is returned rather than no match to prevent
+// false positives.
 func (c Config) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
 	return pathMatches(ctx, c.Schema, c.Raw, pathExpr)
 }

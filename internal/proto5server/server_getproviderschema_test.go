@@ -91,6 +91,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 					Block: &tfprotov5.SchemaBlock{},
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					PlanDestroy: true,
+				},
 			},
 		},
 		"provider": {
@@ -125,6 +128,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					PlanDestroy: true,
+				},
 			},
 		},
 		"providermeta": {
@@ -163,6 +169,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					PlanDestroy: true,
+				},
 			},
 		},
 		"resourceschemas": {
@@ -229,6 +238,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							},
 						},
 					},
+				},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					PlanDestroy: true,
 				},
 			},
 		},

@@ -219,6 +219,16 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 	// Ensure deterministic RequiresReplace by sorting and deduplicating
 	resp.RequiresReplace = NormaliseRequiresReplace(ctx, resp.RequiresReplace)
+
+	// If this was a destroy resource plan, ensure the plan remained null.
+	if req.ProposedNewState.Raw.IsNull() && !resp.PlannedState.Raw.IsNull() {
+		resp.Diagnostics.AddError(
+			"Unexpected Planned Resource State on Destroy",
+			"The Terraform Provider unexpectedly returned resource state data when the resource was planned for destruction. "+
+				"This is always an issue in the Terraform Provider and should be reported to the provider developers.\n\n"+
+				"Ensure all resource plan modifiers do not attempt to change resource plan data from being a null value if the request plan is a null value.",
+		)
+	}
 }
 
 func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema tfsdk.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {

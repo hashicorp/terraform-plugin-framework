@@ -131,6 +131,15 @@ func (e Expression) Matches(path Path) bool {
 	return e.steps.Matches(path.Steps())
 }
 
+// MatchesParent returns true if the given Path is a valid parent for the
+// Expression. This is helpful for determining if a child Path would
+// potentially match the full Expression during depth-first traversal. Any
+// relative expression steps, such as ExpressionStepParent, are automatically
+// resolved before matching.
+func (e Expression) MatchesParent(path Path) bool {
+	return e.steps.MatchesParent(path.Steps())
+}
+
 // Merge returns a copied expression either with the steps of the given
 // expression added to the end of the existing steps, or overwriting the
 // steps if the given expression was a root expression.
@@ -150,6 +159,24 @@ func (e Expression) Merge(other Expression) Expression {
 	copiedExpression.steps.Append(other.steps...)
 
 	return copiedExpression
+}
+
+// MergeExpressions returns collection of expressions that calls Merge() on
+// the current expression with each of the others.
+func (e Expression) MergeExpressions(others ...Expression) Expressions {
+	var result Expressions
+
+	if len(others) == 0 {
+		result.Append(e)
+
+		return result
+	}
+
+	for _, other := range others {
+		result.Append(e.Merge(other))
+	}
+
+	return result
 }
 
 // Resolve returns a copied expression with any relative steps, such as

@@ -529,19 +529,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
 											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
-												var data testSchemaData
-
-												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-												// TODO: This is invalid logic to run during deletion, but the framework
-												// does not currently prevent you from doing something like this. When
-												// the protocol implements PlanResourceChange on destroy support, doing
-												// anything with the PlannedState that is not equal to the
-												// empty request ProposedNewState should raise an error.
-												// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/364
-												data.TestComputed = types.String{Value: "test-plannedstate-value"}
-
-												resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
+												// This is invalid logic to run during deletion.
+												resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("test_computed"), types.String{Value: "test-plannedstate-value"})...)
 											},
 										}, nil
 									},
@@ -560,22 +549,18 @@ func TestServerPlanResourceChange(t *testing.T) {
 				TypeName: "test_resource",
 			},
 			expectedResponse: &tfprotov6.PlanResourceChangeResponse{
-				// TODO: When the protocol implements PlanResourceChange on destroy support,
-				// PlannedState should always be empty or an error should be raised while
-				// still returning the empty state.
-				// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/364
-				// Diagnostics: []*tfprotov6.Diagnostic{ /* friendlier error diagnostic */ }
-				// PlannedState: &testEmptyDynamicValue,
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
-						Summary:  "Value Conversion Error",
-						Detail:   "An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\nunhandled null value",
+						Summary:  "Unexpected Planned Resource State on Destroy",
+						Detail: "The Terraform Provider unexpectedly returned resource state data when the resource was planned for destruction. " +
+							"This is always an issue in the Terraform Provider and should be reported to the provider developers.\n\n" +
+							"Ensure all resource plan modifiers do not attempt to change resource plan data from being a null value if the request plan is a null value.",
 					},
 				},
 				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
 					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
-					"test_required": tftypes.NewValue(tftypes.String, ""),
+					"test_required": tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
 		},

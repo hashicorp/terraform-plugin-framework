@@ -28,6 +28,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas: map[string]*tfsdk.Schema{},
 				Provider:          &tfsdk.Schema{},
 				ResourceSchemas:   map[string]*tfsdk.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
 			},
 		},
 		"datasourceschemas": {
@@ -85,6 +88,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				Provider:        &tfsdk.Schema{},
 				ResourceSchemas: map[string]*tfsdk.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
 			},
 		},
 		"provider": {
@@ -114,6 +120,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				ResourceSchemas: map[string]*tfsdk.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
 			},
 		},
 		"providermeta": {
@@ -145,6 +154,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				ResourceSchemas: map[string]*tfsdk.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
 			},
 		},
 		"resourceschemas": {
@@ -201,6 +213,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							},
 						},
 					},
+				},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
 				},
 			},
 		},

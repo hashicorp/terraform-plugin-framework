@@ -3,6 +3,8 @@ package path
 import "strings"
 
 // Expressions is a collection of attribute path expressions.
+//
+// Refer to the Expression documentation for more details about intended usage.
 type Expressions []Expression
 
 // Append adds the given Expressions to the collection without duplication and

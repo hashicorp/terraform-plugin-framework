@@ -45,6 +45,14 @@
     "path": "schemas"
   },
   {
+    "title": "Paths",
+    "path": "paths"
+  },
+  {
+    "title": "Path Expressions",
+    "path": "path-expressions"
+  },
+  {
     "title": "Attribute Types",
     "path": "types"
   },

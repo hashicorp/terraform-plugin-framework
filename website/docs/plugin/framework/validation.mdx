@@ -114,11 +114,11 @@ Path expressions may represent one or more actual paths in the data. To find tho
 
 The general structure for working with path expressions in an attribute validator is:
 
-- Merge the given path expression(s) with the current attribute path expression, such as calling the [`tfsdk.ValidateAttributeRequest` type `AttributePathExpression` field `MergeExpressions()` method]().
-- Loop through each merged path expression to get the matching paths within the data, such as calling the [`tfsdk.ValidateAttributeRequest` type `Config` field `PathMatches()` method]().
-- Loop through each matched path to get the generic `attr.Value` value, such as calling the [`tfsdk.ValidateAttributeRequest` type `Config` field `GetAttribute()` method]().
-- Perform null and unknown value checks on the `attr.Value`, such as the [`IsNull()` method]() and [`IsUnknown()` method]().
-- If the `attr.Value` is not null and not unknown, then it is safe to attempt to either use type assertion for the expected value implementation or call `GetAttribute()` again using the expected value implementation as the target.
+- Merge the given path expression(s) with the current attribute path expression, such as calling the [`tfsdk.ValidateAttributeRequest` type `AttributePathExpression` field `MergeExpressions()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.MergeExpressions).
+- Loop through each merged path expression to get the matching paths within the data, such as calling the [`tfsdk.ValidateAttributeRequest` type `Config` field `PathMatches()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config.PathMatches).
+- Loop through each matched path to get the generic `attr.Value` value, such as calling the [`tfsdk.ValidateAttributeRequest` type `Config` field `GetAttribute()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config.GetAttribute).
+- Perform null and unknown value checks on the `attr.Value`, such as the [`IsNull()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value.IsNull) and [`IsUnknown()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value.IsUnknown).
+- If the `attr.Value` is not null and not unknown, then use [`tfsdk.ValueAs()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ValueAs) using the expected value implementation as the target.
 
 The following example shows a generic path based attribute validator that returns an error if `types.Int64` values at the given path expressions are less than the current attribute `types.Int64` value.
 

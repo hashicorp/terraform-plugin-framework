@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/google/go-cmp v0.5.8
-	github.com/hashicorp/terraform-plugin-go v0.11.0
+	github.com/hashicorp/terraform-plugin-go v0.12.0
 	github.com/hashicorp/terraform-plugin-log v0.6.0
 )
 
@@ -28,6 +28,6 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
-	google.golang.org/grpc v1.47.0 // indirect
+	google.golang.org/grpc v1.48.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 )

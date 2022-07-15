@@ -35,6 +35,6 @@ func FrameworkWarn(ctx context.Context, msg string, additionalFields ...map[stri
 // The attribute path is expected to be string, so the logging package does not
 // need to import path handling code.
 func FrameworkWithAttributePath(ctx context.Context, attributePath string) context.Context {
-	ctx = tfsdklog.SubsystemWith(ctx, SubsystemFramework, KeyAttributePath, attributePath)
+	ctx = tfsdklog.SubsystemSetField(ctx, SubsystemFramework, KeyAttributePath, attributePath)
 	return ctx
 }

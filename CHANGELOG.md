@@ -1,3 +1,35 @@
+# 0.10.0 (July 18, 2022)
+
+BREAKING CHANGES:
+
+* attr: The `TypeWithValidate` interface has been moved under the `attr/xattr` package and the `*tftypes.AttributePath` parameter is replaced with `path.Path` ([#390](https://github.com/hashicorp/terraform-plugin-framework/issues/390))
+* diag: The `DiagnosticWithPath` interface `Path` method `*tftypes.AttributePath` return is replaced with `path.Path` ([#390](https://github.com/hashicorp/terraform-plugin-framework/issues/390))
+* diag: The `Diagnostics` type `AddAttributeError` and `AddAttributeWarning` method `*tftypes.AttributePath` parameters are replaced with `path.Path` ([#390](https://github.com/hashicorp/terraform-plugin-framework/issues/390))
+* diag: The `NewAttributeErrorDiagnostic` and `NewAttributeWarningDiagnostic` function `*tftypes.AttributePath` parameters are replaced with `path.Path` ([#390](https://github.com/hashicorp/terraform-plugin-framework/issues/390))
+* tfsdk: The `Config`, `Plan`, and `State` types `GetAttribute` and `SetAttribute` methods `*tftypes.AttributePath` parameters are replaced with `path.Path` ([#390](https://github.com/hashicorp/terraform-plugin-framework/issues/390))
+* tfsdk: The `DataSourceConfigValidator` interface `Validate` method is now `ValidateDataSource` to support generic validators that satisfy `DataSourceConfigValidator`, `ProviderConfigValidator`, and `ResourceConfigValidator` ([#405](https://github.com/hashicorp/terraform-plugin-framework/issues/405))
+* tfsdk: The `ModifyAttributePlanRequest`, `ModifyResourcePlanResponse`, and `ValidateAttributeRequest` type `AttributePath *tftypes.AttributePath` fields are replaced with `AttributePath path.Path` ([#390](https://github.com/hashicorp/terraform-plugin-framework/issues/390))
+* tfsdk: The `PlanResourceChange` RPC on destroy is now enabled. To prevent unexpected Terraform errors, the framework attempts to catch errant provider logic in plan modifiers when destroying. Resource level plan modifiers may require updates to handle a completely null proposed new state (plan) and ensure it remains completely null on resource destruction. ([#409](https://github.com/hashicorp/terraform-plugin-framework/issues/409))
+* tfsdk: The `ProviderConfigValidator` interface `Validate` method is now `ValidateProvider` to support generic validators that satisfy `DataSourceConfigValidator`, `ProviderConfigValidator`, and `ResourceConfigValidator` ([#405](https://github.com/hashicorp/terraform-plugin-framework/issues/405))
+* tfsdk: The `RequiresReplaceIf` and `ResourceImportStatePassthroughID` function `*tftypes.AttributePath` parameters are replaced with `path.Path` ([#390](https://github.com/hashicorp/terraform-plugin-framework/issues/390))
+* tfsdk: The `ResourceConfigValidator` interface `Validate` method is now `ValidateResource` to support generic validators that satisfy `DataSourceConfigValidator`, `ProviderConfigValidator`, and `ResourceConfigValidator` ([#405](https://github.com/hashicorp/terraform-plugin-framework/issues/405))
+
+FEATURES:
+
+* Support plan modifiers returning warning and error diagnostics on resource destruction with Terraform 1.3 and later ([#409](https://github.com/hashicorp/terraform-plugin-framework/issues/409))
+* path: Introduced attribute path expressions ([#396](https://github.com/hashicorp/terraform-plugin-framework/issues/396))
+* path: Introduced framework abstraction for attribute path handling ([#390](https://github.com/hashicorp/terraform-plugin-framework/issues/390))
+
+ENHANCEMENTS:
+
+* diag: Added `Diagnostics` type `Equal()` method ([#402](https://github.com/hashicorp/terraform-plugin-framework/issues/402))
+* diag: `ErrorsCount`, `WarningsCount`, `Errors` and `Warnings` functions have been added to `diag.Diagnostics` ([#392](https://github.com/hashicorp/terraform-plugin-framework/issues/392))
+* providerserver: Added sdk.proto logger request duration and response diagnostics logging ([#398](https://github.com/hashicorp/terraform-plugin-framework/issues/398))
+* tfsdk: Added `AttributePathExpression` field to `ModifyAttributePlanRequest` and `ValidateAttributeRequest` types ([#396](https://github.com/hashicorp/terraform-plugin-framework/issues/396))
+* tfsdk: Added `PathMatches` method to `Config`, `Plan`, and `State` types ([#396](https://github.com/hashicorp/terraform-plugin-framework/issues/396))
+* tfsdk: Added framework-specific error diagnostics when `Resource` implementations errantly return no errors and empty state after `Create` and `Update` methods ([#406](https://github.com/hashicorp/terraform-plugin-framework/issues/406))
+* types: Method `IsNull()` for `Number` type will now return true if the struct is zero-value initialized. ([#384](https://github.com/hashicorp/terraform-plugin-framework/issues/384))
+
 # 0.9.0 (June 15, 2022)
 
 BREAKING CHANGES:

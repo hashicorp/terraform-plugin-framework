@@ -3,6 +3,8 @@ package path
 import "strings"
 
 // Paths is a collection of exact attribute paths.
+//
+// Refer to the Path documentation for more details about intended usage.
 type Paths []Path
 
 // Append adds the given Paths to the collection without duplication and

@@ -106,6 +106,142 @@ func stringLengthBetween(minLength int, maxLength int) stringLengthBetweenValida
 }
 ```
 
+#### Path Based Attribute Validators
+
+Attribute validators that need to accept [paths](/plugin/framework/paths) to reference other attribute data should instead prefer [path expressions](/plugin/framework/path-expressions). This allows consumers to use either absolute paths starting at the root of a [schema](/plugin/framework/schemas), or relative paths based on the current attribute path where the validator is called.
+
+Path expressions may represent one or more actual paths in the data. To find those paths, the process is called path matching. Depending on the actual data, a path match may return a parent path for null or unknown values, since any underlying paths of those null or unknown values would also represent the same value. This framework behavior is used to prevent false positives of returning no paths for null or unknown values.
+
+The general structure for working with path expressions in an attribute validator is:
+
+- Merge the given path expression(s) with the current attribute path expression, such as calling the [`tfsdk.ValidateAttributeRequest` type `AttributePathExpression` field `MergeExpressions()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.MergeExpressions).
+- Loop through each merged path expression to get the matching paths within the data, such as calling the [`tfsdk.ValidateAttributeRequest` type `Config` field `PathMatches()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config.PathMatches).
+- Loop through each matched path to get the generic `attr.Value` value, such as calling the [`tfsdk.ValidateAttributeRequest` type `Config` field `GetAttribute()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config.GetAttribute).
+- Perform null and unknown value checks on the `attr.Value`, such as the [`IsNull()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value.IsNull) and [`IsUnknown()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value.IsUnknown).
+- If the `attr.Value` is not null and not unknown, then use [`tfsdk.ValueAs()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ValueAs) using the expected value implementation as the target.
+
+The following example shows a generic path based attribute validator that returns an error if `types.Int64` values at the given path expressions are less than the current attribute `types.Int64` value.
+
+```go
+// Ensure our implementation satisfies the tfsdk.AttributeValidator interface.
+var _ tfsdk.AttributeValidator = &int64IsGreaterThanValidator{}
+
+// int64IsGreaterThanValidator is the underlying type implementing Int64IsGreaterThan.
+type int64IsGreaterThanValidator struct {
+	expressions path.Expressions
+}
+
+// Description returns a plaintext string describing the validator.
+func (v int64IsGreaterThanValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("If configured, must be greater than %s attributes", v.expressions)
+}
+
+// MarkdownDescription returns a Markdown formatted string describing the validator.
+func (v int64IsGreaterThanValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// Validate performs the validation logic for the validator.
+func (v int64IsGreaterThanValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+	// If the current attribute configuration is null or unknown, there
+	// cannot be any value comparisons, so exit early without error.
+	if req.AttributeConfig.IsNull() || req.AttributeConfig.IsUnknown() {
+		return
+	}
+
+	// Convert the current attribute configuration to our expected attr.Value
+	// implementation. This will raise an error if the validator is not put
+	// on an attribute that is types.Int64Type.
+	var attributeConfig types.Int64
+
+	diags := tftypes.ValueAs(ctx, req.AttributeConfig, &attributeConfig)
+
+	resp.Diagnostics.Append(diags...)
+
+	// If the current attribute configuration is not valid, there cannot be
+	// any value comparisons, so exit early.
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Combine the given path expressions with the current attribute path
+	// expression. This call automatically handles relative and absolute
+	// expressions.
+	expressions := req.AttributePathExpression.MergeExpressions(v.expressions...)
+
+	// For each expression, find matching paths.
+	for _, expression := range expressions {
+		// Find paths matching the expression in the configuration data.
+		matchedPaths, diags := req.Config.PathMatches(ctx, expression)
+
+		resp.Diagnostics.Append(diags...)
+
+		// Collect all errors
+		if diags.HasError() {
+			continue
+		}
+
+		// For each matched path, get the data and compare.
+		for _, matchedPath := range matchedPaths {
+			// Fetch the generic attr.Value at the given path. This ensures any
+			// potential parent value of a different type, which can be a null
+			// or unknown value, can be safely checked without raising a type
+			// conversion error.
+			var matchedPathValue attr.Value
+
+			diags := req.Config.GetAttribute(ctx, matchedPath, &matchedPathValue)
+
+			resp.Diagnostics.Append(diags...)
+
+			// Collect all errors
+			if diags.HasError() {
+				continue
+			}
+
+			// If the matched path value is null or unknown, we cannot compare
+			// values, so continue to other matched paths.
+			if matchedPathValue.IsNull() || matchedPathValue.IsUnknown() {
+				continue
+			}
+
+			// Now that we know the matched path value is not null or unknown,
+			// it is safe to attempt converting it to the intended attr.Value
+			// implementation, in this case a types.Int64 value.
+			var matchedPathConfig types.Int64
+
+			diags = tftypes.ValueAs(ctx, matchedPathValue, &matchedPathConfig)
+
+			resp.Diagnostics.Append(diags...)
+
+			// If the matched path value was not able to be converted from
+			// attr.Value to the intended types.Int64 implementation, it most
+			// likely means that the path expression was not pointing at a
+			// types.Int64Type attribute. Collect the error and continue to
+			// other matched paths.
+			if diags.HasError() {
+				continue
+			}
+
+			if matchedPathConfig.Value >= attributeConfig.Value {
+				resp.Diagnostics.AddAttributeError(
+					matchedPath,
+					"Invalid Attribute Value",
+					fmt.Sprintf("Must be less than %s value: %d", req.AttributePath, attributeConfig.Value),
+				)
+			}
+		}
+	}
+}
+
+// Int64IsGreaterThan checks that any Int64 values in the paths described by the
+// path.Expression are less than the current attribute value.
+func Int64IsGreaterThan(expressions ...path.Expression) tfsdk.AttributeValidator {
+	return &int64IsGreaterThanValidator{
+		expressions: expressions,
+	}
+}
+```
+
 ## Type Validation
 
 You may want to create a custom type to simplify schemas if your provider contains common attribute values with consistent validation rules. When you implement validation on a type, you do not need to declare the same validation on the attribute, but you can supply additional validations in that manner. For example:

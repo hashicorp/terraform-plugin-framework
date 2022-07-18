@@ -5,7 +5,43 @@ import (
 )
 
 // Expression represents an attribute path with expression steps, which can
-// represent zero, one, or more actual Paths.
+// represent zero, one, or more actual paths in schema data. This logic is
+// either based on an absolute path starting at the root of the schema data,
+// similar to Path, or a relative path which is intended to be merged with an
+// existing absolute path.
+//
+// Use the MatchRoot() function to create an Expression for an absolute path
+// with an initial AtName() step. Use the MatchRelative() function to create
+// an Expression for a relative path, which will be merged with an existing
+// absolute path.
+//
+// Similar to Path, Expression functionality has some overlapping method names
+// and follows a builder pattern, which allows for chaining method calls to
+// construct a full expression. The available traversal steps after Expression
+// creation are:
+//
+//     - AtAnyListIndex(): Step into a list at any index
+//     - AtAnyMapKey(): Step into a map at any key
+//     - AtAnySetValue(): Step into a set at any attr.Value element
+//     - AtListIndex(): Step into a list at a specific index
+//     - AtMapKey(): Step into a map at a specific key
+//     - AtName(): Step into an attribute or block with a specific name
+//     - AtParent(): Step backwards one step
+//     - AtSetValue(): Step into a set at a specific attr.Value element
+//
+// For example, to express any list element with a root list attribute named
+// "some_attribute":
+//
+//     path.MatchRoot("some_attribute").AtAnyListIndex()
+//
+// An Expression is generally preferable over a Path in schema-defined
+// functionality that is intended to accept paths as parameters, such as
+// attribute validators and attribute plan modifiers, since it allows consumers
+// to support relative paths. Use the Merge() or MergeExpressions() method to
+// combine the current attribute path expression with those expression(s).
+//
+// To find Paths from an Expression in schema based data structures, such as
+// tfsdk.Config, tfsdk.Plan, and tfsdk.State, use their PathMatches() method.
 type Expression struct {
 	// root stores whether an expression was intentionally created to start
 	// from the root of the data. This is used with Merge to overwrite steps
@@ -163,6 +199,9 @@ func (e Expression) Merge(other Expression) Expression {
 
 // MergeExpressions returns collection of expressions that calls Merge() on
 // the current expression with each of the others.
+//
+// If no Expression are given, then it will return a collection of expressions
+// containing only the current expression.
 func (e Expression) MergeExpressions(others ...Expression) Expressions {
 	var result Expressions
 

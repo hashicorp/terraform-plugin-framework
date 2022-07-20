@@ -107,6 +107,7 @@ func (p Path) Equal(o Path) bool {
 // Expression returns an Expression which exactly matches the Path.
 func (p Path) Expression() Expression {
 	return Expression{
+		root:  true,
 		steps: p.steps.ExpressionSteps(),
 	}
 }

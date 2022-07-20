@@ -139,12 +139,17 @@ func (e Expression) AtSetValue(value attr.Value) Expression {
 // affecting the original.
 func (e Expression) Copy() Expression {
 	return Expression{
+		root:  e.root,
 		steps: e.Steps().Copy(),
 	}
 }
 
 // Equal returns true if the given expression is exactly equivalent.
 func (e Expression) Equal(o Expression) bool {
+	if e.root != o.root {
+		return false
+	}
+
 	if e.steps == nil && o.steps == nil {
 		return true
 	}

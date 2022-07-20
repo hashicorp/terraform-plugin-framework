@@ -1,0 +1,3 @@
+```release-note:bug
+path: Ensured `Expression` type `Copy()` method appropriately copied root expressions and `Equal()` checked for root versus relative expressions
+```

@@ -3,7 +3,10 @@ package fwserver
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -75,6 +78,29 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
+
+		// Terraform 0.12 through 0.15.1 do not implement block MaxItems
+		// validation.
+		//
+		// Terraform 0.15.2 and later implements MaxItems validation during
+		// configuration decoding, so if this framework drops Terraform support
+		// for earlier versions, this validation can be removed.
+		if b.MaxItems > 0 && int64(len(l.Elems)) > b.MaxItems {
+			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.MaxItems, len(l.Elems)))
+		}
+
+		// Terraform 0.12 through 0.15.1 implement conservative block MinItems
+		// validation, where the MinItems can be reset to 1 in certain
+		// situations. This validation must ensure the list itself is not
+		// unknown, which could erroneously trigger the error since the list
+		// would have 0 elements.
+		//
+		// Terraform 0.15.2 and later implements proper MinItems validation
+		// during configuration decoding, so if this framework drops Terraform
+		// support for earlier versions, this validation can be removed.
+		if b.MinItems > 0 && int64(len(l.Elems)) < b.MinItems && !l.IsUnknown() {
+			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.MinItems, len(l.Elems)))
+		}
 	case tfsdk.BlockNestingModeSet:
 		s, ok := req.AttributeConfig.(types.Set)
 
@@ -120,6 +146,29 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
+
+		// Terraform 0.12 through 0.15.1 do not implement block MaxItems
+		// validation.
+		//
+		// Terraform 0.15.2 and later implements MaxItems validation during
+		// configuration decoding, so if this framework drops Terraform support
+		// for earlier versions, this validation can be removed.
+		if b.MaxItems > 0 && int64(len(s.Elems)) > b.MaxItems {
+			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.MaxItems, len(s.Elems)))
+		}
+
+		// Terraform 0.12 through 0.15.1 implement conservative block MinItems
+		// validation, where the MinItems can be reset to 1 in certain
+		// situations. This validation must ensure the set itself is not
+		// unknown, which could erroneously trigger the error since the set
+		// would have 0 elements.
+		//
+		// Terraform 0.15.2 and later implements proper MinItems validation
+		// during configuration decoding, so if this framework drops Terraform
+		// support for earlier versions, this validation can be removed.
+		if b.MinItems > 0 && int64(len(s.Elems)) < b.MinItems && !s.IsUnknown() {
+			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.MinItems, len(s.Elems)))
+		}
 	default:
 		err := fmt.Errorf("unknown block validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
 		resp.Diagnostics.AddAttributeError(
@@ -152,4 +201,54 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 			)
 		}
 	}
+}
+
+func blockMaxItemsDiagnostic(attrPath path.Path, maxItems int64, elements int) diag.Diagnostic {
+	var details strings.Builder
+
+	details.WriteString("The configuration should declare a maximum of ")
+
+	if maxItems == 1 {
+		details.WriteString("1 block")
+	} else {
+		details.WriteString(fmt.Sprintf("%d blocks", maxItems))
+	}
+
+	// Elements will always be greater than 1, so do not need to handle the
+	// singular case.
+	details.WriteString(fmt.Sprintf(", however %d blocks were configured.", elements))
+
+	return diag.NewAttributeErrorDiagnostic(
+		attrPath,
+		"Extra Block Configuration",
+		details.String(),
+	)
+}
+
+func blockMinItemsDiagnostic(attrPath path.Path, minItems int64, elements int) diag.Diagnostic {
+	var details strings.Builder
+
+	details.WriteString("The configuration should declare a minimum of ")
+
+	if minItems == 1 {
+		details.WriteString("1 block")
+	} else {
+		details.WriteString(fmt.Sprintf("%d blocks", minItems))
+	}
+
+	details.WriteString(", however ")
+
+	if elements == 1 {
+		details.WriteString("1 block was")
+	} else {
+		details.WriteString(fmt.Sprintf("%d blocks were", elements))
+	}
+
+	details.WriteString(" configured.")
+
+	return diag.NewAttributeErrorDiagnostic(
+		attrPath,
+		"Missing Block Configuration",
+		details.String(),
+	)
 }

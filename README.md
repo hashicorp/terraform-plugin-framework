@@ -18,7 +18,7 @@ We welcome and appreciate issues and PRs discussing both the design and implemen
 
 ## Terraform CLI Compatibility
 
-Plugins built with this framework are only compatible with Terraform versions above v1.0.3.
+Providers built with this framework are compatible with Terraform version v0.12 and above.
 
 ## Go Compatibility
 

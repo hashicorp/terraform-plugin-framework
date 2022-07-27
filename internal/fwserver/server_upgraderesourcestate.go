@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // UpgradeResourceStateRequest is the framework server request for the
@@ -57,12 +59,19 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 	// version which would never get called, the framework can introduce a
 	// unit test helper.
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/113
+	//
+	// UnmarshalWithOpts allows optionally ignoring instances in which elements being
+	// do not have a corresponding attribute within the schema.
 	if req.Version == req.ResourceSchema.Version {
 		logging.FrameworkTrace(ctx, "UpgradeResourceState request version matches current Schema version, using framework defined passthrough implementation")
 
 		resourceSchemaType := req.ResourceSchema.TerraformType(ctx)
 
-		rawStateValue, err := req.RawState.Unmarshal(resourceSchemaType)
+		rawStateValue, err := req.RawState.UnmarshalWithOpts(resourceSchemaType, tftypes.UnmarshalOpts{
+			JSONOpts: tftypes.JSONOpts{
+				IgnoreUndefinedAttributes: true,
+			},
+		})
 
 		if err != nil {
 			resp.Diagnostics.AddError(

@@ -26,9 +26,24 @@ type Block struct {
 	// behaves exactly like the map of blocks on the Schema type.
 	Blocks map[string]Block
 
-	// DeprecationMessage defines a message to display to practitioners
-	// using this block, warning them that it is deprecated and
-	// instructing them on what upgrade steps to take.
+	// DeprecationMessage defines warning diagnostic details to display to
+	// practitioners configuring this Block. The warning diagnostic summary
+	// is automatically set to "Block Deprecated" along with configuration
+	// source file and line information.
+	//
+	// This warning diagnostic is only displayed during Terraform's validation
+	// phase when this field is a non-empty string and if the practitioner
+	// configuration attempts to set the block value to a known or unknown
+	// value (which may eventually be null).
+	//
+	// Set this field to a practitioner actionable message such as:
+	//
+	//     - "Configure other_attribute instead. This block will be removed
+	//       in the next major version of the provider."
+	//     - "Remove this block's configuration as it no longer is used and
+	//       the block will be removed in the next major version of the
+	//       provider."
+	//
 	DeprecationMessage string
 
 	// Description is used in various tooling, like the language server, to

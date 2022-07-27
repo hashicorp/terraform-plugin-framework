@@ -252,8 +252,19 @@ description](#markdowndescription), so too can individual attributes.
 
 ### DeprecationMessage
 
-Much like [resources, data sources, and providers can be
-deprecated](#deprecationmessage), so too can individual attributes.
+Individual attributes can be deprecated similar to resources, data sources, and providers. When the `DeprecationMessage` value is a non-empty string, the framework will automatically raise a warning diagnostic to practitioners if a configuration value (known or unknown) is detected for the attribute during Terraform's validation phase:
+
+```text
+Warning: Attribute Deprecated
+
+{Configuration file/line information}
+
+{DeprecationMessage field value}
+```
+
+Use a practitioner actionable recommendation in `DeprecationMessage`, such as `"Configure other_attribute instead. This attribute will be removed in the next major version of the provider."` or `"Remove this attribute's configuration as it no longer is used and the attribute will be removed in the next major version of the provider."`.
+
+~> **NOTE**: This warning diagnostic is only raised for configurable (`Required` or `Optional`) attributes when a configuration value is detected. A warning diagnostic is not raised for read-only (`Computed` only) attributes when referenced.
 
 ### Validators
 

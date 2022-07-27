@@ -29,7 +29,7 @@ described at https://www.hashicorp.com/security#vulnerability-reporting
 
 ## New Issue
 
-We welcome issues of all kinds including feature requests, bug reports or documentation suggestions. Below are guidelines for well-formed issues of each type.
+We welcome issues of all kinds including feature requests, bug reports or documentation contributions. Below are guidelines for well-formed issues of each type.
 
 ### Bug Reports
 
@@ -46,6 +46,20 @@ We welcome issues of all kinds including feature requests, bug reports or docume
  - **Search for possible duplicate requests**: It's helpful to keep requests consolidated to one thread, so do a quick search on existing requests to check if anybody else has reported the same thing. You can scope searches by the label `enhancement` to help narrow things down.
 
  - **Include a use case description**: In addition to describing the behavior of the feature you'd like to see added, it's helpful to also lay out the reason why the feature would be important and how it would benefit the wider Terraform ecosystem. Use case in context of 1 provider is good, wider context of more providers is better.
+
+### Documentation Contributions
+
+ - [ ] **Search for possible duplicate suggestions**: It's helpful to keep
+   suggestions consolidated to one thread, so do a quick search on existing
+   issues to check if anybody else has suggested the same thing. You can scope
+   searches by the label `documentation` to help narrow things down.
+
+ - [ ] **Describe the questions you're hoping the documentation will answer**:
+   It's very helpful when writing documentation to have specific questions like
+   "how do I implement a default value?" in mind. This helps us ensure the
+   documentation is targeted, specific, and framed in a useful way.
+
+ - [ ] **Contribute**: This repository contains the markdown files that generate versioned documentation for [terraform.io/plugin/framework](https://www.terraform.io/plugin/framework). Please open a pull request with documentation changes. Refer to the [website README](../website/README.md) for more information.
 
 ## New Pull Request
 

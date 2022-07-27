@@ -258,7 +258,7 @@ func (r exampleResource) UpgradeState(ctx context.Context) map[int64]tfsdk.Resou
 
                     if err := rawState["optional_attribute"].As(&optionalAttribute); err != nil {
                         resp.Diagnostics.AddAttributeError(
-                            tftypes.NewAttributePath().WithAttributeName("optional_attribute"),
+                            path.Root("optional_attribute"),
                             "Unable to Convert Prior State",
                             err.Error(),
                         )
@@ -273,7 +273,7 @@ func (r exampleResource) UpgradeState(ctx context.Context) map[int64]tfsdk.Resou
 
                 if err := rawState["required_attribute"].As(&requiredAttribute); err != nil {
                     resp.Diagnostics.AddAttributeError(
-                        tftypes.NewAttributePath().WithAttributeName("required_attribute"),
+                        path.Root("required_attribute"),
                         "Unable to Convert Prior State",
                         err.Error(),
                     )

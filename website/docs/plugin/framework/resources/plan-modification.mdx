@@ -117,12 +117,36 @@ func stringDefault(defaultValue string) stringDefaultModifier {
 Resources also support plan modification across all attributes. This is helpful when working with logic that applies to the resource as a whole, or in Terraform 1.3 and later, to return diagnostics during resource destruction. Implement the [`tfsdk.ResourceWithModifyPlan` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceWithModifyPlan) to support resource-level plan modification. For example:
 
 ```go
+// Ensure the Resource satisfies the tfsdk.ResourceWithModifyPlan interface.
 // Other methods to implement the tfsdk.Resource interface are omitted for brevity
+var _ tfsdk.ResourceWithModifyPlan = exampleResource{}
+
 type exampleResource struct {}
 
-func (r exampleResource) ModifyPlan(ctx context.Context, req ModifyResourcePlanRequest, resp *ModifyResourcePlanResponse) {
+func (r exampleResource) ModifyPlan(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
     // Fill in logic.
 }
 ```
 
-Ensure the response plan remains entirely `null` when the request plan is entirely `null` due to resource destruction.
+### Resource Destroy Plan Diagnostics
+
+-> Support for handling resource destruction during planning is available in Terraform 1.3 and later.
+
+Implement the `ModifyPlan` method by checking if the [`tfsdk.ModifyResourcePlanRequest` type `Plan` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ModifyResourcePlanRequest.Plan) is a `null` value:
+
+```go
+func (r exampleResource) ModifyPlan(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+    // If the entire plan is null, the resource is planned for destruction.
+    if req.Plan.Raw.IsNull() {
+        // Return an example warning diagnostic to practitioners.
+        resp.Diagnostics.AddWarning(
+            "Resource Destruction Considerations",
+            "Applying this resource destruction will only remove the resource from the Terraform state "+
+                "and will not call the deletion API due to API limitations. Manually use the web "+
+                "interface to fully destroy this resource.",
+        )
+    }
+}
+```
+
+Ensure the response plan remains entirely `null` when the request plan is entirely `null`.

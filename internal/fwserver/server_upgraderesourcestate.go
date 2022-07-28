@@ -44,6 +44,15 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		return
 	}
 
+	// Define options to be used when unmarshalling raw state.
+	// IgnoreUndefinedAttributes will silently skip over fields in the JSON
+	// that do not have a matching entry in the schema.
+	unmarshalOpts := tfprotov6.UnmarshalOpts{
+		ValueFromJSONOpts: tftypes.ValueFromJSONOpts{
+			IgnoreUndefinedAttributes: true,
+		},
+	}
+
 	// Terraform CLI can call UpgradeResourceState even if the stored state
 	// version matches the current schema. Presumably this is to account for
 	// the previous terraform-plugin-sdk implementation, which handled some
@@ -54,7 +63,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 	// detail for provider developers. Instead, the framework will attempt to
 	// roundtrip the prior RawState to a State matching the current Schema.
 	//
-	// TODO: To prevent provider developers from accidentially implementing
+	// TODO: To prevent provider developers from accidentally implementing
 	// ResourceWithUpgradeState with a version matching the current schema
 	// version which would never get called, the framework can introduce a
 	// unit test helper.
@@ -67,11 +76,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 
 		resourceSchemaType := req.ResourceSchema.TerraformType(ctx)
 
-		rawStateValue, err := req.RawState.UnmarshalWithOpts(resourceSchemaType, tftypes.UnmarshalOpts{
-			JSONOpts: tftypes.JSONOpts{
-				IgnoreUndefinedAttributes: true,
-			},
-		})
+		rawStateValue, err := req.RawState.UnmarshalWithOpts(resourceSchemaType, unmarshalOpts)
 
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -147,7 +152,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 
 		priorSchemaType := resourceStateUpgrader.PriorSchema.TerraformType(ctx)
 
-		rawStateValue, err := req.RawState.Unmarshal(priorSchemaType)
+		rawStateValue, err := req.RawState.UnmarshalWithOpts(priorSchemaType, unmarshalOpts)
 
 		if err != nil {
 			resp.Diagnostics.AddError(

@@ -466,6 +466,91 @@ func TestServerUpgradeResourceState(t *testing.T) {
 				},
 			},
 		},
+		"PriorSchema-and-State-json-mismatch": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                    "test-id-value",
+					"required_attribute":    true,
+					"nonexistent_attribute": "value",
+				}),
+				ResourceSchema: schema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return schema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+						return &testprovider.ResourceWithUpgradeState{
+							Resource: &testprovider.Resource{},
+							UpgradeStateMethod: func(ctx context.Context) map[int64]tfsdk.ResourceStateUpgrader {
+								return map[int64]tfsdk.ResourceStateUpgrader{
+									0: {
+										PriorSchema: &tfsdk.Schema{
+											Attributes: map[string]tfsdk.Attribute{
+												"id": {
+													Type:     types.StringType,
+													Computed: true,
+												},
+												"optional_attribute": {
+													Type:     types.BoolType,
+													Optional: true,
+												},
+												"required_attribute": {
+													Type:     types.BoolType,
+													Required: true,
+												},
+											},
+										},
+										StateUpgrader: func(ctx context.Context, req tfsdk.UpgradeResourceStateRequest, resp *tfsdk.UpgradeResourceStateResponse) {
+											var priorStateData struct {
+												Id                string `tfsdk:"id"`
+												OptionalAttribute *bool  `tfsdk:"optional_attribute"`
+												RequiredAttribute bool   `tfsdk:"required_attribute"`
+											}
+
+											resp.Diagnostics.Append(req.State.Get(ctx, &priorStateData)...)
+
+											if resp.Diagnostics.HasError() {
+												return
+											}
+
+											upgradedStateData := struct {
+												Id                string  `tfsdk:"id"`
+												OptionalAttribute *string `tfsdk:"optional_attribute"`
+												RequiredAttribute string  `tfsdk:"required_attribute"`
+											}{
+												Id:                priorStateData.Id,
+												RequiredAttribute: fmt.Sprintf("%t", priorStateData.RequiredAttribute),
+											}
+
+											if priorStateData.OptionalAttribute != nil {
+												v := fmt.Sprintf("%t", *priorStateData.OptionalAttribute)
+												upgradedStateData.OptionalAttribute = &v
+											}
+
+											resp.Diagnostics.Append(resp.State.Set(ctx, upgradedStateData)...)
+										},
+									},
+								}
+							},
+						}, nil
+					},
+				},
+				Version: 0,
+			},
+			expectedResponse: &fwserver.UpgradeResourceStateResponse{
+				UpgradedState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
+						"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: schema,
+				},
+			},
+		},
 		"UpgradedState-missing": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},

@@ -3,22 +3,22 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
-var _ tfsdk.Provider = &ProviderWithConfigValidators{}
-var _ tfsdk.ProviderWithConfigValidators = &ProviderWithConfigValidators{}
+var _ provider.Provider = &ProviderWithConfigValidators{}
+var _ provider.ProviderWithConfigValidators = &ProviderWithConfigValidators{}
 
-// Declarative tfsdk.ProviderWithConfigValidators for unit testing.
+// Declarative provider.ProviderWithConfigValidators for unit testing.
 type ProviderWithConfigValidators struct {
 	*Provider
 
 	// ProviderWithConfigValidators interface methods
-	ConfigValidatorsMethod func(context.Context) []tfsdk.ProviderConfigValidator
+	ConfigValidatorsMethod func(context.Context) []provider.ConfigValidator
 }
 
-// GetMetaSchema satisfies the tfsdk.ProviderWithConfigValidators interface.
-func (p *ProviderWithConfigValidators) ConfigValidators(ctx context.Context) []tfsdk.ProviderConfigValidator {
+// GetMetaSchema satisfies the provider.ProviderWithConfigValidators interface.
+func (p *ProviderWithConfigValidators) ConfigValidators(ctx context.Context) []provider.ConfigValidator {
 	if p.ConfigValidatorsMethod == nil {
 		return nil
 	}

@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -16,7 +18,7 @@ type DeleteResourceRequest struct {
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema tfsdk.Schema
-	ResourceType   tfsdk.ResourceType
+	ResourceType   provider.ResourceType
 }
 
 // DeleteResourceResponse is the framework server response for a delete request
@@ -36,7 +38,7 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 
 	// Always instantiate new Resource instances.
 	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := req.ResourceType.NewResource(ctx, s.Provider)
+	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
 	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 
 	resp.Diagnostics.Append(diags...)
@@ -45,13 +47,13 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		return
 	}
 
-	deleteReq := tfsdk.DeleteResourceRequest{
+	deleteReq := resource.DeleteRequest{
 		State: tfsdk.State{
 			Schema: req.ResourceSchema,
 			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
 		},
 	}
-	deleteResp := tfsdk.DeleteResourceResponse{
+	deleteResp := resource.DeleteResponse{
 		State: tfsdk.State{
 			Schema: req.ResourceSchema,
 			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
@@ -68,7 +70,7 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Delete")
-	resource.Delete(ctx, deleteReq, &deleteResp)
+	resourceImpl.Delete(ctx, deleteReq, &deleteResp)
 	logging.FrameworkDebug(ctx, "Called provider defined Resource Delete")
 
 	if !deleteResp.Diagnostics.HasError() {

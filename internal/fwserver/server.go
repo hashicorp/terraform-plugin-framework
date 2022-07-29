@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -14,7 +15,7 @@ import (
 // implementations wrap this handling along with calling all request and
 // response type conversions.
 type Server struct {
-	Provider tfsdk.Provider
+	Provider provider.Provider
 
 	// dataSourceSchemas is the cached DataSource Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
@@ -33,7 +34,7 @@ type Server struct {
 	// dataSourceTypes is the cached DataSourceTypes for RPCs that need to
 	// access data sources. If not found, it will be fetched from the
 	// Provider.GetDataSources() method.
-	dataSourceTypes map[string]tfsdk.DataSourceType
+	dataSourceTypes map[string]provider.DataSourceType
 
 	// dataSourceTypesDiags is the cached Diagnostics obtained while populating
 	// dataSourceTypes. This is to ensure any warnings or errors are also
@@ -89,7 +90,7 @@ type Server struct {
 	// resourceTypes is the cached ResourceTypes for RPCs that need to
 	// access resources. If not found, it will be fetched from the
 	// Provider.GetResources() method.
-	resourceTypes map[string]tfsdk.ResourceType
+	resourceTypes map[string]provider.ResourceType
 
 	// resourceTypesDiags is the cached Diagnostics obtained while populating
 	// resourceTypes. This is to ensure any warnings or errors are also
@@ -161,7 +162,7 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]*tfsdk.Schem
 }
 
 // DataSourceType returns the DataSourceType for a given type name.
-func (s *Server) DataSourceType(ctx context.Context, typeName string) (tfsdk.DataSourceType, diag.Diagnostics) {
+func (s *Server) DataSourceType(ctx context.Context, typeName string) (provider.DataSourceType, diag.Diagnostics) {
 	dataSourceTypes, diags := s.DataSourceTypes(ctx)
 
 	dataSourceType, ok := dataSourceTypes[typeName]
@@ -180,7 +181,7 @@ func (s *Server) DataSourceType(ctx context.Context, typeName string) (tfsdk.Dat
 
 // DataSourceTypes returns the map of DataSourceTypes. The results are cached
 // on first use.
-func (s *Server) DataSourceTypes(ctx context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
+func (s *Server) DataSourceTypes(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
 	logging.FrameworkTrace(ctx, "Checking DataSourceTypes lock")
 	s.dataSourceTypesMutex.Lock()
 	defer s.dataSourceTypesMutex.Unlock()
@@ -218,16 +219,16 @@ func (s *Server) ProviderSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagno
 }
 
 // ProviderMetaSchema returns the Meta Schema associated with the Provider, if
-// it implements the ProviderWithProviderMeta interface. The Schema and
+// it implements the ProviderWithMetaSchema interface. The Schema and
 // Diagnostics are cached on first use.
 func (s *Server) ProviderMetaSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagnostics) {
-	providerWithProviderMeta, ok := s.Provider.(tfsdk.ProviderWithProviderMeta)
+	providerWithProviderMeta, ok := s.Provider.(provider.ProviderWithMetaSchema)
 
 	if !ok {
 		return nil, nil
 	}
 
-	logging.FrameworkTrace(ctx, "Provider implements ProviderWithProviderMeta")
+	logging.FrameworkTrace(ctx, "Provider implements ProviderWithMetaSchema")
 	logging.FrameworkTrace(ctx, "Checking ProviderMetaSchema lock")
 	s.providerMetaSchemaMutex.Lock()
 	defer s.providerMetaSchemaMutex.Unlock()
@@ -306,7 +307,7 @@ func (s *Server) ResourceSchemas(ctx context.Context) (map[string]*tfsdk.Schema,
 }
 
 // ResourceType returns the ResourceType for a given type name.
-func (s *Server) ResourceType(ctx context.Context, typeName string) (tfsdk.ResourceType, diag.Diagnostics) {
+func (s *Server) ResourceType(ctx context.Context, typeName string) (provider.ResourceType, diag.Diagnostics) {
 	resourceTypes, diags := s.ResourceTypes(ctx)
 
 	resourceType, ok := resourceTypes[typeName]
@@ -325,7 +326,7 @@ func (s *Server) ResourceType(ctx context.Context, typeName string) (tfsdk.Resou
 
 // ResourceTypes returns the map of ResourceTypes. The results are cached
 // on first use.
-func (s *Server) ResourceTypes(ctx context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+func (s *Server) ResourceTypes(ctx context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
 	logging.FrameworkTrace(ctx, "Checking ResourceTypes lock")
 	s.resourceTypesMutex.Lock()
 	defer s.resourceTypesMutex.Unlock()

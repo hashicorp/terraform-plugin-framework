@@ -3,22 +3,22 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ tfsdk.Resource = &ResourceWithImportState{}
-var _ tfsdk.ResourceWithImportState = &ResourceWithImportState{}
+var _ resource.Resource = &ResourceWithImportState{}
+var _ resource.ResourceWithImportState = &ResourceWithImportState{}
 
-// Declarative tfsdk.ResourceWithImportState for unit testing.
+// Declarative resource.ResourceWithImportState for unit testing.
 type ResourceWithImportState struct {
 	*Resource
 
 	// ResourceWithImportState interface methods
-	ImportStateMethod func(context.Context, tfsdk.ImportResourceStateRequest, *tfsdk.ImportResourceStateResponse)
+	ImportStateMethod func(context.Context, resource.ImportStateRequest, *resource.ImportStateResponse)
 }
 
-// ImportState satisfies the tfsdk.ResourceWithImportState interface.
-func (p *ResourceWithImportState) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+// ImportState satisfies the resource.ResourceWithImportState interface.
+func (p *ResourceWithImportState) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if p.ImportStateMethod == nil {
 		return
 	}

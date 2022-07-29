@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -19,7 +21,7 @@ type ImportedResource struct {
 // ImportResourceState RPC.
 type ImportResourceStateRequest struct {
 	ID           string
-	ResourceType tfsdk.ResourceType
+	ResourceType provider.ResourceType
 
 	// EmptyState is an empty State for the resource schema. This is used to
 	// initialize the ImportedResource State of the ImportResourceStateResponse
@@ -47,7 +49,7 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 
 	// Always instantiate new Resource instances.
 	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := req.ResourceType.NewResource(ctx, s.Provider)
+	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
 	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 
 	resp.Diagnostics.Append(diags...)
@@ -56,7 +58,7 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		return
 	}
 
-	resourceWithImportState, ok := resource.(tfsdk.ResourceWithImportState)
+	resourceWithImportState, ok := resourceImpl.(resource.ResourceWithImportState)
 
 	if !ok {
 		// If there is a feature request for customizing this messaging,
@@ -76,10 +78,10 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		return
 	}
 
-	importReq := tfsdk.ImportResourceStateRequest{
+	importReq := resource.ImportStateRequest{
 		ID: req.ID,
 	}
-	importResp := tfsdk.ImportResourceStateResponse{
+	importResp := resource.ImportStateResponse{
 		State: tfsdk.State{
 			Raw:    req.EmptyState.Raw.Copy(),
 			Schema: req.EmptyState.Schema,

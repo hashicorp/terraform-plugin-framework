@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -96,7 +97,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 								return testSchema, nil
 							},
 						},
-						ValidateConfigMethod: func(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+						ValidateConfigMethod: func(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
 							resp.Diagnostics.AddWarning("warning summary", "warning detail")
 							resp.Diagnostics.AddError("error summary", "error detail")
 						},

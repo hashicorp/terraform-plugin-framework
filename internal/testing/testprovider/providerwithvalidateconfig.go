@@ -3,22 +3,22 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
-var _ tfsdk.Provider = &ProviderWithValidateConfig{}
-var _ tfsdk.ProviderWithValidateConfig = &ProviderWithValidateConfig{}
+var _ provider.Provider = &ProviderWithValidateConfig{}
+var _ provider.ProviderWithValidateConfig = &ProviderWithValidateConfig{}
 
-// Declarative tfsdk.ProviderWithValidateConfig for unit testing.
+// Declarative provider.ProviderWithValidateConfig for unit testing.
 type ProviderWithValidateConfig struct {
 	*Provider
 
 	// ProviderWithValidateConfig interface methods
-	ValidateConfigMethod func(context.Context, tfsdk.ValidateProviderConfigRequest, *tfsdk.ValidateProviderConfigResponse)
+	ValidateConfigMethod func(context.Context, provider.ValidateConfigRequest, *provider.ValidateConfigResponse)
 }
 
-// GetMetaSchema satisfies the tfsdk.ProviderWithValidateConfig interface.
-func (p *ProviderWithValidateConfig) ValidateConfig(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+// GetMetaSchema satisfies the provider.ProviderWithValidateConfig interface.
+func (p *ProviderWithValidateConfig) ValidateConfig(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
 	if p.ValidateConfigMethod == nil {
 		return
 	}

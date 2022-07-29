@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -36,8 +37,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 		"datasourceschemas": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
-						return map[string]tfsdk.DataSourceType{
+					GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+						return map[string]provider.DataSourceType{
 							"test_data_source1": &testprovider.DataSourceType{
 								GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 									return tfsdk.Schema{
@@ -127,7 +128,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 		},
 		"providermeta": {
 			server: &fwserver.Server{
-				Provider: &testprovider.ProviderWithProviderMeta{
+				Provider: &testprovider.ProviderWithMetaSchema{
 					Provider: &testprovider.Provider{},
 					GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return tfsdk.Schema{
@@ -162,8 +163,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 		"resourceschemas": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-						return map[string]tfsdk.ResourceType{
+					GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+						return map[string]provider.ResourceType{
 							"test_resource1": &testprovider.ResourceType{
 								GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 									return tfsdk.Schema{

@@ -6,17 +6,17 @@ description: >-
 
 # Resource Import
 
-Practitioners can use the  [`terraform import` command](/cli/commands/import) to let Terraform begin managing existing infrastructure resources. Resources can implement the `ImportState` method, which must either specify enough Terraform state for the `Read` method to refresh [`tfsdk.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Resource) or return an error.
+Practitioners can use the  [`terraform import` command](/cli/commands/import) to let Terraform begin managing existing infrastructure resources. Resources can implement the `ImportState` method, which must either specify enough Terraform state for the `Read` method to refresh [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) or return an error.
 
 ## Single Attribute
 
-When the `Read` method requires a single attribute to refresh, use the [`tfsdk.ResourceImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceImportStatePassthroughID) to write the import identifier argument for `terraform import`.
+When the `Read` method requires a single attribute to refresh, use the [`resource.ImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStatePassthroughID) to write the import identifier argument for `terraform import`.
 
 In the following example, the `terraform import` command passes the import identifier to the `id` attribute in Terraform state.
 
 ```go
-func (r exampleResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-    tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+func (r exampleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+    resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 ```
 
@@ -24,11 +24,11 @@ func (r exampleResource) ImportState(ctx context.Context, req tfsdk.ImportResour
 
 When the `Read` method requires multiple attributes to refresh, you must write custom logic in the `ImportState` method. Specifically, the implementation must:
 
-1. Use the import identifier from the [`tfsdk.ImportResourceStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ImportResourceStateRequest). 
+1. Use the import identifier from the [`resource.ImportStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateRequest). 
 1. Perform the custom logic.
-1. [Set state data](/plugin/framework/writing-state) in the [`tfsdk.ImportResourceStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ImportResourceStateResponse).
+1. [Set state data](/plugin/framework/writing-state) in the [`resource.ImportStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse).
 
-For example, if the `tfsdk.ResourceType` implementation has the following `GetSchema` method:
+For example, if the `provider.ResourceType` implementation has the following `GetSchema` method:
 
 ```go
 func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -48,10 +48,10 @@ func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 }
 ```
 
-Along with a `tfsdk.Resource` implementation with the following `Read` method:
+Along with a `resource.Resource` implementation with the following `Read` method:
 
 ```go
-func (r exampleResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+func (r exampleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
     var attrOne, attrTwo string
 
     resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("attr_one"), &attrOne)...)
@@ -70,7 +70,7 @@ The `terraform import` command will need to accept both attribute values as a si
 You could define the `ImportState` method using a comma-separated value as follows:
 
 ```go
-func (r exampleResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+func (r exampleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
     idParts := strings.Split(req.ID, ",")
 
     if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {

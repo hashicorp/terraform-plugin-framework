@@ -3,20 +3,20 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-var _ tfsdk.DataSourceConfigValidator = &DataSourceConfigValidator{}
+var _ datasource.ConfigValidator = &DataSourceConfigValidator{}
 
-// Declarative tfsdk.DataSourceConfigValidator for unit testing.
+// Declarative datasource.ConfigValidator for unit testing.
 type DataSourceConfigValidator struct {
 	// DataSourceConfigValidator interface methods
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
-	ValidateDataSourceMethod  func(context.Context, tfsdk.ValidateDataSourceConfigRequest, *tfsdk.ValidateDataSourceConfigResponse)
+	ValidateDataSourceMethod  func(context.Context, datasource.ValidateConfigRequest, *datasource.ValidateConfigResponse)
 }
 
-// Description satisfies the tfsdk.DataSourceConfigValidator interface.
+// Description satisfies the datasource.ConfigValidator interface.
 func (v *DataSourceConfigValidator) Description(ctx context.Context) string {
 	if v.DescriptionMethod == nil {
 		return ""
@@ -25,7 +25,7 @@ func (v *DataSourceConfigValidator) Description(ctx context.Context) string {
 	return v.DescriptionMethod(ctx)
 }
 
-// MarkdownDescription satisfies the tfsdk.DataSourceConfigValidator interface.
+// MarkdownDescription satisfies the datasource.ConfigValidator interface.
 func (v *DataSourceConfigValidator) MarkdownDescription(ctx context.Context) string {
 	if v.MarkdownDescriptionMethod == nil {
 		return ""
@@ -34,8 +34,8 @@ func (v *DataSourceConfigValidator) MarkdownDescription(ctx context.Context) str
 	return v.MarkdownDescriptionMethod(ctx)
 }
 
-// Validate satisfies the tfsdk.DataSourceConfigValidator interface.
-func (v *DataSourceConfigValidator) ValidateDataSource(ctx context.Context, req tfsdk.ValidateDataSourceConfigRequest, resp *tfsdk.ValidateDataSourceConfigResponse) {
+// Validate satisfies the datasource.ConfigValidator interface.
+func (v *DataSourceConfigValidator) ValidateDataSource(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
 	if v.ValidateDataSourceMethod == nil {
 		return
 	}

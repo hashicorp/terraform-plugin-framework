@@ -9,6 +9,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -20,7 +22,7 @@ type UpgradeResourceStateRequest struct {
 	RawState *tfprotov6.RawState
 
 	ResourceSchema tfsdk.Schema
-	ResourceType   tfsdk.ResourceType
+	ResourceType   provider.ResourceType
 	Version        int64
 }
 
@@ -99,7 +101,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 
 	// Always instantiate new Resource instances.
 	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := req.ResourceType.NewResource(ctx, s.Provider)
+	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
 	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 
 	resp.Diagnostics.Append(diags...)
@@ -108,7 +110,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		return
 	}
 
-	resourceWithUpgradeState, ok := resource.(tfsdk.ResourceWithUpgradeState)
+	resourceWithUpgradeState, ok := resourceImpl.(resource.ResourceWithUpgradeState)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -128,7 +130,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 
 	// Panic prevention
 	if resourceStateUpgraders == nil {
-		resourceStateUpgraders = make(map[int64]tfsdk.ResourceStateUpgrader, 0)
+		resourceStateUpgraders = make(map[int64]resource.StateUpgrader, 0)
 	}
 
 	resourceStateUpgrader, ok := resourceStateUpgraders[req.Version]
@@ -143,7 +145,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		return
 	}
 
-	upgradeResourceStateRequest := tfsdk.UpgradeResourceStateRequest{
+	upgradeResourceStateRequest := resource.UpgradeStateRequest{
 		RawState: req.RawState,
 	}
 
@@ -169,7 +171,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		}
 	}
 
-	upgradeResourceStateResponse := tfsdk.UpgradeResourceStateResponse{
+	upgradeResourceStateResponse := resource.UpgradeStateResponse{
 		State: tfsdk.State{
 			Schema: req.ResourceSchema,
 			// Raw is intentionally not set.

@@ -5,13 +5,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ReadDataSourceRequest returns the *fwserver.ReadDataSourceRequest
 // equivalent of a *tfprotov6.ReadDataSourceRequest.
-func ReadDataSourceRequest(ctx context.Context, proto6 *tfprotov6.ReadDataSourceRequest, dataSourceType tfsdk.DataSourceType, dataSourceSchema *tfsdk.Schema, providerMetaSchema *tfsdk.Schema) (*fwserver.ReadDataSourceRequest, diag.Diagnostics) {
+func ReadDataSourceRequest(ctx context.Context, proto6 *tfprotov6.ReadDataSourceRequest, dataSourceType provider.DataSourceType, dataSourceSchema *tfsdk.Schema, providerMetaSchema *tfsdk.Schema) (*fwserver.ReadDataSourceRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}

@@ -3,20 +3,20 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
-var _ tfsdk.ProviderConfigValidator = &ProviderConfigValidator{}
+var _ provider.ConfigValidator = &ProviderConfigValidator{}
 
-// Declarative tfsdk.ProviderConfigValidator for unit testing.
+// Declarative provider.ConfigValidator for unit testing.
 type ProviderConfigValidator struct {
-	// ProviderConfigValidator interface methods
+	// ConfigValidator interface methods
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
-	ValidateProviderMethod    func(context.Context, tfsdk.ValidateProviderConfigRequest, *tfsdk.ValidateProviderConfigResponse)
+	ValidateProviderMethod    func(context.Context, provider.ValidateConfigRequest, *provider.ValidateConfigResponse)
 }
 
-// Description satisfies the tfsdk.ProviderConfigValidator interface.
+// Description satisfies the provider.ConfigValidator interface.
 func (v *ProviderConfigValidator) Description(ctx context.Context) string {
 	if v.DescriptionMethod == nil {
 		return ""
@@ -25,7 +25,7 @@ func (v *ProviderConfigValidator) Description(ctx context.Context) string {
 	return v.DescriptionMethod(ctx)
 }
 
-// MarkdownDescription satisfies the tfsdk.ProviderConfigValidator interface.
+// MarkdownDescription satisfies the provider.ConfigValidator interface.
 func (v *ProviderConfigValidator) MarkdownDescription(ctx context.Context) string {
 	if v.MarkdownDescriptionMethod == nil {
 		return ""
@@ -34,8 +34,8 @@ func (v *ProviderConfigValidator) MarkdownDescription(ctx context.Context) strin
 	return v.MarkdownDescriptionMethod(ctx)
 }
 
-// Validate satisfies the tfsdk.ProviderConfigValidator interface.
-func (v *ProviderConfigValidator) ValidateProvider(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+// Validate satisfies the provider.ConfigValidator interface.
+func (v *ProviderConfigValidator) ValidateProvider(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
 	if v.ValidateProviderMethod == nil {
 		return
 	}

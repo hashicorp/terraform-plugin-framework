@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -67,7 +68,7 @@ func TestServerConfigureProvider(t *testing.T) {
 						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 							return tfsdk.Schema{}, nil
 						},
-						ConfigureMethod: func(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+						ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 							// Intentially empty, test is passing if it makes it this far
 						},
 					},
@@ -83,7 +84,7 @@ func TestServerConfigureProvider(t *testing.T) {
 						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 							return testSchema, nil
 						},
-						ConfigureMethod: func(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+						ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 							var got types.String
 
 							resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
@@ -111,7 +112,7 @@ func TestServerConfigureProvider(t *testing.T) {
 						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 							return tfsdk.Schema{}, nil
 						},
-						ConfigureMethod: func(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+						ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 							if req.TerraformVersion != "1.0.0" {
 								resp.Diagnostics.AddError("Incorrect req.TerraformVersion", "expected 1.0.0, got "+req.TerraformVersion)
 							}
@@ -131,7 +132,7 @@ func TestServerConfigureProvider(t *testing.T) {
 						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 							return tfsdk.Schema{}, nil
 						},
-						ConfigureMethod: func(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+						ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 							resp.Diagnostics.AddWarning("warning summary", "warning detail")
 							resp.Diagnostics.AddError("error summary", "error detail")
 						},

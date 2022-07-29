@@ -321,26 +321,26 @@ Provider, resource, and data source schemas also support validation across all a
 
 The framework performs provider validation in addition to attribute and type validation. You can implement either or both of the following interfaces.
 
-The [`tfsdk.ProviderWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ProviderWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This lets you write consistent validators across multiple providers. You must implement the [`tfsdk.ProviderConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ProviderConfigValidator) for each validator. For example:
+The [`provider.ProviderWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This lets you write consistent validators across multiple providers. You must implement the [`provider.ConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigValidator) for each validator. For example:
 
 ```go
-// Other methods to implement the tfsdk.Provider interface are omitted for brevity
+// Other methods to implement the provider.Provider interface are omitted for brevity
 type exampleProvider struct {}
 
-func (p exampleProvider) ConfigValidators(ctx context.Context) []tfsdk.ProviderConfigValidator {
-    return []tfsdk.ProviderConfigValidator{
+func (p exampleProvider) ConfigValidators(ctx context.Context) []provider.ConfigValidator {
+    return []provider.ConfigValidator{
         /* ... */
     }
 }
 ```
 
-The [`tfsdk.ProviderWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ProviderWithValidateConfig) is more imperative in design and is useful for validating unique functionality that typically applies to a single provider. For example:
+The [`provider.ProviderWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithValidateConfig) is more imperative in design and is useful for validating unique functionality that typically applies to a single provider. For example:
 
 ```go
-// Other methods to implement the tfsdk.Provider interface are omitted for brevity
+// Other methods to implement the provider.Provider interface are omitted for brevity
 type exampleProvider struct {}
 
-func (p exampleProvider) ValidateConfig(ctx context.Context, req ValidateProviderConfigRequest, resp *ValidateProviderConfigResponse) {
+func (p exampleProvider) ValidateConfig(ctx context.Context, req ValidateConfigRequest, resp *ValidateConfigResponse) {
     // Retrieve values via req.Config.Get() or req.Config.GetAttribute(),
     // then return any warnings or errors via resp.Diagnostics.
 }
@@ -350,26 +350,26 @@ func (p exampleProvider) ValidateConfig(ctx context.Context, req ValidateProvide
 
 The framework performs resource schema validation in addition to any attribute and type validation. You can implement either or both of the following interfaces.
 
-The [`tfsdk.ResourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This lets you create consistent validators across multiple resources. You must implement the [`tfsdk.ResourceConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceConfigValidator) for each validator. For example:
+The [`resource.ResourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This lets you create consistent validators across multiple resources. You must implement the [`resource.ConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ConfigValidator) for each validator. For example:
 
 ```go
-// Other methods to implement the tfsdk.Resource interface are omitted for brevity
+// Other methods to implement the resource.Resource interface are omitted for brevity
 type exampleResource struct {}
 
-func (r exampleResource) ConfigValidators(ctx context.Context) []tfsdk.ResourceConfigValidator {
-    return []tfsdk.ResourceConfigValidator{
+func (r exampleResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+    return []resource.ConfigValidator{
         /* ... */
     }
 }
 ```
 
-The [`tfsdk.ResourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceWithValidateConfig) is more imperative in design and is useful for validating unique functionality that typically applies to a single resource. For example:
+The [`resource.ResourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithValidateConfig) is more imperative in design and is useful for validating unique functionality that typically applies to a single resource. For example:
 
 ```go
-// Other methods to implement the tfsdk.Resource interface are omitted for brevity
+// Other methods to implement the resource.Resource interface are omitted for brevity
 type exampleResource struct {}
 
-func (r exampleResource) ValidateConfig(ctx context.Context, req ValidateResourceConfigRequest, resp *ValidateResourceConfigResponse) {
+func (r exampleResource) ValidateConfig(ctx context.Context, req ValidateConfigRequest, resp *ValidateConfigResponse) {
     // Retrieve values via req.Config.Get() or req.Config.GetAttribute(),
     // then return any warnings or errors via resp.Diagnostics.
 }
@@ -379,26 +379,26 @@ func (r exampleResource) ValidateConfig(ctx context.Context, req ValidateResourc
 
 The framework performs data source schema validation in addition to any attribute and type validation. You can implement either or both of the following interfaces.
 
-The [`tfsdk.DataSourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DataSourceWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This lets you write consistent validators across multiple data sources. You must implement the [`tfsdk.DataSourceConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DataSourceConfigValidator) for each validator. For example:
+The [`datasource.DataSourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This lets you write consistent validators across multiple data sources. You must implement the [`datasource.ConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ConfigValidator) for each validator. For example:
 
 ```go
-// Other methods to implement the tfsdk.DataSource interface are omitted for brevity
+// Other methods to implement the datasource.DataSource interface are omitted for brevity
 type exampleDataSource struct {}
 
-func (d exampleDataSource) ConfigValidators(ctx context.Context) []tfsdk.DataSourceConfigValidator {
-    return []tfsdk.DataSourceConfigValidator{
+func (d exampleDataSource) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
+    return []datasource.ConfigValidator{
         /* ... */
     }
 }
 ```
 
-The [`tfsdk.DataSourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DataSourceWithValidateConfig) is more imperative in design and is useful for validating unique functionality that typically applies to a single data source. For example:
+The [`datasource.DataSourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithValidateConfig) is more imperative in design and is useful for validating unique functionality that typically applies to a single data source. For example:
 
 ```go
-// Other methods to implement the tfsdk.DataSource interface are omitted for brevity
+// Other methods to implement the datasource.DataSource interface are omitted for brevity
 type exampleDataSource struct {}
 
-func (d exampleDataSource) ValidateConfig(ctx context.Context, req ValidateDataSourceConfigRequest, resp *ValidateDataSourceConfigResponse) {
+func (d exampleDataSource) ValidateConfig(ctx context.Context, req ValidateConfigRequest, resp *ValidateConfigResponse) {
     // Retrieve values via req.Config.Get() or req.Config.GetAttribute(),
     // then return any warnings or errors via resp.Diagnostics.
 }

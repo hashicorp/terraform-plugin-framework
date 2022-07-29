@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
@@ -15,7 +15,7 @@ func TestConfigureProviderResponse(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    *tfsdk.ConfigureProviderResponse
+		input    *provider.ConfigureResponse
 		expected *tfprotov5.ConfigureProviderResponse
 	}{
 		"nil": {
@@ -23,11 +23,11 @@ func TestConfigureProviderResponse(t *testing.T) {
 			expected: nil,
 		},
 		"empty": {
-			input:    &tfsdk.ConfigureProviderResponse{},
+			input:    &provider.ConfigureResponse{},
 			expected: &tfprotov5.ConfigureProviderResponse{},
 		},
 		"diagnostics": {
-			input: &tfsdk.ConfigureProviderResponse{
+			input: &provider.ConfigureResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic("test warning summary", "test warning details"),
 					diag.NewErrorDiagnostic("test error summary", "test error details"),

@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -12,7 +14,7 @@ import (
 // ValidateResourceConfig RPC.
 type ValidateResourceConfigRequest struct {
 	Config       *tfsdk.Config
-	ResourceType tfsdk.ResourceType
+	ResourceType provider.ResourceType
 }
 
 // ValidateResourceConfigResponse is the framework server response for the
@@ -29,7 +31,7 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 
 	// Always instantiate new Resource instances.
 	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := req.ResourceType.NewResource(ctx, s.Provider)
+	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
 	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 
 	resp.Diagnostics.Append(diags...)
@@ -38,15 +40,15 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 		return
 	}
 
-	vdscReq := tfsdk.ValidateResourceConfigRequest{
+	vdscReq := resource.ValidateConfigRequest{
 		Config: *req.Config,
 	}
 
-	if resource, ok := resource.(tfsdk.ResourceWithConfigValidators); ok {
+	if resourceWithConfigValidators, ok := resourceImpl.(resource.ResourceWithConfigValidators); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigValidators")
 
-		for _, configValidator := range resource.ConfigValidators(ctx) {
-			vdscResp := &tfsdk.ValidateResourceConfigResponse{
+		for _, configValidator := range resourceWithConfigValidators.ConfigValidators(ctx) {
+			vdscResp := &resource.ValidateConfigResponse{
 				Diagnostics: resp.Diagnostics,
 			}
 
@@ -70,15 +72,15 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 		}
 	}
 
-	if resource, ok := resource.(tfsdk.ResourceWithValidateConfig); ok {
+	if resourceWithValidateConfig, ok := resourceImpl.(resource.ResourceWithValidateConfig); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithValidateConfig")
 
-		vdscResp := &tfsdk.ValidateResourceConfigResponse{
+		vdscResp := &resource.ValidateConfigResponse{
 			Diagnostics: resp.Diagnostics,
 		}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource ValidateConfig")
-		resource.ValidateConfig(ctx, vdscReq, vdscResp)
+		resourceWithValidateConfig.ValidateConfig(ctx, vdscReq, vdscResp)
 		logging.FrameworkDebug(ctx, "Called provider defined Resource ValidateConfig")
 
 		resp.Diagnostics = vdscResp.Diagnostics

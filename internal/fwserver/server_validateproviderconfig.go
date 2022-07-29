@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -27,21 +28,21 @@ func (s *Server) ValidateProviderConfig(ctx context.Context, req *ValidateProvid
 		return
 	}
 
-	vpcReq := tfsdk.ValidateProviderConfigRequest{
+	vpcReq := provider.ValidateConfigRequest{
 		Config: *req.Config,
 	}
 
-	if provider, ok := s.Provider.(tfsdk.ProviderWithConfigValidators); ok {
+	if providerWithConfigValidators, ok := s.Provider.(provider.ProviderWithConfigValidators); ok {
 		logging.FrameworkTrace(ctx, "Provider implements ProviderWithConfigValidators")
 
-		for _, configValidator := range provider.ConfigValidators(ctx) {
-			vpcRes := &tfsdk.ValidateProviderConfigResponse{
+		for _, configValidator := range providerWithConfigValidators.ConfigValidators(ctx) {
+			vpcRes := &provider.ValidateConfigResponse{
 				Diagnostics: resp.Diagnostics,
 			}
 
 			logging.FrameworkDebug(
 				ctx,
-				"Calling provider defined ProviderConfigValidator",
+				"Calling provider defined ConfigValidator",
 				map[string]interface{}{
 					logging.KeyDescription: configValidator.Description(ctx),
 				},
@@ -49,7 +50,7 @@ func (s *Server) ValidateProviderConfig(ctx context.Context, req *ValidateProvid
 			configValidator.ValidateProvider(ctx, vpcReq, vpcRes)
 			logging.FrameworkDebug(
 				ctx,
-				"Called provider defined ProviderConfigValidator",
+				"Called provider defined ConfigValidator",
 				map[string]interface{}{
 					logging.KeyDescription: configValidator.Description(ctx),
 				},
@@ -59,15 +60,15 @@ func (s *Server) ValidateProviderConfig(ctx context.Context, req *ValidateProvid
 		}
 	}
 
-	if provider, ok := s.Provider.(tfsdk.ProviderWithValidateConfig); ok {
+	if providerWithValidateConfig, ok := s.Provider.(provider.ProviderWithValidateConfig); ok {
 		logging.FrameworkTrace(ctx, "Provider implements ProviderWithValidateConfig")
 
-		vpcRes := &tfsdk.ValidateProviderConfigResponse{
+		vpcRes := &provider.ValidateConfigResponse{
 			Diagnostics: resp.Diagnostics,
 		}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Provider ValidateConfig")
-		provider.ValidateConfig(ctx, vpcReq, vpcRes)
+		providerWithValidateConfig.ValidateConfig(ctx, vpcReq, vpcRes)
 		logging.FrameworkDebug(ctx, "Called provider defined Provider ValidateConfig")
 
 		resp.Diagnostics = vpcRes.Diagnostics

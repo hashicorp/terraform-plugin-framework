@@ -13,8 +13,8 @@ Providers have data sources that tell Terraform how to request external data and
 
 ## Define Data Source Archetype
 
-Implement the [`tfsdk.DataSourceType`
-interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DataSourceType)
+Implement the [`provider.DataSourceType`
+interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#DataSourceType)
 for every type of data source you want to support, such as disk images, compute
 instance groups, access policies, etc. It allows you to describe the data
 source archetype, which is the functionality related to all instances of that
@@ -27,12 +27,12 @@ what fields are available in the data source's configuration and state.
 
 ### NewDataSource
 
-`NewDataSource` returns a new instance of that data source type. It needs to instantiate a new [`tfsdk.DataSource`
-implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DataSource)
+`NewDataSource` returns a new instance of that data source type. It needs to instantiate a new [`datasource.DataSource`
+implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource)
 that expects to operate on data with the structure defined in `GetSchema`.
 
-The `NewDataSource` method is passed a [`tfsdk.Provider`
-implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Provider).
+The `NewDataSource` method is passed a [`provider.Provider`
+implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider).
 This is the [provider type](/plugin/framework/providers) after its
 `Configure` method was called. The `NewDataSource` method can type-assert on
 this and inject it into the `DataSource`, allowing the `DataSource` to have
@@ -59,7 +59,7 @@ func (c computeImageDataSourceType) GetSchema(_ context.Context) (tfsdk.Schema,
 }
 
 func (c computeImageDataSourceType) NewDataSource(_ context.Context,
-	p tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+	p provider.Provider) (datasource.DataSource, diag.Diagnostics) {
 	return computeImageDataSource{
 		client: p.(*provider).client,
 	}, nil
@@ -72,7 +72,7 @@ Data sources are scoped to a single instance of the data source type. They modif
 
 ### Read
 
-`Read` updates Terraform's state to reflect the API data described in the configuration. There is no plan or state to work with in `Read`. Data sources should [retrieve the data they need](/plugin/framework/accessing-values) from the configuration included in the [`tfsdk.ReadDataSourceRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ReadDataSourceRequest).
+`Read` updates Terraform's state to reflect the API data described in the configuration. There is no plan or state to work with in `Read`. Data sources should [retrieve the data they need](/plugin/framework/accessing-values) from the configuration included in the [`datasource.ReadRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadRequest).
 They can then use the configured API client injected into the data source by the
 data source type's `NewDataSource` method, and [write the results to the state](/plugin/framework/writing-state).
 
@@ -88,9 +88,9 @@ instance of the data source type.
 **Example**
 
 ```go
-func (p *provider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourceType,
+func (p *provider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType,
 	diag.Diagnostics) {
-	return map[string]tfsdk.DataSourceType{
+	return map[string]provider.DataSourceType{
 		"example_compute_image": computeImageDataSourceType{},
 	}, nil
 }

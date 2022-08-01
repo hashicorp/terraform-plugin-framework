@@ -73,9 +73,36 @@ type Attribute struct {
 	// file is sensitive.
 	Sensitive bool
 
-	// DeprecationMessage defines a message to display to practitioners
-	// using this attribute, warning them that it is deprecated and
-	// instructing them on what upgrade steps to take.
+	// DeprecationMessage defines warning diagnostic details to display to
+	// practitioners configuring this Attribute. The warning diagnostic summary
+	// is automatically set to "Attribute Deprecated" along with configuration
+	// source file and line information.
+	//
+	// This warning diagnostic is only displayed during Terraform's validation
+	// phase when this field is a non-empty string, when the Attribute is
+	// Required or Optional, and if the practitioner configuration attempts to
+	// set the attribute value to a known or unknown value (which may
+	// eventually be null). It cannot detect practitioner configuration values
+	// set directly to null, as there is no way for the framework to
+	// differentiate between an unset and null configuration due to how
+	// Terraform sends configuration information across the protocol, however
+	// this is unlikely in a real world configuration.
+	//
+	// This field has no effect when the Attribute is Computed-only (read-only;
+	// not Required or Optional) and a practitioner attempts to reference
+	// this Attribute value in their configuration. There is a Terraform
+	// feature request to support this type of functionality:
+	//
+	//     https://github.com/hashicorp/terraform/issues/7569
+	//
+	// Set this field to a practitioner actionable message such as:
+	//
+	//     - "Configure other_attribute instead. This attribute will be removed
+	//       in the next major version of the provider."
+	//     - "Remove this attribute's configuration as it no longer is used and
+	//       the attribute will be removed in the next major version of the
+	//       provider."
+	//
 	DeprecationMessage string
 
 	// Validators define value validation functionality for the attribute. All

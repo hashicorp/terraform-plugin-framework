@@ -130,6 +130,8 @@ value when it's set in the state; the state can never hold any unknown values.
 1. Using the configured API client injected into the resource by the resource
    type's `NewResource` method
 
+Terraform 1.3 and later enables deletion planning, which resources can implement to return warning and error diagnostics. For additional information, refer to the [resource plan modification documentation](/plugin/framework/resources/plan-modification#resource-destroy-plan-diagnostics).
+
 ### ImportState
 
 `ImportState` is an optional method that implements resource [import](/cli/import). This functionality creates an initial Terraform state to bring the resource under management via the [`terraform import` command](/cli/commands/import). This method must provide enough state for the resource to be successfully refreshed via the `Read` method. This is usually accomplished by:

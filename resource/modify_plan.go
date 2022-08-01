@@ -19,7 +19,9 @@ type ModifyPlanRequest struct {
 	// State is the current state of the resource.
 	State tfsdk.State
 
-	// Plan is the planned new state for the resource.
+	// Plan is the planned new state for the resource. Terraform 1.3 and later
+	// supports resource destroy planning, in which this will contain a null
+	// value.
 	Plan tfsdk.Plan
 
 	// ProviderMeta is metadata from the provider_meta block of the module.

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -849,7 +850,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 								},
 							},
 						},
@@ -869,7 +870,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 								},
 							},
 						},
@@ -889,7 +890,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 								},
 							},
 						},
@@ -937,7 +938,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 								},
 							},
 						},
@@ -957,7 +958,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 								},
 							},
 						},
@@ -977,7 +978,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 								},
 							},
 						},
@@ -1039,7 +1040,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
 									planmodifiers.TestAttrPlanValueModifierOne{},
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 								},
 							},
 						},
@@ -1059,7 +1060,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 									planmodifiers.TestAttrPlanValueModifierOne{},
 								},
 							},
@@ -1080,7 +1081,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 									planmodifiers.TestAttrPlanValueModifierOne{},
 								},
 							},
@@ -1129,7 +1130,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 									planmodifiers.TestRequiresReplaceFalseModifier{},
 								},
 							},
@@ -1150,7 +1151,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 									planmodifiers.TestRequiresReplaceFalseModifier{},
 								},
 							},
@@ -1171,7 +1172,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								Type:     types.StringType,
 								Required: true,
 								PlanModifiers: []tfsdk.AttributePlanModifier{
-									tfsdk.RequiresReplace(),
+									resource.RequiresReplace(),
 									planmodifiers.TestRequiresReplaceFalseModifier{},
 								},
 							},

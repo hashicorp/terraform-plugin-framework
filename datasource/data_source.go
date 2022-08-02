@@ -2,8 +2,14 @@ package datasource
 
 import "context"
 
-// DataSource represents a data source instance. This is the core interface that
-// all data sources must implement.
+// DataSource represents an instance of a data source type. This is the core
+// interface that all data sources must implement.
+//
+// Data sources can optionally implement these additional concepts:
+//
+//     - Validation: Schema-based via tfsdk.Attribute or entire configuration
+//       via DataSourceWithConfigValidators or DataSourceWithValidateConfig.
+//
 type DataSource interface {
 	// Read is called when the provider must read data source values in
 	// order to update state. Config values should be read from the

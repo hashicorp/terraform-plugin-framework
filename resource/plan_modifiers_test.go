@@ -1,4 +1,4 @@
-package tfsdk
+package resource_test
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -86,8 +88,8 @@ func TestUseStateForUnknownModifier(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			schema := Schema{
-				Attributes: map[string]Attribute{
+			schema := tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"a": {
 						Type:     types.StringType,
 						Optional: true,
@@ -121,21 +123,21 @@ func TestUseStateForUnknownModifier(t *testing.T) {
 				planVal = val
 			}
 
-			req := ModifyAttributePlanRequest{
+			req := tfsdk.ModifyAttributePlanRequest{
 				AttributePath: path.Empty(),
-				Config: Config{
+				Config: tfsdk.Config{
 					Schema: schema,
 					Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 						"a": configVal,
 					}),
 				},
-				State: State{
+				State: tfsdk.State{
 					Schema: schema,
 					Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 						"a": stateVal,
 					}),
 				},
-				Plan: Plan{
+				Plan: tfsdk.Plan{
 					Schema: schema,
 					Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 						"a": planVal,
@@ -144,12 +146,12 @@ func TestUseStateForUnknownModifier(t *testing.T) {
 				AttributeConfig: tc.config,
 				AttributeState:  tc.state,
 				AttributePlan:   tc.plan,
-				ProviderMeta:    Config{},
+				ProviderMeta:    tfsdk.Config{},
 			}
-			resp := &ModifyAttributePlanResponse{
+			resp := &tfsdk.ModifyAttributePlanResponse{
 				AttributePlan: req.AttributePlan,
 			}
-			modifier := UseStateForUnknown()
+			modifier := resource.UseStateForUnknown()
 
 			modifier.Modify(context.Background(), req, resp)
 			if resp.Diagnostics.HasError() {
@@ -166,16 +168,16 @@ func TestRequiresReplaceModifier(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		state        State
-		plan         Plan
-		config       Config
+		state        tfsdk.State
+		plan         tfsdk.Plan
+		config       tfsdk.Config
 		path         path.Path
 		expectedPlan attr.Value
 		expectedRR   bool
 	}
 
-	schema := Schema{
-		Attributes: map[string]Attribute{
+	schema := tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
 			"optional-computed": {
 				Type:     types.StringType,
 				Optional: true,
@@ -188,10 +190,10 @@ func TestRequiresReplaceModifier(t *testing.T) {
 		},
 	}
 
-	blockSchema := Schema{
-		Blocks: map[string]Block{
+	blockSchema := tfsdk.Schema{
+		Blocks: map[string]tfsdk.Block{
 			"block": {
-				Attributes: map[string]Attribute{
+				Attributes: map[string]tfsdk.Attribute{
 					"optional-computed": {
 						Type:     types.StringType,
 						Optional: true,
@@ -202,7 +204,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						Optional: true,
 					},
 				},
-				NestingMode: BlockNestingModeList,
+				NestingMode: tfsdk.BlockNestingModeList,
 			},
 		},
 	}
@@ -211,18 +213,18 @@ func TestRequiresReplaceModifier(t *testing.T) {
 		"null-state": {
 			// when we first create the resource, it shouldn't
 			// require replacing immediately
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -240,18 +242,18 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			// Terraform doesn't usually ask for provider input on
 			// the plan when destroying resources, but in case it
 			// does, let's make sure we handle it right
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
@@ -263,21 +265,21 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			// make sure we're not confusing an attribute going
 			// from null to a value with the resource getting
 			// created
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -292,21 +294,21 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			// make sure we're not confusing an attribute going
 			// from a value to null with the resource getting
 			// destroyed
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -320,21 +322,21 @@ func TestRequiresReplaceModifier(t *testing.T) {
 		"known-state-change": {
 			// when updating the attribute, if it has changed, it
 			// should require replacing
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -348,21 +350,21 @@ func TestRequiresReplaceModifier(t *testing.T) {
 		"known-state-no-change": {
 			// when the attribute hasn't changed, it shouldn't
 			// require replacing
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -383,21 +385,21 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			// practitioners pretty much never expect the resource
 			// to be recreated if the provider is the one changing
 			// the value.
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, nil),
@@ -419,21 +421,21 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			// this test is technically covered by
 			// null-attribute-plan, but let's duplicate it just to
 			// be explicit about what each case is actually testing
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -445,7 +447,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			expectedRR:   true,
 		},
 		"block-no-change": {
-			state: State{
+			state: tfsdk.State{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -469,7 +471,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						}),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -493,7 +495,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						}),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -541,7 +543,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			expectedRR: false,
 		},
 		"block-element-count-change": {
-			state: State{
+			state: tfsdk.State{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -565,7 +567,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						}),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -598,7 +600,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						}),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -665,7 +667,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 			expectedRR: true,
 		},
 		"block-nested-attribute-change": {
-			state: State{
+			state: tfsdk.State{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -689,7 +691,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						}),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -713,7 +715,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 						}),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -767,22 +769,27 @@ func TestRequiresReplaceModifier(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			attrConfig, diags := tc.config.getAttributeValue(context.Background(), tc.path)
-			if diags.HasError() {
-				t.Fatalf("Got unexpected diagnostics: %s", diags)
+			var attrConfig, attrPlan, attrState attr.Value
+
+			if !tc.config.Raw.IsNull() {
+				if diags := tc.config.GetAttribute(context.Background(), tc.path, &attrConfig); diags.HasError() {
+					t.Fatalf("Got unexpected diagnostics: %s", diags)
+				}
 			}
 
-			attrState, diags := tc.state.getAttributeValue(context.Background(), tc.path)
-			if diags.HasError() {
-				t.Fatalf("Got unexpected diagnostics: %s", diags)
+			if !tc.state.Raw.IsNull() {
+				if diags := tc.state.GetAttribute(context.Background(), tc.path, &attrState); diags.HasError() {
+					t.Fatalf("Got unexpected diagnostics: %s", diags)
+				}
 			}
 
-			attrPlan, diags := tc.plan.getAttributeValue(context.Background(), tc.path)
-			if diags.HasError() {
-				t.Fatalf("Got unexpected diagnostics: %s", diags)
+			if !tc.plan.Raw.IsNull() {
+				if diags := tc.plan.GetAttribute(context.Background(), tc.path, &attrPlan); diags.HasError() {
+					t.Fatalf("Got unexpected diagnostics: %s", diags)
+				}
 			}
 
-			req := ModifyAttributePlanRequest{
+			req := tfsdk.ModifyAttributePlanRequest{
 				AttributePath:   tc.path,
 				Config:          tc.config,
 				State:           tc.state,
@@ -790,12 +797,12 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				AttributeConfig: attrConfig,
 				AttributeState:  attrState,
 				AttributePlan:   attrPlan,
-				ProviderMeta:    Config{},
+				ProviderMeta:    tfsdk.Config{},
 			}
-			resp := &ModifyAttributePlanResponse{
+			resp := &tfsdk.ModifyAttributePlanResponse{
 				AttributePlan: req.AttributePlan,
 			}
-			modifier := RequiresReplace()
+			modifier := resource.RequiresReplace()
 
 			modifier.Modify(context.Background(), req, resp)
 			if resp.Diagnostics.HasError() {
@@ -815,9 +822,9 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		state        State
-		plan         Plan
-		config       Config
+		state        tfsdk.State
+		plan         tfsdk.Plan
+		config       tfsdk.Config
 		priorRR      bool
 		path         path.Path
 		ifReturn     bool
@@ -825,8 +832,8 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 		expectedRR   bool
 	}
 
-	schema := Schema{
-		Attributes: map[string]Attribute{
+	schema := tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
 			"optional-computed": {
 				Type:     types.StringType,
 				Optional: true,
@@ -839,10 +846,10 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 		},
 	}
 
-	blockSchema := Schema{
-		Blocks: map[string]Block{
+	blockSchema := tfsdk.Schema{
+		Blocks: map[string]tfsdk.Block{
 			"block": {
-				Attributes: map[string]Attribute{
+				Attributes: map[string]tfsdk.Attribute{
 					"optional-computed": {
 						Type:     types.StringType,
 						Optional: true,
@@ -853,7 +860,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						Optional: true,
 					},
 				},
-				NestingMode: BlockNestingModeList,
+				NestingMode: tfsdk.BlockNestingModeList,
 			},
 		},
 	}
@@ -862,18 +869,18 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 		"null-state": {
 			// when we first create the resource, it shouldn't
 			// require replacing immediately
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -893,18 +900,18 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			// Terraform doesn't usually ask for provider input on
 			// the plan when destroying resources, but in case it
 			// does, let's make sure we handle it right
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw:    tftypes.NewValue(schema.TerraformType(context.Background()), nil),
 			},
@@ -918,21 +925,21 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			// make sure we're not confusing an attribute going
 			// from null to a value with the resource getting
 			// created
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -949,21 +956,21 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			// make sure we're not confusing an attribute going
 			// from a value to null with the resource getting
 			// destroyed
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -980,21 +987,21 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			// when updating the attribute, if it has changed and
 			// the function returns true, it should require
 			// replacing
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -1011,21 +1018,21 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			// when updating the attribute, if it has changed and
 			// the function returns false, it should not require
 			// replacing
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -1043,21 +1050,21 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			// the function returns false, but a prior plan
 			// modifier already marked the resource as needing to
 			// be recreated, we shouldn't override that
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -1073,21 +1080,21 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 		"known-state-no-change": {
 			// when the attribute hasn't changed, it shouldn't
 			// require replacing
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "quux"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -1110,21 +1117,21 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			// practitioners pretty much never expect the resource
 			// to be recreated if the provider is the one changing
 			// the value.
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, nil),
@@ -1148,21 +1155,21 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			// this test is technically covered by
 			// null-attribute-plan, but let's duplicate it just to
 			// be explicit about what each case is actually testing
-			state: State{
+			state: tfsdk.State{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, "bar"),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
 					"optional":          tftypes.NewValue(tftypes.String, nil),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: schema,
 				Raw: tftypes.NewValue(schema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"optional-computed": tftypes.NewValue(tftypes.String, "foo"),
@@ -1176,7 +1183,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			expectedRR:   true,
 		},
 		"block-no-change": {
-			state: State{
+			state: tfsdk.State{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -1200,7 +1207,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						}),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -1224,7 +1231,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						}),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -1273,7 +1280,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			expectedRR: false,
 		},
 		"block-element-count-change": {
-			state: State{
+			state: tfsdk.State{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -1297,7 +1304,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						}),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -1330,7 +1337,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						}),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -1398,7 +1405,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			expectedRR: true,
 		},
 		"block-nested-attribute-change": {
-			state: State{
+			state: tfsdk.State{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -1422,7 +1429,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						}),
 				}),
 			},
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -1446,7 +1453,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 						}),
 				}),
 			},
-			config: Config{
+			config: tfsdk.Config{
 				Schema: blockSchema,
 				Raw: tftypes.NewValue(blockSchema.TerraformType(context.Background()), map[string]tftypes.Value{
 					"block": tftypes.NewValue(
@@ -1501,22 +1508,27 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			attrConfig, diags := tc.config.getAttributeValue(context.Background(), tc.path)
-			if diags.HasError() {
-				t.Fatalf("Got unexpected diagnostics: %s", diags)
+			var attrConfig, attrPlan, attrState attr.Value
+
+			if !tc.config.Raw.IsNull() {
+				if diags := tc.config.GetAttribute(context.Background(), tc.path, &attrConfig); diags.HasError() {
+					t.Fatalf("Got unexpected diagnostics: %s", diags)
+				}
 			}
 
-			attrState, diags := tc.state.getAttributeValue(context.Background(), tc.path)
-			if diags.HasError() {
-				t.Fatalf("Got unexpected diagnostics: %s", diags)
+			if !tc.state.Raw.IsNull() {
+				if diags := tc.state.GetAttribute(context.Background(), tc.path, &attrState); diags.HasError() {
+					t.Fatalf("Got unexpected diagnostics: %s", diags)
+				}
 			}
 
-			attrPlan, diags := tc.plan.getAttributeValue(context.Background(), tc.path)
-			if diags.HasError() {
-				t.Fatalf("Got unexpected diagnostics: %s", diags)
+			if !tc.plan.Raw.IsNull() {
+				if diags := tc.plan.GetAttribute(context.Background(), tc.path, &attrPlan); diags.HasError() {
+					t.Fatalf("Got unexpected diagnostics: %s", diags)
+				}
 			}
 
-			req := ModifyAttributePlanRequest{
+			req := tfsdk.ModifyAttributePlanRequest{
 				AttributePath:   tc.path,
 				Config:          tc.config,
 				State:           tc.state,
@@ -1524,13 +1536,13 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				AttributeConfig: attrConfig,
 				AttributeState:  attrState,
 				AttributePlan:   attrPlan,
-				ProviderMeta:    Config{},
+				ProviderMeta:    tfsdk.Config{},
 			}
-			resp := &ModifyAttributePlanResponse{
+			resp := &tfsdk.ModifyAttributePlanResponse{
 				AttributePlan:   req.AttributePlan,
 				RequiresReplace: tc.priorRR,
 			}
-			modifier := RequiresReplaceIf(func(ctx context.Context, state, config attr.Value, path path.Path) (bool, diag.Diagnostics) {
+			modifier := resource.RequiresReplaceIf(func(ctx context.Context, state, config attr.Value, path path.Path) (bool, diag.Diagnostics) {
 				return tc.ifReturn, nil
 			}, "", "")
 

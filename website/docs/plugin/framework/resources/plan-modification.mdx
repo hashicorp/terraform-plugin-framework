@@ -39,7 +39,7 @@ tfsdk.Attribute{
     // ... other Attribute configuration ...
 
     PlanModifiers: []AttributePlanModifiers{
-        tfsdk.RequiresReplace(),
+        resource.RequiresReplace(),
     },
 }
 ```
@@ -50,9 +50,9 @@ If defined, plan modifiers are applied to the current attribute. If any nested a
 
 The framework implements some common use case modifiers:
 
-- [`tfsdk.RequiresReplace()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#RequiresReplace): If the value of the attribute changes, in-place update is not possible and instead the resource should be replaced for the change to occur. Refer to the Go documentation for full details on its behavior.
-- [`tfsdk.RequiresReplaceIf()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#RequiresReplaceIf): Similar to `tfsdk.RequiresReplace()`, however it also accepts provider-defined conditional logic. Refer to the Go documentation for full details on its behavior.
-- [`tfsdk.UseStateForUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UseStateForUnknown): Copies the prior state value, if not null. This is useful for reducing `(known after apply)` plan outputs for computed attributes which are known to not change over time.
+- [`resource.RequiresReplace()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#RequiresReplace): If the value of the attribute changes, in-place update is not possible and instead the resource should be replaced for the change to occur. Refer to the Go documentation for full details on its behavior.
+- [`resource.RequiresReplaceIf()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#RequiresReplaceIf): Similar to `resource.RequiresReplace()`, however it also accepts provider-defined conditional logic. Refer to the Go documentation for full details on its behavior.
+- [`resource.UseStateForUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UseStateForUnknown): Copies the prior state value, if not null. This is useful for reducing `(known after apply)` plan outputs for computed attributes which are known to not change over time.
 
 ### Creating Attribute Plan Modifiers
 

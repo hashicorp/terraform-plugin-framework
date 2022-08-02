@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -208,7 +209,7 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 				}, nil),
 				modifyAttributePlanValues{
 					config: "newtestvalue",
@@ -221,7 +222,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema([]tfsdk.AttributePlanModifier{
-						tfsdk.RequiresReplace(),
+						resource.RequiresReplace(),
 					}, nil),
 				},
 				RequiresReplace: path.Paths{
@@ -233,7 +234,7 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 				}, nil),
 				modifyAttributePlanValues{
 					config: "newtestvalue",
@@ -259,7 +260,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema([]tfsdk.AttributePlanModifier{
-						tfsdk.RequiresReplace(),
+						resource.RequiresReplace(),
 					}, nil),
 				},
 				RequiresReplace: path.Paths{
@@ -271,7 +272,7 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 					testBlockPlanModifierNullList{},
 				}, nil),
 				modifyAttributePlanValues{
@@ -285,7 +286,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaNullTfValue,
 					Schema: schema([]tfsdk.AttributePlanModifier{
-						tfsdk.RequiresReplace(),
+						resource.RequiresReplace(),
 						testBlockPlanModifierNullList{},
 					}, nil),
 				},
@@ -298,7 +299,7 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				path.Root("test"),
 				schema([]tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 					planmodifiers.TestRequiresReplaceFalseModifier{},
 				}, nil),
 				modifyAttributePlanValues{
@@ -312,7 +313,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema([]tfsdk.AttributePlanModifier{
-						tfsdk.RequiresReplace(),
+						resource.RequiresReplace(),
 						planmodifiers.TestRequiresReplaceFalseModifier{},
 					}, nil),
 				},
@@ -531,7 +532,7 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 				}),
 				modifyAttributePlanValues{
 					config: "newtestvalue",
@@ -544,7 +545,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						tfsdk.RequiresReplace(),
+						resource.RequiresReplace(),
 					}),
 				},
 				RequiresReplace: path.Paths{
@@ -556,7 +557,7 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 				}),
 				modifyAttributePlanValues{
 					config: "newtestvalue",
@@ -582,7 +583,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						tfsdk.RequiresReplace(),
+						resource.RequiresReplace(),
 					}),
 				},
 				RequiresReplace: path.Paths{
@@ -594,7 +595,7 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 					planmodifiers.TestAttrPlanValueModifierOne{},
 				}),
 				modifyAttributePlanValues{
@@ -608,7 +609,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("TESTATTRTWO"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						tfsdk.RequiresReplace(),
+						resource.RequiresReplace(),
 						planmodifiers.TestAttrPlanValueModifierOne{},
 					}),
 				},
@@ -621,7 +622,7 @@ func TestBlockModifyPlan(t *testing.T) {
 			req: modifyAttributePlanRequest(
 				path.Root("test"),
 				schema(nil, []tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 					planmodifiers.TestRequiresReplaceFalseModifier{},
 				}),
 				modifyAttributePlanValues{
@@ -635,7 +636,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				Plan: tfsdk.Plan{
 					Raw: schemaTfValue("newtestvalue"),
 					Schema: schema(nil, []tfsdk.AttributePlanModifier{
-						tfsdk.RequiresReplace(),
+						resource.RequiresReplace(),
 						planmodifiers.TestRequiresReplaceFalseModifier{},
 					}),
 				},

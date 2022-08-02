@@ -3,22 +3,22 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ tfsdk.Resource = &Resource{}
+var _ resource.Resource = &Resource{}
 
-// Declarative tfsdk.Resource for unit testing.
+// Declarative resource.Resource for unit testing.
 type Resource struct {
 	// Resource interface methods
-	CreateMethod func(context.Context, tfsdk.CreateResourceRequest, *tfsdk.CreateResourceResponse)
-	DeleteMethod func(context.Context, tfsdk.DeleteResourceRequest, *tfsdk.DeleteResourceResponse)
-	ReadMethod   func(context.Context, tfsdk.ReadResourceRequest, *tfsdk.ReadResourceResponse)
-	UpdateMethod func(context.Context, tfsdk.UpdateResourceRequest, *tfsdk.UpdateResourceResponse)
+	CreateMethod func(context.Context, resource.CreateRequest, *resource.CreateResponse)
+	DeleteMethod func(context.Context, resource.DeleteRequest, *resource.DeleteResponse)
+	ReadMethod   func(context.Context, resource.ReadRequest, *resource.ReadResponse)
+	UpdateMethod func(context.Context, resource.UpdateRequest, *resource.UpdateResponse)
 }
 
-// Create satisfies the tfsdk.Resource interface.
-func (r *Resource) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+// Create satisfies the resource.Resource interface.
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	if r.CreateMethod == nil {
 		return
 	}
@@ -26,8 +26,8 @@ func (r *Resource) Create(ctx context.Context, req tfsdk.CreateResourceRequest, 
 	r.CreateMethod(ctx, req, resp)
 }
 
-// Delete satisfies the tfsdk.Resource interface.
-func (r *Resource) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+// Delete satisfies the resource.Resource interface.
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	if r.DeleteMethod == nil {
 		return
 	}
@@ -35,8 +35,8 @@ func (r *Resource) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, 
 	r.DeleteMethod(ctx, req, resp)
 }
 
-// Read satisfies the tfsdk.Resource interface.
-func (r *Resource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+// Read satisfies the resource.Resource interface.
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	if r.ReadMethod == nil {
 		return
 	}
@@ -44,8 +44,8 @@ func (r *Resource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp
 	r.ReadMethod(ctx, req, resp)
 }
 
-// Update satisfies the tfsdk.Resource interface.
-func (r *Resource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+// Update satisfies the resource.Resource interface.
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	if r.UpdateMethod == nil {
 		return
 	}

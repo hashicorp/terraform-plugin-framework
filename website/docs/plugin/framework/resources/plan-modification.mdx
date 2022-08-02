@@ -114,12 +114,12 @@ func stringDefault(defaultValue string) stringDefaultModifier {
 
 ## Resource Plan Modification
 
-Resources also support plan modification across all attributes. This is helpful when working with logic that applies to the resource as a whole, or in Terraform 1.3 and later, to return diagnostics during resource destruction. Implement the [`tfsdk.ResourceWithModifyPlan` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceWithModifyPlan) to support resource-level plan modification. For example:
+Resources also support plan modification across all attributes. This is helpful when working with logic that applies to the resource as a whole, or in Terraform 1.3 and later, to return diagnostics during resource destruction. Implement the [`resource.ResourceWithModifyPlan` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan) to support resource-level plan modification. For example:
 
 ```go
-// Ensure the Resource satisfies the tfsdk.ResourceWithModifyPlan interface.
-// Other methods to implement the tfsdk.Resource interface are omitted for brevity
-var _ tfsdk.ResourceWithModifyPlan = exampleResource{}
+// Ensure the Resource satisfies the resource.ResourceWithModifyPlan interface.
+// Other methods to implement the resource.Resource interface are omitted for brevity
+var _ resource.ResourceWithModifyPlan = exampleResource{}
 
 type exampleResource struct {}
 

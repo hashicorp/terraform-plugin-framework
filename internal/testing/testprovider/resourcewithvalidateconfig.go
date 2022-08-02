@@ -3,22 +3,22 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ tfsdk.Resource = &ResourceWithValidateConfig{}
-var _ tfsdk.ResourceWithValidateConfig = &ResourceWithValidateConfig{}
+var _ resource.Resource = &ResourceWithValidateConfig{}
+var _ resource.ResourceWithValidateConfig = &ResourceWithValidateConfig{}
 
-// Declarative tfsdk.ResourceWithValidateConfig for unit testing.
+// Declarative resource.ResourceWithValidateConfig for unit testing.
 type ResourceWithValidateConfig struct {
 	*Resource
 
 	// ResourceWithValidateConfig interface methods
-	ValidateConfigMethod func(context.Context, tfsdk.ValidateResourceConfigRequest, *tfsdk.ValidateResourceConfigResponse)
+	ValidateConfigMethod func(context.Context, resource.ValidateConfigRequest, *resource.ValidateConfigResponse)
 }
 
-// ValidateConfig satisfies the tfsdk.ResourceWithValidateConfig interface.
-func (p *ResourceWithValidateConfig) ValidateConfig(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
+// ValidateConfig satisfies the resource.ResourceWithValidateConfig interface.
+func (p *ResourceWithValidateConfig) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	if p.ValidateConfigMethod == nil {
 		return
 	}

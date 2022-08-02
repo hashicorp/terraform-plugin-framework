@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -18,7 +20,7 @@ type UpdateResourceRequest struct {
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema tfsdk.Schema
-	ResourceType   tfsdk.ResourceType
+	ResourceType   provider.ResourceType
 }
 
 // UpdateResourceResponse is the framework server response for an update request
@@ -38,7 +40,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 
 	// Always instantiate new Resource instances.
 	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := req.ResourceType.NewResource(ctx, s.Provider)
+	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
 	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 
 	resp.Diagnostics.Append(diags...)
@@ -49,7 +51,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 
 	nullSchemaData := tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil)
 
-	updateReq := tfsdk.UpdateResourceRequest{
+	updateReq := resource.UpdateRequest{
 		Config: tfsdk.Config{
 			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
@@ -63,7 +65,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 			Raw:    nullSchemaData,
 		},
 	}
-	updateResp := tfsdk.UpdateResourceResponse{
+	updateResp := resource.UpdateResponse{
 		State: tfsdk.State{
 			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
@@ -89,7 +91,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Update")
-	resource.Update(ctx, updateReq, &updateResp)
+	resourceImpl.Update(ctx, updateReq, &updateResp)
 	logging.FrameworkDebug(ctx, "Called provider defined Resource Update")
 
 	resp.Diagnostics = updateResp.Diagnostics

@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -22,7 +24,7 @@ type PlanResourceChangeRequest struct {
 	ProposedNewState *tfsdk.Plan
 	ProviderMeta     *tfsdk.Config
 	ResourceSchema   tfsdk.Schema
-	ResourceType     tfsdk.ResourceType
+	ResourceType     provider.ResourceType
 }
 
 // PlanResourceChangeResponse is the framework server response for the
@@ -42,7 +44,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 	// Always instantiate new Resource instances.
 	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := req.ResourceType.NewResource(ctx, s.Provider)
+	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
 	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 
 	resp.Diagnostics.Append(diags...)
@@ -189,10 +191,10 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// delete resources, e.g. to inform practitioners that the resource
 	// _can't_ be deleted in the API and will just be removed from
 	// Terraform's state
-	if resource, ok := resource.(tfsdk.ResourceWithModifyPlan); ok {
+	if resourceWithModifyPlan, ok := resourceImpl.(resource.ResourceWithModifyPlan); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 
-		modifyPlanReq := tfsdk.ModifyResourcePlanRequest{
+		modifyPlanReq := resource.ModifyPlanRequest{
 			Config: *req.Config,
 			Plan:   stateToPlan(*resp.PlannedState),
 			State:  *req.PriorState,
@@ -202,14 +204,14 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			modifyPlanReq.ProviderMeta = *req.ProviderMeta
 		}
 
-		modifyPlanResp := tfsdk.ModifyResourcePlanResponse{
+		modifyPlanResp := resource.ModifyPlanResponse{
 			Diagnostics:     resp.Diagnostics,
 			Plan:            modifyPlanReq.Plan,
 			RequiresReplace: path.Paths{},
 		}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource ModifyPlan")
-		resource.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
+		resourceWithModifyPlan.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
 		logging.FrameworkDebug(ctx, "Called provider defined Resource ModifyPlan")
 
 		resp.Diagnostics = modifyPlanResp.Diagnostics

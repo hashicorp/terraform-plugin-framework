@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -164,10 +165,10 @@ func TestServerValidateProviderConfig(t *testing.T) {
 							return testSchema, nil
 						},
 					},
-					ConfigValidatorsMethod: func(ctx context.Context) []tfsdk.ProviderConfigValidator {
-						return []tfsdk.ProviderConfigValidator{
+					ConfigValidatorsMethod: func(ctx context.Context) []provider.ConfigValidator {
+						return []provider.ConfigValidator{
 							&testprovider.ProviderConfigValidator{
-								ValidateProviderMethod: func(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+								ValidateProviderMethod: func(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
 									var got types.String
 
 									resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
@@ -200,10 +201,10 @@ func TestServerValidateProviderConfig(t *testing.T) {
 							return testSchema, nil
 						},
 					},
-					ConfigValidatorsMethod: func(ctx context.Context) []tfsdk.ProviderConfigValidator {
-						return []tfsdk.ProviderConfigValidator{
+					ConfigValidatorsMethod: func(ctx context.Context) []provider.ConfigValidator {
+						return []provider.ConfigValidator{
 							&testprovider.ProviderConfigValidator{
-								ValidateProviderMethod: func(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+								ValidateProviderMethod: func(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
 									resp.Diagnostics.AddError("error summary", "error detail")
 								},
 							},
@@ -232,7 +233,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 							return testSchema, nil
 						},
 					},
-					ValidateConfigMethod: func(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+					ValidateConfigMethod: func(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
 						var got types.String
 
 						resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
@@ -262,7 +263,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 							return testSchema, nil
 						},
 					},
-					ValidateConfigMethod: func(ctx context.Context, req tfsdk.ValidateProviderConfigRequest, resp *tfsdk.ValidateProviderConfigResponse) {
+					ValidateConfigMethod: func(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
 						resp.Diagnostics.AddWarning("warning summary", "warning detail")
 						resp.Diagnostics.AddError("error summary", "error detail")
 					},

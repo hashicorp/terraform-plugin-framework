@@ -4,18 +4,19 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ConfigureProviderRequest returns the *fwserver.ConfigureProviderRequest
 // equivalent of a *tfprotov6.ConfigureProviderRequest.
-func ConfigureProviderRequest(ctx context.Context, proto6 *tfprotov6.ConfigureProviderRequest, providerSchema *tfsdk.Schema) (*tfsdk.ConfigureProviderRequest, diag.Diagnostics) {
+func ConfigureProviderRequest(ctx context.Context, proto6 *tfprotov6.ConfigureProviderRequest, providerSchema *tfsdk.Schema) (*provider.ConfigureRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
 
-	fw := &tfsdk.ConfigureProviderRequest{
+	fw := &provider.ConfigureRequest{
 		TerraformVersion: proto6.TerraformVersion,
 	}
 

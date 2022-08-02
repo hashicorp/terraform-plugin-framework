@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -43,14 +44,14 @@ func TestServerConfigureProvider(t *testing.T) {
 
 	testCases := map[string]struct {
 		server           *fwserver.Server
-		request          *tfsdk.ConfigureProviderRequest
-		expectedResponse *tfsdk.ConfigureProviderResponse
+		request          *provider.ConfigureRequest
+		expectedResponse *provider.ConfigureResponse
 	}{
 		"empty-provider": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			expectedResponse: &tfsdk.ConfigureProviderResponse{},
+			expectedResponse: &provider.ConfigureResponse{},
 		},
 		"request-config": {
 			server: &fwserver.Server{
@@ -58,7 +59,7 @@ func TestServerConfigureProvider(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					ConfigureMethod: func(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 						var got types.String
 
 						resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
@@ -73,10 +74,10 @@ func TestServerConfigureProvider(t *testing.T) {
 					},
 				},
 			},
-			request: &tfsdk.ConfigureProviderRequest{
+			request: &provider.ConfigureRequest{
 				Config: testConfig,
 			},
-			expectedResponse: &tfsdk.ConfigureProviderResponse{},
+			expectedResponse: &provider.ConfigureResponse{},
 		},
 		"request-terraformversion": {
 			server: &fwserver.Server{
@@ -84,17 +85,17 @@ func TestServerConfigureProvider(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return tfsdk.Schema{}, nil
 					},
-					ConfigureMethod: func(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 						if req.TerraformVersion != "1.0.0" {
 							resp.Diagnostics.AddError("Incorrect req.TerraformVersion", "expected 1.0.0, got "+req.TerraformVersion)
 						}
 					},
 				},
 			},
-			request: &tfsdk.ConfigureProviderRequest{
+			request: &provider.ConfigureRequest{
 				TerraformVersion: "1.0.0",
 			},
-			expectedResponse: &tfsdk.ConfigureProviderResponse{},
+			expectedResponse: &provider.ConfigureResponse{},
 		},
 		"response-diagnostics": {
 			server: &fwserver.Server{
@@ -102,14 +103,14 @@ func TestServerConfigureProvider(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return tfsdk.Schema{}, nil
 					},
-					ConfigureMethod: func(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 						resp.Diagnostics.AddWarning("warning summary", "warning detail")
 						resp.Diagnostics.AddError("error summary", "error detail")
 					},
 				},
 			},
-			request: &tfsdk.ConfigureProviderRequest{},
-			expectedResponse: &tfsdk.ConfigureProviderResponse{
+			request: &provider.ConfigureRequest{},
+			expectedResponse: &provider.ConfigureResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic(
 						"warning summary",
@@ -130,7 +131,7 @@ func TestServerConfigureProvider(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			response := &tfsdk.ConfigureProviderResponse{}
+			response := &provider.ConfigureResponse{}
 			testCase.server.ConfigureProvider(context.Background(), testCase.request, response)
 
 			if diff := cmp.Diff(response, testCase.expectedResponse); diff != "" {

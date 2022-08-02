@@ -3,22 +3,22 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-var _ tfsdk.DataSource = &DataSourceWithConfigValidators{}
-var _ tfsdk.DataSourceWithConfigValidators = &DataSourceWithConfigValidators{}
+var _ datasource.DataSource = &DataSourceWithConfigValidators{}
+var _ datasource.DataSourceWithConfigValidators = &DataSourceWithConfigValidators{}
 
-// Declarative tfsdk.DataSourceWithConfigValidators for unit testing.
+// Declarative datasource.DataSourceWithConfigValidators for unit testing.
 type DataSourceWithConfigValidators struct {
 	*DataSource
 
 	// DataSourceWithConfigValidators interface methods
-	ConfigValidatorsMethod func(context.Context) []tfsdk.DataSourceConfigValidator
+	ConfigValidatorsMethod func(context.Context) []datasource.ConfigValidator
 }
 
-// ConfigValidators satisfies the tfsdk.DataSourceWithConfigValidators interface.
-func (p *DataSourceWithConfigValidators) ConfigValidators(ctx context.Context) []tfsdk.DataSourceConfigValidator {
+// ConfigValidators satisfies the datasource.DataSourceWithConfigValidators interface.
+func (p *DataSourceWithConfigValidators) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
 	if p.ConfigValidatorsMethod == nil {
 		return nil
 	}

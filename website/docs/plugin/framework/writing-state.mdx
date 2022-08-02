@@ -16,7 +16,7 @@ response object:
 
 ```go
 func (m myResource) Create(ctx context.Context,
-	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse)
+	req resource.CreateRequest, resp *resource.CreateResponse)
 ```
 
 In this example, `resp` holds the state that the provider developer should
@@ -38,7 +38,7 @@ type resourceData struct {
 }
 
 func (m myResource) Create(ctx context.Context,
-	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+	req resource.CreateRequest, resp *resource.CreateResponse) {
 	var newState resourceData
 	// update newState by modifying each property as usual for Go values
 	newState.Name.Value = "J. Doe"
@@ -93,9 +93,9 @@ runtime.
 
 ```go
 func (m myResource) Create(ctx context.Context,
-	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+	req resource.CreateRequest, resp *resource.CreateResponse) {
 	age := types.Number{Value: big.NewFloat(7)}
-	diags := resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("age"), &age)
+	diags := resp.State.SetAttribute(ctx, path.Root("age"), &age)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -107,10 +107,10 @@ Like `Set`, `SetAttribute` can also do some conversion to standard Go types:
 
 ```go
 func (m myResource) Create(ctx context.Context,
-	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+	req resource.CreateRequest, resp *resource.CreateResponse) {
 	var age int64
 	age = 7
-	diags := resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("age"), &age)
+	diags := resp.State.SetAttribute(ctx, path.Root("age"), &age)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -119,11 +119,6 @@ func (m myResource) Create(ctx context.Context,
 ```
 
 See [below](#conversion-rules) for the rules about conversion.
-
--> **Note:** The call to `tftypes.NewAttributePath` is creating an [attribute
-path](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#AttributePath)
-pointing to the specific attribute being updated. A less-verbose way to specify
-attribute paths is coming soon.
 
 ## Conversion Rules
 

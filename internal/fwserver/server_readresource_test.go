@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -102,9 +104,9 @@ func TestServerReadResource(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 								var data struct {
 									TestComputed types.String `tfsdk:"test_computed"`
 									TestRequired types.String `tfsdk:"test_required"`
@@ -134,9 +136,9 @@ func TestServerReadResource(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 								var config struct {
 									TestComputed types.String `tfsdk:"test_computed"`
 									TestRequired types.String `tfsdk:"test_required"`
@@ -167,9 +169,9 @@ func TestServerReadResource(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 								resp.Diagnostics.AddWarning("warning summary", "warning detail")
 								resp.Diagnostics.AddError("error summary", "error detail")
 							},
@@ -201,9 +203,9 @@ func TestServerReadResource(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 								var data struct {
 									TestComputed types.String `tfsdk:"test_computed"`
 									TestRequired types.String `tfsdk:"test_required"`
@@ -233,9 +235,9 @@ func TestServerReadResource(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 								resp.State.RemoveResource(ctx)
 							},
 						}, nil

@@ -3,22 +3,22 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-var _ tfsdk.DataSource = &DataSourceWithValidateConfig{}
-var _ tfsdk.DataSourceWithValidateConfig = &DataSourceWithValidateConfig{}
+var _ datasource.DataSource = &DataSourceWithValidateConfig{}
+var _ datasource.DataSourceWithValidateConfig = &DataSourceWithValidateConfig{}
 
-// Declarative tfsdk.DataSourceWithValidateConfig for unit testing.
+// Declarative datasource.DataSourceWithValidateConfig for unit testing.
 type DataSourceWithValidateConfig struct {
 	*DataSource
 
 	// DataSourceWithValidateConfig interface methods
-	ValidateConfigMethod func(context.Context, tfsdk.ValidateDataSourceConfigRequest, *tfsdk.ValidateDataSourceConfigResponse)
+	ValidateConfigMethod func(context.Context, datasource.ValidateConfigRequest, *datasource.ValidateConfigResponse)
 }
 
-// ValidateConfig satisfies the tfsdk.DataSourceWithValidateConfig interface.
-func (p *DataSourceWithValidateConfig) ValidateConfig(ctx context.Context, req tfsdk.ValidateDataSourceConfigRequest, resp *tfsdk.ValidateDataSourceConfigResponse) {
+// ValidateConfig satisfies the datasource.DataSourceWithValidateConfig interface.
+func (p *DataSourceWithValidateConfig) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
 	if p.ValidateConfigMethod == nil {
 		return
 	}

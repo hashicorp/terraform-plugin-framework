@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -86,15 +88,15 @@ func TestServerImportResourceState(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.ResourceWithImportState{
 							Resource: &testprovider.Resource{},
-							ImportStateMethod: func(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+							ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 								if req.ID != "test-id" {
 									resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
 								}
 
-								tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+								resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 							},
 						}, nil
 					},
@@ -121,7 +123,7 @@ func TestServerImportResourceState(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.Resource{}, nil
 					},
 				},
@@ -147,10 +149,10 @@ func TestServerImportResourceState(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.ResourceWithImportState{
 							Resource: &testprovider.Resource{},
-							ImportStateMethod: func(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+							ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 								resp.Diagnostics.AddWarning("warning summary", "warning detail")
 								resp.Diagnostics.AddError("error summary", "error detail")
 							},
@@ -182,11 +184,11 @@ func TestServerImportResourceState(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.ResourceWithImportState{
 							Resource: &testprovider.Resource{},
-							ImportStateMethod: func(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-								tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+							ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+								resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 							},
 						}, nil
 					},
@@ -213,10 +215,10 @@ func TestServerImportResourceState(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.ResourceWithImportState{
 							Resource: &testprovider.Resource{},
-							ImportStateMethod: func(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+							ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 								// Intentionally empty
 							},
 						}, nil

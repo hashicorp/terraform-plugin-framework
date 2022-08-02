@@ -29,7 +29,7 @@ functions or methods:
 
 ```go
 func (m myResource) Create(ctx context.Context,
-	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse)
+	req resource.CreateRequest, resp *resource.CreateResponse)
 ```
 
 This is the most common form for Diagnostics: a slice that has one or more
@@ -114,7 +114,7 @@ For example:
 
 ```go
 func (m myResource) Create(ctx context.Context,
-    req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+    req resource.CreateRequest, resp *resource.CreateResponse) {
     // ... prior logic ...
     diags := req.Config.Get(ctx, &resourceData)
     resp.Diagnostics.Append(diags...)
@@ -136,7 +136,7 @@ For example:
 
 ```go
 func (m myResource) Create(ctx context.Context,
-    req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+    req resource.CreateRequest, resp *resource.CreateResponse) {
     // ... prior logic ...
     diags := req.Config.Get(ctx, &resourceData)
     resp.Diagnostics.Append(diags...)
@@ -199,7 +199,7 @@ For example:
 
 ```go
 func (m myResource) Create(ctx context.Context,
-    req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+    req resource.CreateRequest, resp *resource.CreateResponse) {
     // ... prior logic ...
     resp, err := http.Post("https://example.com")
 

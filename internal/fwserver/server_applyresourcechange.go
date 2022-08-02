@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -17,7 +18,7 @@ type ApplyResourceChangeRequest struct {
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema tfsdk.Schema
-	ResourceType   tfsdk.ResourceType
+	ResourceType   provider.ResourceType
 }
 
 // ApplyResourceChangeResponse is the framework server response for the

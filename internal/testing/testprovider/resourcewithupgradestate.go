@@ -3,22 +3,22 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ tfsdk.Resource = &ResourceWithUpgradeState{}
-var _ tfsdk.ResourceWithUpgradeState = &ResourceWithUpgradeState{}
+var _ resource.Resource = &ResourceWithUpgradeState{}
+var _ resource.ResourceWithUpgradeState = &ResourceWithUpgradeState{}
 
-// Declarative tfsdk.ResourceWithUpgradeState for unit testing.
+// Declarative resource.ResourceWithUpgradeState for unit testing.
 type ResourceWithUpgradeState struct {
 	*Resource
 
 	// ResourceWithUpgradeState interface methods
-	UpgradeStateMethod func(context.Context) map[int64]tfsdk.ResourceStateUpgrader
+	UpgradeStateMethod func(context.Context) map[int64]resource.StateUpgrader
 }
 
-// UpgradeState satisfies the tfsdk.ResourceWithUpgradeState interface.
-func (p *ResourceWithUpgradeState) UpgradeState(ctx context.Context) map[int64]tfsdk.ResourceStateUpgrader {
+// UpgradeState satisfies the resource.ResourceWithUpgradeState interface.
+func (p *ResourceWithUpgradeState) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
 	if p.UpgradeStateMethod == nil {
 		return nil
 	}

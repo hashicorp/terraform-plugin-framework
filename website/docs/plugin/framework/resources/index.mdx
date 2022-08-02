@@ -17,8 +17,8 @@ Providers act as a translation layer between Terraform and an API, offering one 
 
 ## Define Resource Archetype
 
-Implement the [`tfsdk.ResourceType`
-interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceType) for every type of
+Implement the [`provider.ResourceType`
+interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ResourceType) for every type of
 resource you want to support: compute instances, disks, access policies, etc. It
 allows you to describe the resource archetype, which is the functionality related to all instances of that resource type in the configuration, state, plan, and API. `ResourceType` has the following methods:
 
@@ -28,10 +28,10 @@ allows you to describe the resource archetype, which is the functionality relate
 
 ### NewResource
 
-`NewResource` returns a new instance of that resource type. It instantiates a new [`tfsdk.Resource` implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Resource)
+`NewResource` returns a new instance of that resource type. It instantiates a new [`resource.Resource` implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource)
 that expects to operate on data with the structure defined in `GetSchema`. It does not need to create the instance on the API.
 
-The `NewResource` method is passed a [`tfsdk.Provider` implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Provider).
+The `NewResource` method is passed a [`provider.Provider` implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider).
 This is the [provider type](/plugin/framework/providers) after its
 `Configure` method was called. The `NewResource` method can type-assert on this
 and inject it into the `Resource`, allowing the `Resource` to have
@@ -57,7 +57,7 @@ func (c computeInstanceResourceType) GetSchema(_ context.Context) (tfsdk.Schema,
 }
 
 func (c computeInstanceResourceType) NewResource(_ context.Context,
-	p tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+	p provider.Provider) (resource.Resource, diag.Diagnostics) {
 	return computeInstanceResource{
 		client: p.(*provider).client,
 	}, nil
@@ -72,7 +72,7 @@ Resources are scoped to a single instance of a resource type. They modify a spec
 
 `Create` makes the necessary API calls to create the resource and then persist that resource's data into the Terraform state. This is usually accomplished by:
 
-1. [Reading the plan data](/plugin/framework/accessing-values) from the [`tfsdk.CreateResourceRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#CreateResourceRequest)
+1. [Reading the plan data](/plugin/framework/accessing-values) from the [`resource.CreateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateRequest)
 1. Using the configured API client injected into the resource by the resource type's `NewResource` method
 1. [Writing to the state](/plugin/framework/writing-state).
 
@@ -87,7 +87,7 @@ value when it's set in the state; the state can never hold any unknown values.
 
 `Read` updates Terraform's state to reflect the latest state of the resource in the API.
 
-There is no plan or config to work with in `Read`. Resources should [retrieve the data they need](/plugin/framework/accessing-values) from the current state included in the [`tfsdk.ReadResourceRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ReadResourceRequest). They can then use the configured API client injected into the resource by the
+There is no plan or config to work with in `Read`. Resources should [retrieve the data they need](/plugin/framework/accessing-values) from the current state included in the [`resource.ReadRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest). They can then use the configured API client injected into the resource by the
 resource type's `NewResource` method, and [write the results to the
 state](/plugin/framework/writing-state).
 
@@ -109,7 +109,7 @@ The provider can set any value in state, but you should be mindful of values tha
 
 `Update` makes the necessary API calls to modify the existing resource to match the configuration and then to persist that resource's data into the Terraform state. This is usually accomplished by:
 
-1. [Reading the plan data](/plugin/framework/accessing-values) from the [`tfsdk.UpdateResourceRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#UpdateResourceRequest)
+1. [Reading the plan data](/plugin/framework/accessing-values) from the [`resource.UpdateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest)
 1. Using the configured API client injected into the resource by the resource
    type's `NewResource` method
 1. [Writing to the state](/plugin/framework/writing-state).
@@ -126,7 +126,7 @@ value when it's set in the state; the state can never hold any unknown values.
 `Delete` makes the necessary API calls to destroy a resource and then to remove that resource from the Terraform state. This is usually accomplished by:
 
 1. [Reading the prior state data](/plugin/framework/accessing-values) from the
-   [`tfsdk.DeleteResourceRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#DeleteResourceRequest)
+   [`resource.DeleteRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteRequest)
 1. Using the configured API client injected into the resource by the resource
    type's `NewResource` method
 
@@ -136,10 +136,10 @@ Terraform 1.3 and later enables deletion planning, which resources can implement
 
 `ImportState` is an optional method that implements resource [import](/cli/import). This functionality creates an initial Terraform state to bring the resource under management via the [`terraform import` command](/cli/commands/import). This method must provide enough state for the resource to be successfully refreshed via the `Read` method. This is usually accomplished by:
 
-1. Using the import identifier from the [`tfsdk.ImportResourceStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ImportResourceStateRequest) to [set state data](/plugin/framework/writing-state) in the
-   [`tfsdk.ImportResourceStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ImportResourceStateResponse).
+1. Using the import identifier from the [`resource.ImportStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateRequest) to [set state data](/plugin/framework/writing-state) in the
+   [`resource.ImportStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse).
 
-The [`tfsdk.ResourceImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ResourceImportStatePassthroughID) is available to simplify writing the import identifier to an attribute.
+The [`resource.ImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStatePassthroughID) is available to simplify writing the import identifier to an attribute.
 
 Refer to [Resource Import](/plugin/framework/resources/import) for more details and code examples.
 
@@ -158,9 +158,9 @@ the value must be an instance of the resource type.
 **Example**
 
 ```go
-func (p *provider) GetResources(_ context.Context) (map[string]tfsdk.ResourceType,
+func (p *provider) GetResources(_ context.Context) (map[string]provider.ResourceType,
 	diag.Diagnostics) {
-	return map[string]tfsdk.ResourceType{
+	return map[string]provider.ResourceType{
 		"example_compute_instance": computeInstanceResourceType{},
 	}, nil
 }

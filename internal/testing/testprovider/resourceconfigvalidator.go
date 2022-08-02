@@ -3,20 +3,20 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ tfsdk.ResourceConfigValidator = &ResourceConfigValidator{}
+var _ resource.ConfigValidator = &ResourceConfigValidator{}
 
-// Declarative tfsdk.ResourceConfigValidator for unit testing.
+// Declarative resource.ConfigValidator for unit testing.
 type ResourceConfigValidator struct {
 	// ResourceConfigValidator interface methods
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
-	ValidateResourceMethod    func(context.Context, tfsdk.ValidateResourceConfigRequest, *tfsdk.ValidateResourceConfigResponse)
+	ValidateResourceMethod    func(context.Context, resource.ValidateConfigRequest, *resource.ValidateConfigResponse)
 }
 
-// Description satisfies the tfsdk.ResourceConfigValidator interface.
+// Description satisfies the resource.ConfigValidator interface.
 func (v *ResourceConfigValidator) Description(ctx context.Context) string {
 	if v.DescriptionMethod == nil {
 		return ""
@@ -25,7 +25,7 @@ func (v *ResourceConfigValidator) Description(ctx context.Context) string {
 	return v.DescriptionMethod(ctx)
 }
 
-// MarkdownDescription satisfies the tfsdk.ResourceConfigValidator interface.
+// MarkdownDescription satisfies the resource.ConfigValidator interface.
 func (v *ResourceConfigValidator) MarkdownDescription(ctx context.Context) string {
 	if v.MarkdownDescriptionMethod == nil {
 		return ""
@@ -34,8 +34,8 @@ func (v *ResourceConfigValidator) MarkdownDescription(ctx context.Context) strin
 	return v.MarkdownDescriptionMethod(ctx)
 }
 
-// Validate satisfies the tfsdk.ResourceConfigValidator interface.
-func (v *ResourceConfigValidator) ValidateResource(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
+// Validate satisfies the resource.ConfigValidator interface.
+func (v *ResourceConfigValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	if v.ValidateResourceMethod == nil {
 		return
 	}

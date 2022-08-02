@@ -16,7 +16,7 @@ The data is usually stored in a request object:
 
 ```go
 func (m myResource) Create(ctx context.Context,
-	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse)
+	req resource.CreateRequest, resp *resource.CreateResponse)
 ```
 
 In this example, `req` holds the configuration and plan, and there is no state
@@ -40,7 +40,7 @@ type resourceData struct {
 }
 
 func (m myResource) Create(ctx context.Context,
-	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+	req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan resourceData
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -93,8 +93,8 @@ type will always be the type produced by that attribute's `attr.Type`.
 
 ```go
 func (m myResource) Create(ctx context.Context,
-	req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
-	attr, diags := req.Config.GetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("age"))
+	req resource.CreateRequest, resp *resource.CreateResponse) {
+	attr, diags := req.Config.GetAttribute(ctx, path.Root("age"))
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -102,11 +102,6 @@ func (m myResource) Create(ctx context.Context,
 	age := attr.(types.Number)
 }
 ```
-
--> **Note:** The call to `tftypes.NewAttributePath` is creating an [attribute
-path](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#AttributePath)
-pointing to the specific attribute. A less-verbose way to specify attribute
-paths is coming soon.
 
 -> **Note:** Helpers to access `attr.Value`s using the same reflection rules
 `Get` has are planned, to avoid the need to type assert. We hope to release

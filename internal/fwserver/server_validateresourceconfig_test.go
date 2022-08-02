@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -164,13 +166,13 @@ func TestServerValidateResourceConfig(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.ResourceWithConfigValidators{
 							Resource: &testprovider.Resource{},
-							ConfigValidatorsMethod: func(ctx context.Context) []tfsdk.ResourceConfigValidator {
-								return []tfsdk.ResourceConfigValidator{
+							ConfigValidatorsMethod: func(ctx context.Context) []resource.ConfigValidator {
+								return []resource.ConfigValidator{
 									&testprovider.ResourceConfigValidator{
-										ValidateResourceMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
+										ValidateResourceMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 											var got types.String
 
 											resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
@@ -202,13 +204,13 @@ func TestServerValidateResourceConfig(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.ResourceWithConfigValidators{
 							Resource: &testprovider.Resource{},
-							ConfigValidatorsMethod: func(ctx context.Context) []tfsdk.ResourceConfigValidator {
-								return []tfsdk.ResourceConfigValidator{
+							ConfigValidatorsMethod: func(ctx context.Context) []resource.ConfigValidator {
+								return []resource.ConfigValidator{
 									&testprovider.ResourceConfigValidator{
-										ValidateResourceMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
+										ValidateResourceMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 											resp.Diagnostics.AddError("error summary", "error detail")
 										},
 									},
@@ -236,10 +238,10 @@ func TestServerValidateResourceConfig(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.ResourceWithValidateConfig{
 							Resource: &testprovider.Resource{},
-							ValidateConfigMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
+							ValidateConfigMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 								var got types.String
 
 								resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
@@ -268,10 +270,10 @@ func TestServerValidateResourceConfig(t *testing.T) {
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.ResourceWithValidateConfig{
 							Resource: &testprovider.Resource{},
-							ValidateConfigMethod: func(ctx context.Context, req tfsdk.ValidateResourceConfigRequest, resp *tfsdk.ValidateResourceConfigResponse) {
+							ValidateConfigMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 								resp.Diagnostics.AddWarning("warning summary", "warning detail")
 								resp.Diagnostics.AddError("error summary", "error detail")
 							},

@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -17,7 +19,7 @@ type CreateResourceRequest struct {
 	PlannedState   *tfsdk.Plan
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema tfsdk.Schema
-	ResourceType   tfsdk.ResourceType
+	ResourceType   provider.ResourceType
 }
 
 // CreateResourceResponse is the framework server response for a create request
@@ -37,7 +39,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 
 	// Always instantiate new Resource instances.
 	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := req.ResourceType.NewResource(ctx, s.Provider)
+	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
 	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 
 	resp.Diagnostics.Append(diags...)
@@ -48,7 +50,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 
 	nullSchemaData := tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil)
 
-	createReq := tfsdk.CreateResourceRequest{
+	createReq := resource.CreateRequest{
 		Config: tfsdk.Config{
 			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
@@ -58,7 +60,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 			Raw:    nullSchemaData,
 		},
 	}
-	createResp := tfsdk.CreateResourceResponse{
+	createResp := resource.CreateResponse{
 		State: tfsdk.State{
 			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
@@ -78,7 +80,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Create")
-	resource.Create(ctx, createReq, &createResp)
+	resourceImpl.Create(ctx, createReq, &createResp)
 	logging.FrameworkDebug(ctx, "Called provider defined Resource Create")
 
 	resp.Diagnostics = createResp.Diagnostics
@@ -90,7 +92,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 			"The resource may have been successfully created, but Terraform is not tracking it. " +
 			"Applying the configuration again with no other action may result in duplicate resource errors."
 
-		if _, ok := resource.(tfsdk.ResourceWithImportState); ok {
+		if _, ok := resourceImpl.(resource.ResourceWithImportState); ok {
 			detail += " Import the resource if the resource was actually created and Terraform should be tracking it."
 		}
 

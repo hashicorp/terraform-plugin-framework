@@ -4,17 +4,17 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
 // ConfigureProvider implements the framework server ConfigureProvider RPC.
-func (s *Server) ConfigureProvider(ctx context.Context, req *tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+func (s *Server) ConfigureProvider(ctx context.Context, req *provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	logging.FrameworkDebug(ctx, "Calling provider defined Provider Configure")
 
 	if req != nil {
 		s.Provider.Configure(ctx, *req, resp)
 	} else {
-		s.Provider.Configure(ctx, tfsdk.ConfigureProviderRequest{}, resp)
+		s.Provider.Configure(ctx, provider.ConfigureRequest{}, resp)
 	}
 
 	logging.FrameworkDebug(ctx, "Called provider defined Provider Configure")

@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -12,7 +14,7 @@ import (
 // ReadResource RPC.
 type ReadResourceRequest struct {
 	CurrentState *tfsdk.State
-	ResourceType tfsdk.ResourceType
+	ResourceType provider.ResourceType
 	Private      []byte
 	ProviderMeta *tfsdk.Config
 }
@@ -43,7 +45,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 
 	// Always instantiate new Resource instances.
 	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resource, diags := req.ResourceType.NewResource(ctx, s.Provider)
+	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
 	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
 
 	resp.Diagnostics.Append(diags...)
@@ -52,13 +54,13 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		return
 	}
 
-	readReq := tfsdk.ReadResourceRequest{
+	readReq := resource.ReadRequest{
 		State: tfsdk.State{
 			Schema: req.CurrentState.Schema,
 			Raw:    req.CurrentState.Raw.Copy(),
 		},
 	}
-	readResp := tfsdk.ReadResourceResponse{
+	readResp := resource.ReadResponse{
 		State: tfsdk.State{
 			Schema: req.CurrentState.Schema,
 			Raw:    req.CurrentState.Raw.Copy(),
@@ -70,7 +72,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Read")
-	resource.Read(ctx, readReq, &readResp)
+	resourceImpl.Read(ctx, readReq, &readResp)
 	logging.FrameworkDebug(ctx, "Called provider defined Resource Read")
 
 	resp.Diagnostics = readResp.Diagnostics

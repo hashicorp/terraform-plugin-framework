@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -78,15 +80,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testSchemaData
 
 												resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -126,15 +128,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testSchemaData
 
 												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -173,17 +175,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 		"create-request-providermeta": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.ProviderWithProviderMeta{
+					Provider: &testprovider.ProviderWithMetaSchema{
 						Provider: &testprovider.Provider{
-							GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-								return map[string]tfsdk.ResourceType{
+							GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+								return map[string]provider.ResourceType{
 									"test_resource": &testprovider.ResourceType{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
-										NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 											return &testprovider.ResourceWithModifyPlan{
-												ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+												ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 													var data testProviderMetaData
 
 													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
@@ -228,15 +230,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												resp.Diagnostics.AddWarning("warning summary", "warning detail")
 												resp.Diagnostics.AddError("error summary", "error detail")
 											},
@@ -283,15 +285,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testSchemaData
 
 												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -331,15 +333,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												// This is a strange thing to signal on creation,
 												// but the framework does not prevent you from
 												// doing it and it might be overly burdensome on
@@ -384,15 +386,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testSchemaData
 
 												resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -424,17 +426,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 		"delete-request-providermeta": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.ProviderWithProviderMeta{
+					Provider: &testprovider.ProviderWithMetaSchema{
 						Provider: &testprovider.Provider{
-							GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-								return map[string]tfsdk.ResourceType{
+							GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+								return map[string]provider.ResourceType{
 									"test_resource": &testprovider.ResourceType{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
-										NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 											return &testprovider.ResourceWithModifyPlan{
-												ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+												ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 													var data testProviderMetaData
 
 													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
@@ -472,15 +474,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												resp.Diagnostics.AddWarning("warning summary", "warning detail")
 												resp.Diagnostics.AddError("error summary", "error detail")
 											},
@@ -520,15 +522,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												// This is invalid logic to run during deletion.
 												resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("test_computed"), types.String{Value: "test-plannedstate-value"})...)
 											},
@@ -568,15 +570,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												// This is a strange thing to signal on destroy,
 												// but the framework does not prevent you from
 												// doing it and it might be overly burdensome on
@@ -614,15 +616,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testSchemaData
 
 												resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -665,15 +667,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testSchemaData
 
 												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -716,15 +718,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testSchemaData
 
 												resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -766,17 +768,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 		"update-request-providermeta": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.ProviderWithProviderMeta{
+					Provider: &testprovider.ProviderWithMetaSchema{
 						Provider: &testprovider.Provider{
-							GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-								return map[string]tfsdk.ResourceType{
+							GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+								return map[string]provider.ResourceType{
 									"test_resource": &testprovider.ResourceType{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
-										NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+										NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 											return &testprovider.ResourceWithModifyPlan{
-												ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+												ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 													var data testProviderMetaData
 
 													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
@@ -824,15 +826,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												resp.Diagnostics.AddWarning("warning summary", "warning detail")
 												resp.Diagnostics.AddError("error summary", "error detail")
 											},
@@ -882,15 +884,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testSchemaData
 
 												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -933,15 +935,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-							return map[string]tfsdk.ResourceType{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
 								"test_resource": &testprovider.ResourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewResourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.ResourceWithModifyPlan{
-											ModifyPlanMethod: func(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												resp.RequiresReplace = path.Paths{
 													path.Root("test_required"),
 												}

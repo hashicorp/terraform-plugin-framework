@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto5server"
 	"github.com/hashicorp/terraform-plugin-framework/internal/proto6server"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -18,7 +18,7 @@ import (
 // based on the given Provider and suitable for usage with the
 // github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server.Serve()
 // function and various terraform-plugin-mux functions.
-func NewProtocol5(p tfsdk.Provider) func() tfprotov5.ProviderServer {
+func NewProtocol5(p provider.Provider) func() tfprotov5.ProviderServer {
 	return func() tfprotov5.ProviderServer {
 		return &proto5server.Server{
 			FrameworkServer: fwserver.Server{
@@ -33,7 +33,7 @@ func NewProtocol5(p tfsdk.Provider) func() tfprotov5.ProviderServer {
 // github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource.TestCase.ProtoV5ProviderFactories.
 //
 // The error return is not currently used, but it may be in the future.
-func NewProtocol5WithError(p tfsdk.Provider) func() (tfprotov5.ProviderServer, error) {
+func NewProtocol5WithError(p provider.Provider) func() (tfprotov5.ProviderServer, error) {
 	return func() (tfprotov5.ProviderServer, error) {
 		return &proto5server.Server{
 			FrameworkServer: fwserver.Server{
@@ -47,7 +47,7 @@ func NewProtocol5WithError(p tfsdk.Provider) func() (tfprotov5.ProviderServer, e
 // based on the given Provider and suitable for usage with the
 // github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server.Serve()
 // function and various terraform-plugin-mux functions.
-func NewProtocol6(p tfsdk.Provider) func() tfprotov6.ProviderServer {
+func NewProtocol6(p provider.Provider) func() tfprotov6.ProviderServer {
 	return func() tfprotov6.ProviderServer {
 		return &proto6server.Server{
 			FrameworkServer: fwserver.Server{
@@ -62,7 +62,7 @@ func NewProtocol6(p tfsdk.Provider) func() tfprotov6.ProviderServer {
 // github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource.TestCase.ProtoV6ProviderFactories.
 //
 // The error return is not currently used, but it may be in the future.
-func NewProtocol6WithError(p tfsdk.Provider) func() (tfprotov6.ProviderServer, error) {
+func NewProtocol6WithError(p provider.Provider) func() (tfprotov6.ProviderServer, error) {
 	return func() (tfprotov6.ProviderServer, error) {
 		return &proto6server.Server{
 			FrameworkServer: fwserver.Server{
@@ -73,7 +73,7 @@ func NewProtocol6WithError(p tfsdk.Provider) func() (tfprotov6.ProviderServer, e
 }
 
 // Serve serves a provider, blocking until the context is canceled.
-func Serve(ctx context.Context, providerFunc func() tfsdk.Provider, opts ServeOpts) error {
+func Serve(ctx context.Context, providerFunc func() provider.Provider, opts ServeOpts) error {
 	err := opts.validate(ctx)
 
 	if err != nil {

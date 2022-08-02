@@ -5,9 +5,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -59,13 +61,13 @@ func TestServerReadDataSource(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
-							return map[string]tfsdk.DataSourceType{
+						GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+							return map[string]provider.DataSourceType{
 								"test_data_source": &testprovider.DataSourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return tfsdk.Schema{}, nil
 									},
-									NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+									NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
 										return &testprovider.DataSource{}, nil
 									},
 								},
@@ -86,15 +88,15 @@ func TestServerReadDataSource(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
-							return map[string]tfsdk.DataSourceType{
+						GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+							return map[string]provider.DataSourceType{
 								"test_data_source": &testprovider.DataSourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+									NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
 										return &testprovider.DataSource{
-											ReadMethod: func(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+											ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 												var config struct {
 													TestComputed types.String `tfsdk:"test_computed"`
 													TestRequired types.String `tfsdk:"test_required"`
@@ -125,17 +127,17 @@ func TestServerReadDataSource(t *testing.T) {
 		"request-providermeta": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.ProviderWithProviderMeta{
+					Provider: &testprovider.ProviderWithMetaSchema{
 						Provider: &testprovider.Provider{
-							GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
-								return map[string]tfsdk.DataSourceType{
+							GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+								return map[string]provider.DataSourceType{
 									"test_data_source": &testprovider.DataSourceType{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{}, nil
 										},
-										NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+										NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
 											return &testprovider.DataSource{
-												ReadMethod: func(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+												ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 													var config struct {
 														TestComputed types.String `tfsdk:"test_computed"`
 														TestRequired types.String `tfsdk:"test_required"`
@@ -172,15 +174,15 @@ func TestServerReadDataSource(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
-							return map[string]tfsdk.DataSourceType{
+						GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+							return map[string]provider.DataSourceType{
 								"test_data_source": &testprovider.DataSourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+									NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
 										return &testprovider.DataSource{
-											ReadMethod: func(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+											ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 												resp.Diagnostics.AddWarning("warning summary", "warning detail")
 												resp.Diagnostics.AddError("error summary", "error detail")
 											},
@@ -216,15 +218,15 @@ func TestServerReadDataSource(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetDataSourcesMethod: func(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
-							return map[string]tfsdk.DataSourceType{
+						GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+							return map[string]provider.DataSourceType{
 								"test_data_source": &testprovider.DataSourceType{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return testSchema, nil
 									},
-									NewDataSourceMethod: func(_ context.Context, _ tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+									NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
 										return &testprovider.DataSource{
-											ReadMethod: func(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+											ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 												var data struct {
 													TestComputed types.String `tfsdk:"test_computed"`
 													TestRequired types.String `tfsdk:"test_required"`

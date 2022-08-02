@@ -5,13 +5,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // UpgradeResourceStateRequest returns the *fwserver.UpgradeResourceStateRequest
 // equivalent of a *tfprotov6.UpgradeResourceStateRequest.
-func UpgradeResourceStateRequest(ctx context.Context, proto6 *tfprotov6.UpgradeResourceStateRequest, resourceType tfsdk.ResourceType, resourceSchema *tfsdk.Schema) (*fwserver.UpgradeResourceStateRequest, diag.Diagnostics) {
+func UpgradeResourceStateRequest(ctx context.Context, proto6 *tfprotov6.UpgradeResourceStateRequest, resourceType provider.ResourceType, resourceSchema *tfsdk.Schema) (*fwserver.UpgradeResourceStateRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}

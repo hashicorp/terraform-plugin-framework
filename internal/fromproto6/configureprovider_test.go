@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -44,7 +45,7 @@ func TestConfigureProviderRequest(t *testing.T) {
 	testCases := map[string]struct {
 		input               *tfprotov6.ConfigureProviderRequest
 		providerSchema      *tfsdk.Schema
-		expected            *tfsdk.ConfigureProviderRequest
+		expected            *provider.ConfigureRequest
 		expectedDiagnostics diag.Diagnostics
 	}{
 		"nil": {
@@ -53,13 +54,13 @@ func TestConfigureProviderRequest(t *testing.T) {
 		},
 		"empty": {
 			input:    &tfprotov6.ConfigureProviderRequest{},
-			expected: &tfsdk.ConfigureProviderRequest{},
+			expected: &provider.ConfigureRequest{},
 		},
 		"config-missing-schema": {
 			input: &tfprotov6.ConfigureProviderRequest{
 				Config: &testProto6DynamicValue,
 			},
-			expected: &tfsdk.ConfigureProviderRequest{},
+			expected: &provider.ConfigureRequest{},
 			expectedDiagnostics: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"Unable to Convert Configuration",
@@ -75,7 +76,7 @@ func TestConfigureProviderRequest(t *testing.T) {
 				Config: &testProto6DynamicValue,
 			},
 			providerSchema: testFwSchema,
-			expected: &tfsdk.ConfigureProviderRequest{
+			expected: &provider.ConfigureRequest{
 				Config: tfsdk.Config{
 					Raw:    testProto6Value,
 					Schema: *testFwSchema,
@@ -86,7 +87,7 @@ func TestConfigureProviderRequest(t *testing.T) {
 			input: &tfprotov6.ConfigureProviderRequest{
 				TerraformVersion: "99.99.99",
 			},
-			expected: &tfsdk.ConfigureProviderRequest{
+			expected: &provider.ConfigureRequest{
 				TerraformVersion: "99.99.99",
 			},
 		},

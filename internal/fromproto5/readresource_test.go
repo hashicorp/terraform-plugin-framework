@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -45,7 +46,7 @@ func TestReadResourceRequest(t *testing.T) {
 	testCases := map[string]struct {
 		input               *tfprotov5.ReadResourceRequest
 		resourceSchema      *tfsdk.Schema
-		resourceType        tfsdk.ResourceType
+		resourceType        provider.ResourceType
 		providerMetaSchema  *tfsdk.Schema
 		expected            *fwserver.ReadResourceRequest
 		expectedDiagnostics diag.Diagnostics

@@ -15,33 +15,6 @@ import (
 func TestData_Bytes(t *testing.T) {
 	t.Parallel()
 
-	empty, _ := json.Marshal(privatestate.Data{})
-
-	frameworkData, _ := json.Marshal(privatestate.Data{
-		Framework: map[string][]byte{
-			"frameworkKeyOne": []byte("framework value one"),
-			"frameworkKeyTwo": []byte("framework value two"),
-		},
-	})
-
-	providerData, _ := json.Marshal(privatestate.Data{
-		Provider: map[string][]byte{
-			"providerKeyOne": []byte("provider value one"),
-			"providerKeyTwo": []byte("provider value two"),
-		},
-	})
-
-	frameworkProviderData, _ := json.Marshal(privatestate.Data{
-		Framework: map[string][]byte{
-			"frameworkKeyOne": []byte("framework value one"),
-			"frameworkKeyTwo": []byte("framework value two"),
-		},
-		Provider: map[string][]byte{
-			"providerKeyOne": []byte("provider value one"),
-			"providerKeyTwo": []byte("provider value two"),
-		},
-	})
-
 	testCases := map[string]struct {
 		data          privatestate.Data
 		expected      []byte
@@ -49,17 +22,17 @@ func TestData_Bytes(t *testing.T) {
 	}{
 		"empty": {
 			data:          privatestate.Data{},
-			expected:      empty,
+			expected:      []byte(`{}`),
 			expectedDiags: diag.Diagnostics{},
 		},
 		"framework-data": {
 			data: privatestate.Data{
 				Framework: map[string][]byte{
-					"frameworkKeyOne": []byte("framework value one"),
-					"frameworkKeyTwo": []byte("framework value two"),
+					".frameworkKeyOne": []byte("framework value one"),
+					".frameworkKeyTwo": []byte("framework value two"),
 				},
 			},
-			expected:      frameworkData,
+			expected:      []byte(`{".frameworkKeyOne":"ZnJhbWV3b3JrIHZhbHVlIG9uZQ==",".frameworkKeyTwo":"ZnJhbWV3b3JrIHZhbHVlIHR3bw=="}`),
 			expectedDiags: diag.Diagnostics{},
 		},
 		"provider-data": {
@@ -68,20 +41,20 @@ func TestData_Bytes(t *testing.T) {
 					"providerKeyOne": []byte("provider value one"),
 					"providerKeyTwo": []byte("provider value two")},
 			},
-			expected:      providerData,
+			expected:      []byte(`{"providerKeyOne":"cHJvdmlkZXIgdmFsdWUgb25l","providerKeyTwo":"cHJvdmlkZXIgdmFsdWUgdHdv"}`),
 			expectedDiags: diag.Diagnostics{},
 		},
 		"framework-provider-data": {
 			data: privatestate.Data{
 				Framework: map[string][]byte{
-					"frameworkKeyOne": []byte("framework value one"),
-					"frameworkKeyTwo": []byte("framework value two"),
+					".frameworkKeyOne": []byte("framework value one"),
+					".frameworkKeyTwo": []byte("framework value two"),
 				},
 				Provider: map[string][]byte{
 					"providerKeyOne": []byte("provider value one"),
 					"providerKeyTwo": []byte("provider value two")},
 			},
-			expected:      frameworkProviderData,
+			expected:      []byte(`{".frameworkKeyOne":"ZnJhbWV3b3JrIHZhbHVlIG9uZQ==",".frameworkKeyTwo":"ZnJhbWV3b3JrIHZhbHVlIHR3bw==","providerKeyOne":"cHJvdmlkZXIgdmFsdWUgb25l","providerKeyTwo":"cHJvdmlkZXIgdmFsdWUgdHdv"}`),
 			expectedDiags: diag.Diagnostics{},
 		},
 	}
@@ -176,8 +149,9 @@ func TestProviderData_GetKey(t *testing.T) {
 			key: ".key",
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Restricted Namespace",
-					"Using a period ('.') as a prefix for a key used in private state is not allowed",
+					"Restricted Resource Private State Namespace",
+					"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 				),
 			},
 		},
@@ -228,8 +202,9 @@ func TestProviderData_SetKey(t *testing.T) {
 			key: ".key",
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Restricted Namespace",
-					"Using a period ('.') as a prefix for a key used in private state is not allowed",
+					"Restricted Resource Private State Namespace",
+					"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 				),
 			},
 		},
@@ -239,7 +214,8 @@ func TestProviderData_SetKey(t *testing.T) {
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"UTF-8 Invalid",
-					"Values stored in private state must be valid UTF-8",
+					"Values stored in private state must be valid UTF-8\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 				),
 			},
 		},
@@ -249,7 +225,8 @@ func TestProviderData_SetKey(t *testing.T) {
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"JSON Invalid",
-					"Values stored in private state must be valid JSON",
+					"Values stored in private state must be valid JSON\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 				),
 			},
 		},
@@ -282,8 +259,9 @@ func TestValidateProviderDataKey(t *testing.T) {
 		"namespace-restricted": {
 			key: ".restricted",
 			expected: diag.Diagnostics{diag.NewErrorDiagnostic(
-				"Restricted Namespace",
-				"Using a period ('.') as a prefix for a key used in private state is not allowed",
+				"Restricted Resource Private State Namespace",
+				"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
+					"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 			)},
 		},
 		"namespace-ok": {

@@ -25,7 +25,17 @@ type Data struct {
 func (d Data) Bytes(_ context.Context) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	bytes, err := json.Marshal(d)
+	mergedMap := make(map[string][]byte, len(d.Framework)+len(d.Provider))
+
+	for k, v := range d.Framework {
+		mergedMap[k] = v
+	}
+
+	for k, v := range d.Provider {
+		mergedMap[k] = v
+	}
+
+	bytes, err := json.Marshal(mergedMap)
 	if err != nil {
 		diags.AddError(
 			"Error Encoding Private State",
@@ -43,11 +53,11 @@ func (d Data) Bytes(_ context.Context) ([]byte, diag.Diagnostics) {
 // It must be a JSON encoded slice of bytes, that is map[string][]byte.
 func NewData(ctx context.Context, data []byte) (Data, diag.Diagnostics) {
 	var (
-		u     map[string][]byte
-		diags diag.Diagnostics
+		dataMap map[string][]byte
+		diags   diag.Diagnostics
 	)
 
-	err := json.Unmarshal(data, &u)
+	err := json.Unmarshal(data, &dataMap)
 	if err != nil {
 		diags.AddError(
 			"Error Decoding Private State",
@@ -63,7 +73,7 @@ func NewData(ctx context.Context, data []byte) (Data, diag.Diagnostics) {
 		Provider:  make(map[string][]byte),
 	}
 
-	for k, v := range u {
+	for k, v := range dataMap {
 		if isInvalidProviderDataKey(ctx, k) {
 			output.Framework[k] = v
 			continue
@@ -123,14 +133,18 @@ func (d ProviderData) SetKey(ctx context.Context, key string, value []byte) diag
 
 	if !utf8.Valid(value) {
 		diags.AddError("UTF-8 Invalid",
-			"Values stored in private state must be valid UTF-8")
+			"Values stored in private state must be valid UTF-8\n\n"+
+				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+		)
 
 		return diags
 	}
 
 	if !json.Valid(value) {
 		diags.AddError("JSON Invalid",
-			"Values stored in private state must be valid JSON")
+			"Values stored in private state must be valid JSON\n\n"+
+				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+		)
 
 		return diags
 	}
@@ -147,8 +161,9 @@ func ValidateProviderDataKey(ctx context.Context, key string) diag.Diagnostics {
 	if isInvalidProviderDataKey(ctx, key) {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(
-				"Restricted Namespace",
-				"Using a period ('.') as a prefix for a key used in private state is not allowed",
+				"Restricted Resource Private State Namespace",
+				"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
+					"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 			),
 		}
 	}

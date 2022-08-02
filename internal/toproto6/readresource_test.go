@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestReadResourceResponse(t *testing.T) {
@@ -66,8 +67,10 @@ func TestReadResourceResponse(t *testing.T) {
 			expected: nil,
 		},
 		"empty": {
-			input:    &fwserver.ReadResourceResponse{},
-			expected: &tfprotov6.ReadResourceResponse{},
+			input: &fwserver.ReadResourceResponse{},
+			expected: &tfprotov6.ReadResourceResponse{
+				Private: []byte(`{}`),
+			},
 		},
 		"diagnostics": {
 			input: &fwserver.ReadResourceResponse{

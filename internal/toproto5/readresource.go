@@ -3,8 +3,9 @@ package toproto5
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
 // ReadResourceResponse returns the *tfprotov5.ReadResourceResponse
@@ -16,13 +17,17 @@ func ReadResourceResponse(ctx context.Context, fw *fwserver.ReadResourceResponse
 
 	proto5 := &tfprotov5.ReadResourceResponse{
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
-		Private:     fw.Private,
 	}
 
 	newState, diags := State(ctx, fw.NewState)
 
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
 	proto5.NewState = newState
+
+	newPrivate, diags := PrivateData(ctx, fw.PrivateData)
+
+	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
+	proto5.Private = newPrivate
 
 	return proto5
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -16,6 +17,7 @@ type ReadResourceRequest struct {
 	CurrentState *tfsdk.State
 	ResourceType provider.ResourceType
 	Private      []byte
+	PrivateData  privatestate.Data
 	ProviderMeta *tfsdk.Config
 }
 
@@ -25,6 +27,7 @@ type ReadResourceResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
 	Private     []byte
+	PrivateData privatestate.Data
 }
 
 // ReadResource implements the framework server ReadResource RPC.
@@ -59,12 +62,14 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 			Schema: req.CurrentState.Schema,
 			Raw:    req.CurrentState.Raw.Copy(),
 		},
+		Private: req.PrivateData.Provider,
 	}
 	readResp := resource.ReadResponse{
 		State: tfsdk.State{
 			Schema: req.CurrentState.Schema,
 			Raw:    req.CurrentState.Raw.Copy(),
 		},
+		Private: req.PrivateData.Provider,
 	}
 
 	if req.ProviderMeta != nil {
@@ -77,4 +82,6 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.NewState = &readResp.State
+	resp.PrivateData.Framework = req.PrivateData.Framework
+	resp.PrivateData.Provider = readResp.Private
 }

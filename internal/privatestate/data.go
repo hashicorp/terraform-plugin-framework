@@ -7,6 +7,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
@@ -132,18 +134,22 @@ func (d ProviderData) SetKey(ctx context.Context, key string, value []byte) diag
 	}
 
 	if !utf8.Valid(value) {
+		tflog.Error(ctx, "error calling SetKey with invalid UTF-8 value", map[string]interface{}{"key": key, "value": value})
+
 		diags.AddError("UTF-8 Invalid",
 			"Values stored in private state must be valid UTF-8\n\n"+
-				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+				fmt.Sprintf("The value being supplied for key %q is invalid. Please check the value you are supplying is valid UTF-8.", key),
 		)
 
 		return diags
 	}
 
 	if !json.Valid(value) {
+		tflog.Error(ctx, "error calling SetKey with invalid JSON value", map[string]interface{}{"key": key, "value": value})
+
 		diags.AddError("JSON Invalid",
 			"Values stored in private state must be valid JSON\n\n"+
-				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+				fmt.Sprintf("The value being supplied for key %q is invalid. Please check the value you are supplying is valid JSON.", key),
 		)
 
 		return diags
@@ -163,7 +169,7 @@ func ValidateProviderDataKey(ctx context.Context, key string) diag.Diagnostics {
 			diag.NewErrorDiagnostic(
 				"Restricted Resource Private State Namespace",
 				"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
-					"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+					fmt.Sprintf("The key %q is invalid. Please check the key you are supplying does not use a a period ('.') as a prefix.", key),
 			),
 		}
 	}

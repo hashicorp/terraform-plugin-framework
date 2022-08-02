@@ -151,7 +151,7 @@ func TestProviderData_GetKey(t *testing.T) {
 				diag.NewErrorDiagnostic(
 					"Restricted Resource Private State Namespace",
 					"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
-						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+						`The key ".key" is invalid. Please check the key you are supplying does not use a a period ('.') as a prefix.`,
 				),
 			},
 		},
@@ -204,7 +204,7 @@ func TestProviderData_SetKey(t *testing.T) {
 				diag.NewErrorDiagnostic(
 					"Restricted Resource Private State Namespace",
 					"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
-						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+						`The key ".key" is invalid. Please check the key you are supplying does not use a a period ('.') as a prefix.`,
 				),
 			},
 		},
@@ -215,7 +215,7 @@ func TestProviderData_SetKey(t *testing.T) {
 				diag.NewErrorDiagnostic(
 					"UTF-8 Invalid",
 					"Values stored in private state must be valid UTF-8\n\n"+
-						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+						`The value being supplied for key "key" is invalid. Please check the value you are supplying is valid UTF-8.`,
 				),
 			},
 		},
@@ -226,7 +226,7 @@ func TestProviderData_SetKey(t *testing.T) {
 				diag.NewErrorDiagnostic(
 					"JSON Invalid",
 					"Values stored in private state must be valid JSON\n\n"+
-						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+						`The value being supplied for key "key" is invalid. Please check the value you are supplying is valid JSON.`,
 				),
 			},
 		},
@@ -261,7 +261,7 @@ func TestValidateProviderDataKey(t *testing.T) {
 			expected: diag.Diagnostics{diag.NewErrorDiagnostic(
 				"Restricted Resource Private State Namespace",
 				"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
-					"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+					`The key ".restricted" is invalid. Please check the key you are supplying does not use a a period ('.') as a prefix.`,
 			)},
 		},
 		"namespace-ok": {

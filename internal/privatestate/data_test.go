@@ -79,18 +79,24 @@ func TestData_Bytes(t *testing.T) {
 }
 
 func TestNewData(t *testing.T) {
-	frameworkProviderData, _ := json.Marshal(map[string][]byte{
+	frameworkProviderData, err := json.Marshal(map[string][]byte{
 		".frameworkKeyOne": []byte("framework value one"),
 		".frameworkKeyTwo": []byte("framework value two"),
 		"providerKeyOne":   []byte("provider value one"),
 		"providerKeyTwo":   []byte("provider value two"),
 	})
+	if err != nil {
+		t.Errorf("could not marshal JSON: %s", err)
+	}
 
 	testCases := map[string]struct {
 		data          []byte
 		expected      *privatestate.Data
 		expectedDiags diag.Diagnostics
 	}{
+		"empty": {
+			data: []byte{},
+		},
 		"invalid-json": {
 			data:     []byte(`{`),
 			expected: nil,
@@ -99,6 +105,13 @@ func TestNewData(t *testing.T) {
 					"An error was encountered when decoding private state: unexpected end of JSON input.\n\n"+
 						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 				),
+			},
+		},
+		"empty-json": {
+			data: []byte(`{}`),
+			expected: &privatestate.Data{
+				Framework: map[string][]byte{},
+				Provider:  map[string][]byte{},
 			},
 		},
 		"framework-provider-data": {

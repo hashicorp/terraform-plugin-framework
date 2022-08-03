@@ -16,36 +16,35 @@ func TestData_Bytes(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		data          privatestate.Data
+		data          *privatestate.Data
 		expected      []byte
 		expectedDiags diag.Diagnostics
 	}{
+		"nil": {
+			data: nil,
+		},
 		"empty": {
-			data:          privatestate.Data{},
-			expected:      nil,
-			expectedDiags: diag.Diagnostics{},
+			data: &privatestate.Data{},
 		},
 		"framework-data": {
-			data: privatestate.Data{
+			data: &privatestate.Data{
 				Framework: map[string][]byte{
 					".frameworkKeyOne": []byte("framework value one"),
 					".frameworkKeyTwo": []byte("framework value two"),
 				},
 			},
-			expected:      []byte(`{".frameworkKeyOne":"ZnJhbWV3b3JrIHZhbHVlIG9uZQ==",".frameworkKeyTwo":"ZnJhbWV3b3JrIHZhbHVlIHR3bw=="}`),
-			expectedDiags: diag.Diagnostics{},
+			expected: []byte(`{".frameworkKeyOne":"ZnJhbWV3b3JrIHZhbHVlIG9uZQ==",".frameworkKeyTwo":"ZnJhbWV3b3JrIHZhbHVlIHR3bw=="}`),
 		},
 		"provider-data": {
-			data: privatestate.Data{
+			data: &privatestate.Data{
 				Provider: map[string][]byte{
 					"providerKeyOne": []byte("provider value one"),
 					"providerKeyTwo": []byte("provider value two")},
 			},
-			expected:      []byte(`{"providerKeyOne":"cHJvdmlkZXIgdmFsdWUgb25l","providerKeyTwo":"cHJvdmlkZXIgdmFsdWUgdHdv"}`),
-			expectedDiags: diag.Diagnostics{},
+			expected: []byte(`{"providerKeyOne":"cHJvdmlkZXIgdmFsdWUgb25l","providerKeyTwo":"cHJvdmlkZXIgdmFsdWUgdHdv"}`),
 		},
 		"framework-provider-data": {
-			data: privatestate.Data{
+			data: &privatestate.Data{
 				Framework: map[string][]byte{
 					".frameworkKeyOne": []byte("framework value one"),
 					".frameworkKeyTwo": []byte("framework value two"),
@@ -54,8 +53,7 @@ func TestData_Bytes(t *testing.T) {
 					"providerKeyOne": []byte("provider value one"),
 					"providerKeyTwo": []byte("provider value two")},
 			},
-			expected:      []byte(`{".frameworkKeyOne":"ZnJhbWV3b3JrIHZhbHVlIG9uZQ==",".frameworkKeyTwo":"ZnJhbWV3b3JrIHZhbHVlIHR3bw==","providerKeyOne":"cHJvdmlkZXIgdmFsdWUgb25l","providerKeyTwo":"cHJvdmlkZXIgdmFsdWUgdHdv"}`),
-			expectedDiags: diag.Diagnostics{},
+			expected: []byte(`{".frameworkKeyOne":"ZnJhbWV3b3JrIHZhbHVlIG9uZQ==",".frameworkKeyTwo":"ZnJhbWV3b3JrIHZhbHVlIHR3bw==","providerKeyOne":"cHJvdmlkZXIgdmFsdWUgb25l","providerKeyTwo":"cHJvdmlkZXIgdmFsdWUgdHdv"}`),
 		},
 	}
 
@@ -155,6 +153,10 @@ func TestProviderData_GetKey(t *testing.T) {
 		expected      []byte
 		expectedDiags diag.Diagnostics
 	}{
+		"nil": {
+			providerData: nil,
+			key:          "key",
+		},
 		"key-invalid": {
 			providerData: map[string][]byte{
 				"key": []byte("value"),
@@ -207,16 +209,19 @@ func TestProviderData_SetKey(t *testing.T) {
 	const transPixel = "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3B"
 
 	testCases := map[string]struct {
-		providerData *privatestate.ProviderData
+		providerData privatestate.ProviderData
 		key          string
 		value        []byte
 		expected     diag.Diagnostics
 	}{
+		"nil": {
+			providerData: nil,
+			key:          "key",
+			value:        []byte(`{"key": "value"}`),
+		},
 		"key-invalid": {
-			providerData: &privatestate.ProviderData{
-				".key": nil,
-			},
-			key: ".key",
+			providerData: privatestate.ProviderData{},
+			key:          ".key",
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"Restricted Resource Private State Namespace",
@@ -226,11 +231,9 @@ func TestProviderData_SetKey(t *testing.T) {
 			},
 		},
 		"utf8-invalid": {
-			providerData: &privatestate.ProviderData{
-				"key": []byte(fmt.Sprintf(`{"key": "%s"}`, transPixel)),
-			},
-			key:   "key",
-			value: []byte(fmt.Sprintf(`{"key": "%s"}`, transPixel)),
+			providerData: privatestate.ProviderData{},
+			key:          "key",
+			value:        []byte(fmt.Sprintf(`{"key": "%s"}`, transPixel)),
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"UTF-8 Invalid",
@@ -240,11 +243,9 @@ func TestProviderData_SetKey(t *testing.T) {
 			},
 		},
 		"value-json-invalid": {
-			providerData: &privatestate.ProviderData{
-				"key": []byte(`{`),
-			},
-			key:   "key",
-			value: []byte("{"),
+			providerData: privatestate.ProviderData{},
+			key:          "key",
+			value:        []byte("{"),
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"JSON Invalid",
@@ -254,11 +255,9 @@ func TestProviderData_SetKey(t *testing.T) {
 			},
 		},
 		"key-value-ok": {
-			providerData: &privatestate.ProviderData{
-				"key": []byte(`{"key": "value"}`),
-			},
-			key:   "key",
-			value: []byte(`{"key": "value"}`),
+			providerData: privatestate.ProviderData{},
+			key:          "key",
+			value:        []byte(`{"key": "value"}`),
 		},
 	}
 

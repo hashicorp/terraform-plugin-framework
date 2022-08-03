@@ -166,8 +166,9 @@ func (d *ProviderData) SetKey(ctx context.Context, key string, value []byte) dia
 		return diags
 	}
 
-	if d == nil {
-		*d = ProviderData{}
+	if *d == nil {
+		var providerData ProviderData = make(map[string][]byte)
+		*d = providerData
 	}
 
 	(*d)[key] = value

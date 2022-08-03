@@ -2,6 +2,7 @@ package toproto6_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -132,7 +133,7 @@ func TestReadResourceResponse(t *testing.T) {
 				NewState: &testProto6DynamicValue,
 			},
 		},
-		"private": {
+		"private-empty": {
 			input: &fwserver.ReadResourceResponse{
 				Private: &privatestate.Data{
 					Framework: map[string][]byte{},
@@ -141,6 +142,22 @@ func TestReadResourceResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.ReadResourceResponse{
 				Private: nil,
+			},
+		},
+		"private": {
+			input: &fwserver.ReadResourceResponse{
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{
+						".frameworkKey": []byte("framework value")},
+					Provider: map[string][]byte{
+						"providerKey": []byte("provider value")},
+				},
+			},
+			expected: &tfprotov6.ReadResourceResponse{
+				Private: marshalToJson(map[string][]byte{
+					".frameworkKey": []byte("framework value"),
+					"providerKey":   []byte("provider value"),
+				}),
 			},
 		},
 	}
@@ -158,4 +175,13 @@ func TestReadResourceResponse(t *testing.T) {
 			}
 		})
 	}
+}
+
+func marshalToJson(input map[string][]byte) []byte {
+	output, err := json.Marshal(input)
+	if err != nil {
+		panic(err)
+	}
+
+	return output
 }

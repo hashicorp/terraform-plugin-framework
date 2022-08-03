@@ -86,6 +86,10 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 	resp.NewState = &readResp.State
 
 	if readResp.Private != nil {
+		if resp.Private == nil {
+			resp.Private = &privatestate.Data{}
+		}
+
 		resp.Private.Provider = readResp.Private
 	}
 }

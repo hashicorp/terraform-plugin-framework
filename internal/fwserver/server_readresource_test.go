@@ -1,18 +1,21 @@
 package fwserver_test
 
 import (
+	"bytes"
 	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerReadResource(t *testing.T) {
@@ -66,6 +69,23 @@ func TestServerReadResource(t *testing.T) {
 	testNewStateRemoved := &tfsdk.State{
 		Raw:    tftypes.NewValue(testType, nil),
 		Schema: testSchema,
+	}
+
+	testPrivateFrameworkMap := map[string][]byte{
+		".frameworkKey": []byte(`{"fk": "framework value"}`),
+	}
+
+	testPrivateProviderMap := map[string][]byte{
+		"providerKey": []byte(`{"pk": "provider value"}`),
+	}
+
+	testPrivate := &privatestate.Data{
+		Framework: testPrivateFrameworkMap,
+		Provider:  testPrivateProviderMap,
+	}
+
+	testPrivateProvider := &privatestate.Data{
+		Provider: testPrivateProviderMap,
 	}
 
 	testCases := map[string]struct {
@@ -159,6 +179,38 @@ func TestServerReadResource(t *testing.T) {
 				NewState: testCurrentState,
 			},
 		},
+		"request-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: testCurrentState,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+								key := "providerKey"
+								val, diags := req.Private.GetKey(ctx, key)
+
+								resp.Diagnostics.Append(diags...)
+
+								if !bytes.Equal(val, testPrivateProviderMap[key]) {
+									resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(val))
+								}
+							},
+						}, nil
+					},
+				},
+				Private: testPrivate,
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState: testCurrentState,
+				Private:  testPrivate,
+			},
+		},
 		"response-diagnostics": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -246,6 +298,32 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testNewStateRemoved,
+			},
+		},
+		"response-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: testCurrentState,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+								diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"pk": "provider value"}`))
+
+								resp.Diagnostics.Append(diags...)
+							},
+						}, nil
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState: testCurrentState,
+				Private:  testPrivateProvider,
 			},
 		},
 	}

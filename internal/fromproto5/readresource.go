@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
@@ -36,7 +37,7 @@ func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequ
 
 	fw.ProviderMeta = providerMeta
 
-	privateData, privateDataDiags := PrivateData(ctx, proto5.Private)
+	privateData, privateDataDiags := privatestate.NewData(ctx, proto5.Private)
 
 	diags.Append(privateDataDiags...)
 

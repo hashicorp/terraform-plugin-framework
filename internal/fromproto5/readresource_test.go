@@ -90,16 +90,47 @@ func TestReadResourceRequest(t *testing.T) {
 				},
 			},
 		},
-		"private": {
+		"private-malformed-json": {
 			input: &tfprotov5.ReadResourceRequest{
-				Private: marshalToJson(map[string][]byte{"key": []byte("value")}),
+				Private: []byte(`{`),
+			},
+			resourceSchema: testFwSchema,
+			expected:       &fwserver.ReadResourceRequest{},
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Decoding Private State",
+					"An error was encountered when decoding private state: unexpected end of JSON input.\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+				),
+			},
+		},
+		"private-empty-json": {
+			input: &tfprotov5.ReadResourceRequest{
+				Private: []byte("{}"),
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ReadResourceRequest{
 				Private: &privatestate.Data{
 					Framework: map[string][]byte{},
+					Provider:  map[string][]byte{},
+				},
+			},
+		},
+		"private": {
+			input: &tfprotov5.ReadResourceRequest{
+				Private: marshalToJson(map[string][]byte{
+					".frameworkKey": []byte("framework value"),
+					"providerKey":   []byte("provider value"),
+				}),
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ReadResourceRequest{
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{
+						".frameworkKey": []byte(`framework value`),
+					},
 					Provider: map[string][]byte{
-						"key": []byte(`value`),
+						"providerKey": []byte(`provider value`),
 					},
 				},
 			},
@@ -155,8 +186,8 @@ func TestReadResourceRequest(t *testing.T) {
 	}
 }
 
-func marshalToJson(j map[string][]byte) []byte {
-	output, err := json.Marshal(j)
+func marshalToJson(input map[string][]byte) []byte {
+	output, err := json.Marshal(input)
 	if err != nil {
 		panic(err)
 	}

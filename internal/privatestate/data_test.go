@@ -209,20 +209,25 @@ func TestProviderData_SetKey(t *testing.T) {
 	const transPixel = "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3B"
 
 	testCases := map[string]struct {
-		providerData privatestate.ProviderData
-		key          string
-		value        []byte
-		expected     diag.Diagnostics
+		providerData  privatestate.ProviderData
+		key           string
+		value         []byte
+		expected      privatestate.ProviderData
+		expectedDiags diag.Diagnostics
 	}{
 		"nil": {
 			providerData: nil,
 			key:          "key",
 			value:        []byte(`{"key": "value"}`),
+			expected: map[string][]byte{
+				"key": []byte(`{"key": "value"}`),
+			},
 		},
 		"key-invalid": {
 			providerData: privatestate.ProviderData{},
 			key:          ".key",
-			expected: diag.Diagnostics{
+			expected:     map[string][]byte{},
+			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"Restricted Resource Private State Namespace",
 					"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
@@ -234,7 +239,8 @@ func TestProviderData_SetKey(t *testing.T) {
 			providerData: privatestate.ProviderData{},
 			key:          "key",
 			value:        []byte(fmt.Sprintf(`{"key": "%s"}`, transPixel)),
-			expected: diag.Diagnostics{
+			expected:     map[string][]byte{},
+			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"UTF-8 Invalid",
 					"Values stored in private state must be valid UTF-8\n\n"+
@@ -246,7 +252,8 @@ func TestProviderData_SetKey(t *testing.T) {
 			providerData: privatestate.ProviderData{},
 			key:          "key",
 			value:        []byte("{"),
-			expected: diag.Diagnostics{
+			expected:     map[string][]byte{},
+			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"JSON Invalid",
 					"Values stored in private state must be valid JSON\n\n"+
@@ -258,6 +265,30 @@ func TestProviderData_SetKey(t *testing.T) {
 			providerData: privatestate.ProviderData{},
 			key:          "key",
 			value:        []byte(`{"key": "value"}`),
+			expected: map[string][]byte{
+				"key": []byte(`{"key": "value"}`),
+			},
+		},
+		"key-value-added": {
+			providerData: map[string][]byte{
+				"keyOne": []byte(`{"foo": "bar"}`),
+			},
+			key:   "keyTwo",
+			value: []byte(`{"buzz": "bazz"}`),
+			expected: map[string][]byte{
+				"keyOne": []byte(`{"foo": "bar"}`),
+				"keyTwo": []byte(`{"buzz": "bazz"}`),
+			},
+		},
+		"key-value-updated": {
+			providerData: map[string][]byte{
+				"keyOne": []byte(`{"foo": "bar"}`),
+			},
+			key:   "keyOne",
+			value: []byte(`{"buzz": "bazz"}`),
+			expected: map[string][]byte{
+				"keyOne": []byte(`{"buzz": "bazz"}`),
+			},
 		},
 	}
 
@@ -269,7 +300,11 @@ func TestProviderData_SetKey(t *testing.T) {
 
 			actual := testCase.providerData.SetKey(context.Background(), testCase.key, testCase.value)
 
-			if diff := cmp.Diff(actual, testCase.expected); diff != "" {
+			if diff := cmp.Diff(testCase.expected, testCase.providerData); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(actual, testCase.expectedDiags); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
@@ -278,12 +313,12 @@ func TestProviderData_SetKey(t *testing.T) {
 
 func TestValidateProviderDataKey(t *testing.T) {
 	testCases := map[string]struct {
-		key      string
-		expected diag.Diagnostics
+		key           string
+		expectedDiags diag.Diagnostics
 	}{
 		"namespace-restricted": {
 			key: ".restricted",
-			expected: diag.Diagnostics{diag.NewErrorDiagnostic(
+			expectedDiags: diag.Diagnostics{diag.NewErrorDiagnostic(
 				"Restricted Resource Private State Namespace",
 				"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
 					`The key ".restricted" is invalid. Please check the key you are supplying does not use a a period ('.') as a prefix.`,
@@ -302,7 +337,7 @@ func TestValidateProviderDataKey(t *testing.T) {
 
 			actual := privatestate.ValidateProviderDataKey(context.Background(), testCase.key)
 
-			if diff := cmp.Diff(actual, testCase.expected); diff != "" {
+			if diff := cmp.Diff(actual, testCase.expectedDiags); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

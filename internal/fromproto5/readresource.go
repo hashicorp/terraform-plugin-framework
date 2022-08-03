@@ -21,7 +21,6 @@ func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequ
 	var diags diag.Diagnostics
 
 	fw := &fwserver.ReadResourceRequest{
-		Private:      proto5.Private,
 		ResourceType: resourceType,
 	}
 
@@ -41,7 +40,7 @@ func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequ
 
 	diags.Append(privateDataDiags...)
 
-	fw.PrivateData = privateData
+	fw.Private = privateData
 
 	return fw, diags
 }

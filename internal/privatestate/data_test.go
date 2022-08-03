@@ -22,7 +22,7 @@ func TestData_Bytes(t *testing.T) {
 	}{
 		"empty": {
 			data:          privatestate.Data{},
-			expected:      []byte(`{}`),
+			expected:      nil,
 			expectedDiags: diag.Diagnostics{},
 		},
 		"framework-data": {
@@ -88,12 +88,12 @@ func TestNewData(t *testing.T) {
 
 	testCases := map[string]struct {
 		data          []byte
-		expected      privatestate.Data
+		expected      *privatestate.Data
 		expectedDiags diag.Diagnostics
 	}{
 		"invalid-json": {
 			data:     []byte(`{`),
-			expected: privatestate.Data{},
+			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic("Error Decoding Private State",
 					"An error was encountered when decoding private state: unexpected end of JSON input.\n\n"+
@@ -103,7 +103,7 @@ func TestNewData(t *testing.T) {
 		},
 		"framework-provider-data": {
 			data: frameworkProviderData,
-			expected: privatestate.Data{
+			expected: &privatestate.Data{
 				Framework: map[string][]byte{
 					".frameworkKeyOne": []byte("framework value one"),
 					".frameworkKeyTwo": []byte("framework value two"),
@@ -194,11 +194,15 @@ func TestProviderData_SetKey(t *testing.T) {
 	const transPixel = "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3B"
 
 	testCases := map[string]struct {
-		key      string
-		value    []byte
-		expected diag.Diagnostics
+		providerData *privatestate.ProviderData
+		key          string
+		value        []byte
+		expected     diag.Diagnostics
 	}{
 		"key-invalid": {
+			providerData: &privatestate.ProviderData{
+				".key": nil,
+			},
 			key: ".key",
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
@@ -209,6 +213,9 @@ func TestProviderData_SetKey(t *testing.T) {
 			},
 		},
 		"utf8-invalid": {
+			providerData: &privatestate.ProviderData{
+				"key": []byte(fmt.Sprintf(`{"key": "%s"}`, transPixel)),
+			},
 			key:   "key",
 			value: []byte(fmt.Sprintf(`{"key": "%s"}`, transPixel)),
 			expected: diag.Diagnostics{
@@ -220,6 +227,9 @@ func TestProviderData_SetKey(t *testing.T) {
 			},
 		},
 		"value-json-invalid": {
+			providerData: &privatestate.ProviderData{
+				"key": []byte(`{`),
+			},
 			key:   "key",
 			value: []byte("{"),
 			expected: diag.Diagnostics{
@@ -231,6 +241,9 @@ func TestProviderData_SetKey(t *testing.T) {
 			},
 		},
 		"key-value-ok": {
+			providerData: &privatestate.ProviderData{
+				"key": []byte(`{"key": "value"}`),
+			},
 			key:   "key",
 			value: []byte(`{"key": "value"}`),
 		},
@@ -242,7 +255,7 @@ func TestProviderData_SetKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			actual := privatestate.ProviderData{}.SetKey(context.Background(), testCase.key, testCase.value)
+			actual := testCase.providerData.SetKey(context.Background(), testCase.key, testCase.value)
 
 			if diff := cmp.Diff(actual, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

@@ -5,15 +5,17 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestReadResourceRequest(t *testing.T) {
@@ -93,7 +95,10 @@ func TestReadResourceRequest(t *testing.T) {
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ReadResourceRequest{
-				Private: []byte("{}"),
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{},
+					Provider:  map[string][]byte{},
+				},
 			},
 		},
 		"providermeta-missing-data": {

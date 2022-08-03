@@ -16,8 +16,7 @@ import (
 type ReadResourceRequest struct {
 	CurrentState *tfsdk.State
 	ResourceType provider.ResourceType
-	Private      []byte
-	PrivateData  privatestate.Data
+	Private      *privatestate.Data
 	ProviderMeta *tfsdk.Config
 }
 
@@ -26,8 +25,7 @@ type ReadResourceRequest struct {
 type ReadResourceResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
-	Private     []byte
-	PrivateData privatestate.Data
+	Private     *privatestate.Data
 }
 
 // ReadResource implements the framework server ReadResource RPC.
@@ -62,18 +60,22 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 			Schema: req.CurrentState.Schema,
 			Raw:    req.CurrentState.Raw.Copy(),
 		},
-		Private: req.PrivateData.Provider,
 	}
 	readResp := resource.ReadResponse{
 		State: tfsdk.State{
 			Schema: req.CurrentState.Schema,
 			Raw:    req.CurrentState.Raw.Copy(),
 		},
-		Private: req.PrivateData.Provider,
 	}
 
 	if req.ProviderMeta != nil {
 		readReq.ProviderMeta = *req.ProviderMeta
+	}
+
+	if req.Private != nil {
+		readReq.Private = req.Private.Provider
+		readResp.Private = req.Private.Provider
+		resp.Private = req.Private
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Read")
@@ -82,6 +84,8 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.NewState = &readResp.State
-	resp.PrivateData.Framework = req.PrivateData.Framework
-	resp.PrivateData.Provider = readResp.Private
+
+	if readResp.Private != nil {
+		resp.Private.Provider = readResp.Private
+	}
 }

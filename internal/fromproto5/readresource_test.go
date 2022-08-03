@@ -2,18 +2,21 @@ package fromproto5_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestReadResourceRequest(t *testing.T) {
@@ -89,11 +92,16 @@ func TestReadResourceRequest(t *testing.T) {
 		},
 		"private": {
 			input: &tfprotov5.ReadResourceRequest{
-				Private: []byte("{}"),
+				Private: marshalToJson(map[string][]byte{"key": []byte("value")}),
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ReadResourceRequest{
-				Private: []byte("{}"),
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{},
+					Provider: map[string][]byte{
+						"key": []byte(`value`),
+					},
+				},
 			},
 		},
 		"providermeta-missing-data": {
@@ -145,4 +153,13 @@ func TestReadResourceRequest(t *testing.T) {
 			}
 		})
 	}
+}
+
+func marshalToJson(j map[string][]byte) []byte {
+	output, err := json.Marshal(j)
+	if err != nil {
+		panic(err)
+	}
+
+	return output
 }

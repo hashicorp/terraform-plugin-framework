@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -67,10 +68,8 @@ func TestReadResourceResponse(t *testing.T) {
 			expected: nil,
 		},
 		"empty": {
-			input: &fwserver.ReadResourceResponse{},
-			expected: &tfprotov6.ReadResourceResponse{
-				Private: []byte(`{}`),
-			},
+			input:    &fwserver.ReadResourceResponse{},
+			expected: &tfprotov6.ReadResourceResponse{},
 		},
 		"diagnostics": {
 			input: &fwserver.ReadResourceResponse{
@@ -135,10 +134,13 @@ func TestReadResourceResponse(t *testing.T) {
 		},
 		"private": {
 			input: &fwserver.ReadResourceResponse{
-				Private: []byte("{}"),
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{},
+					Provider:  map[string][]byte{},
+				},
 			},
 			expected: &tfprotov6.ReadResourceResponse{
-				Private: []byte("{}"),
+				Private: nil,
 			},
 		},
 	}

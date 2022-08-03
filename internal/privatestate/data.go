@@ -24,8 +24,12 @@ type Data struct {
 
 // Bytes returns a JSON encoded slice of bytes containing the merged
 // framework and provider private state data.
-func (d Data) Bytes(_ context.Context) ([]byte, diag.Diagnostics) {
+func (d *Data) Bytes(_ context.Context) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	if d == nil || (len(d.Framework)+len(d.Provider)) == 0 {
+		return nil, nil
+	}
 
 	mergedMap := make(map[string][]byte, len(d.Framework)+len(d.Provider))
 
@@ -53,11 +57,15 @@ func (d Data) Bytes(_ context.Context) ([]byte, diag.Diagnostics) {
 
 // NewData creates a new Data based on the given slice of bytes.
 // It must be a JSON encoded slice of bytes, that is map[string][]byte.
-func NewData(ctx context.Context, data []byte) (Data, diag.Diagnostics) {
+func NewData(ctx context.Context, data []byte) (*Data, diag.Diagnostics) {
 	var (
 		dataMap map[string][]byte
 		diags   diag.Diagnostics
 	)
+
+	if len(data) == 0 {
+		return nil, nil
+	}
 
 	err := json.Unmarshal(data, &dataMap)
 	if err != nil {
@@ -67,7 +75,7 @@ func NewData(ctx context.Context, data []byte) (Data, diag.Diagnostics) {
 				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.", err),
 		)
 
-		return Data{}, diags
+		return nil, diags
 	}
 
 	output := Data{
@@ -84,7 +92,7 @@ func NewData(ctx context.Context, data []byte) (Data, diag.Diagnostics) {
 		output.Provider[k] = v
 	}
 
-	return output, diags
+	return &output, diags
 }
 
 // ProviderData contains private state data for provider usage.
@@ -100,15 +108,18 @@ type ProviderData map[string][]byte
 // however care should be taken that any historical keys are not reused
 // without accounting for older resource instances that may still have
 // older data at the key.
-func (d ProviderData) GetKey(ctx context.Context, key string) ([]byte, diag.Diagnostics) {
+func (d *ProviderData) GetKey(ctx context.Context, key string) ([]byte, diag.Diagnostics) {
+	if d == nil {
+		return nil, nil
+	}
+
 	diags := ValidateProviderDataKey(ctx, key)
 
 	if diags.HasError() {
 		return nil, diags
 	}
 
-	value, ok := d[key]
-
+	value, ok := (*d)[key]
 	if !ok {
 		return nil, nil
 	}
@@ -126,7 +137,7 @@ func (d ProviderData) GetKey(ctx context.Context, key string) ([]byte, diag.Diag
 // however care should be taken that any historical keys are not reused
 // without accounting for older resource instances that may still have
 // older data at the key.
-func (d ProviderData) SetKey(ctx context.Context, key string, value []byte) diag.Diagnostics {
+func (d *ProviderData) SetKey(ctx context.Context, key string, value []byte) diag.Diagnostics {
 	diags := ValidateProviderDataKey(ctx, key)
 
 	if diags.HasError() {
@@ -155,7 +166,11 @@ func (d ProviderData) SetKey(ctx context.Context, key string, value []byte) diag
 		return diags
 	}
 
-	d[key] = value
+	if d == nil {
+		*d = ProviderData{}
+	}
+
+	(*d)[key] = value
 
 	return nil
 }

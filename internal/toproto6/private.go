@@ -8,7 +8,7 @@ import (
 )
 
 // PrivateData returns []byte from privateState.Data.
-func PrivateData(ctx context.Context, input privatestate.Data) ([]byte, diag.Diagnostics) {
+func PrivateData(ctx context.Context, input *privatestate.Data) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	output, err := input.Bytes(ctx)

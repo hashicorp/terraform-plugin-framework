@@ -24,7 +24,7 @@ func ReadResourceResponse(ctx context.Context, fw *fwserver.ReadResourceResponse
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
 	proto5.NewState = newState
 
-	newPrivate, diags := PrivateData(ctx, fw.PrivateData)
+	newPrivate, diags := PrivateData(ctx, fw.Private)
 
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
 	proto5.Private = newPrivate

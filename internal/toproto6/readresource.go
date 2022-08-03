@@ -17,7 +17,6 @@ func ReadResourceResponse(ctx context.Context, fw *fwserver.ReadResourceResponse
 
 	proto6 := &tfprotov6.ReadResourceResponse{
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
-		Private:     fw.Private,
 	}
 
 	newState, diags := State(ctx, fw.NewState)
@@ -25,7 +24,7 @@ func ReadResourceResponse(ctx context.Context, fw *fwserver.ReadResourceResponse
 	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.NewState = newState
 
-	newPrivate, diags := PrivateData(ctx, fw.PrivateData)
+	newPrivate, diags := PrivateData(ctx, fw.Private)
 
 	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.Private = newPrivate

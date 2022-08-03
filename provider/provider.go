@@ -8,6 +8,13 @@ import (
 )
 
 // Provider is the core interface that all Terraform providers must implement.
+//
+// Providers can optionally implement these additional concepts:
+//
+//     - Validation: Schema-based via tfsdk.Attribute or entire configuration
+//       via ProviderWithConfigValidators or ProviderWithValidateConfig.
+//     - Meta Schema: ProviderWithMetaSchema
+//
 type Provider interface {
 	// GetSchema returns the schema for this provider's configuration. If
 	// this provider has no configuration, return an empty schema.Schema.

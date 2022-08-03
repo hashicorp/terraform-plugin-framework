@@ -4,12 +4,20 @@ import (
 	"context"
 )
 
-// Resource represents a resource instance. This is the core interface that all
-// resources must implement.
+// Resource represents an instance of a managed resource type. This is the core
+// interface that all resources must implement.
 //
-// It is also conventional for resources to implement the
-// ResourceWithImportState interface, which enables practitioners to import
-// existing infrastructure into Terraform.
+// Resources can optionally implement these additional concepts:
+//
+//     - Import: ResourceWithImportState
+//     - Validation: Schema-based via tfsdk.Attribute or entire configuration
+//       via ResourceWithConfigValidators or ResourceWithValidateConfig.
+//     - Plan Modification: Schema-based via tfsdk.Attribute or entire plan
+//       via ResourceWithModifyPlan.
+//     - State Upgrades: ResourceWithUpgradeState
+//
+// Although not required, it is conventional for resources to implement the
+// ResourceWithImportState interface.
 type Resource interface {
 	// Create is called when the provider must create a new resource. Config
 	// and planned state values should be read from the

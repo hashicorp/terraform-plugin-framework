@@ -2,17 +2,20 @@ package fwserver_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerDeleteResource(t *testing.T) {
@@ -149,6 +152,44 @@ func TestServerDeleteResource(t *testing.T) {
 					},
 				},
 				ProviderMeta: testProviderMetaConfig,
+			},
+			expectedResponse: &fwserver.DeleteResourceResponse{
+				NewState: testEmptyState,
+			},
+		},
+		"request-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.DeleteResourceRequest{
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+								expected := `{"key": "value"}`
+								got, diags := req.Private.GetKey(ctx, "providerKey")
+
+								resp.Diagnostics.Append(diags...)
+
+								if string(got) != expected {
+									resp.Diagnostics.AddError(
+										"Unexpected req.Private Value",
+										fmt.Sprintf("expected %q, got %q", expected, got),
+									)
+								}
+							},
+						}, nil
+					},
+				},
+				PlannedPrivate: &privatestate.Data{
+					Provider: map[string][]byte{
+						"providerKey": []byte(`{"key": "value"}`),
+					},
+				},
 			},
 			expectedResponse: &fwserver.DeleteResourceResponse{
 				NewState: testEmptyState,

@@ -3,20 +3,22 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // UpdateResourceRequest is the framework server request for an update request
 // with the ApplyResourceChange RPC.
 type UpdateResourceRequest struct {
 	Config         *tfsdk.Config
-	PlannedPrivate []byte
+	PlannedPrivate *privatestate.Data
 	PlannedState   *tfsdk.Plan
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
@@ -29,7 +31,7 @@ type UpdateResourceRequest struct {
 type UpdateResourceResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
-	Private     []byte
+	Private     *privatestate.Data
 }
 
 // UpdateResource implements the framework server update request logic for the
@@ -91,6 +93,12 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		updateReq.ProviderMeta = *req.ProviderMeta
 	}
 
+	if req.PlannedPrivate != nil {
+		updateReq.Private = req.PlannedPrivate.Provider
+		updateResp.Private = req.PlannedPrivate.Provider
+		resp.Private = req.PlannedPrivate
+	}
+
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Update")
 	resourceImpl.Update(ctx, updateReq, &updateResp)
 	logging.FrameworkDebug(ctx, "Called provider defined Resource Update")
@@ -104,5 +112,13 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 			"The Terraform Provider unexpectedly returned no resource state after having no errors in the resource update. "+
 				"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
 		)
+	}
+
+	if updateResp.Private != nil {
+		if resp.Private == nil {
+			resp.Private = &privatestate.Data{}
+		}
+
+		resp.Private.Provider = updateResp.Private
 	}
 }

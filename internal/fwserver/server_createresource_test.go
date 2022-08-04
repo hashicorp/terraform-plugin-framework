@@ -5,14 +5,16 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerCreateResource(t *testing.T) {
@@ -331,6 +333,48 @@ func TestServerCreateResource(t *testing.T) {
 					),
 				},
 				NewState: testEmptyState,
+			},
+		},
+		"response-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.CreateResourceRequest{
+
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+								var data testSchemaData
+
+								// Prevent missing resource state error diagnostic
+								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+								diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+
+								resp.Diagnostics.Append(diags...)
+							},
+						}, nil
+					},
+				},
+			},
+			expectedResponse: &fwserver.CreateResourceResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, ""),
+						"test_required": tftypes.NewValue(tftypes.String, ""),
+					}),
+					Schema: testSchema,
+				},
+				Private: &privatestate.Data{
+					Provider: map[string][]byte{
+						"providerKey": []byte(`{"key": "value"}`),
+					},
+				},
 			},
 		},
 	}

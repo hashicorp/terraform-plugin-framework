@@ -2,6 +2,7 @@ package resource
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -25,6 +26,10 @@ type UpdateRequest struct {
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
+
+	// Private is the current private state resource data prior to the Update
+	// operation.
+	Private privatestate.ProviderData
 }
 
 // UpdateResponse represents a response to an UpdateRequest. An
@@ -36,6 +41,11 @@ type UpdateResponse struct {
 	// This field is pre-populated from UpdateResourceRequest.Plan and
 	// should be set during the resource's Update operation.
 	State tfsdk.State
+
+	// Private is the private state resource data following the Update operation.
+	// This field is not pre-populated as there is no pre-existing private state
+	// data at the time a resource is created.
+	Private privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to updating the
 	// resource. An empty slice indicates a successful operation with no

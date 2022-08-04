@@ -5,13 +5,15 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestApplyResourceChangeResponse(t *testing.T) {
@@ -132,10 +134,18 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 		},
 		"private": {
 			input: &fwserver.ApplyResourceChangeResponse{
-				Private: []byte("{}"),
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{
+						".frameworkKey": []byte("framework value")},
+					Provider: map[string][]byte{
+						"providerKey": []byte("provider value")},
+				},
 			},
 			expected: &tfprotov6.ApplyResourceChangeResponse{
-				Private: []byte("{}"),
+				Private: marshalToJson(map[string][]byte{
+					".frameworkKey": []byte("framework value"),
+					"providerKey":   []byte("provider value"),
+				}),
 			},
 		},
 	}

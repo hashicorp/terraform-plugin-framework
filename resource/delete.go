@@ -2,6 +2,7 @@ package resource
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -15,6 +16,10 @@ type DeleteRequest struct {
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
+
+	// Private is the current private state resource data prior to the Delete
+	// operation.
+	Private privatestate.ProviderData
 }
 
 // DeleteResponse represents a response to a DeleteRequest. An

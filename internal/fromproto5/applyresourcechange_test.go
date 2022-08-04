@@ -5,15 +5,17 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestApplyResourceChangeRequest(t *testing.T) {
@@ -125,14 +127,52 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 				ResourceSchema: testFwSchema,
 			},
 		},
-		"plannedprivate": {
+		"plannedprivate-malformed-json": {
+			input: &tfprotov5.ApplyResourceChangeRequest{
+				PlannedPrivate: []byte(`{`),
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ApplyResourceChangeRequest{
+				ResourceSchema: *testFwSchema,
+			}, expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Decoding Private State",
+					"An error was encountered when decoding private state: unexpected end of JSON input.\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+				),
+			},
+		},
+		"plannedprivate-empty-json": {
 			input: &tfprotov5.ApplyResourceChangeRequest{
 				PlannedPrivate: []byte("{}"),
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ApplyResourceChangeRequest{
-				PlannedPrivate: []byte("{}"),
-				ResourceSchema: testFwSchema,
+				ResourceSchema: *testFwSchema,
+				PlannedPrivate: &privatestate.Data{
+					Framework: map[string][]byte{},
+					Provider:  map[string][]byte{},
+				},
+			},
+		},
+		"plannedprivate": {
+			input: &tfprotov5.ApplyResourceChangeRequest{
+				PlannedPrivate: marshalToJson(map[string][]byte{
+					".frameworkKey": []byte("framework value"),
+					"providerKey":   []byte("provider value"),
+				}),
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ApplyResourceChangeRequest{
+				ResourceSchema: *testFwSchema,
+				PlannedPrivate: &privatestate.Data{
+					Framework: map[string][]byte{
+						".frameworkKey": []byte(`framework value`),
+					},
+					Provider: map[string][]byte{
+						"providerKey": []byte(`provider value`),
+					},
+				},
 			},
 		},
 		"priorstate-missing-schema": {

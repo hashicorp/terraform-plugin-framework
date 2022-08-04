@@ -3,6 +3,7 @@ package proto6server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -186,7 +187,19 @@ func TestServerReadResource(t *testing.T) {
 									},
 									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.Resource{
-											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {},
+											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+												expected := "provider value"
+												got, diags := req.Private.GetKey(ctx, "providerKey")
+
+												resp.Diagnostics.Append(diags...)
+
+												if string(got) != expected {
+													resp.Diagnostics.AddError(
+														"Unexpected req.Private Value",
+														fmt.Sprintf("expected %q, got %q", expected, got),
+													)
+												}
+											},
 										}, nil
 									},
 								},
@@ -324,6 +337,42 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &tfprotov6.ReadResourceResponse{
 				NewState: &testNewStateRemovedDynamicValue,
+			},
+		},
+		"response-private": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{}, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+												diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+
+												resp.Diagnostics.Append(diags...)
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ReadResourceRequest{
+				CurrentState: testEmptyDynamicValue,
+				TypeName:     "test_resource",
+			},
+			expectedResponse: &tfprotov6.ReadResourceResponse{
+				NewState: testEmptyDynamicValue,
+				Private: marshalToJson(map[string][]byte{
+					"providerKey": []byte(`{"key": "value"}`),
+				}),
 			},
 		},
 	}

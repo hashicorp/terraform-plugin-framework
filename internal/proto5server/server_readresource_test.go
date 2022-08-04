@@ -186,7 +186,19 @@ func TestServerReadResource(t *testing.T) {
 									},
 									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.Resource{
-											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {},
+											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+												expected := "provider value"
+												got, diags := req.PrivateState.GetKey("providerKey")
+
+												resp.Diagnostics.Append(diags...)
+
+												if string(got) != expected {
+													resp.Diagnostics.AddError(
+														"Unexpected req.Private Value",
+														fmt.Sprintf("expected %q, got %q", expected, got),
+													)
+												}
+											},
 										}, nil
 									},
 								},

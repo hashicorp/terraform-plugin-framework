@@ -15,7 +15,13 @@ type ReadRequest struct {
 	// operation.
 	State tfsdk.State
 
-	// Private is resource private state data.
+	// Private is provider-defined resource private state data which was previously
+	// stored with the resource state. This data is opaque to Terraform and does
+	// not affect plan output. Any existing data is copied to
+	// ReadResourceResponse.Private to prevent accidental private state data loss.
+	//
+	// Use the GetKey method to read data. Use the SetKey method on
+	// ReadResourceResponse.Private to update or remove a value.
 	Private privatestate.ProviderData
 
 	// ProviderMeta is metadata from the provider_meta block of the module.

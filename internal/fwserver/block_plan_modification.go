@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -14,7 +16,7 @@ import (
 // The extra Block parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttributePlanRequest, resp *ModifySchemaPlanResponse) {
+func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttributePlanRequest, resp *ModifySchemaPlanResponse) {
 	attributeConfig, diags := ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
@@ -43,21 +45,24 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 	req.AttributeState = attributeState
 
 	var requiresReplace bool
-	for _, planModifier := range b.PlanModifiers {
-		modifyResp := &tfsdk.ModifyAttributePlanResponse{
-			AttributePlan:   req.AttributePlan,
-			RequiresReplace: requiresReplace,
-		}
 
-		planModifier.Modify(ctx, req, modifyResp)
+	if blockWithPlanModifiers, ok := b.(fwxschema.BlockWithPlanModifiers); ok {
+		for _, planModifier := range blockWithPlanModifiers.GetPlanModifiers() {
+			modifyResp := &tfsdk.ModifyAttributePlanResponse{
+				AttributePlan:   req.AttributePlan,
+				RequiresReplace: requiresReplace,
+			}
 
-		req.AttributePlan = modifyResp.AttributePlan
-		resp.Diagnostics.Append(modifyResp.Diagnostics...)
-		requiresReplace = modifyResp.RequiresReplace
+			planModifier.Modify(ctx, req, modifyResp)
 
-		// Only on new errors.
-		if modifyResp.Diagnostics.HasError() {
-			return
+			req.AttributePlan = modifyResp.AttributePlan
+			resp.Diagnostics.Append(modifyResp.Diagnostics...)
+			requiresReplace = modifyResp.RequiresReplace
+
+			// Only on new errors.
+			if modifyResp.Diagnostics.HasError() {
+				return
+			}
 		}
 	}
 
@@ -72,9 +77,9 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 		return
 	}
 
-	nm := b.NestingMode
+	nm := b.GetNestingMode()
 	switch nm {
-	case tfsdk.BlockNestingModeList:
+	case fwschema.BlockNestingModeList:
 		l, ok := req.AttributePlan.(types.List)
 
 		if !ok {
@@ -89,7 +94,7 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 		}
 
 		for idx := range l.Elems {
-			for name, attr := range b.Attributes {
+			for name, attr := range b.GetAttributes() {
 				attrReq := tfsdk.ModifyAttributePlanRequest{
 					AttributePath: req.AttributePath.AtListIndex(idx).AtName(name),
 					Config:        req.Config,
@@ -101,7 +106,7 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 				AttributeModifyPlan(ctx, attr, attrReq, resp)
 			}
 
-			for name, block := range b.Blocks {
+			for name, block := range b.GetBlocks() {
 				blockReq := tfsdk.ModifyAttributePlanRequest{
 					AttributePath: req.AttributePath.AtListIndex(idx).AtName(name),
 					Config:        req.Config,
@@ -113,7 +118,7 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 				BlockModifyPlan(ctx, block, blockReq, resp)
 			}
 		}
-	case tfsdk.BlockNestingModeSet:
+	case fwschema.BlockNestingModeSet:
 		s, ok := req.AttributePlan.(types.Set)
 
 		if !ok {
@@ -128,7 +133,7 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 		}
 
 		for _, value := range s.Elems {
-			for name, attr := range b.Attributes {
+			for name, attr := range b.GetAttributes() {
 				attrReq := tfsdk.ModifyAttributePlanRequest{
 					AttributePath: req.AttributePath.AtSetValue(value).AtName(name),
 					Config:        req.Config,
@@ -140,7 +145,7 @@ func BlockModifyPlan(ctx context.Context, b tfsdk.Block, req tfsdk.ModifyAttribu
 				AttributeModifyPlan(ctx, attr, attrReq, resp)
 			}
 
-			for name, block := range b.Blocks {
+			for name, block := range b.GetBlocks() {
 				blockReq := tfsdk.ModifyAttributePlanRequest{
 					AttributePath: req.AttributePath.AtSetValue(value).AtName(name),
 					Config:        req.Config,

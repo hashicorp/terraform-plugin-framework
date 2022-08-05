@@ -6,11 +6,18 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ tftypes.AttributePathStepper = Block{}
+
+// Block must satify the fwschema.Block interface. It must also satisfy
+// fwxschema.BlockWithPlanModifiers and fwxschema.BlockWithValidators
+// interfaces, however we cannot check that here or it would introduce an
+// import cycle.
+var _ fwschema.Block = Block{}
 
 // Block defines the constraints and behaviors of a single structural field in a
 // schema.
@@ -69,7 +76,7 @@ type Block struct {
 
 	// NestingMode indicates the block kind. This field must be set or a
 	// runtime error will be raised by the framework when fetching the schema.
-	NestingMode BlockNestingMode
+	NestingMode fwschema.BlockNestingMode
 
 	// PlanModifiers defines a sequence of modifiers for this block at
 	// plan time. Block-level plan modifications occur before any
@@ -100,7 +107,7 @@ func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) 
 			return nil, fmt.Errorf("can't apply %T to block NestingModeList", step)
 		}
 
-		return nestedBlock{Block: b}, nil
+		return fwschema.NestedBlock{Block: b}, nil
 	case BlockNestingModeSet:
 		_, ok := step.(tftypes.ElementKeyValue)
 
@@ -108,53 +115,104 @@ func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) 
 			return nil, fmt.Errorf("can't apply %T to block NestingModeSet", step)
 		}
 
-		return nestedBlock{Block: b}, nil
+		return fwschema.NestedBlock{Block: b}, nil
 	default:
 		return nil, fmt.Errorf("unsupported block nesting mode: %v", b.NestingMode)
 	}
 }
 
 // Equal returns true if `b` and `o` should be considered Equal.
-func (b Block) Equal(o Block) bool {
-	if !cmp.Equal(b.Attributes, o.Attributes) {
+func (b Block) Equal(o fwschema.Block) bool {
+	if !cmp.Equal(b.GetAttributes(), o.GetAttributes()) {
 		return false
 	}
-	if !cmp.Equal(b.Blocks, o.Blocks) {
+	if !cmp.Equal(b.GetBlocks(), o.GetBlocks()) {
 		return false
 	}
-	if b.DeprecationMessage != o.DeprecationMessage {
+	if b.GetDeprecationMessage() != o.GetDeprecationMessage() {
 		return false
 	}
-	if b.Description != o.Description {
+	if b.GetDescription() != o.GetDescription() {
 		return false
 	}
-	if b.MarkdownDescription != o.MarkdownDescription {
+	if b.GetMarkdownDescription() != o.GetMarkdownDescription() {
 		return false
 	}
-	if b.MaxItems != o.MaxItems {
+	if b.GetMaxItems() != o.GetMaxItems() {
 		return false
 	}
-	if b.MinItems != o.MinItems {
+	if b.GetMinItems() != o.GetMinItems() {
 		return false
 	}
-	if b.NestingMode != o.NestingMode {
+	if b.GetNestingMode() != o.GetNestingMode() {
 		return false
 	}
 	return true
 }
 
+// GetAttributes satisfies the fwschema.Block interface.
+func (b Block) GetAttributes() map[string]fwschema.Attribute {
+	return schemaAttributes(b.Attributes)
+}
+
+// GetBlocks satisfies the fwschema.Block interface.
+func (b Block) GetBlocks() map[string]fwschema.Block {
+	return schemaBlocks(b.Blocks)
+}
+
+// GetDeprecationMessage satisfies the fwschema.Block interface.
+func (b Block) GetDeprecationMessage() string {
+	return b.DeprecationMessage
+}
+
+// GetDescription satisfies the fwschema.Block interface.
+func (b Block) GetDescription() string {
+	return b.Description
+}
+
+// GetMarkdownDescription satisfies the fwschema.Block interface.
+func (b Block) GetMarkdownDescription() string {
+	return b.MarkdownDescription
+}
+
+// GetMaxItems satisfies the fwschema.Block interface.
+func (b Block) GetMaxItems() int64 {
+	return b.MaxItems
+}
+
+// GetMinItems satisfies the fwschema.Block interface.
+func (b Block) GetMinItems() int64 {
+	return b.MinItems
+}
+
+// GetNestingMode satisfies the fwschema.Block interface.
+func (b Block) GetNestingMode() fwschema.BlockNestingMode {
+	return b.NestingMode
+}
+
+// GetPlanModifiers satisfies the fwxschema.BlockWithPlanModifiers
+// interface.
+func (b Block) GetPlanModifiers() AttributePlanModifiers {
+	return b.PlanModifiers
+}
+
+// GetValidators satisfies the fwxschema.BlockWithValidators interface.
+func (b Block) GetValidators() []AttributeValidator {
+	return b.Validators
+}
+
 // attributeType returns an attr.Type corresponding to the block.
-func (b Block) attributeType() attr.Type {
+func (b Block) Type() attr.Type {
 	attrType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{},
 	}
 
 	for attrName, attr := range b.Attributes {
-		attrType.AttrTypes[attrName] = attr.attributeType()
+		attrType.AttrTypes[attrName] = attr.GetType()
 	}
 
 	for blockName, block := range b.Blocks {
-		attrType.AttrTypes[blockName] = block.attributeType()
+		attrType.AttrTypes[blockName] = block.Type()
 	}
 
 	switch b.NestingMode {
@@ -173,31 +231,5 @@ func (b Block) attributeType() attr.Type {
 
 // terraformType returns an tftypes.Type corresponding to the block.
 func (b Block) terraformType(ctx context.Context) tftypes.Type {
-	return b.attributeType().TerraformType(ctx)
-}
-
-type nestedBlock struct {
-	Block
-}
-
-// ApplyTerraform5AttributePathStep allows Blocks to be walked using
-// tftypes.Walk and tftypes.Transform.
-func (b nestedBlock) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	a, ok := step.(tftypes.AttributeName)
-
-	if !ok {
-		return nil, fmt.Errorf("can't apply %T to block", step)
-	}
-
-	attrName := string(a)
-
-	if attr, ok := b.Block.Attributes[attrName]; ok {
-		return attr, nil
-	}
-
-	if block, ok := b.Block.Blocks[attrName]; ok {
-		return block, nil
-	}
-
-	return nil, fmt.Errorf("no attribute %q on Attributes or Blocks", a)
+	return b.Type().TerraformType(ctx)
 }

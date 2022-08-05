@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
 // GetProviderSchemaRequest is the framework server request for the
@@ -15,10 +15,10 @@ type GetProviderSchemaRequest struct{}
 // GetProviderSchema RPC.
 type GetProviderSchemaResponse struct {
 	ServerCapabilities *ServerCapabilities
-	Provider           *tfsdk.Schema
-	ProviderMeta       *tfsdk.Schema
-	ResourceSchemas    map[string]*tfsdk.Schema
-	DataSourceSchemas  map[string]*tfsdk.Schema
+	Provider           fwschema.Schema
+	ProviderMeta       fwschema.Schema
+	ResourceSchemas    map[string]fwschema.Schema
+	DataSourceSchemas  map[string]fwschema.Schema
 	Diagnostics        diag.Diagnostics
 }
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -18,7 +19,7 @@ func TestSchemaAttribute(t *testing.T) {
 
 	type testCase struct {
 		name        string
-		attr        tfsdk.Attribute
+		attr        fwschema.Attribute
 		path        *tftypes.AttributePath
 		expected    *tfprotov6.SchemaAttribute
 		expectedErr string

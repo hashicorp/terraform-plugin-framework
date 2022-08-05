@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -18,7 +19,7 @@ type CreateResourceRequest struct {
 	PlannedPrivate []byte
 	PlannedState   *tfsdk.Plan
 	ProviderMeta   *tfsdk.Config
-	ResourceSchema tfsdk.Schema
+	ResourceSchema fwschema.Schema
 	ResourceType   provider.ResourceType
 }
 
@@ -52,17 +53,17 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 
 	createReq := resource.CreateRequest{
 		Config: tfsdk.Config{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    nullSchemaData,
 		},
 		Plan: tfsdk.Plan{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    nullSchemaData,
 		},
 	}
 	createResp := resource.CreateResponse{
 		State: tfsdk.State{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    nullSchemaData,
 		},
 	}

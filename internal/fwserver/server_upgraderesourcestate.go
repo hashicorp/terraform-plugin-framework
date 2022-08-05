@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -21,7 +22,7 @@ type UpgradeResourceStateRequest struct {
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/340
 	RawState *tfprotov6.RawState
 
-	ResourceSchema tfsdk.Schema
+	ResourceSchema fwschema.Schema
 	ResourceType   provider.ResourceType
 	Version        int64
 }
@@ -73,7 +74,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 	//
 	// UnmarshalWithOpts allows optionally ignoring instances in which elements being
 	// do not have a corresponding attribute within the schema.
-	if req.Version == req.ResourceSchema.Version {
+	if req.Version == req.ResourceSchema.GetVersion() {
 		logging.FrameworkTrace(ctx, "UpgradeResourceState request version matches current Schema version, using framework defined passthrough implementation")
 
 		resourceSchemaType := req.ResourceSchema.TerraformType(ctx)
@@ -92,7 +93,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		}
 
 		resp.UpgradedState = &tfsdk.State{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    rawStateValue,
 		}
 
@@ -173,7 +174,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 
 	upgradeResourceStateResponse := resource.UpgradeStateResponse{
 		State: tfsdk.State{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			// Raw is intentionally not set.
 		},
 	}
@@ -208,7 +209,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		}
 
 		resp.UpgradedState = &tfsdk.State{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    upgradedStateValue,
 		}
 

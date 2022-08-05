@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // Server implements the framework provider server. Protocol specific
@@ -20,7 +20,7 @@ type Server struct {
 	// dataSourceSchemas is the cached DataSource Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the DataSourceType.GetSchema() method.
-	dataSourceSchemas map[string]*tfsdk.Schema
+	dataSourceSchemas map[string]fwschema.Schema
 
 	// dataSourceSchemasDiags is the cached Diagnostics obtained while populating
 	// dataSourceSchemas. This is to ensure any warnings or errors are also
@@ -48,7 +48,7 @@ type Server struct {
 	// providerSchema is the cached Provider Schema for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the Provider.GetSchema() method.
-	providerSchema *tfsdk.Schema
+	providerSchema fwschema.Schema
 
 	// providerSchemaDiags is the cached Diagnostics obtained while populating
 	// providerSchema. This is to ensure any warnings or errors are also
@@ -62,7 +62,7 @@ type Server struct {
 	// providerMetaSchema is the cached Provider Meta Schema for RPCs that need
 	// to convert configuration data from the protocol. If not found, it will
 	// be fetched from the Provider.GetMetaSchema() method.
-	providerMetaSchema *tfsdk.Schema
+	providerMetaSchema fwschema.Schema
 
 	// providerMetaSchemaDiags is the cached Diagnostics obtained while populating
 	// providerMetaSchema. This is to ensure any warnings or errors are also
@@ -76,7 +76,7 @@ type Server struct {
 	// resourceSchemas is the cached Resource Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the ResourceType.GetSchema() method.
-	resourceSchemas map[string]*tfsdk.Schema
+	resourceSchemas map[string]fwschema.Schema
 
 	// resourceSchemasDiags is the cached Diagnostics obtained while populating
 	// resourceSchemas. This is to ensure any warnings or errors are also
@@ -104,7 +104,7 @@ type Server struct {
 
 // DataSourceSchema returns the Schema associated with the DataSourceType for
 // the given type name.
-func (s *Server) DataSourceSchema(ctx context.Context, typeName string) (*tfsdk.Schema, diag.Diagnostics) {
+func (s *Server) DataSourceSchema(ctx context.Context, typeName string) (fwschema.Schema, diag.Diagnostics) {
 	dataSourceSchemas, diags := s.DataSourceSchemas(ctx)
 
 	dataSourceSchema, ok := dataSourceSchemas[typeName]
@@ -124,7 +124,7 @@ func (s *Server) DataSourceSchema(ctx context.Context, typeName string) (*tfsdk.
 
 // DataSourceSchemas returns the map of DataSourceType Schemas. The results are
 // cached on first use.
-func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]*tfsdk.Schema, diag.Diagnostics) {
+func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Schema, diag.Diagnostics) {
 	logging.FrameworkTrace(ctx, "Checking DataSourceSchemas lock")
 	s.dataSourceSchemasMutex.Lock()
 	defer s.dataSourceSchemasMutex.Unlock()
@@ -135,7 +135,7 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]*tfsdk.Schem
 
 	dataSourceTypes, diags := s.DataSourceTypes(ctx)
 
-	s.dataSourceSchemas = map[string]*tfsdk.Schema{}
+	s.dataSourceSchemas = map[string]fwschema.Schema{}
 	s.dataSourceSchemasDiags = diags
 
 	if s.dataSourceSchemasDiags.HasError() {
@@ -199,7 +199,7 @@ func (s *Server) DataSourceTypes(ctx context.Context) (map[string]provider.DataS
 
 // ProviderSchema returns the Schema associated with the Provider. The Schema
 // and Diagnostics are cached on first use.
-func (s *Server) ProviderSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagnostics) {
+func (s *Server) ProviderSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
 	logging.FrameworkTrace(ctx, "Checking ProviderSchema lock")
 	s.providerSchemaMutex.Lock()
 	defer s.providerSchemaMutex.Unlock()
@@ -221,7 +221,7 @@ func (s *Server) ProviderSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagno
 // ProviderMetaSchema returns the Meta Schema associated with the Provider, if
 // it implements the ProviderWithMetaSchema interface. The Schema and
 // Diagnostics are cached on first use.
-func (s *Server) ProviderMetaSchema(ctx context.Context) (*tfsdk.Schema, diag.Diagnostics) {
+func (s *Server) ProviderMetaSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
 	providerWithProviderMeta, ok := s.Provider.(provider.ProviderWithMetaSchema)
 
 	if !ok {
@@ -249,7 +249,7 @@ func (s *Server) ProviderMetaSchema(ctx context.Context) (*tfsdk.Schema, diag.Di
 
 // ResourceSchema returns the Schema associated with the ResourceType for
 // the given type name.
-func (s *Server) ResourceSchema(ctx context.Context, typeName string) (*tfsdk.Schema, diag.Diagnostics) {
+func (s *Server) ResourceSchema(ctx context.Context, typeName string) (fwschema.Schema, diag.Diagnostics) {
 	resourceSchemas, diags := s.ResourceSchemas(ctx)
 
 	resourceSchema, ok := resourceSchemas[typeName]
@@ -269,7 +269,7 @@ func (s *Server) ResourceSchema(ctx context.Context, typeName string) (*tfsdk.Sc
 
 // ResourceSchemas returns the map of ResourceType Schemas. The results are
 // cached on first use.
-func (s *Server) ResourceSchemas(ctx context.Context) (map[string]*tfsdk.Schema, diag.Diagnostics) {
+func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schema, diag.Diagnostics) {
 	logging.FrameworkTrace(ctx, "Checking ResourceSchemas lock")
 	s.resourceSchemasMutex.Lock()
 	defer s.resourceSchemasMutex.Unlock()
@@ -280,7 +280,7 @@ func (s *Server) ResourceSchemas(ctx context.Context) (map[string]*tfsdk.Schema,
 
 	resourceTypes, diags := s.ResourceTypes(ctx)
 
-	s.resourceSchemas = map[string]*tfsdk.Schema{}
+	s.resourceSchemas = map[string]fwschema.Schema{}
 	s.resourceSchemasDiags = diags
 
 	if s.resourceSchemasDiags.HasError() {

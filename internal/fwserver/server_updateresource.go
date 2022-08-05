@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -19,7 +20,7 @@ type UpdateResourceRequest struct {
 	PlannedState   *tfsdk.Plan
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
-	ResourceSchema tfsdk.Schema
+	ResourceSchema fwschema.Schema
 	ResourceType   provider.ResourceType
 }
 
@@ -53,21 +54,21 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 
 	updateReq := resource.UpdateRequest{
 		Config: tfsdk.Config{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    nullSchemaData,
 		},
 		Plan: tfsdk.Plan{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    nullSchemaData,
 		},
 		State: tfsdk.State{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    nullSchemaData,
 		},
 	}
 	updateResp := resource.UpdateResponse{
 		State: tfsdk.State{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    nullSchemaData,
 		},
 	}

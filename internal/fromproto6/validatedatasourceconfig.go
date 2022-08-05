@@ -4,15 +4,15 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ValidateDataSourceConfigRequest returns the *fwserver.ValidateDataSourceConfigRequest
 // equivalent of a *tfprotov6.ValidateDataSourceConfigRequest.
-func ValidateDataSourceConfigRequest(ctx context.Context, proto6 *tfprotov6.ValidateDataResourceConfigRequest, dataSourceType provider.DataSourceType, dataSourceSchema *tfsdk.Schema) (*fwserver.ValidateDataSourceConfigRequest, diag.Diagnostics) {
+func ValidateDataSourceConfigRequest(ctx context.Context, proto6 *tfprotov6.ValidateDataResourceConfigRequest, dataSourceType provider.DataSourceType, dataSourceSchema fwschema.Schema) (*fwserver.ValidateDataSourceConfigRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}

@@ -10,83 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestAttributeAttributeType(t *testing.T) {
+func TestAttributeGetType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		attribute Attribute
 		expected  attr.Type
 	}{
-		"Attributes-ListNestedAttributes": {
-			attribute: Attribute{
-				Attributes: ListNestedAttributes(map[string]Attribute{
-					"test_nested_attribute": {
-						Required: true,
-						Type:     types.StringType,
-					},
-				}),
-				Required: true,
-			},
-			expected: types.ListType{
-				ElemType: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"test_nested_attribute": types.StringType,
-					},
-				},
-			},
-		},
-		"Attributes-MapNestedAttributes": {
-			attribute: Attribute{
-				Attributes: MapNestedAttributes(map[string]Attribute{
-					"test_nested_attribute": {
-						Required: true,
-						Type:     types.StringType,
-					},
-				}),
-				Required: true,
-			},
-			expected: types.MapType{
-				ElemType: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"test_nested_attribute": types.StringType,
-					},
-				},
-			},
-		},
-		"Attributes-SetNestedAttributes": {
-			attribute: Attribute{
-				Attributes: SetNestedAttributes(map[string]Attribute{
-					"test_nested_attribute": {
-						Required: true,
-						Type:     types.StringType,
-					},
-				}),
-				Required: true,
-			},
-			expected: types.SetType{
-				ElemType: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"test_nested_attribute": types.StringType,
-					},
-				},
-			},
-		},
-		"Attributes-SingleNestedAttributes": {
-			attribute: Attribute{
-				Attributes: SingleNestedAttributes(map[string]Attribute{
-					"test_nested_attribute": {
-						Required: true,
-						Type:     types.StringType,
-					},
-				}),
-				Required: true,
-			},
-			expected: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"test_nested_attribute": types.StringType,
-				},
-			},
-		},
 		"Type-BoolType": {
 			attribute: Attribute{
 				Required: true,
@@ -178,7 +108,7 @@ func TestAttributeAttributeType(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.attribute.attributeType()
+			got := testCase.attribute.GetType()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

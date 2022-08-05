@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // Plan returns the *tfsdk.Plan for a *tfprotov6.DynamicValue and
-// *tfsdk.Schema.
-func Plan(ctx context.Context, proto6DynamicValue *tfprotov6.DynamicValue, schema *tfsdk.Schema) (*tfsdk.Plan, diag.Diagnostics) {
+// fwschema.Schema.
+func Plan(ctx context.Context, proto6DynamicValue *tfprotov6.DynamicValue, schema fwschema.Schema) (*tfsdk.Plan, diag.Diagnostics) {
 	if proto6DynamicValue == nil {
 		return nil, nil
 	}
@@ -46,7 +47,7 @@ func Plan(ctx context.Context, proto6DynamicValue *tfprotov6.DynamicValue, schem
 
 	fw := &tfsdk.Plan{
 		Raw:    proto6Value,
-		Schema: *schema,
+		Schema: tfsdkSchema(schema),
 	}
 
 	return fw, nil

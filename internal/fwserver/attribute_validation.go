@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -15,10 +17,10 @@ import (
 // The extra Attribute parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
 	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
 
-	if (a.Attributes == nil || len(a.Attributes.GetAttributes()) == 0) && a.Type == nil {
+	if (a.GetAttributes() == nil || len(a.GetAttributes().GetAttributes()) == 0) && a.GetType() == nil {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Attribute Definition",
@@ -28,7 +30,7 @@ func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.Validat
 		return
 	}
 
-	if a.Attributes != nil && len(a.Attributes.GetAttributes()) > 0 && a.Type != nil {
+	if a.GetAttributes() != nil && len(a.GetAttributes().GetAttributes()) > 0 && a.GetType() != nil {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Attribute Definition",
@@ -38,7 +40,7 @@ func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.Validat
 		return
 	}
 
-	if !a.Required && !a.Optional && !a.Computed {
+	if !a.IsRequired() && !a.IsOptional() && !a.IsComputed() {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Attribute Definition",
@@ -60,7 +62,7 @@ func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.Validat
 	// until Terraform CLI versions 0.12 through the release containing the
 	// checks are considered end-of-life.
 	// Reference: https://github.com/hashicorp/terraform/issues/30669
-	if a.Computed && !a.Optional && !attributeConfig.IsNull() {
+	if a.IsComputed() && !a.IsOptional() && !attributeConfig.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Configuration for Read-Only Attribute",
@@ -74,7 +76,7 @@ func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.Validat
 	// until Terraform CLI versions 0.12 through the release containing the
 	// checks are considered end-of-life.
 	// Reference: https://github.com/hashicorp/terraform/issues/30669
-	if a.Required && attributeConfig.IsNull() {
+	if a.IsRequired() && attributeConfig.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Missing Configuration for Required Attribute",
@@ -85,27 +87,29 @@ func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.Validat
 
 	req.AttributeConfig = attributeConfig
 
-	for _, validator := range a.Validators {
-		logging.FrameworkDebug(
-			ctx,
-			"Calling provider defined AttributeValidator",
-			map[string]interface{}{
-				logging.KeyDescription: validator.Description(ctx),
-			},
-		)
-		validator.Validate(ctx, req, resp)
-		logging.FrameworkDebug(
-			ctx,
-			"Called provider defined AttributeValidator",
-			map[string]interface{}{
-				logging.KeyDescription: validator.Description(ctx),
-			},
-		)
+	if attributeWithValidators, ok := a.(fwxschema.AttributeWithValidators); ok {
+		for _, validator := range attributeWithValidators.GetValidators() {
+			logging.FrameworkDebug(
+				ctx,
+				"Calling provider defined AttributeValidator",
+				map[string]interface{}{
+					logging.KeyDescription: validator.Description(ctx),
+				},
+			)
+			validator.Validate(ctx, req, resp)
+			logging.FrameworkDebug(
+				ctx,
+				"Called provider defined AttributeValidator",
+				map[string]interface{}{
+					logging.KeyDescription: validator.Description(ctx),
+				},
+			)
+		}
 	}
 
 	AttributeValidateNestedAttributes(ctx, a, req, resp)
 
-	if a.DeprecationMessage != "" && attributeConfig != nil {
+	if a.GetDeprecationMessage() != "" && attributeConfig != nil {
 		tfValue, err := attributeConfig.ToTerraformValue(ctx)
 		if err != nil {
 			resp.Diagnostics.AddAttributeError(
@@ -121,7 +125,7 @@ func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.Validat
 			resp.Diagnostics.AddAttributeWarning(
 				req.AttributePath,
 				"Attribute Deprecated",
-				a.DeprecationMessage,
+				a.GetDeprecationMessage(),
 			)
 		}
 	}
@@ -133,14 +137,14 @@ func AttributeValidate(ctx context.Context, a tfsdk.Attribute, req tfsdk.Validat
 // The extra Attribute parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	if a.Attributes == nil || len(a.Attributes.GetAttributes()) == 0 {
+func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+	if a.GetAttributes() == nil || len(a.GetAttributes().GetAttributes()) == 0 {
 		return
 	}
 
-	nm := a.Attributes.GetNestingMode()
+	nm := a.GetAttributes().GetNestingMode()
 	switch nm {
-	case tfsdk.NestingModeList:
+	case fwschema.NestingModeList:
 		l, ok := req.AttributeConfig.(types.List)
 
 		if !ok {
@@ -155,7 +159,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 		}
 
 		for idx := range l.Elems {
-			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtListIndex(idx).AtName(nestedName),
 					AttributePathExpression: req.AttributePathExpression.AtListIndex(idx).AtName(nestedName),
@@ -170,7 +174,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
-	case tfsdk.NestingModeSet:
+	case fwschema.NestingModeSet:
 		s, ok := req.AttributeConfig.(types.Set)
 
 		if !ok {
@@ -185,7 +189,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 		}
 
 		for _, value := range s.Elems {
-			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtSetValue(value).AtName(nestedName),
 					AttributePathExpression: req.AttributePathExpression.AtSetValue(value).AtName(nestedName),
@@ -200,7 +204,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
-	case tfsdk.NestingModeMap:
+	case fwschema.NestingModeMap:
 		m, ok := req.AttributeConfig.(types.Map)
 
 		if !ok {
@@ -215,7 +219,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 		}
 
 		for key := range m.Elems {
-			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtMapKey(key).AtName(nestedName),
 					AttributePathExpression: req.AttributePathExpression.AtMapKey(key).AtName(nestedName),
@@ -230,7 +234,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
-	case tfsdk.NestingModeSingle:
+	case fwschema.NestingModeSingle:
 		o, ok := req.AttributeConfig.(types.Object)
 
 		if !ok {
@@ -245,7 +249,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a tfsdk.Attribute, r
 		}
 
 		if !o.Null && !o.Unknown {
-			for nestedName, nestedAttr := range a.Attributes.GetAttributes() {
+			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtName(nestedName),
 					AttributePathExpression: req.AttributePathExpression.AtName(nestedName),

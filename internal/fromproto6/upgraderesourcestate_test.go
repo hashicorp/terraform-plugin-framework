@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -28,7 +29,7 @@ func TestUpgradeResourceStateRequest(t *testing.T) {
 
 	testCases := map[string]struct {
 		input               *tfprotov6.UpgradeResourceStateRequest
-		resourceSchema      *tfsdk.Schema
+		resourceSchema      fwschema.Schema
 		resourceType        provider.ResourceType
 		expected            *fwserver.UpgradeResourceStateRequest
 		expectedDiagnostics diag.Diagnostics
@@ -48,14 +49,14 @@ func TestUpgradeResourceStateRequest(t *testing.T) {
 				RawState: testNewRawState(t, map[string]interface{}{
 					"test_attribute": "test-value",
 				}),
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			},
 		},
 		"resourceschema": {
 			input:          &tfprotov6.UpgradeResourceStateRequest{},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.UpgradeResourceStateRequest{
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			},
 		},
 		"resourceschema-missing": {
@@ -77,7 +78,7 @@ func TestUpgradeResourceStateRequest(t *testing.T) {
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.UpgradeResourceStateRequest{
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 				Version:        123,
 			},
 		},

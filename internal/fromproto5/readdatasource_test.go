@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -45,9 +46,9 @@ func TestReadDataSourceRequest(t *testing.T) {
 
 	testCases := map[string]struct {
 		input               *tfprotov5.ReadDataSourceRequest
-		dataSourceSchema    *tfsdk.Schema
+		dataSourceSchema    fwschema.Schema
 		dataSourceType      provider.DataSourceType
-		providerMetaSchema  *tfsdk.Schema
+		providerMetaSchema  fwschema.Schema
 		expected            *fwserver.ReadDataSourceRequest
 		expectedDiagnostics diag.Diagnostics
 	}{
@@ -93,7 +94,7 @@ func TestReadDataSourceRequest(t *testing.T) {
 					Raw:    testProto5Value,
 					Schema: *testFwSchema,
 				},
-				DataSourceSchema: *testFwSchema,
+				DataSourceSchema: testFwSchema,
 			},
 		},
 		"providermeta-missing-data": {
@@ -101,7 +102,7 @@ func TestReadDataSourceRequest(t *testing.T) {
 			dataSourceSchema:   testFwSchema,
 			providerMetaSchema: testFwSchema,
 			expected: &fwserver.ReadDataSourceRequest{
-				DataSourceSchema: *testFwSchema,
+				DataSourceSchema: testFwSchema,
 				ProviderMeta: &tfsdk.Config{
 					Raw:    tftypes.NewValue(testProto5Type, nil),
 					Schema: *testFwSchema,
@@ -114,7 +115,7 @@ func TestReadDataSourceRequest(t *testing.T) {
 			},
 			dataSourceSchema: testFwSchema,
 			expected: &fwserver.ReadDataSourceRequest{
-				DataSourceSchema: *testFwSchema,
+				DataSourceSchema: testFwSchema,
 				// This intentionally should not include ProviderMeta
 			},
 		},
@@ -125,7 +126,7 @@ func TestReadDataSourceRequest(t *testing.T) {
 			dataSourceSchema:   testFwSchema,
 			providerMetaSchema: testFwSchema,
 			expected: &fwserver.ReadDataSourceRequest{
-				DataSourceSchema: *testFwSchema,
+				DataSourceSchema: testFwSchema,
 				ProviderMeta: &tfsdk.Config{
 					Raw:    testProto5Value,
 					Schema: *testFwSchema,

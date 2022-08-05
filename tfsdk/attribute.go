@@ -5,8 +5,15 @@ import (
 	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+// Attribute must satify the fwschema.Attribute interface. It must also satisfy
+// fwxschema.AttributeWithPlanModifiers and fwxschema.AttributeWithValidators
+// interfaces, however we cannot check that here or it would introduce an
+// import cycle.
+var _ fwschema.Attribute = Attribute{}
 
 // Attribute defines the constraints and behaviors of a single value field in a
 // schema. Attributes are the fields that show up in Terraform state files and
@@ -23,7 +30,7 @@ type Attribute struct {
 	// type.
 	//
 	// If Attributes is set, Type cannot be.
-	Attributes NestedAttributes
+	Attributes fwschema.NestedAttributes
 
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this attribute is,
@@ -149,52 +156,102 @@ func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSt
 }
 
 // Equal returns true if `a` and `o` should be considered Equal.
-func (a Attribute) Equal(o Attribute) bool {
-	if a.Type == nil && o.Type != nil {
-		return false
-	} else if a.Type != nil && o.Type == nil {
-		return false
-	} else if a.Type != nil && o.Type != nil && !a.Type.Equal(o.Type) {
+func (a Attribute) Equal(o fwschema.Attribute) bool {
+	if _, ok := o.(Attribute); !ok {
 		return false
 	}
-	if a.Attributes == nil && o.Attributes != nil {
+	if a.GetType() == nil && o.GetType() != nil {
 		return false
-	} else if a.Attributes != nil && o.Attributes == nil {
+	} else if a.GetType() != nil && o.GetType() == nil {
 		return false
-	} else if a.Attributes != nil && o.Attributes != nil && !a.Attributes.Equal(o.Attributes) {
-		return false
-	}
-	if a.Description != o.Description {
+	} else if a.GetType() != nil && o.GetType() != nil && !a.GetType().Equal(o.GetType()) {
 		return false
 	}
-	if a.MarkdownDescription != o.MarkdownDescription {
+	if a.GetAttributes() == nil && o.GetAttributes() != nil {
+		return false
+	} else if a.GetAttributes() != nil && o.GetAttributes() == nil {
+		return false
+	} else if a.GetAttributes() != nil && o.GetAttributes() != nil && !a.GetAttributes().Equal(o.GetAttributes()) {
 		return false
 	}
-	if a.Required != o.Required {
+	if a.GetDescription() != o.GetDescription() {
 		return false
 	}
-	if a.Optional != o.Optional {
+	if a.GetMarkdownDescription() != o.GetMarkdownDescription() {
 		return false
 	}
-	if a.Computed != o.Computed {
+	if a.IsRequired() != o.IsRequired() {
 		return false
 	}
-	if a.Sensitive != o.Sensitive {
+	if a.IsOptional() != o.IsOptional() {
 		return false
 	}
-	if a.DeprecationMessage != o.DeprecationMessage {
+	if a.IsComputed() != o.IsComputed() {
+		return false
+	}
+	if a.IsSensitive() != o.IsSensitive() {
+		return false
+	}
+	if a.GetDeprecationMessage() != o.GetDeprecationMessage() {
 		return false
 	}
 	return true
 }
 
-// attributeType returns an attr.Type corresponding to the attribute.
-func (a Attribute) attributeType() attr.Type {
-	if a.Attributes != nil {
-		return a.Attributes.AttributeType()
-	}
+// GetAttributes satisfies the fwschema.Attribute interface.
+func (a Attribute) GetAttributes() fwschema.NestedAttributes {
+	return a.Attributes
+}
 
+// GetDeprecationMessage satisfies the fwschema.Attribute interface.
+func (a Attribute) GetDeprecationMessage() string {
+	return a.DeprecationMessage
+}
+
+// GetDescription satisfies the fwschema.Attribute interface.
+func (a Attribute) GetDescription() string {
+	return a.Description
+}
+
+// GetMarkdownDescription satisfies the fwschema.Attribute interface.
+func (a Attribute) GetMarkdownDescription() string {
+	return a.MarkdownDescription
+}
+
+// GetPlanModifiers satisfies the fwxschema.AttributeWithPlanModifiers
+// interface.
+func (a Attribute) GetPlanModifiers() AttributePlanModifiers {
+	return a.PlanModifiers
+}
+
+// GetValidators satisfies the fwxschema.AttributeWithValidators interface.
+func (a Attribute) GetValidators() []AttributeValidator {
+	return a.Validators
+}
+
+// GetType satisfies the fwschema.Attribute interface.
+func (a Attribute) GetType() attr.Type {
 	return a.Type
+}
+
+// IsComputed satisfies the fwschema.Attribute interface.
+func (a Attribute) IsComputed() bool {
+	return a.Computed
+}
+
+// IsOptional satisfies the fwschema.Attribute interface.
+func (a Attribute) IsOptional() bool {
+	return a.Optional
+}
+
+// IsRequired satisfies the fwschema.Attribute interface.
+func (a Attribute) IsRequired() bool {
+	return a.Required
+}
+
+// IsSensitive satisfies the fwschema.Attribute interface.
+func (a Attribute) IsSensitive() bool {
+	return a.Sensitive
 }
 
 // terraformType returns an tftypes.Type corresponding to the attribute.

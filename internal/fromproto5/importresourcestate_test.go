@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -34,7 +35,7 @@ func TestImportResourceStateRequest(t *testing.T) {
 
 	testCases := map[string]struct {
 		input               *tfprotov5.ImportResourceStateRequest
-		resourceSchema      *tfsdk.Schema
+		resourceSchema      fwschema.Schema
 		resourceType        provider.ResourceType
 		expected            *fwserver.ImportResourceStateRequest
 		expectedDiagnostics diag.Diagnostics

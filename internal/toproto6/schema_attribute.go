@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -12,63 +12,63 @@ import (
 // SchemaAttribute returns the *tfprotov6.SchemaAttribute equivalent of an
 // Attribute. Errors will be tftypes.AttributePathErrors based on `path`.
 // `name` is the name of the attribute.
-func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a tfsdk.Attribute) (*tfprotov6.SchemaAttribute, error) {
-	if a.Attributes != nil && len(a.Attributes.GetAttributes()) > 0 && a.Type != nil {
+func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a fwschema.Attribute) (*tfprotov6.SchemaAttribute, error) {
+	if a.GetAttributes() != nil && len(a.GetAttributes().GetAttributes()) > 0 && a.GetType() != nil {
 		return nil, path.NewErrorf("cannot have both Attributes and Type set")
 	}
 
-	if (a.Attributes == nil || len(a.Attributes.GetAttributes()) == 0) && a.Type == nil {
+	if (a.GetAttributes() == nil || len(a.GetAttributes().GetAttributes()) == 0) && a.GetType() == nil {
 		return nil, path.NewErrorf("must have Attributes or Type set")
 	}
 
-	if !a.Required && !a.Optional && !a.Computed {
+	if !a.IsRequired() && !a.IsOptional() && !a.IsComputed() {
 		return nil, path.NewErrorf("must have Required, Optional, or Computed set")
 	}
 
 	schemaAttribute := &tfprotov6.SchemaAttribute{
 		Name:      name,
-		Required:  a.Required,
-		Optional:  a.Optional,
-		Computed:  a.Computed,
-		Sensitive: a.Sensitive,
+		Required:  a.IsRequired(),
+		Optional:  a.IsOptional(),
+		Computed:  a.IsComputed(),
+		Sensitive: a.IsSensitive(),
 	}
 
-	if a.DeprecationMessage != "" {
+	if a.GetDeprecationMessage() != "" {
 		schemaAttribute.Deprecated = true
 	}
 
-	if a.Description != "" {
-		schemaAttribute.Description = a.Description
+	if a.GetDescription() != "" {
+		schemaAttribute.Description = a.GetDescription()
 		schemaAttribute.DescriptionKind = tfprotov6.StringKindPlain
 	}
 
-	if a.MarkdownDescription != "" {
-		schemaAttribute.Description = a.MarkdownDescription
+	if a.GetMarkdownDescription() != "" {
+		schemaAttribute.Description = a.GetMarkdownDescription()
 		schemaAttribute.DescriptionKind = tfprotov6.StringKindMarkdown
 	}
 
-	if a.Type != nil {
-		schemaAttribute.Type = a.Type.TerraformType(ctx)
+	if a.GetType() != nil {
+		schemaAttribute.Type = a.GetType().TerraformType(ctx)
 
 		return schemaAttribute, nil
 	}
 
 	object := &tfprotov6.SchemaObject{}
-	nm := a.Attributes.GetNestingMode()
+	nm := a.GetAttributes().GetNestingMode()
 	switch nm {
-	case tfsdk.NestingModeSingle:
+	case fwschema.NestingModeSingle:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeSingle
-	case tfsdk.NestingModeList:
+	case fwschema.NestingModeList:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeList
-	case tfsdk.NestingModeSet:
+	case fwschema.NestingModeSet:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeSet
-	case tfsdk.NestingModeMap:
+	case fwschema.NestingModeMap:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeMap
 	default:
 		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
 	}
 
-	for nestedName, nestedA := range a.Attributes.GetAttributes() {
+	for nestedName, nestedA := range a.GetAttributes().GetAttributes() {
 		nestedSchemaAttribute, err := SchemaAttribute(ctx, nestedName, path.WithAttributeName(nestedName), nestedA)
 
 		if err != nil {

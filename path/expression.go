@@ -20,19 +20,19 @@ import (
 // construct a full expression. The available traversal steps after Expression
 // creation are:
 //
-//     - AtAnyListIndex(): Step into a list at any index
-//     - AtAnyMapKey(): Step into a map at any key
-//     - AtAnySetValue(): Step into a set at any attr.Value element
-//     - AtListIndex(): Step into a list at a specific index
-//     - AtMapKey(): Step into a map at a specific key
-//     - AtName(): Step into an attribute or block with a specific name
-//     - AtParent(): Step backwards one step
-//     - AtSetValue(): Step into a set at a specific attr.Value element
+//   - AtAnyListIndex(): Step into a list at any index
+//   - AtAnyMapKey(): Step into a map at any key
+//   - AtAnySetValue(): Step into a set at any attr.Value element
+//   - AtListIndex(): Step into a list at a specific index
+//   - AtMapKey(): Step into a map at a specific key
+//   - AtName(): Step into an attribute or block with a specific name
+//   - AtParent(): Step backwards one step
+//   - AtSetValue(): Step into a set at a specific attr.Value element
 //
 // For example, to express any list element with a root list attribute named
 // "some_attribute":
 //
-//     path.MatchRoot("some_attribute").AtAnyListIndex()
+//	path.MatchRoot("some_attribute").AtAnyListIndex()
 //
 // An Expression is generally preferable over a Path in schema-defined
 // functionality that is intended to accept paths as parameters, such as

@@ -7,9 +7,8 @@ import "context"
 //
 // Data sources can optionally implement these additional concepts:
 //
-//     - Validation: Schema-based via tfsdk.Attribute or entire configuration
-//       via DataSourceWithConfigValidators or DataSourceWithValidateConfig.
-//
+//   - Validation: Schema-based via tfsdk.Attribute or entire configuration
+//     via DataSourceWithConfigValidators or DataSourceWithValidateConfig.
 type DataSource interface {
 	// Read is called when the provider must read data source values in
 	// order to update state. Config values should be read from the

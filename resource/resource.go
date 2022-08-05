@@ -9,12 +9,12 @@ import (
 //
 // Resources can optionally implement these additional concepts:
 //
-//     - Import: ResourceWithImportState
-//     - Validation: Schema-based via tfsdk.Attribute or entire configuration
-//       via ResourceWithConfigValidators or ResourceWithValidateConfig.
-//     - Plan Modification: Schema-based via tfsdk.Attribute or entire plan
-//       via ResourceWithModifyPlan.
-//     - State Upgrades: ResourceWithUpgradeState
+//   - Import: ResourceWithImportState
+//   - Validation: Schema-based via tfsdk.Attribute or entire configuration
+//     via ResourceWithConfigValidators or ResourceWithValidateConfig.
+//   - Plan Modification: Schema-based via tfsdk.Attribute or entire plan
+//     via ResourceWithModifyPlan.
+//   - State Upgrades: ResourceWithUpgradeState
 //
 // Although not required, it is conventional for resources to implement the
 // ResourceWithImportState interface.

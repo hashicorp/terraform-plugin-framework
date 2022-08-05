@@ -13,8 +13,8 @@ import (
 // *tfsdk.Schema. This data handling is different than Config to simplify
 // implementors, in that:
 //
-//     - Missing Schema will return nil, rather than an error
-//     - Missing DynamicValue will return nil typed Value, rather than an error
+//   - Missing Schema will return nil, rather than an error
+//   - Missing DynamicValue will return nil typed Value, rather than an error
 func ProviderMeta(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValue, schema *tfsdk.Schema) (*tfsdk.Config, diag.Diagnostics) {
 	if schema == nil {
 		return nil, nil

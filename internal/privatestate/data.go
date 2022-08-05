@@ -19,7 +19,7 @@ type Data struct {
 	Framework map[string][]byte
 
 	// Provider contains private state data for provider usage.
-	Provider ProviderData
+	Provider *ProviderData
 }
 
 // Bytes returns a JSON encoded slice of bytes containing the merged
@@ -27,17 +27,36 @@ type Data struct {
 func (d *Data) Bytes(_ context.Context) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if d == nil || (len(d.Framework)+len(d.Provider)) == 0 {
+	if d == nil {
 		return nil, nil
 	}
 
-	mergedMap := make(map[string][]byte, len(d.Framework)+len(d.Provider))
+	if d.Provider == nil && len(d.Framework) == 0 {
+		return nil, nil
+	}
 
+	var providerData map[string][]byte
+
+	if d.Provider != nil {
+		providerData = d.Provider.data
+	}
+
+	mergedMap := make(map[string][]byte, len(d.Framework)+len(providerData))
+
+	// TODO: Add tests for pruning nil values
 	for k, v := range d.Framework {
+		if v == nil {
+			continue
+		}
+
 		mergedMap[k] = v
 	}
 
-	for k, v := range d.Provider {
+	for k, v := range providerData {
+		if v == nil {
+			continue
+		}
+
 		mergedMap[k] = v
 	}
 
@@ -78,25 +97,70 @@ func NewData(ctx context.Context, data []byte) (*Data, diag.Diagnostics) {
 		return nil, diags
 	}
 
+	providerData, providerDataDiags := NewProviderData(ctx, nil)
+
+	diags.Append(providerDataDiags...)
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
 	output := Data{
 		Framework: make(map[string][]byte),
-		Provider:  make(map[string][]byte),
+		Provider:  providerData,
 	}
 
 	for k, v := range dataMap {
 		if isInvalidProviderDataKey(ctx, k) {
+			//TODO: Check that v is valid JSON and UTF-8
 			output.Framework[k] = v
 			continue
 		}
 
-		output.Provider[k] = v
+		diags.Append(output.Provider.SetKey(ctx, k, v)...)
 	}
 
 	return &output, diags
 }
 
+func NewProviderData(ctx context.Context, data []byte) (*ProviderData, diag.Diagnostics) {
+	providerData := &ProviderData{
+		data: make(map[string][]byte),
+	}
+
+	if len(data) == 0 {
+		return providerData, nil
+	}
+
+	var (
+		dataMap map[string][]byte
+		diags   diag.Diagnostics
+	)
+
+	err := json.Unmarshal(data, &dataMap)
+	if err != nil {
+		diags.AddError(
+			"Error Decoding Provider Data",
+			fmt.Sprintf("An error was encountered when decoding provider data: %s.\n\n"+
+				"If you are calling NewProviderData directly then please check that the data you are supplying is a byte representation of valid JSON.\n\n+"+
+				"If you are not calling NewProviderData directly, then this is a problem with Terraform or terraform-plugin-framework. "+
+				"Please report this to the provider developer.", err),
+		)
+
+		return nil, diags
+	}
+
+	for k, v := range dataMap {
+		diags.Append(providerData.SetKey(ctx, k, v)...)
+	}
+
+	return providerData, diags
+}
+
 // ProviderData contains private state data for provider usage.
-type ProviderData map[string][]byte
+type ProviderData struct {
+	data map[string][]byte
+}
 
 // GetKey returns the private state data associated with the given key.
 //
@@ -109,7 +173,7 @@ type ProviderData map[string][]byte
 // without accounting for older resource instances that may still have
 // older data at the key.
 func (d *ProviderData) GetKey(ctx context.Context, key string) ([]byte, diag.Diagnostics) {
-	if d == nil {
+	if d == nil || d.data == nil {
 		return nil, nil
 	}
 
@@ -119,7 +183,7 @@ func (d *ProviderData) GetKey(ctx context.Context, key string) ([]byte, diag.Dia
 		return nil, diags
 	}
 
-	value, ok := (*d)[key]
+	value, ok := d.data[key]
 	if !ok {
 		return nil, nil
 	}
@@ -138,7 +202,24 @@ func (d *ProviderData) GetKey(ctx context.Context, key string) ([]byte, diag.Dia
 // without accounting for older resource instances that may still have
 // older data at the key.
 func (d *ProviderData) SetKey(ctx context.Context, key string, value []byte) diag.Diagnostics {
-	diags := ValidateProviderDataKey(ctx, key)
+	var diags diag.Diagnostics
+
+	if d == nil {
+		tflog.Error(ctx, "error calling SetKey on uninitialized ProviderData")
+
+		diags.AddError("Uninitialized ProviderData",
+			"ProviderData must be initialized before it is used.\n\n"+
+				"Call privatestate.NewProviderData to obtain an initialized instance of ProviderData.",
+		)
+
+		return diags
+	}
+
+	if d.data == nil {
+		d.data = make(map[string][]byte)
+	}
+
+	diags.Append(ValidateProviderDataKey(ctx, key)...)
 
 	if diags.HasError() {
 		return diags
@@ -148,7 +229,7 @@ func (d *ProviderData) SetKey(ctx context.Context, key string, value []byte) dia
 		tflog.Error(ctx, "error calling SetKey with invalid UTF-8 value", map[string]interface{}{"key": key, "value": value})
 
 		diags.AddError("UTF-8 Invalid",
-			"Values stored in private state must be valid UTF-8\n\n"+
+			"Values stored in private state must be valid UTF-8.\n\n"+
 				fmt.Sprintf("The value being supplied for key %q is invalid. Please check the value you are supplying is valid UTF-8.", key),
 		)
 
@@ -159,19 +240,14 @@ func (d *ProviderData) SetKey(ctx context.Context, key string, value []byte) dia
 		tflog.Error(ctx, "error calling SetKey with invalid JSON value", map[string]interface{}{"key": key, "value": value})
 
 		diags.AddError("JSON Invalid",
-			"Values stored in private state must be valid JSON\n\n"+
+			"Values stored in private state must be valid JSON.\n\n"+
 				fmt.Sprintf("The value being supplied for key %q is invalid. Please check the value you are supplying is valid JSON.", key),
 		)
 
 		return diags
 	}
 
-	if *d == nil {
-		var providerData ProviderData = make(map[string][]byte)
-		*d = providerData
-	}
-
-	(*d)[key] = value
+	d.data[key] = value
 
 	return nil
 }
@@ -184,7 +260,7 @@ func ValidateProviderDataKey(ctx context.Context, key string) diag.Diagnostics {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(
 				"Restricted Resource Private State Namespace",
-				"Using a period ('.') as a prefix for a key used in private state is not allowed\n\n"+
+				"Using a period ('.') as a prefix for a key used in private state is not allowed.\n\n"+
 					fmt.Sprintf("The key %q is invalid. Please check the key you are supplying does not use a a period ('.') as a prefix.", key),
 			),
 		}

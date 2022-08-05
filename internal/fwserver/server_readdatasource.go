@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -14,7 +15,7 @@ import (
 // ReadDataSource RPC.
 type ReadDataSourceRequest struct {
 	Config           *tfsdk.Config
-	DataSourceSchema tfsdk.Schema
+	DataSourceSchema fwschema.Schema
 	DataSourceType   provider.DataSourceType
 	ProviderMeta     *tfsdk.Config
 }
@@ -45,12 +46,12 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 
 	readReq := datasource.ReadRequest{
 		Config: tfsdk.Config{
-			Schema: req.DataSourceSchema,
+			Schema: schema(req.DataSourceSchema),
 		},
 	}
 	readResp := datasource.ReadResponse{
 		State: tfsdk.State{
-			Schema: req.DataSourceSchema,
+			Schema: schema(req.DataSourceSchema),
 		},
 	}
 

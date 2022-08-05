@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -17,7 +18,7 @@ type DeleteResourceRequest struct {
 	PlannedPrivate []byte
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
-	ResourceSchema tfsdk.Schema
+	ResourceSchema fwschema.Schema
 	ResourceType   provider.ResourceType
 }
 
@@ -49,13 +50,13 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 
 	deleteReq := resource.DeleteRequest{
 		State: tfsdk.State{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
 		},
 	}
 	deleteResp := resource.DeleteResponse{
 		State: tfsdk.State{
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
 		},
 	}

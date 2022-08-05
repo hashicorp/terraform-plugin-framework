@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -44,7 +45,7 @@ func TestConfigureProviderRequest(t *testing.T) {
 
 	testCases := map[string]struct {
 		input               *tfprotov5.ConfigureProviderRequest
-		providerSchema      *tfsdk.Schema
+		providerSchema      fwschema.Schema
 		expected            *provider.ConfigureRequest
 		expectedDiagnostics diag.Diagnostics
 	}{

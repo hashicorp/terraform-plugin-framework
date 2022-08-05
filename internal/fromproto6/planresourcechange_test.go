@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -45,9 +46,9 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 
 	testCases := map[string]struct {
 		input               *tfprotov6.PlanResourceChangeRequest
-		resourceSchema      *tfsdk.Schema
+		resourceSchema      fwschema.Schema
 		resourceType        provider.ResourceType
-		providerMetaSchema  *tfsdk.Schema
+		providerMetaSchema  fwschema.Schema
 		expected            *fwserver.PlanResourceChangeRequest
 		expectedDiagnostics diag.Diagnostics
 	}{
@@ -93,7 +94,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 					Raw:    testProto6Value,
 					Schema: *testFwSchema,
 				},
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			},
 		},
 		"priorprivate": {
@@ -103,7 +104,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 			resourceSchema: testFwSchema,
 			expected: &fwserver.PlanResourceChangeRequest{
 				PriorPrivate:   []byte("{}"),
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			},
 		},
 		"priorstate-missing-schema": {
@@ -131,7 +132,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 					Raw:    testProto6Value,
 					Schema: *testFwSchema,
 				},
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			},
 		},
 		"proposednewstate-missing-schema": {
@@ -159,7 +160,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 					Raw:    testProto6Value,
 					Schema: *testFwSchema,
 				},
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			},
 		},
 		"providermeta-missing-data": {
@@ -171,7 +172,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 					Raw:    tftypes.NewValue(testProto6Type, nil),
 					Schema: *testFwSchema,
 				},
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			},
 		},
 		"providermeta-missing-schema": {
@@ -181,7 +182,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 			resourceSchema: testFwSchema,
 			expected: &fwserver.PlanResourceChangeRequest{
 				// This intentionally should not include ProviderMeta
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			},
 		},
 		"providermeta": {
@@ -195,7 +196,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 					Raw:    testProto6Value,
 					Schema: *testFwSchema,
 				},
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			},
 		},
 	}

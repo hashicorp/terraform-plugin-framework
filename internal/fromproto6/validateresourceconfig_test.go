@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -45,7 +46,7 @@ func TestValidateResourceConfigRequest(t *testing.T) {
 
 	testCases := map[string]struct {
 		input               *tfprotov6.ValidateResourceConfigRequest
-		resourceSchema      *tfsdk.Schema
+		resourceSchema      fwschema.Schema
 		resourceType        provider.ResourceType
 		expected            *fwserver.ValidateResourceConfigRequest
 		expectedDiagnostics diag.Diagnostics

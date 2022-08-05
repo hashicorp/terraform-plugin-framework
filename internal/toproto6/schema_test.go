@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +18,7 @@ func TestSchema(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       *tfsdk.Schema
+		input       fwschema.Schema
 		expected    *tfprotov6.Schema
 		expectedErr string
 	}

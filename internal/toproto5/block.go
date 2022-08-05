@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -12,37 +12,37 @@ import (
 // Block returns the *tfprotov5.SchemaNestedBlock equivalent of a Block.
 // Errors will be tftypes.AttributePathErrors based on `path`. `name` is the
 // name of the attribute.
-func Block(ctx context.Context, name string, path *tftypes.AttributePath, b tfsdk.Block) (*tfprotov5.SchemaNestedBlock, error) {
+func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwschema.Block) (*tfprotov5.SchemaNestedBlock, error) {
 	schemaNestedBlock := &tfprotov5.SchemaNestedBlock{
 		Block: &tfprotov5.SchemaBlock{
-			Deprecated: b.DeprecationMessage != "",
+			Deprecated: b.GetDeprecationMessage() != "",
 		},
-		MinItems: b.MinItems,
-		MaxItems: b.MaxItems,
+		MinItems: b.GetMinItems(),
+		MaxItems: b.GetMaxItems(),
 		TypeName: name,
 	}
 
-	if b.Description != "" {
-		schemaNestedBlock.Block.Description = b.Description
+	if b.GetDescription() != "" {
+		schemaNestedBlock.Block.Description = b.GetDescription()
 		schemaNestedBlock.Block.DescriptionKind = tfprotov5.StringKindPlain
 	}
 
-	if b.MarkdownDescription != "" {
-		schemaNestedBlock.Block.Description = b.MarkdownDescription
+	if b.GetMarkdownDescription() != "" {
+		schemaNestedBlock.Block.Description = b.GetMarkdownDescription()
 		schemaNestedBlock.Block.DescriptionKind = tfprotov5.StringKindMarkdown
 	}
 
-	nm := b.NestingMode
+	nm := b.GetNestingMode()
 	switch nm {
-	case tfsdk.BlockNestingModeList:
+	case fwschema.BlockNestingModeList:
 		schemaNestedBlock.Nesting = tfprotov5.SchemaNestedBlockNestingModeList
-	case tfsdk.BlockNestingModeSet:
+	case fwschema.BlockNestingModeSet:
 		schemaNestedBlock.Nesting = tfprotov5.SchemaNestedBlockNestingModeSet
 	default:
 		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
 	}
 
-	for attrName, attr := range b.Attributes {
+	for attrName, attr := range b.GetAttributes() {
 		attrPath := path.WithAttributeName(attrName)
 		attrProto5, err := SchemaAttribute(ctx, attrName, attrPath, attr)
 
@@ -53,7 +53,7 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b tfsd
 		schemaNestedBlock.Block.Attributes = append(schemaNestedBlock.Block.Attributes, attrProto5)
 	}
 
-	for blockName, block := range b.Blocks {
+	for blockName, block := range b.GetBlocks() {
 		blockPath := path.WithAttributeName(blockName)
 		blockProto5, err := Block(ctx, blockName, blockPath, block)
 

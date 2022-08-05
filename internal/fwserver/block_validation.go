@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +19,13 @@ import (
 // The extra Block parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+	blockWithValidators, ok := b.(fwxschema.BlockWithValidators)
+
+	if !ok {
+		return
+	}
+
 	attributeConfig, diags := ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
@@ -27,13 +35,13 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 
 	req.AttributeConfig = attributeConfig
 
-	for _, validator := range b.Validators {
+	for _, validator := range blockWithValidators.GetValidators() {
 		validator.Validate(ctx, req, resp)
 	}
 
-	nm := b.NestingMode
+	nm := b.GetNestingMode()
 	switch nm {
-	case tfsdk.BlockNestingModeList:
+	case fwschema.BlockNestingModeList:
 		l, ok := req.AttributeConfig.(types.List)
 
 		if !ok {
@@ -48,7 +56,7 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 		}
 
 		for idx := range l.Elems {
-			for name, attr := range b.Attributes {
+			for name, attr := range b.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtListIndex(idx).AtName(name),
 					AttributePathExpression: req.AttributePathExpression.AtListIndex(idx).AtName(name),
@@ -63,7 +71,7 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 
-			for name, block := range b.Blocks {
+			for name, block := range b.GetBlocks() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtListIndex(idx).AtName(name),
 					AttributePathExpression: req.AttributePathExpression.AtListIndex(idx).AtName(name),
@@ -85,8 +93,8 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 		// Terraform 0.15.2 and later implements MaxItems validation during
 		// configuration decoding, so if this framework drops Terraform support
 		// for earlier versions, this validation can be removed.
-		if b.MaxItems > 0 && int64(len(l.Elems)) > b.MaxItems {
-			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.MaxItems, len(l.Elems)))
+		if b.GetMaxItems() > 0 && int64(len(l.Elems)) > b.GetMaxItems() {
+			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.GetMaxItems(), len(l.Elems)))
 		}
 
 		// Terraform 0.12 through 0.15.1 implement conservative block MinItems
@@ -98,10 +106,10 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 		// Terraform 0.15.2 and later implements proper MinItems validation
 		// during configuration decoding, so if this framework drops Terraform
 		// support for earlier versions, this validation can be removed.
-		if b.MinItems > 0 && int64(len(l.Elems)) < b.MinItems && !l.IsUnknown() {
-			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.MinItems, len(l.Elems)))
+		if b.GetMinItems() > 0 && int64(len(l.Elems)) < b.GetMinItems() && !l.IsUnknown() {
+			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(l.Elems)))
 		}
-	case tfsdk.BlockNestingModeSet:
+	case fwschema.BlockNestingModeSet:
 		s, ok := req.AttributeConfig.(types.Set)
 
 		if !ok {
@@ -116,7 +124,7 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 		}
 
 		for _, value := range s.Elems {
-			for name, attr := range b.Attributes {
+			for name, attr := range b.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtSetValue(value).AtName(name),
 					AttributePathExpression: req.AttributePathExpression.AtSetValue(value).AtName(name),
@@ -131,7 +139,7 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 
-			for name, block := range b.Blocks {
+			for name, block := range b.GetBlocks() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtSetValue(value).AtName(name),
 					AttributePathExpression: req.AttributePathExpression.AtSetValue(value).AtName(name),
@@ -153,8 +161,8 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 		// Terraform 0.15.2 and later implements MaxItems validation during
 		// configuration decoding, so if this framework drops Terraform support
 		// for earlier versions, this validation can be removed.
-		if b.MaxItems > 0 && int64(len(s.Elems)) > b.MaxItems {
-			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.MaxItems, len(s.Elems)))
+		if b.GetMaxItems() > 0 && int64(len(s.Elems)) > b.GetMaxItems() {
+			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.GetMaxItems(), len(s.Elems)))
 		}
 
 		// Terraform 0.12 through 0.15.1 implement conservative block MinItems
@@ -166,8 +174,8 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 		// Terraform 0.15.2 and later implements proper MinItems validation
 		// during configuration decoding, so if this framework drops Terraform
 		// support for earlier versions, this validation can be removed.
-		if b.MinItems > 0 && int64(len(s.Elems)) < b.MinItems && !s.IsUnknown() {
-			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.MinItems, len(s.Elems)))
+		if b.GetMinItems() > 0 && int64(len(s.Elems)) < b.GetMinItems() && !s.IsUnknown() {
+			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elems)))
 		}
 	default:
 		err := fmt.Errorf("unknown block validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
@@ -180,7 +188,7 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 		return
 	}
 
-	if b.DeprecationMessage != "" && attributeConfig != nil {
+	if b.GetDeprecationMessage() != "" && attributeConfig != nil {
 		tfValue, err := attributeConfig.ToTerraformValue(ctx)
 
 		if err != nil {
@@ -197,7 +205,7 @@ func BlockValidate(ctx context.Context, b tfsdk.Block, req tfsdk.ValidateAttribu
 			resp.Diagnostics.AddAttributeWarning(
 				req.AttributePath,
 				"Block Deprecated",
-				b.DeprecationMessage,
+				b.GetDeprecationMessage(),
 			)
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -21,6 +22,9 @@ var (
 	// block, not an attribute. Use blockAtPath on the path instead.
 	ErrPathIsBlock = errors.New("path leads to block, not an attribute")
 )
+
+// Schema must satify the fwschema.Schema interface.
+var _ fwschema.Schema = Schema{}
 
 // Schema is used to define the shape of practitioner-provider information,
 // like resources, data sources, and providers. Think of it as a type
@@ -98,10 +102,15 @@ func (s Schema) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep)
 func (s Schema) AttributeType() attr.Type {
 	attrTypes := map[string]attr.Type{}
 	for name, attr := range s.Attributes {
-		attrTypes[name] = attr.attributeType()
+		if attr.GetAttributes() != nil {
+			attrTypes[name] = attr.GetAttributes().AttributeType()
+			continue
+		}
+
+		attrTypes[name] = attr.GetType()
 	}
 	for name, block := range s.Blocks {
-		attrTypes[name] = block.attributeType()
+		attrTypes[name] = block.Type()
 	}
 	return types.ObjectType{AttrTypes: attrTypes}
 }
@@ -116,19 +125,53 @@ func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, err
 	switch typ := rawType.(type) {
 	case attr.Type:
 		return typ, nil
-	case nestedAttributes:
+	case fwschema.UnderlyingAttributes:
 		return typ.AttributeType(), nil
-	case nestedBlock:
-		return typ.Block.attributeType(), nil
+	case fwschema.NestedBlock:
+		return typ.Block.Type(), nil
 	case Attribute:
-		return typ.attributeType(), nil
+		if typ.GetAttributes() != nil {
+			return typ.GetAttributes().AttributeType(), nil
+		}
+
+		return typ.GetType(), nil
 	case Block:
-		return typ.attributeType(), nil
+		return typ.Type(), nil
 	case Schema:
 		return typ.AttributeType(), nil
 	default:
 		return nil, fmt.Errorf("got unexpected type %T", rawType)
 	}
+}
+
+// GetAttributes satisfies the fwschema.Schema interface.
+func (s Schema) GetAttributes() map[string]fwschema.Attribute {
+	return schemaAttributes(s.Attributes)
+}
+
+// GetBlocks satisfies the fwschema.Schema interface.
+func (s Schema) GetBlocks() map[string]fwschema.Block {
+	return schemaBlocks(s.Blocks)
+}
+
+// GetDeprecationMessage satisfies the fwschema.Schema interface.
+func (s Schema) GetDeprecationMessage() string {
+	return s.DeprecationMessage
+}
+
+// GetDescription satisfies the fwschema.Schema interface.
+func (s Schema) GetDescription() string {
+	return s.Description
+}
+
+// GetMarkdownDescription satisfies the fwschema.Schema interface.
+func (s Schema) GetMarkdownDescription() string {
+	return s.MarkdownDescription
+}
+
+// GetVersion satisfies the fwschema.Schema interface.
+func (s Schema) GetVersion() int64 {
+	return s.Version
 }
 
 // TerraformType returns a tftypes.Type that can represent the schema.
@@ -146,7 +189,7 @@ func (s Schema) TerraformType(ctx context.Context) tftypes.Type {
 // AttributeAtPath returns the Attribute at the passed path. If the path points
 // to an element or attribute of a complex type, rather than to an Attribute,
 // it will return an ErrPathInsideAtomicAttribute error.
-func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) {
+func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (fwschema.Attribute, error) {
 	res, remaining, err := tftypes.WalkAttributePath(s, path)
 	if err != nil {
 		return Attribute{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
@@ -155,15 +198,37 @@ func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (Attribute, error) 
 	switch r := res.(type) {
 	case attr.Type:
 		return Attribute{}, ErrPathInsideAtomicAttribute
-	case nestedAttributes:
+	case fwschema.UnderlyingAttributes:
 		return Attribute{}, ErrPathInsideAtomicAttribute
-	case nestedBlock:
+	case fwschema.NestedBlock:
 		return Attribute{}, ErrPathInsideAtomicAttribute
-	case Attribute:
+	case fwschema.Attribute:
 		return r, nil
 	case Block:
 		return Attribute{}, ErrPathIsBlock
 	default:
 		return Attribute{}, fmt.Errorf("got unexpected type %T", res)
 	}
+}
+
+// schemaAttributes is a tfsdk to fwschema type conversion function.
+func schemaAttributes(attributes map[string]Attribute) map[string]fwschema.Attribute {
+	result := make(map[string]fwschema.Attribute, len(attributes))
+
+	for name, attribute := range attributes {
+		result[name] = attribute
+	}
+
+	return result
+}
+
+// schemaBlocks is a tfsdk to fwschema type conversion function.
+func schemaBlocks(blocks map[string]Block) map[string]fwschema.Block {
+	result := make(map[string]fwschema.Block, len(blocks))
+
+	for name, block := range blocks {
+		result[name] = block
+	}
+
+	return result
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -17,7 +18,7 @@ type ApplyResourceChangeRequest struct {
 	PlannedState   *tfsdk.Plan
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
-	ResourceSchema tfsdk.Schema
+	ResourceSchema fwschema.Schema
 	ResourceType   provider.ResourceType
 }
 

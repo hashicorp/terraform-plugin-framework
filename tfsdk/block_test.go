@@ -97,7 +97,7 @@ func TestBlockAttributeType(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.block.attributeType()
+			got := testCase.block.Type()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

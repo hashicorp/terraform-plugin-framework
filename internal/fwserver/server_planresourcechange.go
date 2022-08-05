@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -23,7 +24,7 @@ type PlanResourceChangeRequest struct {
 	PriorState       *tfsdk.State
 	ProposedNewState *tfsdk.Plan
 	ProviderMeta     *tfsdk.Config
-	ResourceSchema   tfsdk.Schema
+	ResourceSchema   fwschema.Schema
 	ResourceType     provider.ResourceType
 }
 
@@ -60,21 +61,21 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	if req.Config == nil {
 		req.Config = &tfsdk.Config{
 			Raw:    nullTfValue,
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 		}
 	}
 
 	if req.ProposedNewState == nil {
 		req.ProposedNewState = &tfsdk.Plan{
 			Raw:    nullTfValue,
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 		}
 	}
 
 	if req.PriorState == nil {
 		req.PriorState = &tfsdk.State{
 			Raw:    nullTfValue,
-			Schema: req.ResourceSchema,
+			Schema: schema(req.ResourceSchema),
 		}
 	}
 
@@ -233,7 +234,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	}
 }
 
-func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema tfsdk.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
+func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema fwschema.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
 	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
 		ctx = logging.FrameworkWithAttributePath(ctx, path.String())
 
@@ -265,7 +266,7 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
-		if !attribute.Computed {
+		if !attribute.IsComputed() {
 			logging.FrameworkTrace(ctx, "attribute is not computed in schema, not marking unknown")
 
 			return val, nil

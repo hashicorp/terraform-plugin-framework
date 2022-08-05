@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // State returns the *tfsdk.State for a *tfprotov5.DynamicValue and
-// *tfsdk.Schema.
-func State(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValue, schema *tfsdk.Schema) (*tfsdk.State, diag.Diagnostics) {
+// fwschema.Schema.
+func State(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValue, schema fwschema.Schema) (*tfsdk.State, diag.Diagnostics) {
 	if proto5DynamicValue == nil {
 		return nil, nil
 	}
@@ -46,7 +47,7 @@ func State(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValue, sche
 
 	fw := &tfsdk.State{
 		Raw:    proto5Value,
-		Schema: *schema,
+		Schema: tfsdkSchema(schema),
 	}
 
 	return fw, nil

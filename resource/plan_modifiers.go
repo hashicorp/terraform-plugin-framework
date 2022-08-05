@@ -112,7 +112,7 @@ func (r requiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAtt
 		return
 	}
 
-	if req.AttributeConfig.IsNull() && attrSchema.Computed {
+	if req.AttributeConfig.IsNull() && attrSchema.IsComputed() {
 		// if the config is null and the attribute is computed, this
 		// could be an out of band change, don't require replace
 		return
@@ -257,7 +257,7 @@ func (r requiresReplaceIfModifier) Modify(ctx context.Context, req tfsdk.ModifyA
 		return
 	}
 
-	if req.AttributeConfig.IsNull() && attrSchema.Computed {
+	if req.AttributeConfig.IsNull() && attrSchema.IsComputed() {
 		// if the config is null and the attribute is computed, this
 		// could be an out of band change, don't require replace
 		return

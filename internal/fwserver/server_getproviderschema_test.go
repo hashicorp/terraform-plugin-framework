@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -26,9 +27,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfsdk.Schema{},
+				DataSourceSchemas: map[string]fwschema.Schema{},
 				Provider:          &tfsdk.Schema{},
-				ResourceSchemas:   map[string]*tfsdk.Schema{},
+				ResourceSchemas:   map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
 				},
@@ -69,8 +70,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfsdk.Schema{
-					"test_data_source1": {
+				DataSourceSchemas: map[string]fwschema.Schema{
+					"test_data_source1": &tfsdk.Schema{
 						Attributes: map[string]tfsdk.Attribute{
 							"test1": {
 								Required: true,
@@ -78,7 +79,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							},
 						},
 					},
-					"test_data_source2": {
+					"test_data_source2": &tfsdk.Schema{
 						Attributes: map[string]tfsdk.Attribute{
 							"test2": {
 								Required: true,
@@ -88,7 +89,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				Provider:        &tfsdk.Schema{},
-				ResourceSchemas: map[string]*tfsdk.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
 				},
@@ -111,7 +112,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfsdk.Schema{},
+				DataSourceSchemas: map[string]fwschema.Schema{},
 				Provider: &tfsdk.Schema{
 					Attributes: map[string]tfsdk.Attribute{
 						"test": {
@@ -120,7 +121,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfsdk.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
 				},
@@ -144,7 +145,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfsdk.Schema{},
+				DataSourceSchemas: map[string]fwschema.Schema{},
 				Provider:          &tfsdk.Schema{},
 				ProviderMeta: &tfsdk.Schema{
 					Attributes: map[string]tfsdk.Attribute{
@@ -154,7 +155,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfsdk.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
 				},
@@ -195,10 +196,10 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfsdk.Schema{},
+				DataSourceSchemas: map[string]fwschema.Schema{},
 				Provider:          &tfsdk.Schema{},
-				ResourceSchemas: map[string]*tfsdk.Schema{
-					"test_resource1": {
+				ResourceSchemas: map[string]fwschema.Schema{
+					"test_resource1": &tfsdk.Schema{
 						Attributes: map[string]tfsdk.Attribute{
 							"test1": {
 								Required: true,
@@ -206,7 +207,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							},
 						},
 					},
-					"test_resource2": {
+					"test_resource2": &tfsdk.Schema{
 						Attributes: map[string]tfsdk.Attribute{
 							"test2": {
 								Required: true,

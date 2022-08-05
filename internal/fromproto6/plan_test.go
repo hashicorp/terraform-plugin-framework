@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -52,7 +53,7 @@ func TestPlan(t *testing.T) {
 
 	testCases := map[string]struct {
 		input               *tfprotov6.DynamicValue
-		schema              *tfsdk.Schema
+		schema              fwschema.Schema
 		expected            *tfsdk.Plan
 		expectedDiagnostics diag.Diagnostics
 	}{

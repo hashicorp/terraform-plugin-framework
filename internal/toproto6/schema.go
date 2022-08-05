@@ -4,25 +4,25 @@ import (
 	"context"
 	"sort"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Schema returns the *tfprotov6.Schema equivalent of a Schema.
-func Schema(ctx context.Context, s *tfsdk.Schema) (*tfprotov6.Schema, error) {
+func Schema(ctx context.Context, s fwschema.Schema) (*tfprotov6.Schema, error) {
 	if s == nil {
 		return nil, nil
 	}
 
 	result := &tfprotov6.Schema{
-		Version: s.Version,
+		Version: s.GetVersion(),
 	}
 
 	var attrs []*tfprotov6.SchemaAttribute
 	var blocks []*tfprotov6.SchemaNestedBlock
 
-	for name, attr := range s.Attributes {
+	for name, attr := range s.GetAttributes() {
 		a, err := SchemaAttribute(ctx, name, tftypes.NewAttributePath().WithAttributeName(name), attr)
 
 		if err != nil {
@@ -32,7 +32,7 @@ func Schema(ctx context.Context, s *tfsdk.Schema) (*tfprotov6.Schema, error) {
 		attrs = append(attrs, a)
 	}
 
-	for name, block := range s.Blocks {
+	for name, block := range s.GetBlocks() {
 		proto6, err := Block(ctx, name, tftypes.NewAttributePath().WithAttributeName(name), block)
 
 		if err != nil {
@@ -71,16 +71,16 @@ func Schema(ctx context.Context, s *tfsdk.Schema) (*tfprotov6.Schema, error) {
 		// so let's not set it.
 		Attributes: attrs,
 		BlockTypes: blocks,
-		Deprecated: s.DeprecationMessage != "",
+		Deprecated: s.GetDeprecationMessage() != "",
 	}
 
-	if s.Description != "" {
-		result.Block.Description = s.Description
+	if s.GetDescription() != "" {
+		result.Block.Description = s.GetDescription()
 		result.Block.DescriptionKind = tfprotov6.StringKindPlain
 	}
 
-	if s.MarkdownDescription != "" {
-		result.Block.Description = s.MarkdownDescription
+	if s.GetMarkdownDescription() != "" {
+		result.Block.Description = s.GetMarkdownDescription()
 		result.Block.DescriptionKind = tfprotov6.StringKindMarkdown
 	}
 

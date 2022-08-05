@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // PrepareProviderConfigRequest returns the *fwserver.ValidateProviderConfigRequest
 // equivalent of a *tfprotov5.PrepareProviderConfigRequest.
-func PrepareProviderConfigRequest(ctx context.Context, proto5 *tfprotov5.PrepareProviderConfigRequest, providerSchema *tfsdk.Schema) (*fwserver.ValidateProviderConfigRequest, diag.Diagnostics) {
+func PrepareProviderConfigRequest(ctx context.Context, proto5 *tfprotov5.PrepareProviderConfigRequest, providerSchema fwschema.Schema) (*fwserver.ValidateProviderConfigRequest, diag.Diagnostics) {
 	if proto5 == nil {
 		return nil, nil
 	}

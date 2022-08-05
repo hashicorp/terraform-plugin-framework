@@ -1,7 +1,6 @@
 package tfsdk
 
 import (
-	"context"
 	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -198,6 +197,16 @@ func (a Attribute) Equal(o fwschema.Attribute) bool {
 	return true
 }
 
+// FrameworkType returns the framework type, whether the direct type or nested
+// attributes type, of the attribute.
+func (a Attribute) FrameworkType() attr.Type {
+	if a.Attributes != nil {
+		return a.Attributes.Type()
+	}
+
+	return a.Type
+}
+
 // GetAttributes satisfies the fwschema.Attribute interface.
 func (a Attribute) GetAttributes() fwschema.NestedAttributes {
 	return a.Attributes
@@ -252,13 +261,4 @@ func (a Attribute) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a Attribute) IsSensitive() bool {
 	return a.Sensitive
-}
-
-// terraformType returns an tftypes.Type corresponding to the attribute.
-func (a Attribute) terraformType(ctx context.Context) tftypes.Type {
-	if a.Attributes != nil {
-		return a.Attributes.AttributeType().TerraformType(ctx)
-	}
-
-	return a.Type.TerraformType(ctx)
 }

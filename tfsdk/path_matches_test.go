@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -15,7 +16,7 @@ func TestPathMatches(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema        Schema
+		schema        fwschema.Schema
 		tfTypeValue   tftypes.Value
 		expression    path.Expression
 		expected      path.Paths

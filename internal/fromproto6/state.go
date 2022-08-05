@@ -32,7 +32,7 @@ func State(ctx context.Context, proto6DynamicValue *tfprotov6.DynamicValue, sche
 		return nil, diags
 	}
 
-	proto6Value, err := proto6DynamicValue.Unmarshal(schema.TerraformType(ctx))
+	proto6Value, err := proto6DynamicValue.Unmarshal(schema.Type().TerraformType(ctx))
 
 	if err != nil {
 		diags.AddError(

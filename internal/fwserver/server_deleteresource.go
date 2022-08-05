@@ -51,13 +51,13 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 	deleteReq := resource.DeleteRequest{
 		State: tfsdk.State{
 			Schema: schema(req.ResourceSchema),
-			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
+			Raw:    tftypes.NewValue(req.ResourceSchema.Type().TerraformType(ctx), nil),
 		},
 	}
 	deleteResp := resource.DeleteResponse{
 		State: tfsdk.State{
 			Schema: schema(req.ResourceSchema),
-			Raw:    tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil),
+			Raw:    tftypes.NewValue(req.ResourceSchema.Type().TerraformType(ctx), nil),
 		},
 	}
 

@@ -23,7 +23,7 @@ type Config struct {
 
 // Get populates the struct passed as `target` with the entire config.
 func (c Config) Get(ctx context.Context, target interface{}) diag.Diagnostics {
-	return reflect.Into(ctx, c.Schema.AttributeType(), c.Raw, target, reflect.Options{})
+	return reflect.Into(ctx, c.Schema.Type(), c.Raw, target, reflect.Options{})
 }
 
 // GetAttribute retrieves the attribute found at `path` and populates the

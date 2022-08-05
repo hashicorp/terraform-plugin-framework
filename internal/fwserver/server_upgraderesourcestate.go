@@ -77,7 +77,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 	if req.Version == req.ResourceSchema.GetVersion() {
 		logging.FrameworkTrace(ctx, "UpgradeResourceState request version matches current Schema version, using framework defined passthrough implementation")
 
-		resourceSchemaType := req.ResourceSchema.TerraformType(ctx)
+		resourceSchemaType := req.ResourceSchema.Type().TerraformType(ctx)
 
 		rawStateValue, err := req.RawState.UnmarshalWithOpts(resourceSchemaType, unmarshalOpts)
 
@@ -153,7 +153,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 	if resourceStateUpgrader.PriorSchema != nil {
 		logging.FrameworkTrace(ctx, "Initializing populated UpgradeResourceStateRequest state from provider defined prior schema and request RawState")
 
-		priorSchemaType := resourceStateUpgrader.PriorSchema.TerraformType(ctx)
+		priorSchemaType := resourceStateUpgrader.PriorSchema.Type().TerraformType(ctx)
 
 		rawStateValue, err := req.RawState.UnmarshalWithOpts(priorSchemaType, unmarshalOpts)
 
@@ -197,7 +197,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 	if upgradeResourceStateResponse.DynamicValue != nil {
 		logging.FrameworkTrace(ctx, "UpgradeResourceStateResponse DynamicValue set, overriding State")
 
-		upgradedStateValue, err := upgradeResourceStateResponse.DynamicValue.Unmarshal(req.ResourceSchema.TerraformType(ctx))
+		upgradedStateValue, err := upgradeResourceStateResponse.DynamicValue.Unmarshal(req.ResourceSchema.Type().TerraformType(ctx))
 
 		if err != nil {
 			resp.Diagnostics.AddError(

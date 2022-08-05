@@ -1628,9 +1628,11 @@ func TestAttributeModifyPlan(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx := context.Background()
+
 			// TODO: Remove after schema refactoring
 			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-			tftypesPath, diags := totftypes.AttributePath(context.Background(), tc.req.AttributePath)
+			tftypesPath, diags := totftypes.AttributePath(ctx, tc.req.AttributePath)
 
 			if diags.HasError() {
 				for _, diagnostic := range diags {
@@ -1640,7 +1642,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 				return
 			}
 
-			attribute, err := tc.req.Config.Schema.AttributeAtPath(tftypesPath)
+			attribute, err := tc.req.Config.Schema.AttributeAtTerraformPath(ctx, tftypesPath)
 
 			if err != nil {
 				t.Fatalf("Unexpected error getting %s", err)

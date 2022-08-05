@@ -1,4 +1,4 @@
-package tfsdk
+package fromtftypes_test
 
 import (
 	"context"
@@ -6,8 +6,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -17,7 +20,7 @@ func TestAttributePath(t *testing.T) {
 
 	testCases := map[string]struct {
 		tfType        *tftypes.AttributePath
-		schema        Schema
+		schema        fwschema.Schema
 		expected      path.Path
 		expectedDiags diag.Diagnostics
 	}{
@@ -31,8 +34,8 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test"),
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.StringType,
 					},
@@ -42,8 +45,8 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName-nonexistent-attribute": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test"),
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"not-test": {
 						Type: testtypes.StringType{},
 					},
@@ -63,8 +66,8 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName-ElementKeyInt": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(1),
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -76,8 +79,8 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName-ElementKeyValue": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "test-value")),
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: types.StringType,
@@ -89,8 +92,8 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName-ElementKeyValue-value-conversion-error": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "test-value")),
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: testtypes.InvalidType{},
@@ -112,8 +115,8 @@ func TestAttributePath(t *testing.T) {
 		},
 		"ElementKeyInt": {
 			tfType: tftypes.NewAttributePath().WithElementKeyInt(1),
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: testtypes.StringType{},
 					},
@@ -133,8 +136,8 @@ func TestAttributePath(t *testing.T) {
 		},
 		"ElementKeyString": {
 			tfType: tftypes.NewAttributePath().WithElementKeyString("test"),
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: testtypes.StringType{},
 					},
@@ -154,8 +157,8 @@ func TestAttributePath(t *testing.T) {
 		},
 		"ElementKeyValue": {
 			tfType: tftypes.NewAttributePath().WithElementKeyValue(tftypes.NewValue(tftypes.String, "test-value")),
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: testtypes.StringType{},
 					},
@@ -181,7 +184,7 @@ func TestAttributePath(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := attributePath(context.Background(), testCase.tfType, testCase.schema)
+			got, diags := fromtftypes.AttributePath(context.Background(), testCase.tfType, testCase.schema)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

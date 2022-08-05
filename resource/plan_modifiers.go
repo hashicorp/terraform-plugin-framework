@@ -100,7 +100,7 @@ func (r requiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAtt
 		return
 	}
 
-	attrSchema, err := req.State.Schema.AttributeAtPath(tftypesPath)
+	attrSchema, err := req.State.Schema.AttributeAtTerraformPath(ctx, tftypesPath)
 
 	// Path may lead to block instead of attribute. Blocks cannot be Computed.
 	// If ErrPathIsBlock, attrSchema.Computed will still be false later.
@@ -245,7 +245,7 @@ func (r requiresReplaceIfModifier) Modify(ctx context.Context, req tfsdk.ModifyA
 		return
 	}
 
-	attrSchema, err := req.State.Schema.AttributeAtPath(tftypesPath)
+	attrSchema, err := req.State.Schema.AttributeAtTerraformPath(ctx, tftypesPath)
 
 	// Path may lead to block instead of attribute. Blocks cannot be Computed.
 	// If ErrPathIsBlock, attrSchema.Computed will still be false later.

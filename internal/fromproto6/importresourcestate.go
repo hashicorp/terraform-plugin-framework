@@ -37,7 +37,7 @@ func ImportResourceStateRequest(ctx context.Context, proto6 *tfprotov6.ImportRes
 
 	fw := &fwserver.ImportResourceStateRequest{
 		EmptyState: tfsdk.State{
-			Raw:    tftypes.NewValue(resourceSchema.TerraformType(ctx), nil),
+			Raw:    tftypes.NewValue(resourceSchema.Type().TerraformType(ctx), nil),
 			Schema: tfsdkSchema(resourceSchema),
 		},
 		ID:           proto6.ID,

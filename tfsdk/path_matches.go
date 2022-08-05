@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -20,12 +22,12 @@ import (
 // call this function until the schema data is migrated to attr.Value.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/172
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func pathMatches(ctx context.Context, schema Schema, tfTypeValue tftypes.Value, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
+func pathMatches(ctx context.Context, schema fwschema.Schema, tfTypeValue tftypes.Value, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var paths path.Paths
 
 	_ = tftypes.Walk(tfTypeValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (bool, error) {
-		fwPath, fwPathDiags := attributePath(ctx, tfTypePath, schema)
+		fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, tfTypePath, schema)
 
 		diags.Append(fwPathDiags...)
 

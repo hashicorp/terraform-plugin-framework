@@ -6,7 +6,10 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -99,24 +102,49 @@ func (s Schema) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep)
 }
 
 // AttributeType returns a types.ObjectType composed from the schema types.
+// Deprecated: Use Type() instead.
 func (s Schema) AttributeType() attr.Type {
-	attrTypes := map[string]attr.Type{}
-	for name, attr := range s.Attributes {
-		if attr.GetAttributes() != nil {
-			attrTypes[name] = attr.GetAttributes().AttributeType()
-			continue
-		}
-
-		attrTypes[name] = attr.GetType()
-	}
-	for name, block := range s.Blocks {
-		attrTypes[name] = block.Type()
-	}
-	return types.ObjectType{AttrTypes: attrTypes}
+	return s.Type()
 }
 
 // AttributeTypeAtPath returns the attr.Type of the attribute at the given path.
+//
+// Deprecated: Use the TypeAtPath() or TypeAtTerraformPath() method.
 func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, error) {
+	return s.TypeAtTerraformPath(context.Background(), path)
+}
+
+// TypeAtPath returns the framework type at the given schema path.
+func (s Schema) TypeAtPath(ctx context.Context, schemaPath path.Path) (attr.Type, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	tftypesPath, tftypesDiags := totftypes.AttributePath(ctx, schemaPath)
+
+	diags.Append(tftypesDiags...)
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	attrType, err := s.TypeAtTerraformPath(ctx, tftypesPath)
+
+	if err != nil {
+		diags.AddAttributeError(
+			schemaPath,
+			"Invalid Schema Path",
+			"When attempting to get the framework type associated with a schema path, an unexpected error was returned. "+
+				"This is either an issue with the provider or terraform-plugin-framework. Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Path: %s\n", schemaPath.String())+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return nil, diags
+	}
+
+	return attrType, diags
+}
+
+// TypeAtTerraformPath returns the framework type at the given tftypes path.
+func (s Schema) TypeAtTerraformPath(_ context.Context, path *tftypes.AttributePath) (attr.Type, error) {
 	rawType, remaining, err := tftypes.WalkAttributePath(s, path)
 	if err != nil {
 		return nil, fmt.Errorf("%v still remains in the path: %w", remaining, err)
@@ -126,19 +154,15 @@ func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, err
 	case attr.Type:
 		return typ, nil
 	case fwschema.UnderlyingAttributes:
-		return typ.AttributeType(), nil
+		return typ.Type(), nil
 	case fwschema.NestedBlock:
 		return typ.Block.Type(), nil
 	case Attribute:
-		if typ.GetAttributes() != nil {
-			return typ.GetAttributes().AttributeType(), nil
-		}
-
-		return typ.GetType(), nil
+		return typ.FrameworkType(), nil
 	case Block:
 		return typ.Type(), nil
 	case Schema:
-		return typ.AttributeType(), nil
+		return typ.Type(), nil
 	default:
 		return nil, fmt.Errorf("got unexpected type %T", rawType)
 	}
@@ -175,21 +199,41 @@ func (s Schema) GetVersion() int64 {
 }
 
 // TerraformType returns a tftypes.Type that can represent the schema.
+// Deprecated: Use Type().TerraformType() instead.
 func (s Schema) TerraformType(ctx context.Context) tftypes.Type {
-	attrTypes := map[string]tftypes.Type{}
+	return s.Type().TerraformType(ctx)
+}
+
+// Type returns the framework type of the schema.
+func (s Schema) Type() attr.Type {
+	attrTypes := map[string]attr.Type{}
+
 	for name, attr := range s.Attributes {
-		attrTypes[name] = attr.terraformType(ctx)
+		attrTypes[name] = attr.FrameworkType()
 	}
+
 	for name, block := range s.Blocks {
-		attrTypes[name] = block.terraformType(ctx)
+		attrTypes[name] = block.Type()
 	}
-	return tftypes.Object{AttributeTypes: attrTypes}
+
+	return types.ObjectType{AttrTypes: attrTypes}
 }
 
 // AttributeAtPath returns the Attribute at the passed path. If the path points
 // to an element or attribute of a complex type, rather than to an Attribute,
 // it will return an ErrPathInsideAtomicAttribute error.
+//
+// Deprecated: The signature will be updated in the next release.
+// Use AttributeAtTerraformPath() if the *tftypes.AttributePath parameter is
+// still needed.
 func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (fwschema.Attribute, error) {
+	return s.AttributeAtTerraformPath(context.Background(), path)
+}
+
+// AttributeAtPath returns the Attribute at the passed path. If the path points
+// to an element or attribute of a complex type, rather than to an Attribute,
+// it will return an ErrPathInsideAtomicAttribute error.
+func (s Schema) AttributeAtTerraformPath(_ context.Context, path *tftypes.AttributePath) (fwschema.Attribute, error) {
 	res, remaining, err := tftypes.WalkAttributePath(s, path)
 	if err != nil {
 		return Attribute{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)

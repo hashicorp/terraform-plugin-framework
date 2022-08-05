@@ -1,0 +1,15 @@
+```release-note:note
+tfsdk: The `Schema` type `AttributeAtPath()` method signature will be updated from a `*tftypes.AttributePath` parameter to `path.Path` in the next release. Switch to the `AttributeAtTerraformPath()` method if `*tftypes.AttributePath` handling is still necessary.
+```
+
+```release-note:note
+tfsdk: The `Schema` type `AttributeTypeAtPath()` method has been deprecated for the `TypeAtPath()` and `TypeAtTerraformPath()` methods.
+```
+
+```release-note:note
+tfsdk: The `Schema` type `AttributeType()` method has been deprecated in preference of the `Type()` method.
+```
+
+```release-note:note
+tfsdk: The `Schema` type `TerraformType()` method has been deprecated in preference of calling `Type().TerraformType()`.
+```

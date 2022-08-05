@@ -36,7 +36,9 @@ func ConfigGetAttributeValue(ctx context.Context, c tfsdk.Config, path path.Path
 		return nil, diags
 	}
 
-	attrType, err := c.Schema.AttributeTypeAtPath(tftypesPath)
+	// TODO: Use TypeAtPath instead.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
+	attrType, err := c.Schema.TypeAtTerraformPath(ctx, tftypesPath)
 	if err != nil {
 		diags.AddAttributeError(
 			path,

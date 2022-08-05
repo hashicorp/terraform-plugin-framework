@@ -23,7 +23,7 @@ type Plan struct {
 
 // Get populates the struct passed as `target` with the entire plan.
 func (p Plan) Get(ctx context.Context, target interface{}) diag.Diagnostics {
-	return reflect.Into(ctx, p.Schema.AttributeType(), p.Raw, target, reflect.Options{})
+	return reflect.Into(ctx, p.Schema.Type(), p.Raw, target, reflect.Options{})
 }
 
 // GetAttribute retrieves the attribute found at `path` and populates the
@@ -143,7 +143,7 @@ func (p Plan) PathMatches(ctx context.Context, pathExpr path.Expression) (path.P
 // should be a struct whose values have one of the attr.Value types. Each field
 // must be tagged with the corresponding schema field.
 func (p *Plan) Set(ctx context.Context, val interface{}) diag.Diagnostics {
-	newPlanAttrValue, diags := reflect.FromValue(ctx, p.Schema.AttributeType(), val, path.Empty())
+	newPlanAttrValue, diags := reflect.FromValue(ctx, p.Schema.Type(), val, path.Empty())
 	if diags.HasError() {
 		return diags
 	}

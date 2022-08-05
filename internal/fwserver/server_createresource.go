@@ -49,7 +49,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 		return
 	}
 
-	nullSchemaData := tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil)
+	nullSchemaData := tftypes.NewValue(req.ResourceSchema.Type().TerraformType(ctx), nil)
 
 	createReq := resource.CreateRequest{
 		Config: tfsdk.Config{

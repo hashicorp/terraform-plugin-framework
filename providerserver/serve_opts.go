@@ -59,9 +59,9 @@ func (opts ServeOpts) validateAddress(_ context.Context) error {
 //
 // Current checks which return errors:
 //
-//    - If Address is not set
-//    - Address is a valid full provider address
-//    - ProtocolVersion, if set, is 5 or 6
+//   - If Address is not set
+//   - Address is a valid full provider address
+//   - ProtocolVersion, if set, is 5 or 6
 func (opts ServeOpts) validate(ctx context.Context) error {
 	if opts.Address == "" {
 		return fmt.Errorf("Address must be provided")

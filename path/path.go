@@ -13,15 +13,15 @@ import (
 // calls to construct a full path. The available traversal steps after Path
 // creation are:
 //
-//     - AtListIndex(): Step into a list at a specific 0-based index
-//     - AtMapKey(): Step into a map at a specific key
-//     - AtName(): Step into an attribute or block with a specific name
-//     - AtSetValue(): Step into a set at a specific attr.Value element
+//   - AtListIndex(): Step into a list at a specific 0-based index
+//   - AtMapKey(): Step into a map at a specific key
+//   - AtName(): Step into an attribute or block with a specific name
+//   - AtSetValue(): Step into a set at a specific attr.Value element
 //
 // For example, to represent the first list element with a root list attribute
 // named "some_attribute":
 //
-//     path.MatchRoot("some_attribute").AtListIndex(0)
+//	path.MatchRoot("some_attribute").AtListIndex(0)
 //
 // Path is used for functionality which must exactly match the underlying
 // schema structure and types, such as diagnostics that are intended for a

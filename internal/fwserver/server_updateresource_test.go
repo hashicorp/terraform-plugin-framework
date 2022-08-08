@@ -1,6 +1,7 @@
 package fwserver_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -74,6 +75,41 @@ func TestServerUpdateResource(t *testing.T) {
 		TestProviderMetaAttribute types.String `tfsdk:"test_provider_meta_attribute"`
 	}
 
+	testPrivateFrameworkMap := map[string][]byte{
+		".frameworkKey": []byte(`{"fk": "framework value"}`),
+	}
+
+	providerKeyValue := marshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData, diags := privatestate.NewProviderData(context.Background(), providerKeyValue)
+	if diags.HasError() {
+		panic("error creating new provider data")
+	}
+
+	testPrivate := &privatestate.Data{
+		Framework: testPrivateFrameworkMap,
+		Provider:  testProviderData,
+	}
+
+	testPrivateFramework := &privatestate.Data{
+		Framework: testPrivateFrameworkMap,
+	}
+
+	testPrivateProvider := &privatestate.Data{
+		Provider: testProviderData,
+	}
+
+	emptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
+	if diags.HasError() {
+		panic("error creating new empty provider data")
+	}
+
+	emptyPrivate := &privatestate.Data{
+		Provider: emptyProviderData,
+	}
+
 	testCases := map[string]struct {
 		server           *fwserver.Server
 		request          *fwserver.UpdateResourceRequest
@@ -134,6 +170,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: emptyPrivate,
 			},
 		},
 		"request-plannedstate": {
@@ -191,6 +228,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: emptyPrivate,
 			},
 		},
 		"request-priorstate": {
@@ -248,6 +286,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: emptyPrivate,
 			},
 		},
 		"request-providermeta": {
@@ -306,6 +345,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: emptyPrivate,
 			},
 		},
 		"request-private": {
@@ -328,8 +368,8 @@ func TestServerUpdateResource(t *testing.T) {
 					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.Resource{
 							UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-								expected := `{"key": "value"}`
-								got, diags := req.Private.GetKey(ctx, "providerKey")
+								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+								got, diags := req.Private.GetKey(ctx, "providerKeyOne")
 
 								resp.Diagnostics.Append(diags...)
 
@@ -344,9 +384,7 @@ func TestServerUpdateResource(t *testing.T) {
 					},
 				},
 				PlannedPrivate: &privatestate.Data{
-					Provider: map[string][]byte{
-						"providerKey": []byte(`{"key": "value"}`),
-					},
+					Provider: testProviderData,
 				},
 			},
 			expectedResponse: &fwserver.UpdateResourceResponse{
@@ -358,10 +396,55 @@ func TestServerUpdateResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				Private: &privatestate.Data{
-					Provider: map[string][]byte{
-						"providerKey": []byte(`{"key": "value"}`),
+					Provider: testProviderData,
+				},
+			},
+		},
+		"request-private-nil": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpdateResourceRequest{
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+								var expected []byte
+								got, diags := req.Private.GetKey(ctx, "providerKeyOne")
+
+								resp.Diagnostics.Append(diags...)
+
+								if !bytes.Equal(got, expected) {
+									resp.Diagnostics.AddError(
+										"Unexpected req.Private Value",
+										fmt.Sprintf("expected %q, got %q", expected, got),
+									)
+								}
+							},
+						}, nil
 					},
 				},
+			},
+			expectedResponse: &fwserver.UpdateResourceResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				Private: emptyPrivate,
 			},
 		},
 		"response-diagnostics": {
@@ -423,6 +506,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: emptyPrivate,
 			},
 		},
 		"response-newstate": {
@@ -476,6 +560,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: emptyPrivate,
 			},
 		},
 		"response-newstate-null": {
@@ -530,6 +615,7 @@ func TestServerUpdateResource(t *testing.T) {
 					Raw:    tftypes.NewValue(testSchemaType, nil),
 					Schema: testSchema,
 				},
+				Private: emptyPrivate,
 			},
 		},
 		"response-private": {
@@ -552,16 +638,11 @@ func TestServerUpdateResource(t *testing.T) {
 					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.Resource{
 							UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-								diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"providerKey": "provider value"}`))
+								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
 								resp.Diagnostics.Append(diags...)
 							},
 						}, nil
-					},
-				},
-				PlannedPrivate: &privatestate.Data{
-					Provider: map[string][]byte{
-						".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
 					},
 				},
 			},
@@ -573,12 +654,47 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: &privatestate.Data{
-					Provider: map[string][]byte{
-						".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
-						"providerKey":   []byte(`{"providerKey": "provider value"}`),
+				Private: testPrivateProvider,
+			},
+		},
+		"response-private-updated": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpdateResourceRequest{
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+								resp.Diagnostics.Append(diags...)
+							},
+						}, nil
 					},
 				},
+				PlannedPrivate: testPrivateFramework,
+			},
+			expectedResponse: &fwserver.UpdateResourceResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				Private: testPrivate,
 			},
 		},
 	}
@@ -592,7 +708,7 @@ func TestServerUpdateResource(t *testing.T) {
 			response := &fwserver.UpdateResourceResponse{}
 			testCase.server.UpdateResource(context.Background(), testCase.request, response)
 
-			if diff := cmp.Diff(response, testCase.expectedResponse); diff != "" {
+			if diff := cmp.Diff(response, testCase.expectedResponse, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

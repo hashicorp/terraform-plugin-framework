@@ -46,6 +46,20 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 		},
 	}
 
+	testProviderKeyValue := marshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
+	if diags.HasError() {
+		panic("error creating new provider data")
+	}
+
+	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
+	if diags.HasError() {
+		panic("error creating new empty provider data")
+	}
+
 	testCases := map[string]struct {
 		input               *tfprotov5.ApplyResourceChangeRequest
 		resourceSchema      fwschema.Schema
@@ -151,15 +165,15 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 				ResourceSchema: *testFwSchema,
 				PlannedPrivate: &privatestate.Data{
 					Framework: map[string][]byte{},
-					Provider:  map[string][]byte{},
+					Provider:  testEmptyProviderData,
 				},
 			},
 		},
 		"plannedprivate": {
 			input: &tfprotov5.ApplyResourceChangeRequest{
 				PlannedPrivate: marshalToJson(map[string][]byte{
-					".frameworkKey": []byte("framework value"),
-					"providerKey":   []byte("provider value"),
+					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),
 			},
 			resourceSchema: testFwSchema,
@@ -167,11 +181,9 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 				ResourceSchema: *testFwSchema,
 				PlannedPrivate: &privatestate.Data{
 					Framework: map[string][]byte{
-						".frameworkKey": []byte(`framework value`),
+						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
 					},
-					Provider: map[string][]byte{
-						"providerKey": []byte(`provider value`),
-					},
+					Provider: testProviderData,
 				},
 			},
 		},
@@ -249,7 +261,7 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 
 			got, diags := fromproto5.ApplyResourceChangeRequest(context.Background(), testCase.input, testCase.resourceType, testCase.resourceSchema, testCase.providerMetaSchema)
 
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 

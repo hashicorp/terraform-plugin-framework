@@ -45,7 +45,7 @@ func (d *Data) Bytes(ctx context.Context) ([]byte, diag.Diagnostics) {
 
 	for _, m := range []map[string][]byte{d.Framework, providerData} {
 		for k, v := range m {
-			if v == nil || len(v) == 0 {
+			if len(v) == 0 {
 				continue
 			}
 
@@ -174,18 +174,18 @@ func NewData(ctx context.Context, data []byte) (*Data, diag.Diagnostics) {
 // NewProviderData creates a new ProviderData based on the given slice of bytes.
 // It must be a JSON encoded slice of bytes, that is map[string][]byte.
 func NewProviderData(ctx context.Context, data []byte) (*ProviderData, diag.Diagnostics) {
+	providerData := &ProviderData{
+		data: make(map[string][]byte),
+	}
+
 	if len(data) == 0 {
-		return nil, nil
+		return providerData, nil
 	}
 
 	var (
 		dataMap map[string][]byte
 		diags   diag.Diagnostics
 	)
-
-	providerData := &ProviderData{
-		data: make(map[string][]byte),
-	}
 
 	err := json.Unmarshal(data, &dataMap)
 	if err != nil {

@@ -22,7 +22,7 @@ type ReadRequest struct {
 	//
 	// Use the GetKey method to read data. Use the SetKey method on
 	// ReadResourceResponse.Private to update or remove a value.
-	Private privatestate.ProviderData
+	Private *privatestate.ProviderData
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
@@ -41,7 +41,7 @@ type ReadResponse struct {
 	// Private is the private state resource data following the Read operation.
 	// This field is pre-populated from ReadResourceRequest.Private and
 	// can be modified during the resource's Read operation.
-	Private privatestate.ProviderData
+	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to reading the
 	// resource. An empty slice indicates a successful operation with no

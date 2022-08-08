@@ -37,7 +37,7 @@ type CreateResponse struct {
 	// Private is the private state resource data following the Create operation.
 	// This field is not pre-populated as there is no pre-existing private state
 	// data at the time a resource is created.
-	Private privatestate.ProviderData
+	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to creating the
 	// resource. An empty slice indicates a successful operation with no

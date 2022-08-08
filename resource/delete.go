@@ -19,7 +19,7 @@ type DeleteRequest struct {
 
 	// Private is the current private state resource data prior to the Delete
 	// operation.
-	Private privatestate.ProviderData
+	Private *privatestate.ProviderData
 }
 
 // DeleteResponse represents a response to a DeleteRequest. An

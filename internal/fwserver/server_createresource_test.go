@@ -2,6 +2,7 @@ package fwserver_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -78,6 +79,24 @@ func TestServerCreateResource(t *testing.T) {
 		TestProviderMetaAttribute types.String `tfsdk:"test_provider_meta_attribute"`
 	}
 
+	testProviderKeyValue := marshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
+	if diags.HasError() {
+		panic("error creating new provider data")
+	}
+
+	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
+	if diags.HasError() {
+		panic("error creating new empty provider data")
+	}
+
+	testEmptyPrivate := &privatestate.Data{
+		Provider: testEmptyProviderData,
+	}
+
 	testCases := map[string]struct {
 		server           *fwserver.Server
 		request          *fwserver.CreateResourceRequest
@@ -126,6 +145,7 @@ func TestServerCreateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"request-plannedstate": {
@@ -171,6 +191,7 @@ func TestServerCreateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"request-providermeta": {
@@ -220,6 +241,7 @@ func TestServerCreateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"response-diagnostics": {
@@ -255,6 +277,7 @@ func TestServerCreateResource(t *testing.T) {
 				},
 				// Intentionally empty, Create implementation does not call resp.State.Set()
 				NewState: testEmptyState,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"response-newstate": {
@@ -294,6 +317,7 @@ func TestServerCreateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"response-newstate-null": {
@@ -333,6 +357,7 @@ func TestServerCreateResource(t *testing.T) {
 					),
 				},
 				NewState: testEmptyState,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"response-private": {
@@ -340,7 +365,6 @@ func TestServerCreateResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.CreateResourceRequest{
-
 				ResourceSchema: testSchema,
 				ResourceType: &testprovider.ResourceType{
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -354,7 +378,7 @@ func TestServerCreateResource(t *testing.T) {
 								// Prevent missing resource state error diagnostic
 								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
-								diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
 								resp.Diagnostics.Append(diags...)
 							},
@@ -371,9 +395,7 @@ func TestServerCreateResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				Private: &privatestate.Data{
-					Provider: map[string][]byte{
-						"providerKey": []byte(`{"key": "value"}`),
-					},
+					Provider: testProviderData,
 				},
 			},
 		},
@@ -388,9 +410,18 @@ func TestServerCreateResource(t *testing.T) {
 			response := &fwserver.CreateResourceResponse{}
 			testCase.server.CreateResource(context.Background(), testCase.request, response)
 
-			if diff := cmp.Diff(response, testCase.expectedResponse); diff != "" {
+			if diff := cmp.Diff(response, testCase.expectedResponse, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}
+}
+
+func marshalToJson(input map[string][]byte) []byte {
+	output, err := json.Marshal(input)
+	if err != nil {
+		panic(err)
+	}
+
+	return output
 }

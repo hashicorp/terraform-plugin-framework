@@ -72,9 +72,23 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		readReq.ProviderMeta = *req.ProviderMeta
 	}
 
+	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readReq.Private = privateProviderData
+	readResp.Private = privateProviderData
+
 	if req.Private != nil {
-		readReq.Private = req.Private.Provider
-		readResp.Private = req.Private.Provider
+		if req.Private.Provider != nil {
+			readReq.Private = req.Private.Provider
+			readResp.Private = req.Private.Provider
+		}
+
 		resp.Private = req.Private
 	}
 

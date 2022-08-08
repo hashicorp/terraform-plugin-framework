@@ -459,6 +459,9 @@ func TestNewProviderData(t *testing.T) {
 	}{
 		"empty": {
 			data: []byte{},
+			expected: &ProviderData{
+				data: map[string][]byte{},
+			},
 		},
 		"invalid-json": {
 			data: []byte(`{`),

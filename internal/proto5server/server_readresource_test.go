@@ -188,7 +188,7 @@ func TestServerReadResource(t *testing.T) {
 									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 										return &testprovider.Resource{
 											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-												expected := "provider value"
+												expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
 												got, diags := req.Private.GetKey(ctx, "providerKey")
 
 												resp.Diagnostics.Append(diags...)
@@ -212,15 +212,15 @@ func TestServerReadResource(t *testing.T) {
 				CurrentState: testEmptyDynamicValue,
 				TypeName:     "test_resource",
 				Private: marshalToJson(map[string][]byte{
-					".frameworkKey": []byte("framework value"),
-					"providerKey":   []byte("provider value"),
+					".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKey":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),
 			},
 			expectedResponse: &tfprotov5.ReadResourceResponse{
 				NewState: testEmptyDynamicValue,
 				Private: marshalToJson(map[string][]byte{
-					".frameworkKey": []byte("framework value"),
-					"providerKey":   []byte("provider value"),
+					".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKey":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),
 			},
 		},

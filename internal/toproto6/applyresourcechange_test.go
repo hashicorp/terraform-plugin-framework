@@ -59,6 +59,15 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 		},
 	}
 
+	testProviderKeyValue := marshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
+	if diags.HasError() {
+		panic("error creating new provider data")
+	}
+
 	testCases := map[string]struct {
 		input    *fwserver.ApplyResourceChangeResponse
 		expected *tfprotov6.ApplyResourceChangeResponse
@@ -136,15 +145,14 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 			input: &fwserver.ApplyResourceChangeResponse{
 				Private: &privatestate.Data{
 					Framework: map[string][]byte{
-						".frameworkKey": []byte("framework value")},
-					Provider: map[string][]byte{
-						"providerKey": []byte("provider value")},
+						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`)},
+					Provider: testProviderData,
 				},
 			},
 			expected: &tfprotov6.ApplyResourceChangeResponse{
 				Private: marshalToJson(map[string][]byte{
-					".frameworkKey": []byte("framework value"),
-					"providerKey":   []byte("provider value"),
+					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),
 			},
 		},

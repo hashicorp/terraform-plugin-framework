@@ -36,6 +36,20 @@ func TestReadResourceResponse(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
 	}
 
+	testProviderKeyValue := marshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
+	if diags.HasError() {
+		panic("error creating new provider data")
+	}
+
+	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
+	if diags.HasError() {
+		panic("error creating new empty provider data")
+	}
+
 	testState := &tfsdk.State{
 		Raw: testProto5Value,
 		Schema: tfsdk.Schema{
@@ -137,7 +151,7 @@ func TestReadResourceResponse(t *testing.T) {
 			input: &fwserver.ReadResourceResponse{
 				Private: &privatestate.Data{
 					Framework: map[string][]byte{},
-					Provider:  map[string][]byte{},
+					Provider:  testEmptyProviderData,
 				},
 			},
 			expected: &tfprotov5.ReadResourceResponse{
@@ -148,15 +162,14 @@ func TestReadResourceResponse(t *testing.T) {
 			input: &fwserver.ReadResourceResponse{
 				Private: &privatestate.Data{
 					Framework: map[string][]byte{
-						".frameworkKey": []byte("framework value")},
-					Provider: map[string][]byte{
-						"providerKey": []byte("provider value")},
+						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`)},
+					Provider: testProviderData,
 				},
 			},
 			expected: &tfprotov5.ReadResourceResponse{
 				Private: marshalToJson(map[string][]byte{
-					".frameworkKey": []byte("framework value"),
-					"providerKey":   []byte("provider value"),
+					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),
 			},
 		},

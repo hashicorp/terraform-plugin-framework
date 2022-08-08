@@ -99,6 +99,26 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		resp.Private = req.PlannedPrivate
 	}
 
+	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	updateReq.Private = privateProviderData
+	updateResp.Private = privateProviderData
+
+	if req.PlannedPrivate != nil {
+		if req.PlannedPrivate.Provider != nil {
+			updateReq.Private = req.PlannedPrivate.Provider
+			updateResp.Private = req.PlannedPrivate.Provider
+		}
+
+		resp.Private = req.PlannedPrivate
+	}
+
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Update")
 	resourceImpl.Update(ctx, updateReq, &updateResp)
 	logging.FrameworkDebug(ctx, "Called provider defined Resource Update")

@@ -63,11 +63,21 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 			Raw:    nullSchemaData,
 		},
 	}
+
+	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	createResp := resource.CreateResponse{
 		State: tfsdk.State{
 			Schema: schema(req.ResourceSchema),
 			Raw:    nullSchemaData,
 		},
+		Private: privateProviderData,
 	}
 
 	if req.Config != nil {

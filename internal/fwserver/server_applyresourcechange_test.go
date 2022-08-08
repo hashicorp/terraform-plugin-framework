@@ -1,6 +1,7 @@
 package fwserver_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -84,6 +85,41 @@ func TestServerApplyResourceChange(t *testing.T) {
 		TestProviderMetaAttribute types.String `tfsdk:"test_provider_meta_attribute"`
 	}
 
+	testPrivateFrameworkMap := map[string][]byte{
+		".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+	}
+
+	providerKeyValue := marshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData, diags := privatestate.NewProviderData(context.Background(), providerKeyValue)
+	if diags.HasError() {
+		panic("error creating new provider data")
+	}
+
+	testPrivate := &privatestate.Data{
+		Framework: testPrivateFrameworkMap,
+		Provider:  testProviderData,
+	}
+
+	testPrivateFramework := &privatestate.Data{
+		Framework: testPrivateFrameworkMap,
+	}
+
+	testPrivateProvider := &privatestate.Data{
+		Provider: testProviderData,
+	}
+
+	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
+	if diags.HasError() {
+		panic("error creating new empty provider data")
+	}
+
+	testEmptyPrivate := &privatestate.Data{
+		Provider: testEmptyProviderData,
+	}
+
 	testCases := map[string]struct {
 		server           *fwserver.Server
 		request          *fwserver.ApplyResourceChangeRequest
@@ -139,6 +175,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"create-request-plannedstate": {
@@ -191,7 +228,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-			},
+				Private: testEmptyPrivate},
 		},
 		"create-request-providermeta": {
 			server: &fwserver.Server{
@@ -247,6 +284,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"create-response-diagnostics": {
@@ -289,6 +327,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 				},
 				// Intentionally empty, Create implementation does not call resp.State.Set()
 				NewState: testEmptyState,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"create-response-newstate": {
@@ -342,6 +381,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"create-response-newstate-null": {
@@ -395,6 +435,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					),
 				},
 				NewState: testEmptyState,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"create-response-private": {
@@ -416,7 +457,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 								// Prevent missing resource state error diagnostic
 								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
-								diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
 								resp.Diagnostics.Append(diags...)
 							},
@@ -439,9 +480,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				Private: &privatestate.Data{
-					Provider: map[string][]byte{
-						"providerKey": []byte(`{"key": "value"}`),
-					},
+					Provider: testProviderData,
 				},
 			},
 		},
@@ -555,8 +594,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
 							},
 							DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-								expected := `{"key": "value"}`
-								got, diags := req.Private.GetKey(ctx, "providerKey")
+								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+								got, diags := req.Private.GetKey(ctx, "providerKeyOne")
 
 								resp.Diagnostics.Append(diags...)
 
@@ -574,8 +613,53 @@ func TestServerApplyResourceChange(t *testing.T) {
 					},
 				},
 				PlannedPrivate: &privatestate.Data{
-					Provider: map[string][]byte{
-						"providerKey": []byte(`{"key": "value"}`),
+					Provider: testProviderData,
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				NewState: testEmptyState,
+			},
+		},
+		"delete-request-private-planned-private-nil": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+							},
+							DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+								var expected []byte
+
+								got, diags := req.Private.GetKey(ctx, "providerKeyOne")
+
+								resp.Diagnostics.Append(diags...)
+
+								if !bytes.Equal(got, expected) {
+									resp.Diagnostics.AddError(
+										"Unexpected req.Private Value",
+										fmt.Sprintf("expected %q, got %q", expected, got),
+									)
+								}
+							},
+							UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
+							},
+						}, nil
 					},
 				},
 			},
@@ -735,6 +819,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"update-request-plannedstate": {
@@ -798,6 +883,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"update-request-priorstate": {
@@ -861,6 +947,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"update-request-providermeta": {
@@ -925,6 +1012,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"update-request-private": {
@@ -960,8 +1048,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
 							},
 							UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-								expected := `{"key": "value"}`
-								got, diags := req.Private.GetKey(ctx, "providerKey")
+								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+								got, diags := req.Private.GetKey(ctx, "providerKeyOne")
 
 								resp.Diagnostics.Append(diags...)
 
@@ -975,9 +1063,68 @@ func TestServerApplyResourceChange(t *testing.T) {
 						}, nil
 					},
 				},
-				PlannedPrivate: &privatestate.Data{
-					Provider: map[string][]byte{
-						"providerKey": []byte(`{"key": "value"}`),
+				PlannedPrivate: testPrivateProvider,
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				// Intentionally old, Update implementation does not call resp.State.Set()
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				Private: &privatestate.Data{
+					Provider: testProviderData,
+				},
+			},
+		},
+		"update-request-private-nil": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+							},
+							DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+							},
+							UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+								var expected []byte
+								got, diags := req.Private.GetKey(ctx, "providerKeyOne")
+
+								resp.Diagnostics.Append(diags...)
+
+								if !bytes.Equal(got, expected) {
+									resp.Diagnostics.AddError(
+										"Unexpected req.Private Value",
+										fmt.Sprintf("expected %q, got %q", expected, got),
+									)
+								}
+							},
+						}, nil
 					},
 				},
 			},
@@ -990,11 +1137,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: &privatestate.Data{
-					Provider: map[string][]byte{
-						"providerKey": []byte(`{"key": "value"}`),
-					},
-				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"update-response-diagnostics": {
@@ -1062,6 +1205,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"update-response-newstate": {
@@ -1121,6 +1265,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"update-response-newstate-null": {
@@ -1178,6 +1323,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					),
 				},
 				NewState: testEmptyState,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"update-response-private": {
@@ -1213,16 +1359,11 @@ func TestServerApplyResourceChange(t *testing.T) {
 								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
 							},
 							UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-								diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"providerKey": "provider value"}`))
+								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
 								resp.Diagnostics.Append(diags...)
 							},
 						}, nil
-					},
-				},
-				PlannedPrivate: &privatestate.Data{
-					Provider: map[string][]byte{
-						".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
 					},
 				},
 			},
@@ -1234,12 +1375,60 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: &privatestate.Data{
-					Provider: map[string][]byte{
-						".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
-						"providerKey":   []byte(`{"providerKey": "provider value"}`),
+				Private: testPrivateProvider,
+			},
+		},
+		"update-response-private-updated": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.Resource{
+							CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+							},
+							DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+								resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+							},
+							UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+								resp.Diagnostics.Append(diags...)
+							},
+						}, nil
 					},
 				},
+				PlannedPrivate: testPrivateFramework,
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
+				Private: testPrivate,
 			},
 		},
 	}
@@ -1253,7 +1442,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 			response := &fwserver.ApplyResourceChangeResponse{}
 			testCase.server.ApplyResourceChange(context.Background(), testCase.request, response)
 
-			if diff := cmp.Diff(response, testCase.expectedResponse); diff != "" {
+			if diff := cmp.Diff(response, testCase.expectedResponse, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

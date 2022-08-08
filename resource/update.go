@@ -29,7 +29,7 @@ type UpdateRequest struct {
 
 	// Private is the current private state resource data prior to the Update
 	// operation.
-	Private privatestate.ProviderData
+	Private *privatestate.ProviderData
 }
 
 // UpdateResponse represents a response to an UpdateRequest. An
@@ -45,7 +45,7 @@ type UpdateResponse struct {
 	// Private is the private state resource data following the Update operation.
 	// This field is not pre-populated as there is no pre-existing private state
 	// data at the time a resource is created.
-	Private privatestate.ProviderData
+	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to updating the
 	// resource. An empty slice indicates a successful operation with no

@@ -5,6 +5,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
@@ -13,8 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerImportResourceState(t *testing.T) {
@@ -175,6 +176,50 @@ func TestServerImportResourceState(t *testing.T) {
 					{
 						State:    testStateDynamicValue,
 						TypeName: "test_resource",
+					},
+				},
+			},
+		},
+		"response-importedresources-private": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return testSchema, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+										return &testprovider.ResourceWithImportState{
+											Resource: &testprovider.Resource{},
+											ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+												diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+
+												resp.Diagnostics.Append(diags...)
+
+												resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov5.ImportResourceStateRequest{
+				ID:       "test-id",
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov5.ImportResourceStateResponse{
+				ImportedResources: []*tfprotov5.ImportedResource{
+					{
+						State:    testStateDynamicValue,
+						TypeName: "test_resource",
+						Private: marshalToJson(map[string][]byte{
+							"providerKey": []byte(`{"key": "value"}`),
+						}),
 					},
 				},
 			},

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -35,6 +36,11 @@ type ImportStateResponse struct {
 	// It must contain enough information so Terraform can successfully
 	// refresh the resource, e.g. call the Resource Read method.
 	State tfsdk.State
+
+	// Private is the private state resource data following the import operation.
+	// This field is not pre-populated as there is no pre-existing private state
+	// data at the time a resource is imported.
+	Private *privatestate.ProviderData
 }
 
 // ImportStatePassthroughID is a helper function to set the import

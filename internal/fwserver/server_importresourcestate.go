@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -12,7 +13,7 @@ import (
 
 // ImportedResource represents a resource that was imported.
 type ImportedResource struct {
-	Private  []byte
+	Private  *privatestate.Data
 	State    tfsdk.State
 	TypeName string
 }
@@ -81,11 +82,21 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	importReq := resource.ImportStateRequest{
 		ID: req.ID,
 	}
+
+	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	importResp := resource.ImportStateResponse{
 		State: tfsdk.State{
 			Raw:    req.EmptyState.Raw.Copy(),
 			Schema: req.EmptyState.Schema,
 		},
+		Private: privateProviderData,
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource ImportState")
@@ -107,10 +118,17 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		return
 	}
 
+	private := &privatestate.Data{}
+
+	if importResp.Private != nil {
+		private.Provider = importResp.Private
+	}
+
 	resp.ImportedResources = []ImportedResource{
 		{
 			State:    importResp.State,
 			TypeName: req.TypeName,
+			Private:  private,
 		},
 	}
 }

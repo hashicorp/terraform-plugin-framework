@@ -5,15 +5,17 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerImportResourceState(t *testing.T) {
@@ -66,6 +68,28 @@ func TestServerImportResourceState(t *testing.T) {
 		Schema: testSchema,
 	}
 
+	testProviderKeyValue := marshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
+	if diags.HasError() {
+		panic("error creating new provider data")
+	}
+
+	testPrivate := &privatestate.Data{
+		Provider: testProviderData,
+	}
+
+	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
+	if diags.HasError() {
+		panic("error creating new empty provider data")
+	}
+
+	testEmptyPrivate := &privatestate.Data{
+		Provider: testEmptyProviderData,
+	}
+
 	testCases := map[string]struct {
 		server           *fwserver.Server
 		request          *fwserver.ImportResourceStateRequest
@@ -108,6 +132,7 @@ func TestServerImportResourceState(t *testing.T) {
 					{
 						State:    *testState,
 						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
 					},
 				},
 			},
@@ -200,6 +225,43 @@ func TestServerImportResourceState(t *testing.T) {
 					{
 						State:    *testState,
 						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
+				},
+			},
+		},
+		"response-importedresources-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState: *testEmptyState,
+				ID:         "test-id",
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.ResourceWithImportState{
+							Resource: &testprovider.Resource{},
+							ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+								resp.Diagnostics.Append(diags...)
+
+								resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+							},
+						}, nil
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    *testState,
+						TypeName: "test_resource",
+						Private:  testPrivate,
 					},
 				},
 			},
@@ -247,7 +309,7 @@ func TestServerImportResourceState(t *testing.T) {
 			response := &fwserver.ImportResourceStateResponse{}
 			testCase.server.ImportResourceState(context.Background(), testCase.request, response)
 
-			if diff := cmp.Diff(response, testCase.expectedResponse); diff != "" {
+			if diff := cmp.Diff(response, testCase.expectedResponse, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

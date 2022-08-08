@@ -3,9 +3,10 @@ package toproto6
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ImportedResource returns the *tfprotov6.ImportedResource equivalent of a
@@ -16,13 +17,17 @@ func ImportedResource(ctx context.Context, fw *fwserver.ImportedResource) (*tfpr
 	}
 
 	proto6 := &tfprotov6.ImportedResource{
-		Private:  fw.Private,
 		TypeName: fw.TypeName,
 	}
 
 	state, diags := State(ctx, &fw.State)
 
 	proto6.State = state
+
+	newPrivate, privateDiags := fw.Private.Bytes(ctx)
+
+	diags = append(diags, privateDiags...)
+	proto6.Private = newPrivate
 
 	return proto6, diags
 }

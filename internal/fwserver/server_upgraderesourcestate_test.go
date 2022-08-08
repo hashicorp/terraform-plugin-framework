@@ -41,7 +41,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 		},
 		Version: 1, // Must be above 0
 	}
-	schemaType := schema.TerraformType(ctx)
+	schemaType := schema.Type().TerraformType(ctx)
 
 	testCases := map[string]struct {
 		server           *fwserver.Server

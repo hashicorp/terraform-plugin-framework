@@ -24,7 +24,7 @@ func ProviderMeta(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValu
 	var diags diag.Diagnostics
 
 	fw := &tfsdk.Config{
-		Raw:    tftypes.NewValue(schema.TerraformType(ctx), nil),
+		Raw:    tftypes.NewValue(schema.Type().TerraformType(ctx), nil),
 		Schema: tfsdkSchema(schema),
 	}
 
@@ -32,7 +32,7 @@ func ProviderMeta(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValu
 		return fw, nil
 	}
 
-	proto5Value, err := proto5DynamicValue.Unmarshal(schema.TerraformType(ctx))
+	proto5Value, err := proto5DynamicValue.Unmarshal(schema.Type().TerraformType(ctx))
 
 	if err != nil {
 		diags.AddError(

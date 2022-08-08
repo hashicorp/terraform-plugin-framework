@@ -23,7 +23,7 @@ type State struct {
 
 // Get populates the struct passed as `target` with the entire state.
 func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
-	return reflect.Into(ctx, s.Schema.AttributeType(), s.Raw, target, reflect.Options{})
+	return reflect.Into(ctx, s.Schema.Type(), s.Raw, target, reflect.Options{})
 }
 
 // GetAttribute retrieves the attribute found at `path` and populates the
@@ -152,7 +152,7 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 			),
 		}
 	}
-	newStateAttrValue, diags := reflect.FromValue(ctx, s.Schema.AttributeType(), val, path.Empty())
+	newStateAttrValue, diags := reflect.FromValue(ctx, s.Schema.Type(), val, path.Empty())
 	if diags.HasError() {
 		return diags
 	}
@@ -389,7 +389,7 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path path.Path, tf
 // If a Resource type Delete method is completed without error, this is
 // automatically called on the DeleteResourceResponse.State.
 func (s *State) RemoveResource(ctx context.Context) {
-	s.Raw = tftypes.NewValue(s.Schema.TerraformType(ctx), nil)
+	s.Raw = tftypes.NewValue(s.Schema.Type().TerraformType(ctx), nil)
 }
 
 // TODO: Potentially remove this when Raw is changed to attr.Value or similar

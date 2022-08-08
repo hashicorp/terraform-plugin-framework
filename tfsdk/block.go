@@ -1,7 +1,6 @@
 package tfsdk
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/google/go-cmp/cmp"
@@ -208,7 +207,7 @@ func (b Block) Type() attr.Type {
 	}
 
 	for attrName, attr := range b.Attributes {
-		attrType.AttrTypes[attrName] = attr.GetType()
+		attrType.AttrTypes[attrName] = attr.FrameworkType()
 	}
 
 	for blockName, block := range b.Blocks {
@@ -227,9 +226,4 @@ func (b Block) Type() attr.Type {
 	default:
 		panic(fmt.Sprintf("unsupported block nesting mode: %v", b.NestingMode))
 	}
-}
-
-// terraformType returns an tftypes.Type corresponding to the block.
-func (b Block) terraformType(ctx context.Context) tftypes.Type {
-	return b.Type().TerraformType(ctx)
 }

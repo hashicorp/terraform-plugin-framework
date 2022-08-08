@@ -16,7 +16,7 @@ func State(ctx context.Context, fw *tfsdk.State) (*tfprotov6.DynamicValue, diag.
 
 	var diags diag.Diagnostics
 
-	proto6, err := tfprotov6.NewDynamicValue(fw.Schema.TerraformType(ctx), fw.Raw)
+	proto6, err := tfprotov6.NewDynamicValue(fw.Schema.Type().TerraformType(ctx), fw.Raw)
 
 	if err != nil {
 		diags.AddError(

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -15,27 +17,13 @@ type Schema interface {
 	tftypes.AttributePathStepper
 
 	// AttributeAtPath should return the Attribute at the given path or return
-	// an error. This signature matches the existing tfsdk.Schema type
-	// AttributeAtPath method signature to prevent the need for a breaking
-	// change or deprecation of that method to create this interface.
-	AttributeAtPath(path *tftypes.AttributePath) (Attribute, error)
+	// an error. This will be added next release.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
+	// AttributeAtPath(context.Context, path.Path) (Attribute, diag.Diagnostics)
 
-	// AttributeType should return the framework type of the schema. This is
-	// named differently than the Attribute interface GetType method name to
-	// match the existing tfsdk.Schema type AttributeType method signature and
-	// to prevent the need for a breaking change or deprecation of that method
-	// to create this interface.
-	AttributeType() attr.Type
-
-	// AttributeTypeAtPath should return the framework type of the Attribute at
-	// the given path or return an error. This signature matches the existing
-	// tfsdk.Schema type AttributeAtPath method signature to prevent the need
-	// for a breaking change or deprecation of that method to create this
-	// interface.
-	//
-	// This will likely be removed in the future in preference of
-	// AttributeAtPath.
-	AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, error)
+	// AttributeAtTerraformPath should return the Attribute at the given
+	// Terraform path or return an error.
+	AttributeAtTerraformPath(context.Context, *tftypes.AttributePath) (Attribute, error)
 
 	// GetAttributes should return the attributes of a schema. This is named
 	// differently than Attributes to prevent a conflict with the tfsdk.Schema
@@ -68,11 +56,14 @@ type Schema interface {
 	// field name.
 	GetVersion() int64
 
-	// TerraformType should return the Terraform type of the schema. This
-	// signature matches the existing tfsdk.Schema type TerraformType method
-	// signature to prevent the need for a breaking change or deprecation of
-	// that method to create this interface.
-	//
-	// This will likely be removed in the future in preferene of AttributeType.
-	TerraformType(ctx context.Context) tftypes.Type
+	// Type should return the framework type of the schema.
+	Type() attr.Type
+
+	// TypeAtPath should return the framework type of the Attribute at the
+	// the given path or return an error.
+	TypeAtPath(context.Context, path.Path) (attr.Type, diag.Diagnostics)
+
+	// AttributeTypeAtPath should return the framework type of the Attribute at
+	// the given Terraform path or return an error.
+	TypeAtTerraformPath(context.Context, *tftypes.AttributePath) (attr.Type, error)
 }

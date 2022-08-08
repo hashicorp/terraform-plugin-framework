@@ -1,30 +1,23 @@
-package tfsdk
+package fromtftypes
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// attributePath returns the path.Path equivalent of a *tftypes.AttributePath.
-//
-// TODO: This function should be exported as internal/fromtftypes.AttributePath
-// except that doing so would currently introduce an import cycle due to the
-// tfsdk.Schema parameter here and Config/Plan/State.PathMatches needing to
-// call this function until the schema data is migrated to attr.Value.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/172
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func attributePath(ctx context.Context, tfType *tftypes.AttributePath, schema Schema) (path.Path, diag.Diagnostics) {
+// AttributePath returns the path.Path equivalent of a *tftypes.AttributePath.
+func AttributePath(ctx context.Context, tfType *tftypes.AttributePath, schema fwschema.Schema) (path.Path, diag.Diagnostics) {
 	fwPath := path.Empty()
 
 	for tfTypeStepIndex, tfTypeStep := range tfType.Steps() {
 		currentTfTypeSteps := tfType.Steps()[:tfTypeStepIndex+1]
 		currentTfTypePath := tftypes.NewAttributePathWithSteps(currentTfTypeSteps)
-		attrType, err := schema.AttributeTypeAtPath(currentTfTypePath)
+		attrType, err := schema.TypeAtTerraformPath(ctx, currentTfTypePath)
 
 		if err != nil {
 			return path.Empty(), diag.Diagnostics{
@@ -43,7 +36,7 @@ func attributePath(ctx context.Context, tfType *tftypes.AttributePath, schema Sc
 			}
 		}
 
-		fwStep, err := fromtftypes.AttributePathStep(ctx, tfTypeStep, attrType)
+		fwStep, err := AttributePathStep(ctx, tfTypeStep, attrType)
 
 		if err != nil {
 			return path.Empty(), diag.Diagnostics{

@@ -21,6 +21,13 @@ type Attribute interface {
 	// Equal should return true if the other attribute is exactly equivalent.
 	Equal(o Attribute) bool
 
+	// FrameworkType should return the framework type, whether a direct type
+	// or nested attributes type, for the attribute.
+	//
+	// When tfsdk.Attribute is removed, this should be deprecated and renamed
+	// to Type() to match other interfaces.
+	FrameworkType() attr.Type
+
 	// GetAttributes should return the nested attributes of an attribute, if
 	// applicable. This is named differently than Attribute to prevent a
 	// conflict with the tfsdk.Attribute field name.

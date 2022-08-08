@@ -50,7 +50,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		return
 	}
 
-	nullSchemaData := tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil)
+	nullSchemaData := tftypes.NewValue(req.ResourceSchema.Type().TerraformType(ctx), nil)
 
 	updateReq := resource.UpdateRequest{
 		Config: tfsdk.Config{

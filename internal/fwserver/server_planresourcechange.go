@@ -54,7 +54,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		return
 	}
 
-	nullTfValue := tftypes.NewValue(req.ResourceSchema.TerraformType(ctx), nil)
+	nullTfValue := tftypes.NewValue(req.ResourceSchema.Type().TerraformType(ctx), nil)
 
 	// Prevent potential panics by ensuring incoming Config/Plan/State are null
 	// instead of nil.
@@ -253,7 +253,7 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			return val, nil
 		}
 
-		attribute, err := resourceSchema.AttributeAtPath(path)
+		attribute, err := resourceSchema.AttributeAtTerraformPath(ctx, path)
 
 		if err != nil {
 			if errors.Is(err, tfsdk.ErrPathInsideAtomicAttribute) {

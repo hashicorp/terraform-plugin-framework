@@ -62,11 +62,26 @@ const (
 // attributes must be associated with a unique key. Unlike SetNestedAttributes,
 // the key must be explicitly set by the user.
 type NestedAttributes interface {
+	// Implementations should include the tftypes.AttributePathStepper
+	// interface methods for proper path and data handling.
 	tftypes.AttributePathStepper
+
+	// AttributeType should return the framework type of the nested attributes.
+	// This method should be deprecated in preference of Type().
 	AttributeType() attr.Type
-	GetNestingMode() NestingMode
-	GetAttributes() map[string]Attribute
+
+	// Equal should return true if the other NestedAttributes is equivalent.
 	Equal(NestedAttributes) bool
+
+	// GetNestingMode should return the nesting mode (list, map, set, or
+	// single) of the nested attributes.
+	GetNestingMode() NestingMode
+
+	// GetAttributes() should return the mapping of names to nested attributes.
+	GetAttributes() map[string]Attribute
+
+	// Type should return the framework type of the nested attributes.
+	Type() attr.Type
 }
 
 type UnderlyingAttributes map[string]Attribute
@@ -87,16 +102,11 @@ func (n UnderlyingAttributes) ApplyTerraform5AttributePathStep(step tftypes.Attr
 	return res, nil
 }
 
-// AttributeType returns an attr.Type corresponding to the nested attributes.
-func (n UnderlyingAttributes) AttributeType() attr.Type {
+// Type returns the framework type of the nested attributes.
+func (n UnderlyingAttributes) Type() attr.Type {
 	attrTypes := map[string]attr.Type{}
 	for name, attr := range n {
-		if attr.GetType() != nil {
-			attrTypes[name] = attr.GetType()
-		}
-		if attr.GetAttributes() != nil {
-			attrTypes[name] = attr.GetAttributes().AttributeType()
-		}
+		attrTypes[name] = attr.FrameworkType()
 	}
 	return types.ObjectType{
 		AttrTypes: attrTypes,
@@ -123,8 +133,9 @@ func (s SingleNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.At
 	return res, nil
 }
 
+// Deprecated: Use Type() instead.
 func (s SingleNestedAttributes) AttributeType() attr.Type {
-	return s.UnderlyingAttributes.AttributeType()
+	return s.Type()
 }
 
 func (s SingleNestedAttributes) GetAttributes() map[string]Attribute {
@@ -155,6 +166,11 @@ func (s SingleNestedAttributes) Equal(o NestedAttributes) bool {
 	return true
 }
 
+// Type returns the framework type of the nested attributes.
+func (s SingleNestedAttributes) Type() attr.Type {
+	return s.UnderlyingAttributes.Type()
+}
+
 type ListNestedAttributes struct {
 	UnderlyingAttributes
 }
@@ -168,10 +184,9 @@ func (l ListNestedAttributes) GetNestingMode() NestingMode {
 }
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.
+// Deprecated: Use Type() instead.
 func (l ListNestedAttributes) AttributeType() attr.Type {
-	return types.ListType{
-		ElemType: l.UnderlyingAttributes.AttributeType(),
-	}
+	return l.Type()
 }
 
 func (l ListNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
@@ -202,6 +217,13 @@ func (l ListNestedAttributes) Equal(o NestedAttributes) bool {
 	return true
 }
 
+// Type returns the framework type of the nested attributes.
+func (l ListNestedAttributes) Type() attr.Type {
+	return types.ListType{
+		ElemType: l.UnderlyingAttributes.Type(),
+	}
+}
+
 type SetNestedAttributes struct {
 	UnderlyingAttributes
 }
@@ -215,10 +237,9 @@ func (s SetNestedAttributes) GetNestingMode() NestingMode {
 }
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.
+// Deprecated: Use Type() instead.
 func (s SetNestedAttributes) AttributeType() attr.Type {
-	return types.SetType{
-		ElemType: s.UnderlyingAttributes.AttributeType(),
-	}
+	return s.Type()
 }
 
 func (s SetNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
@@ -249,6 +270,13 @@ func (s SetNestedAttributes) Equal(o NestedAttributes) bool {
 	return true
 }
 
+// Type returns the framework type of the nested attributes.
+func (s SetNestedAttributes) Type() attr.Type {
+	return types.SetType{
+		ElemType: s.UnderlyingAttributes.Type(),
+	}
+}
+
 type MapNestedAttributes struct {
 	UnderlyingAttributes
 }
@@ -262,10 +290,9 @@ func (m MapNestedAttributes) GetNestingMode() NestingMode {
 }
 
 // AttributeType returns an attr.Type corresponding to the nested attributes.
+// Deprecated: Use Type() instead.
 func (m MapNestedAttributes) AttributeType() attr.Type {
-	return types.MapType{
-		ElemType: m.UnderlyingAttributes.AttributeType(),
-	}
+	return m.Type()
 }
 
 func (m MapNestedAttributes) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
@@ -294,4 +321,11 @@ func (m MapNestedAttributes) Equal(o NestedAttributes) bool {
 		}
 	}
 	return true
+}
+
+// Type returns the framework type of the nested attributes.
+func (m MapNestedAttributes) Type() attr.Type {
+	return types.MapType{
+		ElemType: m.UnderlyingAttributes.Type(),
+	}
 }

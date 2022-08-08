@@ -24,14 +24,14 @@ type Data struct {
 
 // Bytes returns a JSON encoded slice of bytes containing the merged
 // framework and provider private state data.
-func (d *Data) Bytes(_ context.Context) ([]byte, diag.Diagnostics) {
+func (d *Data) Bytes(ctx context.Context) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if d == nil {
 		return nil, nil
 	}
 
-	if d.Provider == nil && len(d.Framework) == 0 {
+	if (d.Provider == nil || len(d.Provider.data) == 0) && len(d.Framework) == 0 {
 		return nil, nil
 	}
 
@@ -43,21 +43,46 @@ func (d *Data) Bytes(_ context.Context) ([]byte, diag.Diagnostics) {
 
 	mergedMap := make(map[string][]byte, len(d.Framework)+len(providerData))
 
-	// TODO: Add tests for pruning nil values
-	for k, v := range d.Framework {
-		if v == nil {
-			continue
-		}
+	for _, m := range []map[string][]byte{d.Framework, providerData} {
+		for k, v := range m {
+			if v == nil || len(v) == 0 {
+				continue
+			}
 
-		mergedMap[k] = v
+			// Values in FrameworkData and ProviderData should never be invalid UTF-8, but let's make sure.
+			if !utf8.Valid(v) {
+				diags.AddError(
+					"Error Encoding Private State",
+					"An error was encountered when validating private state value."+
+						fmt.Sprintf("The value associated with key %q is is not valid UTF-8.\n\n", k)+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+				)
+
+				tflog.Error(ctx, "error encoding private state: invalid UTF-8 value", map[string]interface{}{"key": k, "value": v})
+
+				continue
+			}
+
+			// Values in FrameworkData and ProviderData should never be invalid JSON, but let's make sure.
+			if !json.Valid(v) {
+				diags.AddError(
+					"Error Encoding Private State",
+					fmt.Sprintf("An error was encountered when validating private state value."+
+						fmt.Sprintf("The value associated with key %q is is not valid JSON.\n\n", k)+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer."),
+				)
+
+				tflog.Error(ctx, "error encoding private state: invalid JSON value", map[string]interface{}{"key": k, "value": v})
+
+				continue
+			}
+
+			mergedMap[k] = v
+		}
 	}
 
-	for k, v := range providerData {
-		if v == nil {
-			continue
-		}
-
-		mergedMap[k] = v
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	bytes, err := json.Marshal(mergedMap)
@@ -97,39 +122,60 @@ func NewData(ctx context.Context, data []byte) (*Data, diag.Diagnostics) {
 		return nil, diags
 	}
 
-	providerData, providerDataDiags := NewProviderData(ctx, nil)
+	output := Data{
+		Framework: make(map[string][]byte),
+		Provider: &ProviderData{
+			make(map[string][]byte),
+		},
+	}
 
-	diags.Append(providerDataDiags...)
+	for k, v := range dataMap {
+		if !utf8.Valid(v) {
+			diags.AddError(
+				"Error Decoding Private State",
+				"An error was encountered when validating private state value.\n"+
+					fmt.Sprintf("The value being supplied for key %q is is not valid UTF-8.\n\n", k)+
+					"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+			)
+
+			tflog.Error(ctx, "error decoding private state: invalid UTF-8 value", map[string]interface{}{"key": k, "value": v})
+
+			continue
+		}
+
+		if !json.Valid(v) {
+			diags.AddError(
+				"Error Decoding Private State",
+				"An error was encountered when validating private state value.\n"+
+					fmt.Sprintf("The value being supplied for key %q is is not valid JSON.\n\n", k)+
+					"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+			)
+
+			tflog.Error(ctx, "error decoding private state: invalid JSON value", map[string]interface{}{"key": k, "value": v})
+
+			continue
+		}
+
+		if isInvalidProviderDataKey(ctx, k) {
+			output.Framework[k] = v
+			continue
+		}
+
+		output.Provider.data[k] = v
+	}
 
 	if diags.HasError() {
 		return nil, diags
 	}
 
-	output := Data{
-		Framework: make(map[string][]byte),
-		Provider:  providerData,
-	}
-
-	for k, v := range dataMap {
-		if isInvalidProviderDataKey(ctx, k) {
-			//TODO: Check that v is valid JSON and UTF-8
-			output.Framework[k] = v
-			continue
-		}
-
-		diags.Append(output.Provider.SetKey(ctx, k, v)...)
-	}
-
 	return &output, diags
 }
 
+// NewProviderData creates a new ProviderData based on the given slice of bytes.
+// It must be a JSON encoded slice of bytes, that is map[string][]byte.
 func NewProviderData(ctx context.Context, data []byte) (*ProviderData, diag.Diagnostics) {
-	providerData := &ProviderData{
-		data: make(map[string][]byte),
-	}
-
 	if len(data) == 0 {
-		return providerData, nil
+		return nil, nil
 	}
 
 	var (
@@ -137,14 +183,16 @@ func NewProviderData(ctx context.Context, data []byte) (*ProviderData, diag.Diag
 		diags   diag.Diagnostics
 	)
 
+	providerData := &ProviderData{
+		data: make(map[string][]byte),
+	}
+
 	err := json.Unmarshal(data, &dataMap)
 	if err != nil {
 		diags.AddError(
 			"Error Decoding Provider Data",
 			fmt.Sprintf("An error was encountered when decoding provider data: %s.\n\n"+
-				"If you are calling NewProviderData directly then please check that the data you are supplying is a byte representation of valid JSON.\n\n+"+
-				"If you are not calling NewProviderData directly, then this is a problem with Terraform or terraform-plugin-framework. "+
-				"Please report this to the provider developer.", err),
+				"Please check that the data you are supplying is a byte representation of valid JSON.", err),
 		)
 
 		return nil, diags
@@ -152,6 +200,10 @@ func NewProviderData(ctx context.Context, data []byte) (*ProviderData, diag.Diag
 
 	for k, v := range dataMap {
 		diags.Append(providerData.SetKey(ctx, k, v)...)
+	}
+
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	return providerData, diags
@@ -226,22 +278,22 @@ func (d *ProviderData) SetKey(ctx context.Context, key string, value []byte) dia
 	}
 
 	if !utf8.Valid(value) {
-		tflog.Error(ctx, "error calling SetKey with invalid UTF-8 value", map[string]interface{}{"key": key, "value": value})
+		tflog.Error(ctx, "invalid UTF-8 value", map[string]interface{}{"key": key, "value": value})
 
 		diags.AddError("UTF-8 Invalid",
 			"Values stored in private state must be valid UTF-8.\n\n"+
-				fmt.Sprintf("The value being supplied for key %q is invalid. Please check the value you are supplying is valid UTF-8.", key),
+				fmt.Sprintf("The value being supplied for key %q is invalid. Please verify that the value is valid UTF-8.", key),
 		)
 
 		return diags
 	}
 
 	if !json.Valid(value) {
-		tflog.Error(ctx, "error calling SetKey with invalid JSON value", map[string]interface{}{"key": key, "value": value})
+		tflog.Error(ctx, "invalid JSON value", map[string]interface{}{"key": key, "value": value})
 
 		diags.AddError("JSON Invalid",
 			"Values stored in private state must be valid JSON.\n\n"+
-				fmt.Sprintf("The value being supplied for key %q is invalid. Please check the value you are supplying is valid JSON.", key),
+				fmt.Sprintf("The value being supplied for key %q is invalid. Please verify that the value is valid JSON.", key),
 		)
 
 		return diags

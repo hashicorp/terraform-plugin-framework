@@ -37,7 +37,7 @@ func StateGetAttributeValue(ctx context.Context, s tfsdk.State, path path.Path) 
 	}
 
 	// TODO: Use TypeAtPath instead.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
 	attrType, err := s.Schema.TypeAtTerraformPath(ctx, tftypesPath)
 	if err != nil {
 		err = fmt.Errorf("error getting attribute type in schema: %w", err)

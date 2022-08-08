@@ -37,7 +37,7 @@ func PlanGetAttributeValue(ctx context.Context, p tfsdk.Plan, path path.Path) (a
 	}
 
 	// TODO: Use TypeAtPath instead.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
 	attrType, err := p.Schema.TypeAtTerraformPath(ctx, tftypesPath)
 	if err != nil {
 		err = fmt.Errorf("error getting attribute type in schema: %w", err)

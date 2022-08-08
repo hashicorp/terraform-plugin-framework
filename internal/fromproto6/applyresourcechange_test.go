@@ -147,7 +147,7 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ApplyResourceChangeRequest{
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 			}, expectedDiagnostics: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"Error Decoding Private State",
@@ -162,7 +162,7 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ApplyResourceChangeRequest{
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 				PlannedPrivate: &privatestate.Data{
 					Framework: map[string][]byte{},
 					Provider:  testEmptyProviderData,
@@ -178,7 +178,7 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ApplyResourceChangeRequest{
-				ResourceSchema: *testFwSchema,
+				ResourceSchema: testFwSchema,
 				PlannedPrivate: &privatestate.Data{
 					Framework: map[string][]byte{
 						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),

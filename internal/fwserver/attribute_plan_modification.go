@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -49,11 +50,24 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 	var requiresReplace bool
 
+	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
+
+	resp.Diagnostics.Append(diags...)
+
+	if diags.HasError() {
+		return
+	}
+
+	if req.Private != nil {
+		privateProviderData = req.Private
+	}
+
 	if attributeWithPlanModifiers, ok := a.(fwxschema.AttributeWithPlanModifiers); ok {
 		for _, planModifier := range attributeWithPlanModifiers.GetPlanModifiers() {
 			modifyResp := &tfsdk.ModifyAttributePlanResponse{
 				AttributePlan:   req.AttributePlan,
 				RequiresReplace: requiresReplace,
+				Private:         privateProviderData,
 			}
 
 			logging.FrameworkDebug(
@@ -75,6 +89,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 			req.AttributePlan = modifyResp.AttributePlan
 			resp.Diagnostics.Append(modifyResp.Diagnostics...)
 			requiresReplace = modifyResp.RequiresReplace
+			resp.Private = modifyResp.Private
 
 			// Only on new errors.
 			if modifyResp.Diagnostics.HasError() {
@@ -122,6 +137,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
+					Private:       privateProviderData,
 				}
 
 				AttributeModifyPlan(ctx, attr, attrReq, resp)
@@ -149,6 +165,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
+					Private:       privateProviderData,
 				}
 
 				AttributeModifyPlan(ctx, attr, attrReq, resp)
@@ -176,6 +193,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
+					Private:       privateProviderData,
 				}
 
 				AttributeModifyPlan(ctx, attr, attrReq, resp)
@@ -206,6 +224,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 				Plan:          resp.Plan,
 				ProviderMeta:  req.ProviderMeta,
 				State:         req.State,
+				Private:       privateProviderData,
 			}
 
 			AttributeModifyPlan(ctx, attr, attrReq, resp)

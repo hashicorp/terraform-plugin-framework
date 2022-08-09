@@ -3,9 +3,10 @@ package toproto5
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // PlanResourceChangeResponse returns the *tfprotov5.PlanResourceChangeResponse
@@ -16,8 +17,7 @@ func PlanResourceChangeResponse(ctx context.Context, fw *fwserver.PlanResourceCh
 	}
 
 	proto5 := &tfprotov5.PlanResourceChangeResponse{
-		Diagnostics:    Diagnostics(ctx, fw.Diagnostics),
-		PlannedPrivate: fw.PlannedPrivate,
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	plannedState, diags := State(ctx, fw.PlannedState)
@@ -29,6 +29,11 @@ func PlanResourceChangeResponse(ctx context.Context, fw *fwserver.PlanResourceCh
 
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
 	proto5.RequiresReplace = requiresReplace
+
+	plannedPrivate, diags := fw.PlannedPrivate.Bytes(ctx)
+
+	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
+	proto5.PlannedPrivate = plannedPrivate
 
 	return proto5
 }

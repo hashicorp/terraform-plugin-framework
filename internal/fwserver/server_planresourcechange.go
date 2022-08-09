@@ -6,21 +6,23 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // PlanResourceChangeRequest is the framework server request for the
 // PlanResourceChange RPC.
 type PlanResourceChangeRequest struct {
 	Config           *tfsdk.Config
-	PriorPrivate     []byte
+	PriorPrivate     *privatestate.Data
 	PriorState       *tfsdk.State
 	ProposedNewState *tfsdk.Plan
 	ProviderMeta     *tfsdk.Config
@@ -32,7 +34,7 @@ type PlanResourceChangeRequest struct {
 // PlanResourceChange RPC.
 type PlanResourceChangeResponse struct {
 	Diagnostics     diag.Diagnostics
-	PlannedPrivate  []byte
+	PlannedPrivate  *privatestate.Data
 	PlannedState    *tfsdk.State
 	RequiresReplace path.Paths
 }
@@ -77,6 +79,28 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			Raw:    nullTfValue,
 			Schema: schema(req.ResourceSchema),
 		}
+	}
+
+	privateData := &privatestate.Data{}
+	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Ensure that resp.PlannedPrivate is never nil.
+	resp.PlannedPrivate = privateData
+
+	if req.PriorPrivate != nil {
+		if req.PriorPrivate.Provider != nil {
+			privateProviderData = req.PriorPrivate.Provider
+		}
+
+		// Overwrite resp.PlannedPrivate with req.PriorPrivate providing
+		// it is not nil.
+		resp.PlannedPrivate = req.PriorPrivate
 	}
 
 	resp.PlannedState = planToState(*req.ProposedNewState)
@@ -159,9 +183,10 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// represents a resource being deleted and there's no point.
 	if !resp.PlannedState.Raw.IsNull() {
 		modifySchemaPlanReq := ModifySchemaPlanRequest{
-			Config: *req.Config,
-			Plan:   stateToPlan(*resp.PlannedState),
-			State:  *req.PriorState,
+			Config:  *req.Config,
+			Plan:    stateToPlan(*resp.PlannedState),
+			State:   *req.PriorState,
+			Private: privateProviderData,
 		}
 
 		if req.ProviderMeta != nil {
@@ -171,6 +196,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		modifySchemaPlanResp := ModifySchemaPlanResponse{
 			Diagnostics: resp.Diagnostics,
 			Plan:        modifySchemaPlanReq.Plan,
+			Private:     privateProviderData,
 		}
 
 		SchemaModifyPlan(ctx, req.ResourceSchema, modifySchemaPlanReq, &modifySchemaPlanResp)
@@ -178,6 +204,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.Diagnostics = modifySchemaPlanResp.Diagnostics
 		resp.PlannedState = planToState(modifySchemaPlanResp.Plan)
 		resp.RequiresReplace = append(resp.RequiresReplace, modifySchemaPlanResp.RequiresReplace...)
+		resp.PlannedPrivate.Provider = modifySchemaPlanResp.Private
 
 		if resp.Diagnostics.HasError() {
 			return
@@ -196,9 +223,10 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 
 		modifyPlanReq := resource.ModifyPlanRequest{
-			Config: *req.Config,
-			Plan:   stateToPlan(*resp.PlannedState),
-			State:  *req.PriorState,
+			Config:  *req.Config,
+			Plan:    stateToPlan(*resp.PlannedState),
+			State:   *req.PriorState,
+			Private: privateProviderData,
 		}
 
 		if req.ProviderMeta != nil {
@@ -209,6 +237,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			Diagnostics:     resp.Diagnostics,
 			Plan:            modifyPlanReq.Plan,
 			RequiresReplace: path.Paths{},
+			Private:         privateProviderData,
 		}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource ModifyPlan")
@@ -218,6 +247,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
+		resp.PlannedPrivate.Provider = modifyPlanResp.Private
 	}
 
 	// Ensure deterministic RequiresReplace by sorting and deduplicating

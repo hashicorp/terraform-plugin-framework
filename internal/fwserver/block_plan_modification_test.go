@@ -5,14 +5,16 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestBlockModifyPlan(t *testing.T) {
@@ -125,6 +127,27 @@ func TestBlockModifyPlan(t *testing.T) {
 		}
 	}
 
+	modifyAttributePlanWithPrivateRequest := func(attrPath path.Path, schema tfsdk.Schema, values modifyAttributePlanValues, privateProviderData *privatestate.ProviderData) tfsdk.ModifyAttributePlanRequest {
+		req := modifyAttributePlanRequest(attrPath, schema, values)
+		req.Private = privateProviderData
+
+		return req
+	}
+
+	providerKeyValue := marshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData, diags := privatestate.NewProviderData(context.Background(), providerKeyValue)
+	if diags.HasError() {
+		panic("error creating new provider data")
+	}
+
+	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
+	if diags.HasError() {
+		panic("error creating new empty provider data")
+	}
+
 	testCases := map[string]struct {
 		req          tfsdk.ModifyAttributePlanRequest
 		resp         ModifySchemaPlanResponse // Plan automatically copied from req
@@ -168,6 +191,54 @@ func TestBlockModifyPlan(t *testing.T) {
 						testBlockPlanModifierNullList{},
 					}, nil),
 				},
+				Private: testEmptyProviderData,
+			},
+		},
+		"block-request-private": {
+			req: modifyAttributePlanWithPrivateRequest(
+				path.Root("test"),
+				schema([]tfsdk.AttributePlanModifier{
+					testBlockPlanModifierPrivateGet{},
+				}, nil),
+				modifyAttributePlanValues{
+					config: "TESTATTRONE",
+					plan:   "TESTATTRONE",
+					state:  "TESTATTRONE",
+				},
+				testProviderData,
+			),
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
+				Plan: tfsdk.Plan{
+					Raw: schemaTfValue("TESTATTRONE"),
+					Schema: schema([]tfsdk.AttributePlanModifier{
+						testBlockPlanModifierPrivateGet{},
+					}, nil),
+				},
+				Private: testProviderData,
+			},
+		},
+		"block-response-private": {
+			req: modifyAttributePlanRequest(
+				path.Root("test"),
+				schema([]tfsdk.AttributePlanModifier{
+					testBlockPlanModifierPrivateSet{},
+				}, nil),
+				modifyAttributePlanValues{
+					config: "TESTATTRONE",
+					plan:   "TESTATTRONE",
+					state:  "TESTATTRONE",
+				},
+			),
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
+				Plan: tfsdk.Plan{
+					Raw: schemaTfValue("TESTATTRONE"),
+					Schema: schema([]tfsdk.AttributePlanModifier{
+						testBlockPlanModifierPrivateSet{},
+					}, nil),
+				},
+				Private: testProviderData,
 			},
 		},
 		"block-modified-previous-error": {
@@ -203,6 +274,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						testBlockPlanModifierNullList{},
 					}, nil),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"block-requires-replacement": {
@@ -228,6 +300,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test"),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"block-requires-replacement-previous-error": {
@@ -266,6 +339,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test"),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"block-requires-replacement-passthrough": {
@@ -293,6 +367,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test"),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"block-requires-replacement-unset": {
@@ -317,6 +392,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestRequiresReplaceFalseModifier{},
 					}, nil),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"block-warnings": {
@@ -350,6 +426,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestWarningDiagModifier{},
 					}, nil),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"block-warnings-previous-error": {
@@ -394,6 +471,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestWarningDiagModifier{},
 					}, nil),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"block-error": {
@@ -424,6 +502,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestErrorDiagModifier{},
 					}, nil),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"block-error-previous-error": {
@@ -465,6 +544,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestErrorDiagModifier{},
 					}, nil),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-modified": {
@@ -489,6 +569,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestAttrPlanValueModifierTwo{},
 					}),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-modified-previous-error": {
@@ -526,6 +607,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestAttrPlanValueModifierTwo{},
 					}),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-requires-replacement": {
@@ -551,6 +633,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test").AtListIndex(0).AtName("nested_attr"),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-requires-replacement-previous-error": {
@@ -589,6 +672,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test").AtListIndex(0).AtName("nested_attr"),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-requires-replacement-passthrough": {
@@ -616,6 +700,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test").AtListIndex(0).AtName("nested_attr"),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-requires-replacement-unset": {
@@ -640,6 +725,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestRequiresReplaceFalseModifier{},
 					}),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-warnings": {
@@ -673,6 +759,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestWarningDiagModifier{},
 					}),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-warnings-previous-error": {
@@ -717,6 +804,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestWarningDiagModifier{},
 					}),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-error": {
@@ -747,6 +835,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestErrorDiagModifier{},
 					}),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 		"nested-attribute-error-previous-error": {
@@ -788,6 +877,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						planmodifiers.TestErrorDiagModifier{},
 					}),
 				},
+				Private: testEmptyProviderData,
 			},
 		},
 	}
@@ -807,7 +897,7 @@ func TestBlockModifyPlan(t *testing.T) {
 
 			BlockModifyPlan(context.Background(), block, tc.req, &tc.resp)
 
-			if diff := cmp.Diff(tc.expectedResp, tc.resp); diff != "" {
+			if diff := cmp.Diff(tc.expectedResp, tc.resp, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
 			}
 		})
@@ -837,5 +927,44 @@ func (t testBlockPlanModifierNullList) Description(ctx context.Context) string {
 }
 
 func (t testBlockPlanModifierNullList) MarkdownDescription(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+type testBlockPlanModifierPrivateGet struct{}
+
+func (t testBlockPlanModifierPrivateGet) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+	expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+
+	key := "providerKeyOne"
+	got, diags := req.Private.GetKey(ctx, key)
+
+	resp.Diagnostics.Append(diags...)
+
+	if string(got) != expected {
+		resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+	}
+}
+
+func (t testBlockPlanModifierPrivateGet) Description(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+func (t testBlockPlanModifierPrivateGet) MarkdownDescription(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+type testBlockPlanModifierPrivateSet struct{}
+
+func (t testBlockPlanModifierPrivateSet) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t testBlockPlanModifierPrivateSet) Description(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+func (t testBlockPlanModifierPrivateSet) MarkdownDescription(ctx context.Context) string {
 	return "This plan modifier is for use during testing only"
 }

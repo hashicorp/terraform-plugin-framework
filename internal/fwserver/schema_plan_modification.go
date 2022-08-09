@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -23,6 +24,9 @@ type ModifySchemaPlanRequest struct {
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
+
+	// Private is provider private state data.
+	Private *privatestate.ProviderData
 }
 
 // ModifySchemaPlanResponse represents a response to a ModifySchemaPlanRequest.
@@ -35,6 +39,9 @@ type ModifySchemaPlanResponse struct {
 	// that changed that requires the resource to be destroyed and
 	// recreated.
 	RequiresReplace path.Paths
+
+	// Private is provider private state data following potential modifications.
+	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to running all attribute
 	// plan modifiers. Returning an empty slice indicates a successful
@@ -57,6 +64,7 @@ func SchemaModifyPlan(ctx context.Context, s fwschema.Schema, req ModifySchemaPl
 			State:         req.State,
 			Plan:          req.Plan,
 			ProviderMeta:  req.ProviderMeta,
+			Private:       req.Private,
 		}
 
 		AttributeModifyPlan(ctx, attribute, attrReq, resp)
@@ -69,6 +77,7 @@ func SchemaModifyPlan(ctx context.Context, s fwschema.Schema, req ModifySchemaPl
 			State:         req.State,
 			Plan:          req.Plan,
 			ProviderMeta:  req.ProviderMeta,
+			Private:       req.Private,
 		}
 
 		BlockModifyPlan(ctx, block, blockReq, resp)

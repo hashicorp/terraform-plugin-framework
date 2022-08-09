@@ -2,6 +2,7 @@ package resource
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -26,6 +27,9 @@ type ModifyPlanRequest struct {
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
+
+	// Private is provider private state data.
+	Private *privatestate.ProviderData
 }
 
 // ModifyPlanResponse represents a response to a
@@ -41,6 +45,10 @@ type ModifyPlanResponse struct {
 	// that changed that requires the resource to be destroyed and
 	// recreated.
 	RequiresReplace path.Paths
+
+	// Private is provider private state data following potential modifications
+	// by provider developer.
+	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to determining the
 	// planned state of the requested resource. Returning an empty slice

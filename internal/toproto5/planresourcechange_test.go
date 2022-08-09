@@ -5,14 +5,16 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestPlanResourceChangeResponse(t *testing.T) {
@@ -56,6 +58,20 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 				},
 			},
 		},
+	}
+
+	testProviderKeyValue := marshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
+	if diags.HasError() {
+		panic("error creating new provider data")
+	}
+
+	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
+	if diags.HasError() {
+		panic("error creating new empty provider data")
 	}
 
 	testCases := map[string]struct {
@@ -123,12 +139,30 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 				},
 			},
 		},
-		"plannedprivate": {
+		"plannedprivate-empty": {
 			input: &fwserver.PlanResourceChangeResponse{
-				PlannedPrivate: []byte("{}"),
+				PlannedPrivate: &privatestate.Data{
+					Framework: map[string][]byte{},
+					Provider:  testEmptyProviderData,
+				},
 			},
 			expected: &tfprotov5.PlanResourceChangeResponse{
-				PlannedPrivate: []byte("{}"),
+				PlannedPrivate: nil,
+			},
+		},
+		"plannedprivate": {
+			input: &fwserver.PlanResourceChangeResponse{
+				PlannedPrivate: &privatestate.Data{
+					Framework: map[string][]byte{
+						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`)},
+					Provider: testProviderData,
+				},
+			},
+			expected: &tfprotov5.PlanResourceChangeResponse{
+				PlannedPrivate: marshalToJson(map[string][]byte{
+					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+				}),
 			},
 		},
 		"plannedstate": {

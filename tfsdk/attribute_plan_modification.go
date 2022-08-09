@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
@@ -84,6 +85,9 @@ type ModifyAttributePlanRequest struct {
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta Config
+
+	// Private is provider private state data.
+	Private *privatestate.ProviderData
 }
 
 // ModifyAttributePlanResponse represents a response to a
@@ -96,6 +100,9 @@ type ModifyAttributePlanResponse struct {
 	// RequiresReplace indicates whether a change in the attribute
 	// requires replacement of the whole resource.
 	RequiresReplace bool
+
+	// Private is provider private state data following potential modification.
+	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to determining the
 	// planned state of the requested resource. Returning an empty slice

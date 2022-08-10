@@ -47,10 +47,6 @@ type UpdateResponse struct {
 	State tfsdk.State
 
 	// Private is the private state resource data following the Update operation.
-	// This field is not pre-populated as there is no pre-existing private state
-	// data at the time a resource is created.
-
-	// Private is the private state resource data following the Update operation.
 	// This field is pre-populated from UpdateRequest.Private and
 	// can be modified during the resource's Update operation.
 	Private *privatestate.ProviderData

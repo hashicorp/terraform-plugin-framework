@@ -81,17 +81,10 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 	}
 
-	privateData := &privatestate.Data{}
-	privateProviderData := privatestate.EmptyProviderData(ctx)
-
 	// Ensure that resp.PlannedPrivate is never nil.
-	resp.PlannedPrivate = privateData
+	resp.PlannedPrivate = &privatestate.Data{}
 
 	if req.PriorPrivate != nil {
-		if req.PriorPrivate.Provider != nil {
-			privateProviderData = req.PriorPrivate.Provider
-		}
-
 		// Overwrite resp.PlannedPrivate with req.PriorPrivate providing
 		// it is not nil.
 		resp.PlannedPrivate = req.PriorPrivate
@@ -176,6 +169,12 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.
 	if !resp.PlannedState.Raw.IsNull() {
+		privateProviderData := privatestate.EmptyProviderData(ctx)
+
+		if resp.PlannedPrivate != nil && resp.PlannedPrivate.Provider != nil {
+			privateProviderData = resp.PlannedPrivate.Provider
+		}
+
 		modifySchemaPlanReq := ModifySchemaPlanRequest{
 			Config:  *req.Config,
 			Plan:    stateToPlan(*resp.PlannedState),
@@ -190,7 +189,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		modifySchemaPlanResp := ModifySchemaPlanResponse{
 			Diagnostics: resp.Diagnostics,
 			Plan:        modifySchemaPlanReq.Plan,
-			Private:     privateProviderData,
+			Private:     modifySchemaPlanReq.Private,
 		}
 
 		SchemaModifyPlan(ctx, req.ResourceSchema, modifySchemaPlanReq, &modifySchemaPlanResp)
@@ -216,6 +215,12 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	if resourceWithModifyPlan, ok := resourceImpl.(resource.ResourceWithModifyPlan); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 
+		privateProviderData := privatestate.EmptyProviderData(ctx)
+
+		if resp.PlannedPrivate != nil && resp.PlannedPrivate.Provider != nil {
+			privateProviderData = resp.PlannedPrivate.Provider
+		}
+
 		modifyPlanReq := resource.ModifyPlanRequest{
 			Config:  *req.Config,
 			Plan:    stateToPlan(*resp.PlannedState),
@@ -231,7 +236,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			Diagnostics:     resp.Diagnostics,
 			Plan:            modifyPlanReq.Plan,
 			RequiresReplace: path.Paths{},
-			Private:         privateProviderData,
+			Private:         modifyPlanReq.Private,
 		}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource ModifyPlan")

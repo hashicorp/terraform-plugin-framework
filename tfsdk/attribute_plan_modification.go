@@ -91,6 +91,10 @@ type ModifyAttributePlanRequest struct {
 	// not affect plan output. Any existing data is copied to
 	// ModifyAttributePlanResponse.Private to prevent accidental private state data loss.
 	//
+	// The private state data is always the original data when the schema-based plan
+	// modification began or, is updated as the logic traverses deeper into underlying
+	// attributes.
+	//
 	// Use the GetKey method to read data. Use the SetKey method on
 	// ModifyAttributePlanResponse.Private to update or remove a value.
 	Private *privatestate.ProviderData
@@ -110,6 +114,10 @@ type ModifyAttributePlanResponse struct {
 	// Private is the private state resource data following the ModifyAttributePlan operation.
 	// This field is pre-populated from ModifyAttributePlanRequest.Private and
 	// can be modified during the resource's ModifyAttributePlan operation.
+	//
+	// The private state data is always the original data when the schema-based plan
+	// modification began or, is updated as the logic traverses deeper into underlying
+	// attributes.
 	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to determining the

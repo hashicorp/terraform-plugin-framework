@@ -274,6 +274,12 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
+	testSchemaTypeComputed := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_computed": tftypes.String,
+		},
+	}
+
 	testSchema := tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
 			"test_computed": {
@@ -1137,6 +1143,57 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlannedPrivate: testEmptyPrivate,
 			},
 		},
+		"create-resourcewithmodifyplan-attributeplanmodifier-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
+				},
+				PriorState:     testEmptyState,
+				ResourceSchema: testSchemaAttributePlanModifierPrivatePlanResponse,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchemaAttributePlanModifierPrivatePlanResponse, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.ResourceWithModifyPlan{
+							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+
+								key := "providerKeyOne"
+								got, diags := req.Private.GetKey(ctx, key)
+
+								resp.Diagnostics.Append(diags...)
+
+								if string(got) != expected {
+									resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+								}
+							},
+						}, nil
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					}),
+					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
+				},
+				PlannedPrivate: testPrivateProvider,
+			},
+		},
 		"delete-resourcewithmodifyplan-request-config": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -1494,6 +1551,45 @@ func TestServerPlanResourceChange(t *testing.T) {
 				ResourceType: &testprovider.ResourceType{
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.ResourceWithModifyPlan{
+							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+								resp.Diagnostics.Append(diags...)
+							},
+						}, nil
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState:   testEmptyState,
+				PlannedPrivate: testPrivateProvider,
+			},
+		},
+		"delete-resourcewithmodifyplan-attributeplanmodifier-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
+				},
+				ProposedNewState: testEmptyPlan,
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
+				},
+				ResourceSchema: testSchema,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchemaAttributePlanModifierPrivatePlanResponse, nil
 					},
 					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
 						return &testprovider.ResourceWithModifyPlan{
@@ -2260,6 +2356,55 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchema,
+				},
+				PlannedPrivate: testPrivateProvider,
+			},
+		},
+		"update-resourcewithmodifyplan-attributeplanmodifier-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchemaAttributePlanModifierPrivatePlanResponse,
+				ResourceType: &testprovider.ResourceType{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return testSchemaAttributePlanModifierPrivatePlanResponse, nil
+					},
+					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+						return &testprovider.ResourceWithModifyPlan{
+							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+								resp.Diagnostics.Append(diags...)
+							},
+						}, nil
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
 				PlannedPrivate: testPrivateProvider,
 			},

@@ -50,6 +50,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 	privateProviderData := privatestate.EmptyProviderData(ctx)
 
 	if req.Private != nil {
+		resp.Private = req.Private
 		privateProviderData = req.Private
 	}
 
@@ -110,7 +111,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
-					Private:       privateProviderData,
+					Private:       resp.Private,
 				}
 
 				AttributeModifyPlan(ctx, attr, attrReq, resp)
@@ -123,7 +124,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
-					Private:       privateProviderData,
+					Private:       resp.Private,
 				}
 
 				BlockModifyPlan(ctx, block, blockReq, resp)
@@ -151,7 +152,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
-					Private:       privateProviderData,
+					Private:       resp.Private,
 				}
 
 				AttributeModifyPlan(ctx, attr, attrReq, resp)
@@ -164,7 +165,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
-					Private:       privateProviderData,
+					Private:       resp.Private,
 				}
 
 				BlockModifyPlan(ctx, block, blockReq, resp)

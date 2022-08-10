@@ -918,6 +918,898 @@ func TestAttributeModifyPlan(t *testing.T) {
 				Private: testProviderData,
 			},
 		},
+		"attribute-list-nested-private": {
+			req: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				Private: testProviderData,
+			},
+		},
+		"attribute-set-nested-private": {
+			req: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				Private: testProviderData,
+			},
+		},
+		"attribute-map-nested-private": {
+			req: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: tfsdk.AttributePlanModifiers{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				Private: testProviderData,
+			},
+		},
+		"attribute-single-nested-private": {
+			req: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testing": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testing": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"testing": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+									"testing": {
+										Type:     types.StringType,
+										Optional: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: []tfsdk.AttributePlanModifier{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testing": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testing": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"testing": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+									"testing": {
+										Type:     types.StringType,
+										Optional: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: []tfsdk.AttributePlanModifier{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testing": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testing": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"testing": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+									"testing": {
+										Type:     types.StringType,
+										Optional: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: []tfsdk.AttributePlanModifier{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+			},
+			resp: ModifySchemaPlanResponse{},
+			expectedResp: ModifySchemaPlanResponse{
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testing": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testing": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"testing": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+									"testing": {
+										Type:     types.StringType,
+										Optional: true,
+										PlanModifiers: tfsdk.AttributePlanModifiers{
+											planmodifiers.TestAttrPlanPrivateModifierGet{},
+										},
+									},
+								}),
+								Required: true,
+								PlanModifiers: []tfsdk.AttributePlanModifier{
+									planmodifiers.TestAttrPlanPrivateModifierSet{},
+								},
+							},
+						},
+					},
+				},
+				Private: testProviderData,
+			},
+		},
 		"attribute-plan-previous-error": {
 			req: tfsdk.ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),

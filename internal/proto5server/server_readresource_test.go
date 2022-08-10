@@ -2,7 +2,6 @@ package proto5server
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -12,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -211,14 +211,14 @@ func TestServerReadResource(t *testing.T) {
 			request: &tfprotov5.ReadResourceRequest{
 				CurrentState: testEmptyDynamicValue,
 				TypeName:     "test_resource",
-				Private: marshalToJson(map[string][]byte{
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
 					".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
 					"providerKey":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),
 			},
 			expectedResponse: &tfprotov5.ReadResourceResponse{
 				NewState: testEmptyDynamicValue,
-				Private: marshalToJson(map[string][]byte{
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
 					".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
 					"providerKey":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),
@@ -370,7 +370,7 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &tfprotov5.ReadResourceResponse{
 				NewState: testEmptyDynamicValue,
-				Private: marshalToJson(map[string][]byte{
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
 					"providerKey": []byte(`{"key": "value"}`),
 				}),
 			},
@@ -394,13 +394,4 @@ func TestServerReadResource(t *testing.T) {
 			}
 		})
 	}
-}
-
-func marshalToJson(input map[string][]byte) []byte {
-	output, err := json.Marshal(input)
-	if err != nil {
-		panic(err)
-	}
-
-	return output
 }

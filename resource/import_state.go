@@ -37,9 +37,9 @@ type ImportStateResponse struct {
 	// refresh the resource, e.g. call the Resource Read method.
 	State tfsdk.State
 
-	// Private is the private state resource data following the import operation.
+	// Private is the private state resource data following the Import operation.
 	// This field is not pre-populated as there is no pre-existing private state
-	// data at the time a resource is imported.
+	// data during the resource's Import operation.
 	Private *privatestate.ProviderData
 }
 

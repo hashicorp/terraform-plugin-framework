@@ -47,13 +47,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 	var requiresReplace bool
 
-	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
-
-	resp.Diagnostics.Append(diags...)
-
-	if diags.HasError() {
-		return
-	}
+	privateProviderData := privatestate.EmptyProviderData(ctx)
 
 	if req.Private != nil {
 		privateProviderData = req.Private

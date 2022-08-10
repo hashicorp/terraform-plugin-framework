@@ -209,6 +209,13 @@ func NewProviderData(ctx context.Context, data []byte) (*ProviderData, diag.Diag
 	return providerData, diags
 }
 
+// EmptyProviderData creates a ProviderData containing initialised but empty data.
+func EmptyProviderData(ctx context.Context) *ProviderData {
+	return &ProviderData{
+		data: make(map[string][]byte),
+	}
+}
+
 // ProviderData contains private state data for provider usage.
 type ProviderData struct {
 	data map[string][]byte
@@ -325,4 +332,32 @@ func ValidateProviderDataKey(ctx context.Context, key string) diag.Diagnostics {
 // keys in Data.Framework
 func isInvalidProviderDataKey(_ context.Context, key string) bool {
 	return strings.HasPrefix(key, ".")
+}
+
+// MustMarshalToJson is for use in tests and panics if input cannot be marshalled to JSON.
+func MustMarshalToJson(input map[string][]byte) []byte {
+	output, err := json.Marshal(input)
+	if err != nil {
+		panic(err)
+	}
+
+	return output
+}
+
+// MustProviderData is for use in tests and panics if the underlying call to NewProviderData
+// returns diag.Diagnostics that contains any errors.
+func MustProviderData(ctx context.Context, data []byte) *ProviderData {
+	providerData, diags := NewProviderData(ctx, data)
+
+	if diags.HasError() {
+		var diagMsgs []string
+
+		for _, v := range diags {
+			diagMsgs = append(diagMsgs, fmt.Sprintf("%s: %s", v.Summary(), v.Detail()))
+		}
+
+		panic(fmt.Sprintf("error creating new provider data: %s", strings.Join(diagMsgs, ", ")))
+	}
+
+	return providerData
 }

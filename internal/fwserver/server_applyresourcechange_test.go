@@ -89,14 +89,11 @@ func TestServerApplyResourceChange(t *testing.T) {
 		".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
 	}
 
-	providerKeyValue := marshalToJson(map[string][]byte{
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
-	testProviderData, diags := privatestate.NewProviderData(context.Background(), providerKeyValue)
-	if diags.HasError() {
-		panic("error creating new provider data")
-	}
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testPrivate := &privatestate.Data{
 		Framework: testPrivateFrameworkMap,
@@ -111,10 +108,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 		Provider: testProviderData,
 	}
 
-	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
-	if diags.HasError() {
-		panic("error creating new empty provider data")
-	}
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testEmptyPrivate := &privatestate.Data{
 		Provider: testEmptyProviderData,

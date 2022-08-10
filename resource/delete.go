@@ -17,8 +17,10 @@ type DeleteRequest struct {
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
 
-	// Private is the current private state resource data prior to the Delete
-	// operation.
+	// Private is provider-defined resource private state data which was previously
+	// stored with the resource state.
+	//
+	// Use the GetKey method to read data.
 	Private *privatestate.ProviderData
 }
 

@@ -75,14 +75,11 @@ func TestServerReadResource(t *testing.T) {
 		".frameworkKey": []byte(`{"fk": "framework value"}`),
 	}
 
-	providerKeyValue := marshalToJson(map[string][]byte{
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
-	testProviderData, diags := privatestate.NewProviderData(context.Background(), providerKeyValue)
-	if diags.HasError() {
-		panic("error creating new provider data")
-	}
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testPrivate := &privatestate.Data{
 		Framework: testPrivateFrameworkMap,
@@ -97,13 +94,10 @@ func TestServerReadResource(t *testing.T) {
 		Provider: testProviderData,
 	}
 
-	emptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
-	if diags.HasError() {
-		panic("error creating new empty provider data")
-	}
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
-	emptyPrivate := &privatestate.Data{
-		Provider: emptyProviderData,
+	testEmptyPrivate := &privatestate.Data{
+		Provider: testEmptyProviderData,
 	}
 
 	testCases := map[string]struct {
@@ -162,7 +156,7 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testCurrentState,
-				Private:  emptyPrivate,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"request-providermeta": {
@@ -196,7 +190,7 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testCurrentState,
-				Private:  emptyPrivate,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"request-private": {
@@ -263,7 +257,7 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testCurrentState,
-				Private:  emptyPrivate,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"response-diagnostics": {
@@ -298,7 +292,7 @@ func TestServerReadResource(t *testing.T) {
 					),
 				},
 				NewState: testCurrentState,
-				Private:  emptyPrivate,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"response-state": {
@@ -331,7 +325,7 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testNewState,
-				Private:  emptyPrivate,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"response-state-removeresource": {
@@ -355,7 +349,7 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testNewStateRemoved,
-				Private:  emptyPrivate,
+				Private:  testEmptyPrivate,
 			},
 		},
 		"response-private": {

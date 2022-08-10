@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -465,7 +466,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					"test_computed": tftypes.NewValue(tftypes.String, ""),
 					"test_required": tftypes.NewValue(tftypes.String, ""),
 				}),
-				Private: marshalToJson(map[string][]byte{
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
 					"providerKey": []byte(`{"key": "value"}`),
 				}),
 			},
@@ -615,7 +616,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
 				}),
 				TypeName: "test_resource",
-				PlannedPrivate: marshalToJson(map[string][]byte{
+				PlannedPrivate: privatestate.MustMarshalToJson(map[string][]byte{
 					"providerKey": []byte(`{"key": "value"}`),
 				}),
 			},
@@ -1016,7 +1017,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 				}),
 				ProviderMeta: testProviderMetaValue,
 				TypeName:     "test_resource",
-				PlannedPrivate: marshalToJson(map[string][]byte{
+				PlannedPrivate: privatestate.MustMarshalToJson(map[string][]byte{
 					".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
 					"providerKey":   []byte(`{"providerKey": "provider value"}`),
 				}),
@@ -1027,7 +1028,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					"test_computed": tftypes.NewValue(tftypes.String, nil),
 					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
 				}),
-				Private: marshalToJson(map[string][]byte{
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
 					".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
 					"providerKey":   []byte(`{"providerKey": "provider value"}`),
 				}),
@@ -1248,7 +1249,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
 				}),
 				TypeName: "test_resource",
-				PlannedPrivate: marshalToJson(map[string][]byte{
+				PlannedPrivate: privatestate.MustMarshalToJson(map[string][]byte{
 					".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
 				}),
 			},
@@ -1257,7 +1258,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 					"test_computed": tftypes.NewValue(tftypes.String, nil),
 					"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
 				}),
-				Private: marshalToJson(map[string][]byte{
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
 					".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
 					"providerKey":   []byte(`{"providerKey": "provider value"}`),
 				}),

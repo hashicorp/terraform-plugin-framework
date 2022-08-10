@@ -93,13 +93,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		updateReq.ProviderMeta = *req.ProviderMeta
 	}
 
-	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
-
-	resp.Diagnostics.Append(diags...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	privateProviderData := privatestate.EmptyProviderData(ctx)
 
 	updateReq.Private = privateProviderData
 	updateResp.Private = privateProviderData

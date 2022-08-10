@@ -134,19 +134,13 @@ func TestBlockModifyPlan(t *testing.T) {
 		return req
 	}
 
-	providerKeyValue := marshalToJson(map[string][]byte{
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
-	testProviderData, diags := privatestate.NewProviderData(context.Background(), providerKeyValue)
-	if diags.HasError() {
-		panic("error creating new provider data")
-	}
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
-	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
-	if diags.HasError() {
-		panic("error creating new empty provider data")
-	}
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testCases := map[string]struct {
 		req          tfsdk.ModifyAttributePlanRequest

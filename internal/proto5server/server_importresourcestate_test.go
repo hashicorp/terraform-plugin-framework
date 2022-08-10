@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -217,7 +218,7 @@ func TestServerImportResourceState(t *testing.T) {
 					{
 						State:    testStateDynamicValue,
 						TypeName: "test_resource",
-						Private: marshalToJson(map[string][]byte{
+						Private: privatestate.MustMarshalToJson(map[string][]byte{
 							"providerKey": []byte(`{"key": "value"}`),
 						}),
 					},

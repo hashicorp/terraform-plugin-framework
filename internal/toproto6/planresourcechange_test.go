@@ -60,19 +60,13 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 		},
 	}
 
-	testProviderKeyValue := marshalToJson(map[string][]byte{
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
-	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
-	if diags.HasError() {
-		panic("error creating new provider data")
-	}
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
-	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
-	if diags.HasError() {
-		panic("error creating new empty provider data")
-	}
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testCases := map[string]struct {
 		input    *fwserver.PlanResourceChangeResponse
@@ -159,7 +153,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.PlanResourceChangeResponse{
-				PlannedPrivate: marshalToJson(map[string][]byte{
+				PlannedPrivate: privatestate.MustMarshalToJson(map[string][]byte{
 					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
 					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),

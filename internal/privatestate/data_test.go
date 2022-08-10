@@ -2,7 +2,6 @@ package privatestate
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -219,63 +218,63 @@ func TestNewData(t *testing.T) {
 	// 1 x 1 transparent gif pixel.
 	const transPixel = "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3B"
 
-	frameworkInvalidUTF8 := marshalToJson(map[string][]byte{
+	frameworkInvalidUTF8 := MustMarshalToJson(map[string][]byte{
 		".frameworkKeyOne": []byte(transPixel),
 		".frameworkKeyTwo": []byte(`{"fwKeyTwo": {"k2": "two", "k3": 3}}`),
 		"providerKeyOne":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 		"providerKeyTwo":   []byte(`{"pKeyTwo": {"k2": "two", "k3": 3}}`),
 	})
 
-	frameworkValueInvalidUTF8 := marshalToJson(map[string][]byte{
+	frameworkValueInvalidUTF8 := MustMarshalToJson(map[string][]byte{
 		".frameworkKeyOne": []byte(fmt.Sprintf(`{"fwKeyOne": "%s"}`, transPixel)),
 		".frameworkKeyTwo": []byte(`{"fwKeyTwo": {"k2": "two", "k3": 3}}`),
 		"providerKeyOne":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 		"providerKeyTwo":   []byte(`{"pKeyTwo": {"k2": "two", "k3": 3}}`),
 	})
 
-	frameworkInvalidJSON := marshalToJson(map[string][]byte{
+	frameworkInvalidJSON := MustMarshalToJson(map[string][]byte{
 		".frameworkKeyOne": []byte(`{`),
 		".frameworkKeyTwo": []byte(`{"fwKeyTwo": {"k2": "two", "k3": 3}}`),
 		"providerKeyOne":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 		"providerKeyTwo":   []byte(`{"pKeyTwo": {"k2": "two", "k3": 3}}`),
 	})
 
-	frameworkValueInvalidJSON := marshalToJson(map[string][]byte{
+	frameworkValueInvalidJSON := MustMarshalToJson(map[string][]byte{
 		".frameworkKeyOne": []byte(`{"fwKeyOne": { }`),
 		".frameworkKeyTwo": []byte(`{"fwKeyTwo": {"k2": "two", "k3": 3}}`),
 		"providerKeyOne":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 		"providerKeyTwo":   []byte(`{"pKeyTwo": {"k2": "two", "k3": 3}}`),
 	})
 
-	providerInvalidUTF8 := marshalToJson(map[string][]byte{
+	providerInvalidUTF8 := MustMarshalToJson(map[string][]byte{
 		".frameworkKeyOne": []byte(`{"fwKeyOne": {"k0": "zero", "k1": 1}}`),
 		".frameworkKeyTwo": []byte(`{"fwKeyTwo": {"k2": "two", "k3": 3}}`),
 		"providerKeyOne":   []byte(transPixel),
 		"providerKeyTwo":   []byte(`{"pKeyTwo": {"k2": "two", "k3": 3}}`),
 	})
 
-	providerValueInvalidUTF8 := marshalToJson(map[string][]byte{
+	providerValueInvalidUTF8 := MustMarshalToJson(map[string][]byte{
 		".frameworkKeyOne": []byte(`{"fwKeyOne": {"k0": "zero", "k1": 1}}`),
 		".frameworkKeyTwo": []byte(`{"fwKeyTwo": {"k2": "two", "k3": 3}}`),
 		"providerKeyOne":   []byte(fmt.Sprintf(`{"fwKeyOne": "%s"}`, transPixel)),
 		"providerKeyTwo":   []byte(`{"pKeyTwo": {"k2": "two", "k3": 3}}`),
 	})
 
-	providerInvalidJSON := marshalToJson(map[string][]byte{
+	providerInvalidJSON := MustMarshalToJson(map[string][]byte{
 		".frameworkKeyOne": []byte(`{"fwKeyOne": {"k0": "zero", "k1": 1}}`),
 		".frameworkKeyTwo": []byte(`{"fwKeyTwo": {"k2": "two", "k3": 3}}`),
 		"providerKeyOne":   []byte(`{`),
 		"providerKeyTwo":   []byte(`{"pKeyTwo": {"k2": "two", "k3": 3}}`),
 	})
 
-	providerValueInvalidJSON := marshalToJson(map[string][]byte{
+	providerValueInvalidJSON := MustMarshalToJson(map[string][]byte{
 		".frameworkKeyOne": []byte(`{"fwKeyOne": {"k0": "zero", "k1": 1}}`),
 		".frameworkKeyTwo": []byte(`{"fwKeyTwo": {"k2": "two", "k3": 3}}`),
 		"providerKeyOne":   []byte(`{"pKeyOne": { }`),
 		"providerKeyTwo":   []byte(`{"pKeyTwo": {"k2": "two", "k3": 3}}`),
 	})
 
-	frameworkProviderData := marshalToJson(map[string][]byte{
+	frameworkProviderData := MustMarshalToJson(map[string][]byte{
 		".frameworkKeyOne": []byte(`{"fwKeyOne": {"k0": "zero", "k1": 1}}`),
 		".frameworkKeyTwo": []byte(`{"fwKeyTwo": {"k2": "two", "k3": 3}}`),
 		"providerKeyOne":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
@@ -436,19 +435,19 @@ func TestNewProviderData(t *testing.T) {
 	// 1 x 1 transparent gif pixel.
 	const transPixel = "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3B"
 
-	invalidKey := marshalToJson(map[string][]byte{
+	invalidKey := MustMarshalToJson(map[string][]byte{
 		".providerKeyOne": {},
 	})
 
-	invalidUTF8Value := marshalToJson(map[string][]byte{
+	invalidUTF8Value := MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(transPixel),
 	})
 
-	invalidJSONValue := marshalToJson(map[string][]byte{
+	invalidJSONValue := MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{`),
 	})
 
-	validKeyValue := marshalToJson(map[string][]byte{
+	validKeyValue := MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
@@ -817,13 +816,4 @@ func TestValidateProviderDataKey(t *testing.T) {
 			}
 		})
 	}
-}
-
-func marshalToJson(input map[string][]byte) []byte {
-	output, err := json.Marshal(input)
-	if err != nil {
-		panic(err)
-	}
-
-	return output
 }

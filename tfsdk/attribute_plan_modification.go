@@ -86,7 +86,13 @@ type ModifyAttributePlanRequest struct {
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta Config
 
-	// Private is provider private state data.
+	// Private is provider-defined resource private state data which was previously
+	// stored with the resource state. This data is opaque to Terraform and does
+	// not affect plan output. Any existing data is copied to
+	// ModifyAttributePlanResponse.Private to prevent accidental private state data loss.
+	//
+	// Use the GetKey method to read data. Use the SetKey method on
+	// ModifyAttributePlanResponse.Private to update or remove a value.
 	Private *privatestate.ProviderData
 }
 
@@ -101,7 +107,9 @@ type ModifyAttributePlanResponse struct {
 	// requires replacement of the whole resource.
 	RequiresReplace bool
 
-	// Private is provider private state data following potential modification.
+	// Private is the private state resource data following the ModifyAttributePlan operation.
+	// This field is pre-populated from ModifyAttributePlanRequest.Private and
+	// can be modified during the resource's ModifyAttributePlan operation.
 	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to determining the

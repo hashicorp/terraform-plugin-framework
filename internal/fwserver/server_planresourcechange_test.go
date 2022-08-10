@@ -437,14 +437,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 		".frameworkKey": []byte(`{"fk": "framework value"}`),
 	}
 
-	providerKeyValue := marshalToJson(map[string][]byte{
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
-	testProviderData, diags := privatestate.NewProviderData(context.Background(), providerKeyValue)
-	if diags.HasError() {
-		panic("error creating new provider data")
-	}
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testPrivateProvider := &privatestate.Data{
 		Provider: testProviderData,
@@ -455,13 +452,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 		Provider:  testProviderData,
 	}
 
-	emptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
-	if diags.HasError() {
-		panic("error creating new empty provider data")
-	}
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
-	emptyPrivate := &privatestate.Data{
-		Provider: emptyProviderData,
+	testEmptyPrivate := &privatestate.Data{
+		Provider: testEmptyProviderData,
 	}
 
 	testCases := map[string]struct {
@@ -507,7 +501,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-attributeplanmodifier-request-privateplan": {
@@ -590,7 +584,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchemaAttributePlanModifierAttributePlan,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-attributeplanmodifier-response-privateplan": {
@@ -678,7 +672,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchemaAttributePlanModifierDiagnosticsError,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-attributeplanmodifier-response-requiresreplace": {
@@ -727,7 +721,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test_required"),
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-resourcewithmodifyplan-request-config": {
@@ -778,7 +772,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-resourcewithmodifyplan-request-private": {
@@ -884,7 +878,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-resourcewithmodifyplan-request-providermeta": {
@@ -936,7 +930,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-resourcewithmodifyplan-response-diagnostics": {
@@ -986,7 +980,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-resourcewithmodifyplan-response-plannedstate": {
@@ -1037,7 +1031,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-resourcewithmodifyplan-response-private": {
@@ -1140,7 +1134,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test_required"),
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"delete-resourcewithmodifyplan-request-config": {
@@ -1185,7 +1179,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState:   testEmptyState,
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"delete-resourcewithmodifyplan-request-private": {
@@ -1279,7 +1273,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState:   testEmptyState,
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"delete-resourcewithmodifyplan-request-providermeta": {
@@ -1325,7 +1319,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState:   testEmptyState,
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"delete-resourcewithmodifyplan-response-diagnostics": {
@@ -1369,7 +1363,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					diag.NewErrorDiagnostic("error summary", "error detail"),
 				},
 				PlannedState:   testEmptyState,
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"delete-resourcewithmodifyplan-response-plannedstate": {
@@ -1423,7 +1417,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"delete-resourcewithmodifyplan-response-requiresreplace": {
@@ -1473,7 +1467,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test_required"),
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"delete-resourcewithmodifyplan-response-private": {
@@ -1561,7 +1555,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-attributeplanmodifier-request-private": {
@@ -1656,7 +1650,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchemaAttributePlanModifierAttributePlan,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-attributeplanmodifier-response-private": {
@@ -1756,7 +1750,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchemaAttributePlanModifierDiagnosticsError,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-attributeplanmodifier-response-requiresreplace": {
@@ -1806,7 +1800,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test_required"),
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-resourcewithmodifyplan-request-config": {
@@ -1863,7 +1857,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-resourcewithmodifyplan-request-proposednewstate": {
@@ -1920,7 +1914,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-resourcewithmodifyplan-request-providermeta": {
@@ -1978,7 +1972,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-resourcewithmodifyplan-request-private": {
@@ -2095,7 +2089,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-resourcewithmodifyplan-response-plannedstate": {
@@ -2152,7 +2146,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-resourcewithmodifyplan-response-requiresreplace": {
@@ -2214,7 +2208,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test_required"),
 				},
-				PlannedPrivate: emptyPrivate,
+				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"update-resourcewithmodifyplan-response-private": {

@@ -79,14 +79,11 @@ func TestServerUpdateResource(t *testing.T) {
 		".frameworkKey": []byte(`{"fk": "framework value"}`),
 	}
 
-	providerKeyValue := marshalToJson(map[string][]byte{
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
-	testProviderData, diags := privatestate.NewProviderData(context.Background(), providerKeyValue)
-	if diags.HasError() {
-		panic("error creating new provider data")
-	}
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testPrivate := &privatestate.Data{
 		Framework: testPrivateFrameworkMap,
@@ -101,13 +98,10 @@ func TestServerUpdateResource(t *testing.T) {
 		Provider: testProviderData,
 	}
 
-	emptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
-	if diags.HasError() {
-		panic("error creating new empty provider data")
-	}
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
-	emptyPrivate := &privatestate.Data{
-		Provider: emptyProviderData,
+	testEmptyPrivate := &privatestate.Data{
+		Provider: testEmptyProviderData,
 	}
 
 	testCases := map[string]struct {
@@ -170,7 +164,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: emptyPrivate,
+				Private: testEmptyPrivate,
 			},
 		},
 		"request-plannedstate": {
@@ -228,7 +222,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: emptyPrivate,
+				Private: testEmptyPrivate,
 			},
 		},
 		"request-priorstate": {
@@ -286,7 +280,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: emptyPrivate,
+				Private: testEmptyPrivate,
 			},
 		},
 		"request-providermeta": {
@@ -345,7 +339,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: emptyPrivate,
+				Private: testEmptyPrivate,
 			},
 		},
 		"request-private": {
@@ -444,7 +438,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: emptyPrivate,
+				Private: testEmptyPrivate,
 			},
 		},
 		"response-diagnostics": {
@@ -506,7 +500,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: emptyPrivate,
+				Private: testEmptyPrivate,
 			},
 		},
 		"response-newstate": {
@@ -560,7 +554,7 @@ func TestServerUpdateResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				Private: emptyPrivate,
+				Private: testEmptyPrivate,
 			},
 		},
 		"response-newstate-null": {
@@ -615,7 +609,7 @@ func TestServerUpdateResource(t *testing.T) {
 					Raw:    tftypes.NewValue(testSchemaType, nil),
 					Schema: testSchema,
 				},
-				Private: emptyPrivate,
+				Private: testEmptyPrivate,
 			},
 		},
 		"response-private": {

@@ -82,13 +82,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	}
 
 	privateData := &privatestate.Data{}
-	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
-
-	resp.Diagnostics.Append(diags...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	privateProviderData := privatestate.EmptyProviderData(ctx)
 
 	// Ensure that resp.PlannedPrivate is never nil.
 	resp.PlannedPrivate = privateData

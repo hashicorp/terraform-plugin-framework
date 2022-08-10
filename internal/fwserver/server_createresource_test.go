@@ -2,7 +2,6 @@ package fwserver_test
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -79,19 +78,13 @@ func TestServerCreateResource(t *testing.T) {
 		TestProviderMetaAttribute types.String `tfsdk:"test_provider_meta_attribute"`
 	}
 
-	testProviderKeyValue := marshalToJson(map[string][]byte{
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
-	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
-	if diags.HasError() {
-		panic("error creating new provider data")
-	}
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
-	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
-	if diags.HasError() {
-		panic("error creating new empty provider data")
-	}
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testEmptyPrivate := &privatestate.Data{
 		Provider: testEmptyProviderData,
@@ -415,13 +408,4 @@ func TestServerCreateResource(t *testing.T) {
 			}
 		})
 	}
-}
-
-func marshalToJson(input map[string][]byte) []byte {
-	output, err := json.Marshal(input)
-	if err != nil {
-		panic(err)
-	}
-
-	return output
 }

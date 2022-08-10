@@ -68,23 +68,17 @@ func TestServerImportResourceState(t *testing.T) {
 		Schema: testSchema,
 	}
 
-	testProviderKeyValue := marshalToJson(map[string][]byte{
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
-	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
-	if diags.HasError() {
-		panic("error creating new provider data")
-	}
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testPrivate := &privatestate.Data{
 		Provider: testProviderData,
 	}
 
-	testEmptyProviderData, diags := privatestate.NewProviderData(context.Background(), nil)
-	if diags.HasError() {
-		panic("error creating new empty provider data")
-	}
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testEmptyPrivate := &privatestate.Data{
 		Provider: testEmptyProviderData,

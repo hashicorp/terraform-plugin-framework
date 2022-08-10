@@ -83,13 +83,7 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		ID: req.ID,
 	}
 
-	privateProviderData, diags := privatestate.NewProviderData(ctx, nil)
-
-	resp.Diagnostics.Append(diags...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	privateProviderData := privatestate.EmptyProviderData(ctx)
 
 	importResp := resource.ImportStateResponse{
 		State: tfsdk.State{

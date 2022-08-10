@@ -78,14 +78,11 @@ func TestImportResourceStateResponse(t *testing.T) {
 		},
 	}
 
-	testProviderKeyValue := marshalToJson(map[string][]byte{
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
-	testProviderData, diags := privatestate.NewProviderData(context.Background(), testProviderKeyValue)
-	if diags.HasError() {
-		panic("error creating new provider data")
-	}
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testCases := map[string]struct {
 		input    *fwserver.ImportResourceStateResponse
@@ -190,7 +187,7 @@ func TestImportResourceStateResponse(t *testing.T) {
 				ImportedResources: []*tfprotov6.ImportedResource{
 					{
 						State: &testEmptyProto6DynamicValue,
-						Private: marshalToJson(map[string][]byte{
+						Private: privatestate.MustMarshalToJson(map[string][]byte{
 							".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
 							"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 						}),

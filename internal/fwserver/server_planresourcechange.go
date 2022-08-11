@@ -82,12 +82,17 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	}
 
 	// Ensure that resp.PlannedPrivate is never nil.
-	resp.PlannedPrivate = &privatestate.Data{}
+	resp.PlannedPrivate = privatestate.EmptyData(ctx)
 
 	if req.PriorPrivate != nil {
 		// Overwrite resp.PlannedPrivate with req.PriorPrivate providing
 		// it is not nil.
 		resp.PlannedPrivate = req.PriorPrivate
+
+		// Ensure that resp.PlannedPrivate.Provider is never nil.
+		if resp.PlannedPrivate.Provider == nil {
+			resp.PlannedPrivate.Provider = privatestate.EmptyProviderData(ctx)
+		}
 	}
 
 	resp.PlannedState = planToState(*req.ProposedNewState)
@@ -169,17 +174,11 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.
 	if !resp.PlannedState.Raw.IsNull() {
-		privateProviderData := privatestate.EmptyProviderData(ctx)
-
-		if resp.PlannedPrivate != nil && resp.PlannedPrivate.Provider != nil {
-			privateProviderData = resp.PlannedPrivate.Provider
-		}
-
 		modifySchemaPlanReq := ModifySchemaPlanRequest{
 			Config:  *req.Config,
 			Plan:    stateToPlan(*resp.PlannedState),
 			State:   *req.PriorState,
-			Private: privateProviderData,
+			Private: resp.PlannedPrivate.Provider,
 		}
 
 		if req.ProviderMeta != nil {
@@ -215,17 +214,11 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	if resourceWithModifyPlan, ok := resourceImpl.(resource.ResourceWithModifyPlan); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 
-		privateProviderData := privatestate.EmptyProviderData(ctx)
-
-		if resp.PlannedPrivate != nil && resp.PlannedPrivate.Provider != nil {
-			privateProviderData = resp.PlannedPrivate.Provider
-		}
-
 		modifyPlanReq := resource.ModifyPlanRequest{
 			Config:  *req.Config,
 			Plan:    stateToPlan(*resp.PlannedState),
 			State:   *req.PriorState,
-			Private: privateProviderData,
+			Private: resp.PlannedPrivate.Provider,
 		}
 
 		if req.ProviderMeta != nil {

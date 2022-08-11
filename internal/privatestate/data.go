@@ -171,6 +171,13 @@ func NewData(ctx context.Context, data []byte) (*Data, diag.Diagnostics) {
 	return &output, diags
 }
 
+// EmptyData creates an initialised but empty Data.
+func EmptyData(ctx context.Context) *Data {
+	return &Data{
+		Provider: EmptyProviderData(ctx),
+	}
+}
+
 // NewProviderData creates a new ProviderData based on the given slice of bytes.
 // It must be a JSON encoded slice of bytes, that is map[string][]byte.
 func NewProviderData(ctx context.Context, data []byte) (*ProviderData, diag.Diagnostics) {

@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -18,22 +19,25 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema      Schema
-		path        *tftypes.AttributePath
-		expected    Attribute
-		expectedErr string
+		schema        Schema
+		path          path.Path
+		expected      fwschema.Attribute
+		expectedDiags diag.Diagnostics
 	}{
 		"empty-root": {
-			schema:      Schema{},
-			path:        tftypes.NewAttributePath(),
-			expected:    Attribute{},
-			expectedErr: "got unexpected type tfsdk.Schema",
-		},
-		"empty-nil": {
-			schema:      Schema{},
-			path:        nil,
-			expected:    Attribute{},
-			expectedErr: "got unexpected type tfsdk.Schema",
+			schema:   Schema{},
+			path:     path.Empty(),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: \n"+
+						"Original Error: got unexpected type tfsdk.Schema",
+				),
+			},
 		},
 		"root": {
 			schema: Schema{
@@ -44,22 +48,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath(),
-			expected:    Attribute{},
-			expectedErr: "got unexpected type tfsdk.Schema",
-		},
-		"nil": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
-					"test": {
-						Type:     types.StringType,
-						Required: true,
-					},
-				},
+			path:     path.Empty(),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: \n"+
+						"Original Error: got unexpected type tfsdk.Schema",
+				),
 			},
-			path:        nil,
-			expected:    Attribute{},
-			expectedErr: "got unexpected type tfsdk.Schema",
 		},
 		"WithAttributeName": {
 			schema: Schema{
@@ -74,7 +74,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test"),
+			path: path.Root("test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
@@ -102,9 +102,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to ListNestedAttributes",
+			path:     path.Root("test").AtName("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test.sub_test\n"+
+						"Original Error: AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to ListNestedAttributes",
+				),
+			},
 		},
 		"WithAttributeName-ListNestedAttributes-WithElementKeyInt": {
 			schema: Schema{
@@ -128,9 +137,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-			expected:    Attribute{},
-			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+			path:     path.Root("test").AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[0]\n"+
+						"Original Error: "+ErrPathInsideAtomicAttribute.Error(),
+				),
+			},
 		},
 		"WithAttributeName-ListNestedAttributes-WithElementKeyInt-WithAttributeName": {
 			schema: Schema{
@@ -154,7 +172,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			path: path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
@@ -182,9 +200,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to ListNestedAttributes",
+			path:     path.Root("test").AtMapKey("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[\"sub_test\"]\n"+
+						"Original Error: ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to ListNestedAttributes",
+				),
+			},
 		},
 		"WithAttributeName-ListNestedAttributes-WithElementKeyValue": {
 			schema: Schema{
@@ -208,9 +235,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to ListNestedAttributes",
+			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[Value(\"sub_test\")]\n"+
+						"Original Error: ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to ListNestedAttributes",
+				),
+			},
 		},
 		"WithAttributeName-ListNestedBlocks-WithAttributeName": {
 			schema: Schema{
@@ -245,9 +281,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeList",
+			path:     path.Root("test").AtName("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test.sub_test\n"+
+						"Original Error: AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeList",
+				),
+			},
 		},
 		"WithAttributeName-ListNestedBlocks-WithElementKeyInt": {
 			schema: Schema{
@@ -282,9 +327,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-			expected:    Attribute{},
-			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+			path:     path.Root("test").AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[0]\n"+
+						"Original Error: "+ErrPathInsideAtomicAttribute.Error(),
+				),
+			},
 		},
 		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
 			schema: Schema{
@@ -319,7 +373,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0).WithAttributeName("sub_test"),
+			path: path.Root("test").AtListIndex(0).AtName("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
@@ -358,9 +412,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeList",
+			path:     path.Root("test").AtMapKey("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[\"sub_test\"]\n"+
+						"Original Error: ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeList",
+				),
+			},
 		},
 		"WithAttributeName-ListNestedBlocks-WithElementKeyValue": {
 			schema: Schema{
@@ -395,9 +458,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to block NestingModeList",
+			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[Value(\"sub_test\")]\n"+
+						"Original Error: ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to block NestingModeList",
+				),
+			},
 		},
 		"WithAttributeName-MapNestedAttributes-WithAttributeName": {
 			schema: Schema{
@@ -421,9 +493,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't use tftypes.AttributeName on maps",
+			path:     path.Root("test").AtName("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test.sub_test\n"+
+						"Original Error: AttributeName(\"sub_test\") still remains in the path: can't use tftypes.AttributeName on maps",
+				),
+			},
 		},
 		"WithAttributeName-MapNestedAttributes-WithElementKeyInt": {
 			schema: Schema{
@@ -447,9 +528,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyInt(0) still remains in the path: can't use tftypes.ElementKeyInt on maps",
+			path:     path.Root("test").AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[0]\n"+
+						"Original Error: ElementKeyInt(0) still remains in the path: can't use tftypes.ElementKeyInt on maps",
+				),
+			},
 		},
 		"WithAttributeName-MapNestedAttributes-WithElementKeyString": {
 			schema: Schema{
@@ -473,9 +563,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
-			expected:    Attribute{},
-			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+			path:     path.Root("test").AtMapKey("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[\"sub_test\"]\n"+
+						"Original Error: "+ErrPathInsideAtomicAttribute.Error(),
+				),
+			},
 		},
 		"WithAttributeName-MapNestedAttributes-WithElementKeyString-WithAttributeName": {
 			schema: Schema{
@@ -499,7 +598,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element").WithAttributeName("sub_test"),
+			path: path.Root("test").AtMapKey("element").AtName("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
@@ -527,9 +626,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't use tftypes.ElementKeyValue on maps",
+			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[Value(\"sub_test\")]\n"+
+						"Original Error: ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't use tftypes.ElementKeyValue on maps",
+				),
+			},
 		},
 		"WithAttributeName-SetNestedAttributes-WithAttributeName": {
 			schema: Schema{
@@ -553,9 +661,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't use tftypes.AttributeName on sets",
+			path:     path.Root("test").AtName("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test.sub_test\n"+
+						"Original Error: AttributeName(\"sub_test\") still remains in the path: can't use tftypes.AttributeName on sets",
+				),
+			},
 		},
 		"WithAttributeName-SetNestedAttributes-WithElementKeyInt": {
 			schema: Schema{
@@ -579,9 +696,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyInt(0) still remains in the path: can't use tftypes.ElementKeyInt on sets",
+			path:     path.Root("test").AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[0]\n"+
+						"Original Error: ElementKeyInt(0) still remains in the path: can't use tftypes.ElementKeyInt on sets",
+				),
+			},
 		},
 		"WithAttributeName-SetNestedAttributes-WithElementKeyString": {
 			schema: Schema{
@@ -605,9 +731,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't use tftypes.ElementKeyString on sets",
+			path:     path.Root("test").AtMapKey("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[\"sub_test\"]\n"+
+						"Original Error: ElementKeyString(\"sub_test\") still remains in the path: can't use tftypes.ElementKeyString on sets",
+				),
+			},
 		},
 		"WithAttributeName-SetNestedAttributes-WithElementKeyValue": {
 			schema: Schema{
@@ -631,9 +766,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
-			expected:    Attribute{},
-			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[Value(\"sub_test\")]\n"+
+						"Original Error: "+ErrPathInsideAtomicAttribute.Error(),
+				),
+			},
 		},
 		"WithAttributeName-SetNestedAttributes-WithElementKeyValue-WithAttributeName": {
 			schema: Schema{
@@ -657,7 +801,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")).WithAttributeName("sub_test"),
+			path: path.Root("test").AtSetValue(types.String{Value: "element"}).AtName("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
@@ -696,9 +840,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeSet",
+			path:     path.Root("test").AtName("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test.sub_test\n"+
+						"Original Error: AttributeName(\"sub_test\") still remains in the path: can't apply tftypes.AttributeName to block NestingModeSet",
+				),
+			},
 		},
 		"WithAttributeName-SetNestedBlocks-WithElementKeyInt": {
 			schema: Schema{
@@ -733,9 +886,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to block NestingModeSet",
+			path:     path.Root("test").AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[0]\n"+
+						"Original Error: ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to block NestingModeSet",
+				),
+			},
 		},
 		"WithAttributeName-SetNestedBlocks-WithElementKeyString": {
 			schema: Schema{
@@ -770,9 +932,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeSet",
+			path:     path.Root("test").AtMapKey("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[\"sub_test\"]\n"+
+						"Original Error: ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeSet",
+				),
+			},
 		},
 		"WithAttributeName-SetNestedBlocks-WithElementKeyValue": {
 			schema: Schema{
@@ -807,9 +978,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
-			expected:    Attribute{},
-			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[Value(\"sub_test\")]\n"+
+						"Original Error: "+ErrPathInsideAtomicAttribute.Error(),
+				),
+			},
 		},
 		"WithAttributeName-SetNestedBlocks-WithElementKeyValue-WithAttributeName": {
 			schema: Schema{
@@ -844,7 +1024,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")).WithAttributeName("sub_test"),
+			path: path.Root("test").AtSetValue(types.String{Value: "element"}).AtName("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
@@ -872,7 +1052,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			path: path.Root("test").AtName("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
@@ -900,9 +1080,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to Attributes",
+			path:     path.Root("test").AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[0]\n"+
+						"Original Error: ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to Attributes",
+				),
+			},
 		},
 		"WithAttributeName-SingleNestedAttributes-WithElementKeyString": {
 			schema: Schema{
@@ -926,9 +1115,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to Attributes",
+			path:     path.Root("test").AtMapKey("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[\"sub_test\"]\n"+
+						"Original Error: ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to Attributes",
+				),
+			},
 		},
 		"WithAttributeName-SingleNestedAttributes-WithElementKeyValue": {
 			schema: Schema{
@@ -952,9 +1150,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to Attributes",
+			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[Value(\"sub_test\")]\n"+
+						"Original Error: ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to Attributes",
+				),
+			},
 		},
 		"WithAttributeName-Object-WithAttributeName": {
 			schema: Schema{
@@ -973,9 +1180,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
-			expected:    Attribute{},
-			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+			path:     path.Root("test").AtName("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test.sub_test\n"+
+						"Original Error: "+ErrPathInsideAtomicAttribute.Error(),
+				),
+			},
 		},
 		"WithAttributeName-WithElementKeyInt-invalid-parent": {
 			schema: Schema{
@@ -990,9 +1206,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to types.StringType",
+			path:     path.Root("test").AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[0]\n"+
+						"Original Error: ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to types.StringType",
+				),
+			},
 		},
 		"WithAttributeName-WithElementKeyInt-valid-parent": {
 			schema: Schema{
@@ -1009,9 +1234,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
-			expected:    Attribute{},
-			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+			path:     path.Root("test").AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[0]\n"+
+						"Original Error: "+ErrPathInsideAtomicAttribute.Error(),
+				),
+			},
 		},
 		"WithAttributeName-WithElementKeyString-invalid-parent": {
 			schema: Schema{
@@ -1026,9 +1260,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element"),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"element\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to types.StringType",
+			path:     path.Root("test").AtMapKey("element"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("element"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[\"element\"]\n"+
+						"Original Error: ElementKeyString(\"element\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to types.StringType",
+				),
+			},
 		},
 		"WithAttributeName-WithElementKeyString-valid-parent": {
 			schema: Schema{
@@ -1045,9 +1288,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element"),
-			expected:    Attribute{},
-			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+			path:     path.Root("test").AtMapKey("element"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("element"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[\"element\"]\n"+
+						"Original Error: "+ErrPathInsideAtomicAttribute.Error(),
+				),
+			},
 		},
 		"WithAttributeName-WithElementKeyValue-invalid-parent": {
 			schema: Schema{
@@ -1062,9 +1314,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyValue(tftypes.String<\"element\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to types.StringType",
+			path:     path.Root("test").AtSetValue(types.String{Value: "element"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.String{Value: "element"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[Value(\"element\")]\n"+
+						"Original Error: ElementKeyValue(tftypes.String<\"element\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to types.StringType",
+				),
+			},
 		},
 		"WithAttributeName-WithElementKeyValue-valid-parent": {
 			schema: Schema{
@@ -1081,9 +1342,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")),
-			expected:    Attribute{},
-			expectedErr: ErrPathInsideAtomicAttribute.Error(),
+			path:     path.Root("test").AtSetValue(types.String{Value: "element"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.String{Value: "element"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[Value(\"element\")]\n"+
+						"Original Error: "+ErrPathInsideAtomicAttribute.Error(),
+				),
+			},
 		},
 		"WithElementKeyInt": {
 			schema: Schema{
@@ -1094,9 +1364,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithElementKeyInt(0),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to schema",
+			path:     path.Empty().AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty().AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: [0]\n"+
+						"Original Error: ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to schema",
+				),
+			},
 		},
 		"WithElementKeyString": {
 			schema: Schema{
@@ -1107,9 +1386,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithElementKeyString("test"),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"test\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to schema",
+			path:     path.Empty().AtMapKey("test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty().AtMapKey("test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: [\"test\"]\n"+
+						"Original Error: ElementKeyString(\"test\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to schema",
+				),
+			},
 		},
 		"WithElementKeyValue": {
 			schema: Schema{
@@ -1120,9 +1408,18 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:        tftypes.NewAttributePath().WithElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
-			expected:    Attribute{},
-			expectedErr: "ElementKeyValue(tftypes.String<\"test\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to schema",
+			path:     path.Empty().AtSetValue(types.String{Value: "test"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty().AtSetValue(types.String{Value: "test"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: [Value(\"test\")]\n"+
+						"Original Error: ElementKeyValue(tftypes.String<\"test\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to schema",
+				),
+			},
 		},
 	}
 
@@ -1132,24 +1429,10 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := tc.schema.AttributeAtPath(tc.path)
+			got, diags := tc.schema.AttributeAtPath(context.Background(), tc.path)
 
-			if err != nil {
-				if tc.expectedErr == "" {
-					t.Errorf("Unexpected error: %s", err)
-					return
-				}
-				if err.Error() != tc.expectedErr {
-					t.Errorf("Expected error to be %q, got %q", tc.expectedErr, err.Error())
-					return
-				}
-				// got expected error
-				return
-			}
-
-			if err == nil && tc.expectedErr != "" {
-				t.Errorf("Expected error to be %q, got nil", tc.expectedErr)
-				return
+			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 
 			if diff := cmp.Diff(got, tc.expected); diff != "" {
@@ -2531,7 +2814,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("non-existent"),
 					"Invalid Schema Path",
-					"When attempting to get the framework type associated with a schema path, an unexpected error was returned. This is either an issue with the provider or terraform-plugin-framework. Please report this to the provider developers.\n\n"+
+					"When attempting to get the framework type associated with a schema path, an unexpected error was returned. This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: non-existent\n"+
 						"Original Error: AttributeName(\"non-existent\") still remains in the path: could not find attribute or block \"non-existent\" in schema",
 				),
@@ -2544,7 +2827,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty().AtListIndex(0),
 					"Invalid Schema Path",
-					"When attempting to get the framework type associated with a schema path, an unexpected error was returned. This is either an issue with the provider or terraform-plugin-framework. Please report this to the provider developers.\n\n"+
+					"When attempting to get the framework type associated with a schema path, an unexpected error was returned. This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: [0]\n"+
 						"Original Error: ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to schema",
 				),
@@ -2557,7 +2840,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty().AtMapKey("invalid"),
 					"Invalid Schema Path",
-					"When attempting to get the framework type associated with a schema path, an unexpected error was returned. This is either an issue with the provider or terraform-plugin-framework. Please report this to the provider developers.\n\n"+
+					"When attempting to get the framework type associated with a schema path, an unexpected error was returned. This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: [\"invalid\"]\n"+
 						"Original Error: ElementKeyString(\"invalid\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to schema",
 				),
@@ -2570,7 +2853,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty().AtSetValue(types.String{Null: true}),
 					"Invalid Schema Path",
-					"When attempting to get the framework type associated with a schema path, an unexpected error was returned. This is either an issue with the provider or terraform-plugin-framework. Please report this to the provider developers.\n\n"+
+					"When attempting to get the framework type associated with a schema path, an unexpected error was returned. This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: [Value(<null>)]\n"+
 						"Original Error: ElementKeyValue(tftypes.String<null>) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to schema",
 				),

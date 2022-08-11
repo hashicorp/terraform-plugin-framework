@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -46,11 +47,19 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 	var requiresReplace bool
 
+	privateProviderData := privatestate.EmptyProviderData(ctx)
+
+	if req.Private != nil {
+		resp.Private = req.Private
+		privateProviderData = req.Private
+	}
+
 	if blockWithPlanModifiers, ok := b.(fwxschema.BlockWithPlanModifiers); ok {
 		for _, planModifier := range blockWithPlanModifiers.GetPlanModifiers() {
 			modifyResp := &tfsdk.ModifyAttributePlanResponse{
 				AttributePlan:   req.AttributePlan,
 				RequiresReplace: requiresReplace,
+				Private:         privateProviderData,
 			}
 
 			planModifier.Modify(ctx, req, modifyResp)
@@ -58,6 +67,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 			req.AttributePlan = modifyResp.AttributePlan
 			resp.Diagnostics.Append(modifyResp.Diagnostics...)
 			requiresReplace = modifyResp.RequiresReplace
+			resp.Private = modifyResp.Private
 
 			// Only on new errors.
 			if modifyResp.Diagnostics.HasError() {
@@ -101,6 +111,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
+					Private:       resp.Private,
 				}
 
 				AttributeModifyPlan(ctx, attr, attrReq, resp)
@@ -113,6 +124,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
+					Private:       resp.Private,
 				}
 
 				BlockModifyPlan(ctx, block, blockReq, resp)
@@ -140,6 +152,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
+					Private:       resp.Private,
 				}
 
 				AttributeModifyPlan(ctx, attr, attrReq, resp)
@@ -152,6 +165,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 					Plan:          resp.Plan,
 					ProviderMeta:  req.ProviderMeta,
 					State:         req.State,
+					Private:       resp.Private,
 				}
 
 				BlockModifyPlan(ctx, block, blockReq, resp)

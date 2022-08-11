@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -15,7 +16,7 @@ import (
 type ReadResourceRequest struct {
 	CurrentState *tfsdk.State
 	ResourceType provider.ResourceType
-	Private      []byte
+	Private      *privatestate.Data
 	ProviderMeta *tfsdk.Config
 }
 
@@ -24,7 +25,7 @@ type ReadResourceRequest struct {
 type ReadResourceResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
-	Private     []byte
+	Private     *privatestate.Data
 }
 
 // ReadResource implements the framework server ReadResource RPC.
@@ -71,10 +72,32 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		readReq.ProviderMeta = *req.ProviderMeta
 	}
 
+	privateProviderData := privatestate.EmptyProviderData(ctx)
+
+	readReq.Private = privateProviderData
+	readResp.Private = privateProviderData
+
+	if req.Private != nil {
+		if req.Private.Provider != nil {
+			readReq.Private = req.Private.Provider
+			readResp.Private = req.Private.Provider
+		}
+
+		resp.Private = req.Private
+	}
+
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Read")
 	resourceImpl.Read(ctx, readReq, &readResp)
 	logging.FrameworkDebug(ctx, "Called provider defined Resource Read")
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.NewState = &readResp.State
+
+	if readResp.Private != nil {
+		if resp.Private == nil {
+			resp.Private = &privatestate.Data{}
+		}
+
+		resp.Private.Provider = readResp.Private
+	}
 }

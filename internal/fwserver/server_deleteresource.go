@@ -3,19 +3,21 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // DeleteResourceRequest is the framework server request for a delete request
 // with the ApplyResourceChange RPC.
 type DeleteResourceRequest struct {
-	PlannedPrivate []byte
+	PlannedPrivate *privatestate.Data
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema fwschema.Schema
@@ -27,7 +29,7 @@ type DeleteResourceRequest struct {
 type DeleteResourceResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
-	Private     []byte
+	Private     *privatestate.Data
 }
 
 // DeleteResource implements the framework server delete request logic for the
@@ -68,6 +70,10 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 
 	if req.ProviderMeta != nil {
 		deleteReq.ProviderMeta = *req.ProviderMeta
+	}
+
+	if req.PlannedPrivate != nil {
+		deleteReq.Private = req.PlannedPrivate.Provider
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Delete")

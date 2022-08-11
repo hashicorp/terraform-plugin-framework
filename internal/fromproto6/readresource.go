@@ -3,11 +3,13 @@ package fromproto6
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ReadResourceRequest returns the *fwserver.ReadResourceRequest
@@ -20,7 +22,6 @@ func ReadResourceRequest(ctx context.Context, proto6 *tfprotov6.ReadResourceRequ
 	var diags diag.Diagnostics
 
 	fw := &fwserver.ReadResourceRequest{
-		Private:      proto6.Private,
 		ResourceType: resourceType,
 	}
 
@@ -35,6 +36,12 @@ func ReadResourceRequest(ctx context.Context, proto6 *tfprotov6.ReadResourceRequ
 	diags.Append(providerMetaDiags...)
 
 	fw.ProviderMeta = providerMeta
+
+	privateData, privateDataDiags := privatestate.NewData(ctx, proto6.Private)
+
+	diags.Append(privateDataDiags...)
+
+	fw.Private = privateData
 
 	return fw, diags
 }

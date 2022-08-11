@@ -5,15 +5,17 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestApplyResourceChangeRequest(t *testing.T) {
@@ -43,6 +45,14 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 			},
 		},
 	}
+
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
+
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testCases := map[string]struct {
 		input               *tfprotov5.ApplyResourceChangeRequest
@@ -125,14 +135,50 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 				ResourceSchema: testFwSchema,
 			},
 		},
-		"plannedprivate": {
+		"plannedprivate-malformed-json": {
+			input: &tfprotov5.ApplyResourceChangeRequest{
+				PlannedPrivate: []byte(`{`),
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ApplyResourceChangeRequest{
+				ResourceSchema: testFwSchema,
+			}, expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Decoding Private State",
+					"An error was encountered when decoding private state: unexpected end of JSON input.\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+				),
+			},
+		},
+		"plannedprivate-empty-json": {
 			input: &tfprotov5.ApplyResourceChangeRequest{
 				PlannedPrivate: []byte("{}"),
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ApplyResourceChangeRequest{
-				PlannedPrivate: []byte("{}"),
 				ResourceSchema: testFwSchema,
+				PlannedPrivate: &privatestate.Data{
+					Framework: map[string][]byte{},
+					Provider:  testEmptyProviderData,
+				},
+			},
+		},
+		"plannedprivate": {
+			input: &tfprotov5.ApplyResourceChangeRequest{
+				PlannedPrivate: privatestate.MustMarshalToJson(map[string][]byte{
+					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+				}),
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ApplyResourceChangeRequest{
+				ResourceSchema: testFwSchema,
+				PlannedPrivate: &privatestate.Data{
+					Framework: map[string][]byte{
+						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					},
+					Provider: testProviderData,
+				},
 			},
 		},
 		"priorstate-missing-schema": {
@@ -209,7 +255,7 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 
 			got, diags := fromproto5.ApplyResourceChangeRequest(context.Background(), testCase.input, testCase.resourceType, testCase.resourceSchema, testCase.providerMetaSchema)
 
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 

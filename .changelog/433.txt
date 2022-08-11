@@ -1,0 +1,3 @@
+```release-note:note
+A new internal package has been introduced which enables provider developers to read/write framework-managed private state data.
+```

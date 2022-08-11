@@ -127,3 +127,42 @@ func (m TestRequiresReplaceFalseModifier) Description(ctx context.Context) strin
 func (m TestRequiresReplaceFalseModifier) MarkdownDescription(ctx context.Context) string {
 	return "Always unsets requires replace."
 }
+
+type TestAttrPlanPrivateModifierGet struct{}
+
+func (t TestAttrPlanPrivateModifierGet) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+	expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+
+	key := "providerKeyOne"
+	got, diags := req.Private.GetKey(ctx, key)
+
+	resp.Diagnostics.Append(diags...)
+
+	if string(got) != expected {
+		resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+	}
+}
+
+func (t TestAttrPlanPrivateModifierGet) Description(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+func (t TestAttrPlanPrivateModifierGet) MarkdownDescription(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+type TestAttrPlanPrivateModifierSet struct{}
+
+func (t TestAttrPlanPrivateModifierSet) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t TestAttrPlanPrivateModifierSet) Description(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}
+
+func (t TestAttrPlanPrivateModifierSet) MarkdownDescription(ctx context.Context) string {
+	return "This plan modifier is for use during testing only"
+}

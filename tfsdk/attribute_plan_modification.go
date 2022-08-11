@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
@@ -84,6 +85,19 @@ type ModifyAttributePlanRequest struct {
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta Config
+
+	// Private is provider-defined resource private state data which was previously
+	// stored with the resource state. This data is opaque to Terraform and does
+	// not affect plan output. Any existing data is copied to
+	// ModifyAttributePlanResponse.Private to prevent accidental private state data loss.
+	//
+	// The private state data is always the original data when the schema-based plan
+	// modification began or, is updated as the logic traverses deeper into underlying
+	// attributes.
+	//
+	// Use the GetKey method to read data. Use the SetKey method on
+	// ModifyAttributePlanResponse.Private to update or remove a value.
+	Private *privatestate.ProviderData
 }
 
 // ModifyAttributePlanResponse represents a response to a
@@ -96,6 +110,15 @@ type ModifyAttributePlanResponse struct {
 	// RequiresReplace indicates whether a change in the attribute
 	// requires replacement of the whole resource.
 	RequiresReplace bool
+
+	// Private is the private state resource data following the ModifyAttributePlan operation.
+	// This field is pre-populated from ModifyAttributePlanRequest.Private and
+	// can be modified during the resource's ModifyAttributePlan operation.
+	//
+	// The private state data is always the original data when the schema-based plan
+	// modification began or, is updated as the logic traverses deeper into underlying
+	// attributes.
+	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to determining the
 	// planned state of the requested resource. Returning an empty slice

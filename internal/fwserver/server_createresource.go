@@ -3,20 +3,22 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // CreateResourceRequest is the framework server request for a create request
 // with the ApplyResourceChange RPC.
 type CreateResourceRequest struct {
 	Config         *tfsdk.Config
-	PlannedPrivate []byte
+	PlannedPrivate *privatestate.Data
 	PlannedState   *tfsdk.Plan
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema fwschema.Schema
@@ -28,7 +30,7 @@ type CreateResourceRequest struct {
 type CreateResourceResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
-	Private     []byte
+	Private     *privatestate.Data
 }
 
 // CreateResource implements the framework server create request logic for the
@@ -61,11 +63,15 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 			Raw:    nullSchemaData,
 		},
 	}
+
+	privateProviderData := privatestate.EmptyProviderData(ctx)
+
 	createResp := resource.CreateResponse{
 		State: tfsdk.State{
 			Schema: schema(req.ResourceSchema),
 			Raw:    nullSchemaData,
 		},
+		Private: privateProviderData,
 	}
 
 	if req.Config != nil {
@@ -101,5 +107,13 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 			"Missing Resource State After Create",
 			detail,
 		)
+	}
+
+	if createResp.Private != nil {
+		if resp.Private == nil {
+			resp.Private = &privatestate.Data{}
+		}
+
+		resp.Private.Provider = createResp.Private
 	}
 }

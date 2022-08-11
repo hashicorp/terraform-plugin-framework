@@ -2,6 +2,7 @@ package resource
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -32,6 +33,11 @@ type CreateResponse struct {
 	// This field is pre-populated from CreateRequest.Plan and
 	// should be set during the resource's Create operation.
 	State tfsdk.State
+
+	// Private is the private state resource data following the Create operation.
+	// This field is not pre-populated as there is no pre-existing private state
+	// data during the resource's Create operation.
+	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to creating the
 	// resource. An empty slice indicates a successful operation with no

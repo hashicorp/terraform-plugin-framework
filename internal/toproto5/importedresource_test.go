@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestApplyResourceChangeResponse(t *testing.T) {
+func TestImportResourceStateResponse(t *testing.T) {
 	t.Parallel()
 
 	testProto5Type := tftypes.Object{
@@ -25,9 +25,15 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 		},
 	}
 
+	testEmptyProto5Type := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{},
+	}
+
 	testProto5Value := tftypes.NewValue(testProto5Type, map[string]tftypes.Value{
 		"test_attribute": tftypes.NewValue(tftypes.String, "test-value"),
 	})
+
+	testEmptyProto5Value := tftypes.NewValue(testEmptyProto5Type, map[string]tftypes.Value{})
 
 	testProto5DynamicValue, err := tfprotov5.NewDynamicValue(testProto5Type, testProto5Value)
 
@@ -35,7 +41,13 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
 	}
 
-	testState := &tfsdk.State{
+	testEmptyProto5DynamicValue, err := tfprotov5.NewDynamicValue(testEmptyProto5Type, testEmptyProto5Value)
+
+	if err != nil {
+		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
+	}
+
+	testState := tfsdk.State{
 		Raw: testProto5Value,
 		Schema: tfsdk.Schema{
 			Attributes: map[string]tfsdk.Attribute{
@@ -47,7 +59,7 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 		},
 	}
 
-	testStateInvalid := &tfsdk.State{
+	testStateInvalid := tfsdk.State{
 		Raw: testProto5Value,
 		Schema: tfsdk.Schema{
 			Attributes: map[string]tfsdk.Attribute{
@@ -59,6 +71,13 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 		},
 	}
 
+	testEmptyState := tfsdk.State{
+		Raw: testProto5Value,
+		Schema: tfsdk.Schema{
+			Attributes: map[string]tfsdk.Attribute{},
+		},
+	}
+
 	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
@@ -66,25 +85,25 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testCases := map[string]struct {
-		input    *fwserver.ApplyResourceChangeResponse
-		expected *tfprotov5.ApplyResourceChangeResponse
+		input    *fwserver.ImportResourceStateResponse
+		expected *tfprotov5.ImportResourceStateResponse
 	}{
 		"nil": {
 			input:    nil,
 			expected: nil,
 		},
 		"empty": {
-			input:    &fwserver.ApplyResourceChangeResponse{},
-			expected: &tfprotov5.ApplyResourceChangeResponse{},
+			input:    &fwserver.ImportResourceStateResponse{},
+			expected: &tfprotov5.ImportResourceStateResponse{},
 		},
 		"diagnostics": {
-			input: &fwserver.ApplyResourceChangeResponse{
+			input: &fwserver.ImportResourceStateResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic("test warning summary", "test warning details"),
 					diag.NewErrorDiagnostic("test error summary", "test error details"),
 				},
 			},
-			expected: &tfprotov5.ApplyResourceChangeResponse{
+			expected: &tfprotov5.ImportResourceStateResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityWarning,
@@ -100,14 +119,18 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 			},
 		},
 		"diagnostics-invalid-newstate": {
-			input: &fwserver.ApplyResourceChangeResponse{
+			input: &fwserver.ImportResourceStateResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic("test warning summary", "test warning details"),
 					diag.NewErrorDiagnostic("test error summary", "test error details"),
 				},
-				NewState: testStateInvalid,
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State: testStateInvalid,
+					},
+				},
 			},
-			expected: &tfprotov5.ApplyResourceChangeResponse{
+			expected: &tfprotov5.ImportResourceStateResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityWarning,
@@ -131,27 +154,45 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 			},
 		},
 		"newstate": {
-			input: &fwserver.ApplyResourceChangeResponse{
-				NewState: testState,
+			input: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State: testState,
+					},
+				},
 			},
-			expected: &tfprotov5.ApplyResourceChangeResponse{
-				NewState: &testProto5DynamicValue,
+			expected: &tfprotov5.ImportResourceStateResponse{
+				ImportedResources: []*tfprotov5.ImportedResource{
+					{
+						State: &testProto5DynamicValue,
+					},
+				},
 			},
 		},
 		"private": {
-			input: &fwserver.ApplyResourceChangeResponse{
-				Private: &privatestate.Data{
-					Framework: map[string][]byte{
-						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+			input: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State: testEmptyState,
+						Private: &privatestate.Data{
+							Framework: map[string][]byte{
+								".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+							},
+							Provider: testProviderData,
+						},
 					},
-					Provider: testProviderData,
 				},
 			},
-			expected: &tfprotov5.ApplyResourceChangeResponse{
-				Private: privatestate.MustMarshalToJson(map[string][]byte{
-					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
-					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
-				}),
+			expected: &tfprotov5.ImportResourceStateResponse{
+				ImportedResources: []*tfprotov5.ImportedResource{
+					{
+						State: &testEmptyProto5DynamicValue,
+						Private: privatestate.MustMarshalToJson(map[string][]byte{
+							".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+							"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+						}),
+					},
+				},
 			},
 		},
 	}
@@ -162,7 +203,7 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := toproto5.ApplyResourceChangeResponse(context.Background(), testCase.input)
+			got := toproto5.ImportResourceStateResponse(context.Background(), testCase.input)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

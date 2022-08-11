@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -14,7 +15,7 @@ import (
 // ApplyResourceChange RPC.
 type ApplyResourceChangeRequest struct {
 	Config         *tfsdk.Config
-	PlannedPrivate []byte
+	PlannedPrivate *privatestate.Data
 	PlannedState   *tfsdk.Plan
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
@@ -27,7 +28,7 @@ type ApplyResourceChangeRequest struct {
 type ApplyResourceChangeResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
-	Private     []byte
+	Private     *privatestate.Data
 }
 
 // ApplyResourceChange implements the framework server ApplyResourceChange RPC.

@@ -2,18 +2,21 @@ package proto6server
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerReadResource(t *testing.T) {
@@ -172,6 +175,55 @@ func TestServerReadResource(t *testing.T) {
 				NewState: testEmptyDynamicValue,
 			},
 		},
+		"request-private": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{}, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+												expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+												got, diags := req.Private.GetKey(ctx, "providerKey")
+
+												resp.Diagnostics.Append(diags...)
+
+												if string(got) != expected {
+													resp.Diagnostics.AddError(
+														"Unexpected req.Private Value",
+														fmt.Sprintf("expected %q, got %q", expected, got),
+													)
+												}
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ReadResourceRequest{
+				CurrentState: testEmptyDynamicValue,
+				TypeName:     "test_resource",
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
+					".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKey":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+				}),
+			},
+			expectedResponse: &tfprotov6.ReadResourceResponse{
+				NewState: testEmptyDynamicValue,
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
+					".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKey":   []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+				}),
+			},
+		},
 		"response-diagnostics": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
@@ -285,6 +337,42 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &tfprotov6.ReadResourceResponse{
 				NewState: &testNewStateRemovedDynamicValue,
+			},
+		},
+		"response-private": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+							return map[string]provider.ResourceType{
+								"test_resource": &testprovider.ResourceType{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{}, nil
+									},
+									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
+										return &testprovider.Resource{
+											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+												diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+
+												resp.Diagnostics.Append(diags...)
+											},
+										}, nil
+									},
+								},
+							}, nil
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ReadResourceRequest{
+				CurrentState: testEmptyDynamicValue,
+				TypeName:     "test_resource",
+			},
+			expectedResponse: &tfprotov6.ReadResourceResponse{
+				NewState: testEmptyDynamicValue,
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
+					"providerKey": []byte(`{"key": "value"}`),
+				}),
 			},
 		},
 	}

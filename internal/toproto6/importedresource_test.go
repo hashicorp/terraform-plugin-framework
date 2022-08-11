@@ -12,12 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestPlanResourceChangeResponse(t *testing.T) {
+func TestImportResourceStateResponse(t *testing.T) {
 	t.Parallel()
 
 	testProto6Type := tftypes.Object{
@@ -26,9 +25,15 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 		},
 	}
 
+	testEmptyProto6Type := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{},
+	}
+
 	testProto6Value := tftypes.NewValue(testProto6Type, map[string]tftypes.Value{
 		"test_attribute": tftypes.NewValue(tftypes.String, "test-value"),
 	})
+
+	testEmptyProto6Value := tftypes.NewValue(testEmptyProto6Type, map[string]tftypes.Value{})
 
 	testProto6DynamicValue, err := tfprotov6.NewDynamicValue(testProto6Type, testProto6Value)
 
@@ -36,7 +41,13 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
 	}
 
-	testState := &tfsdk.State{
+	testEmptyProto6DynamicValue, err := tfprotov6.NewDynamicValue(testEmptyProto6Type, testEmptyProto6Value)
+
+	if err != nil {
+		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
+	}
+
+	testState := tfsdk.State{
 		Raw: testProto6Value,
 		Schema: tfsdk.Schema{
 			Attributes: map[string]tfsdk.Attribute{
@@ -48,7 +59,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 		},
 	}
 
-	testStateInvalid := &tfsdk.State{
+	testStateInvalid := tfsdk.State{
 		Raw: testProto6Value,
 		Schema: tfsdk.Schema{
 			Attributes: map[string]tfsdk.Attribute{
@@ -60,34 +71,39 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 		},
 	}
 
+	testEmptyState := tfsdk.State{
+		Raw: testProto6Value,
+		Schema: tfsdk.Schema{
+			Attributes: map[string]tfsdk.Attribute{},
+		},
+	}
+
 	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
 	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
-	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
-
 	testCases := map[string]struct {
-		input    *fwserver.PlanResourceChangeResponse
-		expected *tfprotov6.PlanResourceChangeResponse
+		input    *fwserver.ImportResourceStateResponse
+		expected *tfprotov6.ImportResourceStateResponse
 	}{
 		"nil": {
 			input:    nil,
 			expected: nil,
 		},
 		"empty": {
-			input:    &fwserver.PlanResourceChangeResponse{},
-			expected: &tfprotov6.PlanResourceChangeResponse{},
+			input:    &fwserver.ImportResourceStateResponse{},
+			expected: &tfprotov6.ImportResourceStateResponse{},
 		},
 		"diagnostics": {
-			input: &fwserver.PlanResourceChangeResponse{
+			input: &fwserver.ImportResourceStateResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic("test warning summary", "test warning details"),
 					diag.NewErrorDiagnostic("test error summary", "test error details"),
 				},
 			},
-			expected: &tfprotov6.PlanResourceChangeResponse{
+			expected: &tfprotov6.ImportResourceStateResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityWarning,
@@ -102,15 +118,19 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 				},
 			},
 		},
-		"diagnostics-invalid-plannedstate": {
-			input: &fwserver.PlanResourceChangeResponse{
+		"diagnostics-invalid-newstate": {
+			input: &fwserver.ImportResourceStateResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic("test warning summary", "test warning details"),
 					diag.NewErrorDiagnostic("test error summary", "test error details"),
 				},
-				PlannedState: testStateInvalid,
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State: testStateInvalid,
+					},
+				},
 			},
-			expected: &tfprotov6.PlanResourceChangeResponse{
+			expected: &tfprotov6.ImportResourceStateResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityWarning,
@@ -133,49 +153,45 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 				},
 			},
 		},
-		"plannedprivate-empty": {
-			input: &fwserver.PlanResourceChangeResponse{
-				PlannedPrivate: &privatestate.Data{
-					Framework: map[string][]byte{},
-					Provider:  testEmptyProviderData,
+		"newstate": {
+			input: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State: testState,
+					},
 				},
 			},
-			expected: &tfprotov6.PlanResourceChangeResponse{
-				PlannedPrivate: nil,
-			},
-		},
-		"plannedprivate": {
-			input: &fwserver.PlanResourceChangeResponse{
-				PlannedPrivate: &privatestate.Data{
-					Framework: map[string][]byte{
-						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`)},
-					Provider: testProviderData,
+			expected: &tfprotov6.ImportResourceStateResponse{
+				ImportedResources: []*tfprotov6.ImportedResource{
+					{
+						State: &testProto6DynamicValue,
+					},
 				},
 			},
-			expected: &tfprotov6.PlanResourceChangeResponse{
-				PlannedPrivate: privatestate.MustMarshalToJson(map[string][]byte{
-					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
-					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
-				}),
-			},
 		},
-		"plannedstate": {
-			input: &fwserver.PlanResourceChangeResponse{
-				PlannedState: testState,
-			},
-			expected: &tfprotov6.PlanResourceChangeResponse{
-				PlannedState: &testProto6DynamicValue,
-			},
-		},
-		"requiresreplace": {
-			input: &fwserver.PlanResourceChangeResponse{
-				RequiresReplace: path.Paths{
-					path.Root("test"),
+		"private": {
+			input: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State: testEmptyState,
+						Private: &privatestate.Data{
+							Framework: map[string][]byte{
+								".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+							},
+							Provider: testProviderData,
+						},
+					},
 				},
 			},
-			expected: &tfprotov6.PlanResourceChangeResponse{
-				RequiresReplace: []*tftypes.AttributePath{
-					tftypes.NewAttributePath().WithAttributeName("test"),
+			expected: &tfprotov6.ImportResourceStateResponse{
+				ImportedResources: []*tfprotov6.ImportedResource{
+					{
+						State: &testEmptyProto6DynamicValue,
+						Private: privatestate.MustMarshalToJson(map[string][]byte{
+							".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+							"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+						}),
+					},
 				},
 			},
 		},
@@ -187,7 +203,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := toproto6.PlanResourceChangeResponse(context.Background(), testCase.input)
+			got := toproto6.ImportResourceStateResponse(context.Background(), testCase.input)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

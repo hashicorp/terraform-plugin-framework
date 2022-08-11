@@ -3,11 +3,13 @@ package fromproto6
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ApplyResourceChangeRequest returns the *fwserver.ApplyResourceChangeRequest
@@ -34,7 +36,6 @@ func ApplyResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.ApplyReso
 	}
 
 	fw := &fwserver.ApplyResourceChangeRequest{
-		PlannedPrivate: proto6.PlannedPrivate,
 		ResourceSchema: resourceSchema,
 		ResourceType:   resourceType,
 	}
@@ -62,6 +63,12 @@ func ApplyResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.ApplyReso
 	diags.Append(providerMetaDiags...)
 
 	fw.ProviderMeta = providerMeta
+
+	privateData, privateDataDiags := privatestate.NewData(ctx, proto6.PlannedPrivate)
+
+	diags.Append(privateDataDiags...)
+
+	fw.PlannedPrivate = privateData
 
 	return fw, diags
 }

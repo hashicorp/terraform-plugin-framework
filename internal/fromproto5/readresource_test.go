@@ -5,15 +5,17 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestReadResourceRequest(t *testing.T) {
@@ -43,6 +45,14 @@ func TestReadResourceRequest(t *testing.T) {
 			},
 		},
 	}
+
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
+
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testCases := map[string]struct {
 		input               *tfprotov5.ReadResourceRequest
@@ -87,13 +97,47 @@ func TestReadResourceRequest(t *testing.T) {
 				},
 			},
 		},
-		"private": {
+		"private-malformed-json": {
+			input: &tfprotov5.ReadResourceRequest{
+				Private: []byte(`{`),
+			},
+			resourceSchema: testFwSchema,
+			expected:       &fwserver.ReadResourceRequest{},
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Decoding Private State",
+					"An error was encountered when decoding private state: unexpected end of JSON input.\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+				),
+			},
+		},
+		"private-empty-json": {
 			input: &tfprotov5.ReadResourceRequest{
 				Private: []byte("{}"),
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ReadResourceRequest{
-				Private: []byte("{}"),
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{},
+					Provider:  testEmptyProviderData,
+				},
+			},
+		},
+		"private": {
+			input: &tfprotov5.ReadResourceRequest{
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
+					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+				}),
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ReadResourceRequest{
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{
+						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					},
+					Provider: testProviderData,
+				},
 			},
 		},
 		"providermeta-missing-data": {
@@ -136,7 +180,7 @@ func TestReadResourceRequest(t *testing.T) {
 
 			got, diags := fromproto5.ReadResourceRequest(context.Background(), testCase.input, testCase.resourceType, testCase.resourceSchema, testCase.providerMetaSchema)
 
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 

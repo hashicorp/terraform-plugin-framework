@@ -2,6 +2,7 @@ package resource
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -26,6 +27,15 @@ type ModifyPlanRequest struct {
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
+
+	// Private is provider-defined resource private state data which was previously
+	// stored with the resource state. This data is opaque to Terraform and does
+	// not affect plan output. Any existing data is copied to
+	// ModifyPlanResponse.Private to prevent accidental private state data loss.
+	//
+	// Use the GetKey method to read data. Use the SetKey method on
+	// ModifyPlanResponse.Private to update or remove a value.
+	Private *privatestate.ProviderData
 }
 
 // ModifyPlanResponse represents a response to a
@@ -41,6 +51,11 @@ type ModifyPlanResponse struct {
 	// that changed that requires the resource to be destroyed and
 	// recreated.
 	RequiresReplace path.Paths
+
+	// Private is the private state resource data following the ModifyPlan operation.
+	// This field is pre-populated from ModifyPlanRequest.Private and
+	// can be modified during the resource's ModifyPlan operation.
+	Private *privatestate.ProviderData
 
 	// Diagnostics report errors or warnings related to determining the
 	// planned state of the requested resource. Returning an empty slice

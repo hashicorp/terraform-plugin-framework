@@ -5,13 +5,15 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestReadResourceResponse(t *testing.T) {
@@ -32,6 +34,14 @@ func TestReadResourceResponse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
 	}
+
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
+
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testState := &tfsdk.State{
 		Raw: testProto5Value,
@@ -130,12 +140,30 @@ func TestReadResourceResponse(t *testing.T) {
 				NewState: &testProto5DynamicValue,
 			},
 		},
-		"private": {
+		"private-empty": {
 			input: &fwserver.ReadResourceResponse{
-				Private: []byte("{}"),
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{},
+					Provider:  testEmptyProviderData,
+				},
 			},
 			expected: &tfprotov5.ReadResourceResponse{
-				Private: []byte("{}"),
+				Private: nil,
+			},
+		},
+		"private": {
+			input: &fwserver.ReadResourceResponse{
+				Private: &privatestate.Data{
+					Framework: map[string][]byte{
+						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`)},
+					Provider: testProviderData,
+				},
+			},
+			expected: &tfprotov5.ReadResourceResponse{
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
+					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+				}),
 			},
 		},
 	}

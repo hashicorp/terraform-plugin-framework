@@ -5,15 +5,17 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestPlanResourceChangeRequest(t *testing.T) {
@@ -43,6 +45,12 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 			},
 		},
 	}
+
+	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
+		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+	})
+
+	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testCases := map[string]struct {
 		input               *tfprotov5.PlanResourceChangeRequest
@@ -99,11 +107,19 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 		},
 		"priorprivate": {
 			input: &tfprotov5.PlanResourceChangeRequest{
-				PriorPrivate: []byte("{}"),
+				PriorPrivate: privatestate.MustMarshalToJson(map[string][]byte{
+					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
+				}),
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.PlanResourceChangeRequest{
-				PriorPrivate:   []byte("{}"),
+				PriorPrivate: &privatestate.Data{
+					Framework: map[string][]byte{
+						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
+					},
+					Provider: testProviderData,
+				},
 				ResourceSchema: testFwSchema,
 			},
 		},
@@ -209,7 +225,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 
 			got, diags := fromproto5.PlanResourceChangeRequest(context.Background(), testCase.input, testCase.resourceType, testCase.resourceSchema, testCase.providerMetaSchema)
 
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 

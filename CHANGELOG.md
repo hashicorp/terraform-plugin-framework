@@ -1,3 +1,38 @@
+# 0.11.0 (August 11, 2022)
+
+NOTES:
+
+* This Go module has been updated to Go 1.18 per the [Go support policy](https://golang.org/doc/devel/release.html#policy). Any consumers building on earlier Go versions may experience errors. ([#445](https://github.com/hashicorp/terraform-plugin-framework/issues/445))
+* tfsdk: The `Schema` type `AttributeAtPath()` method signature will be updated from a `*tftypes.AttributePath` parameter to `path.Path` in the next release. Switch to the `AttributeAtTerraformPath()` method if `*tftypes.AttributePath` handling is still necessary. ([#440](https://github.com/hashicorp/terraform-plugin-framework/issues/440))
+* tfsdk: The `Schema` type `AttributeType()` method has been deprecated in preference of the `Type()` method. ([#440](https://github.com/hashicorp/terraform-plugin-framework/issues/440))
+* tfsdk: The `Schema` type `AttributeTypeAtPath()` method has been deprecated for the `TypeAtPath()` and `TypeAtTerraformPath()` methods. ([#440](https://github.com/hashicorp/terraform-plugin-framework/issues/440))
+* tfsdk: The `Schema` type `TerraformType()` method has been deprecated in preference of calling `Type().TerraformType()`. ([#440](https://github.com/hashicorp/terraform-plugin-framework/issues/440))
+
+BREAKING CHANGES:
+
+* tfsdk: Go types relating to data source handling have been migrated to the new `datasource` package. Consult the pull request description for a full listing of find-and-replace information. ([#432](https://github.com/hashicorp/terraform-plugin-framework/issues/432))
+* tfsdk: Go types relating to provider handling have been migrated to the new `provider` package. Consult the pull request description for a full listing of find-and-replace information. ([#432](https://github.com/hashicorp/terraform-plugin-framework/issues/432))
+* tfsdk: Go types relating to resource handling have been migrated to the new `resource` package. Consult the pull request description for a full listing of find-and-replace information. ([#432](https://github.com/hashicorp/terraform-plugin-framework/issues/432))
+* tfsdk: The `RequiresReplace()`, `RequiresReplaceIf()`, and `UseStateForUnknown()` plan modifier functions, which only apply to managed resources, have been moved to the `resource` package. ([#434](https://github.com/hashicorp/terraform-plugin-framework/issues/434))
+* tfsdk: The `ResourceImportStatePassthroughID()` function has been moved to `resource.ImportStatePassthroughID()`. ([#432](https://github.com/hashicorp/terraform-plugin-framework/issues/432))
+* tfsdk: The `Schema` type `AttributeAtPath` method now returns a `fwschema.Attribute` interface instead of a `tfsdk.Attribute` type. Consumers will need to update from direct field usage to similarly named interface method calls. ([#438](https://github.com/hashicorp/terraform-plugin-framework/issues/438))
+
+FEATURES:
+
+* datasource: New package, which colocates all data source implementation types from the `tfsdk` package ([#432](https://github.com/hashicorp/terraform-plugin-framework/issues/432))
+* provider: New package, which colocates all provider implementation types from the `tfsdk` package ([#432](https://github.com/hashicorp/terraform-plugin-framework/issues/432))
+* resource: Enabled provider developers to read/write private state data. ([#433](https://github.com/hashicorp/terraform-plugin-framework/issues/433))
+* resource: New package, which colocates all resource implementation types from the `tfsdk` package ([#432](https://github.com/hashicorp/terraform-plugin-framework/issues/432))
+
+ENHANCEMENTS:
+
+* tfsdk: Added `Block` type `MaxItems` and `MinItems` field validation for Terraform 0.12 through 0.15.1 ([#422](https://github.com/hashicorp/terraform-plugin-framework/issues/422))
+
+BUG FIXES:
+
+* internal/fwserver: Ensured `UpgradeResourceState` calls from Terraform 0.12 properly ignored attributes not defined in the schema ([#426](https://github.com/hashicorp/terraform-plugin-framework/issues/426))
+* path: Ensured `Expression` type `Copy()` method appropriately copied root expressions and `Equal()` checked for root versus relative expressions ([#420](https://github.com/hashicorp/terraform-plugin-framework/issues/420))
+
 # 0.10.0 (July 18, 2022)
 
 BREAKING CHANGES:

@@ -1,4 +1,4 @@
-package tfsdk
+package fwschemadata_test
 
 import (
 	"context"
@@ -7,12 +7,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestPathMatches(t *testing.T) {
+func TestDataPathMatches(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -23,8 +25,8 @@ func TestPathMatches(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"AttributeNameExact-match": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.StringType,
 					},
@@ -46,8 +48,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-mismatch": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.StringType,
 					},
@@ -76,10 +78,10 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-AttributeNameExact-match": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test_parent": {
-						Attributes: SingleNestedAttributes(map[string]Attribute{
+						Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 							"test_child": {
 								Type: types.StringType,
 							},
@@ -116,10 +118,10 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-AttributeNameExact-mismatch": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test_parent": {
-						Attributes: SingleNestedAttributes(map[string]Attribute{
+						Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 							"test_child": {
 								Type: types.StringType,
 							},
@@ -163,10 +165,10 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-AttributeNameExact-parent-null": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test_parent": {
-						Attributes: SingleNestedAttributes(map[string]Attribute{
+						Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 							"test_child": {
 								Type: types.StringType,
 							},
@@ -201,10 +203,10 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-AttributeNameExact-parent-unknown": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test_parent": {
-						Attributes: SingleNestedAttributes(map[string]Attribute{
+						Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 							"test_child": {
 								Type: types.StringType,
 							},
@@ -239,8 +241,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntAny-match": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -277,8 +279,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntAny-mismatch": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: types.StringType,
@@ -320,8 +322,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntAny-parent-null": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -352,8 +354,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntAny-parent-unknown": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -384,8 +386,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntExact-match": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -420,10 +422,10 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntExact-AttributeNameExact-Parent-AttributeNameExact-match": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test_parent": {
-						Attributes: ListNestedAttributes(map[string]Attribute{
+						Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 							"test_child1": {
 								Type: types.StringType,
 							},
@@ -493,10 +495,10 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntExact-AttributeNameExact-Parent-AttributeNameExact-parent-null": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test_parent": {
-						Attributes: ListNestedAttributes(map[string]Attribute{
+						Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 							"test_child1": {
 								Type: types.StringType,
 							},
@@ -563,10 +565,10 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntExact-AttributeNameExact-Parent-AttributeNameExact-parent-unknown": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test_parent": {
-						Attributes: ListNestedAttributes(map[string]Attribute{
+						Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 							"test_child1": {
 								Type: types.StringType,
 							},
@@ -633,8 +635,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntExact-mismatch": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -676,8 +678,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntExact-parent-null": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -708,8 +710,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyIntExact-parent-unknown": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -740,8 +742,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyStringAny-match": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.MapType{
 							ElemType: types.StringType,
@@ -777,8 +779,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyStringAny-mismatch": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -820,8 +822,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyStringAny-parent-null": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.MapType{
 							ElemType: types.StringType,
@@ -852,8 +854,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyStringAny-parent-unknown": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.MapType{
 							ElemType: types.StringType,
@@ -884,8 +886,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyStringExact-match": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.MapType{
 							ElemType: types.StringType,
@@ -920,8 +922,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyStringExact-mismatch": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.MapType{
 							ElemType: types.StringType,
@@ -963,8 +965,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyStringExact-parent-null": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.MapType{
 							ElemType: types.StringType,
@@ -995,8 +997,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyStringExact-parent-unknown": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.MapType{
 							ElemType: types.StringType,
@@ -1027,8 +1029,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyValueAny-match": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: types.StringType,
@@ -1065,8 +1067,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyValueAny-mismatch": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.ListType{
 							ElemType: types.StringType,
@@ -1108,8 +1110,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyValueAny-parent-null": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: types.StringType,
@@ -1140,8 +1142,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyValueAny-parent-unknown": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: types.StringType,
@@ -1172,8 +1174,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyValueExact-match": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: types.StringType,
@@ -1208,8 +1210,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyValueExact-mismatch": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: types.StringType,
@@ -1251,8 +1253,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyValueExact-parent-null": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: types.StringType,
@@ -1283,8 +1285,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-ElementKeyValueExact-parent-unknown": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.SetType{
 							ElemType: types.StringType,
@@ -1315,8 +1317,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-Parent": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.StringType,
 					},
@@ -1345,8 +1347,8 @@ func TestPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-Parent-Parent": {
-			schema: Schema{
-				Attributes: map[string]Attribute{
+			schema: tfsdk.Schema{
+				Attributes: map[string]tfsdk.Attribute{
 					"test": {
 						Type: types.StringType,
 					},
@@ -1382,7 +1384,12 @@ func TestPathMatches(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := pathMatches(context.Background(), testCase.schema, testCase.tfTypeValue, testCase.expression)
+			data := fwschemadata.Data{
+				Schema:         testCase.schema,
+				TerraformValue: testCase.tfTypeValue,
+			}
+
+			got, diags := data.PathMatches(context.Background(), testCase.expression)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

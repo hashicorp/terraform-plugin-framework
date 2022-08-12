@@ -19,137 +19,100 @@ import (
 func TestPlanGet(t *testing.T) {
 	t.Parallel()
 
-	type testPlanGetData struct {
-		Name types.String `tfsdk:"name"`
-	}
-
-	type testCase struct {
+	testCases := map[string]struct {
 		plan          Plan
-		expected      testPlanGetData
+		target        any
+		expected      any
 		expectedDiags diag.Diagnostics
-	}
-
-	testCases := map[string]testCase{
-		"basic": {
+	}{
+		// Refer to fwschemadata.TestDataGet for more exhaustive unit testing.
+		// These test cases are to ensure Plan schema and data values are
+		// passed appropriately to the shared implementation.
+		"valid": {
 			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name": tftypes.String,
+				Raw: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"string": tftypes.String,
+						},
 					},
-				}, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "namevalue"),
-				}),
+					map[string]tftypes.Value{
+						"string": tftypes.NewValue(tftypes.String, "test"),
+					},
+				),
 				Schema: Schema{
 					Attributes: map[string]Attribute{
-						"name": {
+						"string": {
+							Optional: true,
 							Type:     types.StringType,
-							Required: true,
 						},
 					},
 				},
 			},
-			expected: testPlanGetData{
-				Name: types.String{Value: "namevalue"},
+			target: new(struct {
+				String types.String `tfsdk:"string"`
+			}),
+			expected: &struct {
+				String types.String `tfsdk:"string"`
+			}{
+				String: types.String{Value: "test"},
+			},
+		},
+		"diagnostic": {
+			plan: Plan{
+				Raw: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"bool": tftypes.Bool,
+						},
+					},
+					map[string]tftypes.Value{
+						"bool": tftypes.NewValue(tftypes.Bool, nil),
+					},
+				),
+				Schema: Schema{
+					Attributes: map[string]Attribute{
+						"bool": {
+							Optional: true,
+							Type:     types.BoolType,
+						},
+					},
+				},
+			},
+			target: new(struct {
+				String types.String `tfsdk:"bool"`
+			}),
+			expected: &struct {
+				String types.String `tfsdk:"bool"`
+			}{
+				String: types.String{},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.WithPath(
+					path.Root("bool"),
+					intreflect.DiagNewAttributeValueIntoWrongType{
+						ValType:    reflect.TypeOf(types.Bool{}),
+						TargetType: reflect.TypeOf(types.String{}),
+						SchemaType: types.BoolType,
+					},
+				),
 			},
 		},
 	}
 
-	for name, tc := range testCases {
-		name, tc := name, tc
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			var val testPlanGetData
+			diags := testCase.plan.Get(context.Background(), testCase.target)
 
-			diags := tc.plan.Get(context.Background(), &val)
-
-			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 
-			if diff := cmp.Diff(val, tc.expected); diff != "" {
-				t.Errorf("unexpected value (+wanted, -got): %s", diff)
-			}
-		})
-	}
-}
-
-func TestPlanGet_testTypes(t *testing.T) {
-	t.Parallel()
-
-	type testPlanGetDataTestTypes struct {
-		Name testtypes.String `tfsdk:"name"`
-	}
-
-	type testCase struct {
-		plan          Plan
-		expected      testPlanGetDataTestTypes
-		expectedDiags diag.Diagnostics
-	}
-
-	testCases := map[string]testCase{
-		"AttrTypeWithValidateError": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "namevalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"name": {
-							Type:     testtypes.StringTypeWithValidateError{},
-							Required: true,
-						},
-					},
-				},
-			},
-			expected: testPlanGetDataTestTypes{
-				Name: testtypes.String{InternalString: types.String{Value: ""}, CreatedBy: testtypes.StringTypeWithValidateError{}},
-			},
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
-		},
-		"AttrTypeWithValidateWarning": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "namevalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"name": {
-							Type:     testtypes.StringTypeWithValidateWarning{},
-							Required: true,
-						},
-					},
-				},
-			},
-			expected: testPlanGetDataTestTypes{
-				Name: testtypes.String{InternalString: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
-			},
-			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("name"))},
-		},
-	}
-
-	for name, tc := range testCases {
-		name, tc := name, tc
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			var val testPlanGetDataTestTypes
-
-			diags := tc.plan.Get(context.Background(), &val)
-
-			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
-				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-			}
-
-			if diff := cmp.Diff(val, tc.expected); diff != "" {
+			if diff := cmp.Diff(testCase.target, testCase.expected); diff != "" {
 				t.Errorf("unexpected value (+wanted, -got): %s", diff)
 			}
 		})
@@ -1735,438 +1698,6 @@ func TestPlanGetAttributeValue(t *testing.T) {
 	}
 }
 
-func TestPlanPathExists(t *testing.T) {
-	t.Parallel()
-
-	type testCase struct {
-		plan          Plan
-		path          path.Path
-		expected      bool
-		expectedDiags diag.Diagnostics
-	}
-
-	testCases := map[string]testCase{
-		"empty-path": {
-			plan:     Plan{},
-			path:     path.Root("test"),
-			expected: false,
-		},
-		"empty-root": {
-			plan:     Plan{},
-			path:     path.Empty(),
-			expected: true,
-		},
-		"root": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.String, "testvalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Empty(),
-			expected: true,
-		},
-		"WithAttributeName": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.String, "testvalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test"),
-			expected: true,
-		},
-		"WithAttributeName-mismatch": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.String, "testvalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("other"),
-			expected: false,
-		},
-		"WithAttributeName.WithAttributeName": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"nested": tftypes.String,
-							},
-						},
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"nested": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"nested": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type: types.ObjectType{
-								AttrTypes: map[string]attr.Type{
-									"nested": types.StringType,
-								},
-							},
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtName("nested"),
-			expected: true,
-		},
-		"WithAttributeName.WithAttributeName-mismatch-child": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"nested": tftypes.String,
-							},
-						},
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"nested": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"nested": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type: types.ObjectType{
-								AttrTypes: map[string]attr.Type{
-									"nested": types.StringType,
-								},
-							},
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtName("other"),
-			expected: false,
-		},
-		"WithAttributeName.WithAttributeName-mismatch-parent": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.String, "testvalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtName("other"),
-			expected: false,
-		},
-		"WithAttributeName.WithElementKeyInt": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.List{
-						ElementType: tftypes.String,
-					}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type: types.ListType{
-								ElemType: types.StringType,
-							},
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtListIndex(0),
-			expected: true,
-		},
-		"WithAttributeName.WithElementKeyInt-mismatch-child": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.List{
-						ElementType: tftypes.String,
-					}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type: types.ListType{
-								ElemType: types.StringType,
-							},
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtListIndex(1),
-			expected: false,
-		},
-		"WithAttributeName.WithElementKeyInt-mismatch-parent": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.String, "testvalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtListIndex(0),
-			expected: false,
-		},
-		"WithAttributeName.WithElementKeyString": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.Map{
-						ElementType: tftypes.String,
-					}, map[string]tftypes.Value{
-						"key": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type: types.MapType{
-								ElemType: types.StringType,
-							},
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtMapKey("key"),
-			expected: true,
-		},
-		"WithAttributeName.WithElementKeyString-mismatch-child": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.Map{
-						ElementType: tftypes.String,
-					}, map[string]tftypes.Value{
-						"key": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type: types.MapType{
-								ElemType: types.StringType,
-							},
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtMapKey("other"),
-			expected: false,
-		},
-		"WithAttributeName.WithElementKeyString-mismatch-parent": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.String, "testvalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtMapKey("other"),
-			expected: false,
-		},
-		"WithAttributeName.WithElementKeyValue": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.Set{
-						ElementType: tftypes.String,
-					}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type: types.SetType{
-								ElemType: types.StringType,
-							},
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "testvalue"}),
-			expected: true,
-		},
-		"WithAttributeName.WithElementKeyValue-mismatch-child": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.Set{
-						ElementType: tftypes.String,
-					}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type: types.SetType{
-								ElemType: types.StringType,
-							},
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "othervalue"}),
-			expected: false,
-		},
-		"WithAttributeName.WithElementKeyValue-mismatch-parent": {
-			plan: Plan{
-				Raw: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.String, "testvalue"),
-				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "othervalue"}),
-			expected: false,
-		},
-	}
-
-	for name, tc := range testCases {
-		name, tc := name, tc
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got, diags := tc.plan.pathExists(context.Background(), tc.path)
-
-			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
-				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-			}
-
-			if diff := cmp.Diff(got, tc.expected); diff != "" {
-				t.Errorf("unexpected result (+wanted, -got): %s", diff)
-			}
-		})
-	}
-}
-
 func TestPlanPathMatches(t *testing.T) {
 	t.Parallel()
 
@@ -2176,7 +1707,7 @@ func TestPlanPathMatches(t *testing.T) {
 		expected      path.Paths
 		expectedDiags diag.Diagnostics
 	}{
-		// Refer to TestPathMatches for more exhaustive unit testing.
+		// Refer to fwschemadata.TestDataPathMatches for more exhaustive unit testing.
 		// These test cases are to ensure Plan schema and data values are
 		// passed appropriately to the shared implementation.
 		"AttributeNameExact-match": {

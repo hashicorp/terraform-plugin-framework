@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
@@ -23,7 +24,7 @@ type Plan struct {
 
 // Get populates the struct passed as `target` with the entire plan.
 func (p Plan) Get(ctx context.Context, target interface{}) diag.Diagnostics {
-	return reflect.Into(ctx, p.Schema.Type(), p.Raw, target, reflect.Options{})
+	return p.data().Get(ctx, target)
 }
 
 // GetAttribute retrieves the attribute found at `path` and populates the
@@ -89,7 +90,7 @@ func (p Plan) getAttributeValue(ctx context.Context, path path.Path) (attr.Value
 		return nil, nil
 	}
 
-	tfValue, err := p.terraformValueAtPath(tftypesPath)
+	tfValue, err := p.data().TerraformValueAtTerraformPath(ctx, tftypesPath)
 
 	// Ignoring ErrInvalidStep will allow this method to return a null value of the type.
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
@@ -136,7 +137,7 @@ func (p Plan) getAttributeValue(ctx context.Context, path path.Path) (attr.Value
 // from matching, the parent path is returned rather than no match to prevent
 // false positives.
 func (p Plan) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
-	return pathMatches(ctx, p.Schema, p.Raw, pathExpr)
+	return p.data().PathMatches(ctx, pathExpr)
 }
 
 // Set populates the entire plan using the supplied Go value. The value `val`
@@ -244,36 +245,11 @@ func (p *Plan) SetAttribute(ctx context.Context, path path.Path, val interface{}
 	return diags
 }
 
-// pathExists walks the current state and returns true if the path can be reached.
-// The value at the path may be null or unknown.
-func (p Plan) pathExists(ctx context.Context, path path.Path) (bool, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	tftypesPath, tftypesPathDiags := totftypes.AttributePath(ctx, path)
-
-	diags.Append(tftypesPathDiags...)
-
-	if diags.HasError() {
-		return false, diags
+func (p Plan) data() fwschemadata.Data {
+	return fwschemadata.Data{
+		Schema:         p.Schema,
+		TerraformValue: p.Raw,
 	}
-
-	_, remaining, err := tftypes.WalkAttributePath(p.Raw, tftypesPath)
-
-	if err != nil {
-		if errors.Is(err, tftypes.ErrInvalidStep) {
-			return false, diags
-		}
-
-		diags.AddAttributeError(
-			path,
-			"Plan Read Error",
-			"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-				fmt.Sprintf("Cannot walk attribute path in plan: %s", err),
-		)
-		return false, diags
-	}
-
-	return len(remaining.Steps()) == 0, diags
 }
 
 // setAttributeTransformFunc recursively creates a value based on the current
@@ -281,7 +257,7 @@ func (p Plan) pathExists(ctx context.Context, path path.Path) (bool, diag.Diagno
 // this will perform recursion to add the child value to a parent value,
 // creating the parent value if necessary.
 func (p Plan) setAttributeTransformFunc(ctx context.Context, path path.Path, tfVal tftypes.Value, diags diag.Diagnostics) (transformFunc, diag.Diagnostics) {
-	exists, pathExistsDiags := p.pathExists(ctx, path)
+	exists, pathExistsDiags := p.data().PathExists(ctx, path)
 	diags.Append(pathExistsDiags...)
 
 	if diags.HasError() {
@@ -320,7 +296,7 @@ func (p Plan) setAttributeTransformFunc(ctx context.Context, path path.Path, tfV
 		return nil, diags
 	}
 
-	parentValue, err := p.terraformValueAtPath(parentTftypesPath)
+	parentValue, err := p.data().TerraformValueAtTerraformPath(ctx, parentTftypesPath)
 
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
 		diags.AddAttributeError(
@@ -373,18 +349,4 @@ func (p Plan) setAttributeTransformFunc(ctx context.Context, path path.Path, tfV
 	}
 
 	return p.setAttributeTransformFunc(ctx, parentPath, parentValue, diags)
-}
-
-// TODO: Potentially remove this when Raw is changed to attr.Value or similar
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
-func (p Plan) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {
-	rawValue, remaining, err := tftypes.WalkAttributePath(p.Raw, path)
-	if err != nil {
-		return tftypes.Value{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
-	}
-	attrValue, ok := rawValue.(tftypes.Value)
-	if !ok {
-		return tftypes.Value{}, fmt.Errorf("got non-tftypes.Value result %v", rawValue)
-	}
-	return attrValue, err
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
@@ -23,7 +24,7 @@ type State struct {
 
 // Get populates the struct passed as `target` with the entire state.
 func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
-	return reflect.Into(ctx, s.Schema.Type(), s.Raw, target, reflect.Options{})
+	return s.data().Get(ctx, target)
 }
 
 // GetAttribute retrieves the attribute found at `path` and populates the
@@ -89,7 +90,7 @@ func (s State) getAttributeValue(ctx context.Context, path path.Path) (attr.Valu
 		return nil, nil
 	}
 
-	tfValue, err := s.terraformValueAtPath(tftypesPath)
+	tfValue, err := s.data().TerraformValueAtTerraformPath(ctx, tftypesPath)
 
 	// Ignoring ErrInvalidStep will allow this method to return a null value of the type.
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
@@ -136,7 +137,7 @@ func (s State) getAttributeValue(ctx context.Context, path path.Path) (attr.Valu
 // from matching, the parent path is returned rather than no match to prevent
 // false positives.
 func (s State) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
-	return pathMatches(ctx, s.Schema, s.Raw, pathExpr)
+	return s.data().PathMatches(ctx, pathExpr)
 }
 
 // Set populates the entire state using the supplied Go value. The value `val`
@@ -253,44 +254,12 @@ func (s *State) SetAttribute(ctx context.Context, path path.Path, val interface{
 	return diags
 }
 
-// pathExists walks the current state and returns true if the path can be reached.
-// The value at the path may be null or unknown.
-func (s State) pathExists(ctx context.Context, path path.Path) (bool, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	tftypesPath, tftypesPathDiags := totftypes.AttributePath(ctx, path)
-
-	diags.Append(tftypesPathDiags...)
-
-	if diags.HasError() {
-		return false, diags
-	}
-
-	_, remaining, err := tftypes.WalkAttributePath(s.Raw, tftypesPath)
-
-	if err != nil {
-		if errors.Is(err, tftypes.ErrInvalidStep) {
-			return false, diags
-		}
-
-		diags.AddAttributeError(
-			path,
-			"State Read Error",
-			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-				fmt.Sprintf("Cannot walk attribute path in state: %s", err),
-		)
-		return false, diags
-	}
-
-	return len(remaining.Steps()) == 0, diags
-}
-
 // setAttributeTransformFunc recursively creates a value based on the current
 // Plan values along the path. If the value at the path does not yet exist,
 // this will perform recursion to add the child value to a parent value,
 // creating the parent value if necessary.
 func (s State) setAttributeTransformFunc(ctx context.Context, path path.Path, tfVal tftypes.Value, diags diag.Diagnostics) (func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error), diag.Diagnostics) {
-	exists, pathExistsDiags := s.pathExists(ctx, path)
+	exists, pathExistsDiags := s.data().PathExists(ctx, path)
 	diags.Append(pathExistsDiags...)
 
 	if diags.HasError() {
@@ -329,7 +298,7 @@ func (s State) setAttributeTransformFunc(ctx context.Context, path path.Path, tf
 		return nil, diags
 	}
 
-	parentValue, err := s.terraformValueAtPath(parentTftypesPath)
+	parentValue, err := s.data().TerraformValueAtTerraformPath(ctx, parentTftypesPath)
 
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
 		diags.AddAttributeError(
@@ -392,16 +361,9 @@ func (s *State) RemoveResource(ctx context.Context) {
 	s.Raw = tftypes.NewValue(s.Schema.Type().TerraformType(ctx), nil)
 }
 
-// TODO: Potentially remove this when Raw is changed to attr.Value or similar
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
-func (s State) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {
-	rawValue, remaining, err := tftypes.WalkAttributePath(s.Raw, path)
-	if err != nil {
-		return tftypes.Value{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
+func (s State) data() fwschemadata.Data {
+	return fwschemadata.Data{
+		Schema:         s.Schema,
+		TerraformValue: s.Raw,
 	}
-	attrValue, ok := rawValue.(tftypes.Value)
-	if !ok {
-		return tftypes.Value{}, fmt.Errorf("got non-tftypes.Value result %v", rawValue)
-	}
-	return attrValue, err
 }

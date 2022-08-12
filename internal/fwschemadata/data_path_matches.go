@@ -1,33 +1,25 @@
-package tfsdk
+package fwschemadata
 
 import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// pathMatches returns all matching path.Paths from the given path.Expression.
+// PathMatches returns all matching path.Paths from the given path.Expression.
 //
 // If a parent path is null or unknown, which would prevent a full expression
 // from matching, the parent path is returned rather than no match to prevent
 // false positives.
-//
-// TODO: This function should be part of a internal/schemadata package
-// except that doing so would currently introduce an import cycle due to the
-// Schema parameter here and Config/Plan/State.PathMatches needing to
-// call this function until the schema data is migrated to attr.Value.
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/172
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func pathMatches(ctx context.Context, schema fwschema.Schema, tfTypeValue tftypes.Value, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
+func (d Data) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var paths path.Paths
 
-	_ = tftypes.Walk(tfTypeValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (bool, error) {
-		fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, tfTypePath, schema)
+	_ = tftypes.Walk(d.TerraformValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (bool, error) {
+		fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, tfTypePath, d.Schema)
 
 		diags.Append(fwPathDiags...)
 

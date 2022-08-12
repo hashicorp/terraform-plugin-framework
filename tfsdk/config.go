@@ -3,13 +3,12 @@ package tfsdk
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -23,7 +22,7 @@ type Config struct {
 
 // Get populates the struct passed as `target` with the entire config.
 func (c Config) Get(ctx context.Context, target interface{}) diag.Diagnostics {
-	return reflect.Into(ctx, c.Schema.Type(), c.Raw, target, reflect.Options{})
+	return c.data().Get(ctx, target)
 }
 
 // GetAttribute retrieves the attribute found at `path` and populates the
@@ -65,7 +64,14 @@ func (c Config) GetAttribute(ctx context.Context, path path.Path, target interfa
 // from matching, the parent path is returned rather than no match to prevent
 // false positives.
 func (c Config) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
-	return pathMatches(ctx, c.Schema, c.Raw, pathExpr)
+	return c.data().PathMatches(ctx, pathExpr)
+}
+
+func (c Config) data() fwschemadata.Data {
+	return fwschemadata.Data{
+		Schema:         c.Schema,
+		TerraformValue: c.Raw,
+	}
 }
 
 // getAttributeValue retrieves the attribute found at `path` and returns it as an
@@ -98,7 +104,7 @@ func (c Config) getAttributeValue(ctx context.Context, path path.Path) (attr.Val
 		return nil, nil
 	}
 
-	tfValue, err := c.terraformValueAtPath(tftypesPath)
+	tfValue, err := c.data().TerraformValueAtTerraformPath(ctx, tftypesPath)
 
 	// Ignoring ErrInvalidStep will allow this method to return a null value of the type.
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
@@ -137,18 +143,4 @@ func (c Config) getAttributeValue(ctx context.Context, path path.Path) (attr.Val
 	}
 
 	return attrValue, diags
-}
-
-// TODO: Potentially remove this when Raw is changed to attr.Value or similar
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
-func (c Config) terraformValueAtPath(path *tftypes.AttributePath) (tftypes.Value, error) {
-	rawValue, remaining, err := tftypes.WalkAttributePath(c.Raw, path)
-	if err != nil {
-		return tftypes.Value{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
-	}
-	attrValue, ok := rawValue.(tftypes.Value)
-	if !ok {
-		return tftypes.Value{}, fmt.Errorf("got non-tftypes.Value result %v", rawValue)
-	}
-	return attrValue, err
 }

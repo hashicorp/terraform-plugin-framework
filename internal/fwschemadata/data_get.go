@@ -1,0 +1,13 @@
+package fwschemadata
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+)
+
+// Get populates the struct passed as `target` with the entire state.
+func (d Data) Get(ctx context.Context, target any) diag.Diagnostics {
+	return reflect.Into(ctx, d.Schema.Type(), d.TerraformValue, target, reflect.Options{})
+}

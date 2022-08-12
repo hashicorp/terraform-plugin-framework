@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 )
 
 // Data contains private state data for the framework and providers.
@@ -113,6 +114,20 @@ func NewData(ctx context.Context, data []byte) (*Data, diag.Diagnostics) {
 
 	err := json.Unmarshal(data, &dataMap)
 	if err != nil {
+		// terraform-plugin-sdk stored private state by marshalling its data
+		// as map[string]any, which is slightly incompatible with trying to
+		// unmarshal it as map[string][]byte. If unmarshalling with
+		// map[string]any works, we can ignore it for now, as provider
+		// developers did not have access to managing the private state data.
+		//
+		// TODO: We can extract the terraform-plugin-sdk resource timeouts key
+		// here to extract its prior data, if necessary.
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/400
+		if anyErr := json.Unmarshal(data, new(map[string]any)); anyErr == nil {
+			logging.FrameworkWarn(ctx, "Discarding incompatible resource private state data", map[string]any{logging.KeyError: err.Error()})
+			return nil, nil
+		}
+
 		diags.AddError(
 			"Error Decoding Private State",
 			fmt.Sprintf("An error was encountered when decoding private state: %s.\n\n"+

@@ -1,0 +1,3 @@
+```release-note:bug
+resource: Prevented `Error Decoding Private State` errors on resources previously managed by terraform-plugin-sdk
+```

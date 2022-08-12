@@ -2,6 +2,7 @@ package privatestate
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -281,6 +282,14 @@ func TestNewData(t *testing.T) {
 		"providerKeyTwo":   []byte(`{"pKeyTwo": {"k2": "two", "k3": 3}}`),
 	})
 
+	sdkJSON, err := json.Marshal(map[string]any{
+		"schema_version": "2",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error marshaling SDK JSON: %s", err)
+	}
+
 	testCases := map[string]struct {
 		data          []byte
 		expected      *Data
@@ -409,6 +418,10 @@ func TestNewData(t *testing.T) {
 					},
 				},
 			},
+		},
+		"sdk-ignore": {
+			data:     sdkJSON,
+			expected: nil,
 		},
 	}
 

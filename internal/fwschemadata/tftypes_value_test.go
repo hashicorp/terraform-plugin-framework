@@ -1,4 +1,4 @@
-package tfsdk
+package fwschemadata_test
 
 import (
 	"context"
@@ -6,12 +6,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestCreateParentValue(t *testing.T) {
+func TestCreateParentTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -154,7 +155,7 @@ func TestCreateParentValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := createParentValue(
+			got, diags := fwschemadata.CreateParentTerraformValue(
 				context.Background(),
 				path.Root("test"),
 				tc.parentType,
@@ -172,7 +173,7 @@ func TestCreateParentValue(t *testing.T) {
 	}
 }
 
-func TestUpsertChildValue(t *testing.T) {
+func TestUpsertChildTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -493,7 +494,7 @@ func TestUpsertChildValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := upsertChildValue(
+			got, diags := fwschemadata.UpsertChildTerraformValue(
 				context.Background(),
 				path.Root("test"),
 				tc.parentValue,

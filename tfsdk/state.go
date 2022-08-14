@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
@@ -30,105 +29,7 @@ func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 // GetAttribute retrieves the attribute found at `path` and populates the
 // `target` with the value.
 func (s State) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
-	ctx = logging.FrameworkWithAttributePath(ctx, path.String())
-
-	attrValue, diags := s.getAttributeValue(ctx, path)
-
-	if diags.HasError() {
-		return diags
-	}
-
-	if attrValue == nil {
-		diags.AddAttributeError(
-			path,
-			"State Read Error",
-			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-				"Missing attribute value, however no error was returned. Preventing the panic from this situation.",
-		)
-		return diags
-	}
-
-	valueAsDiags := ValueAs(ctx, attrValue, target)
-
-	// ValueAs does not have path information for its Diagnostics.
-	for idx, valueAsDiag := range valueAsDiags {
-		valueAsDiags[idx] = diag.WithPath(path, valueAsDiag)
-	}
-
-	diags.Append(valueAsDiags...)
-
-	return diags
-}
-
-// getAttributeValue retrieves the attribute found at `path` and returns it as an
-// attr.Value. Consumers should assert the type of the returned value with the
-// desired attr.Type.
-func (s State) getAttributeValue(ctx context.Context, path path.Path) (attr.Value, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	tftypesPath, tftypesPathDiags := totftypes.AttributePath(ctx, path)
-
-	diags.Append(tftypesPathDiags...)
-
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	attrType, err := s.Schema.AttributeTypeAtPath(tftypesPath)
-	if err != nil {
-		err = fmt.Errorf("error getting attribute type in schema: %w", err)
-		diags.AddAttributeError(
-			path,
-			"State Read Error",
-			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return nil, diags
-	}
-
-	// if the whole state is nil, the value of a valid attribute is also nil
-	if s.Raw.IsNull() {
-		return nil, nil
-	}
-
-	tfValue, err := s.data().TerraformValueAtTerraformPath(ctx, tftypesPath)
-
-	// Ignoring ErrInvalidStep will allow this method to return a null value of the type.
-	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
-		diags.AddAttributeError(
-			path,
-			"State Read Error",
-			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return nil, diags
-	}
-
-	// TODO: If ErrInvalidStep, check parent paths for unknown value.
-	//       If found, convert this value to an unknown value.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/186
-
-	if attrTypeWithValidate, ok := attrType.(xattr.TypeWithValidate); ok {
-		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
-		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
-		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path)...)
-		logging.FrameworkDebug(ctx, "Called provider defined Type Validate")
-
-		if diags.HasError() {
-			return nil, diags
-		}
-	}
-
-	attrValue, err := attrType.ValueFromTerraform(ctx, tfValue)
-
-	if err != nil {
-		diags.AddAttributeError(
-			path,
-			"State Read Error",
-			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return nil, diags
-	}
-
-	return attrValue, diags
+	return s.data().GetAtPath(ctx, path, target)
 }
 
 // PathMatches returns all matching path.Paths from the given path.Expression.

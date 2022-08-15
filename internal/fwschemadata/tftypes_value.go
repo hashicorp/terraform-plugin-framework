@@ -1,4 +1,4 @@
-package tfsdk
+package fwschemadata
 
 import (
 	"context"
@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// createParentValue ensures that the given parent value can have children
+// CreateParentTerraformValue ensures that the given parent value can have children
 // values upserted. If the parent value is known and not null, it is returned
 // without modification. A null Object or Tuple is converted to known with null
 // children. An unknown Object or Tuple is converted to known with unknown
 // children. List, Map, and Set are created with empty elements.
-func createParentValue(_ context.Context, parentPath path.Path, parentType tftypes.Type, childValue interface{}) (tftypes.Value, diag.Diagnostics) {
+func CreateParentTerraformValue(_ context.Context, parentPath path.Path, parentType tftypes.Type, childValue interface{}) (tftypes.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var parentValue tftypes.Value
 
@@ -54,12 +54,12 @@ func createParentValue(_ context.Context, parentPath path.Path, parentType tftyp
 	return parentValue, diags
 }
 
-// upsertChildValue will upsert a child value into a parent value. If the
+// UpsertChildTerraformValue will upsert a child value into a parent value. If the
 // path step already has a value, it will be overwritten. Otherwise, the child
 // value will be added.
 //
 // Lists can only have the next element added according to the current length.
-func upsertChildValue(_ context.Context, parentPath path.Path, parentValue tftypes.Value, childStep path.PathStep, childValue tftypes.Value) (tftypes.Value, diag.Diagnostics) {
+func UpsertChildTerraformValue(_ context.Context, parentPath path.Path, parentValue tftypes.Value, childStep path.PathStep, childValue tftypes.Value) (tftypes.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// TODO: Add Tuple support

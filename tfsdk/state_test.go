@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	intreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"

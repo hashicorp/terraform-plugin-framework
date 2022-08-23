@@ -1,0 +1,87 @@
+---
+page_title: 'Plugin Development - Framework: Private State'
+description: >-
+How to manage private state data in the provider development framework.
+Private state is data storage for resources.
+---
+
+# Private State Management
+
+Private state data is byte data that is stored in Terraform state. It is opaque to Terraform core in that it is never
+accessed or exposed in plans. Consequently, changes to private state data are not detected as changes by Terraform core.
+
+## Usage
+
+Example uses in the framework include:
+
+* Storing and retrieving values that are required for API calls.
+* Resource timeout functionality (forthcoming).
+
+## Concepts
+
+Terraform supports the concept of private state storage for resources, which generally is an advanced use case for 
+provider development.
+
+Private state data is byte data stored in the Terraform state and is intended for provider usage only (i.e., it is only
+used by the Framework and provider code). Providers have the ability to save this data during create, import, planning, 
+read, and update operations and the ability to read this data during delete, planning, read, and update operations.
+
+## Accessing Private State Data
+
+Private state data can be read from a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) 
+type in the `Private` field present in the _request_ that is passed into:
+
+* `Delete`, `Read` and `Update` functions that form part of the [resource.Resource](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) interface.
+* `ModifyPlan` function that forms part of the [resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan) interface.
+* `Modify` function that forms part of the [tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier) interface.
+
+Private state data can be saved to a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) 
+type in the `Private` field present in the _response_ that is returned from:
+
+* `Create`, `Read` and `Update` functions that form part of the [resource.Resource](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) interface.
+* `ImportState` function that forms part of the [resource.ResourceWithImportState](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithImportState) interface.
+* `ModifyPlan` function that forms part of the [resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan) interface.
+* `Modify` function that forms part of the [tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier) interface.
+
+### Reading Private State Data
+
+Private state data can be read using the [GetKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData.GetKey)
+function. For example:
+
+```go
+func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+    
+	value, diags := req.Private.GetKey(ctx, "key")
+	
+	resp.Diagnostics.Append(diags...)
+	
+	if value != nil {
+		// value will be []byte.
+	    ...	
+    }
+}
+```
+
+If the key supplied is reserved for framework usage, an error diagnostic will be returned.
+
+If the key is valid but no private state data is found, nil is returned.
+
+### Saving Private State Data
+
+Private state data can be saved using the [SetKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData.SetKey)
+function. For example:
+
+```go
+func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+    
+	value := []byte(`{"valid": "json", "utf8": "safe"}`)
+	
+	diags := resp.Private.SetKey(ctx, "key", value)
+	
+	resp.Diagnostics.Append(diags...)
+}
+```
+
+If the key supplied is reserved for framework usage, an error diagnostic will be returned.
+
+If the value is not valid JSON and UTF-8 safe, an error diagnostic will be returned.

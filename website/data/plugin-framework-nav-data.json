@@ -33,6 +33,10 @@
       {
         "title": "State Upgrade",
         "path": "resources/state-upgrade"
+      },
+      {
+        "title": "Private State Management",
+        "path": "resources/private-state"
       }
     ]
   },

@@ -1,0 +1,142 @@
+---
+page_title: 'Provider: Migrating from SDKv2 to the Framework'
+description: >-
+   Migrate a schema from SDKv2 to the plugin Framework.
+---
+
+# Schema
+
+Providers, resources, and data sources all use schema to define their attributes and behavior. Schemas specify the
+constraints of Terraform configuration blocks and how the provider, resource, or data source behaves.
+
+This page explains the differences between the schema used by SDKv2 and the Framework.
+
+## Schema Structs
+
+SDKv2 uses `schema.Schema` structs to define the structure, type, and behavior of values drawn from configuration,
+state, or plan data. The same `schema.Schema` struct type is used for providers, resources, and data sources. The
+schema struct is returned by the function that creates the provider, resource, or data source in question.
+
+The Framework uses `tfsdk.Schema` structs for providers, resources, and data sources. The schema struct is returned by
+a `GetSchema` function you define for the provider and each resource type and data source type. Refer to
+[Framework](#framework) for details.
+
+## SDKv2
+
+The following code shows basic implementations using `schema.Schema` structs to define schemas for providers, resources,
+and data sources with SDKv2.
+
+```go
+func New() *schema.Provider {
+	return &schema.Provider{
+		Schema: map[string]*schema.Schema{},
+        ...
+	}
+}
+```
+
+```go
+func resourceExample() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{},
+		...
+	}
+}
+```
+
+```go
+func dataSourceExample() *schema.Resource {
+	return &schema.Resource{
+        Schema: map[string]*schema.Schema{},
+        ...
+	}
+}
+```
+
+SDKv2 defines the `schema.Schema` struct as follows.
+
+```go
+type Schema struct {
+	Type                  ValueType
+	ConfigMode            SchemaConfigMode
+	Required              bool
+	Optional              bool
+	Computed              bool
+	ForceNew              bool
+	DiffSuppressFunc      SchemaDiffSuppressFunc
+	DiffSuppressOnRefresh bool
+	Default               interface{}
+	DefaultFunc           SchemaDefaultFunc
+	Description           string
+	StateFunc             SchemaStateFunc
+	Elem                  interface{}
+	MaxItems              int
+	MinItems              int
+	Set                   SchemaSetFunc
+	ConflictsWith         []string
+	ExactlyOneOf          []string
+	AtLeastOneOf          []string
+	RequiredWith          []string
+	Deprecated            string
+	ValidateFunc          SchemaValidateFunc
+	ValidateDiagFunc      SchemaValidateDiagFunc
+	Sensitive             bool
+}
+```
+
+## Framework
+
+In the Framework, you implement `GetSchema` functions for your provider, resources, and data sources. This function is
+required by the `provider.Provider`, `provider.ResourceType`, and `provider.DataSourceType` interfaces, respectively.
+Refer to [Schemas](/plugin/framework/schemas) in the Framework documentation for details.
+
+The following code shows how you define the `GetSchema` function for your provider, resources, and data sources.
+
+```go
+func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{}, nil
+}
+```
+
+```go
+func (r resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{}, nil
+}
+```
+
+```go
+func (r dataSourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{}, nil
+}
+```
+
+The Framework defines the `schema.Schema` struct as follows.
+
+```go
+type Schema struct {
+	Attributes          map[string]Attribute
+	Blocks              map[string]Block
+	Version             int64
+	DeprecationMessage  string
+	Description         string
+	MarkdownDescription string
+}
+```
+
+You use the `Attributes` field to define attributes for your provider, resources, and data sources. You use the
+`Blocks` to define named blocks.
+
+## Migration Notes
+Remember the following differences between SDKv2 and the Framework when completing the migration.
+
+- SDKv2 uses `schema.Schema` structs to define the provider, resources, and data sources. The Framework uses
+`tfsdk.Schema` structs instead.
+- In SDKv2, schema structs are returned when a provider, resource, or data type is created. In the Framework, the
+provider and each resource and data type have a `GetSchema` function that returns the schema.
+- The `tfsdk.Schema` struct includes fields that you use to define
+[attributes](/plugin/framework/migrating/attributes-and-blocks/attribute-schema) and
+[blocks](/plugin/framework/migrating/attributes-and-blocks/blocks) for your provider and each resource
+and data source.
+- When you populate the `Version` field in `tfsdk.Schema` for a resource in the Framework, you copy the `Version`
+field in `schema.Schema` in SDKv2.
+

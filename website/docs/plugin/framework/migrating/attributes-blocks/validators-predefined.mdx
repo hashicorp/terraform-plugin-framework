@@ -1,0 +1,164 @@
+---
+page_title: 'Attribute predefined validators: Migrating from SDKv2 to the Framework'
+description: >-
+  Validations check required syntax, types, and acceptable values.
+  Migrate the predefined ConflictsWith, ExactlyOneOf, AtLeastOneOf and RequiredWith validators to the Framework.
+---
+
+# Validators - Predefined
+
+Attribute validators ensure that attributes do or do not contain specific values. You can use predefined validators for
+many use cases, or implement custom validators. Refer to [Schemas - Validators](/plugin/framework/schemas#validators) in
+the Framework documentation for details. Refer to the
+[Attributes - Custom Validators](/plugin/framework/migrating/validators-custom) page in this guide to learn how to
+implement custom validators.
+
+This page explains how to migrate a predefined validator from SDKv2 to the Framework.
+
+## SDKv2
+
+In SDKv2, the `ConflictsWith`, `ExactlyOneOf`, `AtLeastOneOf`, and `RequiredWith` fields on an attribute's
+`schema.Schema` struct perform predefined validations on the list of attributes set for these fields.
+
+```go
+func resourceExample() *schema.Resource {
+	return &schema.Resource{
+ 		...
+        Schema: map[string]*schema.Schema{
+            "attribute_example": {
+                ConflictsWith:  []string
+                ExactlyOneOf:	[]string
+                AtLeastOneOf:   []string
+                RequiredWith:   []string
+...
+```
+## Framework
+
+In the Framework, you implement either type of validation by setting the `Validators` field on the `tfsdk.Attribute`
+struct with types that satisfy the `tfsdk.AttributeValidator` interface. Validators that perform the same checks as the
+predefined validators in SDKv2 are
+[available for the Framework](https://github.com/hashicorp/terraform-plugin-framework-validators). If the predefined
+validators do not meet your needs, you must define
+[custom validators](/plugin/framework/migrating/validators-custom).
+
+```go
+func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+        ...
+		Attributes: map[string]tfsdk.Attribute{
+            "attribute_example": {
+                Validators: []tfsdk.AttributeValidator{
+					schemavalidator.ConflictsWith(),
+			        ...
+```
+
+## Migration Notes
+
+Remember the following details when migrating from SDKv2 to the Framework.
+
+- In SDKv2, `ValidateDiagFunc` is a field on `schema.Schema` that you can use to define validation functions. In SDKv2,
+there are also built-in validations. For example, `ConflictsWith` is a field on the `schema.Schema` struct in SDKv2. In
+the Framework, `Validators` is a field on each `tfsdk.Attribute` struct.
+- Validators replicating the behavior of `ConflictsWith`, `ExactlyOneOf`, `AtLeastOneOf` and `RequiredWith` in SDKv2 are
+available for the Framework:
+  - [ConflictsWith](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/schemavalidator/conflicts_with.go)
+  - [ExactlyOneOf](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/schemavalidator/exactly_one_of.go)
+  - [AtLeastOneOf](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/schemavalidator/at_least_one_of.go)
+  - [AlsoRequires](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/schemavalidator/also_requires.go)
+- Define [custom validators](/plugin/framework/migrating/validators-custom) when the predefined validators do not meet
+your requirements.
+
+## Example
+
+The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
+provider.
+
+For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+`terraform-provider-tls` repository and compare the `provider.go` file in
+[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/provider.go)
+with [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/provider.go).
+
+### SDKv2
+
+The following example from the `provider.go` file shows the implementation of the `ConflictsWith` field on the
+provider's `proxy` block's `url` attribute. This validator checks that the provider does not use the `url` attribute
+when the proxy's url is set through the environment. The example also uses the `RequiredWith` field to ensure that the
+`password` attribute is configured when `username` is, and vice-versa.
+
+```go
+func New() (*schema.Provider, error) {
+	return &schema.Provider{
+		Schema: map[string]*schema.Schema{
+			"proxy": {
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"url": {
+							ConflictsWith: []string{"proxy.0.from_env"},
+							...
+						},
+						"username": {
+							RequiredWith: []string{"proxy.0.url"},
+							...
+						},
+						"password": {
+							RequiredWith: []string{"proxy.0.username"},
+							...
+						},
+						"from_env": {
+							ConflictsWith: []string{"proxy.0.url", "proxy.0.username", "proxy.0.password"},
+                            ...
+						},
+					},
+				},
+			},
+		},
+	}, nil
+}
+```
+
+### Framework
+
+The following shows the same section of provider code after the migration.
+
+This code implements the `ConflictsWith` and `AlsoRequires` validators with the Framework. The validators are configured
+via the `Validators` field of the provider's `proxy` block's attribute schema.
+
+```go
+func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Blocks: map[string]tfsdk.Block{
+			"proxy": {
+				Attributes: map[string]tfsdk.Attribute{
+					"url": {
+						Validators: []tfsdk.AttributeValidator{
+							schemavalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
+					    },
+						...
+					},
+					"username": {
+						Validators: []tfsdk.AttributeValidator{
+							schemavalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("url")),
+						},
+						...
+					},
+					"password": {
+						Validators: []tfsdk.AttributeValidator{
+							schemavalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("username")),
+						},
+						...
+					},
+					"from_env": {
+						Validators: []tfsdk.AttributeValidator{
+							schemavalidator.ConflictsWith(
+								path.MatchRelative().AtParent().AtName("url"),
+								path.MatchRelative().AtParent().AtName("username"),
+								path.MatchRelative().AtParent().AtName("password"),
+							),
+						},
+						...
+					},
+				},
+			},
+	}, nil
+}
+```

@@ -1,0 +1,147 @@
+---
+page_title: 'Attribute default values: Migrating from SDKv2 to the Framework'
+description: >-
+  Specify a default when the Terraform configuration does not supply a value for attributes.
+  Migrate attribute defaults in SDKv2 to AttributePlanModifier in the Framework.
+---
+
+# Default Values
+
+Default values set a value for an attribute when the Terraform configuration does not provide one. In SDKv2, default
+values are set via fields on an attribute's schema. In the Framework, you set default values via plan modification.
+Refer to
+[Plan Modification - Attribute Plan Modification](/plugin/framework/resources/plan-modification#attribute-plan-modification)
+in the Framework documentation for details.
+
+This page explains how to migrate attribute defaults in SDKv2 to `AttributePlanModifier` in the Framework.
+
+## SDKv2
+
+In SDKv2, default values are defined for a primitive attribute type (i.e., `TypeBool`, `TypeFloat`, `TypeInt`,
+`TypeString`) by the `Default` field on the attribute's schema. Alternatively, the `DefaultFunc` function is used to
+compute a default value for an attribute.
+
+The following code shows a basic implementation of a default value for a primitive attribute type in SDKv2. For clarity,
+the body of the attribute's schema is omitted (denoted by `...`).
+
+```go
+func resourceExample() *schema.Resource {
+	return &schema.Resource{
+ 		...
+        Schema: map[string]*schema.Schema{
+            "attribute_example": {
+				Default:     2048,
+				...
+			},
+		...
+```
+
+## Framework
+
+In the Framework, you set default values with the `AttributePlanModifier` field on your attribute's `tfsdk.Attribute`
+struct.
+
+```go
+func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+        ...
+		Attributes: map[string]tfsdk.Attribute{
+			"attribute_example": {
+                PlanModifiers: []tfsdk.AttributePlanModifier{
+	                defaultValue(types.Bool{Value: true}),
+                    ...
+```
+
+## Migration Notes
+
+Remember the following differences between SDKv2 and the Framework when completing the migration.
+
+- In SDKv2, default values are set with the `Default` or `DefaultFunc` fields on an attribute's `schema.Schema` struct.
+In the Framework, you must implement an attribute plan modifier to set default values.
+
+## Example
+
+The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
+provider.
+
+For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+`terraform-provider-tls` repository and compare the `resource_private_key.go` file in
+[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/resource_private_key.go) with
+[v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_private_key.go).
+
+**SDKv2**
+
+The following example from the `resource_private_key.go` file shows the implementation of the `Default` field for the
+`rsa_bits` attribute on the `tls_private_key` resource with SDKv2.
+
+```go
+func resourcePrivateKey() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"rsa_bits": {
+				Default:     2048,
+				...
+			},
+			...
+```
+
+**Framework**
+
+The following shows the same section of code after the migration.
+
+This code implements the `PlanModifiers` field for the `rsa_bits` attribute with the Framework.
+
+```go
+func (rt *privateKeyResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"rsa_bits": {
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					attribute_plan_modifier.DefaultValue(types.Int64{Value: 2048}),
+					...
+				},
+				...
+			},
+			...
+		},
+	}, nil
+}
+```
+
+The following example from the `attribute_plan_modifiers.go` file implements the `DefaultValue` attribute plan modifier
+that the `rsa_bits` attribute uses.
+
+```go
+func DefaultValue(v attr.Value) tfsdk.AttributePlanModifier {
+	return &defaultValueAttributePlanModifier{v}
+}
+
+type defaultValueAttributePlanModifier struct {
+	DefaultValue attr.Value
+}
+
+var _ tfsdk.AttributePlanModifier = (*defaultValueAttributePlanModifier)(nil)
+
+func (apm *defaultValueAttributePlanModifier) Description(ctx context.Context) string {
+	...
+}
+
+func (apm *defaultValueAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
+	...
+}
+
+func (apm *defaultValueAttributePlanModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, res *tfsdk.ModifyAttributePlanResponse) {
+	// If the attribute configuration is not null, we are done here
+	if !req.AttributeConfig.IsNull() {
+		return
+	}
+
+	// If the attribute plan is "known" and "not null", then a previous plan modifier in the sequence
+	// has already been applied, and we don't want to interfere.
+	if !req.AttributePlan.IsUnknown() && !req.AttributePlan.IsNull() {
+		return
+	}
+
+	res.AttributePlan = apm.DefaultValue
+}
+```

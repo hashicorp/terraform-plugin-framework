@@ -1,0 +1,144 @@
+---
+page_title: 'Blocks: Migrating from SDKv2 to the Framework'
+description: >-
+  Migrate blocks from SDKv2 to attribute validators in the plugin Framework.
+---
+
+# Blocks
+
+Some providers, resources, and data sources include repeatable nested blocks in their attributes. These nested blocks
+typically represent separate objects that are related to (or embedded within) the containing object. Refer to
+[Schemas - Blocks](/plugin/framework/FIXME) in the Framework documentation for details.
+
+This page explains how to migrate nested blocks that are not computed (i.e., do not contain fields with
+`Computed: true`) from SDKv2 to the Framework. Refer to
+[Computed Blocks](/plugin/framework/migrating/attributes-blocks/blocks-computed) if you are looking for information
+about migrating nested blocks that contain fields that are computed.
+
+## Nested Block Example
+
+The following example shows an example of a nested block in Terraform resource configuration. The `subject` nested
+block within the `tls_cert_request` resource configures the subject of a certificate request with the `common_name` and
+`organization` attributes.
+
+```hcl
+resource "tls_cert_request" "example" {
+  private_key_pem = file("private_key.pem")
+
+  subject {
+    common_name  = "example.com"
+    organization = "ACME Examples, Inc"
+  }
+}
+```
+
+
+## SDKv2
+
+In SDKv2, blocks are defined by an attribute whose type is `TypeList`, or `TypeSet` and whose `Elem` field is set to a
+`schema.Resource` that contains a map of the block's attribute names to corresponding `schemaSchema` structs.
+
+```go
+func resourceExample() *schema.Resource {
+	return &schema.Resource{
+ 		...
+        map[string]*schema.Schema{
+			"example" = &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: bool,
+				MaxItems: int,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"nested_example": {
+							Type:        schema.TypeString,
+							Optional:    bool,
+							...
+```
+
+## Framework
+
+In the Framework, you implement nested blocks with the `Blocks` field of your provider, resource, or data source's
+`tfsdk.Schema`, as returned by the `GetSchema` function. The `Blocks` field maps the name of each block to a
+`tfsdk.Block` struct which defines the block's behavior.
+
+```go
+func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+		...
+		Blocks: map[string]tfsdk.Block{
+			"example": {
+				NestingMode: tfsdk.BlockNestingModeList,
+				MaxItems:    int,
+				Attributes: map[string]tfsdk.Attribute{
+					"nested_example": {
+						Type:     types.StringType,
+						Optional: bool
+						...
+```
+
+
+##  Example
+
+The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
+provider.
+
+For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+`terraform-provider-tls` repository and compare the `common_cert.go` file in
+[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/common_cert.go)
+with the `resource_cert_request.go` file in
+[v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_cert_request.go).
+
+**SDKv2**
+
+The following example from the `common_cert.go` file shows the implementation of the `subject` nested block on the
+`cert_request` resource's schema with SDKv2.
+
+```go
+map[string]*schema.Schema{
+	"private_key_pem": &schema.Schema{
+        Type:      schema.TypeString,
+		...
+
+    "subject" = &schema.Schema{
+        Type:     schema.TypeList,
+        MaxItems: 1,
+        Elem: &schema.Resource{
+            Schema: map[string]*schema.Schema{
+                "organization": {
+                    Type:        schema.TypeString,
+					...
+                },
+                "common_name": {
+                    Type:        schema.TypeString,
+					...
+                },
+				...
+```
+
+**Framework**
+
+The following example from the `resource_cert_request.go` file shows how the `subject` nested `subject` block on the
+`cert_request` resource is defined with the Framework after the migration.
+
+```go
+tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"private_key_pem": {
+				Type:     types.StringType,
+		...
+
+		Blocks: map[string]tfsdk.Block{
+			"subject": {
+				NestingMode: tfsdk.BlockNestingModeList,
+				MinItems:    0,
+				MaxItems:    1,
+				Attributes: map[string]tfsdk.Attribute{
+					"organization": {
+						Type:     types.StringType,
+						...
+					},
+					"common_name": {
+						Type:     types.StringType,
+						...
+					},
+```

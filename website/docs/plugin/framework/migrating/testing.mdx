@@ -12,7 +12,9 @@ been altered by the migration itself. You will also need to [update](#provider-f
 ## Testing Migration
 
 During migration, we recommend writing tests to verify that switching from SDKv2 to the Framework has not affected your
-provider's behavior.
+provider's behavior. These tests use identical configuration. The first test step applies a plan and generates state
+with the SDKv2 version of the provider. The second test step generates a plan with the Framework version of the provider
+and verifies that the plan is a no-op indicating that migrating to the framework has not altered behaviour.
 
 Use the `ExternalProviders` field within a `resource.TestStep` to specify the configuration of a specific provider to
 use during each test step. You can specify a version of the provider built on SDKv2 during the first test step, and
@@ -157,8 +159,7 @@ func TestDataSource_200(t *testing.T) {
 
 The following code sample is from the `provider_test.go` file and shows how to generate provider factories when using
 the Framework. The call to `New` returns an instance of the provider. Refer to
-[Provider Definition](/plugin/framework/migrating/provider#definition-framework) in the Framework documentation for
-details.
+[Provider Definition](/plugin/framework/migrating/provider#provider-definition) in this guide for details.
 
 ```go
 func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {

@@ -35,7 +35,7 @@ func resourceExample() *schema.Resource {
 
 ## Framework
 
-In the Framework, you implement the `ResourceWithUpgradeState` on your `resource.Resource` type to upgrade your
+In the Framework, you implement the `ResourceWithUpgradeState` interface on your resource to upgrade your
 resource's state when required.
 
 The following code shows how you define an `UpgradeState` function with the Framework. The body of the `UpgradeState`

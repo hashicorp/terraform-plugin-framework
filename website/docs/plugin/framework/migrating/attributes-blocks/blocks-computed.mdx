@@ -38,7 +38,7 @@ map[string]*schema.Schema{
 In the Framework, when working with protocol version 5, computed blocks are implemented using an attribute with a `Type`
 of `types.ListType` which has an `ElemType` of `types.ObjectType`.
 
-When working with protocol version 6, it is recommended that computed blocks are represented using nested attributes.
+When working with protocol version 6, we recommend that you define computed blocks using nested attributes.
 
 ```go
 map[string]tfsdk.Attribute{
@@ -54,7 +54,7 @@ map[string]tfsdk.Attribute{
 ## Migration Notes
 
 - When using protocol version 5 specify `ElemType` as `types.ObjectType` when migrating blocks that are computed from SDKv2 to Framework.
-- When using protocol version 6 used [nested attributes](https://www.terraform.io/plugin/framework/schemas#attributes-1) when migrating blocks that are computed from SDKv2 to Framework.
+- When using protocol version 6, use [nested attributes](https://www.terraform.io/plugin/framework/schemas#attributes-1) when migrating blocks that are computed from SDKv2 to Framework.
 
 ## Example
 
@@ -69,7 +69,7 @@ with
 
 **SDKv2**
 
-The following example from the `data_source_certificate.go` file shows the implementation of  the `certificates` nested
+The following example from the `data_source_certificate.go` file shows the implementation of the `certificates` nested
 block on the `certificate` data source's schema.
 
 ```go

@@ -29,13 +29,13 @@ func resourceExample() *schema.Resource {
 		...
 ```
 
-The `StateContextFunc` is the function called to import a resource into Terraform state. Any operations requiredthat
+The `StateContextFunc` is the function called to import a resource into Terraform state. Any operations that
 are needed to import the resource take place within this function and may result in the mutation of the `ResourceData`
 that is passed into the function. The return value is a slice of `schema.ResourceData`. This slice, which may be simple, likemight be as simple as returning the `ResourceData` that was passed into the function, or it may involve multipleinvolve fan out to multiple resources, such as AWS security groups.
 
 ## Framework
 
-In the Framework, you implement the `ResourceWithImportState` interface on your  `resource.Resource` type to allow
+In the Framework, you implement the `ResourceWithImportState` interface on your `resource.Resource` type to allow
 users to import a given resource.
 
 The following code shows how you define an `ImportState` function with the Framework. The body of the `ImportState`
@@ -134,7 +134,7 @@ func importPasswordFunc(ctx context.Context, d *schema.ResourceData, meta interf
 **Framework**
 The following shows the same section of provider code after the migration.
 
-This code implements the `ResourceWithImportState` interface on the `passwordResource` type by defining an`ImportState`
+This code implements the `ResourceWithImportState` interface on the `passwordResource` type by defining an `ImportState`
 function.
 
 ```go

@@ -13,7 +13,7 @@ This page explains how to migrate a provider server, definition, and schema from
 
 ## Serving the Provider
 
-You must update your provider's `main.go` file to serve Framework providers.
+You must update your provider's `main.go` file to serve Framework providers. Refer to [Provider Servers](/plugin/framework/provider-servers) in the Framework documentation for details.
 
 ### SDKv2
 
@@ -105,7 +105,7 @@ func main() {
 ## Provider Definition
 
 Providers built with SDKv2 use a `schema.Provider` struct to define their behavior, while Framework providers use a
-type that implements the `provider.Provider` interface, which you must define.
+type that implements the `provider.Provider` interface, which you must define.  Refer to [Providers](/plugin/framework/providers) in the Framework documentation for details.
 
 ### SDKv2
 
@@ -138,10 +138,9 @@ func New() *schema.Provider {
 ### Framework
 
 In the Framework, the second argument to your `provider.Serve` function requires a function that returns a type
-satisfying the `provider.Provider` interface. Refer to [Providers](/plugin/framework/providers) in the Framework
-documentation for details.
+satisfying the `provider.Provider` interface.
 
-The following ocde shows a typical implementation. In this implementation, the `GetResources` function returns a map
+The following code shows a typical implementation. In this implementation, the `GetResources` function returns a map
 from resource names (strings) to types that implement the `provider.ResourceType` interface. The `GetDataSources`
 function returns a map from data source names (strings) to types that implement the `provider.DataSourceType` interface.
 Refer to the [Resources](/plugin/framework/migrating/resources) and
@@ -292,7 +291,7 @@ func New() *schema.Provider {
 ```
 ### Framework
 
-In the Framework, the `GetSchema` function returns the provider schema. The `GetSchema`  function is part of the
+In the Framework, the `GetSchema` function returns the provider schema. The `GetSchema` function is part of the
 `provider.Provider` interface that your provider must implement. `GetSchema` returns a struct containing fields for
 `Attributes` and `Blocks`. These `Attributes and `Blocks` contain `map[string]tfsdk.Attribute` and
 `map[string]tfsdk.Block`, respectively. Refer to [Providers - GetSchema](/plugin/framework/providers#getschema) in the

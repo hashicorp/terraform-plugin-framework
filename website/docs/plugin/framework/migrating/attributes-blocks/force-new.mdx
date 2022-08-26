@@ -1,12 +1,12 @@
 ---
 page_title: 'Attribute ForceNew triggers: Migrating from SDKv2 to the Framework'
 description: >-
-  Migrate attribute force new in SDKv2 to attribute plan modifier in the Framework.
+  Migrate attribute force new in SDKv2 to an attribute plan modifier in the Framework.
 ---
 
 # ForceNew
 
-In Terraform, sometimes a resource must be replaced when the value of an attribute changes. In  SDKv2, this is
+In Terraform, sometimes a resource must be replaced when the value of an attribute changes. In SDKv2, this is
 accomplished via the `ForceNew` field. In the Framework, you implement the same behavior via a `RequiresReplace` plan
 modifier. Refer to
 [Plan Modification - Attribute Plan Modification](/plugin/framework/resources/plan-modification#attribute-plan-modification)
@@ -50,7 +50,7 @@ func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Dia
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
 - In both SDKv2 and Framework, `ForceNew` and `RequiresReplace`, respectively, only trigger a replace if the attribute
-is not computed. In the Framework, if an attribute which is computed requires that the resource is replaced when it is
+is not computed. In the Framework, if an attribute which is computed requires that the resource be replaced when it is
 changed, implement a plan modifier that triggers the replacement. Refer to
 [RequiresReplacePlanModifier](https://github.com/hashicorp/terraform-provider-random/blob/main/internal/planmodifiers/attribute.go#L63)
 for an example, but bear in mind that each implementation requires different logic and you may need to detect whether

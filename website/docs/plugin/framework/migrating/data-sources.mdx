@@ -42,21 +42,20 @@ schema.Resource {
 	Timeouts:             *ResourceTimeout,
 	Description:          string,
 }
-
 ```
 
 ## Framework
 
-In the Framework, you define your provider's data sources adding them to your provider's `GetDataSources` function.
+In the Framework, you define data sources adding them to your provider's `GetDataSources` function.
 
-The `GetDataSources` function on your `provider.Provider` returns a map from the data source name (string) to a struct
+The `GetDataSources` function on your `provider.Provider` returns a map from the data source name (string) to a type
 that implements the `DataSourceType` interface for each data source your provider supports.
 
 The following code shows how you add a data source to your provider with the Framework.
 
 ```go
 func (p *provider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-    return map[string]provider.ResourceType{}, nil
+    return map[string]provider.DataSourceType{}, nil
 }
 ```
 

@@ -7,7 +7,8 @@ description: >-
 # Schema
 
 Providers, resources, and data sources all use schema to define their attributes and behavior. Schemas specify the
-constraints of Terraform configuration blocks and how the provider, resource, or data source behaves.
+constraints of Terraform configuration blocks and how the provider, resource, or data source behaves. Refer to
+[Schemas](/plugin/framework/schemas) in the Framework documentation for details.
 
 This page explains the differences between the schema used by SDKv2 and the Framework.
 
@@ -88,7 +89,6 @@ type Schema struct {
 
 In the Framework, you implement `GetSchema` functions for your provider, resources, and data sources. This function is
 required by the `provider.Provider`, `provider.ResourceType`, and `provider.DataSourceType` interfaces, respectively.
-Refer to [Schemas](/plugin/framework/schemas) in the Framework documentation for details.
 
 The following code shows how you define the `GetSchema` function for your provider, resources, and data sources.
 
@@ -124,7 +124,7 @@ type Schema struct {
 ```
 
 You use the `Attributes` field to define attributes for your provider, resources, and data sources. You use the
-`Blocks` to define named blocks.
+`Blocks` field to define named blocks.
 
 ## Migration Notes
 Remember the following differences between SDKv2 and the Framework when completing the migration.
@@ -137,6 +137,6 @@ provider and each resource and data type have a `GetSchema` function that return
 [attributes](/plugin/framework/migrating/attributes-and-blocks/attribute-schema) and
 [blocks](/plugin/framework/migrating/attributes-and-blocks/blocks) for your provider and each resource
 and data source.
-- When you populate the `Version` field in `tfsdk.Schema` for a resource in the Framework, you copy the `Version`
-field in `schema.Schema` in SDKv2.
+- When you populate the `Version` field in `tfsdk.Schema` for a resource in the Framework, copy the `Version`
+field in `schema.Schema` from the SDKv2 version of that resource.
 

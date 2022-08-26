@@ -130,7 +130,7 @@ Remember the following differences between SDKv2 and the Framework when completi
 
 - SDKv2 uses `schema.Resource` structs to define resources. These structs have a `Schema` field which holds a
 `schema.Schema` to define the resource's attributes and behavior. In the Framework, you define a type that implements
-the `ResourceType` interface, which includes `GetSchema` that returns your resource's schema.
+the `ResourceType` interface, which includes a `GetSchema` function that returns your resource's schema.
 - SDKv2 implements a resource's CRUD operations as functions on the `schema.Resource`. In the Framework, you define a
 type that implements the `Resource` interface. The resource interface contains the functions that define your resource's
 CRUD operations.

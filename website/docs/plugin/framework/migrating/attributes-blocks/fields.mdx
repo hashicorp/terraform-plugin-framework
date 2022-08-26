@@ -1,12 +1,12 @@
 ---
 page_title: 'Attributes flags: Migrating from SDKv2 to the Framework'
 description: >-
-  Migrate attribute required, optional, computed and sensitive from SDKv2 to the plugin Framework
+  Migrate attribute required, optional, computed, and sensitive fields from SDKv2 to the plugin Framework
 ---
 
 # Attribute Fields
 
-A subset of attribute fields, such as required, optional, computed, or sensitive, define attribute behaviour. Refer to
+A subset of attribute fields, such as required, optional, computed, or sensitive, define attribute behavior as boolean flags. Refer to
 [Schemas - Attributes](/plugin/framework/schemas#required) in the Framework documentation for details.
 
 This page explains how to migrate the required, optional, computed, and sensitive attribute fields from SDKv2 to the
@@ -24,7 +24,7 @@ func resourceExample() *schema.Resource {
             "attribute_example": {
                 Required	bool
                 Optional	bool
-                Computed  	bool
+                Computed  bool
                 Sensitive   bool
                 ...
 ```

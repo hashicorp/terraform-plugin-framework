@@ -73,7 +73,8 @@ func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
 
 ## Provider Factories
 Existing tests should require minimal updates when migrating from SDKv2 to the Framework. The only critical change
-relates to the provider factories that create the provider during the test case.
+relates to the provider factories that create the provider during the test case. Refer to [Acceptance Tests - Specify Providers](/plugin/framework/acctests#specify-providers) in the Framework
+documentation for details.
 
 We also recommend writing tests that verify that switching from SDKv2 to the Framework has not affected provider
 behavior. Refer to [Testing Migration](#testing-migration) for details.
@@ -93,8 +94,6 @@ resource.UnitTest(t, resource.TestCase{
 In the Framework, use either the `ProtoV5ProviderFactories` or `ProtoV6ProviderFactories` field on the
 `resource.TestCase` struct to obtain the `provider.Provider`, depending on the
 [Terraform Plugin Protocol](/plugin/how-terraform-works#terraform-plugin-protocol) version your provider is using.
-Refer to [Acceptance Tests - Specify Providers](/plugin/framework/acctests#specify-providers) in the Framework
-documentation for details.
 
 The following example shows how you can write a test in the Framework for a Provider that uses protocol version 6.
 

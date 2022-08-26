@@ -12,12 +12,12 @@ typically represent separate objects that are related to (or embedded within) th
 
 This page explains how to migrate nested blocks that are not computed (i.e., do not contain fields with
 `Computed: true`) from SDKv2 to the Framework. Refer to
-[Computed Blocks](/plugin/framework/migrating/attributes-blocks/blocks-computed) if you are looking for information
+[Computed Blocks](/plugin/framework/migrating/attributes-blocks/blocks-computed) for more details
 about migrating nested blocks that contain fields that are computed.
 
 ## Nested Block Example
 
-The following example shows an example of a nested block in Terraform resource configuration. The `subject` nested
+The following example shows a nested block in Terraform resource configuration. The `subject` nested
 block within the `tls_cert_request` resource configures the subject of a certificate request with the `common_name` and
 `organization` attributes.
 
@@ -35,7 +35,7 @@ resource "tls_cert_request" "example" {
 
 ## SDKv2
 
-In SDKv2, blocks are defined by an attribute whose type is `TypeList`, or `TypeSet` and whose `Elem` field is set to a
+In SDKv2, blocks are defined by an attribute whose type is `TypeList` or `TypeSet` and whose `Elem` field is set to a
 `schema.Resource` that contains a map of the block's attribute names to corresponding `schemaSchema` structs.
 
 ```go
@@ -117,7 +117,7 @@ map[string]*schema.Schema{
 
 **Framework**
 
-The following example from the `resource_cert_request.go` file shows how the `subject` nested `subject` block on the
+The following example from the `resource_cert_request.go` file shows how the nested `subject` block on the
 `cert_request` resource is defined with the Framework after the migration.
 
 ```go

@@ -1,3 +1,8 @@
+# 0.11.1 (August 15, 2022)
+
+BUG FIXES:
+* resource: Prevented `Error Decoding Private State` errors on resources previously managed by terraform-plugin-sdk ([#452](https://github.com/hashicorp/terraform-plugin-framework/issues/452))
+
 # 0.11.0 (August 11, 2022)
 
 NOTES:

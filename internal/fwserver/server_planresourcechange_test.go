@@ -153,7 +153,7 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 			"string-set": tftypes.NewValue(tftypes.String, "bar"),
 		}),
 	})
-	expected := tftypes.NewValue(s.TerraformType(context.Background()), map[string]tftypes.Value{
+	expected := tftypes.NewValue(s.Type().TerraformType(context.Background()), map[string]tftypes.Value{
 		"string-value":                   tftypes.NewValue(tftypes.String, "hello, world"),
 		"string-nil":                     tftypes.NewValue(tftypes.String, nil),
 		"string-nil-computed":            tftypes.NewValue(tftypes.String, tftypes.UnknownValue),

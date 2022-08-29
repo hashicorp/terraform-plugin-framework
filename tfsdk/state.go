@@ -93,6 +93,7 @@ func (s *State) RemoveResource(ctx context.Context) {
 
 func (s State) data() fwschemadata.Data {
 	return fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionState,
 		Schema:         s.Schema,
 		TerraformValue: s.Raw,
 	}

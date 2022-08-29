@@ -22,8 +22,8 @@ func (d *Data) Set(ctx context.Context, val any) diag.Diagnostics {
 
 	if err != nil {
 		diags.AddError(
-			"Data Write Error",
-			"An unexpected error was encountered trying to write the data. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+			d.Description.Title()+" Write Error",
+			"An unexpected error was encountered trying to write the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				fmt.Sprintf("Error: Unable to run ToTerraformValue on new value: %s", err),
 		)
 		return diags

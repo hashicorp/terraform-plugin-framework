@@ -33,9 +33,9 @@ func (d Data) PathExists(ctx context.Context, path path.Path) (bool, diag.Diagno
 
 		diags.AddAttributeError(
 			path,
-			"State Read Error",
-			"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-				fmt.Sprintf("Cannot walk attribute path in state: %s", err),
+			d.Description.Title()+" Read Error",
+			"An unexpected error was encountered trying to read an attribute from the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				fmt.Sprintf("Cannot walk attribute path in %s: %s", d.Description, err),
 		)
 		return false, diags
 	}

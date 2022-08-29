@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
-	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -2720,28 +2719,15 @@ func TestAttributeModifyPlan(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-
-			// TODO: Remove after schema refactoring
-			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-			tftypesPath, diags := totftypes.AttributePath(ctx, tc.req.AttributePath)
+			attribute, diags := tc.req.Config.Schema.AttributeAtPath(ctx, tc.req.AttributePath)
 
 			if diags.HasError() {
-				for _, diagnostic := range diags {
-					t.Errorf("unexpected diagnostic: %s", diagnostic)
-				}
-
-				return
-			}
-
-			attribute, err := tc.req.Config.Schema.AttributeAtTerraformPath(ctx, tftypesPath)
-
-			if err != nil {
-				t.Fatalf("Unexpected error getting %s", err)
+				t.Fatalf("Unexpected diagnostics: %s", diags)
 			}
 
 			tc.resp.Plan = tc.req.Plan
 
-			AttributeModifyPlan(context.Background(), attribute, tc.req, &tc.resp)
+			AttributeModifyPlan(ctx, attribute, tc.req, &tc.resp)
 
 			if diff := cmp.Diff(tc.expectedResp, tc.resp, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("Unexpected response (-wanted, +got): %s", diff)

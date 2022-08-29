@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
-	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -1085,25 +1084,13 @@ func TestAttributeValidate(t *testing.T) {
 
 			var got tfsdk.ValidateAttributeResponse
 
-			// TODO: Remove after schema refactoring
-			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-			tftypesPath, diags := totftypes.AttributePath(ctx, tc.req.AttributePath)
+			attribute, diags := tc.req.Config.Schema.AttributeAtPath(ctx, tc.req.AttributePath)
 
 			if diags.HasError() {
-				for _, diagnostic := range diags {
-					t.Errorf("unexpected diagnostic: %s", diagnostic)
-				}
-
-				return
+				t.Fatalf("Unexpected diagnostics: %s", diags)
 			}
 
-			attribute, err := tc.req.Config.Schema.AttributeAtTerraformPath(ctx, tftypesPath)
-
-			if err != nil {
-				t.Fatalf("Unexpected error getting %s", err)
-			}
-
-			AttributeValidate(context.Background(), attribute, tc.req, &got)
+			AttributeValidate(ctx, attribute, tc.req, &got)
 
 			if diff := cmp.Diff(got, tc.resp); diff != "" {
 				t.Errorf("Unexpected response (+wanted, -got): %s", diff)

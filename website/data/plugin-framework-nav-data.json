@@ -81,7 +81,7 @@
     "path": "debugging"
   },
   {
-    "title": "Migrating",
+    "title": "Migrating from SDK",
     "routes": [
       {
         "title": "Overview",

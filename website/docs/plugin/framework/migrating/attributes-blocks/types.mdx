@@ -94,3 +94,49 @@ func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diag
             },
             /* ... */
 ```
+
+The following examples show how to migrate portions of the
+[http](https://github.com/hashicorp/terraform-provider-tls) provider.
+
+For a complete example, clone the
+`terraform-provider-tls` repository and compare the `common_cert.go` file in
+[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/common_cert.go)
+and the `resource_cert_request.go` file in
+[v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_cert_request.go).
+
+### SDKv2
+
+The following example from the `common_cert.go` file shows the implementation of the type field of the `dns_names`
+attribute with SDKv2.
+
+```go
+func resourceCertRequest() *schema.Resource {
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "dns_names": {
+                Type:    schema.TypeList,
+				Elem:    &schema.Schema{
+			        Type: schema.TypeString,
+		        },
+                /* ... */
+            },
+            /* ... */
+```
+
+### Framework
+
+The following example from the `data_source_http.go` file shows how the type of the `url` attribute for the `http` data
+source is defined with the Framework after the migration.
+
+```go
+func (rt *certRequestResourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "dns_names": {
+                Type:types.ListType{
+                    ElemType: types.StringType
+                },
+                /* ... */
+            },
+            /* ... */
+```

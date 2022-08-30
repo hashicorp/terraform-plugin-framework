@@ -2,25 +2,21 @@
 page_title: 'Plugin Development - Framework: Private State Management'
 description: >-
   How to manage private state data in the provider development framework.
-  Private state is data storage for resources.
+  Private state is provider-only data storage for resources.
 ---
 
 # Private State Management
 
-Private state data is byte data that is stored in Terraform state. It is opaque to Terraform core in that it is never
-accessed or exposed in plans. Consequently, changes to private state data are not detected as changes by Terraform core.
+Resource private state is provider maintained data that is stored in Terraform state alongside the schema-defined data. Private state is never accessed or exposed by Terraform plans, however providers can use this data storage for advanced use cases.
 
 ## Usage
 
 Example uses in the framework include:
 
-* Storing and retrieving values that are required for API calls.
-* Resource timeout functionality (forthcoming).
+* Storing and retrieving values that are not important to show to practitioners, but are required for API calls, such as ETags.
+* Resource timeout functionality.
 
 ## Concepts
-
-Terraform supports the concept of private state storage for resources, which generally is an advanced use case for 
-provider development.
 
 Private state data is byte data stored in the Terraform state and is intended for provider usage only (i.e., it is only
 used by the Framework and provider code). Providers have the ability to save this data during create, import, planning, 
@@ -31,17 +27,25 @@ read, and update operations and the ability to read this data during delete, pla
 Private state data can be read from a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) 
 type in the `Private` field present in the _request_ that is passed into:
 
-* `Delete`, `Read` and `Update` functions that form part of the [resource.Resource](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) interface.
-* `ModifyPlan` function that forms part of the [resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan) interface.
-* `Modify` function that forms part of the [tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier) interface.
+| Resource Operation | Private State Data |
+| --- | --- |
+| Delete | [resource.DeleteRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteRequest.Private) |
+| Plan Modification ([resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan)) | [resource.ModifyPlanRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ModifyPlanRequest.Private) |
+| Plan Modification ([tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier)) | [tfsdk.ModifyAttributePlanRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ModifyAttributePlanRequest.Private) |
+| Read | [resource.ReadRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest.Private) |
+| Update | [resource.UpdateRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest.Private)
 
 Private state data can be saved to a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) 
 type in the `Private` field present in the _response_ that is returned from:
 
-* `Create`, `Read` and `Update` functions that form part of the [resource.Resource](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) interface.
-* `ImportState` function that forms part of the [resource.ResourceWithImportState](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithImportState) interface.
-* `ModifyPlan` function that forms part of the [resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan) interface.
-* `Modify` function that forms part of the [tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier) interface.
+| Resource Operation | Private State Data |
+| --- | --- |
+| Create | [resource.CreateResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateResponse.Private) |
+| Import | [resource.ImportStateResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.Private) |
+| Plan Modification ([resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan)) | [resource.ModifyPlanResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ModifyPlanResponse.Private) |
+| Plan Modification ([tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier)) | [tfsdk.ModifyAttributePlanResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ModifyAttributePlanResponse.Private) |
+| Read | [resource.ReadResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.Private) |
+| Update | [resource.UpdateResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateResponse.Private)
 
 ### Reading Private State Data
 

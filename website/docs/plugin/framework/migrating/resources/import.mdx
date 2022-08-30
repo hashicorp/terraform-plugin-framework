@@ -60,6 +60,32 @@ satisfies the `tfsdk.ResourceWithImportState` interface.
 
 ## Example
 
+In the simple use case in which `schema.ImportStatePassthroughContext` has been used with SDKv2, migrating simply
+involves using `resource.ImportStatePassthroughID`.
+
+### SDKv2
+
+```go
+func resourceExample() *schema.Resource {
+    return &schema.Resource{
+        Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+        },
+        /* ... */
+    }
+}
+```
+
+### Framework
+
+```go
+
+
+func (r *resourceExample) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	/* ... */
+```
+
 The following examples show how to migrate portions of the
 [random](https://github.com/hashicorp/terraform-provider-random) provider.
 

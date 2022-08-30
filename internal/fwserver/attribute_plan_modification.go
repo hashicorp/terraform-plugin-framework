@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -21,7 +22,13 @@ import (
 func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.ModifyAttributePlanRequest, resp *ModifySchemaPlanResponse) {
 	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
 
-	attrConfig, diags := ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
+	configData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionConfiguration,
+		Schema:         req.Config.Schema,
+		TerraformValue: req.Config.Raw,
+	}
+
+	attrConfig, diags := configData.ValueAtPath(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	// Only on new errors.
@@ -30,7 +37,13 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 	}
 	req.AttributeConfig = attrConfig
 
-	attrState, diags := StateGetAttributeValue(ctx, req.State, req.AttributePath)
+	stateData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionState,
+		Schema:         req.State.Schema,
+		TerraformValue: req.State.Raw,
+	}
+
+	attrState, diags := stateData.ValueAtPath(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	// Only on new errors.
@@ -39,7 +52,13 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 	}
 	req.AttributeState = attrState
 
-	attrPlan, diags := PlanGetAttributeValue(ctx, req.Plan, req.AttributePath)
+	planData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionPlan,
+		Schema:         req.Plan.Schema,
+		TerraformValue: req.Plan.Raw,
+	}
+
+	attrPlan, diags := planData.ValueAtPath(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	// Only on new errors.

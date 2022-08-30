@@ -32,7 +32,7 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 	if err != nil {
 		diags.AddAttributeError(
 			schemaPath,
-			"Data Read Error",
+			d.Description.Title()+" Read Error",
 			"An unexpected error was encountered trying to retrieve type information at a given path. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				"Error: "+err.Error(),
 		)
@@ -51,7 +51,7 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
 		diags.AddAttributeError(
 			schemaPath,
-			"Data Read Error",
+			d.Description.Title()+" Read Error",
 			"An unexpected error was encountered trying to retrieve an attribute value from the given path. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 		)
 		return nil, diags
@@ -77,8 +77,8 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 	if err != nil {
 		diags.AddAttributeError(
 			schemaPath,
-			"Data Read Error",
-			"An unexpected error was encountered trying to convert an attribute value from the data. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+			d.Description.Title()+" Read Error",
+			"An unexpected error was encountered trying to convert an attribute value from the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				"Error: "+err.Error(),
 		)
 		return nil, diags

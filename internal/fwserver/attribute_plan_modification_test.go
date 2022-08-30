@@ -93,8 +93,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"Configuration Read Error",
-						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"An unexpected error was encountered trying to convert an attribute value from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 				Plan: tfsdk.Plan{
@@ -188,8 +188,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"Configuration Read Error",
-						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"An unexpected error was encountered trying to convert an attribute value from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 				Plan: tfsdk.Plan{
@@ -272,8 +272,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"Plan Read Error",
-						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"An unexpected error was encountered trying to convert an attribute value from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 				Plan: tfsdk.Plan{
@@ -367,8 +367,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"Plan Read Error",
-						"An unexpected error was encountered trying to read an attribute from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"An unexpected error was encountered trying to convert an attribute value from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 				Plan: tfsdk.Plan{
@@ -451,8 +451,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"State Read Error",
-						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"An unexpected error was encountered trying to convert an attribute value from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 				Plan: tfsdk.Plan{
@@ -546,8 +546,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"State Read Error",
-						"An unexpected error was encountered trying to read an attribute from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"An unexpected error was encountered trying to convert an attribute value from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 				Plan: tfsdk.Plan{

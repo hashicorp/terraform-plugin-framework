@@ -74,6 +74,7 @@ func (p *Plan) SetAttribute(ctx context.Context, path path.Path, val interface{}
 
 func (p Plan) data() *fwschemadata.Data {
 	return &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionPlan,
 		Schema:         p.Schema,
 		TerraformValue: p.Raw,
 	}

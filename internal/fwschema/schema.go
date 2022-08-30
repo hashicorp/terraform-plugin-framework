@@ -17,9 +17,8 @@ type Schema interface {
 	tftypes.AttributePathStepper
 
 	// AttributeAtPath should return the Attribute at the given path or return
-	// an error. This will be added next release.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-	// AttributeAtPath(context.Context, path.Path) (Attribute, diag.Diagnostics)
+	// an error.
+	AttributeAtPath(context.Context, path.Path) (Attribute, diag.Diagnostics)
 
 	// AttributeAtTerraformPath should return the Attribute at the given
 	// Terraform path or return an error.

@@ -25,8 +25,8 @@ func (d Data) GetAtPath(ctx context.Context, schemaPath path.Path, target any) d
 	if attrValue == nil {
 		diags.AddAttributeError(
 			schemaPath,
-			"Config Read Error",
-			"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+			d.Description.Title()+" Read Error",
+			"An unexpected error was encountered trying to read an attribute from the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				"Missing attribute value, however no error was returned. Preventing the panic from this situation.",
 		)
 		return diags
@@ -42,7 +42,7 @@ func (d Data) GetAtPath(ctx context.Context, schemaPath path.Path, target any) d
 	if err != nil {
 		diags.AddAttributeError(
 			schemaPath,
-			"Error converting value",
+			d.Description.Title()+" Value Conversion Error",
 			fmt.Sprintf("An unexpected error was encountered converting a %T to its equivalent Terraform representation. This is always a bug in the provider.\n\n"+
 				"Error: %s", attrValue, err),
 		)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -50,7 +51,13 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.Vali
 		return
 	}
 
-	attributeConfig, diags := ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
+	configData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionConfiguration,
+		Schema:         req.Config.Schema,
+		TerraformValue: req.Config.Raw,
+	}
+
+	attributeConfig, diags := configData.ValueAtPath(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {

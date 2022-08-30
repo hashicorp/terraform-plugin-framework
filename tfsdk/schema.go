@@ -101,19 +101,6 @@ func (s Schema) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep)
 	return nil, fmt.Errorf("could not find attribute or block %q in schema", a)
 }
 
-// AttributeType returns a types.ObjectType composed from the schema types.
-// Deprecated: Use Type() instead.
-func (s Schema) AttributeType() attr.Type {
-	return s.Type()
-}
-
-// AttributeTypeAtPath returns the attr.Type of the attribute at the given path.
-//
-// Deprecated: Use the TypeAtPath() or TypeAtTerraformPath() method.
-func (s Schema) AttributeTypeAtPath(path *tftypes.AttributePath) (attr.Type, error) {
-	return s.TypeAtTerraformPath(context.Background(), path)
-}
-
 // TypeAtPath returns the framework type at the given schema path.
 func (s Schema) TypeAtPath(ctx context.Context, schemaPath path.Path) (attr.Type, diag.Diagnostics) {
 	var diags diag.Diagnostics
@@ -133,7 +120,7 @@ func (s Schema) TypeAtPath(ctx context.Context, schemaPath path.Path) (attr.Type
 			schemaPath,
 			"Invalid Schema Path",
 			"When attempting to get the framework type associated with a schema path, an unexpected error was returned. "+
-				"This is either an issue with the provider or terraform-plugin-framework. Please report this to the provider developers.\n\n"+
+				"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Path: %s\n", schemaPath.String())+
 				fmt.Sprintf("Original Error: %s", err),
 		)
@@ -198,12 +185,6 @@ func (s Schema) GetVersion() int64 {
 	return s.Version
 }
 
-// TerraformType returns a tftypes.Type that can represent the schema.
-// Deprecated: Use Type().TerraformType() instead.
-func (s Schema) TerraformType(ctx context.Context) tftypes.Type {
-	return s.Type().TerraformType(ctx)
-}
-
 // Type returns the framework type of the schema.
 func (s Schema) Type() attr.Type {
 	attrTypes := map[string]attr.Type{}
@@ -222,12 +203,32 @@ func (s Schema) Type() attr.Type {
 // AttributeAtPath returns the Attribute at the passed path. If the path points
 // to an element or attribute of a complex type, rather than to an Attribute,
 // it will return an ErrPathInsideAtomicAttribute error.
-//
-// Deprecated: The signature will be updated in the next release.
-// Use AttributeAtTerraformPath() if the *tftypes.AttributePath parameter is
-// still needed.
-func (s Schema) AttributeAtPath(path *tftypes.AttributePath) (fwschema.Attribute, error) {
-	return s.AttributeAtTerraformPath(context.Background(), path)
+func (s Schema) AttributeAtPath(ctx context.Context, schemaPath path.Path) (fwschema.Attribute, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	tftypesPath, tftypesDiags := totftypes.AttributePath(ctx, schemaPath)
+
+	diags.Append(tftypesDiags...)
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	attribute, err := s.AttributeAtTerraformPath(ctx, tftypesPath)
+
+	if err != nil {
+		diags.AddAttributeError(
+			schemaPath,
+			"Invalid Schema Path",
+			"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+				"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Path: %s\n", schemaPath.String())+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return nil, diags
+	}
+
+	return attribute, diags
 }
 
 // AttributeAtPath returns the Attribute at the passed path. If the path points

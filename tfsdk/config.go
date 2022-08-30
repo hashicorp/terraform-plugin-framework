@@ -37,6 +37,7 @@ func (c Config) PathMatches(ctx context.Context, pathExpr path.Expression) (path
 
 func (c Config) data() fwschemadata.Data {
 	return fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionConfiguration,
 		Schema:         c.Schema,
 		TerraformValue: c.Raw,
 	}

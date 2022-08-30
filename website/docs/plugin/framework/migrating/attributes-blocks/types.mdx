@@ -20,14 +20,14 @@ In SDKv2, attribute types are defined by the `Type` field on the attribute's `sc
 
 ```go
 func resourceExample() *schema.Resource {
-	return &schema.Resource{
- 		...
-		Schema: map[string]*schema.Schema{
-			"attribute_example": {
-				Type:        schema.TypeName,
-				...
-			},
-		...
+    return &schema.Resource{
+         ...
+        Schema: map[string]*schema.Schema{
+            "attribute_example": {
+                Type:        schema.TypeName,
+                ...
+            },
+        ...
 ```
 ## Framework
 
@@ -35,13 +35,13 @@ In the Framework, you set your attribute's type with the `Type` field on your at
 
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+    return tfsdk.Schema{
         ...
-		Attributes: map[string]tfsdk.Attribute{
-			"attribute_example": {
-				Type:        types.NameType,
-				...
-			},
+        Attributes: map[string]tfsdk.Attribute{
+            "attribute_example": {
+                Type:        types.NameType,
+                ...
+            },
 ```
 ## Migration Notes
 Remember the following differences between SDKv2 and the Framework when completing the migration.
@@ -63,34 +63,34 @@ For clarity, some parts of the migration are omitted (denoted by `...`). For a c
 and the `data_source_http.go` file in
 [v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http.go).
 
-**SDKv2**
+### SDKv2
 
 The following example from the `data_source.go` file shows the implementation of the type field of the `url` attribute
 for the `http` data source with SDKv2.
 
 ```go
 func dataSource() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"url": {
-				Type:        schema.TypeString,
-				...
-			},
-			...
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "url": {
+                Type:        schema.TypeString,
+                ...
+            },
+            ...
 ```
 
-**Framework**
+### Framework
 
 The following example from the `data_source_http.go` file shows how the type of the `url` attribute for the `http` data
 source is defined with the Framework after the migration.
 
 ```go
 func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"url": {
-				Type:        types.StringType,
-				...
-			},
-			...
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "url": {
+                Type:        types.StringType,
+                ...
+            },
+            ...
 ```

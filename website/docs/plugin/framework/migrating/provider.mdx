@@ -23,14 +23,15 @@ The following code shows a basic implementation for serving an SDKv2 provider.
 
 ```go
 func main() {
-	plugin.Serve(
-		&plugin.ServeOpts{
-			ProviderFunc: provider.New,
-			ProviderAddr: "registry.terraform.io/<namespace>/<provider_name>",
-		},
-	)
+    plugin.Serve(
+        &plugin.ServeOpts{
+            ProviderFunc: provider.New,
+            ProviderAddr: "registry.terraform.io/<namespace>/<provider_name>",
+        },
+    )
 }
 ```
+
 ### Framework
 
 In the Framework, you serve your provider by calling `providerserver.Serve` in your provider package's `main` function.
@@ -40,17 +41,17 @@ The following code shows an equivalent implementation for serving a provider in 
 
 ```go
 func main() {
-	err := providerserver.Serve(
-		context.Background(),
-		provider.New,
-		providerserver.ServeOpts{
-			Address: "registry.terraform.io/<namespace>/<provider_name>",
-		},
-	)
+    err := providerserver.Serve(
+        context.Background(),
+        provider.New,
+        providerserver.ServeOpts{
+            Address: "registry.terraform.io/<namespace>/<provider_name>",
+        },
+    )
 
-	if err != nil {
-		log.Fatal(err)
-	}
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 ```
 
@@ -68,37 +69,37 @@ mode.
 
 ```go
 func main() {
-	ctx := context.Background()
+    ctx := context.Background()
 
-	var debug bool
+    var debug bool
 
-	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
-	flag.Parse()
+    flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
+    flag.Parse()
 
-	providers := []func() tfprotov5.ProviderServer{
-		providerserver.NewProtocol5(provider.New()),
-		tftime.Provider().GRPCProvider,
-	}
+    providers := []func() tfprotov5.ProviderServer{
+        providerserver.NewProtocol5(provider.New()),
+        tftime.Provider().GRPCProvider,
+    }
 
-	muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
-	if err != nil {
-		log.Fatal(err)
-	}
+    muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	var serveOpts []tf5server.ServeOpt
+    var serveOpts []tf5server.ServeOpt
 
-	if debug {
-		serveOpts = append(serveOpts, tf5server.WithManagedDebug())
-	}
+    if debug {
+        serveOpts = append(serveOpts, tf5server.WithManagedDebug())
+    }
 
-	err = tf5server.Serve(
-		"registry.terraform.io/hashicorp/time",
-		muxServer.ProviderServer,
-		serveOpts...,
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+    err = tf5server.Serve(
+        "registry.terraform.io/hashicorp/time",
+        muxServer.ProviderServer,
+        serveOpts...,
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 ```
 
@@ -121,17 +122,17 @@ The following example shows a basic implementation of an SDKv2 provider. For cla
 
 ```go
 func New() *schema.Provider {
-	return &schema.Provider{
-		Schema:         map[string]*schema.Schema{},
+    return &schema.Provider{
+        Schema:         map[string]*schema.Schema{},
         ConfigureContextFunc:   configureContextFunc(),
-		ResourcesMap:   map[string]*schema.Resource{
-			"resource_example": resourceExample(),
-		},
-		DataSourcesMap: map[string]*schema.Resource{
-			"dataSource_example": dataSourceExample(),
-		},
+        ResourcesMap:   map[string]*schema.Resource{
+            "resource_example": resourceExample(),
+        },
+        DataSourcesMap: map[string]*schema.Resource{
+            "dataSource_example": dataSourceExample(),
+        },
         ...
-	}
+    }
 }
 ```
 
@@ -176,6 +177,7 @@ func (p *provider) GetDataSources(ctx context.Context) (map[string]provider.Data
 ```
 
 ### Migration Notes
+
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
 - In SDKv2, your provider's `New` function returns a `schema.Provider` struct. In the Framework, `New` returns a type
@@ -210,22 +212,22 @@ The following example shows how to set up a provider schema, configuration, reso
 
 ```go
 func New() (*schema.Provider, error) {
-	return &schema.Provider{
-		Schema: map[string]*schema.Schema{
-			"proxy": {
-				...
-			},
-		},
-		ConfigureContextFunc: configureProvider,
-		ResourcesMap: map[string]*schema.Resource{
-			"tls_private_key": resourcePrivateKey(),
-			...
-		},
-		DataSourcesMap: map[string]*schema.Resource{
-			"tls_public_key": dataSourcePublicKey(),
-			...
-		},
-	}, nil
+    return &schema.Provider{
+        Schema: map[string]*schema.Schema{
+            "proxy": {
+                ...
+            },
+        },
+        ConfigureContextFunc: configureProvider,
+        ResourcesMap: map[string]*schema.Resource{
+            "tls_private_key": resourcePrivateKey(),
+            ...
+        },
+        DataSourcesMap: map[string]*schema.Resource{
+            "tls_public_key": dataSourcePublicKey(),
+            ...
+        },
+    }, nil
 }
 ```
 
@@ -237,35 +239,35 @@ The following shows the same section of provider code after the migration.
 var _ provider.Provider = (*provider)(nil)
 
 func New() provider.Provider {
-	return &provider{}
+    return &provider{}
 }
 
 func (p *provider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-	return map[string]provider.ResourceType{
-		"tls_private_key":         &privateKeyResourceType{},
-		...
-	}, nil
+    return map[string]provider.ResourceType{
+        "tls_private_key":         &privateKeyResourceType{},
+        ...
+    }, nil
 }
 
 func (p *provider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-	return map[string]provider.DataSourceType{
-		"tls_public_key":  &publicKeyDataSourceType{},
-		...
-	}, nil
+    return map[string]provider.DataSourceType{
+        "tls_public_key":  &publicKeyDataSourceType{},
+        ...
+    }, nil
 }
 
 func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"proxy": {
-				...
-			},
-		},
-	}, nil
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "proxy": {
+                ...
+            },
+        },
+    }, nil
 }
 
 func (p *provider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
-	...
+    ...
 }
 ```
 
@@ -285,15 +287,16 @@ of the `schema.Provider` struct has been omitted for clarity (denoted by `...`).
 
 ```go
 func New() *schema.Provider {
-	return &schema.Provider{
-		Schema: map[string]*schema.Schema{},
-		...
+    return &schema.Provider{
+        Schema: map[string]*schema.Schema{},
+        ...
 ```
+
 ### Framework
 
 In the Framework, the `GetSchema` function returns the provider schema. The `GetSchema` function is part of the
 `provider.Provider` interface that your provider must implement. `GetSchema` returns a struct containing fields for
-`Attributes` and `Blocks`. These `Attributes and `Blocks` contain `map[string]tfsdk.Attribute` and
+`Attributes` and `Blocks`. These `Attributes` and `Blocks` contain `map[string]tfsdk.Attribute` and
 `map[string]tfsdk.Block`, respectively. Refer to [Providers - GetSchema](/plugin/framework/providers#getschema) in the
 Framework documentation for details.
 
@@ -301,7 +304,7 @@ The following code shows the `GetSchema` function, which returns the provider sc
 
 ```go
 func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{}, nil
+    return tfsdk.Schema{}, nil
 }
 ```
 
@@ -310,6 +313,7 @@ Refer to the [Attributes](/plugin/framework/migrating/attributes-blocks#attribut
 those fields to the Framework.
 
 ### Migration Notes
+
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
 In SDKv2, `schema.Schema` is a struct that defines attributes and behaviors (e.g., `Type`, `Optional`). In the
@@ -336,21 +340,21 @@ The following example shows how to configure an attribute within a provider sche
 
 ```go
 Schema: map[string]*schema.Schema{
-	"proxy": {
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"url": {
-					Type:             schema.TypeString,
-					Optional:         true,
-					ValidateDiagFunc: validation.ToDiagFunc(validation.IsURLWithScheme(SupportedProxySchemesStr())),
-					ConflictsWith:    []string{"proxy.0.from_env"},
-					Description: "URL used to connect to the Proxy. " +
-						fmt.Sprintf("Accepted schemes are: `%s`. ", strings.Join(SupportedProxySchemesStr(), "`, `")),
-				},
-				...
+    "proxy": {
+        Type:     schema.TypeList,
+        Optional: true,
+        MaxItems: 1,
+        Elem: &schema.Resource{
+            Schema: map[string]*schema.Schema{
+                "url": {
+                    Type:             schema.TypeString,
+                    Optional:         true,
+                    ValidateDiagFunc: validation.ToDiagFunc(validation.IsURLWithScheme(SupportedProxySchemesStr())),
+                    ConflictsWith:    []string{"proxy.0.from_env"},
+                    Description: "URL used to connect to the Proxy. " +
+                        fmt.Sprintf("Accepted schemes are: `%s`. ", strings.Join(SupportedProxySchemesStr(), "`, `")),
+                },
+                ...
 ```
 
 **Framework**
@@ -359,19 +363,19 @@ The following example shows how to configure provider schema using the Framework
 
 ```go
 func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"proxy": {
-				Optional: true,
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					"url": {
-						Type:     types.StringType,
-						Optional: true,
-						Validators: []tfsdk.AttributeValidator{
-							attribute_validator.UrlWithScheme(supportedProxySchemesStr()...),
-							schemavalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
-						},
-						MarkdownDescription: "URL used to connect to the Proxy. " +
-							fmt.Sprintf("Accepted schemes are: `%s`. ", strings.Join(supportedProxySchemesStr(), "`, `")),
-					},
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "proxy": {
+                Optional: true,
+                Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+                    "url": {
+                        Type:     types.StringType,
+                        Optional: true,
+                        Validators: []tfsdk.AttributeValidator{
+                            attribute_validator.UrlWithScheme(supportedProxySchemesStr()...),
+                            schemavalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
+                        },
+                        MarkdownDescription: "URL used to connect to the Proxy. " +
+                            fmt.Sprintf("Accepted schemes are: `%s`. ", strings.Join(supportedProxySchemesStr(), "`, `")),
+                    },
 ```

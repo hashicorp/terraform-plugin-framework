@@ -42,38 +42,39 @@ repository. The second step also uses `PlanOnly` to verify that a no-op plan is 
 func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
     ...
 
-	resource.Test(t, resource.TestCase{
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"http": {
-						VersionConstraint: "2.2.0",
-						Source:            "hashicorp/http",
-					},
-				},
-				Config: fmt.Sprintf(`
-							data "http" "http_test" {
-								url = "%s/200"
-							}`, testHttpMock.server.URL),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.http.http_test", "response_body", "1.0.0"),
-					...
-				),
-			},
-			{
-				ProtoV5ProviderFactories: protoV5ProviderFactories(),
-				Config: fmt.Sprintf(`
-							data "http" "http_test" {
-								url = "%s/200"
-							}`, testHttpMock.server.URL),
-				PlanOnly: true,
-			},
-		},
-	})
+    resource.Test(t, resource.TestCase{
+        Steps: []resource.TestStep{
+            {
+                ExternalProviders: map[string]resource.ExternalProvider{
+                    "http": {
+                        VersionConstraint: "2.2.0",
+                        Source:            "hashicorp/http",
+                    },
+                },
+                Config: fmt.Sprintf(`
+                            data "http" "http_test" {
+                                url = "%s/200"
+                            }`, testHttpMock.server.URL),
+                Check: resource.ComposeTestCheckFunc(
+                    resource.TestCheckResourceAttr("data.http.http_test", "response_body", "1.0.0"),
+                    ...
+                ),
+            },
+            {
+                ProtoV5ProviderFactories: protoV5ProviderFactories(),
+                Config: fmt.Sprintf(`
+                            data "http" "http_test" {
+                                url = "%s/200"
+                            }`, testHttpMock.server.URL),
+                PlanOnly: true,
+            },
+        },
+    })
 }
 ```
 
 ## Provider Factories
+
 Existing tests should require minimal updates when migrating from SDKv2 to the Framework. The only critical change
 relates to the provider factories that create the provider during the test case. Refer to [Acceptance Tests - Specify Providers](/plugin/framework/acctests#specify-providers) in the Framework
 documentation for details.
@@ -89,10 +90,11 @@ The following example shows a test written in SDKv2.
 
 ```go
 resource.UnitTest(t, resource.TestCase{
-	ProviderFactories: testProviders(),
+    ProviderFactories: testProviders(),
 ```
 
 ### Framework
+
 In the Framework, use either the `ProtoV5ProviderFactories` or `ProtoV6ProviderFactories` field on the
 `resource.TestCase` struct to obtain the `provider.Provider`, depending on the
 [Terraform Plugin Protocol](/plugin/how-terraform-works#terraform-plugin-protocol) version your provider is using.
@@ -101,10 +103,11 @@ The following example shows how you can write a test in the Framework for a Prov
 
 ```go
 resource.UnitTest(t, resource.TestCase{
-	ProtoV6ProviderFactories: protoV6ProviderFactories(),
+    ProtoV6ProviderFactories: protoV6ProviderFactories(),
 ```
 
 ### Example
+
 The following examples show how to migrate portions of the [http](https://github.com/hashicorp/terraform-provider-http)
 provider.
 
@@ -121,12 +124,12 @@ a test case when using SDKv2.
 
 ```go
 func TestDataSource_http200(t *testing.T) {
-	...
+    ...
 
-	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testProviders(),
-	    ...
-	})
+    resource.UnitTest(t, resource.TestCase{
+        ProviderFactories: testProviders(),
+        ...
+    })
 }
 ```
 
@@ -135,13 +138,13 @@ SDKv2.
 
 ```go
 func testProviders() map[string]func() (*schema.Provider, error) {
-	return map[string]func() (*schema.Provider, error){
-		"http": func() (*schema.Provider, error) { return New(), nil },
-	}
+    return map[string]func() (*schema.Provider, error){
+        "http": func() (*schema.Provider, error) { return New(), nil },
+    }
 }
 ```
 
-**Framework**
+### Framework
 
 The following code sample is from the `data_source_http_test.go` file and shows how to define provider factories within
 a test case when using the Framework.
@@ -150,10 +153,10 @@ a test case when using the Framework.
 func TestDataSource_200(t *testing.T) {
     ...
 
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: protoV5ProviderFactories(),
-		...
-	})
+    resource.UnitTest(t, resource.TestCase{
+        ProtoV5ProviderFactories: protoV5ProviderFactories(),
+        ...
+    })
 }
 ```
 
@@ -163,8 +166,8 @@ the Framework. The call to `New` returns an instance of the provider. Refer to
 
 ```go
 func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {
-	return map[string]func() (tfprotov5.ProviderServer, error){
-		"http": providerserver.NewProtocol5WithError(New()),
-	}
+    return map[string]func() (tfprotov5.ProviderServer, error){
+        "http": providerserver.NewProtocol5WithError(New()),
+    }
 }
 ```

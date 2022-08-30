@@ -26,14 +26,14 @@ the body of the attribute's schema is omitted (denoted by `...`).
 
 ```go
 func resourceExample() *schema.Resource {
-	return &schema.Resource{
- 		...
+    return &schema.Resource{
+         ...
         Schema: map[string]*schema.Schema{
             "attribute_example": {
-				Default:     2048,
-				...
-			},
-		...
+                Default:     2048,
+                ...
+            },
+        ...
 ```
 
 ## Framework
@@ -43,12 +43,12 @@ struct.
 
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+    return tfsdk.Schema{
         ...
-		Attributes: map[string]tfsdk.Attribute{
-			"attribute_example": {
+        Attributes: map[string]tfsdk.Attribute{
+            "attribute_example": {
                 PlanModifiers: []tfsdk.AttributePlanModifier{
-	                defaultValue(types.Bool{Value: true}),
+                    defaultValue(types.Bool{Value: true}),
                     ...
 ```
 
@@ -69,23 +69,23 @@ For clarity, some parts of the migration are omitted (denoted by `...`). For a c
 [v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/resource_private_key.go) with
 [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_private_key.go).
 
-**SDKv2**
+### SDKv2
 
 The following example from the `resource_private_key.go` file shows the implementation of the `Default` field for the
 `rsa_bits` attribute on the `tls_private_key` resource with SDKv2.
 
 ```go
 func resourcePrivateKey() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"rsa_bits": {
-				Default:     2048,
-				...
-			},
-			...
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "rsa_bits": {
+                Default:     2048,
+                ...
+            },
+            ...
 ```
 
-**Framework**
+### Framework
 
 The following shows the same section of code after the migration.
 
@@ -93,18 +93,18 @@ This code implements the `PlanModifiers` field for the `rsa_bits` attribute with
 
 ```go
 func (rt *privateKeyResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"rsa_bits": {
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					attribute_plan_modifier.DefaultValue(types.Int64{Value: 2048}),
-					...
-				},
-				...
-			},
-			...
-		},
-	}, nil
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "rsa_bits": {
+                PlanModifiers: []tfsdk.AttributePlanModifier{
+                    attribute_plan_modifier.DefaultValue(types.Int64{Value: 2048}),
+                    ...
+                },
+                ...
+            },
+            ...
+        },
+    }, nil
 }
 ```
 
@@ -113,35 +113,35 @@ that the `rsa_bits` attribute uses.
 
 ```go
 func DefaultValue(v attr.Value) tfsdk.AttributePlanModifier {
-	return &defaultValueAttributePlanModifier{v}
+    return &defaultValueAttributePlanModifier{v}
 }
 
 type defaultValueAttributePlanModifier struct {
-	DefaultValue attr.Value
+    DefaultValue attr.Value
 }
 
 var _ tfsdk.AttributePlanModifier = (*defaultValueAttributePlanModifier)(nil)
 
 func (apm *defaultValueAttributePlanModifier) Description(ctx context.Context) string {
-	...
+    ...
 }
 
 func (apm *defaultValueAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
-	...
+    ...
 }
 
 func (apm *defaultValueAttributePlanModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, res *tfsdk.ModifyAttributePlanResponse) {
-	// If the attribute configuration is not null, we are done here
-	if !req.AttributeConfig.IsNull() {
-		return
-	}
+    // If the attribute configuration is not null, we are done here
+    if !req.AttributeConfig.IsNull() {
+        return
+    }
 
-	// If the attribute plan is "known" and "not null", then a previous plan modifier in the sequence
-	// has already been applied, and we don't want to interfere.
-	if !req.AttributePlan.IsUnknown() && !req.AttributePlan.IsNull() {
-		return
-	}
+    // If the attribute plan is "known" and "not null", then a previous plan modifier in the sequence
+    // has already been applied, and we don't want to interfere.
+    if !req.AttributePlan.IsUnknown() && !req.AttributePlan.IsNull() {
+        return
+    }
 
-	res.AttributePlan = apm.DefaultValue
+    res.AttributePlan = apm.DefaultValue
 }
 ```

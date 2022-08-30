@@ -29,28 +29,28 @@ and data sources with SDKv2.
 
 ```go
 func New() *schema.Provider {
-	return &schema.Provider{
-		Schema: map[string]*schema.Schema{},
+    return &schema.Provider{
+        Schema: map[string]*schema.Schema{},
         ...
-	}
+    }
 }
 ```
 
 ```go
 func resourceExample() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{},
-		...
-	}
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{},
+        ...
+    }
 }
 ```
 
 ```go
 func dataSourceExample() *schema.Resource {
-	return &schema.Resource{
+    return &schema.Resource{
         Schema: map[string]*schema.Schema{},
         ...
-	}
+    }
 }
 ```
 
@@ -58,30 +58,30 @@ SDKv2 defines the `schema.Schema` struct as follows.
 
 ```go
 type Schema struct {
-	Type                  ValueType
-	ConfigMode            SchemaConfigMode
-	Required              bool
-	Optional              bool
-	Computed              bool
-	ForceNew              bool
-	DiffSuppressFunc      SchemaDiffSuppressFunc
-	DiffSuppressOnRefresh bool
-	Default               interface{}
-	DefaultFunc           SchemaDefaultFunc
-	Description           string
-	StateFunc             SchemaStateFunc
-	Elem                  interface{}
-	MaxItems              int
-	MinItems              int
-	Set                   SchemaSetFunc
-	ConflictsWith         []string
-	ExactlyOneOf          []string
-	AtLeastOneOf          []string
-	RequiredWith          []string
-	Deprecated            string
-	ValidateFunc          SchemaValidateFunc
-	ValidateDiagFunc      SchemaValidateDiagFunc
-	Sensitive             bool
+    Type                  ValueType
+    ConfigMode            SchemaConfigMode
+    Required              bool
+    Optional              bool
+    Computed              bool
+    ForceNew              bool
+    DiffSuppressFunc      SchemaDiffSuppressFunc
+    DiffSuppressOnRefresh bool
+    Default               interface{}
+    DefaultFunc           SchemaDefaultFunc
+    Description           string
+    StateFunc             SchemaStateFunc
+    Elem                  interface{}
+    MaxItems              int
+    MinItems              int
+    Set                   SchemaSetFunc
+    ConflictsWith         []string
+    ExactlyOneOf          []string
+    AtLeastOneOf          []string
+    RequiredWith          []string
+    Deprecated            string
+    ValidateFunc          SchemaValidateFunc
+    ValidateDiagFunc      SchemaValidateDiagFunc
+    Sensitive             bool
 }
 ```
 
@@ -100,13 +100,13 @@ func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostic
 
 ```go
 func (r resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{}, nil
+    return tfsdk.Schema{}, nil
 }
 ```
 
 ```go
 func (r dataSourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{}, nil
+    return tfsdk.Schema{}, nil
 }
 ```
 
@@ -114,12 +114,12 @@ The Framework defines the `schema.Schema` struct as follows.
 
 ```go
 type Schema struct {
-	Attributes          map[string]Attribute
-	Blocks              map[string]Block
-	Version             int64
-	DeprecationMessage  string
-	Description         string
-	MarkdownDescription string
+    Attributes          map[string]Attribute
+    Blocks              map[string]Block
+    Version             int64
+    DeprecationMessage  string
+    Description         string
+    MarkdownDescription string
 }
 ```
 
@@ -127,6 +127,7 @@ You use the `Attributes` field to define attributes for your provider, resources
 `Blocks` field to define named blocks.
 
 ## Migration Notes
+
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
 - SDKv2 uses `schema.Schema` structs to define the provider, resources, and data sources. The Framework uses
@@ -139,4 +140,3 @@ provider and each resource and data type have a `GetSchema` function that return
 and data source.
 - When you populate the `Version` field in `tfsdk.Schema` for a resource in the Framework, copy the `Version`
 field in `schema.Schema` from the SDKv2 version of that resource.
-

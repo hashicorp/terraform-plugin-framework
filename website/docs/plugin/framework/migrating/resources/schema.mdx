@@ -28,12 +28,12 @@ The following code shows a basic implementation of resource schema with SDKv2. F
 
 ```go
 func New() *schema.Provider {
-	return &schema.Provider{
-		ResourcesMap:   map[string]*schema.Resource
-	}{
-		"resource_example": resourceExample(),
-	}
-	...
+    return &schema.Provider{
+        ResourcesMap:   map[string]*schema.Resource
+    }{
+        "resource_example": resourceExample(),
+    }
+    ...
 },
 ```
 
@@ -41,29 +41,29 @@ SDKv2 defines the `schema.Resource` struct as follows.
 
 ```go
 schema.Resource{
-	Schema 			map[string]*Schema
-	SchemaVersion 		    int
-	MigrateState 			StateMigrateFunc
-	StateUpgraders 		    []StateUpgrader
-	Create 			        CreateFunc
-	Read 				    ReadFunc
-	Update 			        UpdateFunc
-	Delete 				    DeleteFunc
-	Exists 				    ExistsFunc
-	CreateContext 		    CreateContextFunc
-	ReadContext 			ReadContextFunc
-	UpdateContext 		    UpdateContextFunc
-	DeleteContext 		    DeleteContextFunc
-	CreateWithoutTimeout	CreateContextFunc
-	ReadWithoutTimeout 		ReadContextFunc
-	UpdateWithoutTimeout	UpdateContextFunc
-	DeleteWithoutTimeout 	DeleteContextFunc
-	CustomizeDiff 			CustomizeDiffFunc
-	Importer 			    *ResourceImporter
-	DeprecationMessage 		string
-	Timeouts 			    *ResourceTimeout
-	Description 			string
-	UseJSONNumber 		    bool
+    Schema             map[string]*Schema
+    SchemaVersion             int
+    MigrateState             StateMigrateFunc
+    StateUpgraders             []StateUpgrader
+    Create                     CreateFunc
+    Read                     ReadFunc
+    Update                     UpdateFunc
+    Delete                     DeleteFunc
+    Exists                     ExistsFunc
+    CreateContext             CreateContextFunc
+    ReadContext             ReadContextFunc
+    UpdateContext             UpdateContextFunc
+    DeleteContext             DeleteContextFunc
+    CreateWithoutTimeout    CreateContextFunc
+    ReadWithoutTimeout         ReadContextFunc
+    UpdateWithoutTimeout    UpdateContextFunc
+    DeleteWithoutTimeout     DeleteContextFunc
+    CustomizeDiff             CustomizeDiffFunc
+    Importer                 *ResourceImporter
+    DeprecationMessage         string
+    Timeouts                 *ResourceTimeout
+    Description             string
+    UseJSONNumber             bool
 }
 ```
 
@@ -99,11 +99,11 @@ Framework.
 type resourceTypeExample struct{}
 
 func (r resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{}, nil
+    return tfsdk.Schema{}, nil
 }
 
 func (r resourceTypeExample) NewResource(_ context.Context, p provider.Provider) (resource.Resource, diag.Diagnostics) {
-	return &resourceExample{}, nil
+    return &resourceExample{}, nil
 }
 ```
 
@@ -112,12 +112,12 @@ The `tfsdk.Schema` is used for defining the schema for providers, resources and 
 
 ```go
 type Schema struct {
-	Attributes map[string]Attribute
-	Blocks map[string]Block
-	Version int64
-	DeprecationMessage  string
-	Description         string
-	MarkdownDescription string
+    Attributes map[string]Attribute
+    Blocks map[string]Block
+    Version int64
+    DeprecationMessage  string
+    Description         string
+    MarkdownDescription string
 }
 ```
 
@@ -145,7 +145,7 @@ clone the `terraform-provider-tls` repository and compare the `resource_private_
 [v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/resource_private_key.go) with
 [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_private_key.go).
 
-**SDKv2**
+### SDKv2
 
 In SDKv2, the `ResourcesMap` field on the `schema.Provider` struct holds a `map[string]*schemaResource`. A typical
 pattern is to implement a function that returns `schema.Resource`.
@@ -154,36 +154,36 @@ The following example from the `provider.go` file defines a `tls_private_key` re
 
 ```go
 func New() (*schema.Provider, error) {
-	return &schema.Provider {
-		ResourcesMap: map[string]*schema.Resource {
-			"tls_private_key": resourcePrivateKey(),
-			...
+    return &schema.Provider {
+        ResourcesMap: map[string]*schema.Resource {
+            "tls_private_key": resourcePrivateKey(),
+            ...
 ```
 
 The following example from the `resource_private_key.go` file defines the resource schema.
 
 ```go
 func resourcePrivateKey() *schema.Resource {
-	return &schema.Resource{
-		CreateContext: createResourcePrivateKey,
-		DeleteContext: deleteResourcePrivateKey,
-		ReadContext:   readResourcePrivateKey,
+    return &schema.Resource{
+        CreateContext: createResourcePrivateKey,
+        DeleteContext: deleteResourcePrivateKey,
+        ReadContext:   readResourcePrivateKey,
 
-		Description: "Creates a PEM ...",
+        Description: "Creates a PEM ...",
 
-		Schema: map[string]*schema.Schema{
-			"algorithm": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice(SupportedAlgorithmsStr(), false)),
-				Description: "Name of the algorithm to use when generating the private key. " +
-					"Currently-supported values are `RSA`, `ECDSA` and `ED25519`.",
-			},
-			...
+        Schema: map[string]*schema.Schema{
+            "algorithm": {
+                Type:             schema.TypeString,
+                Required:         true,
+                ForceNew:         true,
+                ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice(SupportedAlgorithmsStr(), false)),
+                Description: "Name of the algorithm to use when generating the private key. " +
+                    "Currently-supported values are `RSA`, `ECDSA` and `ED25519`.",
+            },
+            ...
 ```
 
-**Framework**
+### Framework
 
 The following shows the same section of provider code after the migration.
 
@@ -191,8 +191,8 @@ This code defines the `tls_private_key` resource by mapping the resource name to
 
 ```go
 func (p *provider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-	return map[string]provider.ResourceType{
-		"tls_private_key":         &privateKeyResourceType{},
+    return map[string]provider.ResourceType{
+        "tls_private_key":         &privateKeyResourceType{},
         ...
 ```
 
@@ -200,25 +200,25 @@ This code defines the `GetSchema` and `NewResource` functions for the `privateKe
 
 ```go
 func (rt *privateKeyResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Version: 1,
-		Attributes: map[string]tfsdk.Attribute{
-			// Required attributes
-			"algorithm": {
-				Type:     types.StringType,
-				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
-				},
-				Validators: []tfsdk.AttributeValidator{
-					attribute_validation.OneOf(supportedAlgorithmsAttrValue()...),
-				},
-				Description: "Name of the algorithm to use when generating the private key. " +
-					fmt.Sprintf("Currently-supported values are: `%s`. ", strings.Join(supportedAlgorithmsStr(), "`, `")),
-			},
-			...
+    return tfsdk.Schema{
+        Version: 1,
+        Attributes: map[string]tfsdk.Attribute{
+            // Required attributes
+            "algorithm": {
+                Type:     types.StringType,
+                Required: true,
+                PlanModifiers: []tfsdk.AttributePlanModifier{
+                    resource.RequiresReplace(),
+                },
+                Validators: []tfsdk.AttributeValidator{
+                    attribute_validation.OneOf(supportedAlgorithmsAttrValue()...),
+                },
+                Description: "Name of the algorithm to use when generating the private key. " +
+                    fmt.Sprintf("Currently-supported values are: `%s`. ", strings.Join(supportedAlgorithmsStr(), "`, `")),
+            },
+            ...
 
 func (rt *privateKeyResourceType) NewResource(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-	return &privateKeyResource{}, nil
+    return &privateKeyResource{}, nil
 }
 ```

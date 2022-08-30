@@ -40,19 +40,19 @@ In SDKv2, blocks are defined by an attribute whose type is `TypeList` or `TypeSe
 
 ```go
 func resourceExample() *schema.Resource {
-	return &schema.Resource{
- 		...
+    return &schema.Resource{
+         ...
         map[string]*schema.Schema{
-			"example" = &schema.Schema{
-				Type:     schema.TypeList,
-				Optional: bool,
-				MaxItems: int,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"nested_example": {
-							Type:        schema.TypeString,
-							Optional:    bool,
-							...
+            "example" = &schema.Schema{
+                Type:     schema.TypeList,
+                Optional: bool,
+                MaxItems: int,
+                Elem: &schema.Resource{
+                    Schema: map[string]*schema.Schema{
+                        "nested_example": {
+                            Type:        schema.TypeString,
+                            Optional:    bool,
+                            ...
 ```
 
 ## Framework
@@ -64,16 +64,16 @@ In the Framework, you implement nested blocks with the `Blocks` field of your pr
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
-		...
-		Blocks: map[string]tfsdk.Block{
-			"example": {
-				NestingMode: tfsdk.BlockNestingModeList,
-				MaxItems:    int,
-				Attributes: map[string]tfsdk.Attribute{
-					"nested_example": {
-						Type:     types.StringType,
-						Optional: bool
-						...
+        ...
+        Blocks: map[string]tfsdk.Block{
+            "example": {
+                NestingMode: tfsdk.BlockNestingModeList,
+                MaxItems:    int,
+                Attributes: map[string]tfsdk.Attribute{
+                    "nested_example": {
+                        Type:     types.StringType,
+                        Optional: bool
+                        ...
 ```
 
 
@@ -88,16 +88,16 @@ For clarity, some parts of the migration are omitted (denoted by `...`). For a c
 with the `resource_cert_request.go` file in
 [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_cert_request.go).
 
-**SDKv2**
+### SDKv2
 
 The following example from the `common_cert.go` file shows the implementation of the `subject` nested block on the
 `cert_request` resource's schema with SDKv2.
 
 ```go
 map[string]*schema.Schema{
-	"private_key_pem": &schema.Schema{
+    "private_key_pem": &schema.Schema{
         Type:      schema.TypeString,
-		...
+        ...
 
     "subject" = &schema.Schema{
         Type:     schema.TypeList,
@@ -106,39 +106,39 @@ map[string]*schema.Schema{
             Schema: map[string]*schema.Schema{
                 "organization": {
                     Type:        schema.TypeString,
-					...
+                    ...
                 },
                 "common_name": {
                     Type:        schema.TypeString,
-					...
+                    ...
                 },
-				...
+                ...
 ```
 
-**Framework**
+### Framework
 
 The following example from the `resource_cert_request.go` file shows how the nested `subject` block on the
 `cert_request` resource is defined with the Framework after the migration.
 
 ```go
 tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"private_key_pem": {
-				Type:     types.StringType,
-		...
+        Attributes: map[string]tfsdk.Attribute{
+            "private_key_pem": {
+                Type:     types.StringType,
+        ...
 
-		Blocks: map[string]tfsdk.Block{
-			"subject": {
-				NestingMode: tfsdk.BlockNestingModeList,
-				MinItems:    0,
-				MaxItems:    1,
-				Attributes: map[string]tfsdk.Attribute{
-					"organization": {
-						Type:     types.StringType,
-						...
-					},
-					"common_name": {
-						Type:     types.StringType,
-						...
-					},
+        Blocks: map[string]tfsdk.Block{
+            "subject": {
+                NestingMode: tfsdk.BlockNestingModeList,
+                MinItems:    0,
+                MaxItems:    1,
+                Attributes: map[string]tfsdk.Attribute{
+                    "organization": {
+                        Type:     types.StringType,
+                        ...
+                    },
+                    "common_name": {
+                        Type:     types.StringType,
+                        ...
+                    },
 ```

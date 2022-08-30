@@ -23,9 +23,9 @@ The following example shows a typical implementation. The rest of the `schema.Pr
 
 ```go
 func New() *schema.Provider {
-	return &schema.Provider{
-		DataSourcesMap:   map[string]*schema.Resource{}
-	...
+    return &schema.Provider{
+        DataSourcesMap:   map[string]*schema.Resource{}
+    ...
 },
 ```
 
@@ -34,13 +34,13 @@ resource struct. For clarity, the example omits fields that are not available fo
 
 ```go
 schema.Resource {
-	Schema:               map[string]*schema.Schema,
-	Read:                 ReadFunc,
-	ReadContext:          ReadContextFunc,
-	ReadWithoutTimeout:   ReadContextFunc,
-	DeprecationMessage:   string,
-	Timeouts:             *ResourceTimeout,
-	Description:          string,
+    Schema:               map[string]*schema.Schema,
+    Read:                 ReadFunc,
+    ReadContext:          ReadContextFunc,
+    ReadWithoutTimeout:   ReadContextFunc,
+    DeprecationMessage:   string,
+    Timeouts:             *ResourceTimeout,
+    Description:          string,
 }
 ```
 
@@ -75,11 +75,11 @@ Framework.
 type dataSourceTypeExample struct{}
 
 func (r *dataSourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	...
+    ...
 }
 
 func (r *dataSourceTypeExample) NewDataSource(ctx context.Context, p provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-	...
+    ...
 }
 ```
 
@@ -105,17 +105,17 @@ For clarity, some parts of the migration are omitted (denoted by `...`). For a c
 and the `data_source_http.go` file in
 [v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http.go).
 
-**SDKv2**
+### SDKv2
 
 The following example from the `provider.go` file shows an implementation of the `DataSourcesMap` field on the provider
 schema with SDKv2.
 
 ```go
 func New() (*schema.Provider, error) {
-	return &schema.Provider {
-		DataSourcesMap: map[string]*schema.Resource {
-			"http": dataSource(),
-			...
+    return &schema.Provider {
+        DataSourcesMap: map[string]*schema.Resource {
+            "http": dataSource(),
+            ...
 ```
 
 The following example from the `data_source.go` file shows how the `ReadContext` function and `Schema` are defined for
@@ -123,31 +123,31 @@ the `http` data source with SDKv2.
 
 ```go
 func dataSource() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: dataSourceRead,
+    return &schema.Resource{
+        ReadContext: dataSourceRead,
 
-		Schema: map[string]*schema.Schema{
-			"url": {
-				Description: "The URL for the request. Supported schemes are `http` and `https`.",
-				Type:        schema.TypeString,
-				Required:    true,
-			},
-			...
-		},
-	}
+        Schema: map[string]*schema.Schema{
+            "url": {
+                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+                Type:        schema.TypeString,
+                Required:    true,
+            },
+            ...
+        },
+    }
 }
 ```
 
-**Framework**
+### Framework
 
 The following example from the `provider.go` file shows how the `http` data source is defined with the Framework after
 the migration.
 
 ```go
 func (p *provider) GetDataSources(context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-	return map[string]provider.DataSourceType{
-		"http": &httpDataSourceType{},
-	}, nil
+    return map[string]provider.DataSourceType{
+        "http": &httpDataSourceType{},
+    }, nil
 }
 ```
 
@@ -156,14 +156,14 @@ Framework.
 
 ```go
 func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"url": {
-				Description: "The URL for the request. Supported schemes are `http` and `https`.",
-				Type:        types.StringType,
-				Required:    true,
-			},
-		...
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "url": {
+                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+                Type:        types.StringType,
+                Required:    true,
+            },
+        ...
 
 func (d *httpDataSourceType) NewDataSource(context.Context, provider.Provider) (datasource.DataSource, diag.Diagnostics) {
     return &httpDataSource{}, nil

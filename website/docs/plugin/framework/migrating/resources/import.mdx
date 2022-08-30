@@ -22,11 +22,11 @@ for clarity (denoted by `...`).
 
 ```go
 func resourceExample() *schema.Resource {
-	return &schema.Resource{
-		Importer: &schema.ResourceImporter{
-			StateContext: StateContextFunc,
-		},
-		...
+    return &schema.Resource{
+        Importer: &schema.ResourceImporter{
+            StateContext: StateContextFunc,
+        },
+        ...
 ```
 
 The `StateContextFunc` is the function called to import a resource into Terraform state. Any operations that
@@ -72,19 +72,19 @@ with [main](https://github.com/hashicorp/terraform-provider-random/blob/main/int
 
 This example also shows one way to handle populating attributes with their default values during import.
 
-**SDKv2**
+### SDKv2
 
 The following example from the `resource_password.go` file shows the import function for the `random_password` resource
 with SDKv2.
 
 ```go
 func resourcePassword() *schema.Resource {
-	return &schema.Resource{
-		Importer: &schema.ResourceImporter{
-			StateContext: importPasswordFunc,
-		},
-		...
-	}
+    return &schema.Resource{
+        Importer: &schema.ResourceImporter{
+            StateContext: importPasswordFunc,
+        },
+        ...
+    }
 }
 ```
 
@@ -92,46 +92,46 @@ The following example shows the implementation of the `importPasswordFunc` funct
 
 ```go
 func importPasswordFunc(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	for k, v := range passwordSchemaV2() {
-		if v.Default == nil {
-			continue
-		}
-		if err := d.Set(k, v.Default); err != nil {
-			return nil, fmt.Errorf("error setting %s: %w", k, err)
-		}
-	}
+    for k, v := range passwordSchemaV2() {
+        if v.Default == nil {
+            continue
+        }
+        if err := d.Set(k, v.Default); err != nil {
+            return nil, fmt.Errorf("error setting %s: %w", k, err)
+        }
+    }
 
-	for _, key := range []string{"number", "numeric"} {
-		if err := d.Set(key, true); err != nil {
-			return nil, fmt.Errorf("error setting %s: %w", key, err)
-		}
-	}
+    for _, key := range []string{"number", "numeric"} {
+        if err := d.Set(key, true); err != nil {
+            return nil, fmt.Errorf("error setting %s: %w", key, err)
+        }
+    }
 
-	val := d.Id()
-	d.SetId("none")
+    val := d.Id()
+    d.SetId("none")
 
-	if err := d.Set("result", val); err != nil {
-		return nil, fmt.Errorf("resource password import failed, error setting result: %w", err)
-	}
+    if err := d.Set("result", val); err != nil {
+        return nil, fmt.Errorf("resource password import failed, error setting result: %w", err)
+    }
 
-	if err := d.Set("length", len(val)); err != nil {
-		return nil, fmt.Errorf("error setting length: %w", err)
-	}
+    if err := d.Set("length", len(val)); err != nil {
+        return nil, fmt.Errorf("error setting length: %w", err)
+    }
 
-	hash, err := generateHash(val)
-	if err != nil {
-		return nil, fmt.Errorf("resource password import failed, generate hash error: %w", err)
-	}
+    hash, err := generateHash(val)
+    if err != nil {
+        return nil, fmt.Errorf("resource password import failed, generate hash error: %w", err)
+    }
 
-	if err := d.Set("bcrypt_hash", hash); err != nil {
-		return nil, fmt.Errorf("resource password import failed, error setting bcrypt_hash: %w", err)
-	}
+    if err := d.Set("bcrypt_hash", hash); err != nil {
+        return nil, fmt.Errorf("resource password import failed, error setting bcrypt_hash: %w", err)
+    }
 
-	return []*schema.ResourceData{d}, nil
+    return []*schema.ResourceData{d}, nil
 }
 ```
 
-**Framework**
+### Framework
 The following shows the same section of provider code after the migration.
 
 This code implements the `ResourceWithImportState` interface on the `passwordResource` type by defining an `ImportState`
@@ -139,35 +139,35 @@ function.
 
 ```go
 func (r *passwordResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	id := req.ID
+    id := req.ID
 
-	state := passwordModelV2{
-		ID:         types.String{Value: "none"},
-		Result:     types.String{Value: id},
-		Length:     types.Int64{Value: int64(len(id))},
-		Special:    types.Bool{Value: true},
-		Upper:      types.Bool{Value: true},
-		Lower:      types.Bool{Value: true},
-		Numeric:    types.Bool{Value: true},
-		MinSpecial: types.Int64{Value: 0},
-		MinUpper:   types.Int64{Value: 0},
-		MinLower:   types.Int64{Value: 0},
-		MinNumeric: types.Int64{Value: 0},
-	}
+    state := passwordModelV2{
+        ID:         types.String{Value: "none"},
+        Result:     types.String{Value: id},
+        Length:     types.Int64{Value: int64(len(id))},
+        Special:    types.Bool{Value: true},
+        Upper:      types.Bool{Value: true},
+        Lower:      types.Bool{Value: true},
+        Numeric:    types.Bool{Value: true},
+        MinSpecial: types.Int64{Value: 0},
+        MinUpper:   types.Int64{Value: 0},
+        MinLower:   types.Int64{Value: 0},
+        MinNumeric: types.Int64{Value: 0},
+    }
 
-	state.Keepers.ElemType = types.StringType
+    state.Keepers.ElemType = types.StringType
 
-	hash, err := generateHash(id)
-	if err != nil {
-		resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
-	}
+    hash, err := generateHash(id)
+    if err != nil {
+        resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
+    }
 
-	state.BcryptHash = types.String{Value: hash}
+    state.BcryptHash = types.String{Value: hash}
 
-	diags := resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+    diags := resp.State.Set(ctx, &state)
+    resp.Diagnostics.Append(diags...)
+    if resp.Diagnostics.HasError() {
+        return
+    }
 }
 ```

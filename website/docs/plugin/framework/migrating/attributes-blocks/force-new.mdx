@@ -21,12 +21,12 @@ cycle) whenever the attribute's value is changed.
 
 ```go
 func resourceExample() *schema.Resource {
-	return &schema.Resource{
-		...
+    return &schema.Resource{
+        ...
         Schema: map[string]*schema.Schema{
             "attribute_example": {
-                ForceNew	true
-				...
+                ForceNew    true
+                ...
 ```
 
 ## Framework
@@ -36,13 +36,13 @@ attribute's `tfsdk.Attribute` struct.
 
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+    return tfsdk.Schema{
         ...
-		Attributes: map[string]tfsdk.Attribute{
-			"attribute_example": {
+        Attributes: map[string]tfsdk.Attribute{
+            "attribute_example": {
                 PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
-					...
+                    resource.RequiresReplace(),
+                    ...
 ```
 
 ## Migration Notes
@@ -66,27 +66,27 @@ For clarity, some parts of the migration are omitted (denoted by `...`). For a c
 [v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
 with [main](https://github.com/hashicorp/terraform-provider-random/blob/main/internal/provider/resource_password.go).
 
-**SDKv2**
+### SDKv2
 
 The following example from the `resource_password.go` file shows the implementation of the `ForceNew` field of the
 `random_password` resource's `keepers` attribute with SDKv2.
 
 ```go
 func resourcePassword() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"keepers": {
-				ForceNew: true,
-				...
-			},
-			...
-		},
-		...
-	}
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "keepers": {
+                ForceNew: true,
+                ...
+            },
+            ...
+        },
+        ...
+    }
 }
 ```
 
-**Framework**
+### Framework
 
 The following shows the same section of provider code after the migration.
 
@@ -95,16 +95,16 @@ The example does this using the `PlanModifiers` field within the `random_passwor
 
 ```go
 func (r *passwordResourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"keepers": {
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
-				},
-				...
-			},
-			...
-		},
-	}, nil
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "keepers": {
+                PlanModifiers: []tfsdk.AttributePlanModifier{
+                    resource.RequiresReplace(),
+                },
+                ...
+            },
+            ...
+        },
+    }, nil
 }
 ```

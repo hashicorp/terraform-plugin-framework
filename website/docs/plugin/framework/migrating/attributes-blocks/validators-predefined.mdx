@@ -22,12 +22,12 @@ In SDKv2, the `ConflictsWith`, `ExactlyOneOf`, `AtLeastOneOf`, and `RequiredWith
 
 ```go
 func resourceExample() *schema.Resource {
-	return &schema.Resource{
- 		...
+    return &schema.Resource{
+         ...
         Schema: map[string]*schema.Schema{
             "attribute_example": {
                 ConflictsWith:  []string
-                ExactlyOneOf:	[]string
+                ExactlyOneOf:    []string
                 AtLeastOneOf:   []string
                 RequiredWith:   []string
 ...
@@ -43,13 +43,13 @@ validators do not meet your needs, you must define
 
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+    return tfsdk.Schema{
         ...
-		Attributes: map[string]tfsdk.Attribute{
+        Attributes: map[string]tfsdk.Attribute{
             "attribute_example": {
                 Validators: []tfsdk.AttributeValidator{
-					schemavalidator.ConflictsWith(),
-			        ...
+                    schemavalidator.ConflictsWith(),
+                    ...
 ```
 
 ## Migration Notes
@@ -87,32 +87,32 @@ when the proxy's url is set through the environment. The example also uses the `
 
 ```go
 func New() (*schema.Provider, error) {
-	return &schema.Provider{
-		Schema: map[string]*schema.Schema{
-			"proxy": {
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"url": {
-							ConflictsWith: []string{"proxy.0.from_env"},
-							...
-						},
-						"username": {
-							RequiredWith: []string{"proxy.0.url"},
-							...
-						},
-						"password": {
-							RequiredWith: []string{"proxy.0.username"},
-							...
-						},
-						"from_env": {
-							ConflictsWith: []string{"proxy.0.url", "proxy.0.username", "proxy.0.password"},
+    return &schema.Provider{
+        Schema: map[string]*schema.Schema{
+            "proxy": {
+                Elem: &schema.Resource{
+                    Schema: map[string]*schema.Schema{
+                        "url": {
+                            ConflictsWith: []string{"proxy.0.from_env"},
                             ...
-						},
-					},
-				},
-			},
-		},
-	}, nil
+                        },
+                        "username": {
+                            RequiredWith: []string{"proxy.0.url"},
+                            ...
+                        },
+                        "password": {
+                            RequiredWith: []string{"proxy.0.username"},
+                            ...
+                        },
+                        "from_env": {
+                            ConflictsWith: []string{"proxy.0.url", "proxy.0.username", "proxy.0.password"},
+                            ...
+                        },
+                    },
+                },
+            },
+        },
+    }, nil
 }
 ```
 
@@ -125,40 +125,40 @@ via the `Validators` field of the provider's `proxy` block's attribute schema.
 
 ```go
 func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Blocks: map[string]tfsdk.Block{
-			"proxy": {
-				Attributes: map[string]tfsdk.Attribute{
-					"url": {
-						Validators: []tfsdk.AttributeValidator{
-							schemavalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
-					    },
-						...
-					},
-					"username": {
-						Validators: []tfsdk.AttributeValidator{
-							schemavalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("url")),
-						},
-						...
-					},
-					"password": {
-						Validators: []tfsdk.AttributeValidator{
-							schemavalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("username")),
-						},
-						...
-					},
-					"from_env": {
-						Validators: []tfsdk.AttributeValidator{
-							schemavalidator.ConflictsWith(
-								path.MatchRelative().AtParent().AtName("url"),
-								path.MatchRelative().AtParent().AtName("username"),
-								path.MatchRelative().AtParent().AtName("password"),
-							),
-						},
-						...
-					},
-				},
-			},
-	}, nil
+    return tfsdk.Schema{
+        Blocks: map[string]tfsdk.Block{
+            "proxy": {
+                Attributes: map[string]tfsdk.Attribute{
+                    "url": {
+                        Validators: []tfsdk.AttributeValidator{
+                            schemavalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
+                        },
+                        ...
+                    },
+                    "username": {
+                        Validators: []tfsdk.AttributeValidator{
+                            schemavalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("url")),
+                        },
+                        ...
+                    },
+                    "password": {
+                        Validators: []tfsdk.AttributeValidator{
+                            schemavalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("username")),
+                        },
+                        ...
+                    },
+                    "from_env": {
+                        Validators: []tfsdk.AttributeValidator{
+                            schemavalidator.ConflictsWith(
+                                path.MatchRelative().AtParent().AtName("url"),
+                                path.MatchRelative().AtParent().AtName("username"),
+                                path.MatchRelative().AtParent().AtName("password"),
+                            ),
+                        },
+                        ...
+                    },
+                },
+            },
+    }, nil
 }
 ```

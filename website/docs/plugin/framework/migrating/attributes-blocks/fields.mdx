@@ -18,12 +18,12 @@ In SDKv2, `Required`, `Optional`, `Computed`, and `Sensitive` are boolean fields
 
 ```go
 func resourceExample() *schema.Resource {
-	return &schema.Resource{
- 		...
+    return &schema.Resource{
+         ...
         Schema: map[string]*schema.Schema{
             "attribute_example": {
-                Required:	bool
-                Optional:	bool
+                Required:    bool
+                Optional:    bool
                 Computed:   bool
                 Sensitive:  bool
                 ...
@@ -35,15 +35,15 @@ In the Framework, you set the same fields on the `tfsdk.Attribute` struct, with 
 
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-	    ...
-	    Attributes: map[string]tfsdk.Attribute{
-		    "attribute_example": {
+    return tfsdk.Schema{
+        ...
+        Attributes: map[string]tfsdk.Attribute{
+            "attribute_example": {
                 Required:   bool
                 Optional:   bool
                 Computed:   bool
                 Sensitive:  bool
-				...
+                ...
 ```
 
 ## Example
@@ -57,34 +57,34 @@ For clarity, some parts of the migration are omitted (denoted by `...`). For a c
 and the `data_source_http.go` file in
 [v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http.go).
 
-**SDKv2**
+### SDKv2
 
 The following example from the `data_source.go` file shows how the `url` attribute on the `http` data source is set to
 be required with SDKv2.
 
 ```go
 func dataSource() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"url": {
-				Required:   true,
-				...
-			},
-			...
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "url": {
+                Required:   true,
+                ...
+            },
+            ...
 ```
 
-**Framework**
+### Framework
 
 The following example from the `data_source_http.go` file shows how the `url` attribute on the `http` data source is set
 to be required with the Framework.
 
 ```go
 func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"url": {
-				Required:   true,
-				...
-			},
-			...
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "url": {
+                Required:   true,
+                ...
+            },
+            ...
 ```

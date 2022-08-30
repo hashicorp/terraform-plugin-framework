@@ -22,15 +22,15 @@ In SDKv2, blocks are defined by an attribute whose type is `TypeList`, or `TypeS
 
 ```go
 map[string]*schema.Schema{
-	"example": {
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"nested_example": {
-						Type:        schema.TypeString,
-						Computed:    true,
-						...
+    "example": {
+        Type:     schema.TypeList,
+        Computed: true,
+        Elem: &schema.Resource{
+            Schema: map[string]*schema.Schema{
+                "nested_example": {
+                        Type:        schema.TypeString,
+                        Computed:    true,
+                        ...
 ```
 
 ## Framework
@@ -43,12 +43,12 @@ When working with protocol version 6, we recommend that you define computed bloc
 ```go
 map[string]tfsdk.Attribute{
 "example": {
-	Computed: true,
-		Type: types.ListType{
-			ElemType: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-            		"nested_example":  types.StringType,
-		            ...
+    Computed: true,
+        Type: types.ListType{
+            ElemType: types.ObjectType{
+                AttrTypes: map[string]attr.Type{
+                    "nested_example":  types.StringType,
+                    ...
 
 ```
 ## Migration Notes
@@ -67,7 +67,7 @@ For clarity, some parts of the migration are omitted (denoted by `...`). For a c
 with
 [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/data_source_certificate.go).
 
-**SDKv2**
+### SDKv2
 
 The following example from the `data_source_certificate.go` file shows the implementation of the `certificates` nested
 block on the `certificate` data source's schema.
@@ -75,18 +75,18 @@ block on the `certificate` data source's schema.
 ```go
 Schema: map[string]*schema.Schema{
 "certificates": {
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"signature_algorithm": {
-					Type:        schema.TypeString,
-					Computed:    true,
-					...
-				},
+        Type:     schema.TypeList,
+        Computed: true,
+        Elem: &schema.Resource{
+            Schema: map[string]*schema.Schema{
+                "signature_algorithm": {
+                    Type:        schema.TypeString,
+                    Computed:    true,
+                    ...
+                },
 ```
 
-**Framework**
+### Framework
 
 The following shows the same section of provider code after the migration.
 
@@ -95,13 +95,13 @@ This code defines the `certificates` block as an attribute on the `certificate` 
 
 ```go
 map[string]tfsdk.Attribute{
-	"certificates": {
-		Type: types.ListType{
-			ElemType: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"signature_algorithm":  types.StringType,
-			},
-		},
-		Computed:            true,
-		...
+    "certificates": {
+        Type: types.ListType{
+            ElemType: types.ObjectType{
+                AttrTypes: map[string]attr.Type{
+                    "signature_algorithm":  types.StringType,
+            },
+        },
+        Computed:            true,
+        ...
 ```

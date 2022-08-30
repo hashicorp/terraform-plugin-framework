@@ -21,9 +21,9 @@ the attribute's schema is omitted (denoted by `...`).
 
 ```go
 func ProviderExample() *schema.Provider {
-	return &schema.Provider{
+    return &schema.Provider{
         Schema: map[string]*schema.Schema{
-	...
+    ...
 },
 ```
 
@@ -31,10 +31,10 @@ In SDKv2, resource and data source attributes are defined the same way on their 
 
 ```go
 func resourceExample() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			...
-		},
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            ...
+        },
 ```
 ## Framework
 
@@ -47,27 +47,27 @@ The following code shows how to define an attribute for a resource with the Fram
 
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"example": {
-			    ...
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "example": {
+                ...
 ```
 
 The Framework defines the `tfsdk.Attribute` struct as follows.
 
 ```go
 type Attribute struct {
-	Type                attr.Type
-	Attributes          NestedAttributes
-	Description         string
-	MarkdownDescription string
-	Required            bool
-	Optional            bool
-	Computed            bool
-	Sensitive           bool
-	DeprecationMessage  string
-	Validators          []AttributeValidator
-	PlanModifiers       AttributePlanModifiers
+    Type                attr.Type
+    Attributes          NestedAttributes
+    Description         string
+    MarkdownDescription string
+    Required            bool
+    Optional            bool
+    Computed            bool
+    Sensitive           bool
+    DeprecationMessage  string
+    Validators          []AttributeValidator
+    PlanModifiers       AttributePlanModifiers
 }
 ```
 ## Migration Notes
@@ -91,25 +91,25 @@ and the `data_source_http.go` file in
 [v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http.go).
 
 
-**SDKv2**
+### SDKv2
 
 The following example from the `data_source.go` file shows the implementation of the `url` attribute for the `http`
 data source.
 
 ```go
 func dataSource() *schema.Resource {
-	return &schema.Resource{
-		...
-		Schema: map[string]*schema.Schema{
-			"url": {
-				Description: "The URL for the request. Supported schemes are `http` and `https`.",
-				Type:        schema.TypeString,
-				Required:    true,
-			},
+    return &schema.Resource{
+        ...
+        Schema: map[string]*schema.Schema{
+            "url": {
+                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+                Type:        schema.TypeString,
+                Required:    true,
+            },
 ```
 
 
-**Framework**
+### Framework
 
 The following shows the same section of provider code after the migration.
 
@@ -117,13 +117,13 @@ This code implements the `url` attribute for the `http` data source with the Fra
 
 ```go
 func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+    return tfsdk.Schema{
         ...
         Attributes: map[string]tfsdk.Attribute{
-			"url": {
-				Description: "The URL for the request. Supported schemes are `http` and `https`.",
-				Type:        types.StringType,
-				Required:    true,
-			},
+            "url": {
+                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+                Type:        types.StringType,
+                Required:    true,
+            },
         ...
 ```

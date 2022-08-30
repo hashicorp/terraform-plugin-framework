@@ -22,11 +22,11 @@ cycle) whenever the attribute's value is changed.
 ```go
 func resourceExample() *schema.Resource {
     return &schema.Resource{
-        ...
+        /* ... */
         Schema: map[string]*schema.Schema{
             "attribute_example": {
                 ForceNew    true
-                ...
+                /* ... */
 ```
 
 ## Framework
@@ -37,12 +37,12 @@ attribute's `tfsdk.Attribute` struct.
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
-        ...
+        /* ... */
         Attributes: map[string]tfsdk.Attribute{
             "attribute_example": {
                 PlanModifiers: []tfsdk.AttributePlanModifier{
                     resource.RequiresReplace(),
-                    ...
+                    /* ... */
 ```
 
 ## Migration Notes
@@ -61,7 +61,7 @@ the plan has already been modified.
 The following examples show how to migrate portions of the
 [random](https://github.com/hashicorp/terraform-provider-random) provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-random-provider` repository and compare the `resource_password.go` file in
 [v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
 with [main](https://github.com/hashicorp/terraform-provider-random/blob/main/internal/provider/resource_password.go).
@@ -77,11 +77,11 @@ func resourcePassword() *schema.Resource {
         Schema: map[string]*schema.Schema{
             "keepers": {
                 ForceNew: true,
-                ...
+                /* ... */
             },
-            ...
+            /* ... */
         },
-        ...
+        /* ... */
     }
 }
 ```
@@ -101,9 +101,9 @@ func (r *passwordResourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Di
                 PlanModifiers: []tfsdk.AttributePlanModifier{
                     resource.RequiresReplace(),
                 },
-                ...
+                /* ... */
             },
-            ...
+            /* ... */
         },
     }, nil
 }

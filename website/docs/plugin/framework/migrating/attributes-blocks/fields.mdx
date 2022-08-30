@@ -19,14 +19,14 @@ In SDKv2, `Required`, `Optional`, `Computed`, and `Sensitive` are boolean fields
 ```go
 func resourceExample() *schema.Resource {
     return &schema.Resource{
-         ...
+         /* ... */
         Schema: map[string]*schema.Schema{
             "attribute_example": {
                 Required:    bool
                 Optional:    bool
                 Computed:   bool
                 Sensitive:  bool
-                ...
+                /* ... */
 ```
 
 ## Framework
@@ -36,14 +36,14 @@ In the Framework, you set the same fields on the `tfsdk.Attribute` struct, with 
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
-        ...
+        /* ... */
         Attributes: map[string]tfsdk.Attribute{
             "attribute_example": {
                 Required:   bool
                 Optional:   bool
                 Computed:   bool
                 Sensitive:  bool
-                ...
+                /* ... */
 ```
 
 ## Example
@@ -51,7 +51,7 @@ func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Dia
 The following examples show how to migrate portions of the [http](https://github.com/hashicorp/terraform-provider-http)
 provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-provider-http` repository and compare the `data_source.go` file in
 [v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
 and the `data_source_http.go` file in
@@ -68,9 +68,9 @@ func dataSource() *schema.Resource {
         Schema: map[string]*schema.Schema{
             "url": {
                 Required:   true,
-                ...
+                /* ... */
             },
-            ...
+            /* ... */
 ```
 
 ### Framework
@@ -84,7 +84,7 @@ func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diag
         Attributes: map[string]tfsdk.Attribute{
             "url": {
                 Required:   true,
-                ...
+                /* ... */
             },
-            ...
+            /* ... */
 ```

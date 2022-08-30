@@ -17,8 +17,7 @@ This page explains how to migrate import functions from SDKv2 to the plugin Fram
 ## SDKv2
 
 In SDKv2, the `Importer` field on the `schema.Resource` defines how the provider imports resources to Terraform's
-state. The following example implements resource import with SDKv2. The rest of the `schema.Resource` struct is omitted
-for clarity (denoted by `...`).
+state. The following example implements resource import with SDKv2.
 
 ```go
 func resourceExample() *schema.Resource {
@@ -26,7 +25,7 @@ func resourceExample() *schema.Resource {
         Importer: &schema.ResourceImporter{
             StateContext: StateContextFunc,
         },
-        ...
+        /* ... */
 ```
 
 The `StateContextFunc` is the function called to import a resource into Terraform state. Any operations that
@@ -38,12 +37,11 @@ that is passed into the function. The return value is a slice of `schema.Resourc
 In the Framework, you implement the `ResourceWithImportState` interface on your `resource.Resource` type to allow
 users to import a given resource.
 
-The following code shows how you define an `ImportState` function with the Framework. The body of the `ImportState`
-function is omitted for clarity (denoted by `...`).
+The following code shows how you define an `ImportState` function with the Framework.
 
 ```go
 func (r *resourceExample) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-    ...
+    /* ... */
 }
 ```
 
@@ -65,7 +63,7 @@ satisfies the `tfsdk.ResourceWithImportState` interface.
 The following examples show how to migrate portions of the
 [random](https://github.com/hashicorp/terraform-provider-random) provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-provider-random` repository and compare the `resource_password.go` file in
 [v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
 with [main](https://github.com/hashicorp/terraform-provider-random/blob/main/internal/provider/resource_password.go).
@@ -83,7 +81,7 @@ func resourcePassword() *schema.Resource {
         Importer: &schema.ResourceImporter{
             StateContext: importPasswordFunc,
         },
-        ...
+        /* ... */
     }
 }
 ```

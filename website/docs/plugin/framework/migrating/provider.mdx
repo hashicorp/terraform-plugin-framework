@@ -117,8 +117,7 @@ returns a pointer to `schema.Provider`.
 The `ResourcesMap` and `DataSourcesMap` fields each contain a map of strings to functions that each return a pointer
 to a `schema.Resource` struct.
 
-The following example shows a basic implementation of an SDKv2 provider. For clarity, the fields for
-`ProviderMetaSchema` and `TerraformVersion` are omitted from the `schema.Provider` (denoted by `...`).
+The following example shows a basic implementation of an SDKv2 provider.
 
 ```go
 func New() *schema.Provider {
@@ -201,7 +200,7 @@ maps data source names to types that you define, which satisfy the `provider.Dat
 The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
 provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-provider-tls` repository and compare `provider.go` in
 [v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/provider.go)
 with [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/provider.go).
@@ -282,8 +281,7 @@ In SDKv2, you implement a provider Schema by populating the `Schema` field on th
 field contains a `map[string]*schema.Schema`. Each map entry represents the name of the attribute and pointer to a
 `schema.Schema` struct that defines that attribute's behavior.
 
-The following example defines the provider schema in the `Schema` field within the `schema.Provider` struct. The rest
-of the `schema.Provider` struct has been omitted for clarity (denoted by `...`).
+The following example defines the provider schema in the `Schema` field within the `schema.Provider` struct.
 
 ```go
 func New() *schema.Provider {
@@ -325,7 +323,7 @@ Framework `tfsdk.Schema` is a struct that defines `Attributes`, which are struct
 The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
 provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-provider-tls` repository and compare `provider.go` in
 [v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/provider.go)
 with [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/provider.go).

@@ -18,8 +18,7 @@ This page explains how to migrate a resource's CRUD functions from SDKv2 to the 
 In SDKv2, a resource's CRUD functions are defined by populating the relevant fields (e.g., `CreateContext`,
 `ReadContext`) on the `schema.Resource` struct.
 
-The following code shows a basic implementation of CRUD functions with SDKv2. For clarity, the rest of the
-`schema.Resource` struct is omitted (denoted by `...`).
+The following code shows a basic implementation of CRUD functions with SDKv2.
 
 ```go
 func resourceExample() *schema.Resource {
@@ -28,7 +27,7 @@ func resourceExample() *schema.Resource {
         ReadContext:   read,
         UpdateContext: update,
         DeleteContext: delete,
-        ...
+        /* ... */
 ```
 
 ## Framework
@@ -47,19 +46,19 @@ type resourceExample struct {
 
 func (r *resourceExample) Create(ctx context.Context, req resource.CreateRequest, resp
 *resource.CreateResponse) {
-    ...
+    /* ... */
 }
 
 func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-    ...
+    /* ... */
 }
 
 func (r *resourceExample) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-    ...
+    /* ... */
 }
 
 func (r *resourceExample) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-    ...
+    /* ... */
 }
 ```
 ## Migration Notes
@@ -81,7 +80,7 @@ on `resource.CreateResponse`.
 The following examples show how to migrate portions of the
 [random](https://github.com/hashicorp/terraform-provider-random) provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-provider-random` repository and compare the `resource_password.go` file in
 [v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
 with [main](https://github.com/hashicorp/terraform-provider-random/blob/main/internal/provider/resource_password.go).
@@ -98,7 +97,7 @@ func resourcePassword() *schema.Resource {
         CreateContext: createPassword,
         ReadContext:   readNil,
            DeleteContext: RemoveResourceFromState,
-        ...
+        /* ... */
 ```
 
 The following example shows the implementation of the `createPassword()` function with SDKv2. The implementations of

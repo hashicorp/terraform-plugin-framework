@@ -28,7 +28,7 @@ the Framework.
 
 The following example is taken from
 [v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http_test.go)
-of the http provider. Some code is omitted for clarity (denoted by `...`).
+of the http provider.
 
 This example shows how you can use external providers to generate a state file with a previous version of the provider
 and then verify that there are no planned changes after migrating to the Framework.
@@ -40,7 +40,7 @@ repository. The second step also uses `PlanOnly` to verify that a no-op plan is 
 
 ```go
 func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
-    ...
+    /* ... */
 
     resource.Test(t, resource.TestCase{
         Steps: []resource.TestStep{
@@ -57,7 +57,7 @@ func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
                             }`, testHttpMock.server.URL),
                 Check: resource.ComposeTestCheckFunc(
                     resource.TestCheckResourceAttr("data.http.http_test", "response_body", "1.0.0"),
-                    ...
+                    /* ... */
                 ),
             },
             {
@@ -111,7 +111,7 @@ resource.UnitTest(t, resource.TestCase{
 The following examples show how to migrate portions of the [http](https://github.com/hashicorp/terraform-provider-http)
 provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). To review a complete example, clone the
+To review a complete example, clone the
 `terraform-provider-http` repository and compare
 [v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source_test.go) with
 [v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http_test.go).
@@ -124,11 +124,11 @@ a test case when using SDKv2.
 
 ```go
 func TestDataSource_http200(t *testing.T) {
-    ...
+    /* ... */
 
     resource.UnitTest(t, resource.TestCase{
         ProviderFactories: testProviders(),
-        ...
+        /* ... */
     })
 }
 ```
@@ -151,11 +151,11 @@ a test case when using the Framework.
 
 ```go
 func TestDataSource_200(t *testing.T) {
-    ...
+    /* ... */
 
     resource.UnitTest(t, resource.TestCase{
         ProtoV5ProviderFactories: protoV5ProviderFactories(),
-        ...
+        /* ... */
     })
 }
 ```

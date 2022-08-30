@@ -18,14 +18,13 @@ This page explains how to migrate a data source from SDKv2 to the plugin Framewo
 In SDKv2, data sources are defined by the `DataSourcesMap` field on the `schema.Provider` struct, which maps data source
 names (strings) to their schema. The `schema.Resource` struct is used for both resources and data sources.
 
-The following example shows a typical implementation. The rest of the `schema.Provider` struct is omitted for clarity
-(denoted by `...`).
+The following example shows a typical implementation.
 
 ```go
 func New() *schema.Provider {
     return &schema.Provider{
         DataSourcesMap:   map[string]*schema.Resource{}
-    ...
+    /* ... */
 },
 ```
 
@@ -75,11 +74,11 @@ Framework.
 type dataSourceTypeExample struct{}
 
 func (r *dataSourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    ...
+    /* ... */
 }
 
 func (r *dataSourceTypeExample) NewDataSource(ctx context.Context, p provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-    ...
+    /* ... */
 }
 ```
 
@@ -99,7 +98,7 @@ Remember the following details when completing the migration from SDKv2 to the F
 The following examples show how to migrate portions of the [http](https://github.com/hashicorp/terraform-provider-http)
 provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-provider-http` repository and compare the `data_source.go` file in
 [v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
 and the `data_source_http.go` file in
@@ -115,7 +114,7 @@ func New() (*schema.Provider, error) {
     return &schema.Provider {
         DataSourcesMap: map[string]*schema.Resource {
             "http": dataSource(),
-            ...
+            /* ... */
 ```
 
 The following example from the `data_source.go` file shows how the `ReadContext` function and `Schema` are defined for
@@ -132,7 +131,7 @@ func dataSource() *schema.Resource {
                 Type:        schema.TypeString,
                 Required:    true,
             },
-            ...
+            /* ... */
         },
     }
 }
@@ -163,7 +162,7 @@ func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diag
                 Type:        types.StringType,
                 Required:    true,
             },
-        ...
+        /* ... */
 
 func (d *httpDataSourceType) NewDataSource(context.Context, provider.Provider) (datasource.DataSource, diag.Diagnostics) {
     return &httpDataSource{}, nil
@@ -171,9 +170,8 @@ func (d *httpDataSourceType) NewDataSource(context.Context, provider.Provider) (
 ```
 
 This code from the `data_source_http.go` file defines the `Read` function for the `http` data source with the Framework.
-The body of the function is omitted from this example for clarity, denoted by (`...`).
 
 ```go
 func (d *httpDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-    ...
+    /* ... */
 ```

@@ -16,14 +16,13 @@ In SDKv2, attributes are defined by the `Schema` field in the provider, resource
 field maps each attribute name (string) to the attribute's `schema.Schema` struct. Both resources and data sources are
 defined using the `schema.Resource` struct.
 
-The following code shows a basic implementation of attribute schema for a provider in SDKv2. For clarity, the body of
-the attribute's schema is omitted (denoted by `...`).
+The following code shows a basic implementation of attribute schema for a provider in SDKv2.
 
 ```go
 func ProviderExample() *schema.Provider {
     return &schema.Provider{
         Schema: map[string]*schema.Schema{
-    ...
+            /* ... */
 },
 ```
 
@@ -33,8 +32,7 @@ In SDKv2, resource and data source attributes are defined the same way on their 
 func resourceExample() *schema.Resource {
     return &schema.Resource{
         Schema: map[string]*schema.Schema{
-            ...
-        },
+            /* ... */
 ```
 ## Framework
 
@@ -42,15 +40,14 @@ In the Framework, you define attributes by setting the `Attributes` field on you
 schema, as returned by the `GetSchema` function. The `tfsdk.Schema` type returned by `GetSchema` includes an
 `Attributes` field that maps each attribute name (string) to the attribute's `tfsdk.Attribute` struct.
 
-The following code shows how to define an attribute for a resource with the Framework. For clarity, the body of the
-`tfsdk.Attribute` struct is omitted (denoted by `...`).
+The following code shows how to define an attribute for a resource with the Framework.
 
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "example": {
-                ...
+                /* ... */
 ```
 
 The Framework defines the `tfsdk.Attribute` struct as follows.
@@ -84,7 +81,7 @@ pages in the Attributes & Blocks section of this migration guide for more detail
 The following examples show how to migrate portions of the
 [http](https://github.com/hashicorp/terraform-provider-http) provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-provider-http` repository and compare the `data_source.go` file in
 [v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
 and the `data_source_http.go` file in
@@ -99,7 +96,7 @@ data source.
 ```go
 func dataSource() *schema.Resource {
     return &schema.Resource{
-        ...
+        /* ... */
         Schema: map[string]*schema.Schema{
             "url": {
                 Description: "The URL for the request. Supported schemes are `http` and `https`.",

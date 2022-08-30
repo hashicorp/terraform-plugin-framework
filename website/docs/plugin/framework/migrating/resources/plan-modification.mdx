@@ -14,14 +14,13 @@ Framework.
 
 ## SDKv2
 In SDKv2, plan modification is implemented with the `CustomizeDiff` field on the `schema.Resource` struct. The following
-code shows a basic implementation of plan modification with SDKv2. The rest of the `schema.Resource` struct is omitted
-for clarity (denoted by `...`).
+code shows a basic implementation of plan modification with SDKv2.
 
 ```go
 func resourceExample() *schema.Resource {
     return &schema.Resource{
         CustomizeDiff: CustomizeDiffFunc,
-        ...
+        /* ... */
 ```
 
 ## Framework
@@ -35,12 +34,11 @@ to implement a plan modifier on an attribute.
 
 The `ResourceWithModifyPlan` interface requires a `ModifyPlan` function.
 
-The following code shows how you can implement the `ModifyPlan` function on your `resource.Resource` type. The rest of
-the `ModifyPlan` function is omitted for clarity (denoted by `...`).
+The following code shows how you can implement the `ModifyPlan` function on your `resource.Resource` type.
 
 ```go
 func (r *resourceExample) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-    ...
+    /* ... */
 }
 ```
 ## Migration Notes
@@ -57,7 +55,7 @@ Framework.
 The following examples show how to migrate portions of the
 [random](https://github.com/hashicorp/terraform-provider-random) provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-provider-random` repository and compare the `resource_password.go` file in
 [v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
 with [main](https://github.com/hashicorp/terraform-provider-random/blob/main/internal/provider/resource_password.go).
@@ -72,12 +70,12 @@ synchronized (i.e., ensure that they contain the same value) with SDKv2.
 
 ```go
 func resourcePassword() *schema.Resource {
-    ...
+    /* ... */
     customizeDiffFuncs = append(customizeDiffFuncs, planSyncIfChange("number", "numeric"))
     customizeDiffFuncs = append(customizeDiffFuncs, planSyncIfChange("numeric", "number"))
 
     return &schema.Resource{
-        ...
+        /* ... */
         CustomizeDiff: customdiff.All(
             customizeDiffFuncs...,
         ),
@@ -109,22 +107,22 @@ Framework. This code shows the implementation using attribute plan modifiers wit
 ```go
 func passwordSchemaV2() tfsdk.Schema {
     return tfsdk.Schema{
-        ...
+        /* ... */
         Attributes: map[string]tfsdk.Attribute{
-            ...
+            /* ... */
             "number": {
-                ...
+                /* ... */
                 PlanModifiers: []tfsdk.AttributePlanModifier{
                     planmodifiers.NumberNumericAttributePlanModifier(),
-                    ...
+                    /* ... */
                 },
             },
 
             "numeric": {
-                ...
+                /* ... */
                 PlanModifiers: []tfsdk.AttributePlanModifier{
                     planmodifiers.NumberNumericAttributePlanModifier(),
-                    ...
+                    /* ... */
                 },
             },
 ```

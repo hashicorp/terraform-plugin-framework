@@ -18,8 +18,7 @@ This page explains how to migrate resource `StateUpgraders` in SDKv2 to `Upgrade
 In SDKv2, state upgraders are defined by populating the `StateUpgraders` field on the `schema.Resource` struct. Refer
 to [State Migration](/plugin/sdkv2/resources/state-migration) in the SDKv2 documentation for details.
 
-The following code shows a basic implementation of the `stateUpgraders` field in SDKv2. For clarity, the rest of the
-`schema.Resource` struct is omitted (denoted by `...`).
+The following code shows a basic implementation of the `stateUpgraders` field in SDKv2.
 
 ```go
 func resourceExample() *schema.Resource {
@@ -30,7 +29,7 @@ func resourceExample() *schema.Resource {
                 Type:    cty.Type,
                 Upgrade: StateUpgradeFunc,
             },
-            ...
+            /* ... */
 ```
 
 ## Framework
@@ -38,8 +37,7 @@ func resourceExample() *schema.Resource {
 In the Framework, you implement the `ResourceWithUpgradeState` interface on your resource to upgrade your
 resource's state when required.
 
-The following code shows how you define an `UpgradeState` function with the Framework. The body of the `UpgradeState`
-function is omitted for clarity (denoted by `...`).
+The following code shows how you define an `UpgradeState` function with the Framework.
 
 ```go
 func (r *resourceExample) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
@@ -48,7 +46,7 @@ func (r *resourceExample) UpgradeState(context.Context) map[int64]resource.State
             PriorSchema:  *tfsdk.Schema,
             StateUpgrader: func(context.Context, UpgradeStateRequest, *UpgradeStateResponse),
         },
-        ...
+        /* ... */
 ```
 
 The `UpgradeState` function returns a map from state versions to structs that implement state upgrade from the given
@@ -69,7 +67,7 @@ a single step. For example, version 0 => version 2, version 1 => version 2.
 The following examples show how to migrate portions of the
 [random](https://github.com/hashicorp/terraform-provider-random) provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example, clone the
+For a complete example, clone the
 `terraform-provider-random` repository and compare the `resource_password.go` file in
 [v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
 with [main](https://github.com/hashicorp/terraform-provider-random/blob/main/internal/provider/resource_password.go).
@@ -98,7 +96,7 @@ func resourcePassword() *schema.Resource {
                 Upgrade: resourcePasswordStringStateUpgradeV1,
             },
         },
-        ...
+        /* ... */
 ```
 
 The following example shows the implementation of the `resourcePasswordStateUpgradeV0` function with SDKv2.

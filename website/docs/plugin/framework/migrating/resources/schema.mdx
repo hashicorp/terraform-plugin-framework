@@ -23,8 +23,7 @@ In SDKv2, resources are defined by the `ResourcesMap` field in the `schema.Provi
 - Fields for functions to implement state upgrade (`StateUpgraders`), import (`Importer`), and customize diff
 (`CustomizeDiff`)
 
-The following code shows a basic implementation of resource schema with SDKv2. For clarity, the rest of the
-`schema.Provider` struct is omitted (denoted by `...`).
+The following code shows a basic implementation of resource schema with SDKv2.
 
 ```go
 func New() *schema.Provider {
@@ -33,7 +32,7 @@ func New() *schema.Provider {
     }{
         "resource_example": resourceExample(),
     }
-    ...
+    /* ... */
 },
 ```
 
@@ -140,7 +139,7 @@ CRUD operations.
 The following examples show how to migrate portions of the
 [tls](https://github.com/hashicorp/terraform-provider-tls) provider.
 
-For clarity, some parts of the migration are omitted (denoted by `...`). For a complete example,
+For a complete example,
 clone the `terraform-provider-tls` repository and compare the `resource_private_key.go` file in
 [v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/resource_private_key.go) with
 [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_private_key.go).
@@ -157,7 +156,7 @@ func New() (*schema.Provider, error) {
     return &schema.Provider {
         ResourcesMap: map[string]*schema.Resource {
             "tls_private_key": resourcePrivateKey(),
-            ...
+            /* ... */
 ```
 
 The following example from the `resource_private_key.go` file defines the resource schema.
@@ -169,7 +168,7 @@ func resourcePrivateKey() *schema.Resource {
         DeleteContext: deleteResourcePrivateKey,
         ReadContext:   readResourcePrivateKey,
 
-        Description: "Creates a PEM ...",
+        Description: "Creates a PEM /* ... */",
 
         Schema: map[string]*schema.Schema{
             "algorithm": {
@@ -180,7 +179,7 @@ func resourcePrivateKey() *schema.Resource {
                 Description: "Name of the algorithm to use when generating the private key. " +
                     "Currently-supported values are `RSA`, `ECDSA` and `ED25519`.",
             },
-            ...
+            /* ... */
 ```
 
 ### Framework
@@ -193,7 +192,7 @@ This code defines the `tls_private_key` resource by mapping the resource name to
 func (p *provider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
     return map[string]provider.ResourceType{
         "tls_private_key":         &privateKeyResourceType{},
-        ...
+        /* ... */
 ```
 
 This code defines the `GetSchema` and `NewResource` functions for the `privateKeyResourceType`.
@@ -216,7 +215,7 @@ func (rt *privateKeyResourceType) GetSchema(_ context.Context) (tfsdk.Schema, di
                 Description: "Name of the algorithm to use when generating the private key. " +
                     fmt.Sprintf("Currently-supported values are: `%s`. ", strings.Join(supportedAlgorithmsStr(), "`, `")),
             },
-            ...
+            /* ... */
 
 func (rt *privateKeyResourceType) NewResource(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
     return &privateKeyResource{}, nil

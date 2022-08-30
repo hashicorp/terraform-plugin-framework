@@ -66,7 +66,7 @@ func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, re
 }
 ```
 
-If the key supplied is reserved for framework usage, an error diagnostic will be returned.
+If the key supplied is [reserved](#reserved-keys) for framework usage, an error diagnostic will be returned.
 
 If the key is valid but no private state data is found, nil is returned.
 
@@ -86,6 +86,12 @@ func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, re
 }
 ```
 
-If the key supplied is reserved for framework usage, an error diagnostic will be returned.
+If the key supplied is [reserved](#reserved-keys) for framework usage, an error diagnostic will be returned.
 
 If the value is not valid JSON and UTF-8 safe, an error diagnostic will be returned.
+
+### Reserved Keys
+
+Keys supplied to [GetKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData.GetKey) and [SetKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData.SetKey) are validated using [ValidateProviderDataKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ValidateProviderDataKey).
+
+Keys using a period ('.') as a prefix cannot be used for provider private state data as they are reserved for framework usage.

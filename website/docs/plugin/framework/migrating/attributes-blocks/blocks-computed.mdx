@@ -30,7 +30,7 @@ map[string]*schema.Schema{
                 "nested_example": {
                         Type:        schema.TypeString,
                         Computed:    true,
-                        ...
+                        /* ... */
 ```
 
 ## Framework
@@ -48,7 +48,7 @@ map[string]tfsdk.Attribute{
             ElemType: types.ObjectType{
                 AttrTypes: map[string]attr.Type{
                     "nested_example":  types.StringType,
-                    ...
+                    /* ... */
 
 ```
 ## Migration Notes

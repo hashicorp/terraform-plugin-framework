@@ -26,13 +26,13 @@ The following code shows a basic implementation of a default value for a primiti
 ```go
 func resourceExample() *schema.Resource {
     return &schema.Resource{
-         ...
+         /* ... */
         Schema: map[string]*schema.Schema{
             "attribute_example": {
                 Default:     2048,
-                ...
+                /* ... */
             },
-        ...
+        /* ... */
 ```
 
 ## Framework

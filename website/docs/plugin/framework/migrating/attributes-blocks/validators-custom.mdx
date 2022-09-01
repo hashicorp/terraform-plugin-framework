@@ -24,11 +24,12 @@ greater than one.
 ```go
 func resourceExample() *schema.Resource {
     return &schema.Resource{
-         ...
-        Schema: map[string]*schema.Schema{
+        /* ... */
+        Schema: map[string]*schema.Schema
+        }{
             "attribute_example": {
                 ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(1)),
-                ...
+                /* ... */
 ```
 
 ## Framework
@@ -42,12 +43,12 @@ greater than one.
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
-        ...
+        /* ... */
         Attributes: map[string]tfsdk.Attribute{
             "attribute_example": {
                 Validators: []tfsdk.AttributeValidator{
                     int64validator.AtLeast(1),
-                    ...
+                    /* ... */
 ```
 
 ## Migration Notes

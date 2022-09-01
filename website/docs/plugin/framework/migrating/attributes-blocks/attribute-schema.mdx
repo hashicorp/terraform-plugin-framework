@@ -115,12 +115,12 @@ This code implements the `url` attribute for the `http` data source with the Fra
 ```go
 func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
-        ...
+        /* ... */
         Attributes: map[string]tfsdk.Attribute{
             "url": {
                 Description: "The URL for the request. Supported schemes are `http` and `https`.",
                 Type:        types.StringType,
                 Required:    true,
             },
-        ...
+            /* ... */
 ```

@@ -43,12 +43,12 @@ struct.
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
-        ...
+        /* ... */
         Attributes: map[string]tfsdk.Attribute{
             "attribute_example": {
                 PlanModifiers: []tfsdk.AttributePlanModifier{
                     defaultValue(types.Bool{Value: true}),
-                    ...
+                    /* ... */
 ```
 
 ## Migration Notes
@@ -79,9 +79,9 @@ func resourcePrivateKey() *schema.Resource {
         Schema: map[string]*schema.Schema{
             "rsa_bits": {
                 Default:     2048,
-                ...
+                /* ... */
             },
-            ...
+            /* ... */
 ```
 
 ### Framework
@@ -97,11 +97,11 @@ func (rt *privateKeyResourceType) GetSchema(_ context.Context) (tfsdk.Schema, di
             "rsa_bits": {
                 PlanModifiers: []tfsdk.AttributePlanModifier{
                     attribute_plan_modifier.DefaultValue(types.Int64{Value: 2048}),
-                    ...
+                    /* ... */
                 },
-                ...
+                /* ... */
             },
-            ...
+            /* ... */
         },
     }, nil
 }
@@ -122,11 +122,11 @@ type defaultValueAttributePlanModifier struct {
 var _ tfsdk.AttributePlanModifier = (*defaultValueAttributePlanModifier)(nil)
 
 func (apm *defaultValueAttributePlanModifier) Description(ctx context.Context) string {
-    ...
+    /* ... */
 }
 
 func (apm *defaultValueAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
-    ...
+    /* ... */
 }
 
 func (apm *defaultValueAttributePlanModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, res *tfsdk.ModifyAttributePlanResponse) {

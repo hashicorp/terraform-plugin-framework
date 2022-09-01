@@ -35,10 +35,10 @@ As you complete the migration, we recommend that you follow Test Driven Developm
 Take the following steps when you migrate a provider from SDKv2 to the Framework:
 
 - Ensure all [tests](/plugin/framework/migrating/testing#testing-migration) pass.
-- [Serve the provider](/plugin/framework/migrating/provider#serving-the-provider) via the Framework.
-  - Implement [muxing](/plugin/framework/migrating/provider#muxing) if you plan to migrate the provider over several point releases.
-- Update the [provider definition](/plugin/framework/migrating/provider#provider-definition) to use the Framework.
-- Update the [provider schema](/plugin/framework/migrating/provider#provider-schema).
+- [Serve the provider](/plugin/framework/migrating/providers#serving-the-provider) via the Framework.
+  - Implement [muxing](/plugin/framework/migrating/providers#muxing) if you plan to migrate the provider over several point releases.
+- Update the [provider definition](/plugin/framework/migrating/providers#provider-definition) to use the Framework.
+- Update the [provider schema](/plugin/framework/migrating/providers#provider-schema).
 - Update each of the provider's resources and data sources.
   - Update related [tests](/plugin/framework/migrating/testing) to use the Framework, and ensure that the tests fail.
   - Update the [resource](/plugin/framework/migrating/resources#schema) or [data source](/plugin/framework/migrating/data-sources) schema.

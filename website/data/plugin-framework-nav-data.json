@@ -21,7 +21,10 @@
   {
     "title": "Resources",
     "routes": [
-      { "title": "Overview", "path": "resources" },
+      {
+        "title": "Overview",
+        "path": "resources"
+      },
       {
         "title": "Import",
         "path": "resources/import"
@@ -96,8 +99,13 @@
         "path": "migrating/schema"
       },
       {
-        "title": "Provider",
-        "path": "migrating/provider"
+        "title": "Providers",
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "migrating/providers"
+          }
+        ]
       },
       {
         "title": "Resources",
@@ -126,7 +134,12 @@
       },
       {
         "title": "Data Sources",
-        "path": "migrating/data-sources"
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "migrating/data-sources"
+          }
+        ]
       },
       {
         "title": "Attributes & Blocks",

@@ -23,11 +23,44 @@ func resourceExample() *schema.Resource {
     return &schema.Resource{
          /* ... */
         Schema: map[string]*schema.Schema{
-            "attribute_example": {
-                Type:        schema.TypeName,
+            "bool_example": {
+                Type:    schema.TypeBool,
                 /* ... */
             },
-        /* ... */
+			"float64_example": {
+                Type:    schema.TypeFloat,
+                /* ... */
+            },
+			"int64_example": {
+                Type:    schema.TypeInt,
+                /* ... */
+            },
+			"list_example": {
+                Type:    schema.TypeList,
+				Elem:    &schema.Schema{
+			        Type: schema.TypeBool,
+		        },
+                /* ... */
+            },
+			"map_example": {
+                Type:    schema.TypeMap,
+				Elem:    &schema.Schema{
+			        Type: schema.TypeFloat,
+		        },
+                /* ... */
+            },
+			"set_example": {
+                Type:    schema.TypeSet,
+				Elem:    &schema.Schema{
+			        Type: schema.TypeInt,
+		        },
+                /* ... */
+            },
+            "string_example": {
+                Type:    schema.TypeString,
+                /* ... */
+            },
+            /* ... */
 ```
 ## Framework
 
@@ -38,12 +71,39 @@ func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Dia
     return tfsdk.Schema{
         /* ... */
         Attributes: map[string]tfsdk.Attribute{
-            "attribute_example": {
-                Type:        types.NameType,
-                /* ... */
-            },
+            "bool_example": {
+				Type:    types.BoolType,
+				/* ... */
+			},
+			"float64_example": {
+				Type:    types.Float64Type,
+				/* ... */
+			},
+			"int64_example": {
+				Type:    types.Int64Type,
+				/* ... */
+			},
+			"list_example": {
+				Type:    types.ListType{ElemType: types.BoolType},
+				/* ... */
+			},
+			"map_example": {
+				Type:    types.MapType{ElemType: types.Float64Type},
+				/* ... */
+			},
+			"set_example": {
+				Type:    types.SetType{ElemType: types.Int64Type},
+				/* ... */
+			},
+			"string_example": {
+				Type:    types.StringType,
+				/* ... */
+			},
+            /* ... */
 ```
+
 ## Migration Notes
+
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
 - In the Framework, an `Attribute` struct has either the `Type` or `Attributes` field defined. The `Type` field is set to
@@ -133,7 +193,7 @@ func (rt *certRequestResourceType) GetSchema(context.Context) (tfsdk.Schema, dia
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "dns_names": {
-                Type:types.ListType{
+                Type:    types.ListType{
                     ElemType: types.StringType
                 },
                 /* ... */

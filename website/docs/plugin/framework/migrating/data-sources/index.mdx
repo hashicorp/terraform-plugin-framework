@@ -24,7 +24,7 @@ The following example shows a typical implementation.
 func New() *schema.Provider {
     return &schema.Provider{
         DataSourcesMap:   map[string]*schema.Resource{}
-    /* ... */
+        /* ... */
 },
 ```
 
@@ -162,7 +162,7 @@ func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diag
                 Type:        types.StringType,
                 Required:    true,
             },
-        /* ... */
+            /* ... */
 
 func (d *httpDataSourceType) NewDataSource(context.Context, provider.Provider) (datasource.DataSource, diag.Diagnostics) {
     return &httpDataSource{}, nil

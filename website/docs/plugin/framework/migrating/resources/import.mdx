@@ -82,7 +82,7 @@ func resourceExample() *schema.Resource {
 
 
 func (r *resourceExample) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+    resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 ```
 

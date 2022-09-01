@@ -96,7 +96,7 @@ func resourcePassword() *schema.Resource {
     return &schema.Resource{
         CreateContext: createPassword,
         ReadContext:   readNil,
-           DeleteContext: RemoveResourceFromState,
+        DeleteContext: RemoveResourceFromState,
         /* ... */
 ```
 

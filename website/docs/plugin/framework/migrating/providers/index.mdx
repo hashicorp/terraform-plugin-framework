@@ -93,7 +93,7 @@ func main() {
     }
 
     err = tf5server.Serve(
-        "registry.terraform.io/hashicorp/time",
+        "registry.terraform.io/<namespace>/<provider_name>",
         muxServer.ProviderServer,
         serveOpts...,
     )
@@ -170,7 +170,7 @@ func (p *provider) GetResources(ctx context.Context) (map[string]provider.Resour
 
 func (p *provider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
     return map[string]provider.DataSourceType{
-      "data_source_example": dataSourceTypeExample{},
+        "data_source_example": dataSourceTypeExample{},
 }, nil
 }
 ```

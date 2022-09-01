@@ -41,7 +41,6 @@ repository. The second step also uses `PlanOnly` to verify that a no-op plan is 
 ```go
 func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
     /* ... */
-
     resource.Test(t, resource.TestCase{
         Steps: []resource.TestStep{
             {
@@ -52,9 +51,9 @@ func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
                     },
                 },
                 Config: fmt.Sprintf(`
-                            data "http" "http_test" {
-                                url = "%s/200"
-                            }`, testHttpMock.server.URL),
+                    data "http" "http_test" {
+                       url = "%s/200"
+                    }`, testHttpMock.server.URL),
                 Check: resource.ComposeTestCheckFunc(
                     resource.TestCheckResourceAttr("data.http.http_test", "response_body", "1.0.0"),
                     /* ... */
@@ -63,9 +62,9 @@ func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
             {
                 ProtoV5ProviderFactories: protoV5ProviderFactories(),
                 Config: fmt.Sprintf(`
-                            data "http" "http_test" {
-                                url = "%s/200"
-                            }`, testHttpMock.server.URL),
+                    data "http" "http_test" {
+                        url = "%s/200"
+                    }`, testHttpMock.server.URL),
                 PlanOnly: true,
             },
         },
@@ -124,7 +123,6 @@ a test case when using SDKv2.
 ```go
 func TestDataSource_http200(t *testing.T) {
     /* ... */
-
     resource.UnitTest(t, resource.TestCase{
         ProviderFactories: testProviders(),
         /* ... */

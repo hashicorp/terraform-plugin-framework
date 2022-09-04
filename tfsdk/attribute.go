@@ -14,6 +14,12 @@ import (
 // import cycle.
 var _ fwschema.Attribute = Attribute{}
 
+// NestedAttributes exposes the internal fwschema.NestedAttributes interface to allow
+// functions to define reusable nested attribute blocks
+type NestedAttributes interface {
+	fwschema.NestedAttributes
+}
+
 // Attribute defines the constraints and behaviors of a single value field in a
 // schema. Attributes are the fields that show up in Terraform state files and
 // can be used in configuration files.

@@ -153,53 +153,54 @@ This code implements the `upgradePasswordStateV0toV2` state upgrade function.
 
 ```go
 func upgradePasswordStateV0toV2(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
-    type modelV0 struct {
-        ID              types.String `tfsdk:"id"`
-        Keepers         types.Map    `tfsdk:"keepers"`
-        Length          types.Int64  `tfsdk:"length"`
-        Special         types.Bool   `tfsdk:"special"`
-        Upper           types.Bool   `tfsdk:"upper"`
-        Lower           types.Bool   `tfsdk:"lower"`
-        Number          types.Bool   `tfsdk:"number"`
-        MinNumeric      types.Int64  `tfsdk:"min_numeric"`
-        MinUpper        types.Int64  `tfsdk:"min_upper"`
-        MinLower        types.Int64  `tfsdk:"min_lower"`
-        MinSpecial      types.Int64  `tfsdk:"min_special"`
-        OverrideSpecial types.String `tfsdk:"override_special"`
-        Result          types.String `tfsdk:"result"`
-    }
+	type modelV0 struct {
+		ID              types.String `tfsdk:"id"`
+		Keepers         types.Map    `tfsdk:"keepers"`
+		Length          types.Int64  `tfsdk:"length"`
+		Special         types.Bool   `tfsdk:"special"`
+		Upper           types.Bool   `tfsdk:"upper"`
+		Lower           types.Bool   `tfsdk:"lower"`
+		Number          types.Bool   `tfsdk:"number"`
+		MinNumeric      types.Int64  `tfsdk:"min_numeric"`
+		MinUpper        types.Int64  `tfsdk:"min_upper"`
+		MinLower        types.Int64  `tfsdk:"min_lower"`
+		MinSpecial      types.Int64  `tfsdk:"min_special"`
+		OverrideSpecial types.String `tfsdk:"override_special"`
+		Result          types.String `tfsdk:"result"`
+	}
 
-    var passwordDataV0 modelV0
+	var passwordDataV0 modelV0
 
-    resp.Diagnostics.Append(req.State.Get(ctx, &passwordDataV0)...)
-    if resp.Diagnostics.HasError() {
-        return
-    }
+	resp.Diagnostics.Append(req.State.Get(ctx, &passwordDataV0)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-    passwordDataV2 := passwordModelV2{
-        Keepers:         passwordDataV0.Keepers,
-        Length:          passwordDataV0.Length,
-        Special:         passwordDataV0.Special,
-        Upper:           passwordDataV0.Upper,
-        Lower:           passwordDataV0.Lower,
-        Numeric:         passwordDataV0.Number,
-        MinNumeric:      passwordDataV0.MinNumeric,
-        MinLower:        passwordDataV0.MinLower,
-        MinSpecial:      passwordDataV0.MinSpecial,
-        OverrideSpecial: passwordDataV0.OverrideSpecial,
-        Result:          passwordDataV0.Result,
-        ID:              passwordDataV0.ID,
-    }
+	passwordDataV2 := passwordModelV2{
+		Keepers:         passwordDataV0.Keepers,
+		Length:          passwordDataV0.Length,
+		Special:         passwordDataV0.Special,
+		Upper:           passwordDataV0.Upper,
+		Lower:           passwordDataV0.Lower,
+		Number:          passwordDataV0.Number,
+		Numeric:         passwordDataV0.Number,
+		MinNumeric:      passwordDataV0.MinNumeric,
+		MinUpper:        passwordDataV0.MinUpper,
+		MinLower:        passwordDataV0.MinLower,
+		MinSpecial:      passwordDataV0.MinSpecial,
+		OverrideSpecial: passwordDataV0.OverrideSpecial,
+		Result:          passwordDataV0.Result,
+		ID:              passwordDataV0.ID,
+	}
 
-    hash, err := generateHash(passwordDataV2.Result.Value)
-    if err != nil {
-        resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
-        return
-    }
+	hash, err := generateHash(passwordDataV2.Result.Value)
+	if err != nil {
+		resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
+		return
+	}
 
-    passwordDataV2.BcryptHash.Value = hash
+	passwordDataV2.BcryptHash.Value = hash
 
-    diags := resp.State.Set(ctx, passwordDataV2)
-    resp.Diagnostics.Append(diags...)
-}
+	diags := resp.State.Set(ctx, passwordDataV2)
+	resp.Diagnostics.Append(diags...)
 ```

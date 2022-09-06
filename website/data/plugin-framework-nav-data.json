@@ -111,8 +111,8 @@
         "title": "Resources",
         "routes": [
           {
-            "title": "Schema",
-            "path": "migrating/resources/schema"
+            "title": "Overview",
+            "path": "migrating/resources"
           },
           {
             "title": "CRUD Functions",

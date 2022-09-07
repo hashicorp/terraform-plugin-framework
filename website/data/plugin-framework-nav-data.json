@@ -96,7 +96,12 @@
       },
       {
         "title": "Schema",
-        "path": "migrating/schema"
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "migrating/schema"
+          }
+        ]
       },
       {
         "title": "Providers",

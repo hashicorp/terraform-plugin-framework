@@ -53,6 +53,22 @@ func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Dia
                     /* ... */
 ```
 
+Configuration validators can also be defined for
+[providers](https://github.com/hashicorp/terraform-plugin-framework-validators/tree/main/providervalidator),
+[resources](https://github.com/hashicorp/terraform-plugin-framework-validators/tree/main/resourcevalidator) and
+[data sources](https://github.com/hashicorp/terraform-plugin-framework-validators/tree/main/datasourcevalidator) by
+implementing `ProviderWithConfigValidators`, `ResourceWithConfigValidators` and `DataSourceWithConfigValidators`
+interfaces, respectively.
+
+```go
+func (r *resourceExample) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+    return []resource.ConfigValidator{
+        resourcevalidator.Conflicting(
+            /* ... */
+        ),
+        /* ... */
+```
+
 ## Migration Notes
 
 Remember the following details when migrating from SDKv2 to the Framework.

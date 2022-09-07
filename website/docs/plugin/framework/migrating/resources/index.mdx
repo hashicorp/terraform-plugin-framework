@@ -203,7 +203,6 @@ This code defines the `GetSchema` and `NewResource` functions for the `privateKe
 ```go
 func (rt *privateKeyResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
-        Version: 1,
         Attributes: map[string]tfsdk.Attribute{
             // Required attributes
             "algorithm": {

@@ -1,5 +1,5 @@
 ---
-page_title: 'Resources - Schema: Migrating from SDKv2 to the Framework'
+page_title: 'Resources: Migrating from SDKv2 to the Framework'
 description: >-
   Migrate a resource from SDKv2 to the plugin Framework.
 ---
@@ -11,7 +11,11 @@ and delete functionality that maps onto API operations. Resource schemas define 
 Terraform metadata about those fields, and define how the resource behaves. Refer to
 [Resources](/plugin/framework/resources) in the Framework documentation for details.
 
-This page explains how to migrate a resource's schema from SDKv2 to the plugin Framework.
+This page explains how to migrate a resource's schema from SDKv2 to the plugin Framework. We also recommend reviewing these additional guides for resources throughout the migration:
+- [Create, Read, Update, and Delete functions](/plugin/framework/migrating/resources/crud): The resource defines the logic to manage resources with Terraform.
+- [Import](/plugin/framework/migrating/resources/import): The resource defines the logic to add a resource to Terraform's state.
+- [Plan modification](/plugin/framework/migrating/resources/plan-modification): The resource customizes the Terraform plan for known values or behaviors outside the practitioner's configuration.
+- [State upgrade](/plugin/framework/migrating/resources/state-upgrade): The resource updates Terraform state information in advanced use cases.
 
 ## SDKv2
 In SDKv2, resources are defined by the `ResourcesMap` field in the `schema.Provider` struct, which maps resource names

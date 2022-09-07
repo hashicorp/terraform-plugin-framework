@@ -205,7 +205,7 @@ For a complete example, clone the
 [v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/provider.go)
 with [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/provider.go).
 
-**SDKv2**
+#### SDKv2
 
 The following example shows how to set up a provider schema, configuration, resources, and data sources using SDKv2.
 
@@ -230,7 +230,7 @@ func New() (*schema.Provider, error) {
 }
 ```
 
-**Framework**
+#### Framework
 
 The following shows the same section of provider code after the migration.
 
@@ -332,7 +332,7 @@ This example also shows how to use a nested block and a nested attribute for the
 respectively. Refer to the
 [Blocks and Nested Attributes](/plugin/framework/migrating/attributes-blocks) page in this guide for more details.
 
-**SDKv2**
+#### SDKv2
 
 The following example shows how to configure an attribute within a provider schema using SDKv2.
 
@@ -355,7 +355,7 @@ Schema: map[string]*schema.Schema{
                 /* ... */
 ```
 
-**Framework**
+#### Framework
 
 The following example shows how to configure provider schema using the Framework.
 

@@ -41,11 +41,6 @@ Take the following steps when you migrate a provider from SDKv2 to the Framework
 - Update the [provider schema](/plugin/framework/migrating/providers#provider-schema).
 - Update each of the provider's resources and data sources.
   - Update related [tests](/plugin/framework/migrating/testing) to use the Framework, and ensure that the tests fail.
-  - Update the [resource](/plugin/framework/migrating/resources#schema) or [data source](/plugin/framework/migrating/data-sources) schema.
-  - Update the resource or data source's [CRUD function](/plugin/framework/migrating/resources/crud) definitions.
-  - Update the resource or data source's [attribute schema](/plugin/framework/migrating/attributes/schema).
-  - Update the resource's [import function](/plugin/framework/migrating/resources/import), if your provider supports importing the resource.
-  - Implement [plan modification](/plugin/framework/migrating/resources/plan-modification) if needed.
-  - Implement [state upgraders](/plugin/framework/migrating/resources/plan-modification) if needed.
+  - Migrate the [resource](/plugin/framework/migrating/resources) or [data source](/plugin/framework/migrating/data-sources).
   - Verify that related tests now pass.
 - If you used muxing, remove the muxing configuration.

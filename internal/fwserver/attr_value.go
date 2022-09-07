@@ -36,12 +36,10 @@ func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Dia
 }
 
 func coerceObjectValue(schemaPath path.Path, value attr.Value) (types.Object, diag.Diagnostics) {
-	nullObject := types.Object{Null: true}
-
 	object, ok := value.(types.Object)
 
 	if !ok {
-		return nullObject, diag.Diagnostics{
+		return types.Object{Null: true}, diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
 		}
 	}

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -20,7 +20,7 @@ type ApplyResourceChangeRequest struct {
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema fwschema.Schema
-	ResourceType   provider.ResourceType
+	Resource       resource.Resource
 }
 
 // ApplyResourceChangeResponse is the framework server response for the
@@ -47,7 +47,7 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 			PlannedState:   req.PlannedState,
 			ProviderMeta:   req.ProviderMeta,
 			ResourceSchema: req.ResourceSchema,
-			ResourceType:   req.ResourceType,
+			Resource:       req.Resource,
 		}
 		createResp := &CreateResourceResponse{}
 
@@ -69,7 +69,7 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 			PriorState:     req.PriorState,
 			ProviderMeta:   req.ProviderMeta,
 			ResourceSchema: req.ResourceSchema,
-			ResourceType:   req.ResourceType,
+			Resource:       req.Resource,
 		}
 		deleteResp := &DeleteResourceResponse{}
 
@@ -92,7 +92,7 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 		PriorState:     req.PriorState,
 		ProviderMeta:   req.ProviderMeta,
 		ResourceSchema: req.ResourceSchema,
-		ResourceType:   req.ResourceType,
+		Resource:       req.Resource,
 	}
 	updateResp := &UpdateResourceResponse{}
 

@@ -7,10 +7,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -112,8 +112,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+				DataSource: &testprovider.DataSourceWithGetSchema{
+					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
 				},
@@ -126,8 +126,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfigAttributeValidator,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+				DataSource: &testprovider.DataSourceWithGetSchema{
+					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
 						return testSchemaAttributeValidator, nil
 					},
 				},
@@ -140,8 +140,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfigAttributeValidatorError,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+				DataSource: &testprovider.DataSourceWithGetSchema{
+					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
 						return testSchemaAttributeValidatorError, nil
 					},
 				},
@@ -162,33 +162,29 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+				DataSource: &testprovider.DataSourceWithConfigValidatorsAndGetSchemaAndTypeName{
+					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-						return &testprovider.DataSourceWithConfigValidators{
-							DataSource: &testprovider.DataSource{},
-							ConfigValidatorsMethod: func(ctx context.Context) []datasource.ConfigValidator {
-								return []datasource.ConfigValidator{
-									&testprovider.DataSourceConfigValidator{
-										ValidateDataSourceMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
-											var got types.String
+					DataSource: &testprovider.DataSource{},
+					ConfigValidatorsMethod: func(ctx context.Context) []datasource.ConfigValidator {
+						return []datasource.ConfigValidator{
+							&testprovider.DataSourceConfigValidator{
+								ValidateDataSourceMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
+									var got types.String
 
-											resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
+									resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
 
-											if resp.Diagnostics.HasError() {
-												return
-											}
+									if resp.Diagnostics.HasError() {
+										return
+									}
 
-											if got.Value != "test-value" {
-												resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.Value)
-											}
-										},
-									},
-								}
+									if got.Value != "test-value" {
+										resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.Value)
+									}
+								},
 							},
-						}, nil
+						}
 					},
 				},
 			},
@@ -200,23 +196,19 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+				DataSource: &testprovider.DataSourceWithConfigValidatorsAndGetSchemaAndTypeName{
+					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-						return &testprovider.DataSourceWithConfigValidators{
-							DataSource: &testprovider.DataSource{},
-							ConfigValidatorsMethod: func(ctx context.Context) []datasource.ConfigValidator {
-								return []datasource.ConfigValidator{
-									&testprovider.DataSourceConfigValidator{
-										ValidateDataSourceMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
-											resp.Diagnostics.AddError("error summary", "error detail")
-										},
-									},
-								}
+					DataSource: &testprovider.DataSource{},
+					ConfigValidatorsMethod: func(ctx context.Context) []datasource.ConfigValidator {
+						return []datasource.ConfigValidator{
+							&testprovider.DataSourceConfigValidator{
+								ValidateDataSourceMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
+									resp.Diagnostics.AddError("error summary", "error detail")
+								},
 							},
-						}, nil
+						}
 					},
 				},
 			},
@@ -234,27 +226,23 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+				DataSource: &testprovider.DataSourceWithGetSchemaAndTypeNameAndValidateConfig{
+					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-						return &testprovider.DataSourceWithValidateConfig{
-							DataSource: &testprovider.DataSource{},
-							ValidateConfigMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
-								var got types.String
+					DataSource: &testprovider.DataSource{},
+					ValidateConfigMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
+						var got types.String
 
-								resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
+						resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("test"), &got)...)
 
-								if resp.Diagnostics.HasError() {
-									return
-								}
+						if resp.Diagnostics.HasError() {
+							return
+						}
 
-								if got.Value != "test-value" {
-									resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.Value)
-								}
-							},
-						}, nil
+						if got.Value != "test-value" {
+							resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.Value)
+						}
 					},
 				},
 			},
@@ -266,18 +254,14 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+				DataSource: &testprovider.DataSourceWithGetSchemaAndTypeNameAndValidateConfig{
+					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
-					NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-						return &testprovider.DataSourceWithValidateConfig{
-							DataSource: &testprovider.DataSource{},
-							ValidateConfigMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
-								resp.Diagnostics.AddWarning("warning summary", "warning detail")
-								resp.Diagnostics.AddError("error summary", "error detail")
-							},
-						}, nil
+					DataSource: &testprovider.DataSource{},
+					ValidateConfigMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
+						resp.Diagnostics.AddWarning("warning summary", "warning detail")
+						resp.Diagnostics.AddError("error summary", "error detail")
 					},
 				},
 			},

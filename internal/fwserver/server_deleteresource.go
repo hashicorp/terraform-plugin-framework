@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -21,7 +20,7 @@ type DeleteResourceRequest struct {
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema fwschema.Schema
-	ResourceType   provider.ResourceType
+	Resource       resource.Resource
 }
 
 // DeleteResourceResponse is the framework server response for a delete request
@@ -39,15 +38,23 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		return
 	}
 
-	// Always instantiate new Resource instances.
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
+	if _, ok := req.Resource.(resource.ResourceWithConfigure); ok {
+		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 
-	resp.Diagnostics.Append(diags...)
+		configureReq := resource.ConfigureRequest{
+			ProviderData: s.ResourceConfigureData,
+		}
+		configureResp := resource.ConfigureResponse{}
 
-	if resp.Diagnostics.HasError() {
-		return
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource Configure")
+		req.Resource.(resource.ResourceWithConfigure).Configure(ctx, configureReq, &configureResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource Configure")
+
+		resp.Diagnostics.Append(configureResp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	deleteReq := resource.DeleteRequest{
@@ -77,7 +84,7 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Delete")
-	resourceImpl.Delete(ctx, deleteReq, &deleteResp)
+	req.Resource.Delete(ctx, deleteReq, &deleteResp)
 	logging.FrameworkDebug(ctx, "Called provider defined Resource Delete")
 
 	if !deleteResp.Diagnostics.HasError() {

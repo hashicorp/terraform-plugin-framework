@@ -1,12 +1,18 @@
 package datasource
 
-import "context"
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+)
 
 // DataSource represents an instance of a data source type. This is the core
 // interface that all data sources must implement.
 //
 // Data sources can optionally implement these additional concepts:
 //
+//   - Configure: Include provider-level data or clients.
 //   - Validation: Schema-based via tfsdk.Attribute or entire configuration
 //     via DataSourceWithConfigValidators or DataSourceWithValidateConfig.
 type DataSource interface {
@@ -14,6 +20,22 @@ type DataSource interface {
 	// order to update state. Config values should be read from the
 	// ReadRequest and new state values set on the ReadResponse.
 	Read(context.Context, ReadRequest, *ReadResponse)
+}
+
+// DataSourceWithConfigure is an interface type that extends DataSource to
+// include a method which the framework will automatically call so provider
+// developers have the opportunity to setup any necessary provider-level data
+// or clients in the DataSource type.
+//
+// This method is intended to replace the provider.DataSourceType type
+// NewDataSource method in a future release.
+type DataSourceWithConfigure interface {
+	DataSource
+
+	// Configure enables provider-level data or clients to be set in the
+	// provider-defined DataSource type. It is separately executed for each
+	// ReadDataSource RPC.
+	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
 }
 
 // DataSourceWithConfigValidators is an interface type that extends DataSource to include declarative validations.
@@ -29,6 +51,30 @@ type DataSourceWithConfigValidators interface {
 
 	// ConfigValidators returns a list of ConfigValidators. Each ConfigValidator's Validate method will be called when validating the data source.
 	ConfigValidators(context.Context) []ConfigValidator
+}
+
+// DataSourceWithGetSchema is an interface type that extends DataSource to
+// return its schema definition.
+//
+// This method will be required in the DataSource interface in a future
+// release.
+type DataSourceWithGetSchema interface {
+	// GetSchema returns the schema for this data source.
+	GetSchema(context.Context) (fwschema.Schema, diag.Diagnostics)
+}
+
+// DataSourceWithTypeName is an interface type that extends DataSource to
+// return its data source type name. For example, if the provider is named
+// examplecloud and the data source reads a thing, this should return
+// examplecloud_thing.
+//
+// This method will be required in the DataSource interface a future release.
+type DataSourceWithTypeName interface {
+	DataSource
+
+	// TypeName should return the full name of the data source, such as
+	// examplecloud_thing.
+	TypeName(context.Context, TypeNameRequest, *TypeNameResponse)
 }
 
 // DataSourceWithValidateConfig is an interface type that extends DataSource to include imperative validation.

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -104,22 +103,15 @@ func TestServerDeleteResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-								var data testSchemaData
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-								if data.TestRequired.Value != "test-priorstate-value" {
-									resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.Value)
-								}
-							},
-						}, nil
+						if data.TestRequired.Value != "test-priorstate-value" {
+							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.Value)
+						}
 					},
 				},
 			},
@@ -140,22 +132,15 @@ func TestServerDeleteResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-								var data testProviderMetaData
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						var data testProviderMetaData
 
-								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-								if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-									resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestProviderMetaAttribute.Value)
-								}
-							},
-						}, nil
+						if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestProviderMetaAttribute.Value)
+						}
 					},
 				},
 				ProviderMeta: testProviderMetaConfig,
@@ -170,26 +155,19 @@ func TestServerDeleteResource(t *testing.T) {
 			},
 			request: &fwserver.DeleteResourceRequest{
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
-								got, diags := req.Private.GetKey(ctx, "providerKeyOne")
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+						got, diags := req.Private.GetKey(ctx, "providerKeyOne")
 
-								resp.Diagnostics.Append(diags...)
+						resp.Diagnostics.Append(diags...)
 
-								if string(got) != expected {
-									resp.Diagnostics.AddError(
-										"Unexpected req.Private Value",
-										fmt.Sprintf("expected %q, got %q", expected, got),
-									)
-								}
-							},
-						}, nil
+						if string(got) != expected {
+							resp.Diagnostics.AddError(
+								"Unexpected req.Private Value",
+								fmt.Sprintf("expected %q, got %q", expected, got),
+							)
+						}
 					},
 				},
 				PlannedPrivate: &privatestate.Data{
@@ -206,27 +184,20 @@ func TestServerDeleteResource(t *testing.T) {
 			},
 			request: &fwserver.DeleteResourceRequest{
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-								var expected []byte
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						var expected []byte
 
-								got, diags := req.Private.GetKey(ctx, "providerKeyOne")
+						got, diags := req.Private.GetKey(ctx, "providerKeyOne")
 
-								resp.Diagnostics.Append(diags...)
+						resp.Diagnostics.Append(diags...)
 
-								if !bytes.Equal(got, expected) {
-									resp.Diagnostics.AddError(
-										"Unexpected req.Private Value",
-										fmt.Sprintf("expected %q, got %q", expected, got),
-									)
-								}
-							},
-						}, nil
+						if !bytes.Equal(got, expected) {
+							resp.Diagnostics.AddError(
+								"Unexpected req.Private Value",
+								fmt.Sprintf("expected %q, got %q", expected, got),
+							)
+						}
 					},
 				},
 			},
@@ -247,17 +218,10 @@ func TestServerDeleteResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-								resp.Diagnostics.AddWarning("warning summary", "warning detail")
-								resp.Diagnostics.AddError("error summary", "error detail")
-							},
-						}, nil
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						resp.Diagnostics.AddWarning("warning summary", "warning detail")
+						resp.Diagnostics.AddError("error summary", "error detail")
 					},
 				},
 			},
@@ -281,6 +245,46 @@ func TestServerDeleteResource(t *testing.T) {
 				},
 			},
 		},
+		"resource-configure-data": {
+			server: &fwserver.Server{
+				Provider:              &testprovider.Provider{},
+				ResourceConfigureData: "test-provider-configure-value",
+			},
+			request: &fwserver.DeleteResourceRequest{
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithConfigure{
+					ConfigureMethod: func(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+						providerData, ok := req.ProviderData.(string)
+
+						if !ok {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected string, got: %T", req.ProviderData),
+							)
+							return
+						}
+
+						if providerData != "test-provider-configure-value" {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected test-provider-configure-value, got: %q", providerData),
+							)
+						}
+					},
+					Resource: &testprovider.Resource{
+						DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+							// In practice, the Configure method would save the
+							// provider data to the Resource implementation and
+							// use it here. The fact that Configure is able to
+							// read the data proves this can work.
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.DeleteResourceResponse{
+				NewState: testEmptyState,
+			},
+		},
 		"response-newstate": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -294,16 +298,9 @@ func TestServerDeleteResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-								// Intentionally empty, should call resp.State.RemoveResource() automatically.
-							},
-						}, nil
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						// Intentionally empty, should call resp.State.RemoveResource() automatically.
 					},
 				},
 			},

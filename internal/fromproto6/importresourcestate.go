@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -14,7 +14,7 @@ import (
 
 // ImportResourceStateRequest returns the *fwserver.ImportResourceStateRequest
 // equivalent of a *tfprotov6.ImportResourceStateRequest.
-func ImportResourceStateRequest(ctx context.Context, proto6 *tfprotov6.ImportResourceStateRequest, resourceType provider.ResourceType, resourceSchema fwschema.Schema) (*fwserver.ImportResourceStateRequest, diag.Diagnostics) {
+func ImportResourceStateRequest(ctx context.Context, proto6 *tfprotov6.ImportResourceStateRequest, resource resource.Resource, resourceSchema fwschema.Schema) (*fwserver.ImportResourceStateRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -40,9 +40,9 @@ func ImportResourceStateRequest(ctx context.Context, proto6 *tfprotov6.ImportRes
 			Raw:    tftypes.NewValue(resourceSchema.Type().TerraformType(ctx), nil),
 			Schema: tfsdkSchema(resourceSchema),
 		},
-		ID:           proto6.ID,
-		ResourceType: resourceType,
-		TypeName:     proto6.TypeName,
+		ID:       proto6.ID,
+		Resource: resource,
+		TypeName: proto6.TypeName,
 	}
 
 	return fw, diags

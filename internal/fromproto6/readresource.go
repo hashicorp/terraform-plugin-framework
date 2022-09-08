@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 // ReadResourceRequest returns the *fwserver.ReadResourceRequest
 // equivalent of a *tfprotov6.ReadResourceRequest.
-func ReadResourceRequest(ctx context.Context, proto6 *tfprotov6.ReadResourceRequest, resourceType provider.ResourceType, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ReadResourceRequest, diag.Diagnostics) {
+func ReadResourceRequest(ctx context.Context, proto6 *tfprotov6.ReadResourceRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ReadResourceRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -22,7 +22,7 @@ func ReadResourceRequest(ctx context.Context, proto6 *tfprotov6.ReadResourceRequ
 	var diags diag.Diagnostics
 
 	fw := &fwserver.ReadResourceRequest{
-		ResourceType: resourceType,
+		Resource: resource,
 	}
 
 	currentState, currentStateDiags := State(ctx, proto6.CurrentState, resourceSchema)

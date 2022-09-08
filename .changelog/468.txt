@@ -1,0 +1,3 @@
+```release-note:bug
+internal/fwserver: Fixed alignment of set type plan modification
+```

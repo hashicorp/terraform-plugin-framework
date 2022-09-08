@@ -78,7 +78,7 @@ func main() {
 
     providers := []func() tfprotov5.ProviderServer{
         providerserver.NewProtocol5(provider.New()),
-        tftime.Provider().GRPCProvider,
+        provider.Provider().GRPCProvider,
     }
 
     muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
@@ -171,7 +171,7 @@ func (p *provider) GetResources(ctx context.Context) (map[string]provider.Resour
 func (p *provider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
     return map[string]provider.DataSourceType{
         "data_source_example": dataSourceTypeExample{},
-}, nil
+    }, nil
 }
 ```
 
@@ -191,7 +191,7 @@ names to `schema.Resource` structs. In the Framework, `GetResources` is a functi
 returns `map[string]provider.ResourceType`, which maps resource names to types that you define, which satisfy the
 `provider.ResourceType` interface.
 - In SDKv2, `DataSourcesMap` is a field on `schema.Provider` containing  `map[string]*schema.Resource`, which maps data
-source names to `schema.Resource` structs (Data sources and resources both use `schema.Resource`). In the Framework,
+source names to `schema.Resource` structs (data sources and resources both use `schema.Resource`). In the Framework,
 `GetDataSources` is a function you define on your provider that returns `map[string]provider.DataSourceType`, which
 maps data source names to types that you define, which satisfy the `provider.DataSourceType` interface.
 
@@ -214,7 +214,7 @@ func New() (*schema.Provider, error) {
     return &schema.Provider{
         Schema: map[string]*schema.Schema{
             "proxy": {
-            /* ... */
+                /* ... */
             },
         },
         ConfigureContextFunc: configureProvider,
@@ -259,7 +259,7 @@ func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "proxy": {
-            /* ... */
+                /* ... */
             },
         },
     }, nil
@@ -333,7 +333,8 @@ with [v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/in
 
 This example also shows how to use a nested block and a nested attribute for the SDKv2 and Framework examples,
 respectively. Refer to the
-[Blocks and Nested Attributes](/plugin/framework/migrating/attributes-blocks) page in this guide for more details.
+[Blocks with Computed Fields](/plugin/framework/migrating/attributes-blocks/blocks-computed) page in this guide for more
+details.
 
 #### SDKv2
 

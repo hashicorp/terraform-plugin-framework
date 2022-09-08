@@ -26,10 +26,10 @@ func resourceExample() *schema.Resource {
         /* ... */
         Schema: map[string]*schema.Schema{
             "attribute_example": {
-                ConflictsWith:  []string
-                ExactlyOneOf:   []string
-                AtLeastOneOf:   []string
-                RequiredWith:   []string
+                ConflictsWith:  []string{ /* ... */ },
+                ExactlyOneOf:   []string{ /* ... */ },
+                AtLeastOneOf:   []string{ /* ... */ },
+                RequiredWith:   []string{ /* ... */ },
             /* ... */
 ```
 ## Framework
@@ -48,7 +48,7 @@ func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Dia
         Attributes: map[string]tfsdk.Attribute{
             "attribute_example": {
                 Validators: []tfsdk.AttributeValidator{
-                    schemavalidator.ConflictsWith(),
+                    schemavalidator.ConflictsWith( /* ... */ ),
                     /* ... */
 ```
 

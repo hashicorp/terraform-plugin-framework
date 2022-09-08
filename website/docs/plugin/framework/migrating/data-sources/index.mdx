@@ -54,7 +54,9 @@ The following code shows how you add a data source to your provider with the Fra
 
 ```go
 func (p *provider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-    return map[string]provider.DataSourceType{}, nil
+    return map[string]provider.DataSourceType{
+		/* ... */
+    }, nil
 }
 ```
 

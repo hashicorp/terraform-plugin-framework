@@ -31,12 +31,13 @@ The following code shows a basic implementation of resource schema with SDKv2.
 ```go
 func New() *schema.Provider {
     return &schema.Provider{
-        ResourcesMap:   map[string]*schema.Resource
-    }{
-        "resource_example": resourceExample(),
+        ResourcesMap:   map[string]*schema.Resource {
+            "resource_example": resourceExample(),
+            /* ... */
+        },
+        /* ... */
     }
-    /* ... */
-},
+}
 ```
 
 SDKv2 defines the `schema.Resource` struct as follows.
@@ -44,28 +45,28 @@ SDKv2 defines the `schema.Resource` struct as follows.
 ```go
 schema.Resource{
     Schema             map[string]*Schema
-    SchemaVersion             int
+    SchemaVersion            int
     MigrateState             StateMigrateFunc
-    StateUpgraders             []StateUpgrader
-    Create                     CreateFunc
+    StateUpgraders           []StateUpgrader
+    Create                   CreateFunc
     Read                     ReadFunc
-    Update                     UpdateFunc
-    Delete                     DeleteFunc
-    Exists                     ExistsFunc
-    CreateContext             CreateContextFunc
-    ReadContext             ReadContextFunc
-    UpdateContext             UpdateContextFunc
-    DeleteContext             DeleteContextFunc
-    CreateWithoutTimeout    CreateContextFunc
-    ReadWithoutTimeout         ReadContextFunc
-    UpdateWithoutTimeout    UpdateContextFunc
+    Update                   UpdateFunc
+    Delete                   DeleteFunc
+    Exists                   ExistsFunc
+    CreateContext            CreateContextFunc
+    ReadContext              ReadContextFunc
+    UpdateContext            UpdateContextFunc
+    DeleteContext            DeleteContextFunc
+    CreateWithoutTimeout     CreateContextFunc
+    ReadWithoutTimeout       ReadContextFunc
+    UpdateWithoutTimeout     UpdateContextFunc
     DeleteWithoutTimeout     DeleteContextFunc
-    CustomizeDiff             CustomizeDiffFunc
+    CustomizeDiff            CustomizeDiffFunc
     Importer                 *ResourceImporter
-    DeprecationMessage         string
+    DeprecationMessage       string
     Timeouts                 *ResourceTimeout
-    Description             string
-    UseJSONNumber             bool
+    Description              string
+    UseJSONNumber            bool
 }
 ```
 
@@ -114,9 +115,9 @@ The `tfsdk.Schema` is used for defining the schema for providers, resources and 
 
 ```go
 type Schema struct {
-    Attributes map[string]Attribute
-    Blocks map[string]Block
-    Version int64
+    Attributes          map[string]Attribute
+    Blocks              map[string]Block
+    Version             int64
     DeprecationMessage  string
     Description         string
     MarkdownDescription string

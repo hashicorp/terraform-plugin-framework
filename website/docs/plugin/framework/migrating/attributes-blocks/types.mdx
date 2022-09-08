@@ -28,31 +28,31 @@ func resourceExample() *schema.Resource {
                 Type:    schema.TypeBool,
                 /* ... */
             },
-			"float64_example": {
+            "float64_example": {
                 Type:    schema.TypeFloat,
                 /* ... */
             },
-			"int64_example": {
+            "int64_example": {
                 Type:    schema.TypeInt,
                 /* ... */
             },
-			"list_example": {
+            "list_example": {
                 Type:    schema.TypeList,
-				Elem:    &schema.Schema{
+                Elem:    &schema.Schema{
 			        Type: schema.TypeBool,
 		        },
                 /* ... */
             },
-			"map_example": {
+            "map_example": {
                 Type:    schema.TypeMap,
-				Elem:    &schema.Schema{
+                Elem:    &schema.Schema{
 			        Type: schema.TypeFloat,
 		        },
                 /* ... */
             },
-			"set_example": {
+            "set_example": {
                 Type:    schema.TypeSet,
-				Elem:    &schema.Schema{
+                Elem:    &schema.Schema{
 			        Type: schema.TypeInt,
 		        },
                 /* ... */
@@ -176,7 +176,7 @@ func resourceCertRequest() *schema.Resource {
         Schema: map[string]*schema.Schema{
             "dns_names": {
                 Type:    schema.TypeList,
-				Elem:    &schema.Schema{
+                Elem:    &schema.Schema{
 			        Type: schema.TypeString,
 		        },
                 /* ... */

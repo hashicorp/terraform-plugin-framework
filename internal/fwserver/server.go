@@ -324,24 +324,6 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Sch
 	return s.dataSourceSchemas, s.dataSourceSchemasDiags
 }
 
-// DataSourceType returns the DataSourceType for a given type name.
-func (s *Server) DataSourceType(ctx context.Context, typeName string) (provider.DataSourceType, diag.Diagnostics) {
-	dataSourceTypes, diags := s.DataSourceTypes(ctx)
-
-	dataSourceType, ok := dataSourceTypes[typeName]
-
-	if !ok {
-		diags.AddError(
-			"Data Source Type Not Found",
-			fmt.Sprintf("No data source type named %q was found in the provider.", typeName),
-		)
-
-		return nil, diags
-	}
-
-	return dataSourceType, diags
-}
-
 // DataSourceTypes returns the map of DataSourceTypes. The results are cached
 // on first use.
 func (s *Server) DataSourceTypes(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
@@ -424,6 +406,14 @@ func (s *Server) Resource(ctx context.Context, typeName string) (resource.Resour
 
 	resourceFunc, ok := resourceFuncs[typeName]
 
+	if ok {
+		return resourceFunc(), diags
+	}
+
+	resourceTypes, diags := s.ResourceTypes(ctx)
+
+	resourceType, ok := resourceTypes[typeName]
+
 	if !ok {
 		diags.AddError(
 			"Resource Type Not Found",
@@ -433,7 +423,11 @@ func (s *Server) Resource(ctx context.Context, typeName string) (resource.Resour
 		return nil, diags
 	}
 
-	return resourceFunc(), diags
+	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
+	resource, diags := resourceType.NewResource(ctx, s.Provider)
+	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
+
+	return resource, diags
 }
 
 // ResourceFuncs returns a map of Resource functions. The results are cached
@@ -600,24 +594,6 @@ func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schem
 	}
 
 	return s.resourceSchemas, s.resourceSchemasDiags
-}
-
-// ResourceType returns the ResourceType for a given type name.
-func (s *Server) ResourceType(ctx context.Context, typeName string) (provider.ResourceType, diag.Diagnostics) {
-	resourceTypes, diags := s.ResourceTypes(ctx)
-
-	resourceType, ok := resourceTypes[typeName]
-
-	if !ok {
-		diags.AddError(
-			"Resource Type Not Found",
-			fmt.Sprintf("No resource type named %q was found in the provider.", typeName),
-		)
-
-		return nil, diags
-	}
-
-	return resourceType, diags
 }
 
 // ResourceTypes returns the map of ResourceTypes. The results are cached

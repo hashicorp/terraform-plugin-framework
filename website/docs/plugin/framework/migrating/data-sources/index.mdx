@@ -23,7 +23,7 @@ The following example shows a typical implementation.
 ```go
 func New() *schema.Provider {
     return &schema.Provider{
-        DataSourcesMap:   map[string]*schema.Resource{}
+        DataSourcesMap:   map[string]*schema.Resource{
         /* ... */
 },
 ```
@@ -45,7 +45,7 @@ schema.Resource {
 
 ## Framework
 
-In the Framework, you define data sources adding them to your provider's `GetDataSources` function.
+In the Framework, you define data sources by adding them to the map returned by your provider's `GetDataSources` function.
 
 The `GetDataSources` function on your `provider.Provider` returns a map from the data source name (string) to a type
 that implements the `DataSourceType` interface for each data source your provider supports.
@@ -91,7 +91,7 @@ function on your `datasource.DataSource` type.
 Remember the following details when completing the migration from SDKv2 to the Framework.
 
 - As data sources are read-only, you only implement read functionality for your provider's data sources. Refer to the
-[`Read` function](/plugin/framework/resources#read) in the Framework documentation for resources for more details.
+[`Read` function](/plugin/framework/resources#read) for resources in the Framework documentation for more details.
 
 ## Example
 

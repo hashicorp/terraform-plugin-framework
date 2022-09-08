@@ -25,8 +25,7 @@ greater than one.
 func resourceExample() *schema.Resource {
     return &schema.Resource{
         /* ... */
-        Schema: map[string]*schema.Schema
-        }{
+        Schema: map[string]*schema.Schema{
             "attribute_example": {
                 ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(1)),
                 /* ... */
@@ -37,7 +36,7 @@ func resourceExample() *schema.Resource {
 In the Framework, you implement either type of validation by setting the `Validators` field on the `tfsdk.Attribute`
 struct with types that satisfy the `tfsdk.AttributeValidator` interface.
 
-The following example shows the implementation of a validation that ensures that an integer attribute has a value
+The following example shows how to implement a validation that ensures that an integer attribute has a value
 greater than one.
 
 ```go

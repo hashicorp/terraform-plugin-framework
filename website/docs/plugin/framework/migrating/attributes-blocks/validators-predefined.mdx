@@ -24,8 +24,7 @@ In SDKv2, the `ConflictsWith`, `ExactlyOneOf`, `AtLeastOneOf`, and `RequiredWith
 func resourceExample() *schema.Resource {
     return &schema.Resource{
         /* ... */
-        Schema: map[string]*schema.Schema
-        }{
+        Schema: map[string]*schema.Schema{
             "attribute_example": {
                 ConflictsWith:  []string
                 ExactlyOneOf:   []string
@@ -54,10 +53,10 @@ func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Dia
 ```
 
 Configuration validators can also be defined for
-[providers](https://github.com/hashicorp/terraform-plugin-framework-validators/tree/main/providervalidator),
-[resources](https://github.com/hashicorp/terraform-plugin-framework-validators/tree/main/resourcevalidator) and
-[data sources](https://github.com/hashicorp/terraform-plugin-framework-validators/tree/main/datasourcevalidator) by
-implementing `ProviderWithConfigValidators`, `ResourceWithConfigValidators` and `DataSourceWithConfigValidators`
+[providers](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/providervalidator),
+[resources](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator) and
+[data sources](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator) by
+implementing `ProviderWithConfigValidators`, `ResourceWithConfigValidators`, and `DataSourceWithConfigValidators`
 interfaces, respectively.
 
 ```go
@@ -76,12 +75,12 @@ Remember the following details when migrating from SDKv2 to the Framework.
 - In SDKv2, `ValidateDiagFunc` is a field on `schema.Schema` that you can use to define validation functions. In SDKv2,
 there are also built-in validations. For example, `ConflictsWith` is a field on the `schema.Schema` struct in SDKv2. In
 the Framework, `Validators` is a field on each `tfsdk.Attribute` struct.
-- Validators replicating the behavior of `ConflictsWith`, `ExactlyOneOf`, `AtLeastOneOf` and `RequiredWith` in SDKv2 are
+- Validators replicating the behavior of `ConflictsWith`, `ExactlyOneOf`, `AtLeastOneOf`, and `RequiredWith` in SDKv2 are
 available for the Framework:
-  - [ConflictsWith](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/schemavalidator/conflicts_with.go)
-  - [ExactlyOneOf](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/schemavalidator/exactly_one_of.go)
-  - [AtLeastOneOf](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/schemavalidator/at_least_one_of.go)
-  - [AlsoRequires](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/schemavalidator/also_requires.go)
+  - [ConflictsWith](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#ConflictsWith)
+  - [ExactlyOneOf](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#ExactlyOneOf)
+  - [AtLeastOneOf](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#AtLeastOneOf)
+  - [AlsoRequires](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#AlsoRequires)
 - Define [custom validators](/plugin/framework/migrating/validators-custom) when the predefined validators do not meet
 your requirements.
 

@@ -17,7 +17,7 @@ You must update your provider's `main.go` file to serve Framework providers. Ref
 
 ### SDKv2
 
-In SDKv2, the provider packages `main` function serves the provider by calling `plugin.Serve`.
+In SDKv2, the provider package's `main` function serves the provider by calling `plugin.Serve`.
 
 The following code shows a basic implementation for serving an SDKv2 provider.
 
@@ -286,8 +286,9 @@ The following example defines the provider schema in the `Schema` field within t
 ```go
 func New() *schema.Provider {
     return &schema.Provider{
-        Schema: map[string]*schema.Schema{},
-        /* ... */
+        Schema: map[string]*schema.Schema{
+            /* ... */
+        },
 ```
 
 ### Framework
@@ -302,7 +303,9 @@ The following code shows the `GetSchema` function, which returns the provider sc
 
 ```go
 func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{}, nil
+    return tfsdk.Schema{
+        /* ... */
+    }, nil
 }
 ```
 
@@ -314,8 +317,8 @@ those fields to the Framework.
 
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
-In SDKv2, `schema.Schema` is a struct that defines attributes and behaviors (e.g., `Type`, `Optional`). In the
-Framework `tfsdk.Schema` is a struct that defines `Attributes`, which are structs that define attributes and behaviors
+- In SDKv2, `schema.Schema` is a struct that defines attributes and behaviors (e.g., `Type`, `Optional`). In the
+Framework `tfsdk.Schema` is a struct that includes `tfsdk.Attributes`, which are structs that define attributes and behaviors
 (e.g., `Type`, `Optional`).
 
 ### Example
@@ -334,7 +337,7 @@ respectively. Refer to the
 
 #### SDKv2
 
-The following example shows how to configure an attribute within a provider schema using SDKv2.
+The following example from the `provider.go` file shows the configuration of the `url` attribute for the  provider's`proxy` configuration block.
 
 ```go
 Schema: map[string]*schema.Schema{
@@ -357,7 +360,9 @@ Schema: map[string]*schema.Schema{
 
 #### Framework
 
-The following example shows how to configure provider schema using the Framework.
+The following shows the same section of provider code after the migration.
+
+This code implements the `url` attribute for the `proxy` block with the Framework.
 
 ```go
 func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {

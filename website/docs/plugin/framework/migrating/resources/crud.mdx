@@ -128,7 +128,7 @@ func createPassword(ctx context.Context, d *schema.ResourceData, meta interface{
 ### Framework
 The following shows the same section of provider code after the migration.
 
-This code implements the `Create()` function for the `random_password` resource with the Framework.
+This code implements the `Create` function for the `random_password` resource with the Framework.
 
 ```go
 func (r *passwordResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

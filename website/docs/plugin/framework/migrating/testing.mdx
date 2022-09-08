@@ -14,7 +14,7 @@ been altered by the migration itself. You will also need to [update](#provider-f
 During migration, we recommend writing tests to verify that switching from SDKv2 to the Framework has not affected your
 provider's behavior. These tests use identical configuration. The first test step applies a plan and generates state
 with the SDKv2 version of the provider. The second test step generates a plan with the Framework version of the provider
-and verifies that the plan is a no-op indicating that migrating to the framework has not altered behaviour.
+and verifies that the plan is a no-op, indicating that migrating to the framework has not altered behaviour.
 
 Use the `ExternalProviders` field within a `resource.TestStep` to specify the configuration of a specific provider to
 use during each test step. You can specify a version of the provider built on SDKv2 during the first test step, and
@@ -111,8 +111,8 @@ The following examples show how to migrate portions of the [http](https://github
 provider.
 
 To review a complete example, clone the
-`terraform-provider-http` repository and compare
-[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source_test.go) with
+`terraform-provider-http` repository and compare the `data_source_test.go` file in
+[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source_test.go) with the `data_source_http_test.go` file in
 [v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http_test.go).
 
 #### SDKv2

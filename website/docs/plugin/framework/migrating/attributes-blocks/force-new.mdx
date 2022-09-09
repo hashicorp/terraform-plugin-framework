@@ -1,0 +1,110 @@
+---
+page_title: 'Attribute ForceNew triggers: Migrating from SDKv2 to the Framework'
+description: >-
+  Migrate attribute force new in SDKv2 to an attribute plan modifier in the Framework.
+---
+
+# ForceNew
+
+In Terraform, sometimes a resource must be replaced when the value of an attribute changes. In SDKv2, this is
+accomplished via the `ForceNew` field. In the Framework, you implement the same behavior via a `RequiresReplace` plan
+modifier. Refer to
+[Plan Modification - Attribute Plan Modification](/plugin/framework/resources/plan-modification#attribute-plan-modification)
+in the Framework documentation for details.
+
+This page explains how to migrate this behavior from SDKv2 to the Framework.
+
+## SDKv2
+
+In SDKv2, setting the `ForceNew` field on an attribute's `schema.Schema` triggers a replace (i.e., a destroy-create
+cycle) whenever the attribute's value is changed.
+
+```go
+func resourceExample() *schema.Resource {
+    return &schema.Resource{
+        /* ... */
+        Schema: map[string]*schema.Schema{
+            "attribute_example": {
+                ForceNew:    true
+                /* ... */
+```
+
+## Framework
+
+In the Framework, you implement the same behavior by using the `resource.RequiresReplace` plan modifier on your
+attribute's `tfsdk.Attribute` struct.
+
+```go
+func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        /* ... */
+        Attributes: map[string]tfsdk.Attribute{
+            "attribute_example": {
+                PlanModifiers: []tfsdk.AttributePlanModifier{
+                    resource.RequiresReplace(),
+                    /* ... */
+```
+
+## Migration Notes
+
+Remember the following differences between SDKv2 and the Framework when completing the migration.
+
+- In both SDKv2 and Framework, `ForceNew` and `RequiresReplace`, respectively, only trigger a replace if the attribute
+is not computed. In the Framework, if an attribute which is computed requires that the resource be replaced when it is
+changed, implement a plan modifier that triggers the replacement. Refer to
+[RequiresReplacePlanModifier](https://github.com/hashicorp/terraform-provider-random/blob/v3.4.1/internal/planmodifiers/attribute.go#L63)
+for an example, but bear in mind that each implementation requires different logic and you may need to detect whether
+the plan has already been modified.
+
+## Example
+
+The following examples show how to migrate portions of the
+[random](https://github.com/hashicorp/terraform-provider-random) provider.
+
+For a complete example, clone the
+`terraform-random-provider` repository and compare the `resource_password.go` file in
+[v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
+with [v3.4.1](https://github.com/hashicorp/terraform-provider-random/blob/v3.4.1/internal/provider/resource_password.go).
+
+### SDKv2
+
+The following example from the `resource_password.go` file shows the implementation of the `ForceNew` field of the
+`random_password` resource's `keepers` attribute with SDKv2.
+
+```go
+func resourcePassword() *schema.Resource {
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "keepers": {
+                ForceNew: true,
+                /* ... */
+            },
+            /* ... */
+        },
+        /* ... */
+    }
+}
+```
+
+### Framework
+
+The following shows the same section of provider code after the migration.
+
+This code forces the replacement of a `random_password` resource when the value of the `keepers` attribute is changed.
+The example does this using the `PlanModifiers` field within the `random_password` attribute's schema.
+
+```go
+func (r *passwordResourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "keepers": {
+                PlanModifiers: []tfsdk.AttributePlanModifier{
+                    resource.RequiresReplace(),
+                },
+                /* ... */
+            },
+            /* ... */
+        },
+    }, nil
+}
+```

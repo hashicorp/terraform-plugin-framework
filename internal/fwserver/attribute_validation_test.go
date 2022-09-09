@@ -488,15 +488,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeWarningDiagnostic(
-						path.Root("test"),
-						"Attribute Deprecated",
-						"Use something else instead.",
-					),
-				},
-			},
+			resp: tfsdk.ValidateAttributeResponse{},
 		},
 		"warnings": {
 			req: tfsdk.ValidateAttributeRequest{

@@ -1,0 +1,96 @@
+---
+page_title: 'Plugin Development - Framework: Configure Resources'
+description: >-
+  How to configure resources with provider data or clients in the provider development framework.
+---
+
+# Configure Resources
+
+[Resources](/plugin/framework/resources) may require provider-level data or remote system clients to operate correctly. The framework supports the ability to configure this data and/or clients once within the provider, then pass that information to resources by adding the `Configure` method.
+
+## Prepare Provider Configure Method
+
+Implement the [`provider.ConfigureResponse.ResourceData` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigureResponse.ResourceData) in the [`Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure). This value can be set to any type, whether an existing client or vendor SDK type, a provider-defined custom type, or the provider implementation itself. It is recommended to use pointer types so that resources can determine if this value was configured before attempting to use it.
+
+In this example, the Go standard library [`net/http.Client`](https://pkg.go.dev/net/http#Client) is configured in the provider, and made available for resources:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+  resp.ResourceData = &http.Client{/* ... */}
+}
+```
+
+In this example, the code defines an `ExampleClient` type that is made available for resources:
+
+```go
+type ExampleClient struct {
+  /* ... */
+}
+
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+  resp.ResourceData = &ExampleClient{/* ... */}
+}
+```
+
+In this example, the `ExampleCloudProvider` type itself is made available for resources:
+
+```go
+// With the provider.Provider implementation
+type ExampleCloudProvider struct {
+  /* ... */
+}
+
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+  resp.ResourceData = p
+}
+```
+
+## Define Resource Configure Method
+
+Implement the [`resource.ResourceWithConfigure` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigure) which receives the provider configured data from the [`Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure) and saves it into the [`resource.Resource` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) implementation.
+
+In this example, the provider configured the Go standard library [`net/http.Client`](https://pkg.go.dev/net/http#Client) which the resource uses during `Read`:
+
+```go
+// With the resource.Resource implementation
+type ThingResource struct {
+  client *http.Client
+}
+
+func (d *ThingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+  // Prevent panic if the provider has not been configured.
+  if req.ProviderData == nil {
+    return
+  }
+
+  client, ok := req.ProviderData.(*http.Client)
+
+  if !ok {
+    resp.Diagnostics.AddError(
+      "Unexpected Resource Configure Type",
+      fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+    )
+
+    return
+  }
+
+  d.client = client
+}
+
+func (d *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+  // Prevent panic if the provider has not been configured.
+  if d.client == nil {
+    resp.Diagnostics.AddError(
+      "Unconfigured HTTP Client",
+      "Expected configured HTTP client. Please report this issue to the provider developers.",
+    )
+
+    return
+  }
+
+  httpResp, err := d.client.Get("https://example.com")
+  /* ... */
+}
+```

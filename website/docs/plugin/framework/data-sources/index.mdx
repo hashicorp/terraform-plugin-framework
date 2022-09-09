@@ -1,0 +1,146 @@
+---
+page_title: 'Plugin Development - Framework: Data Sources'
+description: >-
+  How to build data sources in the provider development framework. Data sources
+  allow Terraform to reference external data.
+---
+
+# Data Sources
+
+[Data sources](/language/data-sources) are an abstraction that allow Terraform to reference external data. Unlike [managed resources](/language/resources), Terraform does not manage the lifecycle of the resource or data. Data sources are intended to have no side-effects.
+
+This page describes the basic implementation details required for supporting a data source within the provider. Further documentation is available for deeper data source concepts:
+
+- [Configure](/plugin/framework/data-sources/configure) data sources with provider-level data types or clients.
+- [Validate](/plugin/framework/validation) practitioner configuration against acceptable values.
+
+## Define Data Source Type
+
+Implement the [`datasource.DataSource` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource). Each of the methods is described in more detail below.
+
+In this example, a data source named `examplecloud_thing` with hardcoded behavior is defined:
+
+```go
+// Ensure the implementation satisfies the desired interfaces.
+var _ datasource.DataSource = &ThingDataSource{}
+
+type ThingDataSource struct {}
+
+type ThingDataSourceModel struct {
+	ExampleAttribute types.String `tfsdk:"example_attribute"`
+	ID               types.String `tfsdk:"id"`
+}
+
+func (d *ThingDataSource) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+	resp.TypeName = "examplecloud_thing"
+}
+
+func (d *ThingDataSource) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"example_attribute": {
+				Required: true,
+				Type:     types.StringType,
+			},
+			"id": {
+				Computed: true,
+				Type:     types.StringType,
+			},
+		},
+	}, nil
+}
+
+func (d *ThingDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data ThingDataSourceModel
+
+	// Read Terraform configuration data into the model
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	// Typically data sources will make external calls, however this example
+	// hardcodes setting the id attribute to a specific value for brevity.
+	data.ID = types.String{Value: "example-id"}
+
+	// Save data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+```
+
+### TypeName Method
+
+The [`datasource.DataSourceWithTypeName` interface `TypeName` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithTypeName.TypeName) defines the data source name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the data source specific name. For example, a provider named `examplecloud` and a data source that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the data source becomes part of the provider implementation, and therefore available to practitioners.
+
+In this example, the data source name in an `examplecloud` provider that reads "thing" resources is hardcoded to `examplecloud_thing`:
+
+```go
+// With the datasource.DataSource implementation
+func (d *ThingDataSource) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+	resp.TypeName = "examplecloud_thing"
+}
+```
+
+To simplify data source implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.ProviderWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithMetadata.Metadata) can set the provider name so it is available in the [`datasource.TypeNameRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#TypeNameRequest.ProviderTypeName).
+
+In this example, the provider defines the `examplecloud` name for itself, and the data source is named `examplecloud_thing`:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "examplecloud"
+}
+
+// With the datasource.DataSource implementation
+func (d *ThingDataSource) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+	resp.TypeName = req.ProviderTypeName + "_thing"
+}
+```
+
+### GetSchema Method
+
+The [`datasource.DataSourceWithGetSchema` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithGetSchema.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the data source's configuration and state.
+
+### Read Method
+
+The [`datasource.DataSource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Read) defines how the data source updates Terraform's state to reflect the retrieved data. There is no plan or prior state to work with in `Read` requests, only configuration.
+
+Implement the `Read` method by:
+
+1. [Accessing configuration data](/plugin/framework/accessing-values) from the [`datasource.ReadRequest.Config` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadRequest.Config).
+1. Retriving any additional data, such as remote system information.
+1. [Writing state data](/plugin/framework/writing-state) into the [`datasource.ReadResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadResponse.State).
+
+If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`datasource.ReadResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadResponse.Diagnostics).
+
+## Add Data Source to Provider
+
+Data sources become available to practitioners when they are included in the [provider](/plugin/framework/providers) implementation via the [`provider.ProviderWithDataSources` interface `DataSources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithDataSources.DataSources).
+
+In this example, the `ThingDataSource` type, which implements the `datasource.DataSource` interface, is added to the provider implementation:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		func() datasource.DataSource {
+			return &ThingDataSource{},
+		},
+	}
+}
+```
+
+To simplify provider implementations, a named function can be created with the data source implementation.
+
+In this example, the `ThingDataSource` code includes an additional `NewThingDataSource` function, which simplifies the provider implementation:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		NewThingDataSource,
+	}
+}
+
+// With the datasource.DataSource implementation
+func NewThingDataSource() datasource.DataSource {
+	return &ThingDataSource{}
+}
+```

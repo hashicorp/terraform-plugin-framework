@@ -1,0 +1,203 @@
+---
+page_title: 'Attribute Types: Migrating from SDKv2 to the Framework'
+description: >-
+  Migrate attribute type from SDKv2 to the plugin Framework
+---
+
+# Attribute Types
+
+An attribute either contains a primitive type, such as an integer or a string, or contains other attributes. Attributes
+that contain other attributes are referred to as nested attributes, and are implemented by populating the
+`NestedAttributes` field on the `tfsdk.Attribute` struct. Refer to
+[Schemas - Attributes](/plugin/framework/schemas#type) in the Framework documentation for details.
+
+This page explains how to migrate a primitive attribute from SDKv2 to the plugin Framework. For an example of
+migrating a nested block to a nested attribute, refer to [Providers](/plugin/framework/migrating/providers#example-1) in
+this guide.
+
+## SDKv2
+
+In SDKv2, attribute types are defined by the `Type` field on the attribute's `schema.Schema` struct.
+
+```go
+func resourceExample() *schema.Resource {
+    return &schema.Resource{
+         /* ... */
+        Schema: map[string]*schema.Schema{
+            "bool_example": {
+                Type:    schema.TypeBool,
+                /* ... */
+            },
+            "float64_example": {
+                Type:    schema.TypeFloat,
+                /* ... */
+            },
+            "int64_example": {
+                Type:    schema.TypeInt,
+                /* ... */
+            },
+            "list_example": {
+                Type:    schema.TypeList,
+                Elem:    &schema.Schema{
+			        Type: schema.TypeBool,
+		        },
+                /* ... */
+            },
+            "map_example": {
+                Type:    schema.TypeMap,
+                Elem:    &schema.Schema{
+			        Type: schema.TypeFloat,
+		        },
+                /* ... */
+            },
+            "set_example": {
+                Type:    schema.TypeSet,
+                Elem:    &schema.Schema{
+			        Type: schema.TypeInt,
+		        },
+                /* ... */
+            },
+            "string_example": {
+                Type:    schema.TypeString,
+                /* ... */
+            },
+            /* ... */
+```
+## Framework
+
+In the Framework, you set your attribute's type with the `Type` field on your attribute's `tfsdk.Attribute` struct.
+
+```go
+func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        /* ... */
+        Attributes: map[string]tfsdk.Attribute{
+            "bool_example": {
+				Type:    types.BoolType,
+				/* ... */
+			},
+			"float64_example": {
+				Type:    types.Float64Type,
+				/* ... */
+			},
+			"int64_example": {
+				Type:    types.Int64Type,
+				/* ... */
+			},
+			"list_example": {
+				Type:    types.ListType{ElemType: types.BoolType},
+				/* ... */
+			},
+			"map_example": {
+				Type:    types.MapType{ElemType: types.Float64Type},
+				/* ... */
+			},
+			"set_example": {
+				Type:    types.SetType{ElemType: types.Int64Type},
+				/* ... */
+			},
+			"string_example": {
+				Type:    types.StringType,
+				/* ... */
+			},
+            /* ... */
+```
+
+## Migration Notes
+
+Remember the following differences between SDKv2 and the Framework when completing the migration.
+
+- In the Framework, an `Attribute` struct has either the `Type` or `Attributes` field defined. The `Type` field is set to
+a primitive type such as an integer or string, and you use the `Attributes` field for `NestedAttributes`. Refer to
+[Providers](/plugin/framework/migrating/providers#example-1) for an example of using a single
+nested attribute. Nested attributes are also described in more detail on the
+[Schemas](https://www.terraform.io/plugin/framework/schemas#attributes-1) page in the Framework documentation.
+
+## Example
+
+The following examples show how to migrate portions of the
+[http](https://github.com/hashicorp/terraform-provider-http) provider.
+
+For a complete example, clone the
+`terraform-provider-http` repository and compare the `data_source.go` file in
+[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
+and the `data_source_http.go` file in
+[v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http.go).
+
+### SDKv2
+
+The following example from the `data_source.go` file shows the implementation of the type field of the `url` attribute
+for the `http` data source with SDKv2.
+
+```go
+func dataSource() *schema.Resource {
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "url": {
+                Type:        schema.TypeString,
+                /* ... */
+            },
+            /* ... */
+```
+
+### Framework
+
+The following example from the `data_source_http.go` file shows how the type of the `url` attribute for the `http` data
+source is defined with the Framework after the migration.
+
+```go
+func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "url": {
+                Type:        types.StringType,
+                /* ... */
+            },
+            /* ... */
+```
+
+The following examples show how to migrate portions of the
+[tls](https://github.com/hashicorp/terraform-provider-tls) provider.
+
+For a complete example, clone the
+`terraform-provider-tls` repository and compare the `common_cert.go` file in
+[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/common_cert.go)
+and the `resource_cert_request.go` file in
+[v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_cert_request.go).
+
+### SDKv2
+
+The following example from the `common_cert.go` file shows the implementation of the type field of the `dns_names`
+attribute with SDKv2.
+
+```go
+func resourceCertRequest() *schema.Resource {
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "dns_names": {
+                Type:    schema.TypeList,
+                Elem:    &schema.Schema{
+			        Type: schema.TypeString,
+		        },
+                /* ... */
+            },
+            /* ... */
+```
+
+### Framework
+
+The following example from the `data_source_http.go` file shows how the type of the `url` attribute for the `http` data
+source is defined with the Framework after the migration.
+
+```go
+func (rt *certRequestResourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "dns_names": {
+                Type:    types.ListType{
+                    ElemType: types.StringType
+                },
+                /* ... */
+            },
+            /* ... */
+```

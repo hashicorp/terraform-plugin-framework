@@ -1,0 +1,189 @@
+---
+page_title: 'Resources - CustomizeDiff and PlanModifiers: Migrating from SDKv2 to the Framework'
+description: >-
+  Migrate resource customizediff functions in SDKv2 to plan modifiers in the plugin Framework.
+---
+
+# Plan Modification
+Your provider can modify the Terraform plan to match the expected end state. This can include replacing unknown values
+with expected known values or marking a resource that must be replaced. Refer to
+[Plan Modification](/plugin/framework/resources/plan-modification) in the Framework documentation for details.
+
+This page explains how to migrate resource `CustomizeDiff` functions in SDKv2 to `PlanModifiers` in the plugin
+Framework.
+
+## SDKv2
+In SDKv2, plan modification is implemented with the `CustomizeDiff` field on the `schema.Resource` struct. The following
+code shows a basic implementation of plan modification with SDKv2.
+
+```go
+func resourceExample() *schema.Resource {
+    return &schema.Resource{
+        CustomizeDiff: CustomizeDiffFunc,
+        /* ... */
+```
+
+## Framework
+
+In the Framework, you implement plan modification either by implementing the  `ResourceWithModifyPlan` interface on your
+resource type, or by implementing `PlanModifiers` on individual attributes. This page demonstrates how to implement the
+plan modifiers on individual attributes. Refer to
+[Attributes - Default Values](/plugin/framework/migrating/attributes#default-values) and
+[Attributes - Force New](/plugin/framework/migrating/attributes#force-new) in this guide for further information on how
+to implement a plan modifier on an attribute.
+
+The `ResourceWithModifyPlan` interface requires a `ModifyPlan` function.
+
+The following code shows how you can implement the `ModifyPlan` function on your `resource.Resource` type.
+
+```go
+func (r *resourceExample) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+    /* ... */
+}
+```
+## Migration Notes
+Remember the following differences between SDKv2 and the Framework when completing the migration.
+
+- In SDKv2, you implement plan modification with the `CustomizeDiff` field on the `schema.Resource` struct. In the
+Framework, you can either implement plan modification for the entire resource by implementing the
+`ResourceWithModifyPlan` interface, or on individual attributes by adding `PlanModifiers` to your resource attributes.
+- Many existing CustomizeDiff implementations may be better suited to implementation as attribute plan modifiers in the
+Framework.
+
+## Example
+
+The following examples show how to migrate portions of the
+[random](https://github.com/hashicorp/terraform-provider-random) provider.
+
+For a complete example, clone the
+`terraform-provider-random` repository and compare the `resource_password.go` file in
+[v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
+with [v3.4.1](https://github.com/hashicorp/terraform-provider-random/blob/v3.4.1/internal/provider/resource_password.go).
+
+### SDKv2
+
+In SDKv2, the `CustomizeDiff` field on the `schema.Resource` struct refers to a function or set of functions that
+implement plan modification.
+
+The following example from the `resource_password.go` files shows the use of `CustomizeDiff` to keep two attributes
+synchronized (i.e., ensure that they contain the same value) with SDKv2.
+
+```go
+func resourcePassword() *schema.Resource {
+    /* ... */
+    customizeDiffFuncs = append(customizeDiffFuncs, planSyncIfChange("number", "numeric"))
+    customizeDiffFuncs = append(customizeDiffFuncs, planSyncIfChange("numeric", "number"))
+
+    return &schema.Resource{
+        /* ... */
+        CustomizeDiff: customdiff.All(
+            customizeDiffFuncs...,
+        ),
+    }
+}
+```
+
+The following example shows the implementation of the `planSyncIfChange` function.
+
+```go
+func planSyncIfChange(key, keyToSync string) func(context.Context, *schema.ResourceDiff, interface{}) error {
+    return customdiff.IfValueChange(
+        key,
+        func(ctx context.Context, oldValue, newValue, meta interface{}) bool {
+            return oldValue != newValue
+        },
+        func(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+            return d.SetNew(keyToSync, d.Get(key))
+        },
+    )
+}
+```
+
+### Framework
+
+Many existing `CustomizeDiff` implementations would be better suited to migration to attribute plan modifiers in the
+Framework. This code shows the implementation using attribute plan modifiers with the Framework.
+
+```go
+func passwordSchemaV2() tfsdk.Schema {
+    return tfsdk.Schema{
+        /* ... */
+        Attributes: map[string]tfsdk.Attribute{
+            /* ... */
+            "number": {
+                /* ... */
+                PlanModifiers: []tfsdk.AttributePlanModifier{
+                    planmodifiers.NumberNumericAttributePlanModifier(),
+                    /* ... */
+                },
+            },
+
+            "numeric": {
+                /* ... */
+                PlanModifiers: []tfsdk.AttributePlanModifier{
+                    planmodifiers.NumberNumericAttributePlanModifier(),
+                    /* ... */
+                },
+            },
+```
+
+The following shows an implementation of `NumberNumericAttributePlanModifier` in the Framework.
+
+```go
+func NumberNumericAttributePlanModifier() tfsdk.AttributePlanModifier {
+    return &numberNumericAttributePlanModifier{}
+}
+
+type numberNumericAttributePlanModifier struct {
+}
+
+func (d *numberNumericAttributePlanModifier) Description(ctx context.Context) string {
+    return "Ensures that number and numeric attributes are kept synchronised."
+}
+
+func (d *numberNumericAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
+    return d.Description(ctx)
+}
+
+func (d *numberNumericAttributePlanModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+    numberConfig := types.Bool{}
+    diags := req.Config.GetAttribute(ctx, path.Root("number"), &numberConfig)
+    resp.Diagnostics.Append(diags...)
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    numericConfig := types.Bool{}
+    req.Config.GetAttribute(ctx, path.Root("numeric"), &numericConfig)
+    resp.Diagnostics.Append(diags...)
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+	if !numberConfig.Null && !numericConfig.Null && (numberConfig.Value != numericConfig.Value) {
+		resp.Diagnostics.AddError(
+			"Number and numeric are both configured with different values",
+			"Number is deprecated, use numeric instead",
+		)
+		return
+	}
+
+    // Default to true for both number and numeric when both are null.
+    if numberConfig.Null && numericConfig.Null {
+        resp.AttributePlan = types.Bool{Value: true}
+        return
+    }
+
+    // Default to using value for numeric if number is null
+    if numberConfig.Null && !numericConfig.Null {
+        resp.AttributePlan = numericConfig
+        return
+    }
+
+    // Default to using value for number if numeric is null
+    if !numberConfig.Null && numericConfig.Null {
+        resp.AttributePlan = numberConfig
+        return
+    }
+}
+```

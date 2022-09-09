@@ -1,0 +1,163 @@
+---
+page_title: 'Attribute Custom Validators: Migrating from SDKv2 to the Framework'
+description: >-
+  Validations check for required syntax, types, and acceptable values. Migrate custom attribute validation functions from SDKv2 to attribute validators in the Framework.
+---
+
+# Custom Validators
+
+You can write custom validations that give users feedback about required syntax, types, and acceptable values in your
+provider. The Framework has a collection of
+[predefined validators](https://github.com/hashicorp/terraform-plugin-framework-validators). Refer to
+[Predefined Validators](/plugin/framework/migrating/validators-predefined) to learn how to use them.
+
+This page explains how to migrate attribute validation functions from SDKv2 to attribute validators in the Framework.
+
+## SDKv2
+
+In SDKv2, arbitrary validation logic can be applied to individual attributes by using `ValidateFunc` and/or
+`ValidateDiagFunc`.
+
+The following example shows the implementation of a validation that ensures that an integer attribute has a value
+greater than one.
+
+```go
+func resourceExample() *schema.Resource {
+    return &schema.Resource{
+        /* ... */
+        Schema: map[string]*schema.Schema{
+            "attribute_example": {
+                ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(1)),
+                /* ... */
+```
+
+## Framework
+
+In the Framework, you implement either type of validation by setting the `Validators` field on the `tfsdk.Attribute`
+struct with types that satisfy the `tfsdk.AttributeValidator` interface.
+
+The following example shows how to implement a validation that ensures that an integer attribute has a value
+greater than one.
+
+```go
+func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        /* ... */
+        Attributes: map[string]tfsdk.Attribute{
+            "attribute_example": {
+                Validators: []tfsdk.AttributeValidator{
+                    int64validator.AtLeast(1),
+                    /* ... */
+```
+
+## Migration Notes
+
+Remember the following details when migrating from SDKv2 to the Framework.
+
+- In SDKv2, `ValidateDiagFunc` is a field on `schema.Schema` that you can use to define custom validation functions. In
+the Framework, `Validators` is a field on each `tfsdk.Attribute` struct that can be used for custom validations.
+- Use [predefined validators](/plugin/framework/migrating/validators-predefined) when there is a validator that meets
+your requirements.
+
+## Example
+
+The following examples show how to migrate portions of the
+[random](https://github.com/hashicorp/terraform-provider-random) provider.
+
+For a complete example, clone the
+`terraform-provider-random` repository and compare the `resource_password.go` file in
+[v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
+with [v3.4.1](https://github.com/hashicorp/terraform-provider-random/blob/v3.4.1/internal/provider/resource_password.go).
+
+### SDKv2
+
+The following example from the `resource_password.go` file shows the implementation of the `ValidateDiagFunc` field for
+the `random_password`'s `length` attribute to validate that it's value is at least 1 (greater than zero).
+
+```go
+func resourcePassword() *schema.Resource {
+    return &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "length": {
+                ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(1)),
+            },
+        },
+    }
+}
+```
+
+### Framework
+
+The following shows the same section of provider code after the migration.
+
+This code validates that the `random_password`'s `length` attribute is greater than zero by using a custom `AtLeast`
+validator.
+
+```go
+func (r *passwordResourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "length": {
+                Validators: []tfsdk.AttributeValidator{
+                    int64validator.AtLeast(1),
+                },
+            },
+        },
+    }, nil
+}
+```
+
+This example code is taken from
+[terraform-plugin-framework-validators](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/int64validator/at_least.go)
+to illustrate how you can implement your own validators.
+
+```go
+var _ tfsdk.AttributeValidator = atLeastValidator{}
+
+// atLeastValidator validates that an integer Attribute's value is at least a certain value.
+type atLeastValidator struct {
+    min int64
+}
+
+// Description describes the validation in plain text formatting.
+func (validator atLeastValidator) Description(_ context.Context) string {
+    return fmt.Sprintf("value must be at least %d", validator.min)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (validator atLeastValidator) MarkdownDescription(ctx context.Context) string {
+    return validator.Description(ctx)
+}
+
+// Validate performs the validation.
+func (validator atLeastValidator) Validate(ctx context.Context, request tfsdk.ValidateAttributeRequest, response *tfsdk.ValidateAttributeResponse) {
+    i, ok := validateInt(ctx, request, response)
+
+    if !ok {
+        return
+    }
+
+    if i < validator.min {
+        response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
+            request.AttributePath,
+            validator.Description(ctx),
+            fmt.Sprintf("%d", i),
+        ))
+
+        return
+    }
+}
+
+// AtLeast returns an AttributeValidator which ensures that any configured
+// attribute value:
+//
+//     - Is a number, which can be represented by a 64-bit integer.
+//     - Is exclusively greater than the given minimum.
+//
+// Null (unconfigured) and unknown (known after apply) values are skipped.
+func AtLeast(min int64) tfsdk.AttributeValidator {
+    return atLeastValidator{
+        min: min,
+    }
+}
+```

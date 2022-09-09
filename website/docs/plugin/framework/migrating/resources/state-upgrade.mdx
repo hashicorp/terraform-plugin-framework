@@ -1,0 +1,206 @@
+---
+page_title: 'Resources - State Upgrading: Migrating from SDKv2 to the Framework'
+description: >-
+  State upgraders let users update resources provisioned with old schema configurations.
+  Migrate resource StateUpgraders in SDKv2 to UpgradeState in the plugin Framework.
+---
+
+# State Upgraders
+
+When you update a resource's implementation in your provider, some changes may not be compatible with old versions. You
+can create state upgraders to automatically migrate resources provisioned with old schema configurations. Refer to
+[State Upgrade](/plugin/framework/resources/state-upgrade) in the Framework documentation for details.
+
+This page explains how to migrate resource `StateUpgraders` in SDKv2 to `UpgradeState` in the plugin Framework.
+
+## SDKv2
+
+In SDKv2, state upgraders are defined by populating the `StateUpgraders` field on the `schema.Resource` struct. Refer
+to [State Migration](/plugin/sdkv2/resources/state-migration) in the SDKv2 documentation for details.
+
+The following code shows a basic implementation of the `stateUpgraders` field in SDKv2.
+
+```go
+func resourceExample() *schema.Resource {
+    return &schema.Resource{
+        StateUpgraders: []schema.StateUpgrader{
+            {
+                Version: int,
+                Type:    cty.Type,
+                Upgrade: StateUpgradeFunc,
+            },
+            /* ... */
+```
+
+## Framework
+
+In the Framework, you implement the `ResourceWithUpgradeState` interface on your resource to upgrade your
+resource's state when required.
+
+The following code shows how you define an `UpgradeState` function with the Framework.
+
+```go
+func (r *resourceExample) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
+    return map[int64]resource.StateUpgrader{
+        0: {
+            PriorSchema:  *tfsdk.Schema,
+            StateUpgrader: func(context.Context, UpgradeStateRequest, *UpgradeStateResponse),
+        },
+        /* ... */
+```
+
+The `UpgradeState` function returns a map from state versions to structs that implement state upgrade from the given
+version to the latest version.
+
+## Migration Notes
+
+Remember the following differences between SDKv2 and the Framework when completing the migration.
+
+- In SDKv2, you implement state upgraders populating the `StateUpgraders` field on the `schema.Resource` struct. In the
+Framework, you define an `UpgradeState` function on the resource itself.
+- In SDKv2, state upgraders apply each state upgrader in turn. For example, version 0 => version 1, version 1 =>
+version 2. In the Framework, each `UpgradeState` function is required to perform all of the necessary transformations in
+a single step. For example, version 0 => version 2, version 1 => version 2.
+
+## Example
+
+The following examples show how to migrate portions of the
+[random](https://github.com/hashicorp/terraform-provider-random) provider.
+
+For a complete example, clone the
+`terraform-provider-random` repository and compare the `resource_password.go` file in
+[v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
+with [v3.4.1](https://github.com/hashicorp/terraform-provider-random/blob/v3.4.1/internal/provider/resource_password.go).
+
+### SDKv2
+
+In SDKv2 the `schema.Resource` struct has a `StateUpgraders` field that holds `[]schema.StateUpgrader` struct(s).
+
+The following example from the `resource_password.go` file shows the state upgrade functions for the `random_password`
+resource with SDKv2.
+
+```go
+func resourcePassword() *schema.Resource {
+    return &schema.Resource{
+        Schema:        passwordSchemaV2(),
+        SchemaVersion: 2,
+        StateUpgraders: []schema.StateUpgrader{
+            {
+                Version: 0,
+                Type:    resourcePasswordV0().CoreConfigSchema().ImpliedType(),
+                Upgrade: resourcePasswordStateUpgradeV0,
+            },
+            {
+                Version: 1,
+                Type:    resourcePasswordV1().CoreConfigSchema().ImpliedType(),
+                Upgrade: resourcePasswordStringStateUpgradeV1,
+            },
+        },
+        /* ... */
+```
+
+The following example shows the implementation of the `resourcePasswordStateUpgradeV0` function with SDKv2.
+
+```go
+func resourcePasswordStateUpgradeV0(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+    if rawState == nil {
+        return nil, fmt.Errorf("resource password state upgrade failed, state is nil")
+    }
+
+    result, ok := rawState["result"].(string)
+    if !ok {
+        return nil, fmt.Errorf("resource password state upgrade failed, result is not a string: %T", rawState["result"])
+    }
+
+    hash, err := generateHash(result)
+    if err != nil {
+        return nil, fmt.Errorf("resource password state upgrade failed, generate hash error: %w", err)
+    }
+
+    rawState["bcrypt_hash"] = hash
+
+    return rawState, nil
+}
+```
+
+### Framework
+
+The following shows the same section of provider code after the migration.
+
+This code implements the `ResourceWithUpgradeState` interface on the `passwordResource` type by defining an
+`UpgradeState` function. The `UpgradeState` function returns a map from each state version (int64) to a
+`ResourceStateUpgrader` struct.
+
+```go
+func (r *passwordResource) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
+    schemaV0 := passwordSchemaV0()
+    schemaV1 := passwordSchemaV1()
+
+    return map[int64]resource.StateUpgrader{
+        0: {
+            PriorSchema:   &schemaV0,
+            StateUpgrader: upgradePasswordStateV0toV2,
+        },
+        1: {
+            PriorSchema:   &schemaV1,
+            StateUpgrader: upgradePasswordStateV1toV2,
+        },
+    }
+}
+```
+
+This code implements the `upgradePasswordStateV0toV2` state upgrade function.
+
+```go
+func upgradePasswordStateV0toV2(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+	type modelV0 struct {
+		ID              types.String `tfsdk:"id"`
+		Keepers         types.Map    `tfsdk:"keepers"`
+		Length          types.Int64  `tfsdk:"length"`
+		Special         types.Bool   `tfsdk:"special"`
+		Upper           types.Bool   `tfsdk:"upper"`
+		Lower           types.Bool   `tfsdk:"lower"`
+		Number          types.Bool   `tfsdk:"number"`
+		MinNumeric      types.Int64  `tfsdk:"min_numeric"`
+		MinUpper        types.Int64  `tfsdk:"min_upper"`
+		MinLower        types.Int64  `tfsdk:"min_lower"`
+		MinSpecial      types.Int64  `tfsdk:"min_special"`
+		OverrideSpecial types.String `tfsdk:"override_special"`
+		Result          types.String `tfsdk:"result"`
+	}
+
+	var passwordDataV0 modelV0
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &passwordDataV0)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	passwordDataV2 := passwordModelV2{
+		Keepers:         passwordDataV0.Keepers,
+		Length:          passwordDataV0.Length,
+		Special:         passwordDataV0.Special,
+		Upper:           passwordDataV0.Upper,
+		Lower:           passwordDataV0.Lower,
+		Number:          passwordDataV0.Number,
+		Numeric:         passwordDataV0.Number,
+		MinNumeric:      passwordDataV0.MinNumeric,
+		MinUpper:        passwordDataV0.MinUpper,
+		MinLower:        passwordDataV0.MinLower,
+		MinSpecial:      passwordDataV0.MinSpecial,
+		OverrideSpecial: passwordDataV0.OverrideSpecial,
+		Result:          passwordDataV0.Result,
+		ID:              passwordDataV0.ID,
+	}
+
+	hash, err := generateHash(passwordDataV2.Result.Value)
+	if err != nil {
+		resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
+		return
+	}
+
+	passwordDataV2.BcryptHash.Value = hash
+
+	diags := resp.State.Set(ctx, passwordDataV2)
+	resp.Diagnostics.Append(diags...)
+```

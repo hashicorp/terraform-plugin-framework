@@ -39,10 +39,22 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 		return nil, diags
 	}
 
-	// if the whole config is nil, the value of a valid attribute is also
-	// nil
+	// if the data is null, return a null value of the type
 	if d.TerraformValue.IsNull() {
-		return nil, nil
+		attrValue, err := attrType.ValueFromTerraform(ctx, tftypes.NewValue(attrType.TerraformType(ctx), nil))
+
+		if err != nil {
+			diags.AddAttributeError(
+				schemaPath,
+				d.Description.Title()+" Read Error",
+				"An unexpected error was encountered trying to create a null attribute value from the given path. "+
+					"Please report the following to the provider developer:\n\n"+
+					"Type: "+attrType.String()+"\n"+
+					"Error:"+err.Error(),
+			)
+		}
+
+		return attrValue, diags
 	}
 
 	tfValue, err := d.TerraformValueAtTerraformPath(ctx, tftypesPath)

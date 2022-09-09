@@ -13,7 +13,7 @@ import (
 // instance of it in the map returned by Provider.GetResources.
 //
 // Deprecated: Migrate to resource.Resource implementation Configure,
-// GetSchema, and TypeName methods. Migrate the provider.Provider
+// GetSchema, and Metadata methods. Migrate the provider.Provider
 // implementation from the GetResources method to the Resources method.
 type ResourceType interface {
 	// GetSchema returns the schema for this resource.

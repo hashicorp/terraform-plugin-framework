@@ -63,18 +63,18 @@ type DataSourceWithGetSchema interface {
 	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
 }
 
-// DataSourceWithTypeName is an interface type that extends DataSource to
-// return its data source type name. For example, if the provider is named
-// examplecloud and the data source reads a thing, this should return
-// examplecloud_thing.
+// DataSourceWithMetadata is an interface type that extends DataSource to
+// return metadata, such as its data source type name. For example, if the
+// provider is named examplecloud and the data source reads a thing, this
+// should return examplecloud_thing.
 //
 // This method will be required in the DataSource interface a future release.
-type DataSourceWithTypeName interface {
+type DataSourceWithMetadata interface {
 	DataSource
 
-	// TypeName should return the full name of the data source, such as
+	// Metadata should return the full name of the data source, such as
 	// examplecloud_thing.
-	TypeName(context.Context, TypeNameRequest, *TypeNameResponse)
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 }
 
 // DataSourceWithValidateConfig is an interface type that extends DataSource to include imperative validation.

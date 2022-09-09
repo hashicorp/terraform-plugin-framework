@@ -161,7 +161,7 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
-				DataSource: &testprovider.DataSourceWithConfigValidatorsAndGetSchemaAndTypeName{
+				DataSource: &testprovider.DataSourceWithConfigValidatorsAndGetSchemaAndMetadata{
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
@@ -195,7 +195,7 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
-				DataSource: &testprovider.DataSourceWithConfigValidatorsAndGetSchemaAndTypeName{
+				DataSource: &testprovider.DataSourceWithConfigValidatorsAndGetSchemaAndMetadata{
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
@@ -225,7 +225,7 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
-				DataSource: &testprovider.DataSourceWithGetSchemaAndTypeNameAndValidateConfig{
+				DataSource: &testprovider.DataSourceWithGetSchemaAndMetadataAndValidateConfig{
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
@@ -253,7 +253,7 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
-				DataSource: &testprovider.DataSourceWithGetSchemaAndTypeNameAndValidateConfig{
+				DataSource: &testprovider.DataSourceWithGetSchemaAndMetadataAndValidateConfig{
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},

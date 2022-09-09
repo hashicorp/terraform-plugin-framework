@@ -43,7 +43,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 						return []func() datasource.DataSource{
 							func() datasource.DataSource {
-								return &testprovider.DataSourceWithGetSchemaAndTypeName{
+								return &testprovider.DataSourceWithGetSchemaAndMetadata{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return tfsdk.Schema{
 											Attributes: map[string]tfsdk.Attribute{
@@ -54,13 +54,13 @@ func TestServerGetProviderSchema(t *testing.T) {
 											},
 										}, nil
 									},
-									TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 										resp.TypeName = "test_data_source1"
 									},
 								}
 							},
 							func() datasource.DataSource {
-								return &testprovider.DataSourceWithGetSchemaAndTypeName{
+								return &testprovider.DataSourceWithGetSchemaAndMetadata{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return tfsdk.Schema{
 											Attributes: map[string]tfsdk.Attribute{
@@ -71,7 +71,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 											},
 										}, nil
 									},
-									TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 										resp.TypeName = "test_data_source2"
 									},
 								}
@@ -113,7 +113,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 						return []func() datasource.DataSource{
 							func() datasource.DataSource {
-								return &testprovider.DataSourceWithGetSchemaAndTypeName{
+								return &testprovider.DataSourceWithGetSchemaAndMetadata{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return tfsdk.Schema{
 											Attributes: map[string]tfsdk.Attribute{
@@ -124,13 +124,13 @@ func TestServerGetProviderSchema(t *testing.T) {
 											},
 										}, nil
 									},
-									TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 										resp.TypeName = "test_data_source"
 									},
 								}
 							},
 							func() datasource.DataSource {
-								return &testprovider.DataSourceWithGetSchemaAndTypeName{
+								return &testprovider.DataSourceWithGetSchemaAndMetadata{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return tfsdk.Schema{
 											Attributes: map[string]tfsdk.Attribute{
@@ -141,7 +141,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 											},
 										}, nil
 									},
-									TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 										resp.TypeName = "test_data_source"
 									},
 								}
@@ -174,8 +174,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 						return []func() datasource.DataSource{
 							func() datasource.DataSource {
-								return &testprovider.DataSourceWithTypeName{
-									TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+								return &testprovider.DataSourceWithMetadata{
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 										resp.TypeName = ""
 									},
 								}
@@ -190,7 +190,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Data Source Type Name Missing",
-						"The *testprovider.DataSourceWithTypeName DataSource returned an empty string from the TypeName method. "+
+						"The *testprovider.DataSourceWithMetadata DataSource returned an empty string from the Metadata method. "+
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
@@ -207,8 +207,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 						return []func() datasource.DataSource{
 							func() datasource.DataSource {
-								return &testprovider.DataSourceWithTypeName{
-									TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+								return &testprovider.DataSourceWithMetadata{
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 										resp.TypeName = "test_data_source"
 									},
 								}
@@ -223,7 +223,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Data Source Schema Missing",
-						"The *testprovider.DataSourceWithTypeName DataSource in the provider is missing the GetSchema method. "+
+						"The *testprovider.DataSourceWithMetadata DataSource in the provider is missing the GetSchema method. "+
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
@@ -263,7 +263,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Data Source Type Name Missing",
-						"The *testprovider.DataSourceWithGetSchema DataSource in the provider DataSources method results is missing the TypeName method. "+
+						"The *testprovider.DataSourceWithGetSchema DataSource in the provider DataSources method results is missing the Metadata method. "+
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
@@ -284,7 +284,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
-									return &testprovider.DataSourceWithGetSchemaAndTypeName{
+									return &testprovider.DataSourceWithGetSchemaAndMetadata{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{
 												Attributes: map[string]tfsdk.Attribute{
@@ -295,7 +295,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 												},
 											}, nil
 										},
-										TypeNameMethod: func(_ context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+										MetadataMethod: func(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = req.ProviderTypeName + "_data_source"
 										},
 									}
@@ -518,7 +518,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 						return []func() resource.Resource{
 							func() resource.Resource {
-								return &testprovider.ResourceWithGetSchemaAndTypeName{
+								return &testprovider.ResourceWithGetSchemaAndMetadata{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return tfsdk.Schema{
 											Attributes: map[string]tfsdk.Attribute{
@@ -529,13 +529,13 @@ func TestServerGetProviderSchema(t *testing.T) {
 											},
 										}, nil
 									},
-									TypeNameMethod: func(_ context.Context, _ resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 										resp.TypeName = "test_resource1"
 									},
 								}
 							},
 							func() resource.Resource {
-								return &testprovider.ResourceWithGetSchemaAndTypeName{
+								return &testprovider.ResourceWithGetSchemaAndMetadata{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return tfsdk.Schema{
 											Attributes: map[string]tfsdk.Attribute{
@@ -546,7 +546,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 											},
 										}, nil
 									},
-									TypeNameMethod: func(_ context.Context, _ resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 										resp.TypeName = "test_resource2"
 									},
 								}
@@ -588,7 +588,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 						return []func() resource.Resource{
 							func() resource.Resource {
-								return &testprovider.ResourceWithGetSchemaAndTypeName{
+								return &testprovider.ResourceWithGetSchemaAndMetadata{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return tfsdk.Schema{
 											Attributes: map[string]tfsdk.Attribute{
@@ -599,13 +599,13 @@ func TestServerGetProviderSchema(t *testing.T) {
 											},
 										}, nil
 									},
-									TypeNameMethod: func(_ context.Context, _ resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 										resp.TypeName = "test_resource"
 									},
 								}
 							},
 							func() resource.Resource {
-								return &testprovider.ResourceWithGetSchemaAndTypeName{
+								return &testprovider.ResourceWithGetSchemaAndMetadata{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return tfsdk.Schema{
 											Attributes: map[string]tfsdk.Attribute{
@@ -616,7 +616,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 											},
 										}, nil
 									},
-									TypeNameMethod: func(_ context.Context, _ resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 										resp.TypeName = "test_resource"
 									},
 								}
@@ -649,8 +649,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 						return []func() resource.Resource{
 							func() resource.Resource {
-								return &testprovider.ResourceWithTypeName{
-									TypeNameMethod: func(_ context.Context, _ resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+								return &testprovider.ResourceWithMetadata{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 										resp.TypeName = ""
 									},
 								}
@@ -665,7 +665,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Resource Type Name Missing",
-						"The *testprovider.ResourceWithTypeName Resource returned an empty string from the TypeName method. "+
+						"The *testprovider.ResourceWithMetadata Resource returned an empty string from the Metadata method. "+
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
@@ -682,8 +682,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 						return []func() resource.Resource{
 							func() resource.Resource {
-								return &testprovider.ResourceWithTypeName{
-									TypeNameMethod: func(_ context.Context, _ resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+								return &testprovider.ResourceWithMetadata{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 										resp.TypeName = "test_data_source"
 									},
 								}
@@ -698,7 +698,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Resource Schema Missing",
-						"The *testprovider.ResourceWithTypeName Resource in the provider is missing the GetSchema method. "+
+						"The *testprovider.ResourceWithMetadata Resource in the provider is missing the GetSchema method. "+
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
@@ -738,7 +738,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Resource Type Name Missing",
-						"The *testprovider.ResourceWithGetSchema Resource in the provider Resources method results is missing the TypeName method. "+
+						"The *testprovider.ResourceWithGetSchema Resource in the provider Resources method results is missing the Metadata method. "+
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
@@ -759,7 +759,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndTypeName{
+									return &testprovider.ResourceWithGetSchemaAndMetadata{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{
 												Attributes: map[string]tfsdk.Attribute{
@@ -770,7 +770,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 												},
 											}, nil
 										},
-										TypeNameMethod: func(_ context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+										MetadataMethod: func(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = req.ProviderTypeName + "_resource"
 										},
 									}

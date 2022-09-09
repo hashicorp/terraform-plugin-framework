@@ -186,28 +186,28 @@ func (s *Server) DataSourceFuncs(ctx context.Context) (map[string]func() datasou
 	for _, dataSourceFunc := range dataSourceFuncsSlice {
 		dataSource := dataSourceFunc()
 
-		dataSourceWithTypeName, ok := dataSource.(datasource.DataSourceWithTypeName)
+		dataSourceWithMetadata, ok := dataSource.(datasource.DataSourceWithMetadata)
 
 		if !ok {
 			s.dataSourceTypesDiags.AddError(
 				"Data Source Type Name Missing",
-				fmt.Sprintf("The %T DataSource in the provider DataSources method results is missing the TypeName method. ", dataSource)+
+				fmt.Sprintf("The %T DataSource in the provider DataSources method results is missing the Metadata method. ", dataSource)+
 					"This is always an issue with the provider and should be reported to the provider developers.",
 			)
 			continue
 		}
 
-		dataSourceTypeNameReq := datasource.TypeNameRequest{
+		dataSourceTypeNameReq := datasource.MetadataRequest{
 			ProviderTypeName: s.providerTypeName,
 		}
-		dataSourceTypeNameResp := datasource.TypeNameResponse{}
+		dataSourceTypeNameResp := datasource.MetadataResponse{}
 
-		dataSourceWithTypeName.TypeName(ctx, dataSourceTypeNameReq, &dataSourceTypeNameResp)
+		dataSourceWithMetadata.Metadata(ctx, dataSourceTypeNameReq, &dataSourceTypeNameResp)
 
 		if dataSourceTypeNameResp.TypeName == "" {
 			s.dataSourceTypesDiags.AddError(
 				"Data Source Type Name Missing",
-				fmt.Sprintf("The %T DataSource returned an empty string from the TypeName method. ", dataSource)+
+				fmt.Sprintf("The %T DataSource returned an empty string from the Metadata method. ", dataSource)+
 					"This is always an issue with the provider and should be reported to the provider developers.",
 			)
 			continue
@@ -460,28 +460,28 @@ func (s *Server) ResourceFuncs(ctx context.Context) (map[string]func() resource.
 	for _, resourceFunc := range resourceFuncsSlice {
 		res := resourceFunc()
 
-		resourceWithTypeName, ok := res.(resource.ResourceWithTypeName)
+		resourceWithMetadata, ok := res.(resource.ResourceWithMetadata)
 
 		if !ok {
 			s.resourceTypesDiags.AddError(
 				"Resource Type Name Missing",
-				fmt.Sprintf("The %T Resource in the provider Resources method results is missing the TypeName method. ", res)+
+				fmt.Sprintf("The %T Resource in the provider Resources method results is missing the Metadata method. ", res)+
 					"This is always an issue with the provider and should be reported to the provider developers.",
 			)
 			continue
 		}
 
-		resourceTypeNameReq := resource.TypeNameRequest{
+		resourceTypeNameReq := resource.MetadataRequest{
 			ProviderTypeName: s.providerTypeName,
 		}
-		resourceTypeNameResp := resource.TypeNameResponse{}
+		resourceTypeNameResp := resource.MetadataResponse{}
 
-		resourceWithTypeName.TypeName(ctx, resourceTypeNameReq, &resourceTypeNameResp)
+		resourceWithMetadata.Metadata(ctx, resourceTypeNameReq, &resourceTypeNameResp)
 
 		if resourceTypeNameResp.TypeName == "" {
 			s.resourceTypesDiags.AddError(
 				"Resource Type Name Missing",
-				fmt.Sprintf("The %T Resource returned an empty string from the TypeName method. ", res)+
+				fmt.Sprintf("The %T Resource returned an empty string from the Metadata method. ", res)+
 					"This is always an issue with the provider and should be reported to the provider developers.",
 			)
 			continue

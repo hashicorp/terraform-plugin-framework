@@ -8,16 +8,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// This file contains temporary types until GetSchema and TypeName are required
+// This file contains temporary types until GetSchema and Metadata are required
 // in DataSource.
 
-var _ datasource.DataSource = &DataSourceWithConfigValidatorsAndGetSchemaAndTypeName{}
-var _ datasource.DataSourceWithConfigValidators = &DataSourceWithConfigValidatorsAndGetSchemaAndTypeName{}
-var _ datasource.DataSourceWithGetSchema = &DataSourceWithConfigValidatorsAndGetSchemaAndTypeName{}
-var _ datasource.DataSourceWithTypeName = &DataSourceWithConfigValidatorsAndGetSchemaAndTypeName{}
+var _ datasource.DataSource = &DataSourceWithConfigValidatorsAndGetSchemaAndMetadata{}
+var _ datasource.DataSourceWithConfigValidators = &DataSourceWithConfigValidatorsAndGetSchemaAndMetadata{}
+var _ datasource.DataSourceWithGetSchema = &DataSourceWithConfigValidatorsAndGetSchemaAndMetadata{}
+var _ datasource.DataSourceWithMetadata = &DataSourceWithConfigValidatorsAndGetSchemaAndMetadata{}
 
 // Declarative datasource.DataSourceWithGetSchema for unit testing.
-type DataSourceWithConfigValidatorsAndGetSchemaAndTypeName struct {
+type DataSourceWithConfigValidatorsAndGetSchemaAndMetadata struct {
 	*DataSource
 
 	// DataSourceWithConfigValidators interface methods
@@ -26,12 +26,12 @@ type DataSourceWithConfigValidatorsAndGetSchemaAndTypeName struct {
 	// DataSourceWithGetSchema interface methods
 	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
-	// DataSourceWithTypeName interface methods
-	TypeNameMethod func(context.Context, datasource.TypeNameRequest, *datasource.TypeNameResponse)
+	// DataSourceWithMetadata interface methods
+	MetadataMethod func(context.Context, datasource.MetadataRequest, *datasource.MetadataResponse)
 }
 
 // ConfigValidators satisfies the datasource.DataSourceWithConfigValidators interface.
-func (d *DataSourceWithConfigValidatorsAndGetSchemaAndTypeName) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
+func (d *DataSourceWithConfigValidatorsAndGetSchemaAndMetadata) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
 	if d.ConfigValidatorsMethod == nil {
 		return nil
 	}
@@ -40,7 +40,7 @@ func (d *DataSourceWithConfigValidatorsAndGetSchemaAndTypeName) ConfigValidators
 }
 
 // GetSchema satisfies the datasource.DataSourceWithGetSchema interface.
-func (d *DataSourceWithConfigValidatorsAndGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *DataSourceWithConfigValidatorsAndGetSchemaAndMetadata) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if d.GetSchemaMethod == nil {
 		return tfsdk.Schema{}, nil
 	}
@@ -48,32 +48,32 @@ func (d *DataSourceWithConfigValidatorsAndGetSchemaAndTypeName) GetSchema(ctx co
 	return d.GetSchemaMethod(ctx)
 }
 
-// TypeName satisfies the datasource.DataSourceWithTypeName interface.
-func (d *DataSourceWithConfigValidatorsAndGetSchemaAndTypeName) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
-	if d.TypeNameMethod == nil {
+// Metadata satisfies the datasource.DataSourceWithMetadata interface.
+func (d *DataSourceWithConfigValidatorsAndGetSchemaAndMetadata) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	if d.MetadataMethod == nil {
 		return
 	}
 
-	d.TypeNameMethod(ctx, req, resp)
+	d.MetadataMethod(ctx, req, resp)
 }
 
-var _ datasource.DataSource = &DataSourceWithGetSchemaAndTypeName{}
-var _ datasource.DataSourceWithGetSchema = &DataSourceWithGetSchemaAndTypeName{}
-var _ datasource.DataSourceWithTypeName = &DataSourceWithGetSchemaAndTypeName{}
+var _ datasource.DataSource = &DataSourceWithGetSchemaAndMetadata{}
+var _ datasource.DataSourceWithGetSchema = &DataSourceWithGetSchemaAndMetadata{}
+var _ datasource.DataSourceWithMetadata = &DataSourceWithGetSchemaAndMetadata{}
 
 // Declarative datasource.DataSourceWithGetSchema for unit testing.
-type DataSourceWithGetSchemaAndTypeName struct {
+type DataSourceWithGetSchemaAndMetadata struct {
 	*DataSource
 
 	// DataSourceWithGetSchema interface methods
 	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
-	// DataSourceWithTypeName interface methods
-	TypeNameMethod func(context.Context, datasource.TypeNameRequest, *datasource.TypeNameResponse)
+	// DataSourceWithMetadata interface methods
+	MetadataMethod func(context.Context, datasource.MetadataRequest, *datasource.MetadataResponse)
 }
 
 // GetSchema satisfies the datasource.DataSourceWithGetSchema interface.
-func (d *DataSourceWithGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *DataSourceWithGetSchemaAndMetadata) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if d.GetSchemaMethod == nil {
 		return tfsdk.Schema{}, nil
 	}
@@ -81,36 +81,36 @@ func (d *DataSourceWithGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfs
 	return d.GetSchemaMethod(ctx)
 }
 
-// TypeName satisfies the datasource.DataSourceWithTypeName interface.
-func (d *DataSourceWithGetSchemaAndTypeName) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
-	if d.TypeNameMethod == nil {
+// Metadata satisfies the datasource.DataSourceWithMetadata interface.
+func (d *DataSourceWithGetSchemaAndMetadata) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	if d.MetadataMethod == nil {
 		return
 	}
 
-	d.TypeNameMethod(ctx, req, resp)
+	d.MetadataMethod(ctx, req, resp)
 }
 
-var _ datasource.DataSource = &DataSourceWithGetSchemaAndTypeNameAndValidateConfig{}
-var _ datasource.DataSourceWithGetSchema = &DataSourceWithGetSchemaAndTypeNameAndValidateConfig{}
-var _ datasource.DataSourceWithTypeName = &DataSourceWithGetSchemaAndTypeNameAndValidateConfig{}
-var _ datasource.DataSourceWithValidateConfig = &DataSourceWithGetSchemaAndTypeNameAndValidateConfig{}
+var _ datasource.DataSource = &DataSourceWithGetSchemaAndMetadataAndValidateConfig{}
+var _ datasource.DataSourceWithGetSchema = &DataSourceWithGetSchemaAndMetadataAndValidateConfig{}
+var _ datasource.DataSourceWithMetadata = &DataSourceWithGetSchemaAndMetadataAndValidateConfig{}
+var _ datasource.DataSourceWithValidateConfig = &DataSourceWithGetSchemaAndMetadataAndValidateConfig{}
 
 // Declarative datasource.DataSourceWithGetSchema for unit testing.
-type DataSourceWithGetSchemaAndTypeNameAndValidateConfig struct {
+type DataSourceWithGetSchemaAndMetadataAndValidateConfig struct {
 	*DataSource
 
 	// DataSourceWithGetSchema interface methods
 	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
-	// DataSourceWithTypeName interface methods
-	TypeNameMethod func(context.Context, datasource.TypeNameRequest, *datasource.TypeNameResponse)
+	// DataSourceWithMetadata interface methods
+	MetadataMethod func(context.Context, datasource.MetadataRequest, *datasource.MetadataResponse)
 
 	// DataSourceWithValidateConfig interface methods
 	ValidateConfigMethod func(context.Context, datasource.ValidateConfigRequest, *datasource.ValidateConfigResponse)
 }
 
 // GetSchema satisfies the datasource.DataSourceWithGetSchema interface.
-func (d *DataSourceWithGetSchemaAndTypeNameAndValidateConfig) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *DataSourceWithGetSchemaAndMetadataAndValidateConfig) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if d.GetSchemaMethod == nil {
 		return tfsdk.Schema{}, nil
 	}
@@ -118,17 +118,17 @@ func (d *DataSourceWithGetSchemaAndTypeNameAndValidateConfig) GetSchema(ctx cont
 	return d.GetSchemaMethod(ctx)
 }
 
-// TypeName satisfies the datasource.DataSourceWithTypeName interface.
-func (d *DataSourceWithGetSchemaAndTypeNameAndValidateConfig) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
-	if d.TypeNameMethod == nil {
+// Metadata satisfies the datasource.DataSourceWithMetadata interface.
+func (d *DataSourceWithGetSchemaAndMetadataAndValidateConfig) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	if d.MetadataMethod == nil {
 		return
 	}
 
-	d.TypeNameMethod(ctx, req, resp)
+	d.MetadataMethod(ctx, req, resp)
 }
 
 // ValidateConfig satisfies the datasource.DataSourceWithValidateConfig interface.
-func (d *DataSourceWithGetSchemaAndTypeNameAndValidateConfig) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
+func (d *DataSourceWithGetSchemaAndMetadataAndValidateConfig) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
 	if d.ValidateConfigMethod == nil {
 		return
 	}

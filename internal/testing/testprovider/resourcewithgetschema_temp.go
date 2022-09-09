@@ -8,17 +8,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// This file contains temporary types until GetSchema and TypeName are required
+// This file contains temporary types until GetSchema and Metadata are required
 // in Resource.
 
-var _ resource.Resource = &ResourceWithConfigValidatorsAndGetSchemaAndTypeName{}
-var _ resource.ResourceWithConfigValidators = &ResourceWithConfigValidatorsAndGetSchemaAndTypeName{}
-var _ resource.ResourceWithGetSchema = &ResourceWithConfigValidatorsAndGetSchemaAndTypeName{}
-var _ resource.ResourceWithTypeName = &ResourceWithConfigValidatorsAndGetSchemaAndTypeName{}
+var _ resource.Resource = &ResourceWithConfigValidatorsAndGetSchemaAndMetadata{}
+var _ resource.ResourceWithConfigValidators = &ResourceWithConfigValidatorsAndGetSchemaAndMetadata{}
+var _ resource.ResourceWithGetSchema = &ResourceWithConfigValidatorsAndGetSchemaAndMetadata{}
+var _ resource.ResourceWithMetadata = &ResourceWithConfigValidatorsAndGetSchemaAndMetadata{}
 
 // Declarative resource.ResourceWithGetSchema for unit testing. This type is
-// temporary until GetSchema and TypeName are required in Resource.
-type ResourceWithConfigValidatorsAndGetSchemaAndTypeName struct {
+// temporary until GetSchema and Metadata are required in Resource.
+type ResourceWithConfigValidatorsAndGetSchemaAndMetadata struct {
 	*Resource
 
 	// ResourceWithConfigValidators interface methods
@@ -27,12 +27,12 @@ type ResourceWithConfigValidatorsAndGetSchemaAndTypeName struct {
 	// ResourceWithGetSchema interface methods
 	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
-	// ResourceWithTypeName interface methods
-	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
+	// ResourceWithMetadata interface methods
+	MetadataMethod func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
 }
 
 // ConfigValidators satisfies the resource.ResourceWithConfigValidators interface.
-func (r *ResourceWithConfigValidatorsAndGetSchemaAndTypeName) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+func (r *ResourceWithConfigValidatorsAndGetSchemaAndMetadata) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	if r.ConfigValidatorsMethod == nil {
 		return nil
 	}
@@ -41,7 +41,7 @@ func (r *ResourceWithConfigValidatorsAndGetSchemaAndTypeName) ConfigValidators(c
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithConfigValidatorsAndGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ResourceWithConfigValidatorsAndGetSchemaAndMetadata) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
 		return tfsdk.Schema{}, nil
 	}
@@ -49,33 +49,33 @@ func (r *ResourceWithConfigValidatorsAndGetSchemaAndTypeName) GetSchema(ctx cont
 	return r.GetSchemaMethod(ctx)
 }
 
-// TypeName satisfies the resource.ResourceWithTypeName interface.
-func (r *ResourceWithConfigValidatorsAndGetSchemaAndTypeName) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
-	if r.TypeNameMethod == nil {
+// Metadata satisfies the resource.ResourceWithMetadata interface.
+func (r *ResourceWithConfigValidatorsAndGetSchemaAndMetadata) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	if r.MetadataMethod == nil {
 		return
 	}
 
-	r.TypeNameMethod(ctx, req, resp)
+	r.MetadataMethod(ctx, req, resp)
 }
 
-var _ resource.Resource = &ResourceWithGetSchemaAndTypeName{}
-var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndTypeName{}
-var _ resource.ResourceWithTypeName = &ResourceWithGetSchemaAndTypeName{}
+var _ resource.Resource = &ResourceWithGetSchemaAndMetadata{}
+var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndMetadata{}
+var _ resource.ResourceWithMetadata = &ResourceWithGetSchemaAndMetadata{}
 
 // Declarative resource.ResourceWithGetSchema for unit testing. This type is
-// temporary until GetSchema and TypeName are required in Resource.
-type ResourceWithGetSchemaAndTypeName struct {
+// temporary until GetSchema and Metadata are required in Resource.
+type ResourceWithGetSchemaAndMetadata struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
 	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
-	// ResourceWithTypeName interface methods
-	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
+	// ResourceWithMetadata interface methods
+	MetadataMethod func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndMetadata) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
 		return tfsdk.Schema{}, nil
 	}
@@ -83,23 +83,23 @@ func (r *ResourceWithGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfsdk
 	return r.GetSchemaMethod(ctx)
 }
 
-// TypeName satisfies the resource.ResourceWithTypeName interface.
-func (r *ResourceWithGetSchemaAndTypeName) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
-	if r.TypeNameMethod == nil {
+// Metadata satisfies the resource.ResourceWithMetadata interface.
+func (r *ResourceWithGetSchemaAndMetadata) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	if r.MetadataMethod == nil {
 		return
 	}
 
-	r.TypeNameMethod(ctx, req, resp)
+	r.MetadataMethod(ctx, req, resp)
 }
 
-var _ resource.Resource = &ResourceWithGetSchemaAndImportStateAndTypeName{}
-var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndImportStateAndTypeName{}
-var _ resource.ResourceWithImportState = &ResourceWithGetSchemaAndImportStateAndTypeName{}
-var _ resource.ResourceWithTypeName = &ResourceWithGetSchemaAndImportStateAndTypeName{}
+var _ resource.Resource = &ResourceWithGetSchemaAndImportStateAndMetadata{}
+var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndImportStateAndMetadata{}
+var _ resource.ResourceWithImportState = &ResourceWithGetSchemaAndImportStateAndMetadata{}
+var _ resource.ResourceWithMetadata = &ResourceWithGetSchemaAndImportStateAndMetadata{}
 
 // Declarative resource.ResourceWithGetSchema for unit testing. This type is
-// temporary until GetSchema and TypeName are required in Resource.
-type ResourceWithGetSchemaAndImportStateAndTypeName struct {
+// temporary until GetSchema and Metadata are required in Resource.
+type ResourceWithGetSchemaAndImportStateAndMetadata struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
@@ -108,12 +108,12 @@ type ResourceWithGetSchemaAndImportStateAndTypeName struct {
 	// ResourceWithImportState interface methods
 	ImportStateMethod func(context.Context, resource.ImportStateRequest, *resource.ImportStateResponse)
 
-	// ResourceWithTypeName interface methods
-	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
+	// ResourceWithMetadata interface methods
+	MetadataMethod func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndImportStateAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndImportStateAndMetadata) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
 		return tfsdk.Schema{}, nil
 	}
@@ -122,7 +122,7 @@ func (r *ResourceWithGetSchemaAndImportStateAndTypeName) GetSchema(ctx context.C
 }
 
 // ImportState satisfies the resource.ResourceWithImportState interface.
-func (r *ResourceWithGetSchemaAndImportStateAndTypeName) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *ResourceWithGetSchemaAndImportStateAndMetadata) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if r.ImportStateMethod == nil {
 		return
 	}
@@ -130,23 +130,23 @@ func (r *ResourceWithGetSchemaAndImportStateAndTypeName) ImportState(ctx context
 	r.ImportStateMethod(ctx, req, resp)
 }
 
-// TypeName satisfies the resource.ResourceWithTypeName interface.
-func (r *ResourceWithGetSchemaAndImportStateAndTypeName) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
-	if r.TypeNameMethod == nil {
+// Metadata satisfies the resource.ResourceWithMetadata interface.
+func (r *ResourceWithGetSchemaAndImportStateAndMetadata) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	if r.MetadataMethod == nil {
 		return
 	}
 
-	r.TypeNameMethod(ctx, req, resp)
+	r.MetadataMethod(ctx, req, resp)
 }
 
-var _ resource.Resource = &ResourceWithGetSchemaAndModifyPlanAndTypeName{}
-var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndModifyPlanAndTypeName{}
-var _ resource.ResourceWithModifyPlan = &ResourceWithGetSchemaAndModifyPlanAndTypeName{}
-var _ resource.ResourceWithTypeName = &ResourceWithGetSchemaAndModifyPlanAndTypeName{}
+var _ resource.Resource = &ResourceWithGetSchemaAndModifyPlanAndMetadata{}
+var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndModifyPlanAndMetadata{}
+var _ resource.ResourceWithModifyPlan = &ResourceWithGetSchemaAndModifyPlanAndMetadata{}
+var _ resource.ResourceWithMetadata = &ResourceWithGetSchemaAndModifyPlanAndMetadata{}
 
 // Declarative resource.ResourceWithGetSchema for unit testing. This type is
-// temporary until GetSchema and TypeName are required in Resource.
-type ResourceWithGetSchemaAndModifyPlanAndTypeName struct {
+// temporary until GetSchema and Metadata are required in Resource.
+type ResourceWithGetSchemaAndModifyPlanAndMetadata struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
@@ -155,12 +155,12 @@ type ResourceWithGetSchemaAndModifyPlanAndTypeName struct {
 	// ResourceWithModifyPlan interface methods
 	ModifyPlanMethod func(context.Context, resource.ModifyPlanRequest, *resource.ModifyPlanResponse)
 
-	// ResourceWithTypeName interface methods
-	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
+	// ResourceWithMetadata interface methods
+	MetadataMethod func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndModifyPlanAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndModifyPlanAndMetadata) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
 		return tfsdk.Schema{}, nil
 	}
@@ -169,7 +169,7 @@ func (r *ResourceWithGetSchemaAndModifyPlanAndTypeName) GetSchema(ctx context.Co
 }
 
 // ModifyPlan satisfies the resource.ResourceWithModifyPlan interface.
-func (r *ResourceWithGetSchemaAndModifyPlanAndTypeName) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+func (r *ResourceWithGetSchemaAndModifyPlanAndMetadata) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if r.ModifyPlanMethod == nil {
 		return
 	}
@@ -177,37 +177,37 @@ func (r *ResourceWithGetSchemaAndModifyPlanAndTypeName) ModifyPlan(ctx context.C
 	r.ModifyPlanMethod(ctx, req, resp)
 }
 
-// TypeName satisfies the resource.ResourceWithTypeName interface.
-func (r *ResourceWithGetSchemaAndModifyPlanAndTypeName) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
-	if r.TypeNameMethod == nil {
+// Metadata satisfies the resource.ResourceWithMetadata interface.
+func (r *ResourceWithGetSchemaAndModifyPlanAndMetadata) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	if r.MetadataMethod == nil {
 		return
 	}
 
-	r.TypeNameMethod(ctx, req, resp)
+	r.MetadataMethod(ctx, req, resp)
 }
 
-var _ resource.Resource = &ResourceWithGetSchemaAndTypeNameAndUpgradeState{}
-var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndTypeNameAndUpgradeState{}
-var _ resource.ResourceWithTypeName = &ResourceWithGetSchemaAndTypeNameAndUpgradeState{}
-var _ resource.ResourceWithUpgradeState = &ResourceWithGetSchemaAndTypeNameAndUpgradeState{}
+var _ resource.Resource = &ResourceWithGetSchemaAndMetadataAndUpgradeState{}
+var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndMetadataAndUpgradeState{}
+var _ resource.ResourceWithMetadata = &ResourceWithGetSchemaAndMetadataAndUpgradeState{}
+var _ resource.ResourceWithUpgradeState = &ResourceWithGetSchemaAndMetadataAndUpgradeState{}
 
 // Declarative resource.ResourceWithGetSchema for unit testing. This type is
-// temporary until GetSchema and TypeName are required in Resource.
-type ResourceWithGetSchemaAndTypeNameAndUpgradeState struct {
+// temporary until GetSchema and Metadata are required in Resource.
+type ResourceWithGetSchemaAndMetadataAndUpgradeState struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
 	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
-	// ResourceWithTypeName interface methods
-	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
+	// ResourceWithMetadata interface methods
+	MetadataMethod func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
 
 	// ResourceWithUpgradeState interface methods
 	UpgradeStateMethod func(context.Context) map[int64]resource.StateUpgrader
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndTypeNameAndUpgradeState) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndMetadataAndUpgradeState) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
 		return tfsdk.Schema{}, nil
 	}
@@ -215,17 +215,17 @@ func (r *ResourceWithGetSchemaAndTypeNameAndUpgradeState) GetSchema(ctx context.
 	return r.GetSchemaMethod(ctx)
 }
 
-// TypeName satisfies the resource.ResourceWithTypeName interface.
-func (r *ResourceWithGetSchemaAndTypeNameAndUpgradeState) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
-	if r.TypeNameMethod == nil {
+// Metadata satisfies the resource.ResourceWithMetadata interface.
+func (r *ResourceWithGetSchemaAndMetadataAndUpgradeState) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	if r.MetadataMethod == nil {
 		return
 	}
 
-	r.TypeNameMethod(ctx, req, resp)
+	r.MetadataMethod(ctx, req, resp)
 }
 
 // UpgradeState satisfies the resource.ResourceWithUpgradeState interface.
-func (r *ResourceWithGetSchemaAndTypeNameAndUpgradeState) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+func (r *ResourceWithGetSchemaAndMetadataAndUpgradeState) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
 	if r.UpgradeStateMethod == nil {
 		return nil
 	}
@@ -233,28 +233,28 @@ func (r *ResourceWithGetSchemaAndTypeNameAndUpgradeState) UpgradeState(ctx conte
 	return r.UpgradeStateMethod(ctx)
 }
 
-var _ resource.Resource = &ResourceWithGetSchemaAndTypeNameAndValidateConfig{}
-var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndTypeNameAndValidateConfig{}
-var _ resource.ResourceWithTypeName = &ResourceWithGetSchemaAndTypeNameAndValidateConfig{}
-var _ resource.ResourceWithValidateConfig = &ResourceWithGetSchemaAndTypeNameAndValidateConfig{}
+var _ resource.Resource = &ResourceWithGetSchemaAndMetadataAndValidateConfig{}
+var _ resource.ResourceWithGetSchema = &ResourceWithGetSchemaAndMetadataAndValidateConfig{}
+var _ resource.ResourceWithMetadata = &ResourceWithGetSchemaAndMetadataAndValidateConfig{}
+var _ resource.ResourceWithValidateConfig = &ResourceWithGetSchemaAndMetadataAndValidateConfig{}
 
 // Declarative resource.ResourceWithGetSchema for unit testing. This type is
-// temporary until GetSchema and TypeName are required in Resource.
-type ResourceWithGetSchemaAndTypeNameAndValidateConfig struct {
+// temporary until GetSchema and Metadata are required in Resource.
+type ResourceWithGetSchemaAndMetadataAndValidateConfig struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
 	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
-	// ResourceWithTypeName interface methods
-	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
+	// ResourceWithMetadata interface methods
+	MetadataMethod func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
 
 	// ResourceWithValidateConfig interface methods
 	ValidateConfigMethod func(context.Context, resource.ValidateConfigRequest, *resource.ValidateConfigResponse)
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndTypeNameAndValidateConfig) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndMetadataAndValidateConfig) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
 		return tfsdk.Schema{}, nil
 	}
@@ -262,17 +262,17 @@ func (r *ResourceWithGetSchemaAndTypeNameAndValidateConfig) GetSchema(ctx contex
 	return r.GetSchemaMethod(ctx)
 }
 
-// TypeName satisfies the resource.ResourceWithTypeName interface.
-func (r *ResourceWithGetSchemaAndTypeNameAndValidateConfig) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
-	if r.TypeNameMethod == nil {
+// Metadata satisfies the resource.ResourceWithMetadata interface.
+func (r *ResourceWithGetSchemaAndMetadataAndValidateConfig) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	if r.MetadataMethod == nil {
 		return
 	}
 
-	r.TypeNameMethod(ctx, req, resp)
+	r.MetadataMethod(ctx, req, resp)
 }
 
 // ValidateConfig satisfies the resource.ResourceWithValidateConfig interface.
-func (r *ResourceWithGetSchemaAndTypeNameAndValidateConfig) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+func (r *ResourceWithGetSchemaAndMetadataAndValidateConfig) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	if r.ValidateConfigMethod == nil {
 		return
 	}

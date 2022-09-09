@@ -31,7 +31,7 @@ type ThingDataSourceModel struct {
 	ID               types.String `tfsdk:"id"`
 }
 
-func (d *ThingDataSource) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+func (d *ThingDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = "examplecloud_thing"
 }
 
@@ -65,20 +65,20 @@ func (d *ThingDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 }
 ```
 
-### TypeName Method
+### Metadata Method
 
-The [`datasource.DataSourceWithTypeName` interface `TypeName` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithTypeName.TypeName) defines the data source name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the data source specific name. For example, a provider named `examplecloud` and a data source that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the data source becomes part of the provider implementation, and therefore available to practitioners.
+The [`datasource.DataSourceWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithMetadata.Metadata) defines the data source name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the data source specific name. For example, a provider named `examplecloud` and a data source that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the data source becomes part of the provider implementation, and therefore available to practitioners.
 
 In this example, the data source name in an `examplecloud` provider that reads "thing" resources is hardcoded to `examplecloud_thing`:
 
 ```go
 // With the datasource.DataSource implementation
-func (d *ThingDataSource) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+func (d *ThingDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = "examplecloud_thing"
 }
 ```
 
-To simplify data source implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.ProviderWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithMetadata.Metadata) can set the provider name so it is available in the [`datasource.TypeNameRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#TypeNameRequest.ProviderTypeName).
+To simplify data source implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.ProviderWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithMetadata.Metadata) can set the provider name so it is available in the [`datasource.MetadataRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#MetadataRequest.ProviderTypeName).
 
 In this example, the provider defines the `examplecloud` name for itself, and the data source is named `examplecloud_thing`:
 
@@ -89,7 +89,7 @@ func (p *ExampleCloudProvider) Metadata(ctx context.Context, req provider.Metada
 }
 
 // With the datasource.DataSource implementation
-func (d *ThingDataSource) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+func (d *ThingDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_thing"
 }
 ```

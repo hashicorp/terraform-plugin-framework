@@ -99,5 +99,111 @@
   {
     "title": "Debugging",
     "path": "debugging"
+  },
+  {
+    "title": "Migrating from SDK",
+    "routes": [
+      {
+        "title": "Overview",
+        "path": "migrating"
+      },
+      {
+        "title": "Testing",
+        "path": "migrating/testing"
+      },
+      {
+        "title": "Schema",
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "migrating/schema"
+          }
+        ]
+      },
+      {
+        "title": "Providers",
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "migrating/providers"
+          }
+        ]
+      },
+      {
+        "title": "Resources",
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "migrating/resources"
+          },
+          {
+            "title": "CRUD Functions",
+            "path": "migrating/resources/crud"
+          },
+          {
+            "title": "Import",
+            "path": "migrating/resources/import"
+          },
+          {
+            "title": "Plan Modification",
+            "path": "migrating/resources/plan-modification"
+          },
+          {
+            "title": "State Upgraders",
+            "path": "migrating/resources/state-upgrade"
+          }
+        ]
+      },
+      {
+        "title": "Data Sources",
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "migrating/data-sources"
+          }
+        ]
+      },
+      {
+        "title": "Attributes & Blocks",
+        "routes": [
+          {
+            "title": "Attribute Schema",
+            "path": "migrating/attributes-blocks/attribute-schema"
+          },
+          {
+            "title": "Attribute Types",
+            "path": "migrating/attributes-blocks/types"
+          },
+          {
+            "title": "Attribute Fields",
+            "path": "migrating/attributes-blocks/fields"
+          },
+          {
+            "title": "Default Values",
+            "path": "migrating/attributes-blocks/default-values"
+          },
+          {
+            "title": "Force New",
+            "path": "migrating/attributes-blocks/force-new"
+          },
+          {
+            "title": "Validators - Predefined",
+            "path": "migrating/attributes-blocks/validators-predefined"
+          },
+          {
+            "title": "Validators - Custom",
+            "path": "migrating/attributes-blocks/validators-custom"
+          },
+          {
+            "title": "Blocks",
+            "path": "migrating/attributes-blocks/blocks"
+          },
+          {
+            "title": "Blocks with Computed Fields",
+            "path": "migrating/attributes-blocks/blocks-computed"
+          }
+        ]
+      }
+    ]
   }
 ]

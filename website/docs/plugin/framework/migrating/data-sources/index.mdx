@@ -1,0 +1,179 @@
+---
+page_title: 'Data Sources: Migrating from SDKv2 to the Framework'
+description: >-
+  Migrate a data source from SDKv2 to the plugin Framework.
+---
+
+# Data Sources
+
+Data sources let Terraform reference external data. Unlike resources, Terraform does not create, update, or delete
+data sources, and makes no attempt to modify the underlying API. Data Sources are a read-only resource type, so they
+only implement a subset of the operations that resources do. Refer to [Data Sources](/plugin/framework/data-sources)
+in the Framework documentation for details.
+
+This page explains how to migrate a data source from SDKv2 to the plugin Framework.
+
+## SDKv2
+
+In SDKv2, data sources are defined by the `DataSourcesMap` field on the `schema.Provider` struct, which maps data source
+names (strings) to their schema. The `schema.Resource` struct is used for both resources and data sources.
+
+The following example shows a typical implementation.
+
+```go
+func New() *schema.Provider {
+    return &schema.Provider{
+        DataSourcesMap:   map[string]*schema.Resource{
+        /* ... */
+},
+```
+
+In SDKv2, you define both resources and data sources with `schema.Resource` structs. The following example shows a
+resource struct. For clarity, the example omits fields that are not available for data sources.
+
+```go
+schema.Resource {
+    Schema:               map[string]*schema.Schema,
+    Read:                 ReadFunc,
+    ReadContext:          ReadContextFunc,
+    ReadWithoutTimeout:   ReadContextFunc,
+    DeprecationMessage:   string,
+    Timeouts:             *ResourceTimeout,
+    Description:          string,
+}
+```
+
+## Framework
+
+In the Framework, you define data sources by adding them to the map returned by your provider's `GetDataSources` function.
+
+The `GetDataSources` function on your `provider.Provider` returns a map from the data source name (string) to a type
+that implements the `DataSourceType` interface for each data source your provider supports.
+
+The following code shows how you add a data source to your provider with the Framework.
+
+```go
+func (p *provider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+    return map[string]provider.DataSourceType{
+		/* ... */
+    }, nil
+}
+```
+
+Like the `provider.ResourceType` interface, `provider.DataSourceType` requires `GetSchema` and `NewResource` functions.
+These functions work the same way for data sources as they do for resources.
+
+The `GetSchema` function returns a `tfsdk.Schema` struct which defines your data source's attributes. This is the same
+struct you use to define provider and resource attributes.
+
+The `NewResource` function returns a type that you define. The type implements the `resource.Resource` interface,
+including the CRUD functions for your resource.
+
+The following code shows how you define a `provider.DataSourceType` which implements these two functions with the
+Framework.
+
+```go
+type dataSourceTypeExample struct{}
+
+func (r *dataSourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    /* ... */
+}
+
+func (r *dataSourceTypeExample) NewDataSource(ctx context.Context, p provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+    /* ... */
+}
+```
+
+Unlike resources, you only need to implement a read function for your data sources. Refer to the
+[Resources - CRUD functions](/plugin/framework/migrating/resources/crud) page in this guide to learn how to define this
+function on your `datasource.DataSource` type.
+
+## Migration Notes
+
+Remember the following details when completing the migration from SDKv2 to the Framework.
+
+- As data sources are read-only, you only implement read functionality for your provider's data sources. Refer to the
+[`Read` function](/plugin/framework/resources#read) for resources in the Framework documentation for more details.
+
+## Example
+
+The following examples show how to migrate portions of the [http](https://github.com/hashicorp/terraform-provider-http)
+provider.
+
+For a complete example, clone the
+`terraform-provider-http` repository and compare the `data_source.go` file in
+[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
+and the `data_source_http.go` file in
+[v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http.go).
+
+### SDKv2
+
+The following example from the `provider.go` file shows an implementation of the `DataSourcesMap` field on the provider
+schema with SDKv2.
+
+```go
+func New() (*schema.Provider, error) {
+    return &schema.Provider {
+        DataSourcesMap: map[string]*schema.Resource {
+            "http": dataSource(),
+            /* ... */
+```
+
+The following example from the `data_source.go` file shows how the `ReadContext` function and `Schema` are defined for
+the `http` data source with SDKv2.
+
+```go
+func dataSource() *schema.Resource {
+    return &schema.Resource{
+        ReadContext: dataSourceRead,
+
+        Schema: map[string]*schema.Schema{
+            "url": {
+                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+                Type:        schema.TypeString,
+                Required:    true,
+            },
+            /* ... */
+        },
+    }
+}
+```
+
+### Framework
+
+The following example from the `provider.go` file shows how the `http` data source is defined with the Framework after
+the migration.
+
+```go
+func (p *provider) GetDataSources(context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+    return map[string]provider.DataSourceType{
+        "http": &httpDataSourceType{},
+    }, nil
+}
+```
+
+This code from the `data_source_http.go` file defines the `GetSchema` function for the `http` data source with the
+Framework.
+
+```go
+func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "url": {
+                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+                Type:        types.StringType,
+                Required:    true,
+            },
+            /* ... */
+
+func (d *httpDataSourceType) NewDataSource(context.Context, provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+    return &httpDataSource{}, nil
+}
+```
+
+This code from the `data_source_http.go` file defines the `Read` function for the `http` data source with the Framework.
+
+```go
+func (d *httpDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+    /* ... */
+```

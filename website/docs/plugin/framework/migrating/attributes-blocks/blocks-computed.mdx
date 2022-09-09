@@ -1,0 +1,122 @@
+---
+page_title: 'Computed Blocks: Migrating from SDKv2 to the Framework'
+description: >-
+  Migrate blocks with computed fields from SDKv2 to attribute validators in the plugin Framework.
+---
+
+# Blocks with Computed Fields
+
+Some providers, resources, and data sources include repeatable nested blocks in their attributes. Some blocks contain
+fields  with `Computed: true`, which means that the provider code can define the value or that it could come from the
+output of terraform apply (e.g., the ID of an EC2 instance).
+
+This page explains how to migrate computed-only blocks from SDKv2 to the Framework. Refer to
+[Blocks](/plugin/framework/migrating/attributes-blocks/blocks) if you are looking for information about migrating blocks
+that are practitioner configurable.
+
+## SDKv2
+
+In SDKv2, blocks are defined by an attribute whose type is either `TypeList` or `TypeSet`, and whose `Elem` field is set to a
+`schema.Resource` that contains a map of the block's attribute names to corresponding `schemaSchema` structs.
+
+```go
+map[string]*schema.Schema{
+    "example": {
+        Type:     schema.TypeList,
+        Computed: true,
+        Elem: &schema.Resource{
+            Schema: map[string]*schema.Schema{
+                "nested_example": {
+                        Type:        schema.TypeString,
+                        Computed:    true,
+                        /* ... */
+```
+
+## Framework
+
+In the Framework, when working with protocol version 5, computed blocks are implemented using an attribute with a `Type`
+of `types.ListType` which has an `ElemType` of `types.ObjectType`.
+
+```go
+map[string]tfsdk.Attribute{
+"example": {
+    Computed: true,
+	Type: types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"nested_example":  types.StringType,
+				/* ... */
+
+```
+
+In the Framework, when working with protocol version 6, we recommend that you define computed blocks using nested
+attributes. This example shows usage of `ListNestedAttributes` as this provides configuration references with list index
+syntax as is the case when using `schema.TypeList` in SDKv2. `SingleNestedAttributes` is a good choice for single
+underlying objects which results in a breaking change but also allows dropping `[0]` in configuration references.
+
+```go
+map[string]tfsdk.Attribute{
+"example": {
+    Computed: true,
+	Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+		"nested_example": {
+			Computed: true,
+			Type:     types.StringType,
+			/* ... */
+
+```
+
+## Migration Notes
+
+- When using protocol version 5 specify `ElemType` as `types.ObjectType` when migrating blocks that are computed from SDKv2 to Framework.
+- When using protocol version 6, use [nested attributes](https://www.terraform.io/plugin/framework/schemas#attributes-1) when migrating blocks that are computed from SDKv2 to Framework.
+
+## Example
+
+The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
+provider.
+
+For a complete example, clone the
+`terraform-provider-tls` repository and compare the `data_source_certificate.go` file in
+[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/data_source_certificate.go)
+with
+[v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/data_source_certificate.go).
+
+### SDKv2
+
+The following example from the `data_source_certificate.go` file shows the implementation of the `certificates` nested
+block on the `certificate` data source's schema.
+
+```go
+Schema: map[string]*schema.Schema{
+"certificates": {
+        Type:     schema.TypeList,
+        Computed: true,
+        Elem: &schema.Resource{
+            Schema: map[string]*schema.Schema{
+                "signature_algorithm": {
+                    Type:        schema.TypeString,
+                    Computed:    true,
+                    /* ... */
+                },
+```
+
+### Framework
+
+The following shows the same section of provider code after the migration.
+
+This code defines the `certificates` block as an attribute on the `certificate` data source's schema, where the
+`types.ObjectType` is being used to define the nested block.
+
+```go
+map[string]tfsdk.Attribute{
+    "certificates": {
+        Type: types.ListType{
+            ElemType: types.ObjectType{
+                AttrTypes: map[string]attr.Type{
+                    "signature_algorithm":  types.StringType,
+            },
+        },
+        Computed:            true,
+        /* ... */
+```

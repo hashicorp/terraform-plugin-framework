@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // Resource represents an instance of a managed resource type. This is the core
@@ -85,7 +85,7 @@ type ResourceWithConfigValidators interface {
 // release.
 type ResourceWithGetSchema interface {
 	// GetSchema returns the schema for this data source.
-	GetSchema(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
 }
 
 // Optional interface on top of Resource that enables provider control over

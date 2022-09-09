@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // This file contains temporary types until GetSchema and TypeName are required
@@ -25,7 +25,7 @@ type ResourceWithConfigValidatorsAndGetSchemaAndTypeName struct {
 	ConfigValidatorsMethod func(context.Context) []resource.ConfigValidator
 
 	// ResourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// ResourceWithTypeName interface methods
 	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
@@ -41,9 +41,9 @@ func (r *ResourceWithConfigValidatorsAndGetSchemaAndTypeName) ConfigValidators(c
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithConfigValidatorsAndGetSchemaAndTypeName) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (r *ResourceWithConfigValidatorsAndGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return r.GetSchemaMethod(ctx)
@@ -68,16 +68,16 @@ type ResourceWithGetSchemaAndTypeName struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// ResourceWithTypeName interface methods
 	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndTypeName) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return r.GetSchemaMethod(ctx)
@@ -103,7 +103,7 @@ type ResourceWithGetSchemaAndImportStateAndTypeName struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// ResourceWithImportState interface methods
 	ImportStateMethod func(context.Context, resource.ImportStateRequest, *resource.ImportStateResponse)
@@ -113,9 +113,9 @@ type ResourceWithGetSchemaAndImportStateAndTypeName struct {
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndImportStateAndTypeName) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndImportStateAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return r.GetSchemaMethod(ctx)
@@ -150,7 +150,7 @@ type ResourceWithGetSchemaAndModifyPlanAndTypeName struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// ResourceWithModifyPlan interface methods
 	ModifyPlanMethod func(context.Context, resource.ModifyPlanRequest, *resource.ModifyPlanResponse)
@@ -160,9 +160,9 @@ type ResourceWithGetSchemaAndModifyPlanAndTypeName struct {
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndModifyPlanAndTypeName) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndModifyPlanAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return r.GetSchemaMethod(ctx)
@@ -197,7 +197,7 @@ type ResourceWithGetSchemaAndTypeNameAndUpgradeState struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// ResourceWithTypeName interface methods
 	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
@@ -207,9 +207,9 @@ type ResourceWithGetSchemaAndTypeNameAndUpgradeState struct {
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndTypeNameAndUpgradeState) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndTypeNameAndUpgradeState) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return r.GetSchemaMethod(ctx)
@@ -244,7 +244,7 @@ type ResourceWithGetSchemaAndTypeNameAndValidateConfig struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// ResourceWithTypeName interface methods
 	TypeNameMethod func(context.Context, resource.TypeNameRequest, *resource.TypeNameResponse)
@@ -254,9 +254,9 @@ type ResourceWithGetSchemaAndTypeNameAndValidateConfig struct {
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchemaAndTypeNameAndValidateConfig) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchemaAndTypeNameAndValidateConfig) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return r.GetSchemaMethod(ctx)

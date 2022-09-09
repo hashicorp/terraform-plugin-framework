@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -113,7 +112,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
 				Resource: &testprovider.ResourceWithGetSchema{
-					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
 				},
@@ -127,7 +126,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfigAttributeValidator,
 				Resource: &testprovider.ResourceWithGetSchema{
-					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchemaAttributeValidator, nil
 					},
 				},
@@ -141,7 +140,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfigAttributeValidatorError,
 				Resource: &testprovider.ResourceWithGetSchema{
-					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchemaAttributeValidatorError, nil
 					},
 				},
@@ -163,7 +162,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
 				Resource: &testprovider.ResourceWithConfigValidatorsAndGetSchemaAndTypeName{
-					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
 					Resource: &testprovider.Resource{},
@@ -197,7 +196,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
 				Resource: &testprovider.ResourceWithConfigValidatorsAndGetSchemaAndTypeName{
-					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
 					Resource: &testprovider.Resource{},
@@ -227,7 +226,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
 				Resource: &testprovider.ResourceWithGetSchemaAndTypeNameAndValidateConfig{
-					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
 					Resource: &testprovider.Resource{},
@@ -255,7 +254,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
 				Resource: &testprovider.ResourceWithGetSchemaAndTypeNameAndValidateConfig{
-					GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
 					Resource: &testprovider.Resource{},

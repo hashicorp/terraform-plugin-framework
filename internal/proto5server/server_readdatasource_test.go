@@ -7,7 +7,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -65,7 +64,7 @@ func TestServerReadDataSource(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSourceWithGetSchemaAndTypeName{
-										GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{}, nil
 										},
 										TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
@@ -95,7 +94,7 @@ func TestServerReadDataSource(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSourceWithGetSchemaAndTypeName{
-										GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
@@ -139,7 +138,7 @@ func TestServerReadDataSource(t *testing.T) {
 								return []func() datasource.DataSource{
 									func() datasource.DataSource {
 										return &testprovider.DataSourceWithGetSchemaAndTypeName{
-											GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 												return tfsdk.Schema{}, nil
 											},
 											TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
@@ -187,7 +186,7 @@ func TestServerReadDataSource(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSourceWithGetSchemaAndTypeName{
-										GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
@@ -234,7 +233,7 @@ func TestServerReadDataSource(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSourceWithGetSchemaAndTypeName{
-										GetSchemaMethod: func(_ context.Context) (fwschema.Schema, diag.Diagnostics) {
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {

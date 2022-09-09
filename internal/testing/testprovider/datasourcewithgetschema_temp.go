@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // This file contains temporary types until GetSchema and TypeName are required
@@ -24,7 +24,7 @@ type DataSourceWithConfigValidatorsAndGetSchemaAndTypeName struct {
 	ConfigValidatorsMethod func(context.Context) []datasource.ConfigValidator
 
 	// DataSourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// DataSourceWithTypeName interface methods
 	TypeNameMethod func(context.Context, datasource.TypeNameRequest, *datasource.TypeNameResponse)
@@ -40,9 +40,9 @@ func (d *DataSourceWithConfigValidatorsAndGetSchemaAndTypeName) ConfigValidators
 }
 
 // GetSchema satisfies the datasource.DataSourceWithGetSchema interface.
-func (d *DataSourceWithConfigValidatorsAndGetSchemaAndTypeName) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (d *DataSourceWithConfigValidatorsAndGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if d.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return d.GetSchemaMethod(ctx)
@@ -66,16 +66,16 @@ type DataSourceWithGetSchemaAndTypeName struct {
 	*DataSource
 
 	// DataSourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// DataSourceWithTypeName interface methods
 	TypeNameMethod func(context.Context, datasource.TypeNameRequest, *datasource.TypeNameResponse)
 }
 
 // GetSchema satisfies the datasource.DataSourceWithGetSchema interface.
-func (d *DataSourceWithGetSchemaAndTypeName) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (d *DataSourceWithGetSchemaAndTypeName) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if d.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return d.GetSchemaMethod(ctx)
@@ -100,7 +100,7 @@ type DataSourceWithGetSchemaAndTypeNameAndValidateConfig struct {
 	*DataSource
 
 	// DataSourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// DataSourceWithTypeName interface methods
 	TypeNameMethod func(context.Context, datasource.TypeNameRequest, *datasource.TypeNameResponse)
@@ -110,9 +110,9 @@ type DataSourceWithGetSchemaAndTypeNameAndValidateConfig struct {
 }
 
 // GetSchema satisfies the datasource.DataSourceWithGetSchema interface.
-func (d *DataSourceWithGetSchemaAndTypeNameAndValidateConfig) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (d *DataSourceWithGetSchemaAndTypeNameAndValidateConfig) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if d.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return d.GetSchemaMethod(ctx)

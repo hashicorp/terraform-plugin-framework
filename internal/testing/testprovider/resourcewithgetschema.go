@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 var _ resource.Resource = &ResourceWithGetSchema{}
@@ -16,13 +16,13 @@ type ResourceWithGetSchema struct {
 	*Resource
 
 	// ResourceWithGetSchema interface methods
-	GetSchemaMethod func(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
 }
 
 // GetSchema satisfies the resource.ResourceWithGetSchema interface.
-func (r *ResourceWithGetSchema) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
+func (r *ResourceWithGetSchema) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	if r.GetSchemaMethod == nil {
-		return nil, nil
+		return tfsdk.Schema{}, nil
 	}
 
 	return r.GetSchemaMethod(ctx)

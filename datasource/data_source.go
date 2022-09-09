@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // DataSource represents an instance of a data source type. This is the core
@@ -60,7 +60,7 @@ type DataSourceWithConfigValidators interface {
 // release.
 type DataSourceWithGetSchema interface {
 	// GetSchema returns the schema for this data source.
-	GetSchema(context.Context) (fwschema.Schema, diag.Diagnostics)
+	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
 }
 
 // DataSourceWithTypeName is an interface type that extends DataSource to

@@ -45,48 +45,49 @@ schema.Resource {
 
 ## Framework
 
-In the Framework, you define data sources by adding them to the map returned by your provider's `GetDataSources` function.
+In the Framework, you define data sources by adding them to the map returned by your provider's `DataSources` method.
 
-The `GetDataSources` function on your `provider.Provider` returns a map from the data source name (string) to a type
-that implements the `DataSourceType` interface for each data source your provider supports.
+The `DataSources` method on your `provider.Provider` returns a slice of functions that return types
+that implement the `datasource.DataSource` interface for each data source your provider supports.
 
 The following code shows how you add a data source to your provider with the Framework.
 
 ```go
-func (p *provider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-    return map[string]provider.DataSourceType{
+func (p *provider) DataSources(ctx context.Context) []func() datasource.DataSource {
+    return []func() datasource.DataSource{
 		/* ... */
-    }, nil
+    }
 }
 ```
 
-Like the `provider.ResourceType` interface, `provider.DataSourceType` requires `GetSchema` and `NewResource` functions.
-These functions work the same way for data sources as they do for resources.
+Like the `resource.Resource` interface, `datasource.DataSource` requires `GetSchema` and `TypeName` methods.
+These methods work the same way for data sources as they do for resources. The `Read` method is also required.
 
-The `GetSchema` function returns a `tfsdk.Schema` struct which defines your data source's attributes. This is the same
+The `GetSchema` method returns a `tfsdk.Schema` struct which defines your data source's attributes. This is the same
 struct you use to define provider and resource attributes.
 
-The `NewResource` function returns a type that you define. The type implements the `resource.Resource` interface,
-including the CRUD functions for your resource.
+The `TypeName` method returns a type name that you define.
 
-The following code shows how you define a `provider.DataSourceType` which implements these two functions with the
+For `Read` method implements the logic for writing into the Terraform state.
+
+The following code shows how you define a `datasource.DataSource` which implements these methods with the
 Framework.
 
 ```go
-type dataSourceTypeExample struct{}
+type dataSourceExample struct{}
 
-func (r *dataSourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *dataSourceExample) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
     /* ... */
 }
 
-func (r *dataSourceTypeExample) NewDataSource(ctx context.Context, p provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+func (d *dataSourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    /* ... */
+}
+
+func (d *dataSourceExample) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
     /* ... */
 }
 ```
-
-Unlike resources, you only need to implement a read function for your data sources. Refer to the
-[Resources - CRUD functions](/plugin/framework/migrating/resources/crud) page in this guide to learn how to define this
-function on your `datasource.DataSource` type.
 
 ## Migration Notes
 
@@ -145,18 +146,27 @@ The following example from the `provider.go` file shows how the `http` data sour
 the migration.
 
 ```go
-func (p *provider) GetDataSources(context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-    return map[string]provider.DataSourceType{
-        "http": &httpDataSourceType{},
-    }, nil
+func (p *provider) DataSources(context.Context) []func() datasource.DataSource {
+    return []func() datasource.DataSource{
+        func() datasource.DataSource {
+            return &httpDataSource{}
+        },
+    }
 }
 ```
 
-This code from the `data_source_http.go` file defines the `GetSchema` function for the `http` data source with the
+This code from the `data_source_http.go` file defines the methods for the `http` data source with the
 Framework.
 
 ```go
-func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *httpDataSource) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+    // This is unconventional in that the data source name matches the provider name.
+    // Typically these should have the provider name, an underscore, then the type name.
+    // e.g. http_request
+    resp.TypeName = "http"
+}
+
+func (d *httpDataSource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "url": {
@@ -166,14 +176,7 @@ func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diag
             },
             /* ... */
 
-func (d *httpDataSourceType) NewDataSource(context.Context, provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-    return &httpDataSource{}, nil
-}
-```
-
-This code from the `data_source_http.go` file defines the `Read` function for the `http` data source with the Framework.
-
-```go
 func (d *httpDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
     /* ... */
+}
 ```

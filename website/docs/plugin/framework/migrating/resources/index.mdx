@@ -72,41 +72,58 @@ schema.Resource{
 
 ## Framework
 
-In the Framework, you define your provider's resources by adding them to your provider's `GetResources` function.
+In the Framework, you define your provider's resources by adding them to your provider's `Resources` method.
 
-The `GetResources` function on your `provider.Provider` returns a map from the resource name (string) to a struct that
-implements the `ResourceType` interface for each resource your provider supports.
+The `Resources` method on your `provider.Provider` returns a slice of functions that return types that
+implement the `resource.Resource` interface for each resource your provider supports.
 
 The following code shows how you add a resource to your provider with the Framework.
 
 ```go
-func (p *provider) GetResources(ctx context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-    return map[string]provider.ResourceType{
-        "resource_example": resourceTypeExample{},
-    }, nil
+func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
+    return []func() resource.Resource{
+        func() resource.Resource {
+            return resourceTypeExample{}
+        },
+    }
 }
 ```
 
-The `provider.ResourceType` interface requires `GetSchema` and `NewResource` functions.
+The `resource.Resource` interface requires `TypeName`, `GetSchema`, `Create`, `Read`, `Update`, and `Delete`  methods.
 
-The `GetSchema` function returns a `tfsdk.Schema` struct which defines your resource's attributes. This is the same
+The `GetSchema` method returns a `tfsdk.Schema` struct which defines your resource's attributes. This is the same
 struct you use to define provider and data source attributes.
 
-The `NewResource` function returns a type that you define. The type implements the `resource.Resource` interface,
-including the CRUD functions for your resource.
+The `TypeName` method returns a type name that you define.
 
-The following code shows how you define a `provider.ResourceType` which implements these two functions with the
+The following code shows how you define a `resource.Resource` which implements these methods with the
 Framework.
 
 ```go
-type resourceTypeExample struct{}
+type resourceExample struct{}
 
-func (r resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{}, nil
+func (r *resourceExample) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+    /* ... */
 }
 
-func (r resourceTypeExample) NewResource(_ context.Context, p provider.Provider) (resource.Resource, diag.Diagnostics) {
-    return &resourceExample{}, nil
+func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    /* ... */
+}
+
+func (r *resourceExample) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+    /* ... */
+}
+
+func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+    /* ... */
+}
+
+func (r *resourceExample) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+    /* ... */
+}
+
+func (r *resourceExample) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+    /* ... */
 }
 ```
 
@@ -125,7 +142,7 @@ type Schema struct {
 ```
 
 Refer to the [Resources - CRUD functions](/plugin/framework/migrating/resources/crud) page in this guide to learn how to
-implement the `resource.Resource` interface returned by your resource type's `NewResource` function.
+implement the `resource.Resource` interface.
 
 ## Migration Notes
 
@@ -133,9 +150,9 @@ Remember the following differences between SDKv2 and the Framework when completi
 
 - SDKv2 uses `schema.Resource` structs to define resources. These structs have a `Schema` field which holds a
 `schema.Schema` to define the resource's attributes and behavior. In the Framework, you define a type that implements
-the `ResourceType` interface, which includes a `GetSchema` function that returns your resource's schema.
+the `resource.Resource` interface, which includes a `GetSchema` method that returns your resource's schema.
 - SDKv2 implements a resource's CRUD operations as functions on the `schema.Resource`. In the Framework, you define a
-type that implements the `Resource` interface. The resource interface contains the functions that define your resource's
+type that implements the `resource.Resource` interface. The resource interface contains the functions that define your resource's
 CRUD operations.
 
 ## Example
@@ -193,16 +210,24 @@ The following shows the same section of provider code after the migration.
 This code defines the `tls_private_key` resource by mapping the resource name to the `privateKeyResourceType` struct.
 
 ```go
-func (p *provider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-    return map[string]provider.ResourceType{
-        "tls_private_key":         &privateKeyResourceType{},
+func (p *provider) Resources(_ context.Context) []func() resource.Resource {
+    return []func() resource.Resource{
+        func() resource.Resource {
+            return &privateKeyResource{}
+        },
         /* ... */
+    }
+}
 ```
 
-This code defines the `GetSchema` and `NewResource` functions for the `privateKeyResourceType`.
+This code defines the `GetSchema` and `TypeName` methods for the `privateKeyResource`.
 
 ```go
-func (rt *privateKeyResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *privateKeyResource) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+    resp.TypeName = "tls_private_key"
+}
+
+func (r *privateKeyResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             // Required attributes
@@ -219,8 +244,7 @@ func (rt *privateKeyResourceType) GetSchema(_ context.Context) (tfsdk.Schema, di
                     fmt.Sprintf("Currently-supported values are: `%s`. ", strings.Join(supportedAlgorithmsStr(), "`, `")),
             },
             /* ... */
-
-func (rt *privateKeyResourceType) NewResource(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-    return &privateKeyResource{}, nil
+        },
+    }, nil
 }
 ```

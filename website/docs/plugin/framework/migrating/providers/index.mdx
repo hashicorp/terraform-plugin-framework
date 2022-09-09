@@ -140,9 +140,9 @@ func New() *schema.Provider {
 In the Framework, the second argument to your `provider.Serve` function requires a function that returns a type
 satisfying the `provider.Provider` interface.
 
-The following code shows a typical implementation. In this implementation, the `GetResources` function returns a map
-from resource names (strings) to types that implement the `provider.ResourceType` interface. The `GetDataSources`
-function returns a map from data source names (strings) to types that implement the `provider.DataSourceType` interface.
+The following code shows a typical implementation. In this implementation, the `Resources` method returns a slice
+of functions that return types that implement the `resource.Resource` interface. The `DataSources` method returns a
+slice of functions that return types that implement the `datasource.DataSource` interface.
 Refer to the [Resources](/plugin/framework/migrating/resources) and
 [Data Sources](/plugin/framework/migrating/data-sources) pages in this guide to implement these functions for your
 provider.
@@ -162,16 +162,20 @@ func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostic
 func (p *provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 }
 
-func (p *provider) GetResources(ctx context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-    return map[string]provider.ResourceType{
-        "resource_example": resourceTypeExample{},
-    }, nil
+func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
+    return []func() resource.Resource {
+        func() resource.Resource {
+            return resourceExample{},
+        },
+    }
 }
 
-func (p *provider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-    return map[string]provider.DataSourceType{
-        "data_source_example": dataSourceTypeExample{},
-    }, nil
+func (p *provider) GetDataSources(ctx context.Context) []func() datasource.DataSource {
+    return []func() datasource.DataSource {
+        func() datasource.DataSource {
+            return dataSourceExample{},
+        },
+    }
 }
 ```
 
@@ -187,13 +191,13 @@ names to `schema.Schema` structs. In the Framework, `GetSchema` is a function yo
 - In SDKv2, `ConfigureContextFunc` is a field on `schema.Provider` containing a function that configures the provider.
 In the Framework, `Configure` is a function you define on your provider that configures your provider.
 - In SDKv2, `ResourcesMap` is a field on `schema.Provider` containing `map[string]*schema.Resource`, which maps resource
-names to `schema.Resource` structs. In the Framework, `GetResources` is a function you define on your provider that
-returns `map[string]provider.ResourceType`, which maps resource names to types that you define, which satisfy the
-`provider.ResourceType` interface.
+names to `schema.Resource` structs. In the Framework, `Resources` is a method you define on your provider that
+returns `[]func() resource.Resource`, which creates resource types that you define, which satisfy the
+`resource.Resource` interface.
 - In SDKv2, `DataSourcesMap` is a field on `schema.Provider` containing  `map[string]*schema.Resource`, which maps data
 source names to `schema.Resource` structs (data sources and resources both use `schema.Resource`). In the Framework,
-`GetDataSources` is a function you define on your provider that returns `map[string]provider.DataSourceType`, which
-maps data source names to types that you define, which satisfy the `provider.DataSourceType` interface.
+`DataSources` is a method you define on your provider that returns `[]func() datasource.DataSource`, which
+creates data source types that you define, which satisfy the `datasource.DataSource` interface.
 
 ### Example
 
@@ -241,18 +245,22 @@ func New() provider.Provider {
     return &provider{}
 }
 
-func (p *provider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-    return map[string]provider.ResourceType{
-        "tls_private_key":         &privateKeyResourceType{},
+func (p *provider) Resources(_ context.Context) []func() resource.Resource {
+    return []func() resource.Resource{
+        func() resource.Resource {
+            return &privateKeyResource{}
+        },
         /* ... */
-    }, nil
+    }
 }
 
-func (p *provider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-    return map[string]provider.DataSourceType{
-        "tls_public_key":  &publicKeyDataSourceType{},
+func (p *provider) DataSources(_ context.Context) []func() datasource.DataSource {
+    return []func() datasource.DataSource{
+        func() datasource.DataSource {
+            return &publicKeyDataSource{},
+        },
         /* ... */
-    }, nil
+    }
 }
 
 func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {

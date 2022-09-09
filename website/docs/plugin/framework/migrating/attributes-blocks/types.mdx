@@ -68,7 +68,7 @@ func resourceExample() *schema.Resource {
 In the Framework, you set your attribute's type with the `Type` field on your attribute's `tfsdk.Attribute` struct.
 
 ```go
-func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         /* ... */
         Attributes: map[string]tfsdk.Attribute{
@@ -146,7 +146,7 @@ The following example from the `data_source_http.go` file shows how the type of 
 source is defined with the Framework after the migration.
 
 ```go
-func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *httpDataSource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "url": {
@@ -190,7 +190,7 @@ The following example from the `data_source_http.go` file shows how the type of 
 source is defined with the Framework after the migration.
 
 ```go
-func (rt *certRequestResourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *certRequestResource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "dns_names": {

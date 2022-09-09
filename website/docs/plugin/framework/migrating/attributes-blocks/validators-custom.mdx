@@ -94,7 +94,7 @@ This code validates that the `random_password`'s `length` attribute is greater t
 validator.
 
 ```go
-func (r *passwordResourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *passwordResource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "length": {

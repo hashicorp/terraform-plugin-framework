@@ -96,8 +96,8 @@ type Schema struct {
 
 ## Framework
 
-In the Framework, you implement `GetSchema` functions for your provider, resources, and data sources. This function is
-required by the `provider.Provider`, `provider.ResourceType`, and `provider.DataSourceType` interfaces, respectively.
+In the Framework, you implement `GetSchema` method for your provider, resources, and data sources. This function is
+required by the `provider.Provider`, `resource.Resource`, and `datasource.DataSource` interfaces, respectively.
 
 The following code shows how you define the `GetSchema` function for your provider, resources, and data sources.
 
@@ -108,13 +108,13 @@ func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostic
 ```
 
 ```go
-func (r resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{}, nil
 }
 ```
 
 ```go
-func (r dataSourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *dataSourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{}, nil
 }
 ```
@@ -142,7 +142,7 @@ Remember the following differences between SDKv2 and the Framework when completi
 - SDKv2 uses `schema.Schema` structs to define the provider, resources, and data sources. The Framework uses
 `tfsdk.Schema` structs instead.
 - In SDKv2, schema structs are returned when a provider, resource, or data type is created. In the Framework, the
-provider and each resource and data type have a `GetSchema` function that returns the schema.
+provider and each resource and data type have a `GetSchema` method that returns the schema.
 - The `tfsdk.Schema` struct includes fields that you use to define
 [attributes](/plugin/framework/migrating/attributes-and-blocks/attribute-schema) and
 [blocks](/plugin/framework/migrating/attributes-and-blocks/blocks) for your provider and each resource

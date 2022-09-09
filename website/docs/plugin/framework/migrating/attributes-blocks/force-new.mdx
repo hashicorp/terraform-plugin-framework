@@ -35,7 +35,7 @@ In the Framework, you implement the same behavior by using the `resource.Require
 attribute's `tfsdk.Attribute` struct.
 
 ```go
-func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         /* ... */
         Attributes: map[string]tfsdk.Attribute{
@@ -94,7 +94,7 @@ This code forces the replacement of a `random_password` resource when the value 
 The example does this using the `PlanModifiers` field within the `random_password` attribute's schema.
 
 ```go
-func (r *passwordResourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *passwordResource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "keepers": {

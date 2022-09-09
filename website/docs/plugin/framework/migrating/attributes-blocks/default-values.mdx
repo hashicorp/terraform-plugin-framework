@@ -41,7 +41,7 @@ In the Framework, you set default values with the `PlanModifiers` field on your 
 struct.
 
 ```go
-func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         /* ... */
         Attributes: map[string]tfsdk.Attribute{
@@ -91,7 +91,7 @@ The following shows the same section of code after the migration.
 This code implements the `PlanModifiers` field for the `rsa_bits` attribute with the Framework.
 
 ```go
-func (rt *privateKeyResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *privateKeyResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "rsa_bits": {

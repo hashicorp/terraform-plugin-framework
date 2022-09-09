@@ -59,7 +59,7 @@ type ThingResource struct {
   client *http.Client
 }
 
-func (d *ThingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *ThingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
   // Prevent panic if the provider has not been configured.
   if req.ProviderData == nil {
     return
@@ -76,12 +76,12 @@ func (d *ThingResource) Configure(ctx context.Context, req resource.ConfigureReq
     return
   }
 
-  d.client = client
+  r.client = client
 }
 
-func (d *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
   // Prevent panic if the provider has not been configured.
-  if d.client == nil {
+  if r.client == nil {
     resp.Diagnostics.AddError(
       "Unconfigured HTTP Client",
       "Expected configured HTTP client. Please report this issue to the provider developers.",
@@ -90,7 +90,7 @@ func (d *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp
     return
   }
 
-  httpResp, err := d.client.Get("https://example.com")
+  httpResp, err := r.client.Get("https://example.com")
   /* ... */
 }
 ```

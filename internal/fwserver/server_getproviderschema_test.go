@@ -327,6 +327,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 		"datasourceschemas-GetDataSources": {
 			server: &fwserver.Server{
 				Provider: &testprovider.ProviderWithGetDataSources{
+					//nolint:staticcheck // Internal implementation
 					GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
 						return map[string]provider.DataSourceType{
 							"test_data_source1": &testprovider.DataSourceType{
@@ -453,6 +454,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 		"resourceschemas-GetResources": {
 			server: &fwserver.Server{
 				Provider: &testprovider.ProviderWithGetResources{
+					//nolint:staticcheck // Internal implementation
 					GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
 						return map[string]provider.ResourceType{
 							"test_resource1": &testprovider.ResourceType{

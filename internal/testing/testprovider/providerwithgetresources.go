@@ -15,10 +15,13 @@ type ProviderWithGetResources struct {
 	*Provider
 
 	// ProviderWithGetResources interface methods
+	//nolint:staticcheck // Internal implementation
 	GetResourcesMethod func(context.Context) (map[string]provider.ResourceType, diag.Diagnostics)
 }
 
 // GetResources satisfies the provider.ProviderWithGetResources interface.
+//
+//nolint:staticcheck // Internal implementation
 func (p *ProviderWithGetResources) GetResources(ctx context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
 	if p.GetResourcesMethod == nil {
 		return nil, nil

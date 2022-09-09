@@ -51,6 +51,7 @@ type Server struct {
 	// dataSourceTypes is the cached DataSourceTypes for RPCs that need to
 	// access data sources. If not found, it will be fetched from the
 	// Provider.GetDataSources() method.
+	//nolint:staticcheck // Internal implementation
 	dataSourceTypes map[string]provider.DataSourceType
 
 	// dataSourceTypesDiags is the cached Diagnostics obtained while populating
@@ -116,6 +117,7 @@ type Server struct {
 	// resourceTypes is the cached ResourceTypes for RPCs that need to
 	// access resources. If not found, it will be fetched from the
 	// Provider.GetResources() method.
+	//nolint:staticcheck // Internal implementation
 	resourceTypes map[string]provider.ResourceType
 
 	// resourceTypesDiags is the cached Diagnostics obtained while populating
@@ -326,6 +328,8 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Sch
 
 // DataSourceTypes returns the map of DataSourceTypes. The results are cached
 // on first use.
+//
+//nolint:staticcheck // Internal implementation
 func (s *Server) DataSourceTypes(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
 	logging.FrameworkTrace(ctx, "Checking DataSourceTypes lock")
 	s.dataSourceTypesMutex.Lock()
@@ -598,6 +602,8 @@ func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schem
 
 // ResourceTypes returns the map of ResourceTypes. The results are cached
 // on first use.
+//
+//nolint:staticcheck // Internal implementation
 func (s *Server) ResourceTypes(ctx context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
 	logging.FrameworkTrace(ctx, "Checking ResourceTypes lock")
 	s.resourceTypesMutex.Lock()
@@ -616,7 +622,7 @@ func (s *Server) ResourceTypes(ctx context.Context) (map[string]provider.Resourc
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetResources")
-	s.resourceTypes, s.dataSourceTypesDiags = providerWithGetResources.GetResources(ctx) //nolint:staticcheck // Internal usage
+	s.resourceTypes, s.resourceTypesDiags = providerWithGetResources.GetResources(ctx) //nolint:staticcheck // Internal usage
 	logging.FrameworkDebug(ctx, "Called provider defined Provider GetResources")
 
 	return s.resourceTypes, s.resourceTypesDiags

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-var _ provider.ResourceType = &ResourceType{}
+var _ provider.ResourceType = &ResourceType{} //nolint:staticcheck // Internal implementation
 
 // Declarative provider.ResourceType for unit testing.
 type ResourceType struct {

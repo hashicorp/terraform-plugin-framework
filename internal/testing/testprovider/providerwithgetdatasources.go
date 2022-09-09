@@ -15,10 +15,13 @@ type ProviderWithGetDataSources struct {
 	*Provider
 
 	// ProviderWithGetDataSources interface methods
+	//nolint:staticcheck // Internal implementation
 	GetDataSourcesMethod func(context.Context) (map[string]provider.DataSourceType, diag.Diagnostics)
 }
 
 // GetDataSources satisfies the provider.ProviderWithGetDataSources interface.
+//
+//nolint:staticcheck // Internal implementation
 func (p *ProviderWithGetDataSources) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
 	if p.GetDataSourcesMethod == nil {
 		return nil, nil

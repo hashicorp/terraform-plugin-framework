@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-var _ provider.DataSourceType = &DataSourceType{}
+var _ provider.DataSourceType = &DataSourceType{} //nolint:staticcheck // Internal implementation
 
 // Declarative provider.DataSourceType for unit testing.
 type DataSourceType struct {

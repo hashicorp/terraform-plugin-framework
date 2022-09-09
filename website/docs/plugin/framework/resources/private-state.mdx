@@ -1,0 +1,97 @@
+---
+page_title: 'Plugin Development - Framework: Private State Management'
+description: >-
+  How to manage private state data in the provider development framework.
+  Private state is provider-only data storage for resources.
+---
+
+# Private State Management
+
+Resource private state is provider maintained data that is stored in Terraform state alongside the schema-defined data. Private state is never accessed or exposed by Terraform plans, however providers can use this data storage for advanced use cases.
+
+## Usage
+
+Example uses in the framework include:
+
+* Storing and retrieving values that are not important to show to practitioners, but are required for API calls, such as ETags.
+* Resource timeout functionality.
+
+## Concepts
+
+Private state data is byte data stored in the Terraform state and is intended for provider usage only (i.e., it is only
+used by the Framework and provider code). Providers have the ability to save this data during create, import, planning, 
+read, and update operations and the ability to read this data during delete, planning, read, and update operations.
+
+## Accessing Private State Data
+
+Private state data can be read from a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) 
+type in the `Private` field present in the _request_ that is passed into:
+
+| Resource Operation | Private State Data |
+| --- | --- |
+| Delete | [resource.DeleteRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteRequest.Private) |
+| Plan Modification ([resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan)) | [resource.ModifyPlanRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ModifyPlanRequest.Private) |
+| Plan Modification ([tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier)) | [tfsdk.ModifyAttributePlanRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ModifyAttributePlanRequest.Private) |
+| Read | [resource.ReadRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest.Private) |
+| Update | [resource.UpdateRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest.Private)
+
+Private state data can be saved to a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) 
+type in the `Private` field present in the _response_ that is returned from:
+
+| Resource Operation | Private State Data |
+| --- | --- |
+| Create | [resource.CreateResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateResponse.Private) |
+| Import | [resource.ImportStateResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.Private) |
+| Plan Modification ([resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan)) | [resource.ModifyPlanResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ModifyPlanResponse.Private) |
+| Plan Modification ([tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier)) | [tfsdk.ModifyAttributePlanResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ModifyAttributePlanResponse.Private) |
+| Read | [resource.ReadResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.Private) |
+| Update | [resource.UpdateResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateResponse.Private)
+
+### Reading Private State Data
+
+Private state data can be read using the [GetKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData.GetKey)
+function. For example:
+
+```go
+func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+    
+	value, diags := req.Private.GetKey(ctx, "key")
+	
+	resp.Diagnostics.Append(diags...)
+	
+	if value != nil {
+		// value will be []byte.
+	    ...	
+    }
+}
+```
+
+If the key supplied is [reserved](#reserved-keys) for framework usage, an error diagnostic will be returned.
+
+If the key is valid but no private state data is found, nil is returned.
+
+### Saving Private State Data
+
+Private state data can be saved using the [SetKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData.SetKey)
+function. For example:
+
+```go
+func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+    
+	value := []byte(`{"valid": "json", "utf8": "safe"}`)
+	
+	diags := resp.Private.SetKey(ctx, "key", value)
+	
+	resp.Diagnostics.Append(diags...)
+}
+```
+
+If the key supplied is [reserved](#reserved-keys) for framework usage, an error diagnostic will be returned.
+
+If the value is not valid JSON and UTF-8 safe, an error diagnostic will be returned.
+
+### Reserved Keys
+
+Keys supplied to [GetKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData.GetKey) and [SetKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData.SetKey) are validated using [ValidateProviderDataKey](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ValidateProviderDataKey).
+
+Keys using a period ('.') as a prefix cannot be used for provider private state data as they are reserved for framework usage.

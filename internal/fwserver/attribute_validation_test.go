@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
-	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -145,8 +144,8 @@ func TestAttributeValidate(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"Configuration Read Error",
-						"An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"An unexpected error was encountered trying to convert an attribute value from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
 					),
 				},
 			},
@@ -489,15 +488,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeWarningDiagnostic(
-						path.Root("test"),
-						"Attribute Deprecated",
-						"Use something else instead.",
-					),
-				},
-			},
+			resp: tfsdk.ValidateAttributeResponse{},
 		},
 		"warnings": {
 			req: tfsdk.ValidateAttributeRequest{
@@ -1085,25 +1076,13 @@ func TestAttributeValidate(t *testing.T) {
 
 			var got tfsdk.ValidateAttributeResponse
 
-			// TODO: Remove after schema refactoring
-			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-			tftypesPath, diags := totftypes.AttributePath(ctx, tc.req.AttributePath)
+			attribute, diags := tc.req.Config.Schema.AttributeAtPath(ctx, tc.req.AttributePath)
 
 			if diags.HasError() {
-				for _, diagnostic := range diags {
-					t.Errorf("unexpected diagnostic: %s", diagnostic)
-				}
-
-				return
+				t.Fatalf("Unexpected diagnostics: %s", diags)
 			}
 
-			attribute, err := tc.req.Config.Schema.AttributeAtTerraformPath(ctx, tftypesPath)
-
-			if err != nil {
-				t.Fatalf("Unexpected error getting %s", err)
-			}
-
-			AttributeValidate(context.Background(), attribute, tc.req, &got)
+			AttributeValidate(ctx, attribute, tc.req, &got)
 
 			if diff := cmp.Diff(got, tc.resp); diff != "" {
 				t.Errorf("Unexpected response (+wanted, -got): %s", diff)

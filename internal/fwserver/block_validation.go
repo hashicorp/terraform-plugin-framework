@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -26,7 +27,13 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		return
 	}
 
-	attributeConfig, diags := ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
+	configData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionConfiguration,
+		Schema:         req.Config.Schema,
+		TerraformValue: req.Config.Raw,
+	}
+
+	attributeConfig, diags := configData.ValueAtPath(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {
@@ -188,26 +195,13 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		return
 	}
 
-	if b.GetDeprecationMessage() != "" && attributeConfig != nil {
-		tfValue, err := attributeConfig.ToTerraformValue(ctx)
-
-		if err != nil {
-			resp.Diagnostics.AddAttributeError(
-				req.AttributePath,
-				"Block Validation Error",
-				"Block validation cannot convert value. Report this to the provider developer:\n\n"+err.Error(),
-			)
-
-			return
-		}
-
-		if !tfValue.IsNull() {
-			resp.Diagnostics.AddAttributeWarning(
-				req.AttributePath,
-				"Block Deprecated",
-				b.GetDeprecationMessage(),
-			)
-		}
+	// Show deprecation warning only on known values.
+	if b.GetDeprecationMessage() != "" && !attributeConfig.IsNull() && !attributeConfig.IsUnknown() {
+		resp.Diagnostics.AddAttributeWarning(
+			req.AttributePath,
+			"Block Deprecated",
+			b.GetDeprecationMessage(),
+		)
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -57,6 +58,26 @@ type ModifySchemaPlanResponse struct {
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
 func SchemaModifyPlan(ctx context.Context, s fwschema.Schema, req ModifySchemaPlanRequest, resp *ModifySchemaPlanResponse) {
+	var diags diag.Diagnostics
+
+	configData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionConfiguration,
+		Schema:         req.Config.Schema,
+		TerraformValue: req.Config.Raw,
+	}
+
+	planData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionPlan,
+		Schema:         req.Plan.Schema,
+		TerraformValue: req.Plan.Raw,
+	}
+
+	stateData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionState,
+		Schema:         req.State.Schema,
+		TerraformValue: req.State.Raw,
+	}
+
 	for name, attribute := range s.GetAttributes() {
 		attrReq := tfsdk.ModifyAttributePlanRequest{
 			AttributePath: path.Root(name),
@@ -67,7 +88,51 @@ func SchemaModifyPlan(ctx context.Context, s fwschema.Schema, req ModifySchemaPl
 			Private:       req.Private,
 		}
 
-		AttributeModifyPlan(ctx, attribute, attrReq, resp)
+		attrReq.AttributeConfig, diags = configData.ValueAtPath(ctx, attrReq.AttributePath)
+
+		resp.Diagnostics.Append(diags...)
+
+		if diags.HasError() {
+			return
+		}
+
+		attrReq.AttributePlan, diags = planData.ValueAtPath(ctx, attrReq.AttributePath)
+
+		resp.Diagnostics.Append(diags...)
+
+		if diags.HasError() {
+			return
+		}
+
+		attrReq.AttributeState, diags = stateData.ValueAtPath(ctx, attrReq.AttributePath)
+
+		resp.Diagnostics.Append(diags...)
+
+		if diags.HasError() {
+			return
+		}
+
+		attrResp := ModifyAttributePlanResponse{
+			AttributePlan: attrReq.AttributePlan,
+			Private:       attrReq.Private,
+		}
+
+		AttributeModifyPlan(ctx, attribute, attrReq, &attrResp)
+
+		resp.Diagnostics.Append(attrResp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, attrReq.AttributePath, attrResp.AttributePlan)...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		resp.RequiresReplace = append(resp.RequiresReplace, attrResp.RequiresReplace...)
+		resp.Private = attrResp.Private
 	}
 
 	for name, block := range s.GetBlocks() {
@@ -80,6 +145,50 @@ func SchemaModifyPlan(ctx context.Context, s fwschema.Schema, req ModifySchemaPl
 			Private:       req.Private,
 		}
 
-		BlockModifyPlan(ctx, block, blockReq, resp)
+		blockReq.AttributeConfig, diags = configData.ValueAtPath(ctx, blockReq.AttributePath)
+
+		resp.Diagnostics.Append(diags...)
+
+		if diags.HasError() {
+			return
+		}
+
+		blockReq.AttributePlan, diags = planData.ValueAtPath(ctx, blockReq.AttributePath)
+
+		resp.Diagnostics.Append(diags...)
+
+		if diags.HasError() {
+			return
+		}
+
+		blockReq.AttributeState, diags = stateData.ValueAtPath(ctx, blockReq.AttributePath)
+
+		resp.Diagnostics.Append(diags...)
+
+		if diags.HasError() {
+			return
+		}
+
+		blockResp := ModifyAttributePlanResponse{
+			AttributePlan: blockReq.AttributePlan,
+			Private:       blockReq.Private,
+		}
+
+		BlockModifyPlan(ctx, block, blockReq, &blockResp)
+
+		resp.Diagnostics.Append(blockResp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, blockReq.AttributePath, blockResp.AttributePlan)...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		resp.RequiresReplace = append(resp.RequiresReplace, blockResp.RequiresReplace...)
+		resp.Private = blockResp.Private
 	}
 }

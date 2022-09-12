@@ -929,6 +929,49 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
+		"data-source-block-single": {
+			input: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{
+					"test_data_source": &tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test_block": {
+								Attributes: map[string]tfsdk.Attribute{
+									"test_attribute": {
+										Type:     types.StringType,
+										Required: true,
+									},
+								},
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{
+					"test_data_source": {
+						Block: &tfprotov5.SchemaBlock{
+							BlockTypes: []*tfprotov5.SchemaNestedBlock{
+								{
+									Block: &tfprotov5.SchemaBlock{
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:     "test_attribute",
+												Type:     tftypes.String,
+												Required: true,
+											},
+										},
+									},
+									Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+									TypeName: "test_block",
+								},
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
 		"data-source-version": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
@@ -1718,6 +1761,46 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
+		"provider-block-single": {
+			input: &fwserver.GetProviderSchemaResponse{
+				Provider: &tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"test_block": {
+							Attributes: map[string]tfsdk.Attribute{
+								"test_attribute": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{
+						BlockTypes: []*tfprotov5.SchemaNestedBlock{
+							{
+								Block: &tfprotov5.SchemaBlock{
+									Attributes: []*tfprotov5.SchemaAttribute{
+										{
+											Name:     "test_attribute",
+											Type:     tftypes.String,
+											Required: true,
+										},
+									},
+								},
+								Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+								TypeName: "test_block",
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
 		"provider-version": {
 			input: &fwserver.GetProviderSchemaResponse{
 				Provider: &tfsdk.Schema{
@@ -2496,6 +2579,46 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 									},
 								},
 								Nesting:  tfprotov5.SchemaNestedBlockNestingModeSet,
+								TypeName: "test_block",
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"provider-meta-block-single": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ProviderMeta: &tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"test_block": {
+							Attributes: map[string]tfsdk.Attribute{
+								"test_attribute": {
+									Type:     types.StringType,
+									Required: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				ProviderMeta: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{
+						BlockTypes: []*tfprotov5.SchemaNestedBlock{
+							{
+								Block: &tfprotov5.SchemaBlock{
+									Attributes: []*tfprotov5.SchemaAttribute{
+										{
+											Name:     "test_attribute",
+											Type:     tftypes.String,
+											Required: true,
+										},
+									},
+								},
+								Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
 								TypeName: "test_block",
 							},
 						},
@@ -3410,6 +3533,49 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 										},
 									},
 									Nesting:  tfprotov5.SchemaNestedBlockNestingModeSet,
+									TypeName: "test_block",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"resource-block-single": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ResourceSchemas: map[string]fwschema.Schema{
+					"test_resource": &tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test_block": {
+								Attributes: map[string]tfsdk.Attribute{
+									"test_attribute": {
+										Type:     types.StringType,
+										Required: true,
+									},
+								},
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							BlockTypes: []*tfprotov5.SchemaNestedBlock{
+								{
+									Block: &tfprotov5.SchemaBlock{
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:     "test_attribute",
+												Type:     tftypes.String,
+												Required: true,
+											},
+										},
+									},
+									Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
 									TypeName: "test_block",
 								},
 							},

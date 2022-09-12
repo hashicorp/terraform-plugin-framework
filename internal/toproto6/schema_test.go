@@ -407,6 +407,28 @@ func TestSchema(t *testing.T) {
 						},
 						NestingMode: tfsdk.BlockNestingModeSet,
 					},
+					"single": {
+						Attributes: map[string]tfsdk.Attribute{
+							"string": {
+								Type:     types.StringType,
+								Required: true,
+							},
+							"number": {
+								Type:     types.NumberType,
+								Optional: true,
+							},
+							"bool": {
+								Type:     types.BoolType,
+								Computed: true,
+							},
+							"list": {
+								Type:     types.ListType{ElemType: types.StringType},
+								Computed: true,
+								Optional: true,
+							},
+						},
+						NestingMode: tfsdk.BlockNestingModeSingle,
+					},
 				},
 			},
 			expected: &tfprotov6.Schema{
@@ -470,6 +492,35 @@ func TestSchema(t *testing.T) {
 							},
 							Nesting:  tfprotov6.SchemaNestedBlockNestingModeSet,
 							TypeName: "set",
+						},
+						{
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Computed: true,
+										Name:     "bool",
+										Type:     tftypes.Bool,
+									},
+									{
+										Computed: true,
+										Name:     "list",
+										Optional: true,
+										Type:     tftypes.List{ElementType: tftypes.String},
+									},
+									{
+										Name:     "number",
+										Optional: true,
+										Type:     tftypes.Number,
+									},
+									{
+										Name:     "string",
+										Required: true,
+										Type:     tftypes.String,
+									},
+								},
+							},
+							Nesting:  tfprotov6.SchemaNestedBlockNestingModeSingle,
+							TypeName: "single",
 						},
 					},
 				},

@@ -2,6 +2,7 @@
 
 NOTES:
 
+* datasource: The `DataSource` type `GetSchema` and `Metadata` methods will be required in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
 * provider: The `DataSourceType` type has been deprecated in preference of moving the `GetSchema` method to the `datasource.DataSource` type  and optionally implementing the `NewResource` method logic to a new `Configure` method. The `DataSourceType` type will be removed in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
 * provider: The `Provider` type `GetDataSources` method has been deprecated in preference of the `DataSources` method. All `datasource.DataSource` types must implement the `Metadata` method after migrating. Support for the `GetDataSources` method will be removed in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
 * provider: The `Provider` type `GetResources` method has been deprecated in preference of the `Resources` method. All `resource.Resource` types must implement the `Metadata` method after migrating. Support for the `GetResources` method will be removed in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
@@ -18,7 +19,6 @@ BREAKING CHANGES:
 ENHANCEMENTS:
 
 * datasource: Added `DataSource` type `Configure`, `GetSchema`, and `Metadata` method support ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
-* datasource: The `DataSource` type `GetSchema` and `Metadata` methods will be required in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
 * provider: Added `ConfigureResponse` type `DataSourceData` field, which will set the `datasource.ConfigureRequest.ProviderData` field ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
 * provider: Added `ConfigureResponse` type `ResourceData` field, which will set the `resource.ConfigureRequest.ProviderData` field ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
 * provider: Added `Provider` type `Metadata` method support, which the `MetadataResponse.TypeName` field will set the `datasource.MetadataRequest.ProviderTypeName` and `resource.MetadataRequest.ProviderTypeName` fields ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))

@@ -21,7 +21,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, proto5Req *tfprotov5.
 		return toproto5.UpgradeResourceStateResponse(ctx, fwResp), nil
 	}
 
-	resourceType, diags := s.FrameworkServer.ResourceType(ctx, proto5Req.TypeName)
+	resource, diags := s.FrameworkServer.Resource(ctx, proto5Req.TypeName)
 
 	fwResp.Diagnostics.Append(diags...)
 
@@ -37,7 +37,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, proto5Req *tfprotov5.
 		return toproto5.UpgradeResourceStateResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto5.UpgradeResourceStateRequest(ctx, proto5Req, resourceType, resourceSchema)
+	fwReq, diags := fromproto5.UpgradeResourceStateRequest(ctx, proto5Req, resource, resourceSchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

@@ -2,6 +2,9 @@ package resource
 
 import (
 	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // Resource represents an instance of a managed resource type. This is the core
@@ -9,6 +12,7 @@ import (
 //
 // Resources can optionally implement these additional concepts:
 //
+//   - Configure: Include provider-level data or clients.
 //   - Import: ResourceWithImportState
 //   - Validation: Schema-based via tfsdk.Attribute or entire configuration
 //     via ResourceWithConfigValidators or ResourceWithValidateConfig.
@@ -43,6 +47,22 @@ type Resource interface {
 	Delete(context.Context, DeleteRequest, *DeleteResponse)
 }
 
+// ResourceWithConfigure is an interface type that extends Resource to
+// include a method which the framework will automatically call so provider
+// developers have the opportunity to setup any necessary provider-level data
+// or clients in the Resource type.
+//
+// This method is intended to replace the provider.ResourceType type
+// NewResource method in a future release.
+type ResourceWithConfigure interface {
+	Resource
+
+	// Configure enables provider-level data or clients to be set in the
+	// provider-defined DataSource type. It is separately executed for each
+	// ReadDataSource RPC.
+	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
+}
+
 // ResourceWithConfigValidators is an interface type that extends Resource to include declarative validations.
 //
 // Declaring validation using this methodology simplifies implmentation of
@@ -56,6 +76,16 @@ type ResourceWithConfigValidators interface {
 
 	// ConfigValidators returns a list of functions which will all be performed during validation.
 	ConfigValidators(context.Context) []ConfigValidator
+}
+
+// ResourceWithGetSchema is an interface type that extends Resource to
+// return its schema definition.
+//
+// This method will be required in the Resource interface in a future
+// release.
+type ResourceWithGetSchema interface {
+	// GetSchema returns the schema for this data source.
+	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
 }
 
 // Optional interface on top of Resource that enables provider control over
@@ -98,6 +128,20 @@ type ResourceWithModifyPlan interface {
 	//
 	// Any errors will prevent further resource-level plan modifications.
 	ModifyPlan(context.Context, ModifyPlanRequest, *ModifyPlanResponse)
+}
+
+// ResourceWithMetadata is an interface type that extends Resource to
+// return metadata, such as its resource type name. For example, if the
+// provider is named examplecloud and the resource manages a thing, this
+// should return examplecloud_thing.
+//
+// This method will be required in the Resource interface a future release.
+type ResourceWithMetadata interface {
+	Resource
+
+	// Metadata should return the full name of the resource, such as
+	// examplecloud_thing.
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 }
 
 // Optional interface on top of Resource that enables provider control over

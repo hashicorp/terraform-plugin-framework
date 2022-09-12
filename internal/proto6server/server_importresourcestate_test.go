@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -63,26 +62,27 @@ func TestServerImportResourceState(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_resource": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return testSchema, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.ResourceWithImportState{
-											Resource: &testprovider.Resource{},
-											ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-												if req.ID != "test-id" {
-													resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
-												}
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithGetSchemaAndImportStateAndMetadata{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_resource"
+										},
+										Resource: &testprovider.Resource{},
+										ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+											if req.ID != "test-id" {
+												resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
+											}
 
-												resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-											},
-										}, nil
-									},
+											resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+										},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
@@ -104,23 +104,24 @@ func TestServerImportResourceState(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_resource": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return testSchema, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.ResourceWithImportState{
-											Resource: &testprovider.Resource{},
-											ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-												resp.Diagnostics.AddWarning("warning summary", "warning detail")
-												resp.Diagnostics.AddError("error summary", "error detail")
-											},
-										}, nil
-									},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithGetSchemaAndImportStateAndMetadata{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_resource"
+										},
+										Resource: &testprovider.Resource{},
+										ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+											resp.Diagnostics.AddWarning("warning summary", "warning detail")
+											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
@@ -148,22 +149,23 @@ func TestServerImportResourceState(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_resource": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return testSchema, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.ResourceWithImportState{
-											Resource: &testprovider.Resource{},
-											ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-												resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-											},
-										}, nil
-									},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithGetSchemaAndImportStateAndMetadata{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_resource"
+										},
+										Resource: &testprovider.Resource{},
+										ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+											resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+										},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
@@ -185,26 +187,27 @@ func TestServerImportResourceState(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_resource": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return testSchema, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.ResourceWithImportState{
-											Resource: &testprovider.Resource{},
-											ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-												diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithGetSchemaAndImportStateAndMetadata{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_resource"
+										},
+										Resource: &testprovider.Resource{},
+										ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+											diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
 
-												resp.Diagnostics.Append(diags...)
+											resp.Diagnostics.Append(diags...)
 
-												resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-											},
-										}, nil
-									},
+											resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+										},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},

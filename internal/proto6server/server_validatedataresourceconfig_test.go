@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -54,17 +53,20 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-							return map[string]provider.DataSourceType{
-								"test_data_source": &testprovider.DataSourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return tfsdk.Schema{}, nil
-									},
-									NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-										return &testprovider.DataSource{}, nil
-									},
+						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+							return []func() datasource.DataSource{
+								func() datasource.DataSource {
+									return &testprovider.DataSourceWithGetSchemaAndMetadata{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return tfsdk.Schema{}, nil
+										},
+										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+											resp.TypeName = "test_data_source"
+										},
+										DataSource: &testprovider.DataSource{},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
@@ -78,17 +80,20 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-							return map[string]provider.DataSourceType{
-								"test_data_source": &testprovider.DataSourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return testSchema, nil
-									},
-									NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-										return &testprovider.DataSource{}, nil
-									},
+						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+							return []func() datasource.DataSource{
+								func() datasource.DataSource {
+									return &testprovider.DataSourceWithGetSchemaAndMetadata{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+											resp.TypeName = "test_data_source"
+										},
+										DataSource: &testprovider.DataSource{},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
@@ -103,23 +108,24 @@ func TestServerValidateDataResourceConfig(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-							return map[string]provider.DataSourceType{
-								"test_data_source": &testprovider.DataSourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return testSchema, nil
-									},
-									NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-										return &testprovider.DataSourceWithValidateConfig{
-											DataSource: &testprovider.DataSource{},
-											ValidateConfigMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
-												resp.Diagnostics.AddWarning("warning summary", "warning detail")
-												resp.Diagnostics.AddError("error summary", "error detail")
-											},
-										}, nil
-									},
+						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+							return []func() datasource.DataSource{
+								func() datasource.DataSource {
+									return &testprovider.DataSourceWithGetSchemaAndMetadataAndValidateConfig{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+											resp.TypeName = "test_data_source"
+										},
+										DataSource: &testprovider.DataSource{},
+										ValidateConfigMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
+											resp.Diagnostics.AddWarning("warning summary", "warning detail")
+											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},

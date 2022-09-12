@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -54,23 +53,26 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_data_source": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return tfsdk.Schema{}, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.Resource{}, nil
-									},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithGetSchemaAndMetadata{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return tfsdk.Schema{}, nil
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_resource"
+										},
+										Resource: &testprovider.Resource{},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
 			},
 			request: &tfprotov6.ValidateResourceConfigRequest{
-				TypeName: "test_data_source",
+				TypeName: "test_resource",
 			},
 			expectedResponse: &tfprotov6.ValidateResourceConfigResponse{},
 		},
@@ -78,24 +80,27 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_data_source": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return testSchema, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.Resource{}, nil
-									},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithGetSchemaAndMetadata{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_resource"
+										},
+										Resource: &testprovider.Resource{},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
 			},
 			request: &tfprotov6.ValidateResourceConfigRequest{
 				Config:   &testDynamicValue,
-				TypeName: "test_data_source",
+				TypeName: "test_resource",
 			},
 			expectedResponse: &tfprotov6.ValidateResourceConfigResponse{},
 		},
@@ -103,30 +108,31 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_data_source": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return testSchema, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.ResourceWithValidateConfig{
-											Resource: &testprovider.Resource{},
-											ValidateConfigMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
-												resp.Diagnostics.AddWarning("warning summary", "warning detail")
-												resp.Diagnostics.AddError("error summary", "error detail")
-											},
-										}, nil
-									},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithGetSchemaAndMetadataAndValidateConfig{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return testSchema, nil
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_resource"
+										},
+										Resource: &testprovider.Resource{},
+										ValidateConfigMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+											resp.Diagnostics.AddWarning("warning summary", "warning detail")
+											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
 			},
 			request: &tfprotov6.ValidateResourceConfigRequest{
 				Config:   &testDynamicValue,
-				TypeName: "test_data_source",
+				TypeName: "test_resource",
 			},
 			expectedResponse: &tfprotov6.ValidateResourceConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{

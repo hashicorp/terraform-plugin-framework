@@ -6,13 +6,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ValidateResourceConfigRequest returns the *fwserver.ValidateResourceConfigRequest
 // equivalent of a *tfprotov6.ValidateResourceConfigRequest.
-func ValidateResourceConfigRequest(ctx context.Context, proto6 *tfprotov6.ValidateResourceConfigRequest, resourceType provider.ResourceType, resourceSchema fwschema.Schema) (*fwserver.ValidateResourceConfigRequest, diag.Diagnostics) {
+func ValidateResourceConfigRequest(ctx context.Context, proto6 *tfprotov6.ValidateResourceConfigRequest, resource resource.Resource, resourceSchema fwschema.Schema) (*fwserver.ValidateResourceConfigRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -22,7 +22,7 @@ func ValidateResourceConfigRequest(ctx context.Context, proto6 *tfprotov6.Valida
 	config, diags := Config(ctx, proto6.Config, resourceSchema)
 
 	fw.Config = config
-	fw.ResourceType = resourceType
+	fw.Resource = resource
 
 	return fw, diags
 }

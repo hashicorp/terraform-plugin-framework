@@ -3,7 +3,9 @@ package provider
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -11,6 +13,10 @@ import (
 //
 // Providers can optionally implement these additional concepts:
 //
+//   - Resources: ProviderWithResources or (deprecated)
+//     ProviderWithGetResources.
+//   - Data Sources: ProviderWithDataSources or (deprecated)
+//     ProviderWithGetDataSources.
 //   - Validation: Schema-based via tfsdk.Attribute or entire configuration
 //     via ProviderWithConfigValidators or ProviderWithValidateConfig.
 //   - Meta Schema: ProviderWithMetaSchema
@@ -27,24 +33,6 @@ type Provider interface {
 	// API client, which should be stored on the struct implementing the
 	// Provider interface.
 	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
-
-	// GetResources returns a mapping of resource names to type
-	// implementations.
-	//
-	// Conventionally, resource names should each include a prefix of the
-	// provider name and an underscore. For example, a provider named
-	// "examplecloud" with resources "thing" and "widget" should use
-	// "examplecloud_thing" and "examplecloud_widget" as resource names.
-	GetResources(context.Context) (map[string]ResourceType, diag.Diagnostics)
-
-	// GetDataSources returns a mapping of data source name to types
-	// implementations.
-	//
-	// Conventionally, data source names should each include a prefix of the
-	// provider name and an underscore. For example, a provider named
-	// "examplecloud" with data sources "thing" and "widget" should use
-	// "examplecloud_thing" and "examplecloud_widget" as data source names.
-	GetDataSources(context.Context) (map[string]DataSourceType, diag.Diagnostics)
 }
 
 // ProviderWithConfigValidators is an interface type that extends Provider to include declarative validations.
@@ -62,6 +50,76 @@ type ProviderWithConfigValidators interface {
 	ConfigValidators(context.Context) []ConfigValidator
 }
 
+// ProviderWithDataSources is an interface type that extends Provider to
+// include data source implementations.
+type ProviderWithDataSources interface {
+	Provider
+
+	// DataSources returns a slice of functions to instantiate each DataSource
+	// implementation.
+	//
+	// The data source type name is determined by the DataSource implementing
+	// the Metadata method. All data sources must have unique names.
+	DataSources(context.Context) []func() datasource.DataSource
+}
+
+// ProviderWithGetDataSources is an interface type that extends Provider to
+// include the previously required GetDataSources method.
+//
+// Deprecated: This will be removed in a future release. Use the DataSources
+// method instead.
+type ProviderWithGetDataSources interface {
+	Provider
+
+	// GetDataSources returns a mapping of data source name to types
+	// implementations.
+	//
+	// Conventionally, data source names should each include a prefix of the
+	// provider name and an underscore. For example, a provider named
+	// "examplecloud" with data sources "thing" and "widget" should use
+	// "examplecloud_thing" and "examplecloud_widget" as data source names.
+	//
+	// Deprecated: This will be removed in a future release. Use the
+	// DataSources method instead.
+	GetDataSources(context.Context) (map[string]DataSourceType, diag.Diagnostics)
+}
+
+// ProviderWithGetResources is an interface type that extends Provider to
+// include the previously required GetResources method.
+//
+// Deprecated: This will be removed in a future release. Use the Resources
+// method instead.
+type ProviderWithGetResources interface {
+	Provider
+
+	// GetResources returns a mapping of resource names to type
+	// implementations.
+	//
+	// Conventionally, resource names should each include a prefix of the
+	// provider name and an underscore. For example, a provider named
+	// "examplecloud" with resources "thing" and "widget" should use
+	// "examplecloud_thing" and "examplecloud_widget" as resource names.
+	//
+	// Deprecated: This will be removed in a future release. Use the Resources
+	// method instead.
+	GetResources(context.Context) (map[string]ResourceType, diag.Diagnostics)
+}
+
+// ProviderWithMetadata is an interface type that extends Provider to
+// return its type name, such as examplecloud, and other
+// metadata, such as version.
+//
+// Implementing this method will populate the
+// [datasource.MetadataRequest.ProviderTypeName] and
+// [resource.MetadataRequest.ProviderTypeName] fields automatically.
+type ProviderWithMetadata interface {
+	Provider
+
+	// Metadata should return the metadata for the provider, such as
+	// a type name and version data.
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
+}
+
 // ProviderWithMetaSchema is a provider with a provider meta schema.
 // This functionality is currently experimental and subject to change or break
 // without warning; it should only be used by providers that are collaborating
@@ -71,6 +129,19 @@ type ProviderWithMetaSchema interface {
 
 	// GetMetaSchema returns the provider meta schema.
 	GetMetaSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
+}
+
+// ProviderWithResources is an interface type that extends Provider to
+// include data source implementations.
+type ProviderWithResources interface {
+	Provider
+
+	// Resources returns a slice of functions to instantiate each Resource
+	// implementation.
+	//
+	// The resource type name is determined by the Resource implementing
+	// the Metadata method. All resources must have unique names.
+	Resources(context.Context) []func() resource.Resource
 }
 
 // ProviderWithValidateConfig is an interface type that extends Provider to include imperative validation.

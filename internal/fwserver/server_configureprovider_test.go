@@ -97,6 +97,22 @@ func TestServerConfigureProvider(t *testing.T) {
 			},
 			expectedResponse: &provider.ConfigureResponse{},
 		},
+		"response-datasourcedata": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return tfsdk.Schema{}, nil
+					},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.DataSourceData = "test-provider-configure-value"
+					},
+				},
+			},
+			request: &provider.ConfigureRequest{},
+			expectedResponse: &provider.ConfigureResponse{
+				DataSourceData: "test-provider-configure-value",
+			},
+		},
 		"response-diagnostics": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
@@ -123,6 +139,22 @@ func TestServerConfigureProvider(t *testing.T) {
 				},
 			},
 		},
+		"response-resourcedata": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+						return tfsdk.Schema{}, nil
+					},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.ResourceData = "test-provider-configure-value"
+					},
+				},
+			},
+			request: &provider.ConfigureRequest{},
+			expectedResponse: &provider.ConfigureResponse{
+				ResourceData: "test-provider-configure-value",
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -136,6 +168,14 @@ func TestServerConfigureProvider(t *testing.T) {
 
 			if diff := cmp.Diff(response, testCase.expectedResponse); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(testCase.server.DataSourceConfigureData, testCase.expectedResponse.DataSourceData); diff != "" {
+				t.Errorf("unexpected server.DataSourceConfigureData difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(testCase.server.ResourceConfigureData, testCase.expectedResponse.ResourceData); diff != "" {
+				t.Errorf("unexpected server.ResourceConfigureData difference: %s", diff)
 			}
 		})
 	}

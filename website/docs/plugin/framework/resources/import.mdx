@@ -8,30 +8,39 @@ description: >-
 
 Practitioners can use the  [`terraform import` command](/cli/commands/import) to let Terraform begin managing existing infrastructure resources. Resources can implement the `ImportState` method, which must either specify enough Terraform state for the `Read` method to refresh [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) or return an error.
 
-## Single Attribute
+## Define Resource ImportState Method
 
-When the `Read` method requires a single attribute to refresh, use the [`resource.ImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStatePassthroughID) to write the import identifier argument for `terraform import`.
+The [`resource.ResourceWithImportState` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithImportState) on the [`resource.Resource` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) implementation will enable practitioner support for importing an existing resource.
 
-In the following example, the `terraform import` command passes the import identifier to the `id` attribute in Terraform state.
+Implement the `ImportState` method by:
+
+1. Accessing the import identifier from the [`resource.ImportStateRequest.ID` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateRequest)
+1. [Writing state data](/plugin/framework/writing-state) into the [`resource.ImportStateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.State).
+
+In this example, the resource state has the `id` attribute set to the value passed into the [`terraform import` command](/cli/commands/import) using the [`resource.ImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStatePassthroughID):
 
 ```go
-func (r exampleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *ThingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
     resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 ```
 
-## Multiple Attributes
+### Multiple Attributes
 
-When the `Read` method requires multiple attributes to refresh, you must write custom logic in the `ImportState` method. Specifically, the implementation must:
+When the `Read` method requires multiple attributes to refresh, you must write custom logic in the `ImportState` method.
 
-1. Use the import identifier from the [`resource.ImportStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateRequest). 
-1. Perform the custom logic.
-1. [Set state data](/plugin/framework/writing-state) in the [`resource.ImportStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse).
+Implement the `ImportState` method by:
 
-For example, if the `provider.ResourceType` implementation has the following `GetSchema` method:
+1. Accessing the import identifier from the [`resource.ImportStateRequest.ID` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateRequest)
+1. Performing the custom logic.
+1. [Writing state data](/plugin/framework/writing-state) into the [`resource.ImportStateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.State).
+
+The `terraform import` command will need to accept the multiple attribute values as a single import identifier string. A typical convention is to use a separator character, such as a comma (`,`), between the values. The `ImportState` method will then need to parse the import identifier string into the multiple separate values and save them appropriately into the Terraform state.
+
+In this example, the resource requires two attributes to refresh state and accepts them as an import identifier of `attr_one,attr_two`:
 
 ```go
-func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ThingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "attr_one": {
@@ -42,16 +51,12 @@ func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
                 Type:     types.StringType,
                 Required: true,
             },
-            // ... potentially other Attributes ...
+            /* ... */
         },
     }, nil
 }
-```
 
-Along with a `resource.Resource` implementation with the following `Read` method:
-
-```go
-func (r exampleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
     var attrOne, attrTwo string
 
     resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("attr_one"), &attrOne)...)
@@ -63,14 +68,8 @@ func (r exampleResource) Read(ctx context.Context, req resource.ReadRequest, res
 
     // API call using attrOne and attrTwo
 }
-```
 
-The `terraform import` command will need to accept both attribute values as a single import identifier string. A typical convention is to use a separator character, such as a comma (`,`), between the values. The `ImportState` method will then need to parse the import identifier string into the two separate values and save them appropriately into the Terraform state.
-
-You could define the `ImportState` method using a comma-separated value as follows:
-
-```go
-func (r exampleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *ThingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
     idParts := strings.Split(req.ID, ",")
 
     if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {

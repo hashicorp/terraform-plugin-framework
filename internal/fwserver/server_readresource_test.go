@@ -3,6 +3,7 @@ package fwserver_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -132,25 +132,18 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &fwserver.ReadResourceRequest{
 				CurrentState: testCurrentState,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-								var data struct {
-									TestComputed types.String `tfsdk:"test_computed"`
-									TestRequired types.String `tfsdk:"test_required"`
-								}
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						var data struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
 
-								resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-								if data.TestRequired.Value != "test-currentstate-value" {
-									resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.Value)
-								}
-							},
-						}, nil
+						if data.TestRequired.Value != "test-currentstate-value" {
+							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.Value)
+						}
 					},
 				},
 			},
@@ -165,25 +158,18 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &fwserver.ReadResourceRequest{
 				CurrentState: testCurrentState,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-								var config struct {
-									TestComputed types.String `tfsdk:"test_computed"`
-									TestRequired types.String `tfsdk:"test_required"`
-								}
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
 
-								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &config)...)
+						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &config)...)
 
-								if config.TestRequired.Value != "test-currentstate-value" {
-									resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.Value)
-								}
-							},
-						}, nil
+						if config.TestRequired.Value != "test-currentstate-value" {
+							resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.Value)
+						}
 					},
 				},
 				ProviderMeta: testConfig,
@@ -199,25 +185,18 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &fwserver.ReadResourceRequest{
 				CurrentState: testCurrentState,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
 
-								key := "providerKeyOne"
-								got, diags := req.Private.GetKey(ctx, key)
+						key := "providerKeyOne"
+						got, diags := req.Private.GetKey(ctx, key)
 
-								resp.Diagnostics.Append(diags...)
+						resp.Diagnostics.Append(diags...)
 
-								if string(got) != expected {
-									resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
-								}
-							},
-						}, nil
+						if string(got) != expected {
+							resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+						}
 					},
 				},
 				Private: testPrivate,
@@ -233,25 +212,59 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &fwserver.ReadResourceRequest{
 				CurrentState: testCurrentState,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						var expected []byte
+
+						key := "providerKeyOne"
+						got, diags := req.Private.GetKey(ctx, key)
+
+						resp.Diagnostics.Append(diags...)
+
+						if !bytes.Equal(got, expected) {
+							resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+						}
 					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-								var expected []byte
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState: testCurrentState,
+				Private:  testEmptyPrivate,
+			},
+		},
+		"resource-configure-data": {
+			server: &fwserver.Server{
+				Provider:              &testprovider.Provider{},
+				ResourceConfigureData: "test-provider-configure-value",
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: testCurrentState,
+				Resource: &testprovider.ResourceWithConfigure{
+					ConfigureMethod: func(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+						providerData, ok := req.ProviderData.(string)
 
-								key := "providerKeyOne"
-								got, diags := req.Private.GetKey(ctx, key)
+						if !ok {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected string, got: %T", req.ProviderData),
+							)
+							return
+						}
 
-								resp.Diagnostics.Append(diags...)
-
-								if !bytes.Equal(got, expected) {
-									resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
-								}
-							},
-						}, nil
+						if providerData != "test-provider-configure-value" {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected test-provider-configure-value, got: %q", providerData),
+							)
+						}
+					},
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							// In practice, the Configure method would save the
+							// provider data to the Resource implementation and
+							// use it here. The fact that Configure is able to
+							// read the data proves this can work.
+						},
 					},
 				},
 			},
@@ -266,17 +279,10 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &fwserver.ReadResourceRequest{
 				CurrentState: testCurrentState,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-								resp.Diagnostics.AddWarning("warning summary", "warning detail")
-								resp.Diagnostics.AddError("error summary", "error detail")
-							},
-						}, nil
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						resp.Diagnostics.AddWarning("warning summary", "warning detail")
+						resp.Diagnostics.AddError("error summary", "error detail")
 					},
 				},
 			},
@@ -301,25 +307,18 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &fwserver.ReadResourceRequest{
 				CurrentState: testCurrentState,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-								var data struct {
-									TestComputed types.String `tfsdk:"test_computed"`
-									TestRequired types.String `tfsdk:"test_required"`
-								}
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						var data struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
 
-								resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-								data.TestComputed = types.String{Value: "test-newstate-value"}
+						data.TestComputed = types.String{Value: "test-newstate-value"}
 
-								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-							},
-						}, nil
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 					},
 				},
 			},
@@ -334,16 +333,9 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &fwserver.ReadResourceRequest{
 				CurrentState: testCurrentState,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-								resp.State.RemoveResource(ctx)
-							},
-						}, nil
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						resp.State.RemoveResource(ctx)
 					},
 				},
 			},
@@ -358,18 +350,11 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &fwserver.ReadResourceRequest{
 				CurrentState: testCurrentState,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
-								resp.Diagnostics.Append(diags...)
-							},
-						}, nil
+						resp.Diagnostics.Append(diags...)
 					},
 				},
 			},
@@ -384,18 +369,11 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &fwserver.ReadResourceRequest{
 				CurrentState: testCurrentState,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
-								resp.Diagnostics.Append(diags...)
-							},
-						}, nil
+						resp.Diagnostics.Append(diags...)
 					},
 				},
 				Private: testPrivateFramework,

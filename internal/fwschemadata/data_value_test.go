@@ -48,7 +48,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test"),
-			expected: nil,
+			expected: types.String{Null: true},
 		},
 		"WithAttributeName-nonexistent": {
 			data: fwschemadata.Data{

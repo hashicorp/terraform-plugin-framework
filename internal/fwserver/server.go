@@ -230,19 +230,8 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Sch
 	for dataSourceTypeName, dataSourceFunc := range dataSourceFuncs {
 		dataSource := dataSourceFunc()
 
-		dataSourceWithGetSchema, ok := dataSource.(datasource.DataSource)
-
-		if !ok {
-			s.dataSourceSchemasDiags.AddError(
-				"Data Source Schema Missing",
-				fmt.Sprintf("The %T DataSource in the provider is missing the GetSchema method. ", dataSource)+
-					"This is always an issue with the provider and should be reported to the provider developers.",
-			)
-			continue
-		}
-
 		logging.FrameworkDebug(ctx, "Calling provider defined DataSource GetSchema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
-		schema, diags := dataSourceWithGetSchema.GetSchema(ctx)
+		schema, diags := dataSource.GetSchema(ctx)
 		logging.FrameworkDebug(ctx, "Called provider defined DataSource GetSchema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
 
 		s.dataSourceSchemasDiags.Append(diags...)
@@ -419,19 +408,8 @@ func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schem
 	for resourceTypeName, resourceFunc := range resourceFuncs {
 		res := resourceFunc()
 
-		resourceWithGetSchema, ok := res.(resource.Resource)
-
-		if !ok {
-			s.resourceSchemasDiags.AddError(
-				"Resource Schema Missing",
-				fmt.Sprintf("The %T Resource in the provider is missing the GetSchema method. ", res)+
-					"This is always an issue with the provider and should be reported to the provider developers.",
-			)
-			continue
-		}
-
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
-		schema, diags := resourceWithGetSchema.GetSchema(ctx)
+		schema, diags := res.GetSchema(ctx)
 		logging.FrameworkDebug(ctx, "Called provider defined Resource GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
 
 		s.resourceSchemasDiags.Append(diags...)

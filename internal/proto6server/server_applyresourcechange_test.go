@@ -84,32 +84,30 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-												var data testSchemaData
+										CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+											var data testSchemaData
 
-												resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+											resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-												if data.TestRequired.Value != "test-config-value" {
-													resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
-												}
+											if data.TestRequired.Value != "test-config-value" {
+												resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+											}
 
-												// Prevent missing resource state error diagnostic
-												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
-											},
+											// Prevent missing resource state error diagnostic
+											resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
 										},
 									}
 								},
@@ -144,32 +142,30 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-												var data testSchemaData
+										CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+											var data testSchemaData
 
-												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+											resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-												if data.TestComputed.Value != "test-plannedstate-value" {
-													resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
-												}
+											if data.TestComputed.Value != "test-plannedstate-value" {
+												resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
+											}
 
-												// Prevent missing resource state error diagnostic
-												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
-											},
+											// Prevent missing resource state error diagnostic
+											resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
 										},
 									}
 								},
@@ -205,35 +201,33 @@ func TestServerApplyResourceChange(t *testing.T) {
 							ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 								return []func() resource.Resource{
 									func() resource.Resource {
-										return &testprovider.ResourceWithGetSchemaAndMetadata{
+										return &testprovider.Resource{
 											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 												return testSchema, nil
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
 											},
-											Resource: &testprovider.Resource{
-												CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-													var metadata testProviderMetaData
+											CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+												var metadata testProviderMetaData
 
-													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &metadata)...)
+												resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &metadata)...)
 
-													if metadata.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-														resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+metadata.TestProviderMetaAttribute.Value)
-													}
+												if metadata.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+													resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+metadata.TestProviderMetaAttribute.Value)
+												}
 
-													// Prevent missing resource state error diagnostic
-													var data testSchemaData
+												// Prevent missing resource state error diagnostic
+												var data testSchemaData
 
-													resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-													resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-												},
-												DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
-												},
-												UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
-												},
+												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+											},
+											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+											},
+											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
 											},
 										}
 									},
@@ -273,24 +267,22 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddWarning("warning summary", "warning detail")
-												resp.Diagnostics.AddError("error summary", "error detail")
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
-											},
+										CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddWarning("warning summary", "warning detail")
+											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
 										},
 									}
 								},
@@ -334,26 +326,24 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-												var data testSchemaData
+										CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+											var data testSchemaData
 
-												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
-											},
+											resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+											resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
 										},
 									}
 								},
@@ -388,23 +378,21 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-												// Intentionally missing resp.State.Set()
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
-											},
+										CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+											// Intentionally missing resp.State.Set()
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
 										},
 									}
 								},
@@ -446,30 +434,28 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-												var data testSchemaData
+										CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+											var data testSchemaData
 
-												// Prevent missing resource state error diagnostic
-												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+											// Prevent missing resource state error diagnostic
+											resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
-												diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+											diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
 
-												resp.Diagnostics.Append(diags...)
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
-											},
+											resp.Diagnostics.Append(diags...)
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
 										},
 									}
 								},
@@ -498,29 +484,27 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
-											},
-											DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-												var data testSchemaData
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+										},
+										DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+											var data testSchemaData
 
-												resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+											resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-												if data.TestRequired.Value != "test-priorstate-value" {
-													resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.Value)
-												}
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
-											},
+											if data.TestRequired.Value != "test-priorstate-value" {
+												resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.Value)
+											}
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
 										},
 									}
 								},
@@ -549,29 +533,27 @@ func TestServerApplyResourceChange(t *testing.T) {
 							ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 								return []func() resource.Resource{
 									func() resource.Resource {
-										return &testprovider.ResourceWithGetSchemaAndMetadata{
+										return &testprovider.Resource{
 											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 												return testSchema, nil
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
 											},
-											Resource: &testprovider.Resource{
-												CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
-												},
-												DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-													var data testProviderMetaData
+											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+											},
+											DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+												var data testProviderMetaData
 
-													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+												resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-													if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-														resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
-													}
-												},
-												UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
-												},
+												if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+													resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
+												}
+											},
+											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
 											},
 										}
 									},
@@ -604,33 +586,31 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
-											},
-											DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-												expected := `{"key": "value"}`
-												got, diags := req.Private.GetKey(ctx, "providerKey")
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+										},
+										DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+											expected := `{"key": "value"}`
+											got, diags := req.Private.GetKey(ctx, "providerKey")
 
-												resp.Diagnostics.Append(diags...)
+											resp.Diagnostics.Append(diags...)
 
-												if string(got) != expected {
-													resp.Diagnostics.AddError(
-														"Unexpected req.Private Value",
-														fmt.Sprintf("expected %q, got %q", expected, got),
-													)
-												}
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
-											},
+											if string(got) != expected {
+												resp.Diagnostics.AddError(
+													"Unexpected req.Private Value",
+													fmt.Sprintf("expected %q, got %q", expected, got),
+												)
+											}
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
 										},
 									}
 								},
@@ -660,24 +640,22 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
-											},
-											DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddWarning("warning summary", "warning detail")
-												resp.Diagnostics.AddError("error summary", "error detail")
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
-											},
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+										},
+										DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddWarning("warning summary", "warning detail")
+											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
 										},
 									}
 								},
@@ -720,23 +698,21 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
-											},
-											DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-												// Intentionally empty, should call resp.State.RemoveResource() automatically.
-											},
-											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
-											},
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+										},
+										DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+											// Intentionally empty, should call resp.State.RemoveResource() automatically.
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
 										},
 									}
 								},
@@ -764,30 +740,28 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
 
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
-											},
-											UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-												var data testSchemaData
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+										},
+										UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+											var data testSchemaData
 
-												resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+											resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-												if data.TestRequired.Value != "test-new-value" {
-													resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
-												}
-											},
+											if data.TestRequired.Value != "test-new-value" {
+												resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+											}
 										},
 									}
 								},
@@ -826,30 +800,28 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
 
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
-											},
-											UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-												var data testSchemaData
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+										},
+										UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+											var data testSchemaData
 
-												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+											resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-												if data.TestComputed.Value != "test-plannedstate-value" {
-													resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
-												}
-											},
+											if data.TestComputed.Value != "test-plannedstate-value" {
+												resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
+											}
 										},
 									}
 								},
@@ -888,29 +860,27 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
-											},
-											UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-												var data testSchemaData
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+										},
+										UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+											var data testSchemaData
 
-												resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+											resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-												if data.TestRequired.Value != "test-old-value" {
-													resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.Value)
-												}
-											},
+											if data.TestRequired.Value != "test-old-value" {
+												resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.Value)
+											}
 										},
 									}
 								},
@@ -950,29 +920,27 @@ func TestServerApplyResourceChange(t *testing.T) {
 							ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 								return []func() resource.Resource{
 									func() resource.Resource {
-										return &testprovider.ResourceWithGetSchemaAndMetadata{
+										return &testprovider.Resource{
 											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 												return testSchema, nil
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
 											},
-											Resource: &testprovider.Resource{
-												CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
-												},
-												DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
-												},
-												UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-													var data testProviderMetaData
+											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+											},
+											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+											},
+											UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+												var data testProviderMetaData
 
-													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+												resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-													if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-														resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
-													}
-												},
+												if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+													resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
+												}
 											},
 										}
 									},
@@ -1017,33 +985,31 @@ func TestServerApplyResourceChange(t *testing.T) {
 							ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 								return []func() resource.Resource{
 									func() resource.Resource {
-										return &testprovider.ResourceWithGetSchemaAndMetadata{
+										return &testprovider.Resource{
 											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 												return testSchema, nil
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
 											},
-											Resource: &testprovider.Resource{
-												CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
-												},
-												DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-													resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
-												},
-												UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-													expected := `{"providerKey": "provider value"}`
-													got, diags := req.Private.GetKey(ctx, "providerKey")
+											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+											},
+											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+											},
+											UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+												expected := `{"providerKey": "provider value"}`
+												got, diags := req.Private.GetKey(ctx, "providerKey")
 
-													resp.Diagnostics.Append(diags...)
+												resp.Diagnostics.Append(diags...)
 
-													if string(got) != expected {
-														resp.Diagnostics.AddError(
-															"Unexpected req.Private Value",
-															fmt.Sprintf("expected %q, got %q", expected, got),
-														)
-													}
-												},
+												if string(got) != expected {
+													resp.Diagnostics.AddError(
+														"Unexpected req.Private Value",
+														fmt.Sprintf("expected %q, got %q", expected, got),
+													)
+												}
 											},
 										}
 									},
@@ -1091,24 +1057,22 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
-											},
-											UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.Diagnostics.AddWarning("warning summary", "warning detail")
-												resp.Diagnostics.AddError("error summary", "error detail")
-											},
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+										},
+										UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddWarning("warning summary", "warning detail")
+											resp.Diagnostics.AddError("error summary", "error detail")
 										},
 									}
 								},
@@ -1158,26 +1122,24 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
-											},
-											UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-												var data testSchemaData
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+										},
+										UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+											var data testSchemaData
 
-												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-											},
+											resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+											resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 										},
 									}
 								},
@@ -1215,23 +1177,21 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
-											},
-											UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-												resp.State.RemoveResource(ctx)
-											},
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+										},
+										UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.State.RemoveResource(ctx)
 										},
 									}
 								},
@@ -1274,25 +1234,23 @@ func TestServerApplyResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
-											},
-											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
-											},
-											UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-												diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"providerKey": "provider value"}`))
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+										},
+										DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+										},
+										UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+											diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"providerKey": "provider value"}`))
 
-												resp.Diagnostics.Append(diags...)
-											},
+											resp.Diagnostics.Append(diags...)
 										},
 									}
 								},

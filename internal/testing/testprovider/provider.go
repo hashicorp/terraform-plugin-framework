@@ -12,10 +12,6 @@ import (
 
 var _ provider.Provider = &Provider{}
 
-// Temporarily implement the new interfaces to ease testing transition
-var _ provider.ProviderWithDataSources = &Provider{}
-var _ provider.ProviderWithResources = &Provider{}
-
 // Declarative provider.Provider for unit testing.
 type Provider struct {
 	// Provider interface methods

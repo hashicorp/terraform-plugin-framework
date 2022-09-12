@@ -63,14 +63,13 @@ func TestServerReadDataSource(t *testing.T) {
 						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
-									return &testprovider.DataSourceWithGetSchemaAndMetadata{
+									return &testprovider.DataSource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{}, nil
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
 										},
-										DataSource: &testprovider.DataSource{},
 									}
 								},
 							}
@@ -93,26 +92,24 @@ func TestServerReadDataSource(t *testing.T) {
 						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
-									return &testprovider.DataSourceWithGetSchemaAndMetadata{
+									return &testprovider.DataSource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
 										},
-										DataSource: &testprovider.DataSource{
-											ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-												var config struct {
-													TestComputed types.String `tfsdk:"test_computed"`
-													TestRequired types.String `tfsdk:"test_required"`
-												}
+										ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+											var config struct {
+												TestComputed types.String `tfsdk:"test_computed"`
+												TestRequired types.String `tfsdk:"test_required"`
+											}
 
-												resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+											resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-												if config.TestRequired.Value != "test-config-value" {
-													resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.Value)
-												}
-											},
+											if config.TestRequired.Value != "test-config-value" {
+												resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.Value)
+											}
 										},
 									}
 								},
@@ -137,26 +134,24 @@ func TestServerReadDataSource(t *testing.T) {
 							DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 								return []func() datasource.DataSource{
 									func() datasource.DataSource {
-										return &testprovider.DataSourceWithGetSchemaAndMetadata{
+										return &testprovider.DataSource{
 											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 												return tfsdk.Schema{}, nil
 											},
 											MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 												resp.TypeName = "test_data_source"
 											},
-											DataSource: &testprovider.DataSource{
-												ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-													var config struct {
-														TestComputed types.String `tfsdk:"test_computed"`
-														TestRequired types.String `tfsdk:"test_required"`
-													}
+											ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+												var config struct {
+													TestComputed types.String `tfsdk:"test_computed"`
+													TestRequired types.String `tfsdk:"test_required"`
+												}
 
-													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &config)...)
+												resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &config)...)
 
-													if config.TestRequired.Value != "test-config-value" {
-														resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.Value)
-													}
-												},
+												if config.TestRequired.Value != "test-config-value" {
+													resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.Value)
+												}
 											},
 										}
 									},
@@ -185,18 +180,16 @@ func TestServerReadDataSource(t *testing.T) {
 						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
-									return &testprovider.DataSourceWithGetSchemaAndMetadata{
+									return &testprovider.DataSource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
 										},
-										DataSource: &testprovider.DataSource{
-											ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-												resp.Diagnostics.AddWarning("warning summary", "warning detail")
-												resp.Diagnostics.AddError("error summary", "error detail")
-											},
+										ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+											resp.Diagnostics.AddWarning("warning summary", "warning detail")
+											resp.Diagnostics.AddError("error summary", "error detail")
 										},
 									}
 								},
@@ -232,26 +225,24 @@ func TestServerReadDataSource(t *testing.T) {
 						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
-									return &testprovider.DataSourceWithGetSchemaAndMetadata{
+									return &testprovider.DataSource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
 										},
-										DataSource: &testprovider.DataSource{
-											ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-												var data struct {
-													TestComputed types.String `tfsdk:"test_computed"`
-													TestRequired types.String `tfsdk:"test_required"`
-												}
+										ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+											var data struct {
+												TestComputed types.String `tfsdk:"test_computed"`
+												TestRequired types.String `tfsdk:"test_required"`
+											}
 
-												resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+											resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-												data.TestComputed = types.String{Value: "test-state-value"}
+											data.TestComputed = types.String{Value: "test-state-value"}
 
-												resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-											},
+											resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 										},
 									}
 								},

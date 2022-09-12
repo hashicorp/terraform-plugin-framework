@@ -82,12 +82,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											var data testSchemaData
@@ -131,12 +133,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											var data testSchemaData
@@ -181,12 +185,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 							ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 								return []func() resource.Resource{
 									func() resource.Resource {
-										return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return testSchema, nil
-											},
-											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-												resp.TypeName = "test_resource"
+										return &testprovider.ResourceWithModifyPlan{
+											Resource: &testprovider.Resource{
+												GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+													return testSchema, nil
+												},
+												MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+													resp.TypeName = "test_resource"
+												},
 											},
 											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testProviderMetaData
@@ -235,12 +241,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											resp.Diagnostics.AddWarning("warning summary", "warning detail")
@@ -291,12 +299,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											var data testSchemaData
@@ -340,12 +350,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											// This is a strange thing to signal on creation,
@@ -394,12 +406,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											var data testSchemaData
@@ -437,12 +451,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 							ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 								return []func() resource.Resource{
 									func() resource.Resource {
-										return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return testSchema, nil
-											},
-											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-												resp.TypeName = "test_resource"
+										return &testprovider.ResourceWithModifyPlan{
+											Resource: &testprovider.Resource{
+												GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+													return testSchema, nil
+												},
+												MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+													resp.TypeName = "test_resource"
+												},
 											},
 											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testProviderMetaData
@@ -484,12 +500,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											resp.Diagnostics.AddWarning("warning summary", "warning detail")
@@ -533,12 +551,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											// This is invalid logic to run during deletion.
@@ -582,12 +602,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											// This is a strange thing to signal on destroy,
@@ -629,12 +651,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											var data testSchemaData
@@ -681,12 +705,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											var data testSchemaData
@@ -733,12 +759,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											var data testSchemaData
@@ -786,12 +814,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 							ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 								return []func() resource.Resource{
 									func() resource.Resource {
-										return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return testSchema, nil
-											},
-											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-												resp.TypeName = "test_resource"
+										return &testprovider.ResourceWithModifyPlan{
+											Resource: &testprovider.Resource{
+												GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+													return testSchema, nil
+												},
+												MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+													resp.TypeName = "test_resource"
+												},
 											},
 											ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 												var data testProviderMetaData
@@ -843,12 +873,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											resp.Diagnostics.AddWarning("warning summary", "warning detail")
@@ -902,12 +934,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											var data testSchemaData
@@ -954,12 +988,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndModifyPlanAndMetadata{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
+									return &testprovider.ResourceWithModifyPlan{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											resp.RequiresReplace = path.Paths{

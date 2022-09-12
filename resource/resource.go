@@ -23,6 +23,13 @@ import (
 // Although not required, it is conventional for resources to implement the
 // ResourceWithImportState interface.
 type Resource interface {
+	// Metadata should return the full name of the resource, such as
+	// examplecloud_thing.
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
+
+	// GetSchema returns the schema for this resource.
+	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
+
 	// Create is called when the provider must create a new resource. Config
 	// and planned state values should be read from the
 	// CreateRequest and new state values set on the CreateResponse.
@@ -78,16 +85,6 @@ type ResourceWithConfigValidators interface {
 	ConfigValidators(context.Context) []ConfigValidator
 }
 
-// ResourceWithGetSchema is an interface type that extends Resource to
-// return its schema definition.
-//
-// This method will be required in the Resource interface in a future
-// release.
-type ResourceWithGetSchema interface {
-	// GetSchema returns the schema for this data source.
-	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
-}
-
 // Optional interface on top of Resource that enables provider control over
 // the ImportResourceState RPC. This RPC is called by Terraform when the
 // `terraform import` command is executed. Afterwards, the ReadResource RPC
@@ -128,20 +125,6 @@ type ResourceWithModifyPlan interface {
 	//
 	// Any errors will prevent further resource-level plan modifications.
 	ModifyPlan(context.Context, ModifyPlanRequest, *ModifyPlanResponse)
-}
-
-// ResourceWithMetadata is an interface type that extends Resource to
-// return metadata, such as its resource type name. For example, if the
-// provider is named examplecloud and the resource manages a thing, this
-// should return examplecloud_thing.
-//
-// This method will be required in the Resource interface a future release.
-type ResourceWithMetadata interface {
-	Resource
-
-	// Metadata should return the full name of the resource, such as
-	// examplecloud_thing.
-	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 }
 
 // Optional interface on top of Resource that enables provider control over

@@ -18,7 +18,7 @@ provider: The `Provider` type `GetResources` method has been deprecated in prefe
 provider: The `ResourceType` type has been deprecated in preference of moving the `GetSchema` method to the `resource.Resource` type and optionally implementing the `NewResource` method logic to a new `Configure` method.  The `ResourceType` type will be removed in the next version.
 ```
 
-```release-note:enhancement
+```release-note:note
 resource: The `Resource` type `GetSchema` and `Metadata` methods will be required in the next version.
 ```
 

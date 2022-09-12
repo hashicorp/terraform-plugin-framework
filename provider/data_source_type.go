@@ -13,7 +13,7 @@ import (
 // return an instance of it in the map returned by Provider.GetDataSources.
 //
 // Deprecated: Migrate to datasource.DataSource implementation Configure,
-// GetSchema, and TypeName methods. Migrate the provider.Provider
+// GetSchema, and Metadata methods. Migrate the provider.Provider
 // implementation from the GetDataSources method to the DataSources method.
 type DataSourceType interface {
 	// GetSchema returns the schema for this data source.

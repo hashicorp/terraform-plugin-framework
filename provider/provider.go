@@ -59,7 +59,7 @@ type ProviderWithDataSources interface {
 	// implementation.
 	//
 	// The data source type name is determined by the DataSource implementing
-	// the TypeName method. All data sources must have unique names.
+	// the Metadata method. All data sources must have unique names.
 	DataSources(context.Context) []func() datasource.DataSource
 }
 
@@ -110,8 +110,8 @@ type ProviderWithGetResources interface {
 // metadata, such as version.
 //
 // Implementing this method will populate the
-// [datasource.TypeNameRequest.ProviderTypeName] and
-// [resource.TypeNameRequest.ProviderTypeName] fields automatically.
+// [datasource.MetadataRequest.ProviderTypeName] and
+// [resource.MetadataRequest.ProviderTypeName] fields automatically.
 type ProviderWithMetadata interface {
 	Provider
 
@@ -140,7 +140,7 @@ type ProviderWithResources interface {
 	// implementation.
 	//
 	// The resource type name is determined by the Resource implementing
-	// the TypeName method. All resources must have unique names.
+	// the Metadata method. All resources must have unique names.
 	Resources(context.Context) []func() resource.Resource
 }
 

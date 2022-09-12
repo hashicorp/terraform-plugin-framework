@@ -39,7 +39,7 @@ type ThingResourceModel struct {
 	ID               types.String `tfsdk:"id"`
 }
 
-func (r *ThingResource) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+func (r *ThingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "examplecloud_thing"
 }
 
@@ -109,20 +109,20 @@ func (r *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp
 }
 ```
 
-### TypeName Method
+### Metadata Method
 
-The [`resource.ResourceWithTypeName` interface `TypeName` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithTypeName.TypeName) defines the resource name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the resource specific name. For example, a provider named `examplecloud` and a resource that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the resource becomes part of the provider implementation, and therefore available to practitioners.
+The [`resource.ResourceWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithMetadata.Metadata) defines the resource name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the resource specific name. For example, a provider named `examplecloud` and a resource that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the resource becomes part of the provider implementation, and therefore available to practitioners.
 
 In this example, the resource name in an `examplecloud` provider that reads "thing" resources is hardcoded to `examplecloud_thing`:
 
 ```go
 // With the resource.Resource implementation
-func (r *ThingResource) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+func (r *ThingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "examplecloud_thing"
 }
 ```
 
-To simplify resource implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.ProviderWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithMetadata.Metadata) can set the provider name so it is available in the [`resource.TypeNameRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#TypeNameRequest.ProviderTypeName).
+To simplify resource implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.ProviderWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithMetadata.Metadata) can set the provider name so it is available in the [`resource.MetadataRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MetadataRequest.ProviderTypeName).
 
 In this example, the provider defines the `examplecloud` name for itself, and the data source is named `examplecloud_thing`:
 
@@ -133,7 +133,7 @@ func (p *ExampleCloudProvider) Metadata(ctx context.Context, req provider.Metada
 }
 
 // With the resource.Resource implementation
-func (d *ThingDataSource) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+func (d *ThingDataSource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_thing"
 }
 ```

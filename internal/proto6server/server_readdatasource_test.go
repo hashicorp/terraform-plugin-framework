@@ -63,11 +63,11 @@ func TestServerReadDataSource(t *testing.T) {
 						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
-									return &testprovider.DataSourceWithGetSchemaAndTypeName{
+									return &testprovider.DataSourceWithGetSchemaAndMetadata{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{}, nil
 										},
-										TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
 										},
 										DataSource: &testprovider.DataSource{},
@@ -93,11 +93,11 @@ func TestServerReadDataSource(t *testing.T) {
 						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
-									return &testprovider.DataSourceWithGetSchemaAndTypeName{
+									return &testprovider.DataSourceWithGetSchemaAndMetadata{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
-										TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
 										},
 										DataSource: &testprovider.DataSource{
@@ -137,11 +137,11 @@ func TestServerReadDataSource(t *testing.T) {
 							DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 								return []func() datasource.DataSource{
 									func() datasource.DataSource {
-										return &testprovider.DataSourceWithGetSchemaAndTypeName{
+										return &testprovider.DataSourceWithGetSchemaAndMetadata{
 											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 												return tfsdk.Schema{}, nil
 											},
-											TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+											MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 												resp.TypeName = "test_data_source"
 											},
 											DataSource: &testprovider.DataSource{
@@ -185,11 +185,11 @@ func TestServerReadDataSource(t *testing.T) {
 						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
-									return &testprovider.DataSourceWithGetSchemaAndTypeName{
+									return &testprovider.DataSourceWithGetSchemaAndMetadata{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
-										TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
 										},
 										DataSource: &testprovider.DataSource{
@@ -232,11 +232,11 @@ func TestServerReadDataSource(t *testing.T) {
 						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
-									return &testprovider.DataSourceWithGetSchemaAndTypeName{
+									return &testprovider.DataSourceWithGetSchemaAndMetadata{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
-										TypeNameMethod: func(_ context.Context, _ datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
 										},
 										DataSource: &testprovider.DataSource{

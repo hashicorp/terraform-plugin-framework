@@ -60,11 +60,11 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndTypeNameAndUpgradeState{
+									return &testprovider.ResourceWithGetSchemaAndMetadataAndUpgradeState{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return schema, nil
 										},
-										TypeNameMethod: func(_ context.Context, _ resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
 										Resource: &testprovider.Resource{},
@@ -160,11 +160,11 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndTypeNameAndUpgradeState{
+									return &testprovider.ResourceWithGetSchemaAndMetadataAndUpgradeState{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return schema, nil
 										},
-										TypeNameMethod: func(_ context.Context, _ resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
 										Resource: &testprovider.Resource{},
@@ -215,11 +215,11 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndTypeNameAndUpgradeState{
+									return &testprovider.ResourceWithGetSchemaAndMetadataAndUpgradeState{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return schema, nil
 										},
-										TypeNameMethod: func(_ context.Context, _ resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
 										Resource: &testprovider.Resource{},

@@ -130,18 +130,18 @@ type ResourceWithModifyPlan interface {
 	ModifyPlan(context.Context, ModifyPlanRequest, *ModifyPlanResponse)
 }
 
-// ResourceWithTypeName is an interface type that extends Resource to
-// return its resource type name. For example, if the provider is named
-// examplecloud and the resource manages a thing, this should return
-// examplecloud_thing.
+// ResourceWithMetadata is an interface type that extends Resource to
+// return metadata, such as its resource type name. For example, if the
+// provider is named examplecloud and the resource manages a thing, this
+// should return examplecloud_thing.
 //
 // This method will be required in the Resource interface a future release.
-type ResourceWithTypeName interface {
+type ResourceWithMetadata interface {
 	Resource
 
-	// TypeName should return the full name of the resource, such as
+	// Metadata should return the full name of the resource, such as
 	// examplecloud_thing.
-	TypeName(context.Context, TypeNameRequest, *TypeNameResponse)
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 }
 
 // Optional interface on top of Resource that enables provider control over

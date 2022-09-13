@@ -645,7 +645,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 						return []func() resource.Resource{
 							func() resource.Resource {
-								return &testprovider.ResourceWithGetSchemaAndMetadata{
+								return &testprovider.Resource{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return schema, nil
 									},
@@ -687,7 +687,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 						return []func() resource.Resource{
 							func() resource.Resource {
-								return &testprovider.ResourceWithGetSchemaAndMetadata{
+								return &testprovider.Resource{
 									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 										return schema, nil
 									},

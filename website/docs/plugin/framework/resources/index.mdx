@@ -111,7 +111,7 @@ func (r *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 ### Metadata Method
 
-The [`resource.ResourceWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithMetadata.Metadata) defines the resource name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the resource specific name. For example, a provider named `examplecloud` and a resource that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the resource becomes part of the provider implementation, and therefore available to practitioners.
+The [`resource.Resource` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Metadata) defines the resource name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the resource specific name. For example, a provider named `examplecloud` and a resource that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the resource becomes part of the provider implementation, and therefore available to practitioners.
 
 In this example, the resource name in an `examplecloud` provider that reads "thing" resources is hardcoded to `examplecloud_thing`:
 
@@ -140,7 +140,7 @@ func (d *ThingDataSource) Metadata(ctx context.Context, req resource.MetadataReq
 
 ### GetSchema Method
 
-The [`resource.ResourceWithGetSchema` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithGetSchema.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the resource's configuration, plan, and state.
+The [`resource.Resource` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the resource's configuration, plan, and state.
 
 ### Create
 

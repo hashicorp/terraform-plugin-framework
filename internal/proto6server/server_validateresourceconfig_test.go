@@ -56,14 +56,13 @@ func TestServerValidateResourceConfig(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{}, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{},
 									}
 								},
 							}
@@ -83,14 +82,13 @@ func TestServerValidateResourceConfig(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{},
 									}
 								},
 							}
@@ -111,14 +109,15 @@ func TestServerValidateResourceConfig(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadataAndValidateConfig{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
+									return &testprovider.ResourceWithValidateConfig{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return testSchema, nil
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
 										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
-										},
-										Resource: &testprovider.Resource{},
 										ValidateConfigMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 											resp.Diagnostics.AddWarning("warning summary", "warning detail")
 											resp.Diagnostics.AddError("error summary", "error detail")

@@ -67,7 +67,7 @@ func (d *ThingDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 ### Metadata Method
 
-The [`datasource.DataSourceWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithMetadata.Metadata) defines the data source name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the data source specific name. For example, a provider named `examplecloud` and a data source that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the data source becomes part of the provider implementation, and therefore available to practitioners.
+The [`datasource.DataSource` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Metadata) defines the data source name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the data source specific name. For example, a provider named `examplecloud` and a data source that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the data source becomes part of the provider implementation, and therefore available to practitioners.
 
 In this example, the data source name in an `examplecloud` provider that reads "thing" resources is hardcoded to `examplecloud_thing`:
 
@@ -96,7 +96,7 @@ func (d *ThingDataSource) Metadata(ctx context.Context, req datasource.MetadataR
 
 ### GetSchema Method
 
-The [`datasource.DataSourceWithGetSchema` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithGetSchema.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the data source's configuration and state.
+The [`datasource.DataSource` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the data source's configuration and state.
 
 ### Read Method
 

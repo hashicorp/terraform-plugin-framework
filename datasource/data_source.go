@@ -16,6 +16,13 @@ import (
 //   - Validation: Schema-based via tfsdk.Attribute or entire configuration
 //     via DataSourceWithConfigValidators or DataSourceWithValidateConfig.
 type DataSource interface {
+	// Metadata should return the full name of the data source, such as
+	// examplecloud_thing.
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
+
+	// GetSchema returns the schema for this data source.
+	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
+
 	// Read is called when the provider must read data source values in
 	// order to update state. Config values should be read from the
 	// ReadRequest and new state values set on the ReadResponse.
@@ -51,30 +58,6 @@ type DataSourceWithConfigValidators interface {
 
 	// ConfigValidators returns a list of ConfigValidators. Each ConfigValidator's Validate method will be called when validating the data source.
 	ConfigValidators(context.Context) []ConfigValidator
-}
-
-// DataSourceWithGetSchema is an interface type that extends DataSource to
-// return its schema definition.
-//
-// This method will be required in the DataSource interface in a future
-// release.
-type DataSourceWithGetSchema interface {
-	// GetSchema returns the schema for this data source.
-	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
-}
-
-// DataSourceWithMetadata is an interface type that extends DataSource to
-// return metadata, such as its data source type name. For example, if the
-// provider is named examplecloud and the data source reads a thing, this
-// should return examplecloud_thing.
-//
-// This method will be required in the DataSource interface a future release.
-type DataSourceWithMetadata interface {
-	DataSource
-
-	// Metadata should return the full name of the data source, such as
-	// examplecloud_thing.
-	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 }
 
 // DataSourceWithValidateConfig is an interface type that extends DataSource to include imperative validation.

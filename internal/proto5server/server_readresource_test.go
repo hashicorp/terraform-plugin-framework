@@ -68,14 +68,13 @@ func TestServerReadResource(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{}, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{},
 									}
 								},
 							}
@@ -98,26 +97,24 @@ func TestServerReadResource(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-												var data struct {
-													TestComputed types.String `tfsdk:"test_computed"`
-													TestRequired types.String `tfsdk:"test_required"`
-												}
+										ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+											var data struct {
+												TestComputed types.String `tfsdk:"test_computed"`
+												TestRequired types.String `tfsdk:"test_required"`
+											}
 
-												resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+											resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-												if data.TestRequired.Value != "test-currentstate-value" {
-													resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.Value)
-												}
-											},
+											if data.TestRequired.Value != "test-currentstate-value" {
+												resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.Value)
+											}
 										},
 									}
 								},
@@ -142,26 +139,24 @@ func TestServerReadResource(t *testing.T) {
 							ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 								return []func() resource.Resource{
 									func() resource.Resource {
-										return &testprovider.ResourceWithGetSchemaAndMetadata{
+										return &testprovider.Resource{
 											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 												return tfsdk.Schema{}, nil
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
 											},
-											Resource: &testprovider.Resource{
-												ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-													var data struct {
-														TestComputed types.String `tfsdk:"test_computed"`
-														TestRequired types.String `tfsdk:"test_required"`
-													}
+											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+												var data struct {
+													TestComputed types.String `tfsdk:"test_computed"`
+													TestRequired types.String `tfsdk:"test_required"`
+												}
 
-													resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+												resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-													if data.TestRequired.Value != "test-currentstate-value" {
-														resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestRequired.Value)
-													}
-												},
+												if data.TestRequired.Value != "test-currentstate-value" {
+													resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestRequired.Value)
+												}
 											},
 										}
 									},
@@ -190,27 +185,25 @@ func TestServerReadResource(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{}, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-												expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
-												got, diags := req.Private.GetKey(ctx, "providerKey")
+										ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+											expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+											got, diags := req.Private.GetKey(ctx, "providerKey")
 
-												resp.Diagnostics.Append(diags...)
+											resp.Diagnostics.Append(diags...)
 
-												if string(got) != expected {
-													resp.Diagnostics.AddError(
-														"Unexpected req.Private Value",
-														fmt.Sprintf("expected %q, got %q", expected, got),
-													)
-												}
-											},
+											if string(got) != expected {
+												resp.Diagnostics.AddError(
+													"Unexpected req.Private Value",
+													fmt.Sprintf("expected %q, got %q", expected, got),
+												)
+											}
 										},
 									}
 								},
@@ -242,18 +235,16 @@ func TestServerReadResource(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-												resp.Diagnostics.AddWarning("warning summary", "warning detail")
-												resp.Diagnostics.AddError("error summary", "error detail")
-											},
+										ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+											resp.Diagnostics.AddWarning("warning summary", "warning detail")
+											resp.Diagnostics.AddError("error summary", "error detail")
 										},
 									}
 								},
@@ -289,26 +280,24 @@ func TestServerReadResource(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-												var data struct {
-													TestComputed types.String `tfsdk:"test_computed"`
-													TestRequired types.String `tfsdk:"test_required"`
-												}
+										ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+											var data struct {
+												TestComputed types.String `tfsdk:"test_computed"`
+												TestRequired types.String `tfsdk:"test_required"`
+											}
 
-												resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+											resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-												data.TestComputed = types.String{Value: "test-newstate-value"}
+											data.TestComputed = types.String{Value: "test-newstate-value"}
 
-												resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-											},
+											resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 										},
 									}
 								},
@@ -332,17 +321,15 @@ func TestServerReadResource(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return testSchema, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-												resp.State.RemoveResource(ctx)
-											},
+										ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+											resp.State.RemoveResource(ctx)
 										},
 									}
 								},
@@ -366,19 +353,17 @@ func TestServerReadResource(t *testing.T) {
 						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
 							return []func() resource.Resource{
 								func() resource.Resource {
-									return &testprovider.ResourceWithGetSchemaAndMetadata{
+									return &testprovider.Resource{
 										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 											return tfsdk.Schema{}, nil
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										Resource: &testprovider.Resource{
-											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-												diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+										ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+											diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
 
-												resp.Diagnostics.Append(diags...)
-											},
+											resp.Diagnostics.Append(diags...)
 										},
 									}
 								},

@@ -1,0 +1,15 @@
+```release-note:breaking-change
+datasource: The `DataSource` interface now requires the `GetSchema` and `Metadata` methods.
+```
+
+```release-note:breaking-change
+provider: The `Provider` interface `GetDataSources` and `GetResources` methods have been removed. Use the `DataSources` and `Resources` methods instead.
+```
+
+```release-note:breaking-change
+provider: The `DataSourceType` and `ResourceType` types have been removed. Use the `GetSchema`, `Metadata`, and optionally the `Configure` methods on `datasource.DataSource` and `resource.Resource` implementations instead.
+```
+
+```release-note:breaking-change
+resource: The `Resource` interface now requires the `GetSchema` and `Metadata` methods.
+```

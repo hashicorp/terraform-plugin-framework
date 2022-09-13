@@ -111,7 +111,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
-				Resource: &testprovider.ResourceWithGetSchema{
+				Resource: &testprovider.Resource{
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchema, nil
 					},
@@ -125,7 +125,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfigAttributeValidator,
-				Resource: &testprovider.ResourceWithGetSchema{
+				Resource: &testprovider.Resource{
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchemaAttributeValidator, nil
 					},
@@ -139,7 +139,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfigAttributeValidatorError,
-				Resource: &testprovider.ResourceWithGetSchema{
+				Resource: &testprovider.Resource{
 					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 						return testSchemaAttributeValidatorError, nil
 					},
@@ -161,11 +161,12 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
-				Resource: &testprovider.ResourceWithConfigValidatorsAndGetSchemaAndMetadata{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
+				Resource: &testprovider.ResourceWithConfigValidators{
+					Resource: &testprovider.Resource{
+						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+							return testSchema, nil
+						},
 					},
-					Resource: &testprovider.Resource{},
 					ConfigValidatorsMethod: func(ctx context.Context) []resource.ConfigValidator {
 						return []resource.ConfigValidator{
 							&testprovider.ResourceConfigValidator{
@@ -195,11 +196,12 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
-				Resource: &testprovider.ResourceWithConfigValidatorsAndGetSchemaAndMetadata{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
+				Resource: &testprovider.ResourceWithConfigValidators{
+					Resource: &testprovider.Resource{
+						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+							return testSchema, nil
+						},
 					},
-					Resource: &testprovider.Resource{},
 					ConfigValidatorsMethod: func(ctx context.Context) []resource.ConfigValidator {
 						return []resource.ConfigValidator{
 							&testprovider.ResourceConfigValidator{
@@ -225,11 +227,12 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
-				Resource: &testprovider.ResourceWithGetSchemaAndMetadataAndValidateConfig{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
+				Resource: &testprovider.ResourceWithValidateConfig{
+					Resource: &testprovider.Resource{
+						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+							return testSchema, nil
+						},
 					},
-					Resource: &testprovider.Resource{},
 					ValidateConfigMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 						var got types.String
 
@@ -253,11 +256,12 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			},
 			request: &fwserver.ValidateResourceConfigRequest{
 				Config: &testConfig,
-				Resource: &testprovider.ResourceWithGetSchemaAndMetadataAndValidateConfig{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
+				Resource: &testprovider.ResourceWithValidateConfig{
+					Resource: &testprovider.Resource{
+						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+							return testSchema, nil
+						},
 					},
-					Resource: &testprovider.Resource{},
 					ValidateConfigMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 						resp.Diagnostics.AddWarning("warning summary", "warning detail")
 						resp.Diagnostics.AddError("error summary", "error detail")

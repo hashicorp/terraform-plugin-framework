@@ -60,13 +60,13 @@ func (p *provider) DataSources(ctx context.Context) []func() datasource.DataSour
 }
 ```
 
-Like the `resource.Resource` interface, `datasource.DataSource` requires `GetSchema` and `TypeName` methods.
+Like the `resource.Resource` interface, `datasource.DataSource` requires `GetSchema` and `Metadata` methods.
 These methods work the same way for data sources as they do for resources. The `Read` method is also required.
 
 The `GetSchema` method returns a `tfsdk.Schema` struct which defines your data source's attributes. This is the same
 struct you use to define provider and resource attributes.
 
-The `TypeName` method returns a type name that you define.
+The `Metadata` method returns a type name that you define.
 
 The `Read` method implements the logic for writing into the Terraform state.
 
@@ -76,7 +76,7 @@ Framework.
 ```go
 type dataSourceExample struct{}
 
-func (d *dataSourceExample) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+func (d *dataSourceExample) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
     /* ... */
 }
 
@@ -104,8 +104,8 @@ provider.
 For a complete example, clone the
 `terraform-provider-http` repository and compare the `data_source.go` file in
 [v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
-and the `data_source_http.go` file in
-[v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http.go).
+and the `data_source_http.go` file
+[after the migration](https://github.com/hashicorp/terraform-provider-http/blob/8527d5b4546b54cdef246a13befc5745dbbbf740/internal/provider/data_source_http.go).
 
 ### SDKv2
 
@@ -159,7 +159,7 @@ This code from the `data_source_http.go` file defines the methods for the `http`
 Framework.
 
 ```go
-func (d *httpDataSource) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+func (d *httpDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
     // This is unconventional in that the data source name matches the provider name.
     // Typically these should have the provider name, an underscore, then the type name.
     // e.g. http_request

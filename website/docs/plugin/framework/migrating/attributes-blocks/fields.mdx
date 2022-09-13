@@ -54,8 +54,8 @@ provider.
 For a complete example, clone the
 `terraform-provider-http` repository and compare the `data_source.go` file in
 [v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
-and the `data_source_http.go` file in
-[v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http.go).
+and the `data_source_http.go` file
+[after the migration](https://github.com/hashicorp/terraform-provider-http/blob/8527d5b4546b54cdef246a13befc5745dbbbf740/internal/provider/data_source_http.go).
 
 ### SDKv2
 
@@ -79,7 +79,7 @@ The following example from the `data_source_http.go` file shows how the `url` at
 to be required with the Framework.
 
 ```go
-func (d *httpDataSourceType) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *httpDataSource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             "url": {

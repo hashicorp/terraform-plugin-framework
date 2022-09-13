@@ -89,12 +89,12 @@ func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
 }
 ```
 
-The `resource.Resource` interface requires `TypeName`, `GetSchema`, `Create`, `Read`, `Update`, and `Delete`  methods.
+The `resource.Resource` interface requires `Metadata`, `GetSchema`, `Create`, `Read`, `Update`, and `Delete`  methods.
 
 The `GetSchema` method returns a `tfsdk.Schema` struct which defines your resource's attributes. This is the same
 struct you use to define provider and data source attributes.
 
-The `TypeName` method returns a type name that you define.
+The `Metadata` method returns a type name that you define.
 
 The following code shows how you define a `resource.Resource` which implements these methods with the
 Framework.
@@ -102,7 +102,7 @@ Framework.
 ```go
 type resourceExample struct{}
 
-func (r *resourceExample) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+func (r *resourceExample) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
     /* ... */
 }
 
@@ -162,8 +162,8 @@ The following examples show how to migrate portions of the
 
 For a complete example,
 clone the `terraform-provider-tls` repository and compare the `resource_private_key.go` file in
-[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/resource_private_key.go) with
-[v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_private_key.go).
+[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/resource_private_key.go) with the file
+[after the migration](https://github.com/hashicorp/terraform-provider-tls/blob/4dafb105818e45a88532f917e7b170ee2a9bb092/internal/provider/resource_private_key.go).
 
 ### SDKv2
 
@@ -220,10 +220,10 @@ func (p *provider) Resources(_ context.Context) []func() resource.Resource {
 }
 ```
 
-This code defines the `GetSchema` and `TypeName` methods for the `privateKeyResource`.
+This code defines the `GetSchema` and `Metadata` methods for the `privateKeyResource`.
 
 ```go
-func (r *privateKeyResource) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+func (r *privateKeyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
     resp.TypeName = "tls_private_key"
 }
 

@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -15,7 +14,7 @@ import (
 // ReadResource RPC.
 type ReadResourceRequest struct {
 	CurrentState *tfsdk.State
-	ResourceType provider.ResourceType
+	Resource     resource.Resource
 	Private      *privatestate.Data
 	ProviderMeta *tfsdk.Config
 }
@@ -44,15 +43,23 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		return
 	}
 
-	// Always instantiate new Resource instances.
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
+	if _, ok := req.Resource.(resource.ResourceWithConfigure); ok {
+		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 
-	resp.Diagnostics.Append(diags...)
+		configureReq := resource.ConfigureRequest{
+			ProviderData: s.ResourceConfigureData,
+		}
+		configureResp := resource.ConfigureResponse{}
 
-	if resp.Diagnostics.HasError() {
-		return
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource Configure")
+		req.Resource.(resource.ResourceWithConfigure).Configure(ctx, configureReq, &configureResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource Configure")
+
+		resp.Diagnostics.Append(configureResp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	readReq := resource.ReadRequest{
@@ -87,7 +94,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined Resource Read")
-	resourceImpl.Read(ctx, readReq, &readResp)
+	req.Resource.Read(ctx, readReq, &readResp)
 	logging.FrameworkDebug(ctx, "Called provider defined Resource Read")
 
 	resp.Diagnostics = readResp.Diagnostics

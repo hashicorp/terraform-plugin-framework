@@ -26,6 +26,10 @@
         "path": "resources"
       },
       {
+        "title": "Configure Clients",
+        "path": "resources/configure"
+      },
+      {
         "title": "Import",
         "path": "resources/import"
       },
@@ -45,7 +49,16 @@
   },
   {
     "title": "Data Sources",
-    "path": "data-sources"
+    "routes": [
+      {
+        "title": "Overview",
+        "path": "data-sources"
+      },
+      {
+        "title": "Configure Clients",
+        "path": "data-sources/configure"
+      }
+    ]
   },
   {
     "title": "Schemas",

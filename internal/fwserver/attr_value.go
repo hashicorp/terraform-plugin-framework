@@ -68,7 +68,7 @@ func listElemObject(ctx context.Context, schemaPath path.Path, list types.List, 
 		return listElemObjectFromTerraformValue(ctx, schemaPath, list, description, tftypes.UnknownValue)
 	}
 
-	if index > len(list.Elems) {
+	if index >= len(list.Elems) {
 		return listElemObjectFromTerraformValue(ctx, schemaPath, list, description, nil)
 	}
 
@@ -156,7 +156,7 @@ func setElemObject(ctx context.Context, schemaPath path.Path, set types.Set, ind
 		return setElemObjectFromTerraformValue(ctx, schemaPath, set, description, tftypes.UnknownValue)
 	}
 
-	if index > len(set.Elems) {
+	if index >= len(set.Elems) {
 		return setElemObjectFromTerraformValue(ctx, schemaPath, set, description, nil)
 	}
 

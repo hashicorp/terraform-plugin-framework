@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -16,7 +15,7 @@ import (
 type ReadDataSourceRequest struct {
 	Config           *tfsdk.Config
 	DataSourceSchema fwschema.Schema
-	DataSourceType   provider.DataSourceType
+	DataSource       datasource.DataSource
 	ProviderMeta     *tfsdk.Config
 }
 
@@ -33,15 +32,23 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 		return
 	}
 
-	// Always instantiate new DataSource instances.
-	logging.FrameworkDebug(ctx, "Calling provider defined DataSourceType NewDataSource")
-	dataSource, diags := req.DataSourceType.NewDataSource(ctx, s.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined DataSourceType NewDataSource")
+	if _, ok := req.DataSource.(datasource.DataSourceWithConfigure); ok {
+		logging.FrameworkTrace(ctx, "DataSource implements DataSourceWithConfigure")
 
-	resp.Diagnostics.Append(diags...)
+		configureReq := datasource.ConfigureRequest{
+			ProviderData: s.DataSourceConfigureData,
+		}
+		configureResp := datasource.ConfigureResponse{}
 
-	if resp.Diagnostics.HasError() {
-		return
+		logging.FrameworkDebug(ctx, "Calling provider defined DataSource Configure")
+		req.DataSource.(datasource.DataSourceWithConfigure).Configure(ctx, configureReq, &configureResp)
+		logging.FrameworkDebug(ctx, "Called provider defined DataSource Configure")
+
+		resp.Diagnostics.Append(configureResp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	readReq := datasource.ReadRequest{
@@ -65,7 +72,7 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 	}
 
 	logging.FrameworkDebug(ctx, "Calling provider defined DataSource Read")
-	dataSource.Read(ctx, readReq, &readResp)
+	req.DataSource.Read(ctx, readReq, &readResp)
 	logging.FrameworkDebug(ctx, "Called provider defined DataSource Read")
 
 	resp.Diagnostics = readResp.Diagnostics

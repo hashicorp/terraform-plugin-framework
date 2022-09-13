@@ -2,6 +2,7 @@ package fwserver_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -473,6 +473,67 @@ func TestServerPlanResourceChange(t *testing.T) {
 		request          *fwserver.PlanResourceChangeRequest
 		expectedResponse *fwserver.PlanResourceChangeResponse
 	}{
+		"resource-configure-data": {
+			server: &fwserver.Server{
+				Provider:              &testprovider.Provider{},
+				ResourceConfigureData: "test-provider-configure-value",
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState:     testEmptyState,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithConfigureAndModifyPlan{
+					ConfigureMethod: func(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+						providerData, ok := req.ProviderData.(string)
+
+						if !ok {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected string, got: %T", req.ProviderData),
+							)
+							return
+						}
+
+						if providerData != "test-provider-configure-value" {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected test-provider-configure-value, got: %q", providerData),
+							)
+						}
+					},
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						// In practice, the Configure method would save the
+						// provider data to the Resource implementation and
+						// use it here. The fact that Configure is able to
+						// read the data proves this can work.
+					},
+					Resource: &testprovider.Resource{},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
 		"create-mark-computed-config-nils-as-unknown": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -494,14 +555,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -535,15 +589,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchemaAttributePlanModifierPrivatePlanRequest,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierPrivatePlanRequest, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
-				PriorPrivate: testPrivate,
+				Resource:       &testprovider.Resource{},
+				PriorPrivate:   testPrivate,
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -600,14 +647,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchemaAttributePlanModifierAttributePlan,
 				},
 				ResourceSchema: testSchemaAttributePlanModifierAttributePlan,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierAttributePlan, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -648,14 +688,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchemaAttributePlanModifierPrivatePlanResponse,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierPrivatePlanResponse, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -689,14 +722,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchemaAttributePlanModifierDiagnosticsError,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierDiagnosticsError, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				Diagnostics: diag.Diagnostics{
@@ -736,14 +762,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchemaAttributePlanModifierRequiresReplace,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierRequiresReplace, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -785,22 +804,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testSchemaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-								if data.TestRequired.Value != "test-config-value" {
-									resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
-								}
-							},
-						}, nil
+						if data.TestRequired.Value != "test-config-value" {
+							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+						}
 					},
 				},
 			},
@@ -836,25 +848,18 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
 
-								key := "providerKeyOne"
-								got, diags := req.Private.GetKey(ctx, key)
+						key := "providerKeyOne"
+						got, diags := req.Private.GetKey(ctx, key)
 
-								resp.Diagnostics.Append(diags...)
+						resp.Diagnostics.Append(diags...)
 
-								if string(got) != expected {
-									resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
-								}
-							},
-						}, nil
+						if string(got) != expected {
+							resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+						}
 					},
 				},
 				PriorPrivate: testPrivate,
@@ -891,22 +896,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testSchemaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-								if !data.TestComputed.Unknown {
-									resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
-								}
-							},
-						}, nil
+						if !data.TestComputed.Unknown {
+							resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
+						}
 					},
 				},
 			},
@@ -943,22 +941,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PriorState:     testEmptyState,
 				ProviderMeta:   testProviderMetaConfig,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testProviderMetaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testProviderMetaData
 
-								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-								if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-									resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
-								}
-							},
-						}, nil
+						if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
+						}
 					},
 				},
 			},
@@ -994,17 +985,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								resp.Diagnostics.AddWarning("warning summary", "warning detail")
-								resp.Diagnostics.AddError("error summary", "error detail")
-							},
-						}, nil
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						resp.Diagnostics.AddWarning("warning summary", "warning detail")
+						resp.Diagnostics.AddError("error summary", "error detail")
 					},
 				},
 			},
@@ -1044,22 +1028,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testSchemaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-								data.TestComputed = types.String{Value: "test-plannedstate-value"}
+						data.TestComputed = types.String{Value: "test-plannedstate-value"}
 
-								resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
-							},
-						}, nil
+						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
 					},
 				},
 			},
@@ -1095,18 +1072,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
-								resp.Diagnostics.Append(diags...)
-							},
-						}, nil
+						resp.Diagnostics.Append(diags...)
 					},
 				},
 			},
@@ -1142,24 +1112,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								// This is a strange thing to signal on creation,
-								// but the framework does not prevent you from
-								// doing it and it might be overly burdensome on
-								// provider developers to have the framework raise
-								// an error if it is technically valid in the
-								// protocol.
-								resp.RequiresReplace = path.Paths{
-									path.Root("test_required"),
-								}
-							},
-						}, nil
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						// This is a strange thing to signal on creation,
+						// but the framework does not prevent you from
+						// doing it and it might be overly burdensome on
+						// provider developers to have the framework raise
+						// an error if it is technically valid in the
+						// protocol.
+						resp.RequiresReplace = path.Paths{
+							path.Root("test_required"),
+						}
 					},
 				},
 			},
@@ -1196,25 +1159,18 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchemaAttributePlanModifierPrivatePlanResponse,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierPrivatePlanResponse, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
 
-								key := "providerKeyOne"
-								got, diags := req.Private.GetKey(ctx, key)
+						key := "providerKeyOne"
+						got, diags := req.Private.GetKey(ctx, key)
 
-								resp.Diagnostics.Append(diags...)
+						resp.Diagnostics.Append(diags...)
 
-								if string(got) != expected {
-									resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
-								}
-							},
-						}, nil
+						if string(got) != expected {
+							resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+						}
 					},
 				},
 			},
@@ -1249,22 +1205,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testSchemaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-								if data.TestRequired.Value != "test-config-value" {
-									resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
-								}
-							},
-						}, nil
+						if data.TestRequired.Value != "test-config-value" {
+							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+						}
 					},
 				},
 			},
@@ -1294,25 +1243,18 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
 
-								key := "providerKeyOne"
-								got, diags := req.Private.GetKey(ctx, key)
+						key := "providerKeyOne"
+						got, diags := req.Private.GetKey(ctx, key)
 
-								resp.Diagnostics.Append(diags...)
+						resp.Diagnostics.Append(diags...)
 
-								if string(got) != expected {
-									resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
-								}
-							},
-						}, nil
+						if string(got) != expected {
+							resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+						}
 					},
 				},
 				PriorPrivate: testPrivateProvider,
@@ -1343,22 +1285,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testSchemaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-								if data.TestRequired.Value != "test-state-value" {
-									resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.Value)
-								}
-							},
-						}, nil
+						if data.TestRequired.Value != "test-state-value" {
+							resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.Value)
+						}
 					},
 				},
 			},
@@ -1389,22 +1324,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				ProviderMeta:   testProviderMetaConfig,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testProviderMetaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testProviderMetaData
 
-								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-								if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-									resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
-								}
-							},
-						}, nil
+						if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
+						}
 					},
 				},
 			},
@@ -1434,17 +1362,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								resp.Diagnostics.AddWarning("warning summary", "warning detail")
-								resp.Diagnostics.AddError("error summary", "error detail")
-							},
-						}, nil
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						resp.Diagnostics.AddWarning("warning summary", "warning detail")
+						resp.Diagnostics.AddError("error summary", "error detail")
 					},
 				},
 			},
@@ -1478,17 +1399,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								// This is invalid logic to run during deletion.
-								resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("test_computed"), types.String{Value: "test-plannedstate-value"})...)
-							},
-						}, nil
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						// This is invalid logic to run during deletion.
+						resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("test_computed"), types.String{Value: "test-plannedstate-value"})...)
 					},
 				},
 			},
@@ -1532,24 +1446,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								// This is a strange thing to signal on creation,
-								// but the framework does not prevent you from
-								// doing it and it might be overly burdensome on
-								// provider developers to have the framework raise
-								// an error if it is technically valid in the
-								// protocol.
-								resp.RequiresReplace = path.Paths{
-									path.Root("test_required"),
-								}
-							},
-						}, nil
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						// This is a strange thing to signal on creation,
+						// but the framework does not prevent you from
+						// doing it and it might be overly burdensome on
+						// provider developers to have the framework raise
+						// an error if it is technically valid in the
+						// protocol.
+						resp.RequiresReplace = path.Paths{
+							path.Root("test_required"),
+						}
 					},
 				},
 			},
@@ -1582,18 +1489,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
-								resp.Diagnostics.Append(diags...)
-							},
-						}, nil
+						resp.Diagnostics.Append(diags...)
 					},
 				},
 			},
@@ -1621,18 +1521,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierPrivatePlanResponse, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
-								resp.Diagnostics.Append(diags...)
-							},
-						}, nil
+						resp.Diagnostics.Append(diags...)
 					},
 				},
 			},
@@ -1668,14 +1561,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -1715,15 +1601,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchemaAttributePlanModifierPrivatePlanRequest,
 				},
 				ResourceSchema: testSchemaAttributePlanModifierPrivatePlanRequest,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierPrivatePlanRequest, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
-				PriorPrivate: testPrivateProvider,
+				Resource:       &testprovider.Resource{},
+				PriorPrivate:   testPrivateProvider,
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -1784,14 +1663,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchemaAttributePlanModifierAttributePlan,
 				},
 				ResourceSchema: testSchemaAttributePlanModifierAttributePlan,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierAttributePlan, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -1859,14 +1731,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchemaAttributePlanModifierAttributePlan,
 				},
 				ResourceSchema: testSchemaAttributePlanModifierAttributePlan,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierAttributePlan, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -1918,14 +1783,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
 				ResourceSchema: testSchemaAttributePlanModifierPrivatePlanResponse,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierPrivatePlanResponse, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -1965,14 +1823,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchemaAttributePlanModifierDiagnosticsError,
 				},
 				ResourceSchema: testSchemaAttributePlanModifierDiagnosticsError,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierDiagnosticsError, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				Diagnostics: diag.Diagnostics{
@@ -2018,14 +1869,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchemaAttributePlanModifierRequiresReplace,
 				},
 				ResourceSchema: testSchemaAttributePlanModifierRequiresReplace,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierRequiresReplace, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{}, nil
-					},
-				},
+				Resource:       &testprovider.Resource{},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
@@ -2068,22 +1912,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testSchemaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-								if data.TestRequired.Value != "test-new-value" {
-									resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
-								}
-							},
-						}, nil
+						if data.TestRequired.Value != "test-new-value" {
+							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+						}
 					},
 				},
 			},
@@ -2125,22 +1962,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testSchemaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-								if !data.TestComputed.Unknown {
-									resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
-								}
-							},
-						}, nil
+						if !data.TestComputed.Unknown {
+							resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
+						}
 					},
 				},
 			},
@@ -2183,22 +2013,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				ProviderMeta:   testProviderMetaConfig,
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testProviderMetaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testProviderMetaData
 
-								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-								if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-									resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
-								}
-							},
-						}, nil
+						if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
+						}
 					},
 				},
 			},
@@ -2240,25 +2063,18 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
 
-								key := "providerKeyOne"
-								got, diags := req.Private.GetKey(ctx, key)
+						key := "providerKeyOne"
+						got, diags := req.Private.GetKey(ctx, key)
 
-								resp.Diagnostics.Append(diags...)
+						resp.Diagnostics.Append(diags...)
 
-								if string(got) != expected {
-									resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
-								}
-							},
-						}, nil
+						if string(got) != expected {
+							resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+						}
 					},
 				},
 				PriorPrivate: testPrivate,
@@ -2301,17 +2117,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								resp.Diagnostics.AddWarning("warning summary", "warning detail")
-								resp.Diagnostics.AddError("error summary", "error detail")
-							},
-						}, nil
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						resp.Diagnostics.AddWarning("warning summary", "warning detail")
+						resp.Diagnostics.AddError("error summary", "error detail")
 					},
 				},
 			},
@@ -2357,22 +2166,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								var data testSchemaData
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-								data.TestComputed = types.String{Value: "test-plannedstate-value"}
+						data.TestComputed = types.String{Value: "test-plannedstate-value"}
 
-								resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
-							},
-						}, nil
+						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
 					},
 				},
 			},
@@ -2414,24 +2216,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								// This is a strange thing to signal on creation,
-								// but the framework does not prevent you from
-								// doing it and it might be overly burdensome on
-								// provider developers to have the framework raise
-								// an error if it is technically valid in the
-								// protocol.
-								resp.RequiresReplace = path.Paths{
-									path.Root("test_required"),
-								}
-							},
-						}, nil
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						// This is a strange thing to signal on creation,
+						// but the framework does not prevent you from
+						// doing it and it might be overly burdensome on
+						// provider developers to have the framework raise
+						// an error if it is technically valid in the
+						// protocol.
+						resp.RequiresReplace = path.Paths{
+							path.Root("test_required"),
+						}
 					},
 				},
 			},
@@ -2476,18 +2271,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
-								resp.Diagnostics.Append(diags...)
-							},
-						}, nil
+						resp.Diagnostics.Append(diags...)
 					},
 				},
 			},
@@ -2526,18 +2314,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchemaAttributePlanModifierPrivatePlanResponse,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributePlanModifierPrivatePlanResponse, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.ResourceWithModifyPlan{
-							ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
-								resp.Diagnostics.Append(diags...)
-							},
-						}, nil
+						resp.Diagnostics.Append(diags...)
 					},
 				},
 			},

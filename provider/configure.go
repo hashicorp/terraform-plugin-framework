@@ -28,8 +28,18 @@ type ConfigureRequest struct {
 // an argument to the provider's Configure function, in which the provider
 // should set values on the ConfigureResponse as appropriate.
 type ConfigureResponse struct {
+	// DataSourceData is provider-defined data, clients, etc. that is passed
+	// to [datasource.ConfigureRequest.ProviderData] for each DataSource type
+	// that implements the Configure method.
+	DataSourceData any
+
 	// Diagnostics report errors or warnings related to configuring the
 	// provider. An empty slice indicates success, with no warnings or
 	// errors generated.
 	Diagnostics diag.Diagnostics
+
+	// ResourceData is provider-defined data, clients, etc. that is passed
+	// to [resource.ConfigureRequest.ProviderData] for each Resource type
+	// that implements the Configure method.
+	ResourceData any
 }

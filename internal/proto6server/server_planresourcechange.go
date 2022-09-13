@@ -17,7 +17,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, proto6Req *tfprotov6.Pl
 
 	fwResp := &fwserver.PlanResourceChangeResponse{}
 
-	resourceType, diags := s.FrameworkServer.ResourceType(ctx, proto6Req.TypeName)
+	resource, diags := s.FrameworkServer.Resource(ctx, proto6Req.TypeName)
 
 	fwResp.Diagnostics.Append(diags...)
 
@@ -41,7 +41,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, proto6Req *tfprotov6.Pl
 		return toproto6.PlanResourceChangeResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.PlanResourceChangeRequest(ctx, proto6Req, resourceType, resourceSchema, providerMetaSchema)
+	fwReq, diags := fromproto6.PlanResourceChangeRequest(ctx, proto6Req, resource, resourceSchema, providerMetaSchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

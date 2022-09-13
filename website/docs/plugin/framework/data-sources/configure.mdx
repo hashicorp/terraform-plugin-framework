@@ -1,0 +1,96 @@
+---
+page_title: 'Plugin Development - Framework: Configure Data Sources'
+description: >-
+  How to configure data sources with provider data or clients in the provider development framework.
+---
+
+# Configure Data Sources
+
+[Data sources](/plugin/framework/data-sources) may require provider-level data or remote system clients to operate correctly. The framework supports the ability to configure this data and/or clients once within the provider, then pass that information to data sources by adding the `Configure` method.
+
+## Prepare Provider Configure Method
+
+Implement the [`provider.ConfigureResponse.DataSourceData` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigureResponse.DataSourceData) in the [`Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure). This value can be set to any type, whether an existing client or vendor SDK type, a provider-defined custom type, or the provider implementation itself. It is recommended to use pointer types so that data sources can determine if this value was configured before attempting to use it.
+
+In this example, the Go standard library [`net/http.Client`](https://pkg.go.dev/net/http#Client) is configured in the provider, and made available for data sources:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+  resp.DataSourceData = &http.Client{/* ... */}
+}
+```
+
+In this example, the code defines an `ExampleClient` type that is made available for data sources:
+
+```go
+type ExampleClient struct {
+  /* ... */
+}
+
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+  resp.DataSourceData = &ExampleClient{/* ... */}
+}
+```
+
+In this example, the `ExampleCloudProvider` type itself is made available for data sources:
+
+```go
+// With the provider.Provider implementation
+type ExampleCloudProvider struct {
+  /* ... */
+}
+
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+  resp.DataSourceData = p
+}
+```
+
+## Define Data Source Configure Method
+
+Implement the [`datasource.DataSourceWithConfigure` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithConfigure) which receives the provider configured data from the [`Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure) and saves it into the [`datasource.DataSource` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource) implementation.
+
+In this example, the provider configured the Go standard library [`net/http.Client`](https://pkg.go.dev/net/http#Client) which the data source uses during `Read`:
+
+```go
+// With the datasource.DataSource implementation
+type ThingDataSource struct {
+  client *http.Client
+}
+
+func (d *ThingDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+  // Prevent panic if the provider has not been configured.
+  if req.ProviderData == nil {
+    return
+  }
+
+  client, ok := req.ProviderData.(*http.Client)
+
+  if !ok {
+    resp.Diagnostics.AddError(
+      "Unexpected Data Source Configure Type",
+      fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+    )
+
+    return
+  }
+
+  d.client = client
+}
+
+func (d *ThingDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+  // Prevent panic if the provider has not been configured.
+  if d.client == nil {
+    resp.Diagnostics.AddError(
+      "Unconfigured HTTP Client",
+      "Expected configured HTTP client. Please report this issue to the provider developers.",
+    )
+
+    return
+  }
+
+  httpResp, err := d.client.Get("https://example.com")
+  /* ... */
+}
+```

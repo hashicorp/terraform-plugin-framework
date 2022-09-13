@@ -2,6 +2,7 @@ package fwserver_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -108,25 +108,18 @@ func TestServerCreateResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-								var data testSchemaData
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-								if data.TestRequired.Value != "test-config-value" {
-									resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
-								}
+						if data.TestRequired.Value != "test-config-value" {
+							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+						}
 
-								// Prevent missing resource state error diagnostic
-								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-							},
-						}, nil
+						// Prevent missing resource state error diagnostic
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 					},
 				},
 			},
@@ -154,25 +147,18 @@ func TestServerCreateResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-								var data testSchemaData
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-								if data.TestRequired.Value != "test-plannedstate-value" {
-									resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestRequired.Value)
-								}
+						if data.TestRequired.Value != "test-plannedstate-value" {
+							resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestRequired.Value)
+						}
 
-								// Prevent missing resource state error diagnostic
-								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-							},
-						}, nil
+						// Prevent missing resource state error diagnostic
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 					},
 				},
 			},
@@ -200,31 +186,84 @@ func TestServerCreateResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-								var metadata testProviderMetaData
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						var metadata testProviderMetaData
 
-								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &metadata)...)
+						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &metadata)...)
 
-								if metadata.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-									resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+metadata.TestProviderMetaAttribute.Value)
-								}
+						if metadata.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+metadata.TestProviderMetaAttribute.Value)
+						}
 
-								// Prevent missing resource state error diagnostic
-								var data testSchemaData
+						// Prevent missing resource state error diagnostic
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-							},
-						}, nil
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 					},
 				},
 				ProviderMeta: testProviderMetaConfig,
+			},
+			expectedResponse: &fwserver.CreateResourceResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"resource-configure-data": {
+			server: &fwserver.Server{
+				Provider:              &testprovider.Provider{},
+				ResourceConfigureData: "test-provider-configure-value",
+			},
+			request: &fwserver.CreateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithConfigure{
+					ConfigureMethod: func(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+						providerData, ok := req.ProviderData.(string)
+
+						if !ok {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected string, got: %T", req.ProviderData),
+							)
+							return
+						}
+
+						if providerData != "test-provider-configure-value" {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected test-provider-configure-value, got: %q", providerData),
+							)
+						}
+					},
+					Resource: &testprovider.Resource{
+						CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+							// In practice, the Configure method would save the
+							// provider data to the Resource implementation and
+							// use it here. The fact that Configure is able to
+							// read the data proves this can work.
+
+							// Prevent missing resource state error diagnostic
+							var data testSchemaData
+
+							resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+							resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+						},
+					},
+				},
 			},
 			expectedResponse: &fwserver.CreateResourceResponse{
 				NewState: &tfsdk.State{
@@ -243,17 +282,10 @@ func TestServerCreateResource(t *testing.T) {
 			},
 			request: &fwserver.CreateResourceRequest{
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-								resp.Diagnostics.AddWarning("warning summary", "warning detail")
-								resp.Diagnostics.AddError("error summary", "error detail")
-							},
-						}, nil
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						resp.Diagnostics.AddWarning("warning summary", "warning detail")
+						resp.Diagnostics.AddError("error summary", "error detail")
 					},
 				},
 			},
@@ -286,19 +318,12 @@ func TestServerCreateResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-								var data testSchemaData
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						var data testSchemaData
 
-								resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-							},
-						}, nil
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 					},
 				},
 			},
@@ -326,16 +351,9 @@ func TestServerCreateResource(t *testing.T) {
 					Schema: testSchema,
 				},
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-								// Intentionally missing resp.State.Set()
-							},
-						}, nil
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						// Intentionally missing resp.State.Set()
 					},
 				},
 			},
@@ -359,23 +377,16 @@ func TestServerCreateResource(t *testing.T) {
 			},
 			request: &fwserver.CreateResourceRequest{
 				ResourceSchema: testSchema,
-				ResourceType: &testprovider.ResourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-						return &testprovider.Resource{
-							CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-								var data testSchemaData
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						var data testSchemaData
 
-								// Prevent missing resource state error diagnostic
-								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+						// Prevent missing resource state error diagnostic
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
-								diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
-								resp.Diagnostics.Append(diags...)
-							},
-						}, nil
+						resp.Diagnostics.Append(diags...)
 					},
 				},
 			},

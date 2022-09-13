@@ -1,3 +1,34 @@
+# 0.12.0 (September 12, 2022)
+
+NOTES:
+
+* datasource: The `DataSource` type `GetSchema` and `Metadata` methods will be required in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+* provider: The `DataSourceType` type has been deprecated in preference of moving the `GetSchema` method to the `datasource.DataSource` type  and optionally implementing the `NewResource` method logic to a new `Configure` method. The `DataSourceType` type will be removed in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+* provider: The `Provider` type `GetDataSources` method has been deprecated in preference of the `DataSources` method. All `datasource.DataSource` types must implement the `Metadata` method after migrating. Support for the `GetDataSources` method will be removed in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+* provider: The `Provider` type `GetResources` method has been deprecated in preference of the `Resources` method. All `resource.Resource` types must implement the `Metadata` method after migrating. Support for the `GetResources` method will be removed in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+* provider: The `ResourceType` type has been deprecated in preference of moving the `GetSchema` method to the `resource.Resource` type and optionally implementing the `NewResource` method logic to a new `Configure` method.  The `ResourceType` type will be removed in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+* resource: The `Resource` type `GetSchema` and `Metadata` methods will be required in the next version. ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+
+BREAKING CHANGES:
+
+* tfsdk: The `Schema` type `AttributeAtPath()` method signature has be updated with a `path.Path` parameter and `diag.Diagnostics` return. Use the `AttributeAtTerraformPath()` method instead if `*tftypes.AttributePath` or specific `error` handling is still necessary. ([#450](https://github.com/hashicorp/terraform-plugin-framework/issues/450))
+* tfsdk: The previously deprecated `Schema` type `AttributeType()` method has been removed. Use the `Type()` method instead. ([#450](https://github.com/hashicorp/terraform-plugin-framework/issues/450))
+* tfsdk: The previously deprecated `Schema` type `AttributeTypeAtPath()` method has been removed. Use the `TypeAtPath()` or `TypeAtTerraformPath()` method instead. ([#450](https://github.com/hashicorp/terraform-plugin-framework/issues/450))
+* tfsdk: The previously deprecated `Schema` type `TerraformType()` method has been removed. Use `Type().TerraformType()` instead. ([#450](https://github.com/hashicorp/terraform-plugin-framework/issues/450))
+
+ENHANCEMENTS:
+
+* datasource: Added `DataSource` type `Configure`, `GetSchema`, and `Metadata` method support ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+* provider: Added `ConfigureResponse` type `DataSourceData` field, which will set the `datasource.ConfigureRequest.ProviderData` field ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+* provider: Added `ConfigureResponse` type `ResourceData` field, which will set the `resource.ConfigureRequest.ProviderData` field ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+* provider: Added `Provider` type `Metadata` method support, which the `MetadataResponse.TypeName` field will set the `datasource.MetadataRequest.ProviderTypeName` and `resource.MetadataRequest.ProviderTypeName` fields ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+* resource: Added `Resource` type `Configure`, `GetSchema`, and `Metadata` method support ([#472](https://github.com/hashicorp/terraform-plugin-framework/issues/472))
+
+BUG FIXES:
+
+* internal/fwserver: Delayed deprecated attribute/block warnings for unknown values, which may be null ([#465](https://github.com/hashicorp/terraform-plugin-framework/issues/465))
+* internal/fwserver: Fixed alignment of set type plan modification ([#468](https://github.com/hashicorp/terraform-plugin-framework/issues/468))
+
 # 0.11.1 (August 15, 2022)
 
 BUG FIXES:

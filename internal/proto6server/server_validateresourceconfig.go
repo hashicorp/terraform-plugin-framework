@@ -17,7 +17,7 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, proto6Req *tfprotov
 
 	fwResp := &fwserver.ValidateResourceConfigResponse{}
 
-	resourceType, diags := s.FrameworkServer.ResourceType(ctx, proto6Req.TypeName)
+	resource, diags := s.FrameworkServer.Resource(ctx, proto6Req.TypeName)
 
 	fwResp.Diagnostics.Append(diags...)
 
@@ -33,7 +33,7 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, proto6Req *tfprotov
 		return toproto6.ValidateResourceConfigResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.ValidateResourceConfigRequest(ctx, proto6Req, resourceType, resourceSchema)
+	fwReq, diags := fromproto6.ValidateResourceConfigRequest(ctx, proto6Req, resource, resourceSchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

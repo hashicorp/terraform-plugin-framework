@@ -5786,6 +5786,507 @@ func TestDataGet(t *testing.T) {
 				},
 			},
 		},
+		"SingleBlock-types.Object-null": {
+			data: fwschemadata.Data{
+				Schema: tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"object": {
+							Attributes: map[string]tfsdk.Attribute{
+								"nested_string": {
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							nil,
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object types.Object `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object types.Object `tfsdk:"object"`
+			}{
+				Object: types.Object{
+					AttrTypes: map[string]attr.Type{
+						"nested_string": types.StringType,
+					},
+					Null: true,
+				},
+			},
+		},
+		"SingleBlock-types.Object-unknown": {
+			data: fwschemadata.Data{
+				Schema: tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"object": {
+							Attributes: map[string]tfsdk.Attribute{
+								"nested_string": {
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							tftypes.UnknownValue,
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object types.Object `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object types.Object `tfsdk:"object"`
+			}{
+				Object: types.Object{
+					AttrTypes: map[string]attr.Type{
+						"nested_string": types.StringType,
+					},
+					Unknown: true,
+				},
+			},
+		},
+		"SingleBlock-types.Object-value": {
+			data: fwschemadata.Data{
+				Schema: tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"object": {
+							Attributes: map[string]tfsdk.Attribute{
+								"nested_string": {
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"nested_string": tftypes.NewValue(tftypes.String, "test1"),
+							},
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object types.Object `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object types.Object `tfsdk:"object"`
+			}{
+				Object: types.Object{
+					AttrTypes: map[string]attr.Type{
+						"nested_string": types.StringType,
+					},
+					Attrs: map[string]attr.Value{
+						"nested_string": types.String{Value: "test1"},
+					},
+				},
+			},
+		},
+		"SingleBlock-*struct-null": {
+			data: fwschemadata.Data{
+				Schema: tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"object": {
+							Attributes: map[string]tfsdk.Attribute{
+								"nested_string": {
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							nil,
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object *struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object *struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}{
+				Object: nil,
+			},
+		},
+		"SingleBlock-*struct-unknown": {
+			data: fwschemadata.Data{
+				Schema: tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"object": {
+							Attributes: map[string]tfsdk.Attribute{
+								"nested_string": {
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							tftypes.UnknownValue,
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object *struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object *struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}{
+				Object: nil,
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("object"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"unhandled unknown value",
+				),
+			},
+		},
+		"SingleBlock-*struct-value": {
+			data: fwschemadata.Data{
+				Schema: tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"object": {
+							Attributes: map[string]tfsdk.Attribute{
+								"nested_string": {
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"nested_string": tftypes.NewValue(tftypes.String, "test1"),
+							},
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object *struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object *struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}{
+				Object: &struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				}{
+					NestedString: types.String{Value: "test1"},
+				},
+			},
+		},
+		"SingleBlock-struct-null": {
+			data: fwschemadata.Data{
+				Schema: tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"object": {
+							Attributes: map[string]tfsdk.Attribute{
+								"nested_string": {
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							nil,
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}{
+				Object: struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				}{
+					NestedString: types.String{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("object"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"unhandled null value",
+				),
+			},
+		},
+		"SingleBlock-struct-unknown": {
+			data: fwschemadata.Data{
+				Schema: tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"object": {
+							Attributes: map[string]tfsdk.Attribute{
+								"nested_string": {
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							tftypes.UnknownValue,
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}{
+				Object: struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				}{
+					NestedString: types.String{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("object"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"unhandled unknown value",
+				),
+			},
+		},
+		"SingleBlock-struct-value": {
+			data: fwschemadata.Data{
+				Schema: tfsdk.Schema{
+					Blocks: map[string]tfsdk.Block{
+						"object": {
+							Attributes: map[string]tfsdk.Attribute{
+								"nested_string": {
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"nested_string": tftypes.NewValue(tftypes.String, "test1"),
+							},
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				} `tfsdk:"object"`
+			}{
+				Object: struct {
+					NestedString types.String `tfsdk:"nested_string"`
+				}{
+					NestedString: types.String{Value: "test1"},
+				},
+			},
+		},
 		"SingleNestedAttributes-types.Object-null": {
 			data: fwschemadata.Data{
 				Schema: tfsdk.Schema{

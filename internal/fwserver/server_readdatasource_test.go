@@ -2,6 +2,7 @@ package fwserver_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -9,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -81,25 +81,18 @@ func TestServerReadDataSource(t *testing.T) {
 			request: &fwserver.ReadDataSourceRequest{
 				Config:           testConfig,
 				DataSourceSchema: testSchema,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-						return &testprovider.DataSource{
-							ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-								var config struct {
-									TestComputed types.String `tfsdk:"test_computed"`
-									TestRequired types.String `tfsdk:"test_required"`
-								}
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
 
-								resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-								if config.TestRequired.Value != "test-config-value" {
-									resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.Value)
-								}
-							},
-						}, nil
+						if config.TestRequired.Value != "test-config-value" {
+							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.Value)
+						}
 					},
 				},
 			},
@@ -114,28 +107,62 @@ func TestServerReadDataSource(t *testing.T) {
 			request: &fwserver.ReadDataSourceRequest{
 				Config:           testConfig,
 				DataSourceSchema: testSchema,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-						return &testprovider.DataSource{
-							ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-								var config struct {
-									TestComputed types.String `tfsdk:"test_computed"`
-									TestRequired types.String `tfsdk:"test_required"`
-								}
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
 
-								resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &config)...)
+						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &config)...)
 
-								if config.TestRequired.Value != "test-config-value" {
-									resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.Value)
-								}
-							},
-						}, nil
+						if config.TestRequired.Value != "test-config-value" {
+							resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.Value)
+						}
 					},
 				},
 				ProviderMeta: testConfig,
+			},
+			expectedResponse: &fwserver.ReadDataSourceResponse{
+				State: testStateUnchanged,
+			},
+		},
+		"resource-configure-data": {
+			server: &fwserver.Server{
+				DataSourceConfigureData: "test-provider-configure-value",
+				Provider:                &testprovider.Provider{},
+			},
+			request: &fwserver.ReadDataSourceRequest{
+				Config:           testConfig,
+				DataSourceSchema: testSchema,
+				DataSource: &testprovider.DataSourceWithConfigure{
+					ConfigureMethod: func(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+						providerData, ok := req.ProviderData.(string)
+
+						if !ok {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected string, got: %T", req.ProviderData),
+							)
+							return
+						}
+
+						if providerData != "test-provider-configure-value" {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected test-provider-configure-value, got: %q", providerData),
+							)
+						}
+					},
+					DataSource: &testprovider.DataSource{
+						ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+							// In practice, the Configure method would save the
+							// provider data to the Resource implementation and
+							// use it here. The fact that Configure is able to
+							// read the data proves this can work.
+						},
+					},
+				},
 			},
 			expectedResponse: &fwserver.ReadDataSourceResponse{
 				State: testStateUnchanged,
@@ -148,17 +175,10 @@ func TestServerReadDataSource(t *testing.T) {
 			request: &fwserver.ReadDataSourceRequest{
 				Config:           testConfig,
 				DataSourceSchema: testSchema,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-						return &testprovider.DataSource{
-							ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-								resp.Diagnostics.AddWarning("warning summary", "warning detail")
-								resp.Diagnostics.AddError("error summary", "error detail")
-							},
-						}, nil
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						resp.Diagnostics.AddWarning("warning summary", "warning detail")
+						resp.Diagnostics.AddError("error summary", "error detail")
 					},
 				},
 			},
@@ -183,25 +203,18 @@ func TestServerReadDataSource(t *testing.T) {
 			request: &fwserver.ReadDataSourceRequest{
 				Config:           testConfig,
 				DataSourceSchema: testSchema,
-				DataSourceType: &testprovider.DataSourceType{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
-					},
-					NewDataSourceMethod: func(_ context.Context, _ provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-						return &testprovider.DataSource{
-							ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-								var data struct {
-									TestComputed types.String `tfsdk:"test_computed"`
-									TestRequired types.String `tfsdk:"test_required"`
-								}
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						var data struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
 
-								resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-								data.TestComputed = types.String{Value: "test-state-value"}
+						data.TestComputed = types.String{Value: "test-state-value"}
 
-								resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-							},
-						}, nil
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 					},
 				},
 			},

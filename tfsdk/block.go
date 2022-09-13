@@ -115,6 +115,14 @@ func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) 
 		}
 
 		return fwschema.NestedBlock{Block: b}, nil
+	case BlockNestingModeSingle:
+		_, ok := step.(tftypes.AttributeName)
+
+		if !ok {
+			return nil, fmt.Errorf("can't apply %T to block NestingModeSingle", step)
+		}
+
+		return fwschema.NestedBlock{Block: b}.ApplyTerraform5AttributePathStep(step)
 	default:
 		return nil, fmt.Errorf("unsupported block nesting mode: %v", b.NestingMode)
 	}
@@ -223,6 +231,8 @@ func (b Block) Type() attr.Type {
 		return types.SetType{
 			ElemType: attrType,
 		}
+	case BlockNestingModeSingle:
+		return attrType
 	default:
 		panic(fmt.Sprintf("unsupported block nesting mode: %v", b.NestingMode))
 	}

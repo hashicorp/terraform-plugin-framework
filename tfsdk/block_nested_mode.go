@@ -5,6 +5,7 @@ import (
 )
 
 const (
-	BlockNestingModeList = fwschema.BlockNestingModeList
-	BlockNestingModeSet  = fwschema.BlockNestingModeSet
+	BlockNestingModeList   = fwschema.BlockNestingModeList
+	BlockNestingModeSet    = fwschema.BlockNestingModeSet
+	BlockNestingModeSingle = fwschema.BlockNestingModeSingle
 )

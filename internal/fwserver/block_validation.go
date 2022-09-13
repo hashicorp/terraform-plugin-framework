@@ -184,6 +184,53 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		if b.GetMinItems() > 0 && int64(len(s.Elems)) < b.GetMinItems() && !s.IsUnknown() {
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elems)))
 		}
+	case fwschema.BlockNestingModeSingle:
+		s, ok := req.AttributeConfig.(types.Object)
+
+		if !ok {
+			err := fmt.Errorf("unknown block value type (%s) for nesting mode (%T) at path: %s", req.AttributeConfig.Type(ctx), nm, req.AttributePath)
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Block Validation Error",
+				"Block validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
+
+			return
+		}
+
+		for name, attr := range b.GetAttributes() {
+			nestedAttrReq := tfsdk.ValidateAttributeRequest{
+				AttributePath:           req.AttributePath.AtName(name),
+				AttributePathExpression: req.AttributePathExpression.AtName(name),
+				Config:                  req.Config,
+			}
+			nestedAttrResp := &tfsdk.ValidateAttributeResponse{
+				Diagnostics: resp.Diagnostics,
+			}
+
+			AttributeValidate(ctx, attr, nestedAttrReq, nestedAttrResp)
+
+			resp.Diagnostics = nestedAttrResp.Diagnostics
+		}
+
+		for name, block := range b.GetBlocks() {
+			nestedAttrReq := tfsdk.ValidateAttributeRequest{
+				AttributePath:           req.AttributePath.AtName(name),
+				AttributePathExpression: req.AttributePathExpression.AtName(name),
+				Config:                  req.Config,
+			}
+			nestedAttrResp := &tfsdk.ValidateAttributeResponse{
+				Diagnostics: resp.Diagnostics,
+			}
+
+			BlockValidate(ctx, block, nestedAttrReq, nestedAttrResp)
+
+			resp.Diagnostics = nestedAttrResp.Diagnostics
+		}
+
+		if b.GetMinItems() == 1 && s.IsNull() {
+			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), 0))
+		}
 	default:
 		err := fmt.Errorf("unknown block validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
 		resp.Diagnostics.AddAttributeError(

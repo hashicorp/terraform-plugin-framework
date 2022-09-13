@@ -1163,6 +1163,183 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 				),
 			},
 		},
+		"WithAttributeName-SingleBlock-WithAttributeName": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_nested_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+				},
+			},
+			path: path.Root("test").AtName("sub_test"),
+			expected: Attribute{
+				Type:     types.StringType,
+				Required: true,
+			},
+		},
+		"WithAttributeName-SingleBlock-WithElementKeyInt": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_nested_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+				},
+			},
+			path:     path.Root("test").AtListIndex(0),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[0]\n"+
+						"Original Error: ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to block NestingModeSingle",
+				),
+			},
+		},
+		"WithAttributeName-SingleBlock-WithElementKeyString": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_nested_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+				},
+			},
+			path:     path.Root("test").AtMapKey("sub_test"),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("sub_test"),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[\"sub_test\"]\n"+
+						"Original Error: ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeSingle",
+				),
+			},
+		},
+		"WithAttributeName-SingleBlock-WithElementKeyValue": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_nested_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+				},
+			},
+			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					"Invalid Schema Path",
+					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
+						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
+						"Path: test[Value(\"sub_test\")]\n"+
+						"Original Error: ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to block NestingModeSingle",
+				),
+			},
+		},
 		"WithAttributeName-Object-WithAttributeName": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
@@ -2384,6 +2561,156 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 			expected:    Attribute{},
 			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to Attributes",
 		},
+		"WithAttributeName-SingleBlock-WithAttributeName": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_nested_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test").WithAttributeName("sub_test"),
+			expected: Attribute{
+				Type:     types.StringType,
+				Required: true,
+			},
+		},
+		"WithAttributeName-SingleBlock-WithElementKeyInt": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_nested_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
+			expected:    Attribute{},
+			expectedErr: "ElementKeyInt(0) still remains in the path: can't apply tftypes.ElementKeyInt to block NestingModeSingle",
+		},
+		"WithAttributeName-SingleBlock-WithElementKeyString": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_nested_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("sub_test"),
+			expected:    Attribute{},
+			expectedErr: "ElementKeyString(\"sub_test\") still remains in the path: can't apply tftypes.ElementKeyString to block NestingModeSingle",
+		},
+		"WithAttributeName-SingleBlock-WithElementKeyValue": {
+			schema: Schema{
+				Attributes: map[string]Attribute{
+					"other_attr": {
+						Type:     types.BoolType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]Block{
+					"other_block": {
+						Attributes: map[string]Attribute{
+							"sub_test": {
+								Type:     types.BoolType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+					"test": {
+						Attributes: map[string]Attribute{
+							"other_nested_attr": {
+								Type:     types.BoolType,
+								Optional: true,
+							},
+							"sub_test": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+				},
+			},
+			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "sub_test")),
+			expected:    Attribute{},
+			expectedErr: "ElementKeyValue(tftypes.String<\"sub_test\">) still remains in the path: can't apply tftypes.ElementKeyValue to block NestingModeSingle",
+		},
 		"WithAttributeName-Object-WithAttributeName": {
 			schema: Schema{
 				Attributes: map[string]Attribute{
@@ -2671,6 +2998,28 @@ func TestSchemaType(t *testing.T) {
 				},
 				NestingMode: BlockNestingModeSet,
 			},
+			"single_nested_block": {
+				Attributes: map[string]Attribute{
+					"string": {
+						Type:     types.StringType,
+						Required: true,
+					},
+					"number": {
+						Type:     types.NumberType,
+						Optional: true,
+					},
+					"bool": {
+						Type:     types.BoolType,
+						Computed: true,
+					},
+					"list": {
+						Type:     types.ListType{ElemType: types.StringType},
+						Computed: true,
+						Optional: true,
+					},
+				},
+				NestingMode: BlockNestingModeSingle,
+			},
 		},
 	}
 
@@ -2712,6 +3061,14 @@ func TestSchemaType(t *testing.T) {
 						"bool":   types.BoolType,
 						"list":   types.ListType{ElemType: types.StringType},
 					},
+				},
+			},
+			"single_nested_block": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"string": types.StringType,
+					"number": types.NumberType,
+					"bool":   types.BoolType,
+					"list":   types.ListType{ElemType: types.StringType},
 				},
 			},
 		},
@@ -2795,6 +3152,15 @@ func TestSchemaTypeAtPath(t *testing.T) {
 							},
 						},
 						NestingMode: BlockNestingModeSet,
+					},
+					"single_block": {
+						Attributes: map[string]Attribute{
+							"single_block_nested": {
+								Required: true,
+								Type:     types.StringType,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
 					},
 				},
 			},
@@ -2977,6 +3343,15 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 							},
 						},
 						NestingMode: BlockNestingModeSet,
+					},
+					"single_block": {
+						Attributes: map[string]Attribute{
+							"single_block_nested": {
+								Required: true,
+								Type:     types.StringType,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
 					},
 				},
 			},

@@ -1030,6 +1030,327 @@ func TestDataValueAtPath(t *testing.T) {
 			}).AtName("sub_test"),
 			expected: types.String{Value: "value"},
 		},
+		"WithAttributeName-SingleBlock-null-WithAttributeName-Float64": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Number,
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Bool,
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Number,
+						},
+					}, nil),
+				}),
+				Schema: tfsdk.Schema{
+					Attributes: map[string]tfsdk.Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]tfsdk.Block{
+						"other_block": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+						"test": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type:     types.Float64Type,
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.Float64{Null: true},
+		},
+		"WithAttributeName-SingleBlock-null-WithAttributeName-Int64": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Number,
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Bool,
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Number,
+						},
+					}, nil),
+				}),
+				Schema: tfsdk.Schema{
+					Attributes: map[string]tfsdk.Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]tfsdk.Block{
+						"other_block": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+						"test": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type:     types.Int64Type,
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.Int64{Null: true},
+		},
+		"WithAttributeName-SingleBlock-null-WithAttributeName-Set": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Set{
+									ElementType: tftypes.Bool,
+								},
+							},
+						},
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Set{
+									ElementType: tftypes.String,
+								},
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Set{
+								ElementType: tftypes.Bool,
+							},
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Set{
+								ElementType: tftypes.String,
+							},
+						},
+					}, nil),
+				}),
+				Schema: tfsdk.Schema{
+					Attributes: map[string]tfsdk.Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]tfsdk.Block{
+						"other_block": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type: types.SetType{
+										ElemType: types.BoolType,
+									},
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+						"test": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type: types.SetType{
+										ElemType: types.StringType,
+									},
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.Set{ElemType: types.StringType, Null: true},
+		},
+		"WithAttributeName-SingleBlock-null-WithAttributeName-String": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Bool,
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.String,
+						},
+					}, nil),
+				}),
+				Schema: tfsdk.Schema{
+					Attributes: map[string]tfsdk.Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]tfsdk.Block{
+						"other_block": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+						"test": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.String{Null: true},
+		},
+		"WithAttributeName-SingleBlock-WithAttributeName": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"sub_test": tftypes.NewValue(tftypes.Bool, true),
+					}),
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"sub_test": tftypes.NewValue(tftypes.String, "value"),
+					}),
+				}),
+				Schema: tfsdk.Schema{
+					Attributes: map[string]tfsdk.Attribute{
+						"other_attr": {
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]tfsdk.Block{
+						"other_block": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type:     types.BoolType,
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+						"test": {
+							Attributes: map[string]tfsdk.Attribute{
+								"sub_test": {
+									Type:     types.StringType,
+									Optional: true,
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.String{Value: "value"},
+		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Float64": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{

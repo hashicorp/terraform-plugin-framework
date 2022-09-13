@@ -2263,6 +2263,371 @@ func TestBlockValidate(t *testing.T) {
 				},
 			},
 		},
+		"single-no-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test": {
+								Attributes: map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+									},
+								},
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"single-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test": {
+								Attributes: map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Required: true,
+										Validators: []tfsdk.AttributeValidator{
+											testErrorAttributeValidator{},
+										},
+									},
+								},
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
+		"single-maxitems-validation-known-valid": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue1"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test": {
+								Attributes: map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
+								MaxItems:    1,
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"single-maxitems-validation-null": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								nil,
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test": {
+								Attributes: map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
+								MaxItems:    1,
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"single-maxitems-validation-unknown": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								tftypes.UnknownValue,
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test": {
+								Attributes: map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
+								MaxItems:    1,
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"single-minitems-validation-known-valid": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue1"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test": {
+								Attributes: map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
+								MinItems:    1,
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"single-minitems-validation-null": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								nil,
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test": {
+								Attributes: map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
+								MinItems:    1,
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"Missing Block Configuration",
+						"The configuration should declare a minimum of 1 block, however 0 blocks were configured.",
+					),
+				},
+			},
+		},
+		"single-minitems-validation-unknown": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								tftypes.UnknownValue,
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Blocks: map[string]tfsdk.Block{
+							"test": {
+								Attributes: map[string]tfsdk.Attribute{
+									"nested_attr": {
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
+								MinItems:    1,
+								NestingMode: tfsdk.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
 	}
 
 	for name, tc := range testCases {

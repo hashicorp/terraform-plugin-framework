@@ -38,6 +38,8 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwsc
 		schemaNestedBlock.Nesting = tfprotov6.SchemaNestedBlockNestingModeList
 	case fwschema.BlockNestingModeSet:
 		schemaNestedBlock.Nesting = tfprotov6.SchemaNestedBlockNestingModeSet
+	case fwschema.BlockNestingModeSingle:
+		schemaNestedBlock.Nesting = tfprotov6.SchemaNestedBlockNestingModeSingle
 	default:
 		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
 	}

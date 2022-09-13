@@ -32,8 +32,7 @@ func resourceExample() *schema.Resource {
 
 ## Framework
 In the Framework, you implement CRUD functions for your resource by defining a type that implements the
-`resource.Resource` interface. This type is returned by the `NewResource` function on the type implementing the
-`provider.ResourceType` interface. To define functions related to state upgrade, import, and plan modification,
+`resource.Resource` interface. To define functions related to state upgrade, import, and plan modification,
 implement their respective interfaces on your resource: `ResourceWithUpgradeState`, `ResourceWithImportState`, and
 `ResourceWithModifyPlan`.
 
@@ -159,33 +158,16 @@ func (r *passwordResource) Create(ctx context.Context, req resource.CreateReques
         return
     }
 
-    state := passwordModelV2{
-        ID:              types.String{Value: "none"},
-        Keepers:         plan.Keepers,
-        Length:          types.Int64{Value: plan.Length.Value},
-        Special:         types.Bool{Value: plan.Special.Value},
-        Upper:           types.Bool{Value: plan.Upper.Value},
-        Lower:           types.Bool{Value: plan.Lower.Value},
-        Numeric:         types.Bool{Value: plan.Numeric.Value},
-        MinNumeric:      types.Int64{Value: plan.MinNumeric.Value},
-        MinUpper:        types.Int64{Value: plan.MinUpper.Value},
-        MinLower:        types.Int64{Value: plan.MinLower.Value},
-        MinSpecial:      types.Int64{Value: plan.MinSpecial.Value},
-        OverrideSpecial: types.String{Value: plan.OverrideSpecial.Value},
-        Result:          types.String{Value: string(result)},
-    }
-
-    hash, err := generateHash(plan.Result.Value)
+    hash, err := generateHash(string(result))
     if err != nil {
         resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
     }
 
-    state.BcryptHash = types.String{Value: hash}
+    plan.BcryptHash = types.String{Value: hash}
+    plan.ID = types.String{Value: "none"}
+    plan.Result = types.String{Value: string(result)}
 
-    diags = resp.State.Set(ctx, state)
+    diags = resp.State.Set(ctx, plan)
     resp.Diagnostics.Append(diags...)
-    if resp.Diagnostics.HasError() {
-        return
-    }
 }
 ```

@@ -160,13 +160,40 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 			}
 
 			for name, block := range b.GetBlocks() {
+				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
+
+				resp.Diagnostics.Append(diags...)
+
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				attrPlan, diags := objectAttributeValue(ctx, planObject, name, fwschemadata.DataDescriptionPlan)
+
+				resp.Diagnostics.Append(diags...)
+
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				attrState, diags := objectAttributeValue(ctx, stateObject, name, fwschemadata.DataDescriptionState)
+
+				resp.Diagnostics.Append(diags...)
+
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
 				blockReq := tfsdk.ModifyAttributePlanRequest{
-					AttributePath: req.AttributePath.AtListIndex(idx).AtName(name),
-					Config:        req.Config,
-					Plan:          req.Plan,
-					ProviderMeta:  req.ProviderMeta,
-					State:         req.State,
-					Private:       resp.Private,
+					AttributeConfig: attrConfig,
+					AttributePath:   req.AttributePath.AtListIndex(idx).AtName(name),
+					AttributePlan:   attrPlan,
+					AttributeState:  attrState,
+					Config:          req.Config,
+					Plan:            req.Plan,
+					ProviderMeta:    req.ProviderMeta,
+					State:           req.State,
+					Private:         resp.Private,
 				}
 				blockResp := ModifyAttributePlanResponse{
 					AttributePlan:   blockReq.AttributePlan,

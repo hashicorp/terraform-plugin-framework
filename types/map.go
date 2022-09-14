@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -113,6 +115,54 @@ func (m MapType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep
 // String returns a human-friendly description of the MapType.
 func (m MapType) String() string {
 	return "types.MapType[" + m.ElemType.String() + "]"
+}
+
+// Validate validates all elements of the map that are of type
+// xattr.TypeWithValidate.
+func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if in.Type() == nil {
+		return diags
+	}
+
+	if !in.Type().Is(tftypes.Map{}) {
+		err := fmt.Errorf("expected Map value, received %T with value: %v", in, in)
+		diags.AddAttributeError(
+			path,
+			"Map Type Validation Error",
+			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+	}
+
+	if !in.IsKnown() || in.IsNull() {
+		return diags
+	}
+
+	var elems map[string]tftypes.Value
+
+	if err := in.As(&elems); err != nil {
+		diags.AddAttributeError(
+			path,
+			"Map Type Validation Error",
+			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
+	}
+
+	validatableType, ok := m.ElemType.(xattr.TypeWithValidate)
+	if !ok {
+		return diags
+	}
+
+	for index, elem := range elems {
+		if !elem.IsFullyKnown() {
+			continue
+		}
+		diags = append(diags, validatableType.Validate(ctx, elem, path.AtMapKey(index))...)
+	}
+
+	return diags
 }
 
 // Map represents a map of attr.Values, all of the same type, indicated by

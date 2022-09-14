@@ -148,15 +148,23 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 		return diags
 	}
 
+	validatableType, isValidatable := st.ElemType.(xattr.TypeWithValidate)
+
 	// Attempting to use map[tftypes.Value]struct{} for duplicate detection yields:
 	//   panic: runtime error: hash of unhashable type tftypes.primitive
 	// Instead, use for loops.
 	for indexOuter, elemOuter := range elems {
-		// Only evaluate fully known values for duplicates.
+		// Only evaluate fully known values for duplicates and validation.
 		if !elemOuter.IsFullyKnown() {
 			continue
 		}
 
+		// Validate the element first
+		if isValidatable {
+			diags = append(diags, validatableType.Validate(ctx, elemOuter, path.AtListIndex(indexOuter))...)
+		}
+
+		// Then check for duplicates
 		for indexInner := indexOuter + 1; indexInner < len(elems); indexInner++ {
 			elemInner := elems[indexInner]
 

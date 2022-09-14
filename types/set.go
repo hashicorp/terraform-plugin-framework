@@ -161,7 +161,7 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 
 		// Validate the element first
 		if isValidatable {
-			diags = append(diags, validatableType.Validate(ctx, elemOuter, path.AtListIndex(indexOuter))...)
+			diags = append(diags, validatableType.Validate(ctx, elemOuter, path.AtSetValue(elemOuter))...)
 		}
 
 		// Then check for duplicates

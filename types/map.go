@@ -121,6 +121,9 @@ func (m MapType) String() string {
 // xattr.TypeWithValidate.
 func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	var diags diag.Diagnostics
+	if true {
+		return diags
+	}
 
 	if in.Type() == nil {
 		return diags

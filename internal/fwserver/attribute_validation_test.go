@@ -144,8 +144,14 @@ func TestAttributeValidate(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"List Type Validation Error",
-						"An unexpected error was encountered trying to convert an attribute value from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"expected List value, received tftypes.Value with value: tftypes.String<\"testvalue\">",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"List Type Validation Error",
+						"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"can't unmarshal tftypes.String into *[]tftypes.Value expected []tftypes.Value",
 					),
 				},
 			},

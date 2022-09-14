@@ -836,6 +836,257 @@ func TestBlockModifyPlan(t *testing.T) {
 				Private: testProviderData,
 			},
 		},
+		"block-list-nested-block-list": {
+			block: tfsdk.Block{
+				Attributes: map[string]tfsdk.Attribute{
+					"id": {
+						Type:     types.StringType,
+						Computed: true,
+						Optional: true,
+						PlanModifiers: []tfsdk.AttributePlanModifier{
+							resource.UseStateForUnknown(),
+						},
+					},
+				},
+				Blocks: map[string]tfsdk.Block{
+					"list": {
+						Attributes: map[string]tfsdk.Attribute{
+							"nested_computed": {
+								Type:     types.StringType,
+								Computed: true,
+								PlanModifiers: []tfsdk.AttributePlanModifier{
+									resource.UseStateForUnknown(),
+								},
+							},
+							"nested_required": {
+								Type:     types.StringType,
+								Required: true,
+							},
+						},
+						NestingMode: tfsdk.BlockNestingModeList,
+					},
+				},
+				NestingMode: tfsdk.BlockNestingModeList,
+			},
+			req: tfsdk.ModifyAttributePlanRequest{
+				AttributeConfig: types.List{
+					ElemType: types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"id": types.StringType,
+							"list": types.ListType{
+								ElemType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"nested_computed": types.StringType,
+										"nested_required": types.StringType,
+									},
+								},
+							},
+						},
+					},
+					Elems: []attr.Value{
+						types.Object{
+							AttrTypes: map[string]attr.Type{
+								"id": types.StringType,
+								"list": types.ListType{
+									ElemType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_computed": types.StringType,
+											"nested_required": types.StringType,
+										},
+									},
+								},
+							},
+							Attrs: map[string]attr.Value{
+								"id": types.String{Value: "configvalue"},
+								"list": types.List{
+									ElemType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_computed": types.StringType,
+											"nested_required": types.StringType,
+										},
+									},
+									Elems: []attr.Value{
+										types.Object{
+											AttrTypes: map[string]attr.Type{
+												"nested_computed": types.StringType,
+												"nested_required": types.StringType,
+											},
+											Attrs: map[string]attr.Value{
+												"nested_computed": types.String{Null: true},
+												"nested_required": types.String{Value: "configvalue"},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				AttributePath: path.Root("test"),
+				AttributePlan: types.List{
+					ElemType: types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"id": types.StringType,
+							"list": types.ListType{
+								ElemType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"nested_computed": types.StringType,
+										"nested_required": types.StringType,
+									},
+								},
+							},
+						},
+					},
+					Elems: []attr.Value{
+						types.Object{
+							AttrTypes: map[string]attr.Type{
+								"id": types.StringType,
+								"list": types.ListType{
+									ElemType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_computed": types.StringType,
+											"nested_required": types.StringType,
+										},
+									},
+								},
+							},
+							Attrs: map[string]attr.Value{
+								"id": types.String{Value: "one"},
+								"list": types.List{
+									ElemType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_computed": types.StringType,
+											"nested_required": types.StringType,
+										},
+									},
+									Elems: []attr.Value{
+										types.Object{
+											AttrTypes: map[string]attr.Type{
+												"nested_computed": types.StringType,
+												"nested_required": types.StringType,
+											},
+											Attrs: map[string]attr.Value{
+												"nested_computed": types.String{Unknown: true},
+												"nested_required": types.String{Value: "configvalue"},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				AttributeState: types.List{
+					ElemType: types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"id": types.StringType,
+							"list": types.ListType{
+								ElemType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"nested_computed": types.StringType,
+										"nested_required": types.StringType,
+									},
+								},
+							},
+						},
+					},
+					Elems: []attr.Value{
+						types.Object{
+							AttrTypes: map[string]attr.Type{
+								"id": types.StringType,
+								"list": types.ListType{
+									ElemType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_computed": types.StringType,
+											"nested_required": types.StringType,
+										},
+									},
+								},
+							},
+							Attrs: map[string]attr.Value{
+								"id": types.String{Value: "one"},
+								"list": types.List{
+									ElemType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_computed": types.StringType,
+											"nested_required": types.StringType,
+										},
+									},
+									Elems: []attr.Value{
+										types.Object{
+											AttrTypes: map[string]attr.Type{
+												"nested_computed": types.StringType,
+												"nested_required": types.StringType,
+											},
+											Attrs: map[string]attr.Value{
+												"nested_computed": types.String{Value: "statevalue"},
+												"nested_required": types.String{Value: "configvalue"},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.List{
+					ElemType: types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"id": types.StringType,
+							"list": types.ListType{
+								ElemType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"nested_computed": types.StringType,
+										"nested_required": types.StringType,
+									},
+								},
+							},
+						},
+					},
+					Elems: []attr.Value{
+						types.Object{
+							AttrTypes: map[string]attr.Type{
+								"id": types.StringType,
+								"list": types.ListType{
+									ElemType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_computed": types.StringType,
+											"nested_required": types.StringType,
+										},
+									},
+								},
+							},
+							Attrs: map[string]attr.Value{
+								"id": types.String{Value: "one"},
+								"list": types.List{
+									ElemType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_computed": types.StringType,
+											"nested_required": types.StringType,
+										},
+									},
+									Elems: []attr.Value{
+										types.Object{
+											AttrTypes: map[string]attr.Type{
+												"nested_computed": types.StringType,
+												"nested_required": types.StringType,
+											},
+											Attrs: map[string]attr.Value{
+												"nested_computed": types.String{Value: "statevalue"},
+												"nested_required": types.String{Value: "configvalue"},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Private: testEmptyProviderData,
+			},
+		},
 		"block-set-nested-usestateforunknown": {
 			block: tfsdk.Block{
 				Attributes: map[string]tfsdk.Attribute{

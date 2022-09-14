@@ -272,6 +272,123 @@ func TestBlock(t *testing.T) {
 				TypeName: "test",
 			},
 		},
+		"nestingmode-single-attributes": {
+			name: "test",
+			block: tfsdk.Block{
+				Attributes: map[string]tfsdk.Attribute{
+					"sub_test": {
+						Type:     types.StringType,
+						Optional: true,
+					},
+				},
+				NestingMode: tfsdk.BlockNestingModeSingle,
+			},
+			path: tftypes.NewAttributePath(),
+			expected: &tfprotov5.SchemaNestedBlock{
+				Block: &tfprotov5.SchemaBlock{
+					Attributes: []*tfprotov5.SchemaAttribute{
+						{
+							Name:     "sub_test",
+							Optional: true,
+							Type:     tftypes.String,
+						},
+					},
+				},
+				Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+				TypeName: "test",
+			},
+		},
+		"nestingmode-single-attributes-and-blocks": {
+			name: "test",
+			block: tfsdk.Block{
+				Attributes: map[string]tfsdk.Attribute{
+					"sub_attr": {
+						Type:     types.StringType,
+						Optional: true,
+					},
+				},
+				Blocks: map[string]tfsdk.Block{
+					"sub_block": {
+						Attributes: map[string]tfsdk.Attribute{
+							"sub_block_attr": {
+								Type:     types.StringType,
+								Optional: true,
+							},
+						},
+						NestingMode: tfsdk.BlockNestingModeSingle,
+					},
+				},
+				NestingMode: tfsdk.BlockNestingModeSingle,
+			},
+			path: tftypes.NewAttributePath(),
+			expected: &tfprotov5.SchemaNestedBlock{
+				Block: &tfprotov5.SchemaBlock{
+					Attributes: []*tfprotov5.SchemaAttribute{
+						{
+							Name:     "sub_attr",
+							Optional: true,
+							Type:     tftypes.String,
+						},
+					},
+					BlockTypes: []*tfprotov5.SchemaNestedBlock{
+						{
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "sub_block_attr",
+										Optional: true,
+										Type:     tftypes.String,
+									},
+								},
+							},
+							Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+							TypeName: "sub_block",
+						},
+					},
+				},
+				Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+				TypeName: "test",
+			},
+		},
+		"nestingmode-single-blocks": {
+			name: "test",
+			block: tfsdk.Block{
+				Blocks: map[string]tfsdk.Block{
+					"sub_block": {
+						Attributes: map[string]tfsdk.Attribute{
+							"sub_block_attr": {
+								Type:     types.StringType,
+								Optional: true,
+							},
+						},
+						NestingMode: tfsdk.BlockNestingModeSingle,
+					},
+				},
+				NestingMode: tfsdk.BlockNestingModeSingle,
+			},
+			path: tftypes.NewAttributePath(),
+			expected: &tfprotov5.SchemaNestedBlock{
+				Block: &tfprotov5.SchemaBlock{
+					BlockTypes: []*tfprotov5.SchemaNestedBlock{
+						{
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "sub_block_attr",
+										Optional: true,
+										Type:     tftypes.String,
+									},
+								},
+							},
+							Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+							TypeName: "sub_block",
+						},
+					},
+				},
+				Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+				TypeName: "test",
+			},
+		},
 		"deprecationmessage": {
 			name: "test",
 			block: tfsdk.Block{

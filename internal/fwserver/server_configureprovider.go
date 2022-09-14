@@ -18,4 +18,7 @@ func (s *Server) ConfigureProvider(ctx context.Context, req *provider.ConfigureR
 	}
 
 	logging.FrameworkDebug(ctx, "Called provider defined Provider Configure")
+
+	s.DataSourceConfigureData = resp.DataSourceData
+	s.ResourceConfigureData = resp.ResourceData
 }

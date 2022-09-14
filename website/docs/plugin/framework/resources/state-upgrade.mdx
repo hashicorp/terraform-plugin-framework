@@ -22,17 +22,18 @@ A resource schema captures the structure and types of the resource [state](/lang
 
 ## Implementing State Upgrade Support
 
-Ensure the [`tfsdk.Schema` type `Version` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Schema.Version) for the [`provider.ResourceType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ResourceType) is greater than `0`, then implement the [`resource.ResourceWithStateUpgrade` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithStateUpgrade) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource). Conventionally the version is incremented by `1` for each state upgrade.
+Ensure the [`tfsdk.Schema` type `Version` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Schema.Version) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) is greater than `0`, then implement the [`resource.ResourceWithStateUpgrade` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithStateUpgrade) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource). Conventionally the version is incremented by `1` for each state upgrade.
 
-This example shows a `ResourceType` which incremented the `Schema` type `Version` field:
+This example shows a `Resource` with the necessary `StateUpgrade` method to implement the `ResourceWithStateUpgrade` interface:
 
 ```go
-// Other ResourceType methods are omitted in this example
-var _ provider.ResourceType = exampleResourceType{}
+// Other Resource methods are omitted in this example
+var _ resource.Resource = &ThingResource{}
+var _ resource.ResourceWithUpgradeState = &ThingResource{}
 
-type exampleResourceType struct{/* ... */}
+type ThingResource struct{/* ... */}
 
-func (t exampleResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ThingResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         // ... other fields ...
 
@@ -41,18 +42,8 @@ func (t exampleResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Di
         Version: 2,
     }
 }
-```
 
-This example shows a `Resource` with the necessary `StateUpgrade` method to implement the `ResourceWithStateUpgrade` interface:
-
-```go
-// Other Resource methods are omitted in this example
-var _ resource.Resource = exampleResource{}
-var _ resource.ResourceWithUpgradeState = exampleResource{}
-
-type exampleResource struct{/* ... */}
-
-func (r exampleResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+func (r *ThingResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
     return map[int64]resource.StateUpgrader{
         // State upgrade implementation from 0 (prior state version) to 2 (Schema.Version)
         0: {
@@ -81,28 +72,25 @@ Implement the [`StateUpgrader` type `PriorSchema` field](https://pkg.go.dev/gith
 This example shows a resource that changes the type for two attributes, using the `PriorSchema` approach:
 
 ```go
-// Other ResourceType methods are omitted in this example
-var _ provider.ResourceType = exampleResourceType{}
 // Other Resource methods are omitted in this example
-var _ resource.Resource = exampleResource{}
-var _ resource.ResourceWithUpgradeState = exampleResource{}
+var _ resource.Resource = &ThingResource{}
+var _ resource.ResourceWithUpgradeState = &ThingResource{}
 
-type exampleResourceType struct{/* ... */}
-type exampleResource struct{/* ... */}
+type ThingResource struct{/* ... */}
 
-type exampleResourceDataV0 struct {
+type ThingResourceModelV0 struct {
     Id                string `tfsdk:"id"`
     OptionalAttribute *bool  `tfsdk:"optional_attribute"`
     RequiredAttribute bool   `tfsdk:"required_attribute"`
 }
 
-type exampleResourceDataV1 struct {
+type ThingResourceModelV1 struct {
     Id                string  `tfsdk:"id"`
     OptionalAttribute *string `tfsdk:"optional_attribute"`
     RequiredAttribute string  `tfsdk:"required_attribute"`
 }
 
-func (t exampleResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ThingResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]Attribute{
             "id": {
@@ -124,7 +112,7 @@ func (t exampleResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Di
     }
 }
 
-func (r exampleResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+func (r *ThingResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
     return map[int64]resource.StateUpgrader{
         // State upgrade implementation from 0 (prior state version) to 1 (Schema.Version)
         0: {
@@ -145,7 +133,7 @@ func (r exampleResource) UpgradeState(ctx context.Context) map[int64]resource.St
                 },
             },
             StateUpgrader: func(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
-                var priorStateData exampleResourceDataV0
+                var priorStateData ThingResourceModelV0
 
                 resp.Diagnostics.Append(req.State.Get(ctx, &priorStateData)...)
 
@@ -153,7 +141,7 @@ func (r exampleResource) UpgradeState(ctx context.Context) map[int64]resource.St
                     return
                 }
 
-                upgradedStateData := exampleResourceDataV1{
+                upgradedStateData := ThingResourceModelV1{
                     Id:                priorStateData.Id,
                     RequiredAttribute: fmt.Sprintf("%t", priorStateData.RequiredAttribute),
                 }
@@ -177,13 +165,11 @@ Read prior state data from the [`resource.UpgradeStateRequest` type `RawState` f
 This example shows a resource that changes the type for two attributes, using the `RawState` approach for the request and `DynamicValue` approach for the response:
 
 ```go
-// Other ResourceType methods are omitted in this example
-var _ provider.ResourceType = exampleResourceType{}
 // Other Resource methods are omitted in this example
-var _ resource.Resource = exampleResource{}
-var _ resource.ResourceWithUpgradeState = exampleResource{}
+var _ resource.Resource = &ThingResource{}
+var _ resource.ResourceWithUpgradeState = &ThingResource{}
 
-var exampleResourceTftypesDataV0 = tftypes.Object{
+var ThingResourceTftypesDataV0 = tftypes.Object{
     AttributeTypes: map[string]tftypes.Type{
         "id":                 tftypes.String,
         "optional_attribute": tftypes.Bool,
@@ -191,7 +177,7 @@ var exampleResourceTftypesDataV0 = tftypes.Object{
     },
 }
 
-var exampleResourceTftypesDataV1 = tftypes.Object{
+var ThingResourceTftypesDataV1 = tftypes.Object{
     AttributeTypes: map[string]tftypes.Type{
         "id":                 tftypes.String,
         "optional_attribute": tftypes.String,
@@ -199,10 +185,9 @@ var exampleResourceTftypesDataV1 = tftypes.Object{
     },
 }
 
-type exampleResourceType struct{/* ... */}
-type exampleResource struct{/* ... */}
+type ThingResource struct{/* ... */}
 
-func (t exampleResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ThingResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]Attribute{
             "id": {
@@ -224,14 +209,14 @@ func (t exampleResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Di
     }
 }
 
-func (r exampleResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+func (r *ThingResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
     return map[int64]resource.StateUpgrader{
         // State upgrade implementation from 0 (prior state version) to 1 (Schema.Version)
         0: {
             StateUpgrader: func(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
                 // Refer also to the RawState type JSON field which can be used
                 // with json.Unmarshal()
-                rawStateValue, err := req.RawState.Unmarshal(exampleResourceTftypesDataV0)
+                rawStateValue, err := req.RawState.Unmarshal(ThingResourceTftypesDataV0)
 
                 if err != nil {
                     resp.Diagnostics.AddError(
@@ -281,8 +266,8 @@ func (r exampleResource) UpgradeState(ctx context.Context) map[int64]resource.St
                 }
 
                 dynamicValue, err := tfprotov6.NewDynamicValue(
-                    exampleResourceTftypesDataV1,
-                    tftypes.NewValue(exampleResourceTftypesDataV1, map[string]tftypes.Value{
+                    ThingResourceTftypesDataV1,
+                    tftypes.NewValue(ThingResourceTftypesDataV1, map[string]tftypes.Value{
                         "id":                 rawState["id"],
                         "optional_attribute": tftypes.NewValue(tftypes.String, optionalAttributeString),
                         "required_attribute": tftypes.NewValue(tftypes.String, fmt.Sprintf("%t", requiredAttribute)),

@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -47,7 +47,7 @@ func TestReadDataSourceRequest(t *testing.T) {
 	testCases := map[string]struct {
 		input               *tfprotov5.ReadDataSourceRequest
 		dataSourceSchema    fwschema.Schema
-		dataSourceType      provider.DataSourceType
+		dataSource          datasource.DataSource
 		providerMetaSchema  fwschema.Schema
 		expected            *fwserver.ReadDataSourceRequest
 		expectedDiagnostics diag.Diagnostics
@@ -141,7 +141,7 @@ func TestReadDataSourceRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto5.ReadDataSourceRequest(context.Background(), testCase.input, testCase.dataSourceType, testCase.dataSourceSchema, testCase.providerMetaSchema)
+			got, diags := fromproto5.ReadDataSourceRequest(context.Background(), testCase.input, testCase.dataSource, testCase.dataSourceSchema, testCase.providerMetaSchema)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

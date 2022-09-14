@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -57,7 +57,7 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 	testCases := map[string]struct {
 		input               *tfprotov6.ApplyResourceChangeRequest
 		resourceSchema      fwschema.Schema
-		resourceType        provider.ResourceType
+		resource            resource.Resource
 		providerMetaSchema  fwschema.Schema
 		expected            *fwserver.ApplyResourceChangeRequest
 		expectedDiagnostics diag.Diagnostics
@@ -253,7 +253,7 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto6.ApplyResourceChangeRequest(context.Background(), testCase.input, testCase.resourceType, testCase.resourceSchema, testCase.providerMetaSchema)
+			got, diags := fromproto6.ApplyResourceChangeRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.providerMetaSchema)
 
 			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

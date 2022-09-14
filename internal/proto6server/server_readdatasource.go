@@ -17,7 +17,7 @@ func (s *Server) ReadDataSource(ctx context.Context, proto6Req *tfprotov6.ReadDa
 
 	fwResp := &fwserver.ReadDataSourceResponse{}
 
-	dataSourceType, diags := s.FrameworkServer.DataSourceType(ctx, proto6Req.TypeName)
+	dataSource, diags := s.FrameworkServer.DataSource(ctx, proto6Req.TypeName)
 
 	fwResp.Diagnostics.Append(diags...)
 
@@ -41,7 +41,7 @@ func (s *Server) ReadDataSource(ctx context.Context, proto6Req *tfprotov6.ReadDa
 		return toproto6.ReadDataSourceResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.ReadDataSourceRequest(ctx, proto6Req, dataSourceType, dataSourceSchema, providerMetaSchema)
+	fwReq, diags := fromproto6.ReadDataSourceRequest(ctx, proto6Req, dataSource, dataSourceSchema, providerMetaSchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

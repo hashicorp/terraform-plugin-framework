@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -36,7 +36,7 @@ func TestImportResourceStateRequest(t *testing.T) {
 	testCases := map[string]struct {
 		input               *tfprotov5.ImportResourceStateRequest
 		resourceSchema      fwschema.Schema
-		resourceType        provider.ResourceType
+		resource            resource.Resource
 		expected            *fwserver.ImportResourceStateRequest
 		expectedDiagnostics diag.Diagnostics
 	}{
@@ -92,7 +92,7 @@ func TestImportResourceStateRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto5.ImportResourceStateRequest(context.Background(), testCase.input, testCase.resourceType, testCase.resourceSchema)
+			got, diags := fromproto5.ImportResourceStateRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

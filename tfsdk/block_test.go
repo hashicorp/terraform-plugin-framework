@@ -87,6 +87,38 @@ func TestBlockType(t *testing.T) {
 				},
 			},
 		},
+		"NestingMode-Single": {
+			block: Block{
+				Attributes: map[string]Attribute{
+					"test_attribute": {
+						Required: true,
+						Type:     types.StringType,
+					},
+				},
+				Blocks: map[string]Block{
+					"test_block": {
+						Attributes: map[string]Attribute{
+							"test_block_attribute": {
+								Required: true,
+								Type:     types.StringType,
+							},
+						},
+						NestingMode: BlockNestingModeSingle,
+					},
+				},
+				NestingMode: BlockNestingModeSingle,
+			},
+			expected: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test_attribute": types.StringType,
+					"test_block": types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"test_block_attribute": types.StringType,
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

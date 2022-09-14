@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -47,7 +47,7 @@ func TestValidateDataSourceConfigRequest(t *testing.T) {
 	testCases := map[string]struct {
 		input               *tfprotov6.ValidateDataResourceConfigRequest
 		dataSourceSchema    fwschema.Schema
-		dataSourceType      provider.DataSourceType
+		dataSource          datasource.DataSource
 		expected            *fwserver.ValidateDataSourceConfigRequest
 		expectedDiagnostics diag.Diagnostics
 	}{
@@ -94,7 +94,7 @@ func TestValidateDataSourceConfigRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto6.ValidateDataSourceConfigRequest(context.Background(), testCase.input, testCase.dataSourceType, testCase.dataSourceSchema)
+			got, diags := fromproto6.ValidateDataSourceConfigRequest(context.Background(), testCase.input, testCase.dataSource, testCase.dataSourceSchema)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

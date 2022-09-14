@@ -17,7 +17,7 @@ func (s *Server) ValidateResourceTypeConfig(ctx context.Context, proto5Req *tfpr
 
 	fwResp := &fwserver.ValidateResourceConfigResponse{}
 
-	resourceType, diags := s.FrameworkServer.ResourceType(ctx, proto5Req.TypeName)
+	resource, diags := s.FrameworkServer.Resource(ctx, proto5Req.TypeName)
 
 	fwResp.Diagnostics.Append(diags...)
 
@@ -33,7 +33,7 @@ func (s *Server) ValidateResourceTypeConfig(ctx context.Context, proto5Req *tfpr
 		return toproto5.ValidateResourceTypeConfigResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto5.ValidateResourceTypeConfigRequest(ctx, proto5Req, resourceType, resourceSchema)
+	fwReq, diags := fromproto5.ValidateResourceTypeConfigRequest(ctx, proto5Req, resource, resourceSchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

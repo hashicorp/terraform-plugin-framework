@@ -358,6 +358,7 @@ The following table shows the different [`path.Path` type](https://pkg.go.dev/gi
 | ------------------------------ | ----------------- |
 | `tfsdk.BlockNestingModeList`   | `AtListIndex()`   |
 | `tfsdk.BlockNestingModeSet`    | `AtSetValue()`    |
+| `tfsdk.BlockNestingModeSingle` | `AtName()`        |
 
 Blocks can implement nested blocks. Paths can continue to be built using the associated method with each level of the block type.
 
@@ -480,4 +481,61 @@ path.Root("root_set_block").AtSetValue(types.Object{
 		"block_string_attribute": types.String{Value: "example"},
 	}
 }).AtName("block_string_attribute")
+```
+
+#### Building Single Block Paths
+
+A block defined with `tfsdk.BlockNestingModeSingle` conceptually is an object with attribute or block names.
+
+Given following schema example:
+
+```go
+tfsdk.Schema{
+	Blocks: map[string]tfsdk.Block{
+		"root_single_block": {
+			Attributes: map[string]tfsdk.Attribute{
+				"block_string_attribute": {
+					Required: true,
+					Type:     types.StringType,
+				},
+			},
+			Blocks: map[string]tfsdk.Block{
+				"nested_single_block": {
+					Attributes: map[string]tfsdk.Attribute{
+						"nested_block_string_attribute": {
+							Required: true,
+							Type:     types.StringType,
+						},
+					},
+					NestingMode: tfsdk.BlockNestingModeSingle,
+				},
+			},
+			NestingMode: tfsdk.BlockNestingModeSingle,
+		},
+	},
+}
+```
+
+The path which matches the object associated with the `root_single_block` block is:
+
+```go
+path.Root("root_single_block")
+```
+
+The path which matches the `block_string_attribute` string value in the object associated with `root_single_block` block is:
+
+```go
+path.Root("root_single_block").AtName("block_string_attribute")
+```
+
+The path which matches the `nested_single_block` object in the object associated with `root_single_block` block is:
+
+```go
+path.Root("root_single_block").AtName("nested_single_block")
+```
+
+The path which matches the `nested_block_string_attribute` string value in the object associated with the `nested_single_block` in the object associated with `root_single_block` block is:
+
+```go
+path.Root("root_single_block").AtName("nested_single_block").AtName("nested_block_string_attribute")
 ```

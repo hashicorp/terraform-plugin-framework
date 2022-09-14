@@ -146,8 +146,8 @@ func (l ListType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 		return diags
 	}
 
-	validatableType, ok := l.ElemType.(xattr.TypeWithValidate)
-	if !ok {
+	validatableType, isValidatable := l.ElemType.(xattr.TypeWithValidate)
+	if !isValidatable {
 		return diags
 	}
 

@@ -150,8 +150,8 @@ func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path)
 		return diags
 	}
 
-	validatableType, ok := m.ElemType.(xattr.TypeWithValidate)
-	if !ok {
+	validatableType, isValidatable := m.ElemType.(xattr.TypeWithValidate)
+	if !isValidatable {
 		return diags
 	}
 

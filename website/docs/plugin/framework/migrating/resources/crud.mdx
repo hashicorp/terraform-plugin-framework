@@ -67,8 +67,8 @@ Remember the following differences between SDKv2 and the Framework when completi
 resource. For instance, if the resource does not support in-place modification, you do not need to define an `Update`
 function. In the Framework, you must implement each of the CRUD lifecycle functions on all resources to satisfy the
 `Resource` interface, even if the function does nothing.
-- In the Framework, there is no requirement to explicitly call `resp.State.RemoveResource()` in the `Delete` function,
-as this is handled automatically by the Framework itself.
+- In SDKv2, the `Update` function (even if empty or missing) would automatically copy the request plan to the response state. This could be problematic when the `Update` function also returned errors as additional steps were required to disable the automatic SDKv2 behavior. In the Framework, the `Update` method must be written to explicitly copy data from `req.Plan` to `resp.State` to actually update the resource's state and prevent `Provider produced inconsistent result after apply` errors from Terraform.
+- In SDKv2, calling `d.SetId("")` would signal resource removal. In the Framework, this is replaced with `resp.State.RemoveResource()`. Resource removal should only occur during the `Read` method to prevent `Provider produced inconsistent result after apply` errors from Terraform during other operations. The `Delete` method will automatically call `resp.State.RemoveResource()` if there are no errors.
 - In SDKv2, you get and set attribute values in Terraform's state by calling `Get()` and `Set()` on
 `schema.ResourceData`. In the Framework, you get attribute values from the configuration and plan by accessing
 `Config` and `Plan` on `resource.CreateRequest`. You set attribute values in Terraform's state by mutating `State`

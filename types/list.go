@@ -129,6 +129,7 @@ func (l ListType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 			"List Type Validation Error",
 			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 		)
+		return diags
 	}
 
 	if !in.IsKnown() || in.IsNull() {

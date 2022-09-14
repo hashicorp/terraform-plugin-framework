@@ -147,12 +147,6 @@ func TestAttributeValidate(t *testing.T) {
 						"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 							"expected List value, received tftypes.Value with value: tftypes.String<\"testvalue\">",
 					),
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("test"),
-						"List Type Validation Error",
-						"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"can't unmarshal tftypes.String into *[]tftypes.Value expected []tftypes.Value",
-					),
 				},
 			},
 		},

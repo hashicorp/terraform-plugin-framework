@@ -161,7 +161,16 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 
 		// Validate the element first
 		if isValidatable {
-			diags = append(diags, validatableType.Validate(ctx, elemOuter, path.AtSetValue(elemOuter))...)
+			elemValue, err := st.ElemType.ValueFromTerraform(ctx, elemOuter)
+			if err != nil {
+				diags.AddAttributeError(
+					path,
+					"Set Type Validation Error",
+					"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+				)
+				return diags
+			}
+			diags = append(diags, validatableType.Validate(ctx, elemOuter, path.AtSetValue(elemValue))...)
 		}
 
 		// Then check for duplicates

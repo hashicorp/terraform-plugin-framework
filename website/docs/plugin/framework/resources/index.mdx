@@ -98,7 +98,7 @@ func (r *ThingResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *ThingResource) Delete(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *ThingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data ThingResourceModel
 
 	// Read Terraform prior state data into the model

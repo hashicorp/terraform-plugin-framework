@@ -1,3 +1,25 @@
+# 0.13.0 (September 15, 2022)
+
+NOTES:
+
+* tfsdk: Schema definitions may now introduce single nested mode blocks, however this support is only intended for migrating terraform-plugin-sdk timeouts blocks. New implementations should prefer single nested attributes instead. ([#477](https://github.com/hashicorp/terraform-plugin-framework/issues/477))
+
+BREAKING CHANGES:
+
+* datasource: The `DataSource` interface now requires the `GetSchema` and `Metadata` methods. ([#478](https://github.com/hashicorp/terraform-plugin-framework/issues/478))
+* provider: The `DataSourceType` and `ResourceType` types have been removed. Use the `GetSchema`, `Metadata`, and optionally the `Configure` methods on `datasource.DataSource` and `resource.Resource` implementations instead. ([#478](https://github.com/hashicorp/terraform-plugin-framework/issues/478))
+* provider: The `Provider` interface `GetDataSources` and `GetResources` methods have been removed. Use the `DataSources` and `Resources` methods instead. ([#478](https://github.com/hashicorp/terraform-plugin-framework/issues/478))
+* resource: The `Resource` interface now requires the `GetSchema` and `Metadata` methods. ([#478](https://github.com/hashicorp/terraform-plugin-framework/issues/478))
+
+ENHANCEMENTS:
+
+* tfsdk: Added single nested mode block support ([#477](https://github.com/hashicorp/terraform-plugin-framework/issues/477))
+
+BUG FIXES:
+
+* internal/fwserver: Ensured nested block plan modifiers correctly set their request `AttributeConfig`, `AttributePlan`, and `AttributeState` values ([#479](https://github.com/hashicorp/terraform-plugin-framework/issues/479))
+* types: Ensured `List`, `Map`, and `Set` types with `xattr.TypeWithValidate` elements run validation on those elements ([#481](https://github.com/hashicorp/terraform-plugin-framework/issues/481))
+
 # 0.12.0 (September 12, 2022)
 
 NOTES:

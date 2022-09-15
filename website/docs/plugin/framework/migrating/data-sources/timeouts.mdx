@@ -1,0 +1,122 @@
+---
+page_title: 'Plugin Development - Framework: Timeouts'
+description: >-
+  How to migrate timeouts from SDKv2 to the Framework.
+---
+
+# Timeouts
+
+The Framework can be used in conjunction with the [terraform-plugin-framework-timeouts](https://github.com/hashicorp/terraform-plugin-framework-timeouts) module in order to allow defining timeouts in configuration and have them be available in CRUD functions.
+
+## Specifying Timeouts in Configuration
+
+### Nested Block
+
+Timeouts defined in configuration used with providers built on [SDKv2](https://github.com/hashicorp/terraform-plugin-sdk) use nested block syntax.
+
+```terraform
+data "timeouts_example" "example" {
+  /* ... */
+
+  timeouts {
+    read = "60m"
+  }
+}
+```
+
+The Schema is modified by calling `timeouts.Block` supplying options to specify which attributes are to be added.
+
+
+```go
+func (e *exampleDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        /* ... */
+
+        Blocks: map[string]tfsdk.Block{
+            "timeouts": timeouts.Block(ctx, timeouts.Opts{
+                Read: true,
+            }),
+        },
+```
+
+### Nested Attributes
+
+Where possible, we recommend switching to nested attribute syntax during migration.
+
+Timeouts can be specified using nested attributes if [protocol version 6](https://www.terraform.io/plugin/how-terraform-works#protocol-version-6) is being used.
+
+```terraform
+data "timeouts_example" "example" {
+  /* ... */
+
+  timeouts = {
+    read = "60m"
+  }
+}
+```
+
+The Schema is modified by calling `timeouts.Attributes` supplying options to specify which attributes are to be added.
+
+```go
+func (e *exampleDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            /* ... */
+            "timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+                read: true,
+            }),
+        },
+```
+
+## Updating Models
+
+In functions in which the config, state or plan is being unmarshalled, for instance, the `Read` function, the model
+will need to be updated.
+
+```go
+func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data exampleDataSourceData
+
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+```
+
+The `exampleDataSourceData` model needs to be modified to include a field for timeouts, which is `types.Object`.
+
+```go
+type exampleDataSourceData struct {
+    /* ... */
+    Timeouts    types.Object `tfsdk:"timeouts"`
+```
+
+## Accessing Timeouts in CRUD Functions
+
+Once the model has been populated with the config, state or plan the duration of the timeout can be accessed by calling
+the appropriate helper function and then used to configure timeout behaviour, for instance:
+
+```go
+func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+    var data exampleDataSourceData
+
+    diags := req.Config.Get(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    readTimeout, diags := timeouts.Read(ctx, data.Timeouts)
+    resp.Diagnostics.Append(diags...)
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    if readTimeout == nil {
+        /* ... */
+    }
+
+    ctx, cancel := context.WithTimeout(ctx, *readTimeout)
+    defer cancel()
+
+    /* ... */
+}
+```

@@ -6,6 +6,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -764,6 +766,62 @@ func TestListString(t *testing.T) {
 			got := test.input.String()
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestListTypeValidate(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		listType      ListType
+		tfValue       tftypes.Value
+		path          path.Path
+		expectedDiags diag.Diagnostics
+	}{
+		"wrong-value-type": {
+			listType: ListType{
+				ElemType: StringType,
+			},
+			tfValue: tftypes.NewValue(tftypes.Set{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "testvalue"),
+			}),
+			path: path.Root("test"),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"List Type Validation Error",
+					"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"expected List value, received tftypes.Value with value: tftypes.Set[tftypes.String]<tftypes.String<\"testvalue\">>",
+				),
+			},
+		},
+		"no-validation": {
+			listType: ListType{
+				ElemType: StringType,
+			},
+			tfValue: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "testvalue"),
+			}),
+			path: path.Root("test"),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			diags := testCase.listType.Validate(context.Background(), testCase.tfValue, testCase.path)
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})
 	}

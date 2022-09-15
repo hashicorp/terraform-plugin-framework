@@ -148,15 +148,32 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 		return diags
 	}
 
+	validatableType, isValidatable := st.ElemType.(xattr.TypeWithValidate)
+
 	// Attempting to use map[tftypes.Value]struct{} for duplicate detection yields:
 	//   panic: runtime error: hash of unhashable type tftypes.primitive
 	// Instead, use for loops.
 	for indexOuter, elemOuter := range elems {
-		// Only evaluate fully known values for duplicates.
+		// Only evaluate fully known values for duplicates and validation.
 		if !elemOuter.IsFullyKnown() {
 			continue
 		}
 
+		// Validate the element first
+		if isValidatable {
+			elemValue, err := st.ElemType.ValueFromTerraform(ctx, elemOuter)
+			if err != nil {
+				diags.AddAttributeError(
+					path,
+					"Set Type Validation Error",
+					"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+				)
+				return diags
+			}
+			diags = append(diags, validatableType.Validate(ctx, elemOuter, path.AtSetValue(elemValue))...)
+		}
+
+		// Then check for duplicates
 		for indexInner := indexOuter + 1; indexInner < len(elems); indexInner++ {
 			elemInner := elems[indexInner]
 

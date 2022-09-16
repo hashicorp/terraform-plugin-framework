@@ -13,68 +13,144 @@ description: >-
 - needs only one API call to update or return its state.
 - can be be created, read, updated, and deleted.
 
-Providers act as a translation layer between Terraform and an API, offering one or more resources for practitioners to define in a configuration. To create resources for your provider, you need to define both the resource archetype and actions on specific resource instances.
+This page describes the basic implementation details required for supporting a resource within the provider. Further documentation is available for deeper resource concepts:
 
-## Define Resource Archetype
+- [Configure](/plugin/framework/resources/configure) resources with provider-level data types or clients.
+- [Import state](/plugin/framework/resources/import) so practitioners can bring existing resources under Terraform lifecycle management.
+- [Manage private state](/plugin/framework/resources/private-state) to store additional data in resource state that is not shown in plans.
+- [Modify plans](/plugin/framework/resources/plan-modification) to enrich the output for expected resource behaviors during changes, such as including default values for missing configurations or marking a resource for replacement if an in-place update cannot occur.
+- [Upgrade state](/plugin/framework/resources/state-upgrade) to transparently update state data outside plans.
+- [Validate](/plugin/framework/validation) practitioner configuration against acceptable values.
 
-Implement the [`provider.ResourceType`
-interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ResourceType) for every type of
-resource you want to support: compute instances, disks, access policies, etc. It
-allows you to describe the resource archetype, which is the functionality related to all instances of that resource type in the configuration, state, plan, and API. `ResourceType` has the following methods:
+## Define Resource Type
 
-### GetSchema
+Implement the [`resource.Resource` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource). Each of the methods is described in more detail below.
 
-`GetSchema` returns a [schema](/plugin/framework/schemas) describing what fields are available in the resource's configuration and state.
-
-### NewResource
-
-`NewResource` returns a new instance of that resource type. It instantiates a new [`resource.Resource` implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource)
-that expects to operate on data with the structure defined in `GetSchema`. It does not need to create the instance on the API.
-
-The `NewResource` method is passed a [`provider.Provider` implementation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider).
-This is the [provider type](/plugin/framework/providers) after its
-`Configure` method was called. The `NewResource` method can type-assert on this
-and inject it into the `Resource`, allowing the `Resource` to have
-strongly-typed access to the configured API client or other provider
-configuration data.
-
-<br />
-**Example**
+In this example, a resource named `examplecloud_thing` with sample lifecycle management behavior is defined:
 
 ```go
-type computeInstanceResourceType struct{}
+// Ensure the implementation satisfies the desired interfaces.
+var _ resource.Resource = &ThingResource{}
 
-func (c computeInstanceResourceType) GetSchema(_ context.Context) (tfsdk.Schema,
-	diag.Diagnostics) {
+type ThingResource struct {}
+
+type ThingResourceModel struct {
+	ExampleAttribute types.String `tfsdk:"example_attribute"`
+	ID               types.String `tfsdk:"id"`
+}
+
+func (r *ThingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = "examplecloud_thing"
+}
+
+func (r *ThingResource) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
-			"name": {
-				Type: types.StringType,
+			"example_attribute": {
 				Required: true,
+				Type:     types.StringType,
+			},
+			"id": {
+				Computed: true,
+				Type:     types.StringType,
 			},
 		},
 	}, nil
 }
 
-func (c computeInstanceResourceType) NewResource(_ context.Context,
-	p provider.Provider) (resource.Resource, diag.Diagnostics) {
-	return computeInstanceResource{
-		client: p.(*provider).client,
-	}, nil
+func (r *ThingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data ThingResourceModel
+
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+	// Typically resources will make external calls, however this example
+	// hardcodes setting the id attribute to a specific value for brevity.
+	data.ID = types.String{Value: "example-id"}
+
+	// Save data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data ThingResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	// Typically resources will make external calls, however this example
+	// omits any refreshed data updates for brevity.
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *ThingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data ThingResourceModel
+
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+	// Typically resources will make external calls, however this example
+	// omits any update calls for brevity.
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *ThingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data ThingResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	// Typically resources will make external calls, however this example
+	// omits any deletion calls for brevity.
 }
 ```
 
-## Define Resources
+### Metadata Method
 
-Resources are scoped to a single instance of a resource type. They modify a specific resource in the API and in the state, given that resource's configuration, state, and plan values. They do this through the following methods.
+The [`resource.Resource` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Metadata) defines the resource name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the resource specific name. For example, a provider named `examplecloud` and a resource that reads "thing" resources would be named `examplecloud_thing`. Ensure the [Add Data Source To Provider](#add-data-source-to-provider) documentation is followed so the resource becomes part of the provider implementation, and therefore available to practitioners.
+
+In this example, the resource name in an `examplecloud` provider that reads "thing" resources is hardcoded to `examplecloud_thing`:
+
+```go
+// With the resource.Resource implementation
+func (r *ThingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = "examplecloud_thing"
+}
+```
+
+To simplify resource implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.ProviderWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithMetadata.Metadata) can set the provider name so it is available in the [`resource.MetadataRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MetadataRequest.ProviderTypeName).
+
+In this example, the provider defines the `examplecloud` name for itself, and the data source is named `examplecloud_thing`:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "examplecloud"
+}
+
+// With the resource.Resource implementation
+func (d *ThingDataSource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_thing"
+}
+```
+
+### GetSchema Method
+
+The [`resource.Resource` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the resource's configuration, plan, and state.
 
 ### Create
 
-`Create` makes the necessary API calls to create the resource and then persist that resource's data into the Terraform state. This is usually accomplished by:
+The [`resource.Resource` interface `Create` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Create) makes the necessary API calls to create the resource and then persist that resource's data into the Terraform state.
 
-1. [Reading the plan data](/plugin/framework/accessing-values) from the [`resource.CreateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateRequest)
-1. Using the configured API client injected into the resource by the resource type's `NewResource` method
-1. [Writing to the state](/plugin/framework/writing-state).
+Implement the `Create` method by:
+
+1. [Accessing the data](/plugin/framework/accessing-values) from the [`resource.CreateRequest` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateRequest). Most use cases should access the plan data in the [`resource.CreateRequest.Plan` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateRequest.Plan).
+1. Performing logic or external calls to create and/or run the resource.
+1. [Writing state data](/plugin/framework/writing-state) into the [`resource.CreateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateResponse.State).
 
 It is very important that every known value in the plan ends up in state as a
 byte-for-byte match, or Terraform will throw errors. The plan is the provider's
@@ -83,13 +159,17 @@ contract with Terraform: the provider can only change values that are
 very important that every unknown value in the plan gets a known, concrete
 value when it's set in the state; the state can never hold any unknown values.
 
+If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.CreateResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateResponse.Diagnostics). Any errors will trigger Terraform to mark the resource as tainted for recreation on the next Terraform plan.
+
 ### Read
 
-`Read` updates Terraform's state to reflect the latest state of the resource in the API.
+The [`resource.Resource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Read) makes the necessary calls to retrieve the latest resource state and then persist that updated state into the Terraform state. There is no plan or configuration data in `Read`.
 
-There is no plan or config to work with in `Read`. Resources should [retrieve the data they need](/plugin/framework/accessing-values) from the current state included in the [`resource.ReadRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest). They can then use the configured API client injected into the resource by the
-resource type's `NewResource` method, and [write the results to the
-state](/plugin/framework/writing-state).
+Implement the `Read` method by:
+
+1. [Accessing prior state data](/plugin/framework/accessing-values) from the [`resource.ReadRequest.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest.State).
+1. Retriving updated resource state, such as remote system information.
+1. [Writing state data](/plugin/framework/writing-state) into the [`resource.ReadResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.State).
 
 The provider can set any value in state, but you should be mindful of values that:
 
@@ -105,14 +185,73 @@ The provider can set any value in state, but you should be mindful of values tha
   _existing_ value should always be maintained in state and should not be
   replaced with the new representation that the API is returning.
 
+If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.ReadResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.Diagnostics).
+
+If the logic needs to signal that the resource no longer exists and should be recreated, call the [`RemoveResource` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.RemoveResource) on the [`resource.ReadResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.State).
+
+In this example, the `Read` function catches a HTTP 404 Not Found status and returns early to signal resource recreation:
+
+```go
+type ThingResource struct {
+	// client is configured via a Configure method, which is not shown in this
+	// example for brevity. Refer to the Configure Resources documentation for
+	// additional details for setting up resources with external clients.
+	client *http.Client
+}
+
+func (r *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data ThingResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	httpReq := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		fmt.Sprintf("http://example.com/thing/%s", data.ID),
+		nil,
+	)
+
+	httpResp, err := d.client.Do(httpReq)
+	defer httpResp.Body.Close()
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Refresh Resource",
+			"An unexpected error occurred while attempting to refresh resource state. "+
+				"Please retry the operation or report this issue to the provider developers.\n\n"+
+				"HTTP Error: "+err.Error(),
+		)
+
+		return
+	}
+
+	// Treat HTTP 404 Not Found status as a signal to recreate resource
+	// and return early
+	if httpResp.StatusCode == http.StatusNotFound {
+		resp.State.RemoveResource(ctx)
+
+		return
+	}
+
+	// Update data from httpResp
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+```
+
 ### Update
 
-`Update` makes the necessary API calls to modify the existing resource to match the configuration and then to persist that resource's data into the Terraform state. This is usually accomplished by:
+The [`resource.Resource` interface `Update` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Update) makes the necessary calls to modify the existing resource to match the configuration and then persist the updated state.
 
-1. [Reading the plan data](/plugin/framework/accessing-values) from the [`resource.UpdateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest)
-1. Using the configured API client injected into the resource by the resource
-   type's `NewResource` method
-1. [Writing to the state](/plugin/framework/writing-state).
+If the resource does not support modification and should always be recreated on configuration value updates, this method logic can be left empty and ensure all configurable schema attributes implement the [`resource.RequiresReplace` plan modifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#RequiresReplace).
+
+Implement the `Update` method by:
+
+1. [Accessing the data](/plugin/framework/accessing-values) from the [`resource.UpdateRequest` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest). Most use cases should access the plan data in the [`resource.UpdateRequest.Plan` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest.Plan).
+1. Performing logic or external calls to modify the resource.
+1. [Writing state data](/plugin/framework/writing-state) into the [`resource.UpdateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateResponse.State).
 
 It is very important that every known value in the plan ends up in state as a
 byte-for-byte match, or Terraform will throw errors. The plan is the provider's
@@ -121,52 +260,108 @@ contract with Terraform: the provider can only change values that are
 very important that every unknown value in the plan gets a known, concrete
 value when it's set in the state; the state can never hold any unknown values.
 
+If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.UpdateResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateResponse.Diagnostics). Only successfully modified parts of the resource should be return updated data in the state response.
+
 ### Delete
 
-`Delete` makes the necessary API calls to destroy a resource and then to remove that resource from the Terraform state. This is usually accomplished by:
+The [`resource.Resource` interface `Delete` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Delete) makes the necessary API calls to destroy a resource and then to remove that resource from the Terraform state.
 
-1. [Reading the prior state data](/plugin/framework/accessing-values) from the
-   [`resource.DeleteRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteRequest)
-1. Using the configured API client injected into the resource by the resource
-   type's `NewResource` method
+Implement the `Delete` method by:
+
+1. [Accessing prior state data](/plugin/framework/accessing-values) from the [`resource.DeleteRequest.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteRequest.State).
+1. Performing logic or external calls to destroy the resource.
 
 Terraform 1.3 and later enables deletion planning, which resources can implement to return warning and error diagnostics. For additional information, refer to the [resource plan modification documentation](/plugin/framework/resources/plan-modification#resource-destroy-plan-diagnostics).
 
-### ImportState
+If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.DeleteResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteResponse.Diagnostics). Any errors will prevent the framework from automatically calling the [`RemoveResource` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.RemoveResource) on the [`resource.DeleteResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteResponse.State). If the resource should still be removed from state, call the `RemoveResource` method manually.
 
-`ImportState` is an optional method that implements resource [import](/cli/import). This functionality creates an initial Terraform state to bring the resource under management via the [`terraform import` command](/cli/commands/import). This method must provide enough state for the resource to be successfully refreshed via the `Read` method. This is usually accomplished by:
+If the logic needs to skip a condition, such as an API error, where the resource no longer exists then the logic can return early.
 
-1. Using the import identifier from the [`resource.ImportStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateRequest) to [set state data](/plugin/framework/writing-state) in the
-   [`resource.ImportStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse).
-
-The [`resource.ImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStatePassthroughID) is available to simplify writing the import identifier to an attribute.
-
-Refer to [Resource Import](/plugin/framework/resources/import) for more details and code examples.
-
-### UpgradeState
-
-`UpgradeState` is an optional method that implements resource [state](/language/state) upgrades when there are breaking changes to the [schema](/plugin/framework/schemas).
-
-Refer to [State Upgrades](/plugin/framework/resources/state-upgrade) for more details and code examples.
-
-## Add Resource to Provider
-
-To make new resources available to practitioners, add them to the `GetResources` method on the [provider](/plugin/framework/providers).
-The key must be the name of the resource, including the provider prefix, and
-the value must be an instance of the resource type.
-
-**Example**
+In this example, the `Delete` function allows HTTP 200 OK and 404 Not Found statuses to complete successfully without raising any errors:
 
 ```go
-func (p *provider) GetResources(_ context.Context) (map[string]provider.ResourceType,
-	diag.Diagnostics) {
-	return map[string]provider.ResourceType{
-		"example_compute_instance": computeInstanceResourceType{},
-	}, nil
+type ThingResource struct {
+	// client is configured via a Configure method, which is not shown in this
+	// example for brevity. Refer to the Configure Resources documentation for
+	// additional details for setting up resources with external clients.
+	client *http.Client
+}
+
+func (r *ThingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data ThingResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	httpReq := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		fmt.Sprintf("http://example.com/thing/%s", data.ID),
+		nil,
+	)
+
+	httpResp, err := d.client.Do(httpReq)
+	defer httpResp.Body.Close()
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Delete Resource",
+			"An unexpected error occurred while attempting to delete the resource. "+
+				"Please retry the operation or report this issue to the provider developers.\n\n"+
+				"HTTP Error: "+err.Error(),
+		)
+
+		return
+	}
+
+	// Treat HTTP 404 Not Found status as a signal to return early
+	if httpResp.StatusCode != http.StatusNotFound && httpResp.StatusCode != http.StatusOK {
+		resp.Diagnostics.AddError(
+			"Unable to Delete Resource",
+			"An unexpected error occurred while attempting to delete the resource. "+
+				"Please retry the operation or report this issue to the provider developers.\n\n"+
+				"HTTP Status: "+httpResp.Status,
+		)
+
+		return
+	}
+
+	// If the logic reaches here, it implicitly succeeded and will remove
+	// the resource from state if there are no other errors.
 }
 ```
 
-## Further Resource Capabilities
+## Add Resource to Provider
 
-- [Plan modification](/plugin/framework/resources/plan-modification) helps practitioners understand expected behaviors for your resource during changes, such as default values for missing configurations or requiring replacement.
-- [Validation](/plugin/framework/validation) helps practitioners understand the required syntax, types, and acceptable values for your resource.
+Resources become available to practitioners when they are included in the [provider](/plugin/framework/providers) implementation via the [`provider.ProviderWithResources` interface `Resources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithResources.Resources).
+
+In this example, the `ThingResource` type, which implements the `resource.Resource` interface, is added to the provider implementation:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Resources(_ context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		func() resource.Resource {
+			return &ThingResource{},
+		},
+	}
+}
+```
+
+To simplify provider implementations, a named function can be created with the resource implementation.
+
+In this example, the `ThingResource` code includes an additional `NewThingResource` function, which simplifies the provider implementation:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Resources(_ context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		NewThingResource,
+	}
+}
+
+// With the resource.Resource implementation
+func NewThingResource() resource.Resource {
+	return &ThingResource{}
+}
+```

@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -58,45 +57,47 @@ func TestServerUpgradeResourceState(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_resource": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return schema, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.ResourceWithUpgradeState{
-											Resource: &testprovider.Resource{},
-											UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
-												return map[int64]resource.StateUpgrader{
-													0: {
-														StateUpgrader: func(_ context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
-															expectedRawState := testNewRawState(t, map[string]interface{}{
-																"id":                 "test-id-value",
-																"required_attribute": true,
-															})
-
-															if diff := cmp.Diff(req.RawState, expectedRawState); diff != "" {
-																resp.Diagnostics.AddError("unexpected req.RawState difference: %s", diff)
-															}
-
-															// Prevent Missing Upgraded Resource State error
-															resp.State = tfsdk.State{
-																Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
-																	"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
-																	"optional_attribute": tftypes.NewValue(tftypes.String, nil),
-																	"required_attribute": tftypes.NewValue(tftypes.String, "true"),
-																}),
-																Schema: schema,
-															}
-														},
-													},
-												}
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithUpgradeState{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return schema, nil
 											},
-										}, nil
-									},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+										},
+										UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
+											return map[int64]resource.StateUpgrader{
+												0: {
+													StateUpgrader: func(_ context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+														expectedRawState := testNewRawState(t, map[string]interface{}{
+															"id":                 "test-id-value",
+															"required_attribute": true,
+														})
+
+														if diff := cmp.Diff(req.RawState, expectedRawState); diff != "" {
+															resp.Diagnostics.AddError("unexpected req.RawState difference: %s", diff)
+														}
+
+														// Prevent Missing Upgraded Resource State error
+														resp.State = tfsdk.State{
+															Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
+																"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+																"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+																"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+															}),
+															Schema: schema,
+														}
+													},
+												},
+											}
+										},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
@@ -157,29 +158,31 @@ func TestServerUpgradeResourceState(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_resource": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return schema, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.ResourceWithUpgradeState{
-											Resource: &testprovider.Resource{},
-											UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
-												return map[int64]resource.StateUpgrader{
-													0: {
-														StateUpgrader: func(_ context.Context, _ resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
-															resp.Diagnostics.AddWarning("warning summary", "warning detail")
-															resp.Diagnostics.AddError("error summary", "error detail")
-														},
-													},
-												}
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithUpgradeState{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return schema, nil
 											},
-										}, nil
-									},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+										},
+										UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
+											return map[int64]resource.StateUpgrader{
+												0: {
+													StateUpgrader: func(_ context.Context, _ resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+														resp.Diagnostics.AddWarning("warning summary", "warning detail")
+														resp.Diagnostics.AddError("error summary", "error detail")
+													},
+												},
+											}
+										},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},
@@ -211,35 +214,37 @@ func TestServerUpgradeResourceState(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-							return map[string]provider.ResourceType{
-								"test_resource": &testprovider.ResourceType{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return schema, nil
-									},
-									NewResourceMethod: func(_ context.Context, _ provider.Provider) (resource.Resource, diag.Diagnostics) {
-										return &testprovider.ResourceWithUpgradeState{
-											Resource: &testprovider.Resource{},
-											UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
-												return map[int64]resource.StateUpgrader{
-													0: {
-														StateUpgrader: func(_ context.Context, _ resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
-															resp.State = tfsdk.State{
-																Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
-																	"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
-																	"optional_attribute": tftypes.NewValue(tftypes.String, nil),
-																	"required_attribute": tftypes.NewValue(tftypes.String, "true"),
-																}),
-																Schema: schema,
-															}
-														},
-													},
-												}
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithUpgradeState{
+										Resource: &testprovider.Resource{
+											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+												return schema, nil
 											},
-										}, nil
-									},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+										},
+										UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
+											return map[int64]resource.StateUpgrader{
+												0: {
+													StateUpgrader: func(_ context.Context, _ resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+														resp.State = tfsdk.State{
+															Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
+																"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+																"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+																"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+															}),
+															Schema: schema,
+														}
+													},
+												},
+											}
+										},
+									}
 								},
-							}, nil
+							}
 						},
 					},
 				},

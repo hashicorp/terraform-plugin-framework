@@ -1,0 +1,3 @@
+```release-note:bug
+internal/fwserver: Ensured nested block plan modifiers correctly set their request `AttributeConfig`, `AttributePlan`, and `AttributeState` values
+```

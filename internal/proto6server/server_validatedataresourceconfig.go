@@ -17,7 +17,7 @@ func (s *Server) ValidateDataResourceConfig(ctx context.Context, proto6Req *tfpr
 
 	fwResp := &fwserver.ValidateDataSourceConfigResponse{}
 
-	dataSourceType, diags := s.FrameworkServer.DataSourceType(ctx, proto6Req.TypeName)
+	dataSource, diags := s.FrameworkServer.DataSource(ctx, proto6Req.TypeName)
 
 	fwResp.Diagnostics.Append(diags...)
 
@@ -33,7 +33,7 @@ func (s *Server) ValidateDataResourceConfig(ctx context.Context, proto6Req *tfpr
 		return toproto6.ValidateDataSourceConfigResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.ValidateDataSourceConfigRequest(ctx, proto6Req, dataSourceType, dataSourceSchema)
+	fwReq, diags := fromproto6.ValidateDataSourceConfigRequest(ctx, proto6Req, dataSource, dataSourceSchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

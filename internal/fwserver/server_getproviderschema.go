@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
 // GetProviderSchemaRequest is the framework server request for the
@@ -26,6 +28,19 @@ type GetProviderSchemaResponse struct {
 func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRequest, resp *GetProviderSchemaResponse) {
 	resp.ServerCapabilities = &ServerCapabilities{
 		PlanDestroy: true,
+	}
+
+	if providerWithMetadata, ok := s.Provider.(provider.ProviderWithMetadata); ok {
+		logging.FrameworkTrace(ctx, "Provider implements ProviderWithMetadata")
+
+		metadataReq := provider.MetadataRequest{}
+		metadataResp := provider.MetadataResponse{}
+
+		logging.FrameworkDebug(ctx, "Calling provider defined Provider Metadata")
+		providerWithMetadata.Metadata(ctx, metadataReq, &metadataResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Provider Metadata")
+
+		s.providerTypeName = metadataResp.TypeName
 	}
 
 	providerSchema, diags := s.ProviderSchema(ctx)

@@ -540,6 +540,21 @@ func TestSetTypeValidate(t *testing.T) {
 				),
 			},
 		},
+		"wrong-value-type": {
+			in: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "testvalue"),
+			}),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Set Type Validation Error",
+					"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"expected Set value, received tftypes.Value with value: tftypes.List[tftypes.String]<tftypes.String<\"testvalue\">>",
+				),
+			},
+		},
 	}
 	for name, testCase := range testCases {
 		name, testCase := name, testCase

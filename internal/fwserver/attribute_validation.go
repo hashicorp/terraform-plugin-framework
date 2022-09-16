@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -50,7 +51,13 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.Vali
 		return
 	}
 
-	attributeConfig, diags := ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
+	configData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionConfiguration,
+		Schema:         req.Config.Schema,
+		TerraformValue: req.Config.Raw,
+	}
+
+	attributeConfig, diags := configData.ValueAtPath(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {
@@ -109,25 +116,13 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.Vali
 
 	AttributeValidateNestedAttributes(ctx, a, req, resp)
 
-	if a.GetDeprecationMessage() != "" && attributeConfig != nil {
-		tfValue, err := attributeConfig.ToTerraformValue(ctx)
-		if err != nil {
-			resp.Diagnostics.AddAttributeError(
-				req.AttributePath,
-				"Attribute Validation Error",
-				"Attribute validation cannot convert value. Report this to the provider developer:\n\n"+err.Error(),
-			)
-
-			return
-		}
-
-		if !tfValue.IsNull() {
-			resp.Diagnostics.AddAttributeWarning(
-				req.AttributePath,
-				"Attribute Deprecated",
-				a.GetDeprecationMessage(),
-			)
-		}
+	// Show deprecation warnings only for known values.
+	if a.GetDeprecationMessage() != "" && !attributeConfig.IsNull() && !attributeConfig.IsUnknown() {
+		resp.Diagnostics.AddAttributeWarning(
+			req.AttributePath,
+			"Attribute Deprecated",
+			a.GetDeprecationMessage(),
+		)
 	}
 }
 

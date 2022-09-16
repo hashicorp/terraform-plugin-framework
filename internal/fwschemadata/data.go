@@ -8,6 +8,10 @@ import (
 // Data is the shared storage implementation for schema-based values, such as
 // configuration, plan, and state.
 type Data struct {
+	// Description contains the human friendly type of the data. Used in error
+	// diagnostics.
+	Description DataDescription
+
 	// Schema contains the data structure and types for the value.
 	Schema fwschema.Schema
 

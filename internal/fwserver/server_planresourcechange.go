@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -27,7 +26,7 @@ type PlanResourceChangeRequest struct {
 	ProposedNewState *tfsdk.Plan
 	ProviderMeta     *tfsdk.Config
 	ResourceSchema   fwschema.Schema
-	ResourceType     provider.ResourceType
+	Resource         resource.Resource
 }
 
 // PlanResourceChangeResponse is the framework server response for the
@@ -45,15 +44,23 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		return
 	}
 
-	// Always instantiate new Resource instances.
-	logging.FrameworkDebug(ctx, "Calling provider defined ResourceType NewResource")
-	resourceImpl, diags := req.ResourceType.NewResource(ctx, s.Provider)
-	logging.FrameworkDebug(ctx, "Called provider defined ResourceType NewResource")
+	if _, ok := req.Resource.(resource.ResourceWithConfigure); ok {
+		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 
-	resp.Diagnostics.Append(diags...)
+		configureReq := resource.ConfigureRequest{
+			ProviderData: s.ResourceConfigureData,
+		}
+		configureResp := resource.ConfigureResponse{}
 
-	if resp.Diagnostics.HasError() {
-		return
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource Configure")
+		req.Resource.(resource.ResourceWithConfigure).Configure(ctx, configureReq, &configureResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource Configure")
+
+		resp.Diagnostics.Append(configureResp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	nullTfValue := tftypes.NewValue(req.ResourceSchema.Type().TerraformType(ctx), nil)
@@ -211,7 +218,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// delete resources, e.g. to inform practitioners that the resource
 	// _can't_ be deleted in the API and will just be removed from
 	// Terraform's state
-	if resourceWithModifyPlan, ok := resourceImpl.(resource.ResourceWithModifyPlan); ok {
+	if resourceWithModifyPlan, ok := req.Resource.(resource.ResourceWithModifyPlan); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 
 		modifyPlanReq := resource.ModifyPlanRequest{

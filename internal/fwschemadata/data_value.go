@@ -32,17 +32,29 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 	if err != nil {
 		diags.AddAttributeError(
 			schemaPath,
-			"Data Read Error",
+			d.Description.Title()+" Read Error",
 			"An unexpected error was encountered trying to retrieve type information at a given path. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				"Error: "+err.Error(),
 		)
 		return nil, diags
 	}
 
-	// if the whole config is nil, the value of a valid attribute is also
-	// nil
+	// if the data is null, return a null value of the type
 	if d.TerraformValue.IsNull() {
-		return nil, nil
+		attrValue, err := attrType.ValueFromTerraform(ctx, tftypes.NewValue(attrType.TerraformType(ctx), nil))
+
+		if err != nil {
+			diags.AddAttributeError(
+				schemaPath,
+				d.Description.Title()+" Read Error",
+				"An unexpected error was encountered trying to create a null attribute value from the given path. "+
+					"Please report the following to the provider developer:\n\n"+
+					"Type: "+attrType.String()+"\n"+
+					"Error:"+err.Error(),
+			)
+		}
+
+		return attrValue, diags
 	}
 
 	tfValue, err := d.TerraformValueAtTerraformPath(ctx, tftypesPath)
@@ -51,7 +63,7 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 	if err != nil && !errors.Is(err, tftypes.ErrInvalidStep) {
 		diags.AddAttributeError(
 			schemaPath,
-			"Data Read Error",
+			d.Description.Title()+" Read Error",
 			"An unexpected error was encountered trying to retrieve an attribute value from the given path. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 		)
 		return nil, diags
@@ -77,8 +89,8 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 	if err != nil {
 		diags.AddAttributeError(
 			schemaPath,
-			"Data Read Error",
-			"An unexpected error was encountered trying to convert an attribute value from the data. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+			d.Description.Title()+" Read Error",
+			"An unexpected error was encountered trying to convert an attribute value from the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				"Error: "+err.Error(),
 		)
 		return nil, diags

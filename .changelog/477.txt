@@ -1,0 +1,7 @@
+```release-note:note
+tfsdk: Schema definitions may now introduce single nested mode blocks, however this support is only intended for migrating terraform-plugin-sdk timeouts blocks. New implementations should prefer single nested attributes instead.
+```
+
+```release-note:enhancement
+tfsdk: Added single nested mode block support
+```

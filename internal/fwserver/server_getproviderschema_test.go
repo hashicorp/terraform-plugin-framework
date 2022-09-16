@@ -5,11 +5,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -38,40 +40,50 @@ func TestServerGetProviderSchema(t *testing.T) {
 		"datasourceschemas": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetDataSourcesMethod: func(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-						return map[string]provider.DataSourceType{
-							"test_data_source1": &testprovider.DataSourceType{
-								GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-									return tfsdk.Schema{
-										Attributes: map[string]tfsdk.Attribute{
-											"test1": {
-												Required: true,
-												Type:     types.StringType,
+					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+						return []func() datasource.DataSource{
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{
+											Attributes: map[string]tfsdk.Attribute{
+												"test1": {
+													Required: true,
+													Type:     types.StringType,
+												},
 											},
-										},
-									}, nil
-								},
+										}, nil
+									},
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source1"
+									},
+								}
 							},
-							"test_data_source2": &testprovider.DataSourceType{
-								GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-									return tfsdk.Schema{
-										Attributes: map[string]tfsdk.Attribute{
-											"test2": {
-												Required: true,
-												Type:     types.StringType,
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{
+											Attributes: map[string]tfsdk.Attribute{
+												"test2": {
+													Required: true,
+													Type:     types.StringType,
+												},
 											},
-										},
-									}, nil
-								},
+										}, nil
+									},
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source2"
+									},
+								}
 							},
-						}, nil
+						}
 					},
 				},
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source1": &tfsdk.Schema{
+					"test_data_source1": tfsdk.Schema{
 						Attributes: map[string]tfsdk.Attribute{
 							"test1": {
 								Required: true,
@@ -79,9 +91,153 @@ func TestServerGetProviderSchema(t *testing.T) {
 							},
 						},
 					},
-					"test_data_source2": &tfsdk.Schema{
+					"test_data_source2": tfsdk.Schema{
 						Attributes: map[string]tfsdk.Attribute{
 							"test2": {
+								Required: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+				Provider:        &tfsdk.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+			},
+		},
+		"datasourceschemas-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+						return []func() datasource.DataSource{
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{
+											Attributes: map[string]tfsdk.Attribute{
+												"test1": {
+													Required: true,
+													Type:     types.StringType,
+												},
+											},
+										}, nil
+									},
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source"
+									},
+								}
+							},
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{
+											Attributes: map[string]tfsdk.Attribute{
+												"test2": {
+													Required: true,
+													Type:     types.StringType,
+												},
+											},
+										}, nil
+									},
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: nil,
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Data Source Type Defined",
+						"The test_data_source data source type name was returned for multiple data sources. "+
+							"Data source type names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Provider:        &tfsdk.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+			},
+		},
+		"datasourceschemas-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+						return []func() datasource.DataSource{
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: nil,
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Data Source Type Name Missing",
+						"The *testprovider.DataSource DataSource returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Provider:        &tfsdk.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+			},
+		},
+		"datasourceschemas-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithMetadata{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					Provider: &testprovider.Provider{
+						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+							return []func() datasource.DataSource{
+								func() datasource.DataSource {
+									return &testprovider.DataSource{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return tfsdk.Schema{
+												Attributes: map[string]tfsdk.Attribute{
+													"test": {
+														Required: true,
+														Type:     types.StringType,
+													},
+												},
+											}, nil
+										},
+										MetadataMethod: func(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+											resp.TypeName = req.ProviderTypeName + "_data_source"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{
+					"testprovidertype_data_source": tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
 								Required: true,
 								Type:     types.StringType,
 							},
@@ -164,33 +320,43 @@ func TestServerGetProviderSchema(t *testing.T) {
 		"resourceschemas": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetResourcesMethod: func(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-						return map[string]provider.ResourceType{
-							"test_resource1": &testprovider.ResourceType{
-								GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-									return tfsdk.Schema{
-										Attributes: map[string]tfsdk.Attribute{
-											"test1": {
-												Required: true,
-												Type:     types.StringType,
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{
+											Attributes: map[string]tfsdk.Attribute{
+												"test1": {
+													Required: true,
+													Type:     types.StringType,
+												},
 											},
-										},
-									}, nil
-								},
+										}, nil
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource1"
+									},
+								}
 							},
-							"test_resource2": &testprovider.ResourceType{
-								GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-									return tfsdk.Schema{
-										Attributes: map[string]tfsdk.Attribute{
-											"test2": {
-												Required: true,
-												Type:     types.StringType,
+							func() resource.Resource {
+								return &testprovider.Resource{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{
+											Attributes: map[string]tfsdk.Attribute{
+												"test2": {
+													Required: true,
+													Type:     types.StringType,
+												},
 											},
-										},
-									}, nil
-								},
+										}, nil
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource2"
+									},
+								}
 							},
-						}, nil
+						}
 					},
 				},
 			},
@@ -199,7 +365,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas: map[string]fwschema.Schema{},
 				Provider:          &tfsdk.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource1": &tfsdk.Schema{
+					"test_resource1": tfsdk.Schema{
 						Attributes: map[string]tfsdk.Attribute{
 							"test1": {
 								Required: true,
@@ -207,9 +373,153 @@ func TestServerGetProviderSchema(t *testing.T) {
 							},
 						},
 					},
-					"test_resource2": &tfsdk.Schema{
+					"test_resource2": tfsdk.Schema{
 						Attributes: map[string]tfsdk.Attribute{
 							"test2": {
+								Required: true,
+								Type:     types.StringType,
+							},
+						},
+					},
+				},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+			},
+		},
+		"resourceschemas-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{
+											Attributes: map[string]tfsdk.Attribute{
+												"test1": {
+													Required: true,
+													Type:     types.StringType,
+												},
+											},
+										}, nil
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+							func() resource.Resource {
+								return &testprovider.Resource{
+									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+										return tfsdk.Schema{
+											Attributes: map[string]tfsdk.Attribute{
+												"test2": {
+													Required: true,
+													Type:     types.StringType,
+												},
+											},
+										}, nil
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: nil,
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Resource Type Defined",
+						"The test_resource resource type name was returned for multiple resources. "+
+							"Resource type names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Provider:        &tfsdk.Schema{},
+				ResourceSchemas: nil,
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+			},
+		},
+		"resourceschemas-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: nil,
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Resource Type Name Missing",
+						"The *testprovider.Resource Resource returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Provider:        &tfsdk.Schema{},
+				ResourceSchemas: nil,
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+			},
+		},
+		"resourceschemas-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithMetadata{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+											return tfsdk.Schema{
+												Attributes: map[string]tfsdk.Attribute{
+													"test": {
+														Required: true,
+														Type:     types.StringType,
+													},
+												},
+											}, nil
+										},
+										MetadataMethod: func(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = req.ProviderTypeName + "_resource"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{},
+				Provider:          &tfsdk.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{
+					"testprovidertype_resource": tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
 								Required: true,
 								Type:     types.StringType,
 							},

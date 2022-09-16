@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -26,7 +27,13 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		return
 	}
 
-	attributeConfig, diags := ConfigGetAttributeValue(ctx, req.Config, req.AttributePath)
+	configData := &fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionConfiguration,
+		Schema:         req.Config.Schema,
+		TerraformValue: req.Config.Raw,
+	}
+
+	attributeConfig, diags := configData.ValueAtPath(ctx, req.AttributePath)
 	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {
@@ -177,6 +184,53 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		if b.GetMinItems() > 0 && int64(len(s.Elems)) < b.GetMinItems() && !s.IsUnknown() {
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elems)))
 		}
+	case fwschema.BlockNestingModeSingle:
+		s, ok := req.AttributeConfig.(types.Object)
+
+		if !ok {
+			err := fmt.Errorf("unknown block value type (%s) for nesting mode (%T) at path: %s", req.AttributeConfig.Type(ctx), nm, req.AttributePath)
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Block Validation Error",
+				"Block validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
+
+			return
+		}
+
+		for name, attr := range b.GetAttributes() {
+			nestedAttrReq := tfsdk.ValidateAttributeRequest{
+				AttributePath:           req.AttributePath.AtName(name),
+				AttributePathExpression: req.AttributePathExpression.AtName(name),
+				Config:                  req.Config,
+			}
+			nestedAttrResp := &tfsdk.ValidateAttributeResponse{
+				Diagnostics: resp.Diagnostics,
+			}
+
+			AttributeValidate(ctx, attr, nestedAttrReq, nestedAttrResp)
+
+			resp.Diagnostics = nestedAttrResp.Diagnostics
+		}
+
+		for name, block := range b.GetBlocks() {
+			nestedAttrReq := tfsdk.ValidateAttributeRequest{
+				AttributePath:           req.AttributePath.AtName(name),
+				AttributePathExpression: req.AttributePathExpression.AtName(name),
+				Config:                  req.Config,
+			}
+			nestedAttrResp := &tfsdk.ValidateAttributeResponse{
+				Diagnostics: resp.Diagnostics,
+			}
+
+			BlockValidate(ctx, block, nestedAttrReq, nestedAttrResp)
+
+			resp.Diagnostics = nestedAttrResp.Diagnostics
+		}
+
+		if b.GetMinItems() == 1 && s.IsNull() {
+			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), 0))
+		}
 	default:
 		err := fmt.Errorf("unknown block validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
 		resp.Diagnostics.AddAttributeError(
@@ -188,26 +242,13 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		return
 	}
 
-	if b.GetDeprecationMessage() != "" && attributeConfig != nil {
-		tfValue, err := attributeConfig.ToTerraformValue(ctx)
-
-		if err != nil {
-			resp.Diagnostics.AddAttributeError(
-				req.AttributePath,
-				"Block Validation Error",
-				"Block validation cannot convert value. Report this to the provider developer:\n\n"+err.Error(),
-			)
-
-			return
-		}
-
-		if !tfValue.IsNull() {
-			resp.Diagnostics.AddAttributeWarning(
-				req.AttributePath,
-				"Block Deprecated",
-				b.GetDeprecationMessage(),
-			)
-		}
+	// Show deprecation warning only on known values.
+	if b.GetDeprecationMessage() != "" && !attributeConfig.IsNull() && !attributeConfig.IsUnknown() {
+		resp.Diagnostics.AddAttributeWarning(
+			req.AttributePath,
+			"Block Deprecated",
+			b.GetDeprecationMessage(),
+		)
 	}
 }
 

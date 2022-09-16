@@ -1,0 +1,250 @@
+---
+page_title: 'Resources: Migrating from SDKv2 to the Framework'
+description: >-
+  Migrate a resource from SDKv2 to the plugin Framework.
+---
+
+# Resources
+
+Resources are an abstraction that allow Terraform to manage infrastructure objects by defining create, read, update,
+and delete functionality that maps onto API operations. Resource schemas define what fields a resource has, give
+Terraform metadata about those fields, and define how the resource behaves. Refer to
+[Resources](/plugin/framework/resources) in the Framework documentation for details.
+
+This page explains how to migrate a resource's schema from SDKv2 to the plugin Framework. We also recommend reviewing these additional guides for resources throughout the migration:
+- [Create, Read, Update, and Delete functions](/plugin/framework/migrating/resources/crud): The resource defines the logic to manage resources with Terraform.
+- [Import](/plugin/framework/migrating/resources/import): The resource defines the logic to add a resource to Terraform's state.
+- [Plan modification](/plugin/framework/migrating/resources/plan-modification): The resource customizes the Terraform plan for known values or behaviors outside the practitioner's configuration.
+- [State upgrade](/plugin/framework/migrating/resources/state-upgrade): The resource updates Terraform state information in advanced use cases.
+
+## SDKv2
+In SDKv2, resources are defined by the `ResourcesMap` field in the `schema.Provider` struct, which maps resource names
+(strings) to their schema. Each schema is a `schema.Resource` struct that includes:
+
+- A `Schema` field, which defines resource attributes
+- Fields for resource lifecycle functions such as `Create` and `CreateContext`
+- Fields for functions to implement state upgrade (`StateUpgraders`), import (`Importer`), and customize diff
+(`CustomizeDiff`)
+
+The following code shows a basic implementation of resource schema with SDKv2.
+
+```go
+func New() *schema.Provider {
+    return &schema.Provider{
+        ResourcesMap:   map[string]*schema.Resource {
+            "resource_example": resourceExample(),
+            /* ... */
+        },
+        /* ... */
+    }
+}
+```
+
+SDKv2 defines the `schema.Resource` struct as follows.
+
+```go
+schema.Resource{
+    Schema             map[string]*Schema
+    SchemaVersion            int
+    MigrateState             StateMigrateFunc
+    StateUpgraders           []StateUpgrader
+    Create                   CreateFunc
+    Read                     ReadFunc
+    Update                   UpdateFunc
+    Delete                   DeleteFunc
+    Exists                   ExistsFunc
+    CreateContext            CreateContextFunc
+    ReadContext              ReadContextFunc
+    UpdateContext            UpdateContextFunc
+    DeleteContext            DeleteContextFunc
+    CreateWithoutTimeout     CreateContextFunc
+    ReadWithoutTimeout       ReadContextFunc
+    UpdateWithoutTimeout     UpdateContextFunc
+    DeleteWithoutTimeout     DeleteContextFunc
+    CustomizeDiff            CustomizeDiffFunc
+    Importer                 *ResourceImporter
+    DeprecationMessage       string
+    Timeouts                 *ResourceTimeout
+    Description              string
+    UseJSONNumber            bool
+}
+```
+
+## Framework
+
+In the Framework, you define your provider's resources by adding them to your provider's `Resources` method.
+
+The `Resources` method on your `provider.Provider` returns a slice of functions that return types that
+implement the `resource.Resource` interface for each resource your provider supports.
+
+The following code shows how you add a resource to your provider with the Framework.
+
+```go
+func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
+    return []func() resource.Resource{
+        func() resource.Resource {
+            return resourceTypeExample{}
+        },
+    }
+}
+```
+
+The `resource.Resource` interface requires `Metadata`, `GetSchema`, `Create`, `Read`, `Update`, and `Delete`  methods.
+
+The `GetSchema` method returns a `tfsdk.Schema` struct which defines your resource's attributes. This is the same
+struct you use to define provider and data source attributes.
+
+The `Metadata` method returns a type name that you define.
+
+The following code shows how you define a `resource.Resource` which implements these methods with the
+Framework.
+
+```go
+type resourceExample struct{}
+
+func (r *resourceExample) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+    /* ... */
+}
+
+func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    /* ... */
+}
+
+func (r *resourceExample) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+    /* ... */
+}
+
+func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+    /* ... */
+}
+
+func (r *resourceExample) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+    /* ... */
+}
+
+func (r *resourceExample) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+    /* ... */
+}
+```
+
+The `tfsdk.Schema` is used for defining the schema for providers, resources and data sources. The Framework defines the
+`tfsdk.Schema` struct as follows.
+
+```go
+type Schema struct {
+    Attributes          map[string]Attribute
+    Blocks              map[string]Block
+    Version             int64
+    DeprecationMessage  string
+    Description         string
+    MarkdownDescription string
+}
+```
+
+Refer to the [Resources - CRUD functions](/plugin/framework/migrating/resources/crud) page in this guide to learn how to
+implement the `resource.Resource` interface.
+
+## Migration Notes
+
+Remember the following differences between SDKv2 and the Framework when completing the migration.
+
+- SDKv2 uses `schema.Resource` structs to define resources. These structs have a `Schema` field which holds a
+`schema.Schema` to define the resource's attributes and behavior. In the Framework, you define a type that implements
+the `resource.Resource` interface, which includes a `GetSchema` method that returns your resource's schema.
+- SDKv2 implements a resource's CRUD operations as functions on the `schema.Resource`. In the Framework, you define a
+type that implements the `resource.Resource` interface. The resource interface contains the functions that define your resource's
+CRUD operations.
+
+## Example
+
+The following examples show how to migrate portions of the
+[tls](https://github.com/hashicorp/terraform-provider-tls) provider.
+
+For a complete example,
+clone the `terraform-provider-tls` repository and compare the `resource_private_key.go` file in
+[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/resource_private_key.go) with the file
+[after the migration](https://github.com/hashicorp/terraform-provider-tls/blob/4dafb105818e45a88532f917e7b170ee2a9bb092/internal/provider/resource_private_key.go).
+
+### SDKv2
+
+In SDKv2, the `ResourcesMap` field on the `schema.Provider` struct holds a `map[string]*schemaResource`. A typical
+pattern is to implement a function that returns `schema.Resource`.
+
+The following example from the `provider.go` file defines a `tls_private_key` resource within the provider schema.
+
+```go
+func New() (*schema.Provider, error) {
+    return &schema.Provider {
+        ResourcesMap: map[string]*schema.Resource {
+            "tls_private_key": resourcePrivateKey(),
+            /* ... */
+```
+
+The following example from the `resource_private_key.go` file defines the resource schema.
+
+```go
+func resourcePrivateKey() *schema.Resource {
+    return &schema.Resource{
+        CreateContext: createResourcePrivateKey,
+        DeleteContext: deleteResourcePrivateKey,
+        ReadContext:   readResourcePrivateKey,
+
+        Description: "Creates a PEM /* ... */",
+
+        Schema: map[string]*schema.Schema{
+            "algorithm": {
+                Type:             schema.TypeString,
+                Required:         true,
+                ForceNew:         true,
+                ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice(SupportedAlgorithmsStr(), false)),
+                Description: "Name of the algorithm to use when generating the private key. " +
+                    "Currently-supported values are `RSA`, `ECDSA` and `ED25519`.",
+            },
+            /* ... */
+```
+
+### Framework
+
+The following shows the same section of provider code after the migration.
+
+This code defines the `tls_private_key` resource by mapping the resource name to the `privateKeyResourceType` struct.
+
+```go
+func (p *provider) Resources(_ context.Context) []func() resource.Resource {
+    return []func() resource.Resource{
+        func() resource.Resource {
+            return &privateKeyResource{}
+        },
+        /* ... */
+    }
+}
+```
+
+This code defines the `GetSchema` and `Metadata` methods for the `privateKeyResource`.
+
+```go
+func (r *privateKeyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+    resp.TypeName = "tls_private_key"
+}
+
+func (r *privateKeyResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            // Required attributes
+            "algorithm": {
+                Type:     types.StringType,
+                Required: true,
+                PlanModifiers: []tfsdk.AttributePlanModifier{
+                    resource.RequiresReplace(),
+                },
+                Validators: []tfsdk.AttributeValidator{
+                    attribute_validation.OneOf(supportedAlgorithmsAttrValue()...),
+                },
+                Description: "Name of the algorithm to use when generating the private key. " +
+                    fmt.Sprintf("Currently-supported values are: `%s`. ", strings.Join(supportedAlgorithmsStr(), "`, `")),
+            },
+            /* ... */
+        },
+    }, nil
+}
+```

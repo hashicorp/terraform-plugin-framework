@@ -10,32 +10,31 @@ description: >-
 
 Providers are Terraform plugins that define [resources](/plugin/framework/resources) and [data sources](/plugin/framework/data-sources) for practitioners to use. Providers are wrapped by a [provider server](/plugin/framework/provider-servers) for interacting with Terraform.
 
-## Implement Provider Interface
+This page describes the basic implementation details required for defining a provider. Further documentation is available for deeper provider concepts:
 
-Any type that fills the [provider.Provider interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider) can be a provider. The provider interface has four required methods: `GetSchema`, `Configure`, `GetResources`, and `GetDataSources`. We recommend that you define a `struct` type to fill this interface.
+- [Configure data sources](/plugin/framework/data-sources/configure) with provider-level data types or clients.
+- [Configure resources](/plugin/framework/resources/configure) with provider-level data types or clients.
+- [Validate](/plugin/framework/validation) practitioner configuration against acceptable values.
 
-An example provider implementation with a field storing an example API client:
+## Define Provider Type
+
+Implement the [provider.Provider interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider). Each of the methods described in more detail below.
+
+In this example, a provider implementation is scaffolded:
 
 ```go
 // Ensure the implementation satisfies the provider.Provider interface.
-var _ provider.Provider = &exampleProvider{}
+var _ provider.Provider = &ExampleCloudProvider{}
 
-// exampleProvider implements the provider.Provider interface. This implementation
-// will be passed to data sources and resources as the provider.Provider parameter
-// in each NewDataSource and NewResource method call respectively.
-type exampleProvider struct{
-	// Typically fields including API clients or configuration necessary for
-	// resource and data source operations. For example:
-	Client exampleApiClient
-
-	// version is an example field that can be set with an actual provider
+type ExampleCloudProvider struct{
+	// Version is an example field that can be set with an actual provider
 	// version on release, "dev" when the provider is built and ran locally,
 	// and "test" when running acceptance testing.
 	Version string
 }
 
 // GetSchema satisfies the provider.Provider interface for exampleProvider.
-func (p *exampleProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (p *ExampleCloudProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
 			// Provider specific implementation.
@@ -43,23 +42,23 @@ func (p *exampleProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 	}, nil
 }
 
-// Configure satisfies the provider.Provider interface for exampleProvider.
-func (p *exampleProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+// Configure satisfies the provider.Provider interface for ExampleCloudProvider.
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	// Provider specific implementation.
 }
 
-// GetDataSources satisfies the provider.Provider interface for exampleProvider.
-func (p *exampleProvider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-	return map[string]provider.DataSourceType{
+// DataSources satisfies the provider.Provider interface for ExampleCloudProvider.
+func (p *ExampleCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
 		// Provider specific implementation
-	}, nil
+	}
 }
 
-// GetResources satisfies the provider.Provider interface for exampleProvider.
-func (p *exampleProvider) GetResources(ctx context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-	return map[string]provider.ResourceType{
+// Resources satisfies the provider.Provider interface for ExampleCloudProvider.
+func (p *ExampleCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
 		// Provider specific implementation
-	}, nil
+	}
 }
 ```
 
@@ -68,47 +67,122 @@ Conventionally, many providers also create a helper function named `New` which c
 ```go
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &exampleProvider{
+		return &ExampleCloudProvider{
 			Version: version,
 		}
 	}
 }
 ```
 
-### GetSchema
+### GetSchema Method
 
-`GetSchema` returns a
-[schema](/plugin/framework/schemas) that describes the provider's
-configuration block. This configuration block is used to offer practitioners
-the opportunity to supply values to the provider and configure its behavior,
-rather than needing to include those values in every resource and data source.
-It is usually used to gather credentials, endpoints, and the other data used to
-authenticate with the API, but it is not limited to those uses.
+The [`provider.Provider` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the provider's configuration. This configuration block is used to offer practitioners the opportunity to supply values to the provider and configure its behavior, rather than needing to include those values in every resource and data source. It is usually used to gather credentials, endpoints, and the other data used to authenticate with the API, but it is not limited to those uses.
 
-```tf
-provider "example" {
-  endpoint = "https://example.test/"
-  api_token = "v3rYs3cr3tt0k3n"
+In this example, a sample configuration and schema definition are provided:
+
+```go
+// Example Terraform configuration:
+//
+// provider "examplecloud" {
+//   api_token = "v3rYs3cr3tt0k3n"
+//   endpoint  = "https://example.com/"
+// }
+
+func (p *ExampleCloudProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"api_token": {
+				Optional: true,
+				Type:     types.StringType,
+			},
+			"endpoint": {
+				Optional: true,
+				Type:     types.StringType,
+			},
+		},
+	}, nil
 }
 ```
 
-Even if the provider does not want to accept practitioner configuration, it must return
-an empty schema.
+If the provider does not accept practitioner Terraform configuration, it must return an empty schema (`tfsdk.Schema{}`).
 
-The schema is meant to be immutable. It should not change at runtime, and
-should consistently return the same value.
+### Configure Method
 
-### Configure
+The [`provider.Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure) handles the configuration of any provider-level data or clients. These configuration values may be from the practitioner Terraform configuration, environment variables, or other means such as reading vendor-specific configuration files.
 
-`Configure` handles and stores the
-values the practitioner entered in the provider's configuration block. This
-can mean creating the API client, storing the data on the type that
-implements the provider interface, or otherwise handling the values. This is
-the only time those values will be made available to the provider, so they
-need to be persisted if the provider will need to reference them from within
-a resource or data source. This is why we recommend using a struct
-to represent the provider, as it can hold multiple values in a strongly-typed
-way.
+This is the only chance the provider has to configure provider-level data or clients, so they need to be persisted if other data source or resource logic will need to reference them. Refer to the [Configure Data Sources](/plugin/framework/data-sources/configure) and [Configure Resources](/plugin/framework/resources/configure) pages for additional implementation details.
+
+If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`provider.ConfigureResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigureResponse.Diagnostics).
+
+In this example, the provider API token and endpoint are configured via environment variable or Terraform configuration:
+
+```go
+type ExampleCloudProvider struct {}
+
+type ExampleCloudProviderModel struct {
+	ApiToken types.String `tfsdk:"api_token"`
+	Endpoint types.String `tfsdk:"endpoint"`
+}
+
+func (p *ExampleCloudProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"api_token": {
+				Optional: true,
+				Type:     types.StringType,
+			},
+			"endpoint": {
+				Optional: true,
+				Type:     types.StringType,
+			},
+		},
+	}, nil
+}
+
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	// Check environment variables
+	apiToken := os.Getenv("EXAMPLECLOUD_API_TOKEN")
+	endpoint := os.Getenv("EXAMPLECLOUD_ENDPOINT")
+
+	var data ExampleCloudProviderModel
+
+	// Read configuration data into model
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	// Check configuration data, which should take precedence over
+	// environment variable data, if found.
+	if data.ApiToken.Value != "" {
+		apiToken = data.ApiToken.Value
+	}
+
+	if data.Endpoint.Value != "" {
+		endpoint = data.Endpoint.Value
+	}
+
+	if apiToken == "" {
+		resp.Diagnostics.AddError(
+			"Missing API Token Configuration",
+			"While configuring the provider, the API token was not found in "+
+				"the EXAMPLECLOUD_API_TOKEN environment variable or provider "+
+				"configuration block api_token attribute.",
+		)
+		// Not returning early allows the logic to collect all errors.
+	}
+
+	if endpoint == "" {
+		resp.Diagnostics.AddError(
+			"Missing Endpoint Configuration",
+			"While configuring the provider, the endpoint was not found in "+
+				"the EXAMPLECLOUD_ENDPOINT environment variable or provider "+
+				"configuration block endpoint attribute.",
+		)
+		// Not returning early allows the logic to collect all errors.
+	}
+
+	// Create data/clients and persist to resp.DataSourceData and
+	// resp.ResourceData as appropriate.
+}
+```
 
 #### Unknown Values
 
@@ -118,18 +192,16 @@ For example, if a practitioner interpolates a resource's unknown value into the 
 that value may show up as unknown depending on how the graph executes:
 
 ```tf
-resource "example_foo" "bar" {
-  id = 123
-}
+resource "random_string" "example" {}
 
-provider "example" {
-  endpoint = "https://example.test/"
-  api_token = example_foo.bar.name
+provider "examplecloud" {
+  api_token = random_string.example.result
+  endpoint  = "https://example.com/"
 }
 ```
 
-In the example above, `example_foo.bar.name` is a read-only field on
-`example_foo.bar` that won't be set until after `example_foo.bar` has been
+In the example above, `random_string.example.result` is a read-only field on
+`random_string.example` that won't be set until after `random_string.example` has been
 applied. So the `Configure` method for the provider may report that the value
 is unknown. You can choose how your provider handles this. If
 some resources or data sources can be used without knowing that value, it may
@@ -139,26 +211,114 @@ to use it. If resources and data sources can't provide any functionality
 without knowing that value, it's often better to [return an
 error](/plugin/framework/diagnostics), which will halt the apply.
 
-### GetResources
+### Resources
 
-`GetResources` returns a map of [resource
-types](/plugin/framework/resources). The keys of the
-map entries must be the name of the resource as it would appear in the
-configuration, including the provider prefix.
+The [`provider.ProviderWithResources` interface `Resources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithResources.Resources) returns a slice of [resources](/plugin/framework/resources). Each element in the slice is a function to create a new `resource.Resource` so data is not inadvertently shared across multiple, disjointed resource instance operations unless explicitly coded. Information such as the resource type name is managed by the `resource.Resource` implementation.
 
-The list of resources is meant to be immutable. It should not change at
-runtime, and should consistently return the same values.
+In this example, the provider implements a single resource:
 
-### GetDataSources
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Resources(_ context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		NewThingResource,
+	}
+}
 
-`GetDataSources` returns a map of [data
-source types](/plugin/framework/data-sources). The
-keys of the map entries must be the name of the data source as it would appear
-in the configuration, including the provider prefix.
+// With the resource.Resource implementation
+func NewThingResource() resource.Resource {
+	return &ThingResource{}
+}
 
-The list of data sources is meant to be immutable. It should not change at
-runtime, and should consistently return the same values.
+type ThingResource struct {}
+```
 
-## Further Provider Capabilities
+Use Go slice techniques to include large numbers of resources outside the provider `Resources` method code.
 
-- [Validation](/plugin/framework/validation) helps practitioners understand the required syntax, types, and acceptable values for your provider.
+In this example, the provider codebase implements multiple "services" which group their own resources:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Resources(_ context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		servicex.Resources...,
+		servicey.Resources...,
+	}
+}
+
+// With the servicex implementation
+package servicex
+
+var Resources = []func() resource.Resource {
+	NewThingResource,
+	NewWidgetResource,
+}
+
+func NewThingResource() resource.Resource {
+	return &
+}
+
+type ThingResource struct {}
+
+func NewWidgetResource() resource.Resource {
+	return &WidgetResource{}
+}
+
+type WidgetResource struct {}
+```
+
+### DataSources
+
+The [`provider.ProviderWithDataSources` interface `DataSources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithDataSources.DataSources) returns a slice of [data sources](/plugin/framework/data-sources). Each element in the slice is a function to create a new `datasource.DataSource` so data is not inadvertently shared across multiple, disjointed datasource instance operations unless explicitly coded. Information such as the datasource type name is managed by the `datasource.DataSource` implementation.
+
+In this example, the provider implements a single data source:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		NewThingDataSource,
+	}
+}
+
+// With the datasource.DataSource implementation
+func NewThingDataSource() datasource.DataSource {
+	return &ThingDataSource{}
+}
+
+type ThingDataSource struct {}
+```
+
+Use Go slice techniques to include large numbers of data sources outside the provider `DataSources` method code.
+
+In this example, the provider codebase implements multiple "services" which group their own datasources:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		servicex.DataSources...,
+		servicey.DataSources...,
+	}
+}
+
+// With the servicex implementation
+package servicex
+
+var DataSources = []func() datasource.DataSource {
+	NewThingDataSource,
+	NewWidgetDataSource,
+}
+
+func NewThingDataSource() datasource.DataSource {
+	return &
+}
+
+type ThingDataSource struct {}
+
+func NewWidgetDataSource() datasource.DataSource {
+	return &WidgetDataSource{}
+}
+
+type WidgetDataSource struct {}
+```

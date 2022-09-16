@@ -24,18 +24,11 @@ Use the [`providerserver.NewProtocol6WithError`](https://pkg.go.dev/github.com/h
 
 ```go
 resource.Test(t, resource.TestCase{
-	PreCheck: func() { testAccPreCheck(t) },
 	ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error) {
 		// newProvider is an example function that returns a provider.Provider
-		"example_provider": providerserver.NewProtocol6WithError(newProvider()),
+		"examplecloud": providerserver.NewProtocol6WithError(newProvider()),
 	},
-	CheckDestroy: testAccCheckExampleResourceDestroy,
-	Steps: []resource.TestStep{
-		{
-			Config: testAccExampleResource,
-			Check: testAccCheckExampleResourceExists,
-		},
-	},
+	Steps: []resource.TestStep{/* ... */},
 })
 ```
 
@@ -45,18 +38,11 @@ Use the [`providerserver.NewProtocol5WithError`](https://pkg.go.dev/github.com/h
 
 ```go
 resource.Test(t, resource.TestCase{
-	PreCheck: func() { testAccPreCheck(t) },
 	ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error) {
 		// newProvider is an example function that returns a provider.Provider
-		"example_provider": providerserver.NewProtocol5WithError(newProvider()),
+		"examplecloud": providerserver.NewProtocol5WithError(newProvider()),
 	},
-	CheckDestroy: testAccCheckExampleResourceDestroy,
-	Steps: []resource.TestStep{
-		{
-			Config: testAccExampleResource,
-			Check: testAccCheckExampleResourceExists,
-		},
-	},
+	Steps: []resource.TestStep{/* ... */},
 })
 ```
 
@@ -73,10 +59,10 @@ testing_new.go:53: no "id" found in attributes
 
 To avoid this, add a root level `id` attribute to resource and data source schemas. Ensure the attribute value is appropriately [written to state](/plugin/framework/writing-state). Conventionally, `id` is a computed attribute that contains the identifier for the resource.
 
-For example, in the `GetSchema` method implementation of a [`provider.DataSourceType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#DataSourceType) or [`provider.ResourceType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ResourceType):
+For example, in the `GetSchema` method implementation of a [`datasource.DataSource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource) or [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource):
 
 ```go
-func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *ThingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// ... potentially other schema configuration ...
 		Attributes: map[string]tfsdk.Attribute{

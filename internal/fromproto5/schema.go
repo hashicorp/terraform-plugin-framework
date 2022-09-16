@@ -14,6 +14,8 @@ import (
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/366
 func tfsdkSchema(s fwschema.Schema) tfsdk.Schema {
 	switch s := s.(type) {
+	case tfsdk.Schema:
+		return s
 	case *tfsdk.Schema:
 		return *s
 	default:

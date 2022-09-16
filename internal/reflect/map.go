@@ -145,7 +145,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 
-		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
+		if typeWithValidate, ok := elemType.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfVal, path.AtMapKey(key.String()))...)
 
 			if diags.HasError() {

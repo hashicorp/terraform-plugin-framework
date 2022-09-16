@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 // ApplyResourceChangeRequest returns the *fwserver.ApplyResourceChangeRequest
 // equivalent of a *tfprotov6.ApplyResourceChangeRequest.
-func ApplyResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.ApplyResourceChangeRequest, resourceType provider.ResourceType, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ApplyResourceChangeRequest, diag.Diagnostics) {
+func ApplyResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.ApplyResourceChangeRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ApplyResourceChangeRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -37,7 +37,7 @@ func ApplyResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.ApplyReso
 
 	fw := &fwserver.ApplyResourceChangeRequest{
 		ResourceSchema: resourceSchema,
-		ResourceType:   resourceType,
+		Resource:       resource,
 	}
 
 	config, configDiags := Config(ctx, proto6.Config, resourceSchema)

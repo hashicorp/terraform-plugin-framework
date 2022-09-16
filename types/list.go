@@ -6,8 +6,10 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -109,6 +111,55 @@ func (l ListType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSte
 // String returns a human-friendly description of the ListType.
 func (l ListType) String() string {
 	return "types.ListType[" + l.ElemType.String() + "]"
+}
+
+// Validate validates all elements of the list that are of type
+// xattr.TypeWithValidate.
+func (l ListType) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if in.Type() == nil {
+		return diags
+	}
+
+	if !in.Type().Is(tftypes.List{}) {
+		err := fmt.Errorf("expected List value, received %T with value: %v", in, in)
+		diags.AddAttributeError(
+			path,
+			"List Type Validation Error",
+			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
+	}
+
+	if !in.IsKnown() || in.IsNull() {
+		return diags
+	}
+
+	var elems []tftypes.Value
+
+	if err := in.As(&elems); err != nil {
+		diags.AddAttributeError(
+			path,
+			"List Type Validation Error",
+			"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return diags
+	}
+
+	validatableType, isValidatable := l.ElemType.(xattr.TypeWithValidate)
+	if !isValidatable {
+		return diags
+	}
+
+	for index, elem := range elems {
+		if !elem.IsFullyKnown() {
+			continue
+		}
+		diags = append(diags, validatableType.Validate(ctx, elem, path.AtListIndex(index))...)
+	}
+
+	return diags
 }
 
 // List represents a list of attr.Values, all of the same type, indicated

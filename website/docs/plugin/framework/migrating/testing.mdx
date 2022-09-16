@@ -1,0 +1,170 @@
+---
+page_title: 'Testing Migration: Migrating from SDKv2 to the Framework'
+description: >-
+  Write tests that verify that switching from SDKv2 to the Framework does not affect provider behavior.
+---
+
+# Testing
+
+During migration, you should [write tests](#testing-migration) to verify that the behaviour of your provider has not
+been altered by the migration itself. You will also need to [update](#provider-factories) your tests too.
+
+## Testing Migration
+
+During migration, we recommend writing tests to verify that switching from SDKv2 to the Framework has not affected your
+provider's behavior. These tests use identical configuration. The first test step applies a plan and generates state
+with the SDKv2 version of the provider. The second test step generates a plan with the Framework version of the provider
+and verifies that the plan is a no-op, indicating that migrating to the framework has not altered behaviour.
+
+Use the `ExternalProviders` field within a `resource.TestStep` to specify the configuration of a specific provider to
+use during each test step. You can specify a version of the provider built on SDKv2 during the first test step, and
+then you can use the version of the provider built on the Framework in subsequent test step(s) to verify that Terraform
+CLI does not detect any planned changes.
+
+You must also update the [provider factories](#provider-factories) to use
+the Framework.
+
+### Example
+
+The following example is taken from
+[v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http_test.go)
+of the http provider.
+
+This example shows how you can use external providers to generate a state file with a previous version of the provider
+and then verify that there are no planned changes after migrating to the Framework.
+
+- The first `TestStep` uses `ExternalProviders` to cause `terraform apply` to execute with `v2.2.0` of the http
+provider, which is built on SDKv2.
+- The second `TestStep` uses `ProtoV5ProviderFactories` so that the test uses the provider code contained within your
+repository. The second step also uses `PlanOnly` to verify that a no-op plan is generated.
+
+```go
+func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
+    /* ... */
+    resource.Test(t, resource.TestCase{
+        Steps: []resource.TestStep{
+            {
+                ExternalProviders: map[string]resource.ExternalProvider{
+                    "http": {
+                        VersionConstraint: "2.2.0",
+                        Source:            "hashicorp/http",
+                    },
+                },
+                Config: fmt.Sprintf(`
+                    data "http" "http_test" {
+                       url = "%s/200"
+                    }`, testHttpMock.server.URL),
+                Check: resource.ComposeTestCheckFunc(
+                    resource.TestCheckResourceAttr("data.http.http_test", "response_body", "1.0.0"),
+                    /* ... */
+                ),
+            },
+            {
+                ProtoV5ProviderFactories: protoV5ProviderFactories(),
+                Config: fmt.Sprintf(`
+                    data "http" "http_test" {
+                        url = "%s/200"
+                    }`, testHttpMock.server.URL),
+                PlanOnly: true,
+            },
+        },
+    })
+}
+```
+
+## Provider Factories
+
+Existing tests should require minimal updates when migrating from SDKv2 to the Framework. The only critical change
+relates to the provider factories that create the provider during the test case. Refer to [Acceptance Tests - Specify Providers](/plugin/framework/acctests#specify-providers) in the Framework
+documentation for details.
+
+We also recommend writing tests that verify that switching from SDKv2 to the Framework has not affected provider
+behavior. Refer to [Testing Migration](#testing-migration) for details.
+
+### SDKv2
+
+In SDKv2, you use the `ProviderFactories` field on the `resource.TestCase` struct to obtain `schema.Provider`.
+
+The following example shows a test written in SDKv2.
+
+```go
+resource.UnitTest(t, resource.TestCase{
+    ProviderFactories: testProviders(),
+```
+
+### Framework
+
+In the Framework, use either the `ProtoV5ProviderFactories` or `ProtoV6ProviderFactories` field on the
+`resource.TestCase` struct to obtain the `provider.Provider`, depending on the
+[Terraform Plugin Protocol](/plugin/how-terraform-works#terraform-plugin-protocol) version your provider is using.
+
+The following example shows how you can write a test in the Framework for a Provider that uses protocol version 6.
+
+```go
+resource.UnitTest(t, resource.TestCase{
+    ProtoV6ProviderFactories: protoV6ProviderFactories(),
+```
+
+### Example
+
+The following examples show how to migrate portions of the [http](https://github.com/hashicorp/terraform-provider-http)
+provider.
+
+To review a complete example, clone the
+`terraform-provider-http` repository and compare the `data_source_test.go` file in
+[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source_test.go) with the `data_source_http_test.go` file in
+[v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http_test.go).
+
+#### SDKv2
+
+The following code sample is from the `data_source_http_test.go` file and shows how to define provider factories within
+a test case when using SDKv2.
+
+```go
+func TestDataSource_http200(t *testing.T) {
+    /* ... */
+    resource.UnitTest(t, resource.TestCase{
+        ProviderFactories: testProviders(),
+        /* ... */
+    })
+}
+```
+
+The following code sample is from the `provider_test.go` file and shows how to generate provider factories when using
+SDKv2.
+
+```go
+func testProviders() map[string]func() (*schema.Provider, error) {
+    return map[string]func() (*schema.Provider, error){
+        "http": func() (*schema.Provider, error) { return New(), nil },
+    }
+}
+```
+
+#### Framework
+
+The following code sample is from the `data_source_http_test.go` file and shows how to define provider factories within
+a test case when using the Framework.
+
+```go
+func TestDataSource_200(t *testing.T) {
+    /* ... */
+
+    resource.UnitTest(t, resource.TestCase{
+        ProtoV5ProviderFactories: protoV5ProviderFactories(),
+        /* ... */
+    })
+}
+```
+
+The following code sample is from the `provider_test.go` file and shows how to generate provider factories when using
+the Framework. The call to `New` returns an instance of the provider. Refer to
+[Provider Definition](/plugin/framework/migrating/providers#provider-definition) in this guide for details.
+
+```go
+func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {
+    return map[string]func() (tfprotov5.ProviderServer, error){
+        "http": providerserver.NewProtocol5WithError(New()),
+    }
+}
+```

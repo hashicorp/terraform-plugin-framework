@@ -69,23 +69,17 @@ the appropriate helper function and then used to configure timeout behaviour, fo
 func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
     var data exampleDataSourceData
 
-    diags := req.State.Get(ctx, &data)
+    diags := req.Config.Get(ctx, &data)
     resp.Diagnostics.Append(diags...)
     if resp.Diagnostics.HasError() {
         return
     }
 
-    readTimeout, diags := timeouts.Read(ctx, data.Timeouts)
-    resp.Diagnostics.Append(diags...)
-    if resp.Diagnostics.HasError() {
-        return
-    }
+    defaultReadTimeout := 20 * time.Minute
 
-    if readTimeout == nil {
-        /* ... */
-    }
+    readTimeout := timeouts.Read(ctx, data.Timeouts, defaultReadTimeout)
 
-    ctx, cancel := context.WithTimeout(ctx, *readTimeout)
+    ctx, cancel := context.WithTimeout(ctx, readTimeout)
     defer cancel()
 
     /* ... */

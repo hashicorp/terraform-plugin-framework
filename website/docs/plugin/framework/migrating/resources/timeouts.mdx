@@ -77,7 +77,7 @@ will need to be updated.
 func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data exampleResourceData
 
-	diags := req.Config.Get(ctx, &data)
+	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 ```
 
@@ -98,23 +98,17 @@ the appropriate helper function and then used to configure timeout behaviour, fo
 func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
     var data exampleResourceData
 
-    diags := req.Config.Get(ctx, &data)
+    diags := req.Plan.Get(ctx, &data)
     resp.Diagnostics.Append(diags...)
     if resp.Diagnostics.HasError() {
         return
     }
 
-    createTimeout, diags := timeouts.Create(ctx, data.Timeouts)
-    resp.Diagnostics.Append(diags...)
-    if resp.Diagnostics.HasError() {
-        return
-    }
+    defaultCreateTimeout := 20 * time.Minute
 
-    if createTimeout == nil {
-        /* ... */
-    }
+    createTimeout := timeouts.Create(ctx, data.Timeouts, defaultCreateTimeout)
 
-    ctx, cancel := context.WithTimeout(ctx, *createTimeout)
+    ctx, cancel := context.WithTimeout(ctx, createTimeout)
     defer cancel()
 
     /* ... */

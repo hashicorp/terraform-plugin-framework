@@ -104,17 +104,11 @@ func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest
         return
     }
 
-    readTimeout, diags := timeouts.Read(ctx, data.Timeouts)
-    resp.Diagnostics.Append(diags...)
-    if resp.Diagnostics.HasError() {
-        return
-    }
+    defaultReadTimeout := 20 * time.Minute
 
-    if readTimeout == nil {
-        /* ... */
-    }
+    readTimeout := timeouts.Read(ctx, data.Timeouts, defaultReadTimeout)
 
-    ctx, cancel := context.WithTimeout(ctx, *readTimeout)
+    ctx, cancel := context.WithTimeout(ctx, readTimeout)
     defer cancel()
 
     /* ... */

@@ -41,7 +41,7 @@ func (e *exampleDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.D
 
 ### Nested Attributes
 
-Where possible, we recommend switching to nested attribute syntax during migration.
+If a practitioner breaking change is acceptable during migration, we recommend switching to nested attribute syntax instead.
 
 Timeouts can be specified using nested attributes if [protocol version 6](https://www.terraform.io/plugin/how-terraform-works#protocol-version-6) is being used.
 

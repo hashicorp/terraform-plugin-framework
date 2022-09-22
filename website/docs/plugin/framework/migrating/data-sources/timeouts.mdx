@@ -10,12 +10,22 @@ The Framework can be used in conjunction with the [terraform-plugin-framework-ti
 
 ## Specifying Timeouts in Configuration
 
-### Nested Block
+Timeouts can be defined using either nested blocks or nested attributes.
 
-Timeouts defined in configuration used with providers built on [SDKv2](https://github.com/hashicorp/terraform-plugin-sdk) use nested block syntax.
+If you are writing a new provider using [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+then we recommend using nested attributes.
+
+If you are migrating a provider from SDKv2 to the Framework and
+you are already using timeouts you can either continue to use block syntax, or switch to using nested attributes.
+However, switching to using nested attributes will require that practitioners that are using your provider update their
+Terraform configuration.
+
+#### Block
+
+If your configuration is using a nested block to define timeouts, such as the following:
 
 ```terraform
-data "timeouts_example" "example" {
+resource "timeouts_example" "example" {
   /* ... */
 
   timeouts {
@@ -24,11 +34,10 @@ data "timeouts_example" "example" {
 }
 ```
 
-The Schema is modified by calling `timeouts.Block` supplying options to specify which attributes are to be added.
-
+You can use this module to mutate the `tfsdk.Schema` as follows:
 
 ```go
-func (e *exampleDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (t *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         /* ... */
 
@@ -39,14 +48,12 @@ func (e *exampleDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.D
         },
 ```
 
-### Nested Attributes
+#### Attribute
 
-If a practitioner breaking change is acceptable during migration, we recommend switching to nested attribute syntax instead.
-
-Timeouts can be specified using nested attributes if [protocol version 6](https://www.terraform.io/plugin/how-terraform-works#protocol-version-6) is being used.
+If your configuration is using nested attributes to define timeouts, such as the following:
 
 ```terraform
-data "timeouts_example" "example" {
+resource "timeouts_example" "example" {
   /* ... */
 
   timeouts = {
@@ -55,23 +62,22 @@ data "timeouts_example" "example" {
 }
 ```
 
-The Schema is modified by calling `timeouts.Attributes` supplying options to specify which attributes are to be added.
+You can use this module to mutate the `tfsdk.Schema` as follows:
 
 ```go
-func (e *exampleDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (t *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             /* ... */
             "timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-                read: true,
+                Read: true,
             }),
         },
 ```
 
 ## Updating Models
 
-In functions in which the config, state or plan is being unmarshalled, for instance, the `Read` function, the model
-will need to be updated.
+Given a `Read` method which fetches the entire configuration:
 
 ```go
 func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -81,7 +87,7 @@ func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	resp.Diagnostics.Append(diags...)
 ```
 
-The `exampleDataSourceData` model needs to be modified to include a field for timeouts, which is `types.Object`.
+Modify the `exampleDataSourceData` model to include a field for timeouts using a `types.Object` type.
 
 ```go
 type exampleDataSourceData struct {
@@ -91,8 +97,7 @@ type exampleDataSourceData struct {
 
 ## Accessing Timeouts in CRUD Functions
 
-Once the model has been populated with the config, state or plan the duration of the timeout can be accessed by calling
-the appropriate helper function and then used to configure timeout behaviour, for instance:
+Call the [`timeouts.Read()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-timeouts/timeouts#Read).
 
 ```go
 func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

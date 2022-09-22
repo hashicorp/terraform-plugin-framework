@@ -12,9 +12,47 @@ The Framework can be used in conjunction with the [terraform-plugin-framework-ti
 
 ## Specifying Timeouts in Configuration
 
-Timeouts can be specified using nested attributes if [protocol version 6](https://www.terraform.io/plugin/how-terraform-works#protocol-version-6) is being used.
+Timeouts can be defined using either nested blocks or nested attributes.
 
-Refer to [nested block](../migrating/resources/timeouts#nested-block) if you are migrating timeouts from SDKv2 to the Framework.
+If you are writing a new provider using [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+then we recommend using nested attributes.
+
+If you are [migrating a provider from SDKv2 to the Framework](/plugin/framework/migrating) and
+you are already using timeouts you can either continue to use block syntax, or switch to using nested attributes.
+However, switching to using nested attributes will require that practitioners that are using your provider update their
+Terraform configuration.
+
+#### Block
+
+If your configuration is using a nested block to define timeouts, such as the following:
+
+```terraform
+resource "timeouts_example" "example" {
+  /* ... */
+
+  timeouts {
+    create = "60m"
+  }
+}
+```
+
+You can use this module to mutate the `tfsdk.Schema` as follows:
+
+```go
+func (t *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        /* ... */
+
+        Blocks: map[string]tfsdk.Block{
+            "timeouts": timeouts.Block(ctx, timeouts.Opts{
+                Create: true,
+            }),
+        },
+```
+
+#### Attribute
+
+If your configuration is using nested attributes to define timeouts, such as the following:
 
 ```terraform
 resource "timeouts_example" "example" {
@@ -26,10 +64,10 @@ resource "timeouts_example" "example" {
 }
 ```
 
-The Schema is modified by calling `timeouts.Attributes` supplying options to specify which attributes are to be added.
+You can use this module to mutate the `tfsdk.Schema` as follows:
 
 ```go
-func (e *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (t *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
     return tfsdk.Schema{
         Attributes: map[string]tfsdk.Attribute{
             /* ... */
@@ -63,7 +101,7 @@ type exampleResourceData struct {
 ## Accessing Timeouts in CRUD Functions
 
 Once the model has been populated with the config, state or plan the duration of the timeout can be accessed by calling
-the appropriate helper function and then used to configure timeout behaviour, for instance:
+the appropriate helper function (e.g., `timeouts.Create`) and then used to configure timeout behaviour, for instance:
 
 ```go
 func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

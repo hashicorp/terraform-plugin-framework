@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
+	"strings"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Into uses the data in `val` to populate `target`, using the reflection
@@ -109,11 +111,19 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		// all that's left to us now is to set it as an empty value or
 		// throw an error, depending on what's in opts
 		if !opts.UnhandledUnknownAsEmpty {
-			err := fmt.Errorf("unhandled unknown value")
+			typTypeStr := reflect.TypeOf(typ).String()
+
+			if typTypeStr == "types.primitive" {
+				typTypeStr = typ.String()
+			}
+
+			typTypeStr = strings.TrimSuffix(typTypeStr, "Type")
+
 			diags.AddAttributeError(
 				path,
 				"Value Conversion Error",
-				"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+				"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+					fmt.Sprintf("Received unknown value for %s, however the current struct field type %s cannot handle unknown values. Use %s, or a custom type that supports unknown values instead.", path, target.Type(), typTypeStr),
 			)
 			return target, diags
 		}
@@ -132,12 +142,21 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 			return reflect.Zero(target.Type()), nil
 		}
 
-		err := fmt.Errorf("unhandled null value")
+		typTypeStr := reflect.TypeOf(typ).String()
+
+		if typTypeStr == "types.primitive" {
+			typTypeStr = typ.String()
+		}
+
+		typTypeStr = strings.TrimSuffix(typTypeStr, "Type")
+
 		diags.AddAttributeError(
 			path,
 			"Value Conversion Error",
-			"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				fmt.Sprintf("Received null value for %s, however the current struct field type %s cannot handle null values. Use a pointer type (*%s), %s, or a custom type that supports null values instead.", path, target.Type(), target.Type(), typTypeStr),
 		)
+
 		return target, diags
 	}
 	// *big.Float and *big.Int are technically pointers, but we want them

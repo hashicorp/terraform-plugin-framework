@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -111,19 +110,12 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		// all that's left to us now is to set it as an empty value or
 		// throw an error, depending on what's in opts
 		if !opts.UnhandledUnknownAsEmpty {
-			typTypeStr := reflect.TypeOf(typ).String()
-
-			if typTypeStr == "types.primitive" {
-				typTypeStr = typ.String()
-			}
-
-			typTypeStr = strings.TrimSuffix(typTypeStr, "Type")
-
 			diags.AddAttributeError(
 				path,
 				"Value Conversion Error",
 				"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Received unknown value for %s, however the current struct field type %s cannot handle unknown values. Use %s, or a custom type that supports unknown values instead.", path, target.Type(), typTypeStr),
+					"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+					fmt.Sprintf("Path: %s\nTarget Type: %s\nSuggested Type: %s", path.String(), target.Type(), typ.String()),
 			)
 			return target, diags
 		}
@@ -142,19 +134,12 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 			return reflect.Zero(target.Type()), nil
 		}
 
-		typTypeStr := reflect.TypeOf(typ).String()
-
-		if typTypeStr == "types.primitive" {
-			typTypeStr = typ.String()
-		}
-
-		typTypeStr = strings.TrimSuffix(typTypeStr, "Type")
-
 		diags.AddAttributeError(
 			path,
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-				fmt.Sprintf("Received null value for %s, however the current struct field type %s cannot handle null values. Use a pointer type (*%s), %s, or a custom type that supports null values instead.", path, target.Type(), target.Type(), typTypeStr),
+				"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+				fmt.Sprintf("Path: %s\nTarget Type: %s\nSuggested `types` Type: %s\nSuggested Pointer Type: *%s", path.String(), target.Type(), typ.String(), target.Type()),
 		)
 
 		return target, diags

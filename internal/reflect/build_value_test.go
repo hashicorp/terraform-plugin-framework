@@ -28,7 +28,8 @@ func TestBuildValue(t *testing.T) {
 					path.Root("id"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received null value for id, however the current struct field type string cannot handle null values. Use a pointer type (*string), types.String, or a custom type that supports null values instead.",
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: id\nTarget Type: string\nSuggested `types` Type: types.StringType\nSuggested Pointer Type: *string",
 				),
 			},
 		},
@@ -39,7 +40,8 @@ func TestBuildValue(t *testing.T) {
 					path.Root("id"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for id, however the current struct field type string cannot handle unknown values. Use types.String, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: id\nTarget Type: string\nSuggested Type: types.StringType",
 				),
 			},
 		},

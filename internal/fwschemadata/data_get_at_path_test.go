@@ -291,7 +291,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("bool"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for bool, however the current struct field type *bool cannot handle unknown values. Use types.Bool, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: bool\nTarget Type: *bool\nSuggested Type: types.BoolType",
 				),
 			},
 		},
@@ -349,7 +350,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("bool"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received null value for bool, however the current struct field type bool cannot handle null values. Use a pointer type (*bool), types.Bool, or a custom type that supports null values instead.",
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: bool\nTarget Type: bool\nSuggested `types` Type: types.BoolType\nSuggested Pointer Type: *bool",
 				),
 			},
 		},
@@ -382,7 +384,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("bool"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for bool, however the current struct field type bool cannot handle unknown values. Use types.Bool, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: bool\nTarget Type: bool\nSuggested Type: types.BoolType",
 				),
 			},
 		},
@@ -540,7 +543,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("float64"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for float64, however the current struct field type *float64 cannot handle unknown values. Use types.Float64, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: float64\nTarget Type: *float64\nSuggested Type: types.Float64Type",
 				),
 			},
 		},
@@ -598,7 +602,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("float64"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received null value for float64, however the current struct field type float64 cannot handle null values. Use a pointer type (*float64), types.Float64, or a custom type that supports null values instead.",
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: float64\nTarget Type: float64\nSuggested `types` Type: types.Float64Type\nSuggested Pointer Type: *float64",
 				),
 			},
 		},
@@ -631,7 +636,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("float64"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for float64, however the current struct field type float64 cannot handle unknown values. Use types.Float64, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: float64\nTarget Type: float64\nSuggested Type: types.Float64Type",
 				),
 			},
 		},
@@ -789,7 +795,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("int64"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for int64, however the current struct field type *int64 cannot handle unknown values. Use types.Int64, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: int64\nTarget Type: *int64\nSuggested Type: types.Int64Type",
 				),
 			},
 		},
@@ -847,7 +854,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("int64"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received null value for int64, however the current struct field type int64 cannot handle null values. Use a pointer type (*int64), types.Int64, or a custom type that supports null values instead.",
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: int64\nTarget Type: int64\nSuggested `types` Type: types.Int64Type\nSuggested Pointer Type: *int64",
 				),
 			},
 		},
@@ -880,7 +888,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("int64"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for int64, however the current struct field type int64 cannot handle unknown values. Use types.Int64, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: int64\nTarget Type: int64\nSuggested Type: types.Int64Type",
 				),
 			},
 		},
@@ -1197,7 +1206,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("list"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for list, however the current struct field type []types.Object cannot handle unknown values. Use types.List, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: list\nTarget Type: []types.Object\nSuggested Type: types.ListType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -1386,7 +1396,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("list"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for list, however the current struct field type []struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.List, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: list\nTarget Type: []struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.ListType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -1751,7 +1762,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("list"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for list, however the current struct field type []types.Object cannot handle unknown values. Use types.List, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: list\nTarget Type: []types.Object\nSuggested Type: types.ListType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -1940,7 +1952,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("list"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for list, however the current struct field type []struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.List, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: list\nTarget Type: []struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.ListType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -2206,7 +2219,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("list"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for list, however the current struct field type []types.String cannot handle unknown values. Use types.List, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: list\nTarget Type: []types.String\nSuggested Type: types.ListType[types.StringType]",
 				),
 			},
 		},
@@ -2322,7 +2336,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("list"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for list, however the current struct field type []string cannot handle unknown values. Use types.List, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: list\nTarget Type: []string\nSuggested Type: types.ListType[types.StringType]",
 				),
 			},
 		},
@@ -2654,7 +2669,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("map"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for map, however the current struct field type map[string]types.Object cannot handle unknown values. Use types.Map, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: map\nTarget Type: map[string]types.Object\nSuggested Type: types.MapType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -2843,7 +2859,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("map"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for map, however the current struct field type map[string]struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.Map, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: map\nTarget Type: map[string]struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.MapType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -3109,7 +3126,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("map"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for map, however the current struct field type map[string]types.String cannot handle unknown values. Use types.Map, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: map\nTarget Type: map[string]types.String\nSuggested Type: types.MapType[types.StringType]",
 				),
 			},
 		},
@@ -3225,7 +3243,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("map"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for map, however the current struct field type map[string]string cannot handle unknown values. Use types.Map, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: map\nTarget Type: map[string]string\nSuggested Type: types.MapType[types.StringType]",
 				),
 			},
 		},
@@ -3500,7 +3519,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("object"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for object, however the current struct field type *struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.Object, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: object\nTarget Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.ObjectType[\"nested_string\":types.StringType]",
 				),
 			},
 		},
@@ -3602,7 +3622,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("object"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received null value for object, however the current struct field type struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle null values. Use a pointer type (*struct { NestedString types.String "tfsdk:\"nested_string\"" }), types.Object, or a custom type that supports null values instead.`,
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested `types` Type: types.ObjectType[\"nested_string\":types.StringType]\nSuggested Pointer Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }",
 				),
 			},
 		},
@@ -3656,7 +3677,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("object"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for object, however the current struct field type struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.Object, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.ObjectType[\"nested_string\":types.StringType]",
 				),
 			},
 		},
@@ -3996,7 +4018,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("set"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for set, however the current struct field type []types.Object cannot handle unknown values. Use types.Set, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: set\nTarget Type: []types.Object\nSuggested Type: types.SetType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -4185,7 +4208,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("set"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for set, however the current struct field type []struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.Set, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: set\nTarget Type: []struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.SetType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -4550,7 +4574,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("set"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for set, however the current struct field type []types.Object cannot handle unknown values. Use types.Set, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: set\nTarget Type: []types.Object\nSuggested Type: types.SetType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -4739,7 +4764,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("set"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for set, however the current struct field type []struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.Set, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: set\nTarget Type: []struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.SetType[types.ObjectType[\"nested_string\":types.StringType]]",
 				),
 			},
 		},
@@ -5005,7 +5031,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("set"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for set, however the current struct field type []types.String cannot handle unknown values. Use types.Set, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: set\nTarget Type: []types.String\nSuggested Type: types.SetType[types.StringType]",
 				),
 			},
 		},
@@ -5121,7 +5148,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("set"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for set, however the current struct field type []string cannot handle unknown values. Use types.Set, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: set\nTarget Type: []string\nSuggested Type: types.SetType[types.StringType]",
 				),
 			},
 		},
@@ -5401,7 +5429,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("object"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for object, however the current struct field type *struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.Object, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: object\nTarget Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.ObjectType[\"nested_string\":types.StringType]",
 				),
 			},
 		},
@@ -5505,7 +5534,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("object"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received null value for object, however the current struct field type struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle null values. Use a pointer type (*struct { NestedString types.String "tfsdk:\"nested_string\"" }), types.Object, or a custom type that supports null values instead.`,
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested `types` Type: types.ObjectType[\"nested_string\":types.StringType]\nSuggested Pointer Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }",
 				),
 			},
 		},
@@ -5560,7 +5590,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("object"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for object, however the current struct field type struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.Object, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.ObjectType[\"nested_string\":types.StringType]",
 				),
 			},
 		},
@@ -5849,7 +5880,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("object"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for object, however the current struct field type *struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.Object, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: object\nTarget Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.ObjectType[\"nested_string\":types.StringType]",
 				),
 			},
 		},
@@ -5953,7 +5985,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("object"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received null value for object, however the current struct field type struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle null values. Use a pointer type (*struct { NestedString types.String "tfsdk:\"nested_string\"" }), types.Object, or a custom type that supports null values instead.`,
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested `types` Type: types.ObjectType[\"nested_string\":types.StringType]\nSuggested Pointer Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }",
 				),
 			},
 		},
@@ -6008,7 +6041,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("object"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received unknown value for object, however the current struct field type struct { NestedString types.String "tfsdk:\"nested_string\"" } cannot handle unknown values. Use types.Object, or a custom type that supports unknown values instead.`,
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.ObjectType[\"nested_string\":types.StringType]",
 				),
 			},
 		},
@@ -6190,7 +6224,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("string"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for string, however the current struct field type *string cannot handle unknown values. Use types.String, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: string\nTarget Type: *string\nSuggested Type: types.StringType",
 				),
 			},
 		},
@@ -6248,7 +6283,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("string"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						`Received null value for string, however the current struct field type string cannot handle null values. Use a pointer type (*string), types.String, or a custom type that supports null values instead.`,
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: string\nTarget Type: string\nSuggested `types` Type: types.StringType\nSuggested Pointer Type: *string",
 				),
 			},
 		},
@@ -6281,7 +6317,8 @@ func TestDataGetAtPath(t *testing.T) {
 					path.Root("string"),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Received unknown value for string, however the current struct field type string cannot handle unknown values. Use types.String, or a custom type that supports unknown values instead.",
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: string\nTarget Type: string\nSuggested Type: types.StringType",
 				),
 			},
 		},

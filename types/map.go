@@ -167,6 +167,13 @@ func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path)
 	return diags
 }
 
+// ValueType returns the Value type.
+func (t MapType) ValueType(_ context.Context) attr.Value {
+	return Map{
+		ElemType: t.ElemType,
+	}
+}
+
 // Map represents a map of attr.Values, all of the same type, indicated by
 // ElemType. Keys for the map will always be strings.
 type Map struct {

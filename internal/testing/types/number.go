@@ -63,6 +63,11 @@ func (t NumberType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 	}, nil
 }
 
+// ValueType returns the Value type.
+func (t NumberType) ValueType(_ context.Context) attr.Value {
+	return Number{}
+}
+
 type Number struct {
 	types.Number
 

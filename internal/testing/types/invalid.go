@@ -38,6 +38,11 @@ func (t InvalidType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 	return nil, fmt.Errorf("intentional ValueFromTerraform error")
 }
 
+// ValueType returns the Value type.
+func (t InvalidType) ValueType(_ context.Context) attr.Value {
+	return Invalid{}
+}
+
 // Invalid is an attr.Value that returns errors for methods than can return errors.
 type Invalid struct{}
 

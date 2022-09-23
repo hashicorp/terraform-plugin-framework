@@ -59,6 +59,11 @@ func (t BoolType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 	return Bool{Bool: types.Bool{Value: b}, CreatedBy: t}, nil
 }
 
+// ValueType returns the Value type.
+func (t BoolType) ValueType(_ context.Context) attr.Value {
+	return Bool{}
+}
+
 type Bool struct {
 	types.Bool
 

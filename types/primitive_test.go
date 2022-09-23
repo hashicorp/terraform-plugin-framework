@@ -90,6 +90,11 @@ func (t testAttributeType) String() string {
 	panic("not implemented")
 }
 
+// ValueType returns the Value type.
+func (t testAttributeType) ValueType(_ context.Context) attr.Value {
+	panic("not implemented")
+}
+
 func TestPrimitiveEqual(t *testing.T) {
 	t.Parallel()
 

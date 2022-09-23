@@ -92,6 +92,25 @@ func (p primitive) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 	}
 }
 
+// ValueType returns the Value type.
+func (p primitive) ValueType(_ context.Context) attr.Value {
+	// These Value do not need to be valid.
+	switch p {
+	case BoolType:
+		return Bool{}
+	case Float64Type:
+		return Float64{}
+	case Int64Type:
+		return Int64{}
+	case NumberType:
+		return Number{}
+	case StringType:
+		return String{}
+	default:
+		panic(fmt.Sprintf("unknown primitive %d", p))
+	}
+}
+
 // Equal returns true if `o` is also a primitive, and is the same type of
 // primitive as `p`.
 func (p primitive) Equal(o attr.Type) bool {

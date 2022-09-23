@@ -25,6 +25,12 @@ type Type interface {
 	// for the provider to consume the data with.
 	ValueFromTerraform(context.Context, tftypes.Value) (Value, error)
 
+	// ValueType should return the attr.Value type returned by
+	// ValueFromTerraform. The returned attr.Value can be any null, unknown,
+	// or known value for the type, as this is intended for type detection
+	// and improving error diagnostics.
+	ValueType(context.Context) Value
+
 	// Equal must return true if the Type is considered semantically equal
 	// to the Type passed as an argument.
 	Equal(Type) bool

@@ -163,6 +163,13 @@ func (l ListType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 	return diags
 }
 
+// ValueType returns the Value type.
+func (t ListType) ValueType(_ context.Context) attr.Value {
+	return List{
+		ElemType: t.ElemType,
+	}
+}
+
 // List represents a list of attr.Values, all of the same type, indicated
 // by ElemType.
 type List struct {

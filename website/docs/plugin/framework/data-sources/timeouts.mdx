@@ -1,0 +1,123 @@
+---
+page_title: 'Plugin Development - Framework: Timeouts'
+description: >-
+  How to use timeouts with the provider development framework.
+---
+
+# Timeouts
+
+The reality of cloud infrastructure is that it typically takes time to perform operations such as booting operating systems, discovering services, and replicating state across network edges. As the provider developer you should take known delays in data source APIs into account in the `Read` function of the data source. Terraform supports configurable timeouts to assist in these situations.
+
+The Framework can be used in conjunction with the [terraform-plugin-framework-timeouts](https://github.com/hashicorp/terraform-plugin-framework-timeouts) module in order to allow defining timeouts in configuration and have them be available in the `Read` function.
+
+## Specifying Timeouts in Configuration
+
+Timeouts can be defined using either nested blocks or nested attributes.
+
+If you are writing a new provider using [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+then we recommend using nested attributes.
+
+If you are [migrating a provider from SDKv2 to the Framework](/plugin/framework/migrating) and
+you are already using timeouts you can either continue to use block syntax, or switch to using nested attributes.
+However, switching to using nested attributes will require that practitioners that are using your provider update their
+Terraform configuration.
+
+#### Block
+
+If your configuration is using a nested block to define timeouts, such as the following:
+
+```terraform
+resource "timeouts_example" "example" {
+  /* ... */
+
+  timeouts {
+    read = "60m"
+  }
+}
+```
+
+You can use this module to mutate the `tfsdk.Schema` as follows:
+
+```go
+func (t *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        /* ... */
+
+        Blocks: map[string]tfsdk.Block{
+            "timeouts": timeouts.Block(ctx, timeouts.Opts{
+                Read: true,
+            }),
+        },
+```
+
+#### Attribute
+
+If your configuration is using nested attributes to define timeouts, such as the following:
+
+```terraform
+resource "timeouts_example" "example" {
+  /* ... */
+
+  timeouts = {
+    read = "60m"
+  }
+}
+```
+
+You can use this module to mutate the `tfsdk.Schema` as follows:
+
+```go
+func (t *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            /* ... */
+            "timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+                Read: true,
+            }),
+        },
+```
+
+## Updating Models
+
+Given a `Read` method which fetches the entire configuration:
+
+```go
+func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data exampleDataSourceData
+
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+```
+
+Modify the `exampleDataSourceData` model to include a field for timeouts using a `types.Object` type.
+
+```go
+type exampleDataSourceData struct {
+    /* ... */
+    Timeouts    types.Object `tfsdk:"timeouts"`
+```
+
+## Accessing Timeout in Read Method
+
+Call the [`timeouts.Read()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-timeouts/timeouts#Read).
+
+```go
+func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+    var data exampleDataSourceData
+
+    diags := req.Config.Get(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    defaultReadTimeout := 20 * time.Minute
+
+    readTimeout := timeouts.Read(ctx, data.Timeouts, defaultReadTimeout)
+
+    ctx, cancel := context.WithTimeout(ctx, readTimeout)
+    defer cancel()
+
+    /* ... */
+}
+```

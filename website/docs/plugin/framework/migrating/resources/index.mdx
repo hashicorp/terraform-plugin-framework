@@ -16,6 +16,7 @@ This page explains how to migrate a resource's schema from SDKv2 to the plugin F
 - [Import](/plugin/framework/migrating/resources/import): The resource defines the logic to add a resource to Terraform's state.
 - [Plan modification](/plugin/framework/migrating/resources/plan-modification): The resource customizes the Terraform plan for known values or behaviors outside the practitioner's configuration.
 - [State upgrade](/plugin/framework/migrating/resources/state-upgrade): The resource updates Terraform state information in advanced use cases.
+- [Timeouts](/plugin/framework/migrating/resources/timeouts): The resource uses timeouts during create, read, update or delete operations.
 
 ## SDKv2
 In SDKv2, resources are defined by the `ResourcesMap` field in the `schema.Provider` struct, which maps resource names

@@ -116,7 +116,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 				"Value Conversion Error",
 				"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 					"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-					fmt.Sprintf("Path: %s\nTarget Type: %s\nSuggested Type: %s", path.String(), target.Type(), typ.String()),
+					fmt.Sprintf("Path: %s\nTarget Type: %s\nSuggested Type: %s", path.String(), target.Type(), reflect.TypeOf(typ.ValueType(ctx))),
 			)
 			return target, diags
 		}
@@ -140,7 +140,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
-				fmt.Sprintf("Path: %s\nTarget Type: %s\nSuggested `types` Type: %s\nSuggested Pointer Type: *%s", path.String(), target.Type(), typ.String(), target.Type()),
+				fmt.Sprintf("Path: %s\nTarget Type: %s\nSuggested `types` Type: %s\nSuggested Pointer Type: *%s", path.String(), target.Type(), reflect.TypeOf(typ.ValueType(ctx)), target.Type()),
 		)
 
 		return target, diags

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 // ValueAs takes the attr.Value `val` and populates the Go value `target` with its content.
@@ -22,5 +23,5 @@ func ValueAs(ctx context.Context, val attr.Value, target interface{}) diag.Diagn
 		return diag.Diagnostics{diag.NewErrorDiagnostic("Error converting value",
 			fmt.Sprintf("An unexpected error was encountered converting a %T to its equivalent Terraform representation. This is always a bug in the provider.\n\nError: %s", val, err))}
 	}
-	return reflect.Into(ctx, val.Type(ctx), raw, target, reflect.Options{})
+	return reflect.Into(ctx, val.Type(ctx), raw, target, reflect.Options{}, path.Empty())
 }

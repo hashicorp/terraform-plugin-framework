@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
@@ -203,7 +204,7 @@ func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled
 	return reflect.Into(ctx, ListType{ElemType: l.ElemType}, values, target, reflect.Options{
 		UnhandledNullAsEmpty:    allowUnhandled,
 		UnhandledUnknownAsEmpty: allowUnhandled,
-	})
+	}, path.Empty())
 }
 
 // Type returns a ListType with the same element type as `l`.

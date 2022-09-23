@@ -6,10 +6,11 @@ import (
 	"math/big"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Into uses the data in `val` to populate `target`, using the reflection
@@ -22,19 +23,20 @@ import (
 // in the tftypes.Value must have a corresponding property in the struct. Into
 // will be called for each struct field. Slices will have Into called for each
 // element.
-func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interface{}, opts Options) diag.Diagnostics {
+func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interface{}, opts Options, path path.Path) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	v := reflect.ValueOf(target)
 	if v.Kind() != reflect.Ptr {
 		err := fmt.Errorf("target must be a pointer, got %T, which is a %s", target, v.Kind())
-		diags.AddError(
+		diags.AddAttributeError(
+			path,
 			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert the value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			fmt.Sprintf("An unexpected error was encountered trying to convert the value. This is always an error in the provider. Please report the following to the provider developer:\n\nPath: %s\nError: %s", path.String(), err.Error()),
 		)
 		return diags
 	}
-	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, path.Empty())
+	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, path)
 	if diags.HasError() {
 		return diags
 	}
@@ -109,11 +111,12 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		// all that's left to us now is to set it as an empty value or
 		// throw an error, depending on what's in opts
 		if !opts.UnhandledUnknownAsEmpty {
-			err := fmt.Errorf("unhandled unknown value")
 			diags.AddAttributeError(
 				path,
 				"Value Conversion Error",
-				"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+				"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+					"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+					fmt.Sprintf("Path: %s\nTarget Type: %s\nSuggested Type: %s", path.String(), target.Type(), typ.String()),
 			)
 			return target, diags
 		}
@@ -132,12 +135,14 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 			return reflect.Zero(target.Type()), nil
 		}
 
-		err := fmt.Errorf("unhandled null value")
 		diags.AddAttributeError(
 			path,
 			"Value Conversion Error",
-			"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+				fmt.Sprintf("Path: %s\nTarget Type: %s\nSuggested `types` Type: %s\nSuggested Pointer Type: *%s", path.String(), target.Type(), typ.String(), target.Type()),
 		)
+
 		return target, diags
 	}
 	// *big.Float and *big.Int are technically pointers, but we want them

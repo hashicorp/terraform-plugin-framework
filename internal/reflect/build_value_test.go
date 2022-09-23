@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestBuildValue(t *testing.T) {
@@ -24,9 +25,11 @@ func TestBuildValue(t *testing.T) {
 			tfValue: tftypes.NewValue(tftypes.String, nil),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Empty(),
+					path.Root("id"),
 					"Value Conversion Error",
-					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\nunhandled null value",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: id\nTarget Type: string\nSuggested `types` Type: types.StringType\nSuggested Pointer Type: *string",
 				),
 			},
 		},
@@ -34,9 +37,11 @@ func TestBuildValue(t *testing.T) {
 			tfValue: tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Empty(),
+					path.Root("id"),
 					"Value Conversion Error",
-					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\nunhandled unknown value",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: id\nTarget Type: string\nSuggested Type: types.StringType",
 				),
 			},
 		},
@@ -48,7 +53,7 @@ func TestBuildValue(t *testing.T) {
 			t.Parallel()
 
 			var s string
-			_, diags := refl.BuildValue(context.Background(), types.StringType, tc.tfValue, reflect.ValueOf(s), refl.Options{}, path.Empty())
+			_, diags := refl.BuildValue(context.Background(), types.StringType, tc.tfValue, reflect.ValueOf(s), refl.Options{}, path.Root("id"))
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)

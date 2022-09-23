@@ -51,11 +51,6 @@ func (d Data) GetAtPath(ctx context.Context, schemaPath path.Path, target any) d
 
 	reflectDiags := reflect.Into(ctx, attrValue.Type(ctx), raw, target, reflect.Options{}, schemaPath)
 
-	// reflect.Into does not have path information for its Diagnostics.
-	for idx, valueAsDiag := range reflectDiags {
-		reflectDiags[idx] = diag.WithPath(schemaPath, valueAsDiag)
-	}
-
 	diags.Append(reflectDiags...)
 
 	return diags

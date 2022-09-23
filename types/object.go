@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -197,7 +199,7 @@ func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions
 	return reflect.Into(ctx, obj, val, target, reflect.Options{
 		UnhandledNullAsEmpty:    opts.UnhandledNullAsEmpty,
 		UnhandledUnknownAsEmpty: opts.UnhandledUnknownAsEmpty,
-	})
+	}, path.Empty())
 }
 
 // Type returns an ObjectType with the same attribute types as `o`.

@@ -24,7 +24,7 @@ import (
 // in the tftypes.Value must have a corresponding property in the struct. Into
 // will be called for each struct field. Slices will have Into called for each
 // element.
-func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interface{}, opts Options) diag.Diagnostics {
+func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interface{}, opts Options, path path.Path) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	v := reflect.ValueOf(target)
@@ -36,7 +36,7 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 		)
 		return diags
 	}
-	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, path.Empty())
+	result, diags := BuildValue(ctx, typ, val, v.Elem(), opts, path)
 	if diags.HasError() {
 		return diags
 	}

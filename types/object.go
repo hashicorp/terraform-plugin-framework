@@ -145,6 +145,13 @@ func (o ObjectType) String() string {
 	return res.String()
 }
 
+// ValueType returns the Value type.
+func (t ObjectType) ValueType(_ context.Context) attr.Value {
+	return Object{
+		AttrTypes: t.AttrTypes,
+	}
+}
+
 // Object represents an object
 type Object struct {
 	// Unknown will be set to true if the entire object is an unknown value.

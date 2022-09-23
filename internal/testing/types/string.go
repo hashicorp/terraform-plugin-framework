@@ -62,6 +62,11 @@ func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 	}, nil
 }
 
+// ValueType returns the Value type.
+func (t StringType) ValueType(_ context.Context) attr.Value {
+	return String{}
+}
+
 type String struct {
 	InternalString types.String
 

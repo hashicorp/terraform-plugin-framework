@@ -195,6 +195,13 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 	return diags
 }
 
+// ValueType returns the Value type.
+func (t SetType) ValueType(_ context.Context) attr.Value {
+	return Set{
+		ElemType: t.ElemType,
+	}
+}
+
 // Set represents a set of attr.Value, all of the same type,
 // indicated by ElemType.
 type Set struct {

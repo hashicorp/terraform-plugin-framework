@@ -29,9 +29,10 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 	v := reflect.ValueOf(target)
 	if v.Kind() != reflect.Ptr {
 		err := fmt.Errorf("target must be a pointer, got %T, which is a %s", target, v.Kind())
-		diags.AddError(
+		diags.AddAttributeError(
+			path,
 			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert the value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			fmt.Sprintf("An unexpected error was encountered trying to convert the value. This is always an error in the provider. Please report the following to the provider developer:\n\nPath: %s\nError: %s", path.String(), err.Error()),
 		)
 		return diags
 	}

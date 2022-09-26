@@ -7,6 +7,8 @@ description: >-
 
 # Provider Servers
 
+-> Note: The Plugin Framework is in beta.
+
 Before a [provider](/plugin/framework/providers) can be used with Terraform, it must implement a [gRPC server](https://grpc.io) that supports Terraform-specific connection and handshake handling on startup. The server must then implement the [Terraform Plugin Protocol](/plugin/how-terraform-works#terraform-plugin-protocol).
 
 The framework handles the majority of the server implementation details, however it is useful from a provider developer perspective to understand the provider server details at least at a high level.

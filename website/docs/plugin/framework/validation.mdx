@@ -5,6 +5,8 @@ description: How to validate configuration values using the provider development
 
 # Validation
 
+-> Note: The Plugin Framework is in beta.
+
 The framework can return [diagnostics](/plugin/framework/diagnostics) feedback for values in provider, resource, and data source configurations. This allows you to write validations that give users feedback about required syntax, types, and acceptable values.
 
 -> **Note:** When implementing validation logic, configuration values may be [unknown](/plugin/framework/types#unknown) based on the source of the value. Implementations must account for this case, typically by returning early without returning new diagnostics.

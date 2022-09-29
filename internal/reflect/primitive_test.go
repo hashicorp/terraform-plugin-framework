@@ -160,9 +160,7 @@ func TestFromBool(t *testing.T) {
 			val: true,
 			typ: testtypes.BoolTypeWithValidateWarning{},
 			expected: testtypes.Bool{
-				Bool: types.Bool{
-					Value: true,
-				},
+				Bool:      types.BoolValue(true),
 				CreatedBy: testtypes.BoolTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{

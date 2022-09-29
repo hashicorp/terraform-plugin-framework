@@ -54,6 +54,7 @@ func (l ListType) TerraformType(ctx context.Context) tftypes.Type {
 func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	list := List{
 		ElemType: l.ElemType,
+		state:    valueStateDeprecated,
 	}
 	if in.Type() == nil {
 		list.Null = true
@@ -170,6 +171,98 @@ func (t ListType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
+// ListNull creates a List with a null value. Determine whether the value is
+// null via the List type IsNull method.
+//
+// Setting the deprecated List type ElemType, Elems, Null, or Unknown fields
+// after creating a List with this function has no effect.
+func ListNull(elementType attr.Type) List {
+	return List{
+		elementType: elementType,
+		state:       valueStateNull,
+	}
+}
+
+// ListUnknown creates a List with an unknown value. Determine whether the
+// value is unknown via the List type IsUnknown method.
+//
+// Setting the deprecated List type ElemType, Elems, Null, or Unknown fields
+// after creating a List with this function has no effect.
+func ListUnknown(elementType attr.Type) List {
+	return List{
+		elementType: elementType,
+		state:       valueStateUnknown,
+	}
+}
+
+// ListValue creates a List with a known value. Access the value via the List
+// type Elements or ElementsAs methods.
+//
+// Setting the deprecated List type ElemType, Elems, Null, or Unknown fields
+// after creating a List with this function has no effect.
+func ListValue(elementType attr.Type, elements []attr.Value) (List, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Ideally, Type() would not require a context.Context as it has no benefit
+	// here or elsewhere. There is also no benefit to adding it to the function
+	// parameters at the moment.
+	ctx := context.Background()
+
+	for idx, element := range elements {
+		if !elementType.Equal(element.Type(ctx)) {
+			diags.AddError(
+				"Invalid List Element Type",
+				"While creating a List value, an invalid element was detected. "+
+					"A List must use the single, given element type. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("List Element Type: %s\n", elementType.String())+
+					fmt.Sprintf("List Index (%d) Element Type: %s", idx, element.Type(ctx)),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return ListUnknown(elementType), diags
+	}
+
+	return List{
+		elementType: elementType,
+		elements:    elements,
+		state:       valueStateKnown,
+	}, nil
+}
+
+// ListValueMust creates a List with a known value, converting any diagnostics
+// into a panic at runtime. Access the value via the List
+// type Elements or ElementsAs methods.
+//
+// This creation function is only recommended to create List values which will
+// not potentially effect practitioners, such as testing, or exhaustively
+// tested provider logic.
+//
+// Setting the deprecated List type ElemType, Elems, Null, or Unknown fields
+// after creating a List with this function has no effect.
+func ListValueMust(elementType attr.Type, elements []attr.Value) List {
+	list, diags := ListValue(elementType, elements)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("ListValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return list
+}
+
 // List represents a list of attr.Values, all of the same type, indicated
 // by ElemType.
 type List struct {
@@ -179,19 +272,63 @@ type List struct {
 	// surfaces that information. The List's Unknown property only tracks
 	// if the number of elements in a List is known, not whether the
 	// elements that are in the list are known.
+	//
+	// If the List was created with the ListValue, ListNull, or ListUnknown
+	// functions, changing this field has no effect.
+	//
+	// Deprecated: Use the ListUnknown function to create an unknown List
+	// value or use the IsUnknown method to determine whether the List value
+	// is unknown instead.
 	Unknown bool
 
 	// Null will be set to true if the list is null, either because it was
 	// omitted from the configuration, state, or plan, or because it was
 	// explicitly set to null.
+	//
+	// If the List was created with the ListValue, ListNull, or ListUnknown
+	// functions, changing this field has no effect.
+	//
+	// Deprecated: Use the ListNull function to create a null List value or
+	// use the IsNull method to determine whether the List value is null
+	// instead.
 	Null bool
 
 	// Elems are the elements in the list.
+	//
+	// If the List was created with the ListValue, ListNull, or ListUnknown
+	// functions, changing this field has no effect.
+	//
+	// Deprecated: Use the ListValue function to create a known List value or
+	// use the Elements or ElementsAs methods to retrieve the List elements
+	// instead.
 	Elems []attr.Value
 
 	// ElemType is the tftypes.Type of the elements in the list. All
 	// elements in the list must be of this type.
+	//
+	// Deprecated: Use the ListValue, ListNull, or ListUnknown functions
+	// to create a List or use the ElementType method to retrieve the
+	// List element type instead.
 	ElemType attr.Type
+
+	// elements is the collection of known values in the List.
+	elements []attr.Value
+
+	// elementType is the type of the elements in the List.
+	elementType attr.Type
+
+	// state represents whether the List is null, unknown, or known.
+	state valueState
+}
+
+// Elements returns the collection of elements for the List. Returns nil if the
+// List is null or unknown.
+func (l List) Elements() []attr.Value {
+	if l.state == valueStateDeprecated {
+		return l.Elems
+	}
+
+	return l.elements
 }
 
 // ElementsAs populates `target` with the elements of the List, throwing an
@@ -214,35 +351,72 @@ func (l List) ElementsAs(ctx context.Context, target interface{}, allowUnhandled
 	}, path.Empty())
 }
 
+// ElementType returns the element type for the List.
+func (l List) ElementType(_ context.Context) attr.Type {
+	if l.state == valueStateDeprecated {
+		return l.ElemType
+	}
+
+	return l.elementType
+}
+
 // Type returns a ListType with the same element type as `l`.
 func (l List) Type(ctx context.Context) attr.Type {
-	return ListType{ElemType: l.ElemType}
+	return ListType{ElemType: l.ElementType(ctx)}
 }
 
 // ToTerraformValue returns the data contained in the List as a tftypes.Value.
 func (l List) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	if l.ElemType == nil {
+	if l.state == valueStateDeprecated && l.ElemType == nil {
 		return tftypes.Value{}, fmt.Errorf("cannot convert List to tftypes.Value if ElemType field is not set")
 	}
-	listType := tftypes.List{ElementType: l.ElemType.TerraformType(ctx)}
-	if l.Unknown {
-		return tftypes.NewValue(listType, tftypes.UnknownValue), nil
-	}
-	if l.Null {
-		return tftypes.NewValue(listType, nil), nil
-	}
-	vals := make([]tftypes.Value, 0, len(l.Elems))
-	for _, elem := range l.Elems {
-		val, err := elem.ToTerraformValue(ctx)
-		if err != nil {
+	listType := tftypes.List{ElementType: l.ElementType(ctx).TerraformType(ctx)}
+
+	switch l.state {
+	case valueStateDeprecated:
+		if l.Unknown {
+			return tftypes.NewValue(listType, tftypes.UnknownValue), nil
+		}
+		if l.Null {
+			return tftypes.NewValue(listType, nil), nil
+		}
+		vals := make([]tftypes.Value, 0, len(l.Elems))
+		for _, elem := range l.Elems {
+			val, err := elem.ToTerraformValue(ctx)
+			if err != nil {
+				return tftypes.NewValue(listType, tftypes.UnknownValue), err
+			}
+			vals = append(vals, val)
+		}
+		if err := tftypes.ValidateValue(listType, vals); err != nil {
 			return tftypes.NewValue(listType, tftypes.UnknownValue), err
 		}
-		vals = append(vals, val)
+		return tftypes.NewValue(listType, vals), nil
+	case valueStateKnown:
+		vals := make([]tftypes.Value, 0, len(l.elements))
+
+		for _, elem := range l.elements {
+			val, err := elem.ToTerraformValue(ctx)
+
+			if err != nil {
+				return tftypes.NewValue(listType, tftypes.UnknownValue), err
+			}
+
+			vals = append(vals, val)
+		}
+
+		if err := tftypes.ValidateValue(listType, vals); err != nil {
+			return tftypes.NewValue(listType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(listType, vals), nil
+	case valueStateNull:
+		return tftypes.NewValue(listType, nil), nil
+	case valueStateUnknown:
+		return tftypes.NewValue(listType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled List state in ToTerraformValue: %s", l.state))
 	}
-	if err := tftypes.ValidateValue(listType, vals); err != nil {
-		return tftypes.NewValue(listType, tftypes.UnknownValue), err
-	}
-	return tftypes.NewValue(listType, vals), nil
 }
 
 // Equal returns true if the List is considered semantically equal
@@ -251,6 +425,28 @@ func (l List) Equal(o attr.Value) bool {
 	other, ok := o.(List)
 	if !ok {
 		return false
+	}
+	if l.state != other.state {
+		return false
+	}
+	if l.state == valueStateKnown {
+		if !l.elementType.Equal(other.elementType) {
+			return false
+		}
+
+		if len(l.elements) != len(other.elements) {
+			return false
+		}
+
+		for idx, lElem := range l.elements {
+			otherElem := other.elements[idx]
+
+			if !lElem.Equal(otherElem) {
+				return false
+			}
+		}
+
+		return true
 	}
 	if l.Unknown != other.Unknown {
 		return false
@@ -278,30 +474,40 @@ func (l List) Equal(o attr.Value) bool {
 
 // IsNull returns true if the List represents a null value.
 func (l List) IsNull() bool {
-	return l.Null
+	if l.state == valueStateNull {
+		return true
+	}
+
+	return l.state == valueStateDeprecated && l.Null
 }
 
 // IsUnknown returns true if the List represents a currently unknown value.
+// Returns false if the List has a known number of elements, even if all are
+// unknown values.
 func (l List) IsUnknown() bool {
-	return l.Unknown
+	if l.state == valueStateUnknown {
+		return true
+	}
+
+	return l.state == valueStateDeprecated && l.Unknown
 }
 
 // String returns a human-readable representation of the List value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.
 func (l List) String() string {
-	if l.Unknown {
+	if l.IsUnknown() {
 		return attr.UnknownValueString
 	}
 
-	if l.Null {
+	if l.IsNull() {
 		return attr.NullValueString
 	}
 
 	var res strings.Builder
 
 	res.WriteString("[")
-	for i, e := range l.Elems {
+	for i, e := range l.Elements() {
 		if i != 0 {
 			res.WriteString(",")
 		}

@@ -112,8 +112,8 @@ func TestServerReadResource(t *testing.T) {
 
 											resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-											if data.TestRequired.Value != "test-currentstate-value" {
-												resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.Value)
+											if data.TestRequired.ValueString() != "test-currentstate-value" {
+												resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
 											}
 										},
 									}
@@ -154,8 +154,8 @@ func TestServerReadResource(t *testing.T) {
 
 												resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-												if data.TestRequired.Value != "test-currentstate-value" {
-													resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestRequired.Value)
+												if data.TestRequired.ValueString() != "test-currentstate-value" {
+													resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestRequired.ValueString())
 												}
 											},
 										}

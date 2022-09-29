@@ -49,10 +49,8 @@ func (t TestAttrPlanValueModifierOne) Modify(ctx context.Context, req tfsdk.Modi
 		return
 	}
 
-	if attrVal.Value == "TESTATTRONE" {
-		resp.AttributePlan = types.String{
-			Value: "TESTATTRTWO",
-		}
+	if attrVal.ValueString() == "TESTATTRONE" {
+		resp.AttributePlan = types.StringValue("TESTATTRTWO")
 	}
 }
 
@@ -72,10 +70,8 @@ func (t TestAttrPlanValueModifierTwo) Modify(ctx context.Context, req tfsdk.Modi
 		return
 	}
 
-	if attrVal.Value == "TESTATTRTWO" {
-		resp.AttributePlan = types.String{
-			Value: "MODIFIED_TWO",
-		}
+	if attrVal.ValueString() == "TESTATTRTWO" {
+		resp.AttributePlan = types.StringValue("MODIFIED_TWO")
 	}
 }
 
@@ -96,7 +92,7 @@ func (t TestAttrDefaultValueModifier) Modify(ctx context.Context, req tfsdk.Modi
 
 	configVal := req.AttributeConfig.(types.String)
 
-	if configVal.Null {
+	if configVal.IsNull() {
 		resp.AttributePlan = types.String{Value: "DEFAULTVALUE"}
 	}
 }

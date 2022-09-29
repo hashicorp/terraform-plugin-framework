@@ -265,6 +265,153 @@ func TestListTypeEqual(t *testing.T) {
 	}
 }
 
+func TestListValue(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		elementType   attr.Type
+		elements      []attr.Value
+		expected      List
+		expectedDiags diag.Diagnostics
+	}{
+		"valid-no-elements": {
+			elementType: StringType,
+			elements:    []attr.Value{},
+			expected:    ListValueMust(StringType, []attr.Value{}),
+		},
+		"valid-elements": {
+			elementType: StringType,
+			elements: []attr.Value{
+				StringNull(),
+				StringUnknown(),
+				StringValue("test"),
+			},
+			expected: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringNull(),
+					StringUnknown(),
+					StringValue("test"),
+				},
+			),
+		},
+		"invalid-element-type": {
+			elementType: StringType,
+			elements: []attr.Value{
+				StringValue("test"),
+				BoolValue(true),
+			},
+			expected: ListUnknown(StringType),
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid List Element Type",
+					"While creating a List value, an invalid element was detected. "+
+						"A List must use the single, given element type. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"List Element Type: types.StringType\n"+
+						"List Index (1) Element Type: types.BoolType",
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := ListValue(testCase.elementType, testCase.elements)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics difference: %s", diff)
+			}
+		})
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestListValue_DeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	knownList := ListValueMust(StringType, []attr.Value{StringValue("test")})
+
+	knownList.Null = true
+
+	if knownList.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	knownList.Unknown = true
+
+	if knownList.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	knownList.Elems = []attr.Value{StringValue("not-test")}
+
+	if knownList.Elements()[0].Equal(StringValue("not-test")) {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestListNull_DeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	nullList := ListNull(StringType)
+
+	nullList.Null = false
+
+	if !nullList.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	nullList.Unknown = true
+
+	if nullList.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	nullList.Elems = []attr.Value{StringValue("test")}
+
+	if len(nullList.Elements()) > 0 {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestListUnknown_DeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	unknownList := ListUnknown(StringType)
+
+	unknownList.Null = true
+
+	if unknownList.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	unknownList.Unknown = false
+
+	if !unknownList.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	unknownList.Elems = []attr.Value{StringValue("test")}
+
+	if len(unknownList.Elements()) > 0 {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
 func TestListElementsAs_stringSlice(t *testing.T) {
 	t.Parallel()
 
@@ -313,11 +460,58 @@ func TestListToTerraformValue(t *testing.T) {
 
 	type testCase struct {
 		input       List
-		expectation interface{}
+		expectation tftypes.Value
 		expectedErr string
 	}
 	tests := map[string]testCase{
-		"value": {
+		"known": {
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+		},
+		"known-partial-unknown": {
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringUnknown(),
+					StringValue("hello, world"),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				tftypes.NewValue(tftypes.String, "hello, world"),
+			}),
+		},
+		"known-partial-null": {
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringNull(),
+					StringValue("hello, world"),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, nil),
+				tftypes.NewValue(tftypes.String, "hello, world"),
+			}),
+		},
+		"unknown": {
+			input:       ListUnknown(StringType),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
+		},
+		"null": {
+			input:       ListNull(StringType),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+		},
+		"deprecated-known": {
 			input: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -330,15 +524,30 @@ func TestListToTerraformValue(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "world"),
 			}),
 		},
-		"unknown": {
+		"deprecated-known-duplicates": {
+			input: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "hello"},
+				},
+			},
+			// Duplicate validation does not occur during this method.
+			// This is okay, as tftypes allows duplicates.
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "hello"),
+			}),
+		},
+		"deprecated-unknown": {
 			input:       List{ElemType: StringType, Unknown: true},
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
 		},
-		"null": {
+		"deprecated-null": {
 			input:       List{ElemType: StringType, Null: true},
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
 		},
-		"partial-unknown": {
+		"deprecated-known-partial-unknown": {
 			input: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -351,7 +560,7 @@ func TestListToTerraformValue(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello, world"),
 			}),
 		},
-		"partial-null": {
+		"deprecated-known-partial-null": {
 			input: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -367,12 +576,12 @@ func TestListToTerraformValue(t *testing.T) {
 		"no-elem-type": {
 			input: List{
 				Elems: []attr.Value{
-					String{Null: true},
-					String{Value: "hello, world"},
+					String{Value: "hello"},
+					String{Value: "world"},
 				},
 			},
-			expectedErr: "cannot convert List to tftypes.Value if ElemType field is not set",
 			expectation: tftypes.Value{},
+			expectedErr: "cannot convert List to tftypes.Value if ElemType field is not set",
 		},
 	}
 	for name, test := range tests {
@@ -406,6 +615,102 @@ func TestListToTerraformValue(t *testing.T) {
 	}
 }
 
+func TestListElements(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    List
+		expected []attr.Value
+	}{
+		"known": {
+			input:    ListValueMust(StringType, []attr.Value{StringValue("test")}),
+			expected: []attr.Value{StringValue("test")},
+		},
+		"deprecated-known": {
+			input:    List{ElemType: StringType, Elems: []attr.Value{StringValue("test")}},
+			expected: []attr.Value{StringValue("test")},
+		},
+		"null": {
+			input:    ListNull(StringType),
+			expected: nil,
+		},
+		"deprecated-null": {
+			input:    List{ElemType: StringType, Null: true},
+			expected: nil,
+		},
+		"unknown": {
+			input:    ListUnknown(StringType),
+			expected: nil,
+		},
+		"deprecated-unknown": {
+			input:    List{ElemType: StringType, Unknown: true},
+			expected: nil,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.Elements()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListElementType(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    List
+		expected attr.Type
+	}{
+		"known": {
+			input:    ListValueMust(StringType, []attr.Value{StringValue("test")}),
+			expected: StringType,
+		},
+		"deprecated-known": {
+			input:    List{ElemType: StringType, Elems: []attr.Value{StringValue("test")}},
+			expected: StringType,
+		},
+		"null": {
+			input:    ListNull(StringType),
+			expected: StringType,
+		},
+		"deprecated-null": {
+			input:    List{ElemType: StringType, Null: true},
+			expected: StringType,
+		},
+		"unknown": {
+			input:    ListUnknown(StringType),
+			expected: StringType,
+		},
+		"deprecated-unknown": {
+			input:    List{ElemType: StringType, Unknown: true},
+			expected: StringType,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ElementType(context.Background())
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestListEqual(t *testing.T) {
 	t.Parallel()
 
@@ -415,7 +720,199 @@ func TestListEqual(t *testing.T) {
 		expected bool
 	}
 	tests := map[string]testCase{
-		"list-value-list-value": {
+		"known-known": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			expected: true,
+		},
+		"known-known-diff-value": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("goodnight"),
+					StringValue("moon"),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-length": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+					StringValue("extra"),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-type": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input: SetValueMust(
+				BoolType,
+				[]attr.Value{
+					BoolValue(false),
+					BoolValue(true),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-unknown": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringUnknown(),
+				},
+			),
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-null": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringNull(),
+				},
+			),
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			expected: false,
+		},
+		"known-unknown": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input:    ListUnknown(StringType),
+			expected: false,
+		},
+		"known-null": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input:    ListNull(StringType),
+			expected: false,
+		},
+		"known-diff-type": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input: SetValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			expected: false,
+		},
+		"known-nil": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input:    nil,
+			expected: false,
+		},
+		"known-deprecated-known": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			},
+			expected: false, // intentional
+		},
+		"known-deprecated-unknown": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input:    List{ElemType: StringType, Unknown: true},
+			expected: false,
+		},
+		"known-deprecated-null": {
+			receiver: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			input:    List{ElemType: StringType, Null: true},
+			expected: false,
+		},
+		"deprecated-known-deprecated-known": {
 			receiver: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -432,7 +929,7 @@ func TestListEqual(t *testing.T) {
 			},
 			expected: true,
 		},
-		"list-value-diff": {
+		"deprecated-known-deprecated-known-diff-value": {
 			receiver: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -449,7 +946,7 @@ func TestListEqual(t *testing.T) {
 			},
 			expected: false,
 		},
-		"list-value-count-diff": {
+		"deprecated-known-deprecated-known-diff-length": {
 			receiver: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -467,7 +964,7 @@ func TestListEqual(t *testing.T) {
 			},
 			expected: false,
 		},
-		"list-value-type-diff": {
+		"deprecated-known-deprecated-known-diff-type": {
 			receiver: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -484,7 +981,41 @@ func TestListEqual(t *testing.T) {
 			},
 			expected: false,
 		},
-		"list-value-unknown": {
+		"deprecated-known-deprecated-known-diff-unknown": {
+			receiver: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Unknown: true},
+				},
+			},
+			input: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			},
+			expected: false,
+		},
+		"deprecated-known-deprecated-known-diff-null": {
+			receiver: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Null: true},
+				},
+			},
+			input: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			},
+			expected: false,
+		},
+		"deprecated-known-deprecated-unknown": {
 			receiver: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -495,7 +1026,7 @@ func TestListEqual(t *testing.T) {
 			input:    List{Unknown: true},
 			expected: false,
 		},
-		"list-value-null": {
+		"deprecated-known-deprecated-null": {
 			receiver: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -506,7 +1037,46 @@ func TestListEqual(t *testing.T) {
 			input:    List{Null: true},
 			expected: false,
 		},
-		"list-value-wrongType": {
+		"deprecated-known-known": {
+			receiver: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			},
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			expected: false, // intentional
+		},
+		"deprecated-known-unknown": {
+			receiver: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			},
+			input:    ListUnknown(StringType),
+			expected: false,
+		},
+		"deprecated-known-null": {
+			receiver: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			},
+			input:    ListNull(StringType),
+			expected: false,
+		},
+		"deprecated-known-diff-type": {
 			receiver: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -517,172 +1087,12 @@ func TestListEqual(t *testing.T) {
 			input:    String{Value: "hello, world"},
 			expected: false,
 		},
-		"list-value-nil": {
+		"deprecated-known-nil": {
 			receiver: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
 					String{Value: "hello"},
 					String{Value: "world"},
-				},
-			},
-			input:    nil,
-			expected: false,
-		},
-		"partially-known-list-value-list-value": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Unknown: true},
-				},
-			},
-			input: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Unknown: true},
-				},
-			},
-			expected: true,
-		},
-		"partially-known-list-value-diff": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Unknown: true},
-				},
-			},
-			input: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expected: false,
-		},
-		"partially-known-list-value-unknown": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Unknown: true},
-				},
-			},
-			input:    List{Unknown: true},
-			expected: false,
-		},
-		"partially-known-list-value-null": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Unknown: true},
-				},
-			},
-			input:    List{Null: true},
-			expected: false,
-		},
-		"partially-known-list-value-wrongType": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Unknown: true},
-				},
-			},
-			input:    String{Value: "hello, world"},
-			expected: false,
-		},
-		"partially-known-list-value-nil": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Unknown: true},
-				},
-			},
-			input:    nil,
-			expected: false,
-		},
-		"partially-null-list-value-list-value": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Null: true},
-				},
-			},
-			input: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Null: true},
-				},
-			},
-			expected: true,
-		},
-		"partially-null-list-value-diff": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Null: true},
-				},
-			},
-			input: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expected: false,
-		},
-		"partially-null-list-value-unknown": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Null: true},
-				},
-			},
-			input: List{
-				Unknown: true,
-			},
-			expected: false,
-		},
-		"partially-null-list-value-null": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Null: true},
-				},
-			},
-			input: List{
-				Null: true,
-			},
-			expected: false,
-		},
-		"partially-null-list-value-wrongType": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Null: true},
-				},
-			},
-			input:    String{Value: "hello, world"},
-			expected: false,
-		},
-		"partially-null-list-value-nil": {
-			receiver: List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Null: true},
 				},
 			},
 			input:    nil,
@@ -702,6 +1112,110 @@ func TestListEqual(t *testing.T) {
 	}
 }
 
+func TestListIsNull(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    List
+		expected bool
+	}{
+		"known": {
+			input:    ListValueMust(StringType, []attr.Value{StringValue("test")}),
+			expected: false,
+		},
+		"deprecated-known": {
+			input:    List{ElemType: StringType, Elems: []attr.Value{StringValue("test")}},
+			expected: false,
+		},
+		"null": {
+			input:    ListNull(StringType),
+			expected: true,
+		},
+		"deprecated-null": {
+			input:    List{ElemType: StringType, Null: true},
+			expected: true,
+		},
+		"unknown": {
+			input:    ListUnknown(StringType),
+			expected: false,
+		},
+		"deprecated-unknown": {
+			input:    List{ElemType: StringType, Unknown: true},
+			expected: false,
+		},
+		"deprecated-invalid": {
+			input:    List{ElemType: StringType, Null: true, Unknown: true},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.IsNull()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListIsUnknown(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    List
+		expected bool
+	}{
+		"known": {
+			input:    ListValueMust(StringType, []attr.Value{StringValue("test")}),
+			expected: false,
+		},
+		"deprecated-known": {
+			input:    List{ElemType: StringType, Elems: []attr.Value{StringValue("test")}},
+			expected: false,
+		},
+		"null": {
+			input:    ListNull(StringType),
+			expected: false,
+		},
+		"deprecated-null": {
+			input:    List{ElemType: StringType, Null: true},
+			expected: false,
+		},
+		"unknown": {
+			input:    ListUnknown(StringType),
+			expected: true,
+		},
+		"deprecated-unknown": {
+			input:    List{ElemType: StringType, Unknown: true},
+			expected: true,
+		},
+		"deprecated-invalid": {
+			input:    List{ElemType: StringType, Null: true, Unknown: true},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.IsUnknown()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestListString(t *testing.T) {
 	t.Parallel()
 
@@ -710,7 +1224,49 @@ func TestListString(t *testing.T) {
 		expectation string
 	}
 	tests := map[string]testCase{
-		"simple": {
+		"known": {
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			expectation: `["hello","world"]`,
+		},
+		"known-list-of-lists": {
+			input: ListValueMust(
+				ListType{
+					ElemType: StringType,
+				},
+				[]attr.Value{
+					ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
+						},
+					),
+					ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("foo"),
+							StringValue("bar"),
+						},
+					),
+				},
+			),
+			expectation: `[["hello","world"],["foo","bar"]]`,
+		},
+		"unknown": {
+			input:       ListUnknown(StringType),
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       ListNull(StringType),
+			expectation: "<null>",
+		},
+		"deprecated-known": {
 			input: List{
 				ElemType: StringType,
 				Elems: []attr.Value{
@@ -720,7 +1276,7 @@ func TestListString(t *testing.T) {
 			},
 			expectation: `["hello","world"]`,
 		},
-		"list-of-lists": {
+		"deprecated-known-list-of-lists": {
 			input: List{
 				ElemType: ListType{
 					ElemType: StringType,
@@ -744,11 +1300,11 @@ func TestListString(t *testing.T) {
 			},
 			expectation: `[["hello","world"],["foo","bar"]]`,
 		},
-		"unknown": {
+		"deprecated-unknown": {
 			input:       List{Unknown: true},
 			expectation: "<unknown>",
 		},
-		"null": {
+		"deprecated-null": {
 			input:       List{Null: true},
 			expectation: "<null>",
 		},
@@ -764,6 +1320,121 @@ func TestListString(t *testing.T) {
 			t.Parallel()
 
 			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestListType(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       List
+		expectation attr.Type
+	}
+	tests := map[string]testCase{
+		"known": {
+			input: ListValueMust(
+				StringType,
+				[]attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			),
+			expectation: ListType{ElemType: StringType},
+		},
+		"known-list-of-lists": {
+			input: ListValueMust(
+				ListType{
+					ElemType: StringType,
+				},
+				[]attr.Value{
+					ListValueMust(
+						StringType,
+						[]attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					),
+					ListValueMust(
+						StringType,
+						[]attr.Value{
+							String{Value: "foo"},
+							String{Value: "bar"},
+						},
+					),
+				},
+			),
+			expectation: ListType{
+				ElemType: ListType{
+					ElemType: StringType,
+				},
+			},
+		},
+		"unknown": {
+			input:       ListUnknown(StringType),
+			expectation: ListType{ElemType: StringType},
+		},
+		"null": {
+			input:       ListNull(StringType),
+			expectation: ListType{ElemType: StringType},
+		},
+		"deprecated-known": {
+			input: List{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "hello"},
+					String{Value: "world"},
+				},
+			},
+			expectation: ListType{ElemType: StringType},
+		},
+		"deprecated-known-list-of-lists": {
+			input: List{
+				ElemType: ListType{
+					ElemType: StringType,
+				},
+				Elems: []attr.Value{
+					List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "hello"},
+							String{Value: "world"},
+						},
+					},
+					List{
+						ElemType: StringType,
+						Elems: []attr.Value{
+							String{Value: "foo"},
+							String{Value: "bar"},
+						},
+					},
+				},
+			},
+			expectation: ListType{
+				ElemType: ListType{
+					ElemType: StringType,
+				},
+			},
+		},
+		"deprecated-unknown": {
+			input:       List{ElemType: StringType, Unknown: true},
+			expectation: ListType{ElemType: StringType},
+		},
+		"deprecated-null": {
+			input:       List{ElemType: StringType, Null: true},
+			expectation: ListType{ElemType: StringType},
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.Type(context.Background())
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}

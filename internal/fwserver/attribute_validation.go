@@ -153,7 +153,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		for idx := range l.Elems {
+		for idx := range l.Elements() {
 			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtListIndex(idx).AtName(nestedName),
@@ -183,7 +183,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		for _, value := range s.Elems {
+		for _, value := range s.Elements() {
 			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtSetValue(value).AtName(nestedName),
@@ -213,7 +213,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		for key := range m.Elems {
+		for key := range m.Elements() {
 			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtMapKey(key).AtName(nestedName),
@@ -243,21 +243,23 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		if !o.Null && !o.Unknown {
-			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
-				nestedAttrReq := tfsdk.ValidateAttributeRequest{
-					AttributePath:           req.AttributePath.AtName(nestedName),
-					AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
-					Config:                  req.Config,
-				}
-				nestedAttrResp := &tfsdk.ValidateAttributeResponse{
-					Diagnostics: resp.Diagnostics,
-				}
+		if o.IsNull() || o.IsUnknown() {
+			return
+		}
 
-				AttributeValidate(ctx, nestedAttr, nestedAttrReq, nestedAttrResp)
-
-				resp.Diagnostics = nestedAttrResp.Diagnostics
+		for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
+			nestedAttrReq := tfsdk.ValidateAttributeRequest{
+				AttributePath:           req.AttributePath.AtName(nestedName),
+				AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
+				Config:                  req.Config,
 			}
+			nestedAttrResp := &tfsdk.ValidateAttributeResponse{
+				Diagnostics: resp.Diagnostics,
+			}
+
+			AttributeValidate(ctx, nestedAttr, nestedAttrReq, nestedAttrResp)
+
+			resp.Diagnostics = nestedAttrResp.Diagnostics
 		}
 	default:
 		err := fmt.Errorf("unknown attribute validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)

@@ -58,8 +58,8 @@ func TestServerValidateProviderConfig(t *testing.T) {
 								return
 							}
 
-							if got.Value != "test-value" {
-								resp.Diagnostics.AddError("Incorrect req.AttributeConfig", "expected test-value, got "+got.Value)
+							if got.ValueString() != "test-value" {
+								resp.Diagnostics.AddError("Incorrect req.AttributeConfig", "expected test-value, got "+got.ValueString())
 							}
 						},
 					},
@@ -177,8 +177,8 @@ func TestServerValidateProviderConfig(t *testing.T) {
 										return
 									}
 
-									if got.Value != "test-value" {
-										resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.Value)
+									if got.ValueString() != "test-value" {
+										resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.ValueString())
 									}
 								},
 							},
@@ -242,8 +242,8 @@ func TestServerValidateProviderConfig(t *testing.T) {
 							return
 						}
 
-						if got.Value != "test-value" {
-							resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.Value)
+						if got.ValueString() != "test-value" {
+							resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.ValueString())
 						}
 					},
 				},

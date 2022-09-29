@@ -153,12 +153,12 @@ func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.Confi
 
 	// Check configuration data, which should take precedence over
 	// environment variable data, if found.
-	if data.ApiToken.Value != "" {
-		apiToken = data.ApiToken.Value
+	if data.ApiToken.ValueString() != "" {
+		apiToken = data.ApiToken.ValueString()
 	}
 
-	if data.Endpoint.Value != "" {
-		endpoint = data.Endpoint.Value
+	if data.Endpoint.ValueString() != "" {
+		endpoint = data.Endpoint.ValueString()
 	}
 
 	if apiToken == "" {

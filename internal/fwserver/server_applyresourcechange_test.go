@@ -138,8 +138,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-						if data.TestRequired.Value != "test-config-value" {
-							resp.Diagnostics.AddError("unexpected req.Config value: %s", data.TestRequired.Value)
+						if data.TestRequired.ValueString() != "test-config-value" {
+							resp.Diagnostics.AddError("unexpected req.Config value: %s", data.TestRequired.ValueString())
 						}
 
 						// Prevent missing resource state error diagnostic
@@ -184,8 +184,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-						if data.TestRequired.Value != "test-plannedstate-value" {
-							resp.Diagnostics.AddError("unexpected req.Plan value: %s", data.TestRequired.Value)
+						if data.TestRequired.ValueString() != "test-plannedstate-value" {
+							resp.Diagnostics.AddError("unexpected req.Plan value: %s", data.TestRequired.ValueString())
 						}
 
 						// Prevent missing resource state error diagnostic
@@ -229,8 +229,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &metadata)...)
 
-						if metadata.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+metadata.TestProviderMetaAttribute.Value)
+						if metadata.TestProviderMetaAttribute.ValueString() != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+metadata.TestProviderMetaAttribute.ValueString())
 						}
 
 						// Prevent missing resource state error diagnostic
@@ -451,8 +451,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-						if data.TestRequired.Value != "test-priorstate-value" {
-							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.Value)
+						if data.TestRequired.ValueString() != "test-priorstate-value" {
+							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
 						}
 					},
 					UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -487,8 +487,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-						if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-							resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestProviderMetaAttribute.Value)
+						if data.TestProviderMetaAttribute.ValueString() != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestProviderMetaAttribute.ValueString())
 						}
 					},
 					UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -699,8 +699,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-						if data.TestRequired.Value != "test-new-value" {
-							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+						if data.TestRequired.ValueString() != "test-new-value" {
+							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.ValueString())
 						}
 					},
 				},
@@ -756,8 +756,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-						if data.TestComputed.Value != "test-plannedstate-value" {
-							resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.Value)
+						if data.TestComputed.ValueString() != "test-plannedstate-value" {
+							resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestComputed.ValueString())
 						}
 					},
 				},
@@ -813,8 +813,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-						if data.TestRequired.Value != "test-old-value" {
-							resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.Value)
+						if data.TestRequired.ValueString() != "test-old-value" {
+							resp.Diagnostics.AddError("Unexpected req.State Value", "Got: "+data.TestRequired.ValueString())
 						}
 					},
 				},
@@ -871,8 +871,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-						if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.Value)
+						if data.TestProviderMetaAttribute.ValueString() != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+data.TestProviderMetaAttribute.ValueString())
 						}
 					},
 				},

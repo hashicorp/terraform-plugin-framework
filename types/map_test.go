@@ -244,6 +244,153 @@ func TestMapTypeEqual(t *testing.T) {
 	}
 }
 
+func TestMapValue(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		elementType   attr.Type
+		elements      map[string]attr.Value
+		expected      Map
+		expectedDiags diag.Diagnostics
+	}{
+		"valid-no-elements": {
+			elementType: StringType,
+			elements:    map[string]attr.Value{},
+			expected:    MapValueMust(StringType, map[string]attr.Value{}),
+		},
+		"valid-elements": {
+			elementType: StringType,
+			elements: map[string]attr.Value{
+				"null":    StringNull(),
+				"unknown": StringUnknown(),
+				"known":   StringValue("test"),
+			},
+			expected: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"null":    StringNull(),
+					"unknown": StringUnknown(),
+					"known":   StringValue("test"),
+				},
+			),
+		},
+		"invalid-element-type": {
+			elementType: StringType,
+			elements: map[string]attr.Value{
+				"string": StringValue("test"),
+				"bool":   BoolValue(true),
+			},
+			expected: MapUnknown(StringType),
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Map Element Type",
+					"While creating a Map value, an invalid element was detected. "+
+						"A Map must use the single, given element type. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Map Element Type: types.StringType\n"+
+						"Map Key (bool) Element Type: types.BoolType",
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := MapValue(testCase.elementType, testCase.elements)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics difference: %s", diff)
+			}
+		})
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestMapValue_DeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	knownMap := MapValueMust(StringType, map[string]attr.Value{"test-key": StringValue("test-value")})
+
+	knownMap.Null = true
+
+	if knownMap.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	knownMap.Unknown = true
+
+	if knownMap.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	knownMap.Elems = map[string]attr.Value{"test-key": StringValue("not-test-value")}
+
+	if knownMap.Elements()["test-key"].Equal(StringValue("not-test-value")) {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestMapNull_DeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	nullMap := MapNull(StringType)
+
+	nullMap.Null = false
+
+	if !nullMap.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	nullMap.Unknown = true
+
+	if nullMap.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	nullMap.Elems = map[string]attr.Value{"test-key": StringValue("test")}
+
+	if len(nullMap.Elements()) > 0 {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestMapUnknown_DeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	unknownMap := MapUnknown(StringType)
+
+	unknownMap.Null = true
+
+	if unknownMap.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	unknownMap.Unknown = false
+
+	if !unknownMap.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	unknownMap.Elems = map[string]attr.Value{"test-key": StringValue("test")}
+
+	if len(unknownMap.Elements()) > 0 {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
 func TestMapElementsAs_mapStringString(t *testing.T) {
 	t.Parallel()
 
@@ -299,62 +446,124 @@ func TestMapToTerraformValue(t *testing.T) {
 		expectedErr string
 	}
 	tests := map[string]testCase{
-		"value": {
-			input: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
+		"known": {
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
 				},
-			},
+			),
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
-				"h": tftypes.NewValue(tftypes.String, "hello"),
-				"w": tftypes.NewValue(tftypes.String, "world"),
+				"key1": tftypes.NewValue(tftypes.String, "hello"),
+				"key2": tftypes.NewValue(tftypes.String, "world"),
+			}),
+		},
+		"known-partial-unknown": {
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringUnknown(),
+					"key2": StringValue("hello, world"),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
+				"key1": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"key2": tftypes.NewValue(tftypes.String, "hello, world"),
+			}),
+		},
+		"known-partial-null": {
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringNull(),
+					"key2": StringValue("hello, world"),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
+				"key1": tftypes.NewValue(tftypes.String, nil),
+				"key2": tftypes.NewValue(tftypes.String, "hello, world"),
 			}),
 		},
 		"unknown": {
-			input:       Map{ElemType: StringType, Unknown: true},
+			input:       MapUnknown(StringType),
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue),
 		},
 		"null": {
+			input:       MapNull(StringType),
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+		},
+		"deprecated-known": {
+			input: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
+				},
+			},
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
+				"key1": tftypes.NewValue(tftypes.String, "hello"),
+				"key2": tftypes.NewValue(tftypes.String, "world"),
+			}),
+		},
+		"deprecated-known-duplicates": {
+			input: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "hello"},
+				},
+			},
+			// Duplicate validation does not occur during this method.
+			// This is okay, as tftypes allows duplicates.
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
+				"key1": tftypes.NewValue(tftypes.String, "hello"),
+				"key2": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+		},
+		"deprecated-unknown": {
+			input:       Map{ElemType: StringType, Unknown: true},
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue),
+		},
+		"deprecated-null": {
 			input:       Map{ElemType: StringType, Null: true},
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
 		},
-		"partial-unknown": {
+		"deprecated-known-partial-unknown": {
 			input: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"unk": String{Unknown: true},
-					"hw":  String{Value: "hello, world"},
+					"key1": String{Unknown: true},
+					"key2": String{Value: "hello, world"},
 				},
 			},
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
-				"unk": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				"hw":  tftypes.NewValue(tftypes.String, "hello, world"),
+				"key1": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"key2": tftypes.NewValue(tftypes.String, "hello, world"),
 			}),
 		},
-		"partial-null": {
+		"deprecated-known-partial-null": {
 			input: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"n":  String{Null: true},
-					"hw": String{Value: "hello, world"},
+					"key1": String{Null: true},
+					"key2": String{Value: "hello, world"},
 				},
 			},
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
-				"n":  tftypes.NewValue(tftypes.String, nil),
-				"hw": tftypes.NewValue(tftypes.String, "hello, world"),
+				"key1": tftypes.NewValue(tftypes.String, nil),
+				"key2": tftypes.NewValue(tftypes.String, "hello, world"),
 			}),
 		},
 		"no-elem-type": {
 			input: Map{
 				Elems: map[string]attr.Value{
-					"n":  String{Null: true},
-					"hw": String{Value: "hello, world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
-			expectedErr: "cannot convert Map to tftypes.Value if ElemType field is not set",
 			expectation: tftypes.Value{},
+			expectedErr: "cannot convert Map to tftypes.Value if ElemType field is not set",
 		},
 	}
 	for name, test := range tests {
@@ -388,6 +597,102 @@ func TestMapToTerraformValue(t *testing.T) {
 	}
 }
 
+func TestMapElements(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Map
+		expected map[string]attr.Value
+	}{
+		"known": {
+			input:    MapValueMust(StringType, map[string]attr.Value{"test-key": StringValue("test-value")}),
+			expected: map[string]attr.Value{"test-key": StringValue("test-value")},
+		},
+		"deprecated-known": {
+			input:    Map{ElemType: StringType, Elems: map[string]attr.Value{"test-key": StringValue("test-value")}},
+			expected: map[string]attr.Value{"test-key": StringValue("test-value")},
+		},
+		"null": {
+			input:    MapNull(StringType),
+			expected: nil,
+		},
+		"deprecated-null": {
+			input:    Map{ElemType: StringType, Null: true},
+			expected: nil,
+		},
+		"unknown": {
+			input:    MapUnknown(StringType),
+			expected: nil,
+		},
+		"deprecated-unknown": {
+			input:    Map{ElemType: StringType, Unknown: true},
+			expected: nil,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.Elements()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestMapElementType(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Map
+		expected attr.Type
+	}{
+		"known": {
+			input:    MapValueMust(StringType, map[string]attr.Value{"test-key": StringValue("test-value")}),
+			expected: StringType,
+		},
+		"deprecated-known": {
+			input:    Map{ElemType: StringType, Elems: map[string]attr.Value{"test-key": StringValue("test-value")}},
+			expected: StringType,
+		},
+		"null": {
+			input:    MapNull(StringType),
+			expected: StringType,
+		},
+		"deprecated-null": {
+			input:    Map{ElemType: StringType, Null: true},
+			expected: StringType,
+		},
+		"unknown": {
+			input:    MapUnknown(StringType),
+			expected: StringType,
+		},
+		"deprecated-unknown": {
+			input:    Map{ElemType: StringType, Unknown: true},
+			expected: StringType,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ElementType(context.Background())
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestMapEqual(t *testing.T) {
 	t.Parallel()
 
@@ -397,291 +702,379 @@ func TestMapEqual(t *testing.T) {
 		expected bool
 	}
 	tests := map[string]testCase{
-		"equal": {
+		"known-known": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			expected: true,
+		},
+		"known-known-diff-value": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("goodnight"),
+					"key2": StringValue("moon"),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-length": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+					"key3": StringValue("extra"),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-type": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input: SetValueMust(
+				BoolType,
+				[]attr.Value{
+					BoolValue(false),
+					BoolValue(true),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-unknown": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringUnknown(),
+				},
+			),
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-null": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringNull(),
+				},
+			),
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			expected: false,
+		},
+		"known-unknown": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input:    MapUnknown(StringType),
+			expected: false,
+		},
+		"known-null": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input:    MapNull(StringType),
+			expected: false,
+		},
+		"known-diff-type": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input: SetValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
+				},
+			),
+			expected: false,
+		},
+		"known-nil": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input:    nil,
+			expected: false,
+		},
+		"known-deprecated-known": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
+				},
+			},
+			expected: false, // intentional
+		},
+		"known-deprecated-unknown": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input:    Map{ElemType: StringType, Unknown: true},
+			expected: false,
+		},
+		"known-deprecated-null": {
+			receiver: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			input:    Map{ElemType: StringType, Null: true},
+			expected: false,
+		},
+		"deprecated-known-deprecated-known": {
 			receiver: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
 			input: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
 			expected: true,
 		},
-		"elem-value-diff": {
+		"deprecated-known-deprecated-known-diff-value": {
 			receiver: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
 			input: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "goodnight"},
-					"w": String{Value: "moon"},
+					"key1": String{Value: "goodnight"},
+					"key2": String{Value: "moon"},
 				},
 			},
 			expected: false,
 		},
-		"elem-key-diff": {
+		"deprecated-known-deprecated-known-diff-length": {
 			receiver: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
 			input: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"no": String{Value: "hello"},
-					"w":  String{Value: "world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
+					"key3": String{Value: "test"},
 				},
 			},
 			expected: false,
 		},
-		"elem-count-diff": {
+		"deprecated-known-deprecated-known-diff-type": {
 			receiver: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
-				},
-			},
-			input: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
-					"t": String{Value: "test"},
-				},
-			},
-			expected: false,
-		},
-		"elem-value-type-diff": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
 			input: Map{
 				ElemType: BoolType,
 				Elems: map[string]attr.Value{
-					"h": Bool{Value: false},
-					"w": Bool{Value: true},
+					"key1": Bool{Value: false},
+					"key2": Bool{Value: true},
 				},
 			},
 			expected: false,
 		},
-		"map-value-unknown": {
+		"deprecated-known-deprecated-known-diff-unknown": {
 			receiver: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Unknown: true},
+				},
+			},
+			input: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
+				},
+			},
+			expected: false,
+		},
+		"deprecated-known-deprecated-known-diff-null": {
+			receiver: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Null: true},
+				},
+			},
+			input: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
+				},
+			},
+			expected: false,
+		},
+		"deprecated-known-deprecated-unknown": {
+			receiver: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
 			input:    Map{Unknown: true},
 			expected: false,
 		},
-		"map-value-null": {
+		"deprecated-known-deprecated-null": {
 			receiver: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
 			input:    Map{Null: true},
 			expected: false,
 		},
-		"map-elem-wrongType": {
+		"deprecated-known-known": {
 			receiver: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
+				},
+			},
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			expected: false, // intentional
+		},
+		"deprecated-known-unknown": {
+			receiver: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
+				},
+			},
+			input:    MapUnknown(StringType),
+			expected: false,
+		},
+		"deprecated-known-null": {
+			receiver: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
+				},
+			},
+			input:    MapNull(StringType),
+			expected: false,
+		},
+		"deprecated-known-diff-type": {
+			receiver: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
 			input:    String{Value: "hello, world"},
 			expected: false,
 		},
-		"value-nil": {
+		"deprecated-known-nil": {
 			receiver: Map{
 				ElemType: StringType,
 				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
-				},
-			},
-			input:    nil,
-			expected: false,
-		},
-		"partially-known": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Unknown: true},
-				},
-			},
-			input: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Unknown: true},
-				},
-			},
-			expected: true,
-		},
-		"partially-known-value-diff": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Unknown: true},
-				},
-			},
-			input: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
-				},
-			},
-			expected: false,
-		},
-		"partially-known-map-value-unknown": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Unknown: true},
-				},
-			},
-			input:    Map{Unknown: true},
-			expected: false,
-		},
-		"partially-known-map-value-null": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Unknown: true},
-				},
-			},
-			input:    Map{Null: true},
-			expected: false,
-		},
-		"partially-known-map-value-wrongType": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Unknown: true},
-				},
-			},
-			input:    String{Value: "hello, world"},
-			expected: false,
-		},
-		"partially-known-map-value-nil": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Unknown: true},
-				},
-			},
-			input:    nil,
-			expected: false,
-		},
-		"partially-null-map-value-map-value": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Null: true},
-				},
-			},
-			input: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Null: true},
-				},
-			},
-			expected: true,
-		},
-		"partially-null-map-value-diff": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Null: true},
-				},
-			},
-			input: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Value: "world"},
-				},
-			},
-			expected: false,
-		},
-		"partially-null-map-value-unknown": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Null: true},
-				},
-			},
-			input: Map{
-				Unknown: true,
-			},
-			expected: false,
-		},
-		"partially-null-map-value-null": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Null: true},
-				},
-			},
-			input: Map{
-				Null: true,
-			},
-			expected: false,
-		},
-		"partially-null-map-value-wrongType": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Null: true},
-				},
-			},
-			input:    String{Value: "hello, world"},
-			expected: false,
-		},
-		"partially-null-map-value-nil": {
-			receiver: Map{
-				ElemType: StringType,
-				Elems: map[string]attr.Value{
-					"h": String{Value: "hello"},
-					"w": String{Null: true},
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
 				},
 			},
 			input:    nil,
@@ -701,6 +1094,110 @@ func TestMapEqual(t *testing.T) {
 	}
 }
 
+func TestMapIsNull(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Map
+		expected bool
+	}{
+		"known": {
+			input:    MapValueMust(StringType, map[string]attr.Value{"test-key": StringValue("test-value")}),
+			expected: false,
+		},
+		"deprecated-known": {
+			input:    Map{ElemType: StringType, Elems: map[string]attr.Value{"test-key": StringValue("test-value")}},
+			expected: false,
+		},
+		"null": {
+			input:    MapNull(StringType),
+			expected: true,
+		},
+		"deprecated-null": {
+			input:    Map{ElemType: StringType, Null: true},
+			expected: true,
+		},
+		"unknown": {
+			input:    MapUnknown(StringType),
+			expected: false,
+		},
+		"deprecated-unknown": {
+			input:    Map{ElemType: StringType, Unknown: true},
+			expected: false,
+		},
+		"deprecated-invalid": {
+			input:    Map{ElemType: StringType, Null: true, Unknown: true},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.IsNull()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestMapIsUnknown(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Map
+		expected bool
+	}{
+		"known": {
+			input:    MapValueMust(StringType, map[string]attr.Value{"test-key": StringValue("test-value")}),
+			expected: false,
+		},
+		"deprecated-known": {
+			input:    Map{ElemType: StringType, Elems: map[string]attr.Value{"test-key": StringValue("test-value")}},
+			expected: false,
+		},
+		"null": {
+			input:    MapNull(StringType),
+			expected: false,
+		},
+		"deprecated-null": {
+			input:    Map{ElemType: StringType, Null: true},
+			expected: false,
+		},
+		"unknown": {
+			input:    MapUnknown(StringType),
+			expected: true,
+		},
+		"deprecated-unknown": {
+			input:    Map{ElemType: StringType, Unknown: true},
+			expected: true,
+		},
+		"deprecated-invalid": {
+			input:    Map{ElemType: StringType, Null: true, Unknown: true},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.IsUnknown()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestMapString(t *testing.T) {
 	t.Parallel()
 
@@ -709,7 +1206,61 @@ func TestMapString(t *testing.T) {
 		expectation string
 	}
 	tests := map[string]testCase{
-		"simple": {
+		"known": {
+			input: MapValueMust(
+				Int64Type,
+				map[string]attr.Value{
+					"alpha": Int64{Value: 1234},
+					"beta":  Int64{Value: 56789},
+					"gamma": Int64{Value: 9817},
+					"sigma": Int64{Value: 62534},
+				},
+			),
+			expectation: `{"alpha":1234,"beta":56789,"gamma":9817,"sigma":62534}`,
+		},
+		"known-map-of-maps": {
+			input: MapValueMust(
+				MapType{
+					ElemType: StringType,
+				},
+				map[string]attr.Value{
+					"first": MapValueMust(
+						StringType,
+						map[string]attr.Value{
+							"alpha": String{Value: "hello"},
+							"beta":  String{Value: "world"},
+							"gamma": String{Value: "foo"},
+							"sigma": String{Value: "bar"},
+						},
+					),
+					"second": MapValueMust(
+						StringType,
+						map[string]attr.Value{
+							"echo": String{Value: "echo"},
+						},
+					),
+				},
+			),
+			expectation: `{"first":{"alpha":"hello","beta":"world","gamma":"foo","sigma":"bar"},"second":{"echo":"echo"}}`,
+		},
+		"known-key-quotes": {
+			input: MapValueMust(
+				BoolType,
+				map[string]attr.Value{
+					`testing is "fun"`: Bool{Value: true},
+				},
+			),
+			expectation: `{"testing is \"fun\"":true}`,
+		},
+		"unknown": {
+			input:       MapUnknown(StringType),
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       MapNull(StringType),
+			expectation: "<null>",
+		},
+		"deprecated-known": {
 			input: Map{
 				ElemType: Int64Type,
 				Elems: map[string]attr.Value{
@@ -721,7 +1272,7 @@ func TestMapString(t *testing.T) {
 			},
 			expectation: `{"alpha":1234,"beta":56789,"gamma":9817,"sigma":62534}`,
 		},
-		"map-of-maps": {
+		"deprecated-known-map-of-maps": {
 			input: Map{
 				ElemType: MapType{
 					ElemType: StringType,
@@ -749,7 +1300,7 @@ func TestMapString(t *testing.T) {
 			},
 			expectation: `{"first":{"alpha":"hello","beta":"world","gamma":"foo","sigma":"bar"},"second":{"t":0,"x":0,"y":0,"z":0}}`,
 		},
-		"key-quotes": {
+		"deprecated-known-key-quotes": {
 			input: Map{
 				ElemType: BoolType,
 				Elems: map[string]attr.Value{
@@ -758,11 +1309,11 @@ func TestMapString(t *testing.T) {
 			},
 			expectation: `{"testing is \"fun\"":true}`,
 		},
-		"unknown": {
+		"deprecated-unknown": {
 			input:       Map{Unknown: true},
 			expectation: "<unknown>",
 		},
-		"null": {
+		"deprecated-null": {
 			input:       Map{Null: true},
 			expectation: "<null>",
 		},
@@ -778,6 +1329,121 @@ func TestMapString(t *testing.T) {
 			t.Parallel()
 
 			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestMapType(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       Map
+		expectation attr.Type
+	}
+	tests := map[string]testCase{
+		"known": {
+			input: MapValueMust(
+				StringType,
+				map[string]attr.Value{
+					"key1": StringValue("hello"),
+					"key2": StringValue("world"),
+				},
+			),
+			expectation: MapType{ElemType: StringType},
+		},
+		"known-map-of-maps": {
+			input: MapValueMust(
+				MapType{
+					ElemType: StringType,
+				},
+				map[string]attr.Value{
+					"key1": MapValueMust(
+						StringType,
+						map[string]attr.Value{
+							"key1": StringValue("hello"),
+							"key2": StringValue("world"),
+						},
+					),
+					"key2": MapValueMust(
+						StringType,
+						map[string]attr.Value{
+							"key1": StringValue("foo"),
+							"key2": StringValue("bar"),
+						},
+					),
+				},
+			),
+			expectation: MapType{
+				ElemType: MapType{
+					ElemType: StringType,
+				},
+			},
+		},
+		"unknown": {
+			input:       MapUnknown(StringType),
+			expectation: MapType{ElemType: StringType},
+		},
+		"null": {
+			input:       MapNull(StringType),
+			expectation: MapType{ElemType: StringType},
+		},
+		"deprecated-known": {
+			input: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "hello"},
+					"key2": String{Value: "world"},
+				},
+			},
+			expectation: MapType{ElemType: StringType},
+		},
+		"deprecated-known-list-of-lists": {
+			input: Map{
+				ElemType: MapType{
+					ElemType: StringType,
+				},
+				Elems: map[string]attr.Value{
+					"key1": Map{
+						ElemType: StringType,
+						Elems: map[string]attr.Value{
+							"key1": String{Value: "hello"},
+							"key2": String{Value: "world"},
+						},
+					},
+					"key2": Map{
+						ElemType: StringType,
+						Elems: map[string]attr.Value{
+							"key1": String{Value: "foo"},
+							"key2": String{Value: "bar"},
+						},
+					},
+				},
+			},
+			expectation: MapType{
+				ElemType: MapType{
+					ElemType: StringType,
+				},
+			},
+		},
+		"deprecated-unknown": {
+			input:       Map{ElemType: StringType, Unknown: true},
+			expectation: MapType{ElemType: StringType},
+		},
+		"deprecated-null": {
+			input:       Map{ElemType: StringType, Null: true},
+			expectation: MapType{ElemType: StringType},
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.Type(context.Background())
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}

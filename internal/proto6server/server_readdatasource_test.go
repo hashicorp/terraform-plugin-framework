@@ -107,8 +107,8 @@ func TestServerReadDataSource(t *testing.T) {
 
 											resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-											if config.TestRequired.Value != "test-config-value" {
-												resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.Value)
+											if config.TestRequired.ValueString() != "test-config-value" {
+												resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
 											}
 										},
 									}
@@ -149,8 +149,8 @@ func TestServerReadDataSource(t *testing.T) {
 
 												resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &config)...)
 
-												if config.TestRequired.Value != "test-config-value" {
-													resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.Value)
+												if config.TestRequired.ValueString() != "test-config-value" {
+													resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", config.TestRequired.ValueString())
 												}
 											},
 										}

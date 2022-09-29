@@ -149,21 +149,21 @@ func (d *numberNumericAttributePlanModifier) MarkdownDescription(ctx context.Con
 }
 
 func (d *numberNumericAttributePlanModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-    numberConfig := types.Bool{}
+    var numberConfig types.Bool
     diags := req.Config.GetAttribute(ctx, path.Root("number"), &numberConfig)
     resp.Diagnostics.Append(diags...)
     if resp.Diagnostics.HasError() {
         return
     }
 
-    numericConfig := types.Bool{}
+    var numericConfig types.Bool
     req.Config.GetAttribute(ctx, path.Root("numeric"), &numericConfig)
     resp.Diagnostics.Append(diags...)
     if resp.Diagnostics.HasError() {
         return
     }
 
-	if !numberConfig.Null && !numericConfig.Null && (numberConfig.Value != numericConfig.Value) {
+	if !numberConfig.IsNull() && !numericConfig.IsNull() && (numberConfig.ValueBool() != numericConfig.ValueBool()) {
 		resp.Diagnostics.AddError(
 			"Number and numeric are both configured with different values",
 			"Number is deprecated, use numeric instead",
@@ -172,19 +172,19 @@ func (d *numberNumericAttributePlanModifier) Modify(ctx context.Context, req tfs
 	}
 
     // Default to true for both number and numeric when both are null.
-    if numberConfig.Null && numericConfig.Null {
-        resp.AttributePlan = types.Bool{Value: true}
+    if numberConfig.IsNull() && numericConfig.IsNull() {
+        resp.AttributePlan = types.BoolValue(true)
         return
     }
 
     // Default to using value for numeric if number is null
-    if numberConfig.Null && !numericConfig.Null {
+    if numberConfig.IsNull() && !numericConfig.IsNull() {
         resp.AttributePlan = numericConfig
         return
     }
 
     // Default to using value for number if numeric is null
-    if !numberConfig.Null && numericConfig.Null {
+    if !numberConfig.IsNull() && numericConfig.IsNull() {
         resp.AttributePlan = numberConfig
         return
     }

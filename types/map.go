@@ -55,6 +55,7 @@ func (m MapType) TerraformType(ctx context.Context) tftypes.Type {
 func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	ma := Map{
 		ElemType: m.ElemType,
+		state:    valueStateDeprecated,
 	}
 	if in.Type() == nil {
 		ma.Null = true
@@ -174,8 +175,100 @@ func (t MapType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
-// Map represents a map of attr.Values, all of the same type, indicated by
-// ElemType. Keys for the map will always be strings.
+// MapNull creates a Map with a null value. Determine whether the value is
+// null via the Map type IsNull method.
+//
+// Setting the deprecated Map type ElemType, Elems, Null, or Unknown fields
+// after creating a Map with this function has no effect.
+func MapNull(elementType attr.Type) Map {
+	return Map{
+		elementType: elementType,
+		state:       valueStateNull,
+	}
+}
+
+// MapUnknown creates a Map with an unknown value. Determine whether the
+// value is unknown via the Map type IsUnknown method.
+//
+// Setting the deprecated Map type ElemType, Elems, Null, or Unknown fields
+// after creating a Map with this function has no effect.
+func MapUnknown(elementType attr.Type) Map {
+	return Map{
+		elementType: elementType,
+		state:       valueStateUnknown,
+	}
+}
+
+// MapValue creates a Map with a known value. Access the value via the Map
+// type Elements or ElementsAs methods.
+//
+// Setting the deprecated Map type ElemType, Elems, Null, or Unknown fields
+// after creating a Map with this function has no effect.
+func MapValue(elementType attr.Type, elements map[string]attr.Value) (Map, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Ideally, Type() would not require a context.Context as it has no benefit
+	// here or elsewhere. There is also no benefit to adding it to the function
+	// parameters at the moment.
+	ctx := context.Background()
+
+	for key, element := range elements {
+		if !elementType.Equal(element.Type(ctx)) {
+			diags.AddError(
+				"Invalid Map Element Type",
+				"While creating a Map value, an invalid element was detected. "+
+					"A Map must use the single, given element type. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Map Element Type: %s\n", elementType.String())+
+					fmt.Sprintf("Map Key (%s) Element Type: %s", key, element.Type(ctx)),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return MapUnknown(elementType), diags
+	}
+
+	return Map{
+		elementType: elementType,
+		elements:    elements,
+		state:       valueStateKnown,
+	}, nil
+}
+
+// MapValueMust creates a Map with a known value, converting any diagnostics
+// into a panic at runtime. Access the value via the Map
+// type Elements or ElementsAs methods.
+//
+// This creation function is only recommended to create Map values which will
+// not potentially effect practitioners, such as testing, or exhaustively
+// tested provider logic.
+//
+// Setting the deprecated Map type ElemType, Elems, Null, or Unknown fields
+// after creating a Map with this function has no effect.
+func MapValueMust(elementType attr.Type, elements map[string]attr.Value) Map {
+	m, diags := MapValue(elementType, elements)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("MapValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return m
+}
+
+// Map represents a mapping of string keys to attr.Value values of a single
+// type.
 type Map struct {
 	// Unknown will be set to true if the entire map is an unknown value.
 	// If only some of the elements in the map are unknown, their known or
@@ -183,19 +276,63 @@ type Map struct {
 	// surfaces that information. The Map's Unknown property only tracks if
 	// the number of elements in a Map is known, not whether the elements
 	// that are in the map are known.
+	//
+	// If the Map was created with the MapValue, MapNull, or MapUnknown
+	// functions, changing this field has no effect.
+	//
+	// Deprecated: Use the MapUnknown function to create an unknown Map
+	// value or use the IsUnknown method to determine whether the Map value
+	// is unknown instead.
 	Unknown bool
 
 	// Null will be set to true if the map is null, either because it was
 	// omitted from the configuration, state, or plan, or because it was
 	// explicitly set to null.
+	//
+	// If the Map was created with the MapValue, MapNull, or MapUnknown
+	// functions, changing this field has no effect.
+	//
+	// Deprecated: Use the MapNull function to create a null Map value or
+	// use the IsNull method to determine whether the Map value is null
+	// instead.
 	Null bool
 
 	// Elems are the elements in the map.
+	//
+	// If the Map was created with the MapValue, MapNull, or MapUnknown
+	// functions, changing this field has no effect.
+	//
+	// Deprecated: Use the MapValue function to create a known Map value or
+	// use the Elements or ElementsAs methods to retrieve the Map elements
+	// instead.
 	Elems map[string]attr.Value
 
 	// ElemType is the AttributeType of the elements in the map. All
 	// elements in the map must be of this type.
+	//
+	// Deprecated: Use the MapValue, MapNull, or MapUnknown functions
+	// to create a Map or use the ElementType method to retrieve the
+	// Map element type instead.
 	ElemType attr.Type
+
+	// elements is the mapping of known values in the Map.
+	elements map[string]attr.Value
+
+	// elementType is the type of the elements in the Map.
+	elementType attr.Type
+
+	// state represents whether the Map is null, unknown, or known.
+	state valueState
+}
+
+// Elements returns the mapping of elements for the Map. Returns nil if the
+// Map is null or unknown.
+func (m Map) Elements() map[string]attr.Value {
+	if m.state == valueStateDeprecated {
+		return m.Elems
+	}
+
+	return m.elements
 }
 
 // ElementsAs populates `target` with the elements of the Map, throwing an
@@ -220,35 +357,72 @@ func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled 
 	}, path.Empty())
 }
 
+// ElementType returns the element type for the Map.
+func (m Map) ElementType(_ context.Context) attr.Type {
+	if m.state == valueStateDeprecated {
+		return m.ElemType
+	}
+
+	return m.elementType
+}
+
 // Type returns a MapType with the same element type as `m`.
 func (m Map) Type(ctx context.Context) attr.Type {
-	return MapType{ElemType: m.ElemType}
+	return MapType{ElemType: m.ElementType(ctx)}
 }
 
 // ToTerraformValue returns the data contained in the List as a tftypes.Value.
 func (m Map) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	if m.ElemType == nil {
+	if m.state == valueStateDeprecated && m.ElemType == nil {
 		return tftypes.Value{}, fmt.Errorf("cannot convert Map to tftypes.Value if ElemType field is not set")
 	}
-	mapType := tftypes.Map{ElementType: m.ElemType.TerraformType(ctx)}
-	if m.Unknown {
-		return tftypes.NewValue(mapType, tftypes.UnknownValue), nil
-	}
-	if m.Null {
-		return tftypes.NewValue(mapType, nil), nil
-	}
-	vals := make(map[string]tftypes.Value, len(m.Elems))
-	for key, elem := range m.Elems {
-		val, err := elem.ToTerraformValue(ctx)
-		if err != nil {
+	mapType := tftypes.Map{ElementType: m.ElementType(ctx).TerraformType(ctx)}
+
+	switch m.state {
+	case valueStateDeprecated:
+		if m.Unknown {
+			return tftypes.NewValue(mapType, tftypes.UnknownValue), nil
+		}
+		if m.Null {
+			return tftypes.NewValue(mapType, nil), nil
+		}
+		vals := make(map[string]tftypes.Value, len(m.Elems))
+		for key, elem := range m.Elems {
+			val, err := elem.ToTerraformValue(ctx)
+			if err != nil {
+				return tftypes.NewValue(mapType, tftypes.UnknownValue), err
+			}
+			vals[key] = val
+		}
+		if err := tftypes.ValidateValue(mapType, vals); err != nil {
 			return tftypes.NewValue(mapType, tftypes.UnknownValue), err
 		}
-		vals[key] = val
+		return tftypes.NewValue(mapType, vals), nil
+	case valueStateKnown:
+		vals := make(map[string]tftypes.Value, len(m.elements))
+
+		for key, elem := range m.elements {
+			val, err := elem.ToTerraformValue(ctx)
+
+			if err != nil {
+				return tftypes.NewValue(mapType, tftypes.UnknownValue), err
+			}
+
+			vals[key] = val
+		}
+
+		if err := tftypes.ValidateValue(mapType, vals); err != nil {
+			return tftypes.NewValue(mapType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(mapType, vals), nil
+	case valueStateNull:
+		return tftypes.NewValue(mapType, nil), nil
+	case valueStateUnknown:
+		return tftypes.NewValue(mapType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Map state in ToTerraformValue: %s", m.state))
 	}
-	if err := tftypes.ValidateValue(mapType, vals); err != nil {
-		return tftypes.NewValue(mapType, tftypes.UnknownValue), err
-	}
-	return tftypes.NewValue(mapType, vals), nil
 }
 
 // Equal returns true if the Map is considered semantically equal
@@ -258,13 +432,38 @@ func (m Map) Equal(o attr.Value) bool {
 	if !ok {
 		return false
 	}
+	if m.state != other.state {
+		return false
+	}
+	if m.state == valueStateKnown {
+		if !m.elementType.Equal(other.elementType) {
+			return false
+		}
+
+		if len(m.elements) != len(other.elements) {
+			return false
+		}
+
+		for key, mElem := range m.elements {
+			otherElem := other.elements[key]
+
+			if !mElem.Equal(otherElem) {
+				return false
+			}
+		}
+
+		return true
+	}
 	if m.Unknown != other.Unknown {
 		return false
 	}
 	if m.Null != other.Null {
 		return false
 	}
-	if !m.ElemType.Equal(other.ElemType) {
+	if m.ElemType == nil && other.ElemType != nil {
+		return false
+	}
+	if m.ElemType != nil && !m.ElemType.Equal(other.ElemType) {
 		return false
 	}
 	if len(m.Elems) != len(other.Elems) {
@@ -284,29 +483,39 @@ func (m Map) Equal(o attr.Value) bool {
 
 // IsNull returns true if the Map represents a null value.
 func (m Map) IsNull() bool {
-	return m.Null
+	if m.state == valueStateNull {
+		return true
+	}
+
+	return m.state == valueStateDeprecated && m.Null
 }
 
 // IsUnknown returns true if the Map represents a currently unknown value.
+// Returns false if the Map has a known number of elements, even if all are
+// unknown values.
 func (m Map) IsUnknown() bool {
-	return m.Unknown
+	if m.state == valueStateUnknown {
+		return true
+	}
+
+	return m.state == valueStateDeprecated && m.Unknown
 }
 
 // String returns a human-readable representation of the Map value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.
 func (m Map) String() string {
-	if m.Unknown {
+	if m.IsUnknown() {
 		return attr.UnknownValueString
 	}
 
-	if m.Null {
+	if m.IsNull() {
 		return attr.NullValueString
 	}
 
 	// We want the output to be consistent, so we sort the output by key
-	keys := make([]string, 0, len(m.Elems))
-	for k := range m.Elems {
+	keys := make([]string, 0, len(m.Elements()))
+	for k := range m.Elements() {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -318,7 +527,7 @@ func (m Map) String() string {
 		if i != 0 {
 			res.WriteString(",")
 		}
-		res.WriteString(fmt.Sprintf("%q:%s", k, m.Elems[k].String()))
+		res.WriteString(fmt.Sprintf("%q:%s", k, m.Elements()[k].String()))
 	}
 	res.WriteString("}")
 

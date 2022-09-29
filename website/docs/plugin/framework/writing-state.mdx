@@ -47,7 +47,7 @@ func (r ThingResource) Create(ctx context.Context,
 
 	// ...
 	// update newState by modifying each property as usual for Go values
-	newState.Name.Value = "J. Doe"
+	newState.Name = types.StringValue("J. Doe")
 
 	// persist the values to state
 	diags := resp.State.Set(ctx, &newState)

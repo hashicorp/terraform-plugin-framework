@@ -164,17 +164,17 @@ func (r *passwordResource) ImportState(ctx context.Context, req resource.ImportS
     id := req.ID
 
     state := passwordModelV2{
-        ID:         types.String{Value: "none"},
-        Result:     types.String{Value: id},
-        Length:     types.Int64{Value: int64(len(id))},
-        Special:    types.Bool{Value: true},
-        Upper:      types.Bool{Value: true},
-        Lower:      types.Bool{Value: true},
-        Numeric:    types.Bool{Value: true},
-        MinSpecial: types.Int64{Value: 0},
-        MinUpper:   types.Int64{Value: 0},
-        MinLower:   types.Int64{Value: 0},
-        MinNumeric: types.Int64{Value: 0},
+        ID:         types.StringValue("none"),
+        Result:     types.StringValue(id),
+        Length:     types.Int64Value(int64(len(id))),
+        Special:    types.BoolValue(true),
+        Upper:      types.BoolValue(true),
+        Lower:      types.BoolValue(true),
+        Numeric:    types.BoolValue(true),
+        MinSpecial: types.Int64Value(0),
+        MinUpper:   types.Int64Value(0),
+        MinLower:   types.Int64Value(0),
+        MinNumeric: types.Int64Value(0),
     }
 
     state.Keepers.ElemType = types.StringType
@@ -184,7 +184,7 @@ func (r *passwordResource) ImportState(ctx context.Context, req resource.ImportS
         resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
     }
 
-    state.BcryptHash = types.String{Value: hash}
+    state.BcryptHash = types.StringValue(hash)
 
     diags := resp.State.Set(ctx, &state)
     resp.Diagnostics.Append(diags...)

@@ -6,9 +6,13 @@ terraform-plugin-framework is a module for building [Terraform providers](https:
 
 ## Getting Started
 
-Developers can get started to build the providers using our new [HashiCorp Learn collections](https://developer.hashicorp.com/terraform/tutorials/providers/plugin-framework-create) or upgrade their existing provider using our [migration guide](https://www.terraform.io/plugin/framework/migrating). 
+* Try the [Terraform Plugin Framework collection](https://learn.hashicorp.com/collections/terraform/providers-plugin-framework) on HashiCorp Learn.
+* Clone the [terraform-provider-scaffolding-framework](https://github.com/hashicorp/terraform-provider-scaffolding-framework) template repository on GitHub for new providers.
+* Follow the [Terraform Plugin Framework migration guide](https://www.terraform.io/plugin/framework/migrating) for converting existing terraform-plugin-sdk providers.
+* Read the [Terraform Plugin Framework website](https://www.terraform.io/plugin/framework) for full documentation.
+* Browse the [terraform-plugin-framework module](http://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework) on the Go package documentation website.
+* Ask questions in the [Terraform Plugin Development section](https://discuss.hashicorp.com/c/terraform-providers/tf-plugin-sdk/43) on HashiCorp Discuss.
 
-Learn more about [Terraform Plugin Framework](https://www.terraform.io/plugin/framework).
 
 ## Status
 

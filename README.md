@@ -16,7 +16,7 @@ terraform-plugin-framework has reached **Public Beta** phase. We are committed t
 
 terraform-plugin-framework is also not at full feature parity with terraform-plugin-sdk yet. See [Which SDK Should I Use?](https://terraform.io/docs/plugin/which-sdk.html) for more information.
 
-We believe terraform-plugin-framework is a suitable and reliable module to build Terraform providers on, and encourage community members that can afford occasional breaking changes to build with it. terraform-plugin-framework will eventually become a new major version at which point its interfaces will be stable, but we need real-world use and feedback before we can be comfortable making those commitments. 
+We believe terraform-plugin-framework is a suitable and reliable module to build Terraform providers on, and encourage community members that can afford occasional breaking changes to build with it. terraform-plugin-framework will eventually become GA with a new major version release, at which point its interfaces will be stable, but we need real-world use and feedback before we can be comfortable making those commitments. 
 
 We recommend only using tagged releases of this module, and examining the CHANGELOG when upgrading to a new release. Breaking changes will only be made in minor versions; patch releases will always maintain backwards compatibility.
 
@@ -39,4 +39,3 @@ See [`.github/CONTRIBUTING.md`](https://github.com/hashicorp/terraform-plugin-fr
 ## License
 
 [Mozilla Public License v2.0](https://github.com/hashicorp/terraform-plugin-framework/blob/main/LICENSE)
-

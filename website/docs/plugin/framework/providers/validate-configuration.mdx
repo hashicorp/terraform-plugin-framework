@@ -1,0 +1,81 @@
+---
+page_title: 'Plugin Development - Framework: Validate Provider Configurations'
+description: >-
+  How to validate provider configurations with the provider development framework.
+---
+
+# Validate Configuration
+
+-> Note: The Plugin Framework is in beta.
+
+[Providers](/plugin/framework/providers) support validating an entire practitioner configuration in either declarative or imperative logic. Feedback, such as required syntax or acceptable combinations of values, is returned via [diagnostics](/plugin/framework/diagnostics).
+
+This page describes implementation details for validating entire provider configurations, typically referencing multiple attributes. Further documentation is available for other configuration validation concepts:
+
+- [Single attribute validation](/plugin/framework/validation#attribute-validation) is a schema-based mechanism for implementing attribute-specific validation logic.
+- [Type validation](/plugin/framework/validation#type-validation) is a schema-based mechanism for implementing reusable validation logic for any attribute using the type.
+
+## ConfigValidators Method
+
+The [`provider.ProviderWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This enables consistent validation logic across multiple providers. Each validator intended for this interface must implement the [`provider.ConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigValidator).
+
+The [`terraform-plugin-framework-validators` Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) has a collection of common use case provider configuration validators in the [`providervalidator` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/providervalidator). These use [path expressions](/plugin/framework/path-expressions) for matching attributes.
+
+This example will raise an error if a practitioner attempts to configure both `attribute_one` and `attribute_two`:
+
+```go
+// Other methods to implement the provider.Provider interface are omitted for brevity
+type ExampleCloudProvider struct {}
+
+func (p ExampleCloudProvider) ConfigValidators(ctx context.Context) []provider.ConfigValidator {
+    return []provider.ConfigValidator{
+        providervalidator.Conflicting(
+            path.MatchRoot("attribute_one"),
+            path.MatchRoot("attribute_two"),
+        ),
+    }
+}
+```
+
+## ValidateConfig Method
+
+The [`provider.ProviderWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithValidateConfig) is more imperative in design and is useful for validating unique functionality across multiple attributes that typically applies to a single provider.
+
+This example will raise a warning if a practitioner attempts to configure `attribute_one`, but not `attribute_two`:
+
+```go
+// Other methods to implement the provider.Provider interface are omitted for brevity
+type ExampleCloudProvider struct {}
+
+type ExampleCloudProviderModel struct {
+    AttributeOne types.String `tfsdk:"attribute_one"`
+    AttributeTwo types.String `tfsdk:"attribute_two"`
+}
+
+func (p ExampleCloudProvider) ValidateConfig(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
+    var data ExampleCloudProviderModel
+
+    resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    // If attribute_one is not configured, return without warning.
+    if data.AttributeOne.IsNull() || data.AttributeOne.IsUnknown() {
+        return
+    }
+
+    // If attribute_two is not null, return without warning.
+    if !data.AttributeTwo.IsNull() {
+        return
+    }
+
+    resp.Diagnostics.AddAttributeWarning(
+        path.Root("attribute_two"),
+        "Missing Attribute Configuration",
+        "Expected attribute_two to be configured with attribute_one. "+
+            "The provider may return unexpected results.",
+    )
+}
+```

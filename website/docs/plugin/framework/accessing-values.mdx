@@ -17,7 +17,7 @@ its source.
 The data is usually stored in a request object:
 
 ```go
-func (m myResource) Create(ctx context.Context,
+func (r ThingResource) Create(ctx context.Context,
 	req resource.CreateRequest, resp *resource.CreateResponse)
 ```
 
@@ -31,83 +31,62 @@ the entire configuration, plan, or state into a Go type, then treat them as
 regular Go values. This has the benefit of letting the compiler check all your
 code that accesses values, but requires defining a type to contain the values.
 
+Use the `Get` method to retrieve the first level of configuration, plan, and state data.
+
 ```go
-type resourceData struct {
-	Name types.String `tfsdk:"name"`
-	Age types.Number `tfsdk:"age"`
-	Registered types.Bool `tfsdk:"registered"`
-	Pets types.List `tfsdk:"pets"`
-	Tags types.Map `tfsdk:"tags"`
-	Address types.Object `tfsdk:"address"`
+type ThingResourceModel struct {
+	Address    types.Object `tfsdk:"address"`
+	Age        types.Int64  `tfsdk:"age"`
+	Name       types.String `tfsdk:"name"`
+	Pets       types.List   `tfsdk:"pets"`
+	Registered types.Bool   `tfsdk:"registered"`
+	Tags       types.Map    `tfsdk:"tags"`
 }
 
-func (m myResource) Create(ctx context.Context,
+func (r ThingResource) Create(ctx context.Context,
 	req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan resourceData
+	var plan ThingResourceModel
+
 	diags := req.Plan.Get(ctx, &plan)
+
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	// values can now be accessed like plan.Name.Value
-	// check if things are null with plan.Name.Null
-	// check if things are unknown with plan.Name.Unknown
+	// check if things are null with plan.Name.IsNull()
+	// check if things are unknown with plan.Name.IsUnknown()
 }
 ```
 
 The configuration, plan, and state data is represented as an object, and
-accessed like an object. See the [conversion rules](#conversion-rules) for an
+accessed like an object. Refer to the [conversion rules](#conversion-rules) for an
 explanation on how objects can be converted into Go types.
 
-However, using the [`attr.Value` implementations](/plugin/framework/types)
-can surface unnecessary complexity. For example, in a create function,
-non-computed values are guaranteed to be defined. Likewise, a required value
-will never be null.
-
-To aid in this, `Get` can do some conversion to Go types that can hold the data:
-
-```go
-type resourceData struct {
-  Name string `tfsdk:"name"`
-  Age int64 `tfsdk:"age"`
-  Registered bool `tfsdk:"registered"`
-  Pets []string `tfsdk:"pets"`
-  Tags map[string]string `tfsdk:"tags"`
-  Address struct{
-  	Street string `tfsdk:"street"`
-	City string `tfsdk:"city"`
-	State string `tfsdk:"state"`
-	Zip int64 `tfsdk:"zip"`
-  } `tfsdk:"address"`
-}
-```
-
-See [below](#conversion-rules) for the rules about conversion.
+To descend into deeper nested data structures, the `types.List`, `types.Map`, and `types.Set` types each have an `ElementsAs()` method. The `types.Object` type has an `As()` method.
 
 ## Get a Single Attribute's Value
 
-Another way to interact with configuration, plan, and state values is to
-retrieve a single value from the configuration, plan, or state and convert it
-into a Go type. This does not require defining a type (except for objects), but
-means each attribute access steps outside of what the compiler can check, and
-may return an error at runtime. It also requires a type assertion, though the
-type will always be the type produced by that attribute's `attr.Type`.
+Use the `GetAttribute` method to retrieve a single attribute value from the configuration, plan, and state.
 
 ```go
-func (m myResource) Create(ctx context.Context,
-	req resource.CreateRequest, resp *resource.CreateResponse) {
-	attr, diags := req.Config.GetAttribute(ctx, path.Root("age"))
+func (r ThingResource) Read(ctx context.Context,
+	req resource.ReadRequest, resp *resource.ReadResponse) {
+	var name types.String
+
+	diags := req.State.GetAttribute(ctx, path.Root("name"), &name)
+
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	age := attr.(types.Number)
+
+	// ...
 }
 ```
-
--> **Note:** Helpers to access `attr.Value`s using the same reflection rules
-`Get` has are planned, to avoid the need to type assert. We hope to release
-them soon.
 
 ## When Can a Value Be Unknown or Null?
 
@@ -140,8 +119,7 @@ implementations when the provider doesn't care about the distinction between an
 empty value, unknown, and null. But if Terraform has a null or unknown value
 and the provider asks the framework to store it in a type that can't hold it,
 `Get` will return an error. Make sure the types you are using can hold the
-values they might contain! An opt-in conversion of null or unknown values to
-the empty value is coming in the future.
+values they might contain!
 
 ### String
 

@@ -7,8 +7,8 @@
     "path": ""
   },
   {
-    "title": "Tutorial: Implement Create and Read",
-    "href": "https://learn.hashicorp.com/tutorials/terraform/plugin-framework-create?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS"
+    "title": "Learn Collection",
+    "href": "https://learn.hashicorp.com/collections/terraform/providers-plugin-framework?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS"
   },
   {
     "title": "Provider Servers",
@@ -16,7 +16,16 @@
   },
   {
     "title": "Providers",
-    "path": "providers"
+    "routes": [
+      {
+        "title": "Overview",
+        "path": "providers"
+      },
+      {
+        "title": "Validate Configuration",
+        "path": "providers/validate-configuration"
+      }
+    ]
   },
   {
     "title": "Resources",
@@ -30,19 +39,23 @@
         "path": "resources/configure"
       },
       {
-        "title": "Import",
-        "path": "resources/import"
+        "title": "Validate Configuration",
+        "path": "resources/validate-configuration"
       },
       {
-        "title": "Plan Modification",
+        "title": "Modify Plan",
         "path": "resources/plan-modification"
       },
       {
-        "title": "State Upgrade",
+        "title": "Import State",
+        "path": "resources/import"
+      },
+      {
+        "title": "Upgrade State",
         "path": "resources/state-upgrade"
       },
       {
-        "title": "Private State Management",
+        "title": "Manage Private State",
         "path": "resources/private-state"
       },
       {
@@ -61,6 +74,10 @@
       {
         "title": "Configure Clients",
         "path": "data-sources/configure"
+      },
+      {
+        "title": "Validate Configuration",
+        "path": "data-sources/validate-configuration"
       },
       {
         "title": "Timeouts",

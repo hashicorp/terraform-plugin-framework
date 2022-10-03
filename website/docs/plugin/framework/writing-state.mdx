@@ -10,14 +10,14 @@ description: >-
 -> Note: The Plugin Framework is in beta.
 
 One of the primary jobs of a Terraform provider is to manage the provider's
-resources and data sources in the [Terraform statefile](/language/state). Writing values to state
+resources and data sources in the [Terraform state](/language/state). Writing values to state
 is something that provider developers will do frequently.
 
 The state that a provider developer wants to update is usually stored in a
 response object:
 
 ```go
-func (m myResource) Create(ctx context.Context,
+func (r ThingResource) Create(ctx context.Context,
 	req resource.CreateRequest, resp *resource.CreateResponse)
 ```
 
@@ -29,25 +29,31 @@ update.
 One way to set the state is to replace all the state values for a resource or
 data source all at once. You need to define a type to contain the values. The benefit is that this allows the compiler to check all code that sets values on state, and only the final call to persist state can return an error.
 
+Use the `Set` method to store the entire state data.
+
 ```go
-type resourceData struct {
-	Name types.Strings `tfsdk:"name"`
-	Age types.Number `tfsdk:"age"`
-	Registered types.Bool `tfsdk:"registered"`
-	Pets types.List `tfsdk:"pets"`
-	Tags types.Map `tfsdk:"tags"`
-	Address types.Object `tfsdk:"address"`
+type ThingResourceModel struct {
+	Address    types.Object `tfsdk:"address"`
+	Age        types.Int64  `tfsdk:"age"`
+	Name       types.String `tfsdk:"name"`
+	Pets       types.List   `tfsdk:"pets"`
+	Registered types.Bool   `tfsdk:"registered"`
+	Tags       types.Map    `tfsdk:"tags"`
 }
 
-func (m myResource) Create(ctx context.Context,
+func (r ThingResource) Create(ctx context.Context,
 	req resource.CreateRequest, resp *resource.CreateResponse) {
-	var newState resourceData
+	var newState ThingResourceModel
+
+	// ...
 	// update newState by modifying each property as usual for Go values
 	newState.Name.Value = "J. Doe"
 
 	// persist the values to state
 	diags := resp.State.Set(ctx, &newState)
+
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -55,72 +61,28 @@ func (m myResource) Create(ctx context.Context,
 ```
 
 The state information is represented as an object, and gets persisted like an
-object. See the [conversion rules](#conversion-rules) for an explanation on how
+object. Refer to the [conversion rules](#conversion-rules) for an explanation on how
 objects get persisted and what Go types are valid for persisting as an object.
-
-Using the [`attr.Value` implementations](/plugin/framework/types) can
-surface complexity that is unnecessary, however. For example, you can never set
-an unknown value in state, so there's no need to be able to express unknown
-values when setting state.
-
-To make things a little easier, and to ensure that any type that
-[`Get`](/plugin/framework/accessing-values#get-the-entire-configuration-plan-or-state)
-can convert into can also be used as a value for `Set`, the framework can do
-some conversion on values passed to `Set`:
-
-```go
-type resourceData struct {
-  Name string `tfsdk:"name"`
-  Age int64 `tfsdk:"age"`
-  Registered bool `tfsdk:"registered"`
-  Pets []string `tfsdk:"pets"`
-  Tags map[string]string `tfsdk:"tags"`
-  Address struct{
-  	Street string `tfsdk:"street"`
-	City string `tfsdk:"city"`
-	State string `tfsdk:"state"`
-	Zip int64 `tfsdk:"zip"`
-  } `tfsdk:"address"`
-}
-```
-
-See [below](#conversion-rules) for the rules about conversion.
 
 ## Set a Single Attribute's Value
 
-Another way to set values in the state is to write each new value separately.
-This doesn't require defining a type (except for objects), but means each value
-update steps outside of what the compiler can check, and may return an error at
-runtime.
+Use the `SetAttribute` method to set an individual attribute value.
 
 ```go
-func (m myResource) Create(ctx context.Context,
-	req resource.CreateRequest, resp *resource.CreateResponse) {
-	age := types.Number{Value: big.NewFloat(7)}
-	diags := resp.State.SetAttribute(ctx, path.Root("age"), &age)
+func (r ThingResource) Read(ctx context.Context,
+	req resource.ReadRequest, resp *resource.ReadResponse) {
+	// ...
+	diags := resp.State.SetAttribute(ctx, path.Root("age"), 7)
+
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 }
 ```
 
-Like `Set`, `SetAttribute` can also do some conversion to standard Go types:
-
-```go
-func (m myResource) Create(ctx context.Context,
-	req resource.CreateRequest, resp *resource.CreateResponse) {
-	var age int64
-	age = 7
-	diags := resp.State.SetAttribute(ctx, path.Root("age"), &age)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-}
-```
-
-See [below](#conversion-rules) for the rules about conversion.
+Refer to the [conversion rules](#conversion-rules) for more information about supported Go types.
 
 ## Conversion Rules
 

@@ -1,3 +1,17 @@
+# 0.14.0 (October 4, 2022)
+
+NOTES:
+
+* The Terraform Plugin Framework is now in beta. Feedback towards a general availability release in the future with compatibility promises is appreciated. ([#500](https://github.com/hashicorp/terraform-plugin-framework/issues/500))
+
+BREAKING CHANGES:
+
+* attr: The `Type` interface now requires the `ValueType` method, which is used for enhancing error diagnostics from the framework ([#497](https://github.com/hashicorp/terraform-plugin-framework/issues/497))
+
+ENHANCEMENTS:
+
+* internal/reflect: Added `attr.Value` type suggestions to error diagnostics ([#497](https://github.com/hashicorp/terraform-plugin-framework/issues/497))
+
 # 0.13.0 (September 15, 2022)
 
 NOTES:

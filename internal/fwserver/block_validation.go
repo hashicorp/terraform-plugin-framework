@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
@@ -185,8 +186,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elements())))
 		}
 	case fwschema.BlockNestingModeSingle:
-		s, ok := req.AttributeConfig.(types.Object)
-
+		_, ok := req.AttributeConfig.Type(ctx).(attr.TypeWithAttributeTypes)
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%s) for nesting mode (%T) at path: %s", req.AttributeConfig.Type(ctx), nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
@@ -228,7 +228,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics = nestedAttrResp.Diagnostics
 		}
 
-		if b.GetMinItems() == 1 && s.IsNull() {
+		if b.GetMinItems() == 1 && req.AttributeConfig.IsNull() {
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), 0))
 		}
 	default:

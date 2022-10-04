@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ tftypes.AttributePathStepper = Block{}
@@ -24,6 +25,8 @@ var _ fwschema.Block = Block{}
 // The NestingMode field must be set or a runtime error will be raised by the
 // framework when fetching the schema.
 type Block struct {
+	Typ attr.TypeWithAttributeTypes
+
 	// Attributes are value fields inside the block. This map of attributes
 	// behaves exactly like the map of attributes on the Schema type.
 	Attributes map[string]Attribute
@@ -210,17 +213,24 @@ func (b Block) GetValidators() []AttributeValidator {
 
 // attributeType returns an attr.Type corresponding to the block.
 func (b Block) Type() attr.Type {
-	attrType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{},
+	var attrType attr.TypeWithAttributeTypes
+	attrType = types.ObjectType{}
+
+	if b.Typ != nil {
+		attrType = b.Typ
 	}
 
+	attrTypes := make(map[string]attr.Type, len(b.Attributes)+len(b.Blocks))
+
 	for attrName, attr := range b.Attributes {
-		attrType.AttrTypes[attrName] = attr.FrameworkType()
+		attrTypes[attrName] = attr.FrameworkType()
 	}
 
 	for blockName, block := range b.Blocks {
-		attrType.AttrTypes[blockName] = block.Type()
+		attrTypes[blockName] = block.Type()
 	}
+
+	attrType = attrType.WithAttributeTypes(attrTypes)
 
 	switch b.NestingMode {
 	case BlockNestingModeList:

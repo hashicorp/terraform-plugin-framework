@@ -117,7 +117,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 				return
 			}
 
-			planAttributes := planObject.Attributes()
+			planObjectAttrs := planObject.Type(ctx).(attr.TypeWithAttributeTypes).AttributeTypes()
 
 			for name, attr := range b.GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
@@ -163,7 +163,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 				AttributeModifyPlan(ctx, attr, attrReq, &attrResp)
 
-				planAttributes[name] = attrResp.AttributePlan
+				planObjectAttrs[name] = attrResp.AttributePlan.Type(ctx)
 				resp.Diagnostics.Append(attrResp.Diagnostics...)
 				resp.RequiresReplace = attrResp.RequiresReplace
 				resp.Private = attrResp.Private
@@ -213,7 +213,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 				BlockModifyPlan(ctx, block, blockReq, &blockResp)
 
-				planAttributes[name] = blockResp.AttributePlan
+				planObjectAttrs[name] = blockResp.AttributePlan.Type(ctx)
 				resp.Diagnostics.Append(blockResp.Diagnostics...)
 				resp.RequiresReplace = blockResp.RequiresReplace
 				resp.Private = blockResp.Private
@@ -289,7 +289,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 				return
 			}
 
-			planAttributes := planObject.Attributes()
+			planObjectAttrs := planObject.Type(ctx).(attr.TypeWithAttributeTypes).AttributeTypes()
 
 			for name, attr := range b.GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
@@ -335,7 +335,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 				AttributeModifyPlan(ctx, attr, attrReq, &attrResp)
 
-				planAttributes[name] = attrResp.AttributePlan
+				planObjectAttrs[name] = attrResp.AttributePlan.Type(ctx)
 				resp.Diagnostics.Append(attrResp.Diagnostics...)
 				resp.RequiresReplace = attrResp.RequiresReplace
 				resp.Private = attrResp.Private
@@ -385,7 +385,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 				BlockModifyPlan(ctx, block, blockReq, &blockResp)
 
-				planAttributes[name] = blockResp.AttributePlan
+				planObjectAttrs[name] = blockResp.AttributePlan.Type(ctx)
 				resp.Diagnostics.Append(blockResp.Diagnostics...)
 				resp.RequiresReplace = blockResp.RequiresReplace
 				resp.Private = blockResp.Private
@@ -432,11 +432,11 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 			return
 		}
 
-		planAttributes := planObject.Attributes()
-
-		if planAttributes == nil {
-			planAttributes = make(map[string]attr.Value)
+		if planObject.Type(ctx).(attr.TypeWithAttributeTypes).AttributeTypes() == nil {
+			planObject.Type(ctx).(attr.TypeWithAttributeTypes).WithAttributeTypes(make(map[string]attr.Type))
 		}
+
+		planObjectAttrs := planObject.Type(ctx).(attr.TypeWithAttributeTypes).AttributeTypes()
 
 		for name, attr := range b.GetAttributes() {
 			attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
@@ -482,7 +482,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 			AttributeModifyPlan(ctx, attr, attrReq, &attrResp)
 
-			planAttributes[name] = attrResp.AttributePlan
+			planObjectAttrs[name] = attrResp.AttributePlan.Type(ctx)
 			resp.Diagnostics.Append(attrResp.Diagnostics...)
 			resp.RequiresReplace = attrResp.RequiresReplace
 			resp.Private = attrResp.Private
@@ -532,7 +532,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 			BlockModifyPlan(ctx, block, blockReq, &blockResp)
 
-			planAttributes[name] = blockResp.AttributePlan
+			planObjectAttrs[name] = blockResp.AttributePlan.Type(ctx)
 			resp.Diagnostics.Append(blockResp.Diagnostics...)
 			resp.RequiresReplace = blockResp.RequiresReplace
 			resp.Private = blockResp.Private

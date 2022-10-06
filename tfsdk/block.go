@@ -25,6 +25,9 @@ var _ fwschema.Block = Block{}
 // The NestingMode field must be set or a runtime error will be raised by the
 // framework when fetching the schema.
 type Block struct {
+	// Typ is an optional field that defines the type of the Block. It defaults
+	// to types.ObjectType but, any type that fills the attr.TypeWithAttributeTypes
+	// interface can be used.
 	Typ attr.TypeWithAttributeTypes
 
 	// Attributes are value fields inside the block. This map of attributes
@@ -211,7 +214,7 @@ func (b Block) GetValidators() []AttributeValidator {
 	return b.Validators
 }
 
-// attributeType returns an attr.Type corresponding to the block.
+// Type returns an attr.Type corresponding to the block.
 func (b Block) Type() attr.Type {
 	var attrType attr.TypeWithAttributeTypes
 	attrType = types.ObjectType{}

@@ -36,16 +36,20 @@ func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Dia
 	return m, nil
 }
 
+// coerceObjectValue no longer coerces value to types.Object, but performs a type assertion to verify that value fills
+// attr.ValueWithAttrs interface.
 func coerceObjectValue(schemaPath path.Path, value attr.Value) (attr.Value, diag.Diagnostics) {
-	object, ok := value.Type(context.Background()).(attr.TypeWithAttributeTypes)
+	object, ok := value.(attr.ValueWithAttrs)
 
 	if !ok {
-		return object.ValueType(context.Background()), diag.Diagnostics{
+		// TODO: Verify whether returning value rather than the equivalent of types.Object{Null: true} for value is acceptable.
+		// https://github.com/hashicorp/terraform-plugin-framework/blob/main/internal/fwserver/attr_value.go#L42
+		return value, diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
 		}
 	}
 
-	return value, nil
+	return object, nil
 }
 
 func coerceSetValue(schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
@@ -127,12 +131,11 @@ func objectAttributeValue(ctx context.Context, object attr.Value, attributeName 
 		return objectAttributeValueFromTerraformValue(ctx, object, attributeName, description, tftypes.UnknownValue)
 	}
 
-	attrTypes := object.Type(ctx).(attr.TypeWithAttributeTypes).AttributeTypes()
-	attrType := attrTypes[attributeName]
+	attrValues := object.(attr.ValueWithAttrs).GetAttrs()
 
 	// A panic here indicates a bug somewhere else in the framework or an
 	// invalid test case.
-	return attrType.ValueType(ctx), nil
+	return attrValues[attributeName], nil
 }
 
 func objectAttributeValueFromTerraformValue(ctx context.Context, object attr.Value, attributeName string, description fwschemadata.DataDescription, tfValue any) (attr.Value, diag.Diagnostics) {

@@ -30,19 +30,8 @@ func (t CustomType) Equal(candidate attr.Type) bool {
 	if !ok {
 		return false
 	}
-	if len(other.AttrTypes) != len(t.AttrTypes) {
-		return false
-	}
-	for k, v := range t.AttrTypes {
-		attrType, ok := other.AttrTypes[k]
-		if !ok {
-			return false
-		}
-		if !v.Equal(attrType) {
-			return false
-		}
-	}
-	return true
+
+	return t.ObjectType.Equal(other.ObjectType)
 }
 
 func TestBlockType(t *testing.T) {

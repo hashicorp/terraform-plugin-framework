@@ -46,3 +46,11 @@ type Value interface {
 	// compatibility guarantees within the framework.
 	String() string
 }
+
+type ValueWithAttrs interface {
+	Value
+
+	GetAttrs() map[string]Value
+
+	SetAttrs(map[string]Value) ValueWithAttrs
+}

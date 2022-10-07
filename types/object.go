@@ -300,6 +300,10 @@ func ObjectValueMust(attributeTypes map[string]attr.Type, attributes map[string]
 	return object
 }
 
+var (
+	_ attr.ValueWithAttrs = Object{}
+)
+
 // Object represents an object
 type Object struct {
 	// Unknown will be set to true if the entire object is an unknown value.
@@ -359,6 +363,16 @@ type Object struct {
 	// updates take effect. The zero-value will be changed to null in a future
 	// version.
 	state valueState
+}
+
+func (o Object) GetAttrs() map[string]attr.Value {
+	return o.Attrs
+}
+
+func (o Object) SetAttrs(attrs map[string]attr.Value) attr.ValueWithAttrs {
+	o.Attrs = attrs
+
+	return o
 }
 
 // ObjectAsOptions is a collection of toggles to control the behavior of

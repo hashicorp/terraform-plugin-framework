@@ -151,7 +151,11 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 				return
 			}
 
-			planObjectAttrs := planObject.Type(ctx).(attr.TypeWithAttributeTypes).AttributeTypes()
+			planObjectAttrs := planObject.(attr.ValueWithAttrs).GetAttrs()
+
+			if planObjectAttrs == nil {
+				planObjectAttrs = make(map[string]attr.Value)
+			}
 
 			for name, attr := range a.GetAttributes().GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
@@ -197,19 +201,13 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 				AttributeModifyPlan(ctx, attr, attrReq, &attrResp)
 
-				planObjectAttrs[name] = attrResp.AttributePlan.Type(ctx)
+				planObjectAttrs[name] = attrResp.AttributePlan
 				resp.Diagnostics.Append(attrResp.Diagnostics...)
 				resp.RequiresReplace = attrResp.RequiresReplace
 				resp.Private = attrResp.Private
 			}
 
-			planElements[idx], diags = types.ObjectValue(planObject.AttributeTypes(ctx), planAttributes)
-
-			resp.Diagnostics.Append(diags...)
-
-			if resp.Diagnostics.HasError() {
-				return
-			}
+			planList.Elems[idx] = planObject.(attr.ValueWithAttrs).SetAttrs(planObjectAttrs)
 		}
 
 		resp.AttributePlan, diags = types.ListValue(planList.ElementType(ctx), planElements)
@@ -273,7 +271,11 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 				return
 			}
 
-			planObjectAttrs := planObject.Type(ctx).(attr.TypeWithAttributeTypes).AttributeTypes()
+			planObjectAttrs := planObject.(attr.ValueWithAttrs).GetAttrs()
+
+			if planObjectAttrs == nil {
+				planObjectAttrs = make(map[string]attr.Value)
+			}
 
 			for name, attr := range a.GetAttributes().GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
@@ -319,19 +321,13 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 				AttributeModifyPlan(ctx, attr, attrReq, &attrResp)
 
-				planObjectAttrs[name] = attrResp.AttributePlan.Type(ctx)
+				planObjectAttrs[name] = attrResp.AttributePlan
 				resp.Diagnostics.Append(attrResp.Diagnostics...)
 				resp.RequiresReplace = attrResp.RequiresReplace
 				resp.Private = attrResp.Private
 			}
 
-			planElements[idx], diags = types.ObjectValue(planObject.AttributeTypes(ctx), planAttributes)
-
-			resp.Diagnostics.Append(diags...)
-
-			if resp.Diagnostics.HasError() {
-				return
-			}
+			planSet.Elems[idx] = planObject.(attr.ValueWithAttrs).SetAttrs(planObjectAttrs)
 		}
 
 		resp.AttributePlan, diags = types.SetValue(planSet.ElementType(ctx), planElements)
@@ -395,7 +391,11 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 				return
 			}
 
-			planObjectAttrs := planObject.Type(ctx).(attr.TypeWithAttributeTypes).AttributeTypes()
+			planObjectAttrs := planObject.(attr.ValueWithAttrs).GetAttrs()
+
+			if planObjectAttrs == nil {
+				planObjectAttrs = make(map[string]attr.Value)
+			}
 
 			for name, attr := range a.GetAttributes().GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
@@ -441,19 +441,13 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 				AttributeModifyPlan(ctx, attr, attrReq, &attrResp)
 
-				planObjectAttrs[name] = attrResp.AttributePlan.Type(ctx)
+				planObjectAttrs[name] = attrResp.AttributePlan
 				resp.Diagnostics.Append(attrResp.Diagnostics...)
 				resp.RequiresReplace = attrResp.RequiresReplace
 				resp.Private = attrResp.Private
 			}
 
-			planElements[key], diags = types.ObjectValue(planObject.AttributeTypes(ctx), planAttributes)
-
-			resp.Diagnostics.Append(diags...)
-
-			if resp.Diagnostics.HasError() {
-				return
-			}
+			planMap.Elems[key] = planObject.(attr.ValueWithAttrs).SetAttrs(planObjectAttrs)
 		}
 
 		resp.AttributePlan, diags = types.MapValue(planMap.ElementType(ctx), planElements)
@@ -488,7 +482,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 			return
 		}
 
-		planObjectAttrs := planObject.Type(ctx).(attr.TypeWithAttributeTypes).AttributeTypes()
+		planObjectAttrs := planObject.(attr.ValueWithAttrs).GetAttrs()
 
 		if len(planObjectAttrs) == 0 {
 			return
@@ -540,19 +534,13 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 			AttributeModifyPlan(ctx, attr, attrReq, &attrResp)
 
-			planObjectAttrs[name] = attrResp.AttributePlan.Type(ctx)
+			planObjectAttrs[name] = attrResp.AttributePlan
 			resp.Diagnostics.Append(attrResp.Diagnostics...)
 			resp.RequiresReplace = attrResp.RequiresReplace
 			resp.Private = attrResp.Private
 		}
 
-		resp.AttributePlan, diags = types.ObjectValue(planObject.AttributeTypes(ctx), planAttributes)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		resp.AttributePlan = planObject.(attr.ValueWithAttrs).SetAttrs(planObjectAttrs)
 	default:
 		err := fmt.Errorf("unknown attribute nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
 		resp.Diagnostics.AddAttributeError(

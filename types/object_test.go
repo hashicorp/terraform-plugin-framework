@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -488,6 +489,169 @@ func TestObjectValue(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestObjectValueFrom(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attributeTypes map[string]attr.Type
+		attributes     any
+		expected       Object
+		expectedDiags  diag.Diagnostics
+	}{
+		"valid-*struct": {
+			attributeTypes: map[string]attr.Type{
+				"bool":   BoolType,
+				"string": StringType,
+			},
+			attributes: pointer(struct {
+				Bool   Bool   `tfsdk:"bool"`
+				String String `tfsdk:"string"`
+			}{
+				Bool:   BoolValue(true),
+				String: StringValue("test"),
+			}),
+			expected: Object{
+				AttrTypes: map[string]attr.Type{
+					"bool":   BoolType,
+					"string": StringType,
+				},
+				Attrs: map[string]attr.Value{
+					"bool":   Bool{Value: true},
+					"string": String{Value: "test"},
+				},
+			},
+		},
+		"valid-struct": {
+			attributeTypes: map[string]attr.Type{
+				"bool":   BoolType,
+				"string": StringType,
+			},
+			attributes: struct {
+				Bool   Bool   `tfsdk:"bool"`
+				String String `tfsdk:"string"`
+			}{
+				Bool:   BoolValue(true),
+				String: StringValue("test"),
+			},
+			expected: Object{
+				AttrTypes: map[string]attr.Type{
+					"bool":   BoolType,
+					"string": StringType,
+				},
+				Attrs: map[string]attr.Value{
+					"bool":   Bool{Value: true},
+					"string": String{Value: "test"},
+				},
+			},
+		},
+		"invalid-nil": {
+			attributeTypes: map[string]attr.Type{
+				"string": StringType,
+				"bool":   BoolType,
+			},
+			attributes: nil,
+			expected: ObjectUnknown(
+				map[string]attr.Type{
+					"string": StringType,
+					"bool":   BoolType,
+				},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"cannot construct attr.Type from <nil> (invalid)",
+				),
+			},
+		},
+		// This likely should be valid, however it is not currently.
+		"invalid-map[string]attr.Value": {
+			attributeTypes: map[string]attr.Type{
+				"bool":   BoolType,
+				"string": StringType,
+			},
+			attributes: map[string]attr.Value{
+				"bool":   BoolNull(),
+				"string": StringNull(),
+			},
+			expected: ObjectUnknown(
+				map[string]attr.Type{
+					"bool":   BoolType,
+					"string": StringType,
+				},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"cannot use type map[string]attr.Value as schema type types.ObjectType; types.ObjectType must be an attr.TypeWithElementType to hold map[string]attr.Value",
+				),
+			},
+		},
+		"invalid-not-struct": {
+			attributeTypes: map[string]attr.Type{
+				"string": StringType,
+				"bool":   BoolType,
+			},
+			attributes: "oops",
+			expected: ObjectUnknown(map[string]attr.Type{
+				"string": StringType,
+				"bool":   BoolType,
+			}),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert the Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"expected tftypes.Object[\"bool\":tftypes.Bool, \"string\":tftypes.String], got tftypes.String",
+				),
+			},
+		},
+		"invalid-type": {
+			attributeTypes: map[string]attr.Type{
+				"string": StringType,
+				"bool":   BoolType,
+			},
+			attributes: map[string]bool{"key1": true},
+			expected: ObjectUnknown(map[string]attr.Type{
+				"string": StringType,
+				"bool":   BoolType,
+			}),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"cannot use type map[string]bool as schema type types.ObjectType; types.ObjectType must be an attr.TypeWithElementType to hold map[string]bool",
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := ObjectValueFrom(context.Background(), testCase.attributeTypes, testCase.attributes)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				for _, d := range diags {
+					t.Logf("%s\n%s", d.Summary(), d.Detail())
+				}
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})

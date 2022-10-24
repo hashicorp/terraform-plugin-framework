@@ -262,6 +262,35 @@ func SetValue(elementType attr.Type, elements []attr.Value) (Set, diag.Diagnosti
 	}, nil
 }
 
+// SetValueFrom creates a Set with a known value, using reflection rules.
+// The elements must be a slice which can convert into the given element type.
+// Access the value via the Set type Elements or ElementsAs methods.
+func SetValueFrom(ctx context.Context, elementType attr.Type, elements any) (Set, diag.Diagnostics) {
+	attrValue, diags := reflect.FromValue(
+		ctx,
+		SetType{ElemType: elementType},
+		elements,
+		path.Empty(),
+	)
+
+	if diags.HasError() {
+		return SetUnknown(elementType), diags
+	}
+
+	set, ok := attrValue.(Set)
+
+	// This should not happen, but ensure there is an error if it does.
+	if !ok {
+		diags.AddError(
+			"Unable to Convert Set Value",
+			"An unexpected result occurred when creating a Set using SetValueFrom. "+
+				"This is an issue with terraform-plugin-framework and should be reported to the provider developers.",
+		)
+	}
+
+	return set, diags
+}
+
 // SetValueMust creates a Set with a known value, converting any diagnostics
 // into a panic at runtime. Access the value via the Set
 // type Elements or ElementsAs methods.

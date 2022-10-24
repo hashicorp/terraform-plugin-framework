@@ -230,6 +230,35 @@ func ListValue(elementType attr.Type, elements []attr.Value) (List, diag.Diagnos
 	}, nil
 }
 
+// ListValueFrom creates a List with a known value, using reflection rules.
+// The elements must be a slice which can convert into the given element type.
+// Access the value via the List type Elements or ElementsAs methods.
+func ListValueFrom(ctx context.Context, elementType attr.Type, elements any) (List, diag.Diagnostics) {
+	attrValue, diags := reflect.FromValue(
+		ctx,
+		ListType{ElemType: elementType},
+		elements,
+		path.Empty(),
+	)
+
+	if diags.HasError() {
+		return ListUnknown(elementType), diags
+	}
+
+	list, ok := attrValue.(List)
+
+	// This should not happen, but ensure there is an error if it does.
+	if !ok {
+		diags.AddError(
+			"Unable to Convert List Value",
+			"An unexpected result occurred when creating a List using ListValueFrom. "+
+				"This is an issue with terraform-plugin-framework and should be reported to the provider developers.",
+		)
+	}
+
+	return list, diags
+}
+
 // ListValueMust creates a List with a known value, converting any diagnostics
 // into a panic at runtime. Access the value via the List
 // type Elements or ElementsAs methods.

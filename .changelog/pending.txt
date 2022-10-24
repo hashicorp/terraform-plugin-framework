@@ -1,0 +1,3 @@
+```release-note:enhancement
+types: Added `ListValueFrom()`, `MapValueFrom()`, `ObjectValueFrom()`, and `SetValueFrom()` functions, which can create value types from standard Go types using reflection similar to `tfsdk.ValueFrom()`
+```

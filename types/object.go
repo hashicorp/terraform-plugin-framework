@@ -239,6 +239,36 @@ func ObjectValue(attributeTypes map[string]attr.Type, attributes map[string]attr
 	}, nil
 }
 
+// ObjectValueFrom creates a Object with a known value, using reflection rules.
+// The attributes must be a map of string attribute names to attribute values
+// which can convert into the given attribute type or a struct with tfsdk field
+// tags. Access the value via the Object type Elements or ElementsAs methods.
+func ObjectValueFrom(ctx context.Context, attributeTypes map[string]attr.Type, attributes any) (Object, diag.Diagnostics) {
+	attrValue, diags := reflect.FromValue(
+		ctx,
+		ObjectType{AttrTypes: attributeTypes},
+		attributes,
+		path.Empty(),
+	)
+
+	if diags.HasError() {
+		return ObjectUnknown(attributeTypes), diags
+	}
+
+	m, ok := attrValue.(Object)
+
+	// This should not happen, but ensure there is an error if it does.
+	if !ok {
+		diags.AddError(
+			"Unable to Convert Object Value",
+			"An unexpected result occurred when creating a Object using ObjectValueFrom. "+
+				"This is an issue with terraform-plugin-framework and should be reported to the provider developers.",
+		)
+	}
+
+	return m, diags
+}
+
 // ObjectValueMust creates a Object with a known value, converting any diagnostics
 // into a panic at runtime. Access the value via the Object
 // type Elements or ElementsAs methods.

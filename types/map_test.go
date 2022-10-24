@@ -313,6 +313,124 @@ func TestMapValue(t *testing.T) {
 	}
 }
 
+func TestMapValueFrom(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		elementType   attr.Type
+		elements      any
+		expected      Map
+		expectedDiags diag.Diagnostics
+	}{
+		"valid-StringType-map[string]attr.Value-empty": {
+			elementType: StringType,
+			elements:    map[string]attr.Value{},
+			expected: Map{
+				ElemType: StringType,
+				Elems:    map[string]attr.Value{},
+			},
+		},
+		"valid-StringType-map[string]types.String-empty": {
+			elementType: StringType,
+			elements:    map[string]String{},
+			expected: Map{
+				ElemType: StringType,
+				Elems:    map[string]attr.Value{},
+			},
+		},
+		"valid-StringType-map[string]types.String": {
+			elementType: StringType,
+			elements: map[string]String{
+				"key1": StringNull(),
+				"key2": StringUnknown(),
+				"key3": StringValue("test"),
+			},
+			expected: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Null: true},
+					"key2": String{Unknown: true},
+					"key3": String{Value: "test"},
+				},
+			},
+		},
+		"valid-StringType-map[string]*string": {
+			elementType: StringType,
+			elements: map[string]*string{
+				"key1": nil,
+				"key2": pointer("test1"),
+				"key3": pointer("test2"),
+			},
+			expected: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Null: true},
+					"key2": String{Value: "test1"},
+					"key3": String{Value: "test2"},
+				},
+			},
+		},
+		"valid-StringType-map[string]string": {
+			elementType: StringType,
+			elements: map[string]string{
+				"key1": "test1",
+				"key2": "test2",
+			},
+			expected: Map{
+				ElemType: StringType,
+				Elems: map[string]attr.Value{
+					"key1": String{Value: "test1"},
+					"key2": String{Value: "test2"},
+				},
+			},
+		},
+		"invalid-not-map": {
+			elementType: StringType,
+			elements:    "oops",
+			expected:    MapUnknown(StringType),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Map Type Validation Error",
+					"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"expected Map value, received tftypes.Value with value: tftypes.String<\"oops\">",
+				),
+			},
+		},
+		"invalid-type": {
+			elementType: StringType,
+			elements:    map[string]bool{"key1": true},
+			expected:    MapUnknown(StringType),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty().AtMapKey("key1"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert the Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"can't unmarshal tftypes.Bool into *string, expected string",
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := MapValueFrom(context.Background(), testCase.elementType, testCase.elements)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics difference: %s", diff)
+			}
+		})
+	}
+}
+
 // This test verifies the assumptions that creating the Value via function then
 // setting the fields directly has no effects.
 func TestMapValue_DeprecatedFieldSetting(t *testing.T) {

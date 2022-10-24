@@ -142,16 +142,16 @@ func (r *passwordResource) Create(ctx context.Context, req resource.CreateReques
     }
 
     params := random.StringParams{
-        Length:          plan.Length.Value,
-        Upper:           plan.Upper.Value,
-        MinUpper:        plan.MinUpper.Value,
-        Lower:           plan.Lower.Value,
-        MinLower:        plan.MinLower.Value,
-        Numeric:         plan.Numeric.Value,
-        MinNumeric:      plan.MinNumeric.Value,
-        Special:         plan.Special.Value,
-        MinSpecial:      plan.MinSpecial.Value,
-        OverrideSpecial: plan.OverrideSpecial.Value,
+        Length:          plan.Length.ValueInt64(),
+        Upper:           plan.Upper.ValueBool(),
+        MinUpper:        plan.MinUpper.ValueInt64(),
+        Lower:           plan.Lower.ValueBool(),
+        MinLower:        plan.MinLower.ValueInt64(),
+        Numeric:         plan.Numeric.ValueBool(),
+        MinNumeric:      plan.MinNumeric.ValueInt64(),
+        Special:         plan.Special.ValueBool(),
+        MinSpecial:      plan.MinSpecial.ValueInt64(),
+        OverrideSpecial: plan.OverrideSpecial.ValueString(),
     }
 
     result, err := random.CreateString(params)
@@ -165,9 +165,9 @@ func (r *passwordResource) Create(ctx context.Context, req resource.CreateReques
         resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
     }
 
-    plan.BcryptHash = types.String{Value: hash}
-    plan.ID = types.String{Value: "none"}
-    plan.Result = types.String{Value: string(result)}
+    plan.BcryptHash = types.StringValue(hash)
+    plan.ID = types.StringValue("none")
+    plan.Result = types.StringValue(string(result))
 
     diags = resp.State.Set(ctx, plan)
     resp.Diagnostics.Append(diags...)

@@ -65,258 +65,356 @@ guaranteed to have known values (or be null).
 Provider configuration values can be unknown, and providers should handle that
 situation, even if that means just returning an error.
 
-## Built-In Types and Values
+## Framework Types and Value Types
 
-A collection of attribute type and attribute value implementations is available
-in the
-[`types`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types)
-package.
+A collection of attribute types (`attr.Type`) and attribute value types (`attr.Value`) is available in the [`types` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types). These types bridge the implementation details between Terraform's type system and Go code in providers.
+
+| Terraform Type | Framework Schema Type | Framework Value Type | Known Value Go Type | Use Case |
+|----------------|-----------------------|----------------------|---------------------|----------|
+| `bool` | `types.BoolType` | `types.Bool` | `bool` | Boolean true or false |
+| `number` | `types.Float64Type` | `types.Float64` | `float64` | 64-bit floating point number |
+| `number` | `types.Int64Type` | `types.Int64` | `int64` | 64-bit integer |
+| `list` | `types.ListType` | `types.List` | `[]attr.Value` | Ordered collection of single element type |
+| `map` | `types.MapType` | `types.Map` | `map[string]attr.Value` | Mapping of string keys to single element type |
+| `number` | `types.NumberType` | `types.Number` | `*big.Float` | Large floating point or number |
+| `object` | `types.ObjectType` | `types.Object` | `map[string]attr.Value` | Structure mapping string attibute keys to any value type |
+| `set` | `types.SetType` | `types.Set` | `[]attr.Value` | Unordered, unique collection of single element type |
+| `string` | `types.StringType` | `types.String` | `string` | Collection of UTF-8 encoded characters |
 
 ### StringType and String
 
 Strings are a UTF-8 encoded collection of bytes.
 
+Given an example Terraform configuration that sets a string value to the `example_attribute` attribute:
+
 ```tf
-hello = "world"
+example_attribute = "terraform"
 ```
 
-They are used by specifying the `types.StringType` constant in your
-`tfsdk.Attribute`'s `Type` property, and are represented by a `types.String`
-struct in config, state, and plan. The `types.String` struct has the following
-properties:
+The associated schema type is [`types.StringType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringType):
 
-* `Value` contains the string's value as a Go `string` type.
-* `Null` is set to `true` when the string's value is null.
-* `Unknown` is set to `true` when the string's value is unknown.
+```go
+"example_attribute": {
+  Type: types.StringType,
+  // ... other fields ...
+}
+```
+
+The associated value type is [`types.String`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#String) in configuration, plan, and state data.
+
+Access `types.String` information via the following methods:
+
+* [`(types.String).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#String.IsNull): Returns true if the string is null.
+* [`(types.String).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#String.IsUnknown): Returns true if the string is unknown.
+* [`(types.String).ValueString() string`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#String.ValueString): Returns the known string, or an empty string if null or unknown.
+
+The `(types.String).String()` method is reserved for debugging purposes and returns `"<null>"` if the value is null and `"<unknown>"` if the value is unknown. Use `(types.String).ValueString()` for any Terraform data handling.
+
+Call one of the following to create a `types.String`:
+
+* [`types.StringNull()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringNull): A null string value.
+* [`types.StringUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringUnknown): An unknown string value.
+* [`types.StringValue(string)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringValue): A known value.
 
 ### Int64Type and Int64
 
-Int64 are 64-bit integer values, such as `1234`.
+Int64 are 64-bit integer values, such as `1234`. For 64-bit floating point numbers, use [`Float64Type` and `Float64`](#float64type-and-float64). For generic number handling, use [`NumberType` and `Number`](#numbertype-and-number).
+
+Given an example Terraform configuration that sets an integer value to the `example_attribute` attribute:
 
 ```tf
-hello = 1234
+example_attribute = 1234
 ```
 
-They are used by specifying the `types.Int64Type` constant in your
-`tfsdk.Attribute`'s `Type` property, and are represented by a `types.Int64`
-struct in config, state, and plan. The `types.Int64` struct has the following
-properties:
+The associated schema type is [`types.Int64Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Type):
 
-* `Value` contains the number's value as a Go `int64` type.
-* `Null` is set to `true` when the number's value is null.
-* `Unknown` is set to `true` when the number's value is unknown.
+```go
+"example_attribute": {
+  Type: types.Int64Type,
+  // ... other fields ...
+}
+```
 
-For 64-bit floating point numbers, see [`Float64Type` and
-`Float64`](#float64type-and-float64). For generic number handling, see
-[`NumberType` and `Number64`](#numbertype-and-number).
+The associated value type is [`types.Int64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64) in configuration, plan, and state data.
+
+Access `types.Int64` information via the following methods:
+
+* [`(types.Int64).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64.IsNull): Returns true if the integer is null.
+* [`(types.Int64).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64.IsUnknown): Returns true if the integer is unknown.
+* [`(types.Int64).ValueInt64() int64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64.ValueInt64): Returns the known `int64` value, or `0` if null or unknown.
+
+Call one of the following to create a `types.Int64`:
+
+* [`types.Int64Null()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Null): A null integer value.
+* [`types.Int64Unknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Unknown): An unknown integer value.
+* [`types.Int64Value(int64)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Value): A known value.
 
 ### Float64Type and Float64
 
-Float64 are 64-bit floating point values, such as `1234.5`.
+Float64 are 64-bit floating point values, such as `1234.5`. For 64-bit integer numbers, use [`Int64Type` and `Int64`](#int64type-and-int64). For generic number handling, use [`NumberType` and `Number`](#numbertype-and-number).
+
+Given an example Terraform configuration that sets a floating point value to the `example_attribute` attribute:
 
 ```tf
-hello = 1234.5
+example_attribute = 1234.5
 ```
 
-They are used by specifying the `types.Float64Type` constant in your
-`tfsdk.Attribute`'s `Type` property, and are represented by a `types.Float64`
-struct in config, state, and plan. The `types.Float64` struct has the following
-properties:
+The associated schema type is [`types.Float64Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64Type):
 
-* `Value` contains the number's value as a Go `float64` type.
-* `Null` is set to `true` when the number's value is null.
-* `Unknown` is set to `true` when the number's value is unknown.
+```go
+"example_attribute": {
+  Type: types.Float64Type,
+  // ... other fields ...
+}
+```
 
-For 64-bit integer numbers, see [`Int64Type` and
-`Int64`](#int64type-and-int64). For generic number handling, see
-[`NumberType` and `Number64`](#numbertype-and-number).
+The associated value type is [`types.Float64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64) in configuration, plan, and state data.
+
+Access `types.Float64` information via the following methods:
+
+* [`(types.Float64).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64.IsNull): Returns true if the number is null.
+* [`(types.Float64).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64.IsUnknown): Returns true if the number is unknown.
+* [`(types.Float64).ValueFloat64() float64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64.ValueFloat64): Returns the known `float64` value, or `0.0` if null or unknown.
+
+Call one of the following to create a `types.Float64`:
+
+* [`types.Float64Null()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64Null): A null number value.
+* [`types.Float64Unknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64Unknown): An unknown number value.
+* [`types.Float64Value(float64)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64Value): A known value.
 
 ### NumberType and Number
 
-Numbers are numeric values, both whole values like `12` or fractional values
-like `3.14`.
+Numbers are numeric values, both whole values like `12` or fractional values like `3.14`. Use this type for exceptionally large numbers. For 64-bit integer numbers, use [`Int64Type` and `Int64`](#int64type-and-int64). For 64-bit floating point numbers, use [`Float64Type` and `Float64`](#float64type-and-float64).
+
+Given an example Terraform configuration that sets a number value to the `example_attribute` attribute:
 
 ```tf
-hello = 123
+example_attribute = 123
 ```
 
-They are used by specifying the `types.NumberType` constant in your
-`tfsdk.Attribute`'s `Type` property, and are represented by a `types.Number`
-struct in config, state, and plan. The `types.Number` struct has the following
-properties:
+The associated schema type is [`types.NumberType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#NumberType):
 
-* `Value` contains the number's value as a Go
-  [`*big.Float`](https://pkg.go.dev/math/big#Float) type.
-* `Null` is set to `true` when the number's value is null.
-* `Unknown` is set to `true` when the number's value is unknown.
+```go
+"example_attribute": {
+  Type: types.NumberType,
+  // ... other fields ...
+}
+```
 
-For 64-bit integer numbers, see [`Int64Type` and
-`Int64`](#int64type-and-int64). For 64-bit floating point numbers, see
-[`Float64Type` and `Float64`](#float64type-and-float64).
+The associated value type is [`types.Number`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Number) in configuration, plan, and state data.
+
+Access `types.Number` information via the following methods:
+
+* [`(types.Number).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Number.IsNull): Returns true if the number is null.
+* [`(types.Number).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Number.IsUnknown): Returns true if the number is unknown.
+* [`(types.Number).ValueBigFloat() *big.Float`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Number.ValueBigFloat): Returns the known `*big.Float` value, or `nil` if null or unknown.
+
+Call one of the following to create a `types.Number`:
+
+* [`types.NumberNull()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#NumberNull): A null number value.
+* [`types.NumberUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#NumberUnknown): An unknown number value.
+* [`types.NumberValue(*big.Float)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#NumberValue): A known value.
 
 ### BoolType and Bool
 
 Bools are boolean values that can either be true or false.
 
+Given an example Terraform configuration that sets a boolean value to the `example_attribute` attribute:
+
 ```tf
-hello = true
+example_attribute = true
 ```
 
-They are used by specifying the `types.BoolType` constant in your
-`tfsdk.Attribute`'s `Type` property, and are represented by a `types.Bool`
-struct in config, state, and plan. The `types.Bool` struct has the following
-properties:
+The associated schema type is [`types.BoolType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolType):
 
-* `Value` contains the boolean's value as a Go `bool` type.
-* `Null` is set to `true` when the boolean's value is null.
-* `Unknown` is set to `true` when the boolean's value is unknown.
-
-### ListType and List
-
-Lists are ordered collections of other types. Their elements, the values inside
-the list, must all be of the same type.
-
-```tf
-hello = ["red", "blue", "green"]
-```
-
-They are used by specifying a `types.ListType` value in your
-`tfsdk.Attribute`'s `Type` property. You must specify an `ElemType` property
-for your list, indicating what type the elements should be. Lists are
-represented by a `types.List` struct in config, state, and plan. The
-`types.List` struct has the following properties:
-
-* `ElemType` will always contain the same type as the `ElemType` property of
-  the `types.ListType` that created the `types.List`.
-* `Elem` contains a list of values, one for each element in the list. The
-  values will all be of the value type produced by the `ElemType` for the list.
-* `Null` is set to `true` when the entire list's value is null. Individual
-  elements may still be null even if the list's `Null` property is `false`.
-* `Unknown` is set to `true` when the entire list's value is unknown.
-  Individual elements may still be unknown even if the list's `Unknown`
-  property is `false`.
-
-Elements of a `types.List` with a non-null, non-unknown value can be accessed
-without using type assertions by using the `types.List`'s [`ElementsAs`
-method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.ElementsAs),
-which uses the same conversion rules as the `Get` methods described in [Access
-State, Config, and Plan](/plugin/framework/accessing-values).
-
-For an unordered collection with uniqueness constraints, see [`SetType` and
-`Set`](#settype-and-set).
-
-### MapType and Map
-
-Maps are unordered collections of other types with unique string indexes.
-Their elements, the values inside the map, must all be of the same type. The keys used to index the elements must be strings, but there are (theoretically) no limitations on what keys are acceptable or how many there
-can be.
-
-```tf
-hello = {
-  pi = 3.14
-  random = 4
-  "meaning of life" = 42
+```go
+"example_attribute": {
+  Type: types.BoolType,
+  // ... other fields ...
 }
 ```
 
-They are used by specifying a `types.MapType` value in your
-`tfsdk.Attribute`'s `Type` property. You must specify an `ElemType` property
-for your map, indicating what type the elements should be. Maps are
-represented by a `types.Map` struct in config, state, and plan. The
-`types.Map` struct has the following properties:
+The associated value type is [`types.Bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Bool) in configuration, plan, and state data.
 
-* `ElemType` will always contain the same type as the `ElemType` property of
-  the `types.MapType` that created the `types.Map`.
-* `Elem` contains a map of values, one for each element in the map. The keys
-  will be the keys defined in the config, state, or plan, and the values will
-  all be of the value type produced by the `ElemType` for the map.
-* `Null` is set to `true` when the entire map's value is null. Individual
-  elements may still be null even if the map's `Null` property is `false`.
-* `Unknown` is set to `true` when the entire map's value is unknown.
-  Individual elements may still be unknown even if the map's `Unknown` property
-  is `false`.
+Access `types.Bool` information via the following methods:
 
-Elements of a `types.Map` with a non-null, non-unknown value can be accessed
-without using type assertions by using the `types.Map`'s [`ElementsAs`
-method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.ElementsAs),
-which uses the same conversion rules as the `Get` methods described in [Access
-State, Config, and Plan](/plugin/framework/accessing-values).
+* [`(types.Bool).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Bool.IsNull): Returns true if the boolean is null.
+* [`(types.Bool).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Bool.IsUnknown): Returns true if the boolean is unknown.
+* [`(types.Bool).ValueBool() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Bool.ValueBool): Returns the known `bool` value, or `false` if null or unknown.
+
+Call one of the following to create a `types.Bool`:
+
+* [`types.BoolNull()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolNull): A null boolean value.
+* [`types.BoolUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolUnknown): An unknown boolean value.
+* [`types.BoolValue(bool)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolValue): A known value.
+
+### ListType and List
+
+Lists are ordered collections of a single element type.
+
+-> Use [ListNestedAttributes](/plugin/framework/schemas#ListNestedAttributes) for lists of objects that need additional schema information. Use [SetType and Set](#settype-and-set) for unordered collections.
+
+Given an example Terraform configuration that sets a list of string values to the `example_attribute` attribute:
+
+```tf
+example_attribute = ["red", "blue", "green"]
+```
+
+The associated schema type is [`types.ListType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListType):
+
+```go
+"example_attribute": {
+  Type: types.ListType{
+    ElemType: types.StringType,
+  },
+  // ... other fields ...
+}
+```
+
+The associated value type is [`types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List) in configuration, plan, and state data.
+
+Access `types.List` information via the following methods:
+
+* [`(types.List).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.IsNull): Returns true if the list is null.
+* [`(types.List).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.IsUnknown): Returns true if the list is unknown. Returns false if the number of elements is known, any of which may be unknown.
+* [`(types.List).Elements() []attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.Elements): Returns the known `[]attr.Value` value, or `nil` if null or unknown.
+* [`(types.List).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.ElementsAs): Converts the known values into the given Go type, if possible, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
+
+Call one of the following to create a `types.List`:
+
+* [`types.ListNull(attr.Type) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListNull): A null list value with the given element type.
+* [`types.ListUnknown(attr.Type) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListUnknown): An unknown list value with the given element type.
+* [`types.ListValue(attr.Type, []attr.Value) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValue): A known value with the given element type and values.
+* [`types.ListValueMust(map[string]attr.Type, map[string]attr.Value) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
+
+### MapType and Map
+
+Maps are mappings of string keys to values of a single element type.
+
+-> Use [MapNestedAttributes](/plugin/framework/schemas#MapNestedAttributes) for maps of objects that need additional schema information. Use [ObjectType and Object](#objecttype-and-object) for structures of string attribute names to any value.
+
+Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
+
+```tf
+example_attribute = {
+  red   = "fire",
+  blue  = "sky",
+  green = "plant",
+}
+```
+
+The associated schema type is [`types.MapType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapType):
+
+```go
+"example_attribute": {
+  Type: types.MapType{
+    ElemType: types.StringType,
+  },
+  // ... other fields ...
+}
+```
+
+The associated value type is [`types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map) in configuration, plan, and state data.
+
+Access `types.Map` information via the following methods:
+
+* [`(types.Map).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.IsNull): Returns true if the map is null.
+* [`(types.Map).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.IsUnknown): Returns true if the map is unknown. Returns false if the number of elements is known, any of which may be unknown.
+* [`(types.Map).Elements() map[string]attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.Elements): Returns the known `map[string]attr.Value` value, or `nil` if null or unknown.
+* [`(types.Map).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.ElementsAs): Converts the known values into the given Go type, if possible, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
+
+Call one of the following to create a `types.Map`:
+
+* [`types.MapNull(attr.Type)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapNull): A null map value with the given element type.
+* [`types.MapUnknown(attr.Type)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapUnknown): An unknown map value with the given element type.
+* [`types.MapValue(attr.Type, map[string]attr.Value) (types.Map, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValue): A known value with the given element type and values.
+* [`types.MapValueMust(map[string]attr.Type, map[string]attr.Value) types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ### ObjectType and Object
 
-Objects are unordered collections of other types with unique, pre-specified
-attributes. The attributes have names represented by strings, and each
-attribute can specify its own type, similar to a Go `struct` type. The
-attributes and their types are considered part of the object's type; two
-objects are not the same type unless they have the same attributes, and those
-attributes have the same types.
+Objects are mappings of string attribute names to values of any type. Objects must always declare all attribute values, even when those attributes are null or unknown, unless the entire object is null or unknown.
+
+-> Use [SingleNestedAttributes](/plugin/framework/schemas#SingleNestedAttributes) for objects that need additional schema information. Use [MapType and Map](#maptype-and-map) for mappings of string keys to a single element type.
+
+Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
 ```tf
-hello = {
-  pi = 3.14
-  demo = true
+example_attribute = {
+  pi    = 3.14
+  demo  = true
   color = "red"
 }
 ```
 
-They are used by specifying a `types.ObjectType` value in your
-`tfsdk.Attribute`'s `Type` property. You must specify an `AttrTypes` property
-for your object, indicating a map of the attribute names and the types of those
-attributes. Objects are represented by a `types.Object` struct in config,
-state, and plan. The `types.Object` struct has the following properties:
+The associated schema type is [`types.ObjectType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectType):
 
-* `AttrTypes` will always contain the same attribute names and associated types
-  as the `AttrTypes` property of the `types.ObjectType` that created the
-  `types.Object`.
-* `Attrs` contains a map of attribute names to values. Each attribute is
-  guaranteed to always be present in the map. The values will always be of the
-  value type for that attribute in the `AttrTypes` of the object.
-* `Null` is set to `true` when the entire object's value is null. Individual
-  attributes may still be null even if the object's `Null` property is false.
-* `Unknown` is set to `true` when the entire object's value is unknown.
-  Individual attributes may still be unknown even if the object's `Unknown`
-  property is `false`.
+```go
+"example_attribute": {
+  Type: types.ObjectType{
+    AttrTypes: map[string]attr.Type{
+      "pi":    types.Float64Type,
+      "demo":  types.BoolType,
+      "color": types.StringType,
+    },
+  },
+  // ... other fields ...
+}
+```
 
-A non-null, non-unknown `types.Object` value can be converted to a Go struct
-without using type assertions by using the `types.Object`'s [`As`
-method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.As),
-which uses the same conversion rules as the `Get` methods described in [Access
-State, Config, and Plan](/plugin/framework/accessing-values).
+The associated value type is [`types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object) in configuration, plan, and state data.
+
+Access `types.Object` information via the following methods:
+
+* [`(types.Object).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.IsNull): Returns true if the object is null.
+* [`(types.Object).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.IsUnknown): Returns true if the object is unknown. Returns false if the number of elements is known, any of which may be unknown.
+* [`(types.Object).Attributes() map[string]attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.Attributes): Returns the known `map[string]attr.Value` value, or `nil` if null or unknown.
+* [`(types.Object).As(context.Context, any, ObjectAsOptions) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.As): Converts the known values into the given Go type, if possible, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
+
+Call one of the following to create a `types.Object`:
+
+* [`types.ObjectNull(map[string]attr.Type) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectNull): A null object value with the given attribute type mapping.
+* [`types.ObjectUnknown(map[string]attr.Type) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectUnknown): An unknown object value with the given attribute type mapping.
+* [`types.ObjectValue(map[string]attr.Type, map[string]attr.Value) (types.Object, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValue): A known value with the given attribute type mapping and attribute value mapping.
+* [`types.ObjectValueMust(map[string]attr.Type, map[string]attr.Value) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueMust): A known value with the given attribute type mapping and attribute value mapping. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ### SetType and Set
 
-Sets are unordered collections of other types. Their elements, the values inside
-the set, must all be of the same type and must be unique.
+Set are unordered, unique collections of a single element type.
+
+-> Use [SetNestedAttributes](/plugin/framework/schemas#SetNestedAttributes) for sets of objects that need additional schema information. Use [ListType and List](#listtype-and-list) for ordered collections.
+
+Given an example Terraform configuration that sets a set of string values to the `example_attribute` attribute:
 
 ```tf
-hello = ["red", "blue", "green"]
+example_attribute = ["red", "blue", "green"]
 ```
 
-They are used by specifying a `types.SetType` value in your
-`tfsdk.Attribute`'s `Type` property. You must specify an `ElemType` property
-for your set, indicating what type the elements should be. Sets are
-represented by a `types.Set` struct in config, state, and plan. The
-`types.Set` struct has the following properties:
+The associated schema type is [`types.SetType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetType):
 
-* `ElemType` will always contain the same type as the `ElemType` property of
-  the `types.SetType` that created the `types.Set`.
-* `Elem` contains a list of values, one for each element in the set. The
-  values will all be of the value type produced by the `ElemType` for the list.
-  Each element must be unique.
-* `Null` is set to `true` when the entire set's value is null. Individual
-  elements may still be null even if the set's `Null` property is `false`.
-* `Unknown` is set to `true` when the entire set's value is unknown.
-  Individual elements may still be unknown even if the set's `Unknown`
-  property is `false`.
+```go
+"example_attribute": {
+  Type: types.SetType{
+    ElemType: types.StringType,
+  },
+  // ... other fields ...
+}
+```
 
-Elements of a `types.Set` with a non-null, non-unknown value can be accessed
-without using type assertions by using the `types.Set`'s [`ElementsAs`
-method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.ElementsAs),
-which uses the same conversion rules as the `Get` methods described in [Access
-State, Config, and Plan](/plugin/framework/accessing-values).
+The associated value type is [`types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set) in configuration, plan, and state data.
 
-For an ordered collection without uniqueness constraints, see [`ListType` and
-`List`](#listtype-and-list).
+Access `types.Set` information via the following methods:
+
+* [`(types.Set).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set.IsNull): Returns true if the list is null.
+* [`(types.Set).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set.IsUnknown): Returns true if the list is unknown. Returns false if the number of elements is known, any of which may be unknown.
+* [`(types.Set).Elements() []attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set.Elements): Returns the known `[]attr.Value` value, or `nil` if null or unknown.
+* [`(types.Set).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set.ElementsAs): Converts the known values into the given Go type, if possible, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
+
+Call one of the following to create a `types.Set`:
+
+* [`types.SetNull(attr.Type) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetNull): A null list value with the given element type.
+* [`types.SetUnknown(attr.Type) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetUnknown): An unknown list value with the given element type.
+* [`types.SetValue(attr.Type, []attr.Value) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValue): A known value with the given element type and values.
+* [`types.SetValueMust(map[string]attr.Type, map[string]attr.Value) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ## Create Provider-Defined Types and Values
 

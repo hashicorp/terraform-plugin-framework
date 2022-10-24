@@ -62,7 +62,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			return
 		}
 
-		for idx := range l.Elems {
+		for idx := range l.Elements() {
 			for name, attr := range b.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtListIndex(idx).AtName(name),
@@ -100,8 +100,8 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		// Terraform 0.15.2 and later implements MaxItems validation during
 		// configuration decoding, so if this framework drops Terraform support
 		// for earlier versions, this validation can be removed.
-		if b.GetMaxItems() > 0 && int64(len(l.Elems)) > b.GetMaxItems() {
-			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.GetMaxItems(), len(l.Elems)))
+		if b.GetMaxItems() > 0 && int64(len(l.Elements())) > b.GetMaxItems() {
+			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.GetMaxItems(), len(l.Elements())))
 		}
 
 		// Terraform 0.12 through 0.15.1 implement conservative block MinItems
@@ -113,8 +113,8 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		// Terraform 0.15.2 and later implements proper MinItems validation
 		// during configuration decoding, so if this framework drops Terraform
 		// support for earlier versions, this validation can be removed.
-		if b.GetMinItems() > 0 && int64(len(l.Elems)) < b.GetMinItems() && !l.IsUnknown() {
-			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(l.Elems)))
+		if b.GetMinItems() > 0 && int64(len(l.Elements())) < b.GetMinItems() && !l.IsUnknown() {
+			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(l.Elements())))
 		}
 	case fwschema.BlockNestingModeSet:
 		s, ok := req.AttributeConfig.(types.Set)
@@ -130,7 +130,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			return
 		}
 
-		for _, value := range s.Elems {
+		for _, value := range s.Elements() {
 			for name, attr := range b.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtSetValue(value).AtName(name),
@@ -168,8 +168,8 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		// Terraform 0.15.2 and later implements MaxItems validation during
 		// configuration decoding, so if this framework drops Terraform support
 		// for earlier versions, this validation can be removed.
-		if b.GetMaxItems() > 0 && int64(len(s.Elems)) > b.GetMaxItems() {
-			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.GetMaxItems(), len(s.Elems)))
+		if b.GetMaxItems() > 0 && int64(len(s.Elements())) > b.GetMaxItems() {
+			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.GetMaxItems(), len(s.Elements())))
 		}
 
 		// Terraform 0.12 through 0.15.1 implement conservative block MinItems
@@ -181,8 +181,8 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		// Terraform 0.15.2 and later implements proper MinItems validation
 		// during configuration decoding, so if this framework drops Terraform
 		// support for earlier versions, this validation can be removed.
-		if b.GetMinItems() > 0 && int64(len(s.Elems)) < b.GetMinItems() && !s.IsUnknown() {
-			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elems)))
+		if b.GetMinItems() > 0 && int64(len(s.Elements())) < b.GetMinItems() && !s.IsUnknown() {
+			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elements())))
 		}
 	case fwschema.BlockNestingModeSingle:
 		s, ok := req.AttributeConfig.(types.Object)

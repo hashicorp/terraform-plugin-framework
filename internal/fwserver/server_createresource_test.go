@@ -114,8 +114,8 @@ func TestServerCreateResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-						if data.TestRequired.Value != "test-config-value" {
-							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.Value)
+						if data.TestRequired.ValueString() != "test-config-value" {
+							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.ValueString())
 						}
 
 						// Prevent missing resource state error diagnostic
@@ -153,8 +153,8 @@ func TestServerCreateResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-						if data.TestRequired.Value != "test-plannedstate-value" {
-							resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestRequired.Value)
+						if data.TestRequired.ValueString() != "test-plannedstate-value" {
+							resp.Diagnostics.AddError("Unexpected req.Plan Value", "Got: "+data.TestRequired.ValueString())
 						}
 
 						// Prevent missing resource state error diagnostic
@@ -192,8 +192,8 @@ func TestServerCreateResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &metadata)...)
 
-						if metadata.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+metadata.TestProviderMetaAttribute.Value)
+						if metadata.TestProviderMetaAttribute.ValueString() != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("Unexpected req.ProviderMeta Value", "Got: "+metadata.TestProviderMetaAttribute.ValueString())
 						}
 
 						// Prevent missing resource state error diagnostic

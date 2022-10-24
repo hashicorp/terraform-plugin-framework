@@ -11,6 +11,84 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestInt64ValueDeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	knownInt64 := Int64Value(24)
+
+	knownInt64.Null = true
+
+	if knownInt64.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	knownInt64.Unknown = true
+
+	if knownInt64.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	knownInt64.Value = 48
+
+	if knownInt64.ValueInt64() == 48 {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestInt64NullDeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	nullInt64 := Int64Null()
+
+	nullInt64.Null = false
+
+	if !nullInt64.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	nullInt64.Unknown = true
+
+	if nullInt64.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	nullInt64.Value = 48
+
+	if nullInt64.ValueInt64() == 48 {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestInt64UnknownDeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	unknownInt64 := Int64Unknown()
+
+	unknownInt64.Null = true
+
+	if unknownInt64.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	unknownInt64.Unknown = false
+
+	if !unknownInt64.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	unknownInt64.Value = 48
+
+	if unknownInt64.ValueInt64() == 48 {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
 func TestInt64ValueFromTerraform(t *testing.T) {
 	t.Parallel()
 
@@ -90,15 +168,27 @@ func TestInt64ToTerraformValue(t *testing.T) {
 		expectation interface{}
 	}
 	tests := map[string]testCase{
-		"value": {
-			input:       Int64{Value: 123},
+		"known": {
+			input:       Int64Value(123),
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123)),
 		},
 		"unknown": {
-			input:       Int64{Unknown: true},
+			input:       Int64Unknown(),
 			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 		},
 		"null": {
+			input:       Int64Null(),
+			expectation: tftypes.NewValue(tftypes.Number, nil),
+		},
+		"deprecated-known": {
+			input:       Int64{Value: 123},
+			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123)),
+		},
+		"deprecated-unknown": {
+			input:       Int64{Unknown: true},
+			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+		},
+		"deprecated-null": {
 			input:       Int64{Null: true},
 			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
@@ -130,82 +220,182 @@ func TestInt64Equal(t *testing.T) {
 		expectation bool
 	}
 	tests := map[string]testCase{
-		"value-value-same": {
+		"known-known-same": {
+			input:       Int64Value(123),
+			candidate:   Int64Value(123),
+			expectation: true,
+		},
+		"known-known-diff": {
+			input:       Int64Value(123),
+			candidate:   Int64Value(456),
+			expectation: false,
+		},
+		"known-unknown": {
+			input:       Int64Value(123),
+			candidate:   Int64Unknown(),
+			expectation: false,
+		},
+		"known-null": {
+			input:       Int64Value(123),
+			candidate:   Int64Null(),
+			expectation: false,
+		},
+		"unknown-value": {
+			input:       Int64Unknown(),
+			candidate:   Int64Value(123),
+			expectation: false,
+		},
+		"unknown-unknown": {
+			input:       Int64Unknown(),
+			candidate:   Int64Unknown(),
+			expectation: true,
+		},
+		"unknown-null": {
+			input:       Int64Unknown(),
+			candidate:   Int64Null(),
+			expectation: false,
+		},
+		"null-known": {
+			input:       Int64Null(),
+			candidate:   Int64Value(123),
+			expectation: false,
+		},
+		"null-unknown": {
+			input:       Int64Null(),
+			candidate:   Int64Unknown(),
+			expectation: false,
+		},
+		"null-null": {
+			input:       Int64Null(),
+			candidate:   Int64Null(),
+			expectation: true,
+		},
+		"deprecated-known-known-same": {
+			input:       Int64{Value: 123},
+			candidate:   Int64Value(123),
+			expectation: false, // intentional
+		},
+		"deprecated-known-known-diff": {
+			input:       Int64{Value: 123},
+			candidate:   Int64Value(456),
+			expectation: false,
+		},
+		"deprecated-known-unknown": {
+			input:       Int64{Value: 123},
+			candidate:   Int64Unknown(),
+			expectation: false,
+		},
+		"deprecated-known-null": {
+			input:       Int64{Value: 123},
+			candidate:   Int64Null(),
+			expectation: false,
+		},
+		"deprecated-known-deprecated-known-same": {
 			input:       Int64{Value: 123},
 			candidate:   Int64{Value: 123},
 			expectation: true,
 		},
-		"value-value-diff": {
+		"deprecated-known-deprecated-known-diff": {
 			input:       Int64{Value: 123},
 			candidate:   Int64{Value: 456},
 			expectation: false,
 		},
-		"value-unknown": {
+		"deprecated-known-deprecated-unknown": {
 			input:       Int64{Value: 123},
 			candidate:   Int64{Unknown: true},
 			expectation: false,
 		},
-		"value-null": {
+		"deprecated-known-deprecated-null": {
 			input:       Int64{Value: 123},
 			candidate:   Int64{Null: true},
 			expectation: false,
 		},
-		"value-wrongType": {
+		"deprecated-known-wrongType": {
 			input:       Int64{Value: 123},
 			candidate:   &String{Value: "oops"},
 			expectation: false,
 		},
-		"value-nil": {
+		"deprecated-known-nil": {
 			input:       Int64{Value: 123},
 			candidate:   nil,
 			expectation: false,
 		},
-		"unknown-value": {
+		"deprecated-unknown-value": {
+			input:       Int64{Unknown: true},
+			candidate:   Int64Value(123),
+			expectation: false,
+		},
+		"deprecated-unknown-unknown": {
+			input:       Int64{Unknown: true},
+			candidate:   Int64Unknown(),
+			expectation: false, // intentional
+		},
+		"deprecated-unknown-null": {
+			input:       Int64{Unknown: true},
+			candidate:   Int64Null(),
+			expectation: false,
+		},
+		"deprecated-unknown-deprecated-known": {
 			input:       Int64{Unknown: true},
 			candidate:   Int64{Value: 123},
 			expectation: false,
 		},
-		"unknown-unknown": {
+		"deprecated-unknown-deprecated-unknown": {
 			input:       Int64{Unknown: true},
 			candidate:   Int64{Unknown: true},
 			expectation: true,
 		},
-		"unknown-null": {
+		"deprecated-unknown-deprecated-null": {
 			input:       Int64{Unknown: true},
 			candidate:   Int64{Null: true},
 			expectation: false,
 		},
-		"unknown-wrongType": {
+		"deprecated-unknown-wrongType": {
 			input:       Int64{Unknown: true},
 			candidate:   &String{Value: "oops"},
 			expectation: false,
 		},
-		"unknown-nil": {
+		"deprecated-unknown-nil": {
 			input:       Int64{Unknown: true},
 			candidate:   nil,
 			expectation: false,
 		},
-		"null-value": {
+		"deprecated-null-known": {
+			input:       Int64{Null: true},
+			candidate:   Int64Value(123),
+			expectation: false,
+		},
+		"deprecated-null-unknown": {
+			input:       Int64{Null: true},
+			candidate:   Int64Unknown(),
+			expectation: false,
+		},
+		"deprecated-null-null": {
+			input:       Int64{Null: true},
+			candidate:   Int64Null(),
+			expectation: false, // intentional
+		},
+		"deprecated-null-deprecated-known": {
 			input:       Int64{Null: true},
 			candidate:   Int64{Value: 123},
 			expectation: false,
 		},
-		"null-unknown": {
+		"deprecated-null-deprecated-unknown": {
 			input:       Int64{Null: true},
 			candidate:   Int64{Unknown: true},
 			expectation: false,
 		},
-		"null-null": {
+		"deprecated-null-deprecated-null": {
 			input:       Int64{Null: true},
 			candidate:   Int64{Null: true},
 			expectation: true,
 		},
-		"null-wrongType": {
+		"deprecated-null-wrongType": {
 			input:       Int64{Null: true},
 			candidate:   &String{Value: "oops"},
 			expectation: false,
 		},
-		"null-nil": {
+		"deprecated-null-nil": {
 			input:       Int64{Null: true},
 			candidate:   nil,
 			expectation: false,
@@ -224,6 +414,110 @@ func TestInt64Equal(t *testing.T) {
 	}
 }
 
+func TestInt64IsNull(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Int64
+		expected bool
+	}{
+		"known": {
+			input:    Int64Value(24),
+			expected: false,
+		},
+		"deprecated-known": {
+			input:    Int64{Value: 24},
+			expected: false,
+		},
+		"null": {
+			input:    Int64Null(),
+			expected: true,
+		},
+		"deprecated-null": {
+			input:    Int64{Null: true},
+			expected: true,
+		},
+		"unknown": {
+			input:    Int64Unknown(),
+			expected: false,
+		},
+		"deprecated-unknown": {
+			input:    Int64{Unknown: true},
+			expected: false,
+		},
+		"deprecated-invalid": {
+			input:    Int64{Null: true, Unknown: true},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.IsNull()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestInt64IsUnknown(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Int64
+		expected bool
+	}{
+		"known": {
+			input:    Int64Value(24),
+			expected: false,
+		},
+		"deprecated-known": {
+			input:    Int64{Value: 24},
+			expected: false,
+		},
+		"null": {
+			input:    Int64Null(),
+			expected: false,
+		},
+		"deprecated-null": {
+			input:    Int64{Null: true},
+			expected: false,
+		},
+		"unknown": {
+			input:    Int64Unknown(),
+			expected: true,
+		},
+		"deprecated-unknown": {
+			input:    Int64{Unknown: true},
+			expected: true,
+		},
+		"deprecated-invalid": {
+			input:    Int64{Null: true, Unknown: true},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.IsUnknown()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestInt64String(t *testing.T) {
 	t.Parallel()
 
@@ -232,27 +526,51 @@ func TestInt64String(t *testing.T) {
 		expectation string
 	}
 	tests := map[string]testCase{
-		"less-than-one": {
-			input:       Int64{Value: -12340984302980000},
+		"known-less-than-one": {
+			input:       Int64Value(-12340984302980000),
 			expectation: "-12340984302980000",
 		},
-		"more-than-one": {
-			input:       Int64{Value: 92387938173219327},
+		"known-more-than-one": {
+			input:       Int64Value(92387938173219327),
 			expectation: "92387938173219327",
 		},
-		"min-int64": {
-			input:       Int64{Value: math.MinInt64},
+		"known-min-int64": {
+			input:       Int64Value(math.MinInt64),
 			expectation: "-9223372036854775808",
 		},
-		"max-int64": {
-			input:       Int64{Value: math.MaxInt64},
+		"known-max-int64": {
+			input:       Int64Value(math.MaxInt64),
 			expectation: "9223372036854775807",
 		},
 		"unknown": {
-			input:       Int64{Unknown: true},
+			input:       Int64Unknown(),
 			expectation: "<unknown>",
 		},
 		"null": {
+			input:       Int64Null(),
+			expectation: "<null>",
+		},
+		"deprecated-known-less-than-one": {
+			input:       Int64{Value: -12340984302980000},
+			expectation: "-12340984302980000",
+		},
+		"deprecated-known-more-than-one": {
+			input:       Int64{Value: 92387938173219327},
+			expectation: "92387938173219327",
+		},
+		"deprecated-known-min-int64": {
+			input:       Int64{Value: math.MinInt64},
+			expectation: "-9223372036854775808",
+		},
+		"deprecated-known-max-int64": {
+			input:       Int64{Value: math.MaxInt64},
+			expectation: "9223372036854775807",
+		},
+		"deprecated-unknown": {
+			input:       Int64{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"deprecated-null": {
 			input:       Int64{Null: true},
 			expectation: "<null>",
 		},
@@ -270,6 +588,58 @@ func TestInt64String(t *testing.T) {
 			got := test.input.String()
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestInt64ValueInt64(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Int64
+		expected int64
+	}{
+		"known": {
+			input:    Int64Value(24),
+			expected: 24,
+		},
+		"deprecated-known": {
+			input:    Int64{Value: 24},
+			expected: 24,
+		},
+		"null": {
+			input:    Int64Null(),
+			expected: 0,
+		},
+		"deprecated-null": {
+			input:    Int64{Null: true},
+			expected: 0,
+		},
+		"unknown": {
+			input:    Int64Unknown(),
+			expected: 0,
+		},
+		"deprecated-unknown": {
+			input:    Int64{Unknown: true},
+			expected: 0,
+		},
+		"deprecated-invalid": {
+			input:    Int64{Null: true, Unknown: true},
+			expected: 0,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ValueInt64()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

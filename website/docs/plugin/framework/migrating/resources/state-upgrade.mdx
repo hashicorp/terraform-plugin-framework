@@ -195,13 +195,13 @@ func upgradePasswordStateV0toV2(ctx context.Context, req resource.UpgradeStateRe
 		ID:              passwordDataV0.ID,
 	}
 
-	hash, err := generateHash(passwordDataV2.Result.Value)
+	hash, err := generateHash(passwordDataV2.Result.ValueString())
 	if err != nil {
 		resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
 		return
 	}
 
-	passwordDataV2.BcryptHash.Value = hash
+	passwordDataV2.BcryptHash = types.StringValue(hash)
 
 	diags := resp.State.Set(ctx, passwordDataV2)
 	resp.Diagnostics.Append(diags...)

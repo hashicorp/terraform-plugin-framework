@@ -15,6 +15,84 @@ func numberComparer(i, j *big.Float) bool {
 	return (i == nil && j == nil) || (i != nil && j != nil && i.Cmp(j) == 0)
 }
 
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestNumberValueDeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	knownNumber := NumberValue(big.NewFloat(2.4))
+
+	knownNumber.Null = true
+
+	if knownNumber.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	knownNumber.Unknown = true
+
+	if knownNumber.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	knownNumber.Value = big.NewFloat(4.8)
+
+	if knownNumber.ValueBigFloat().Cmp(big.NewFloat(4.8)) == 0 {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestNumberNullDeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	nullNumber := NumberNull()
+
+	nullNumber.Null = false
+
+	if !nullNumber.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	nullNumber.Unknown = true
+
+	if nullNumber.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	nullNumber.Value = big.NewFloat(4.8)
+
+	if nullNumber.ValueBigFloat() != nil {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
+// This test verifies the assumptions that creating the Value via function then
+// setting the fields directly has no effects.
+func TestNumberUnknownDeprecatedFieldSetting(t *testing.T) {
+	t.Parallel()
+
+	unknownNumber := NumberUnknown()
+
+	unknownNumber.Null = true
+
+	if unknownNumber.IsNull() {
+		t.Error("unexpected null update after Null field setting")
+	}
+
+	unknownNumber.Unknown = false
+
+	if !unknownNumber.IsUnknown() {
+		t.Error("unexpected unknown update after Unknown field setting")
+	}
+
+	unknownNumber.Value = big.NewFloat(4.8)
+
+	if unknownNumber.ValueBigFloat() != nil {
+		t.Error("unexpected value update after Value field setting")
+	}
+}
+
 func TestNumberValueFromTerraform(t *testing.T) {
 	t.Parallel()
 
@@ -95,18 +173,34 @@ func TestNumberToTerraformValue(t *testing.T) {
 	}
 	tests := map[string]testCase{
 		"value": {
-			input:       Number{Value: big.NewFloat(123)},
+			input:       NumberValue(big.NewFloat(123)),
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123)),
 		},
-		"value-nil": {
-			input:       Number{Value: nil},
+		"known-nil": {
+			input:       NumberValue(nil),
 			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 		"unknown": {
-			input:       Number{Unknown: true},
+			input:       NumberUnknown(),
 			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 		},
 		"null": {
+			input:       NumberNull(),
+			expectation: tftypes.NewValue(tftypes.Number, nil),
+		},
+		"deprecated-value": {
+			input:       Number{Value: big.NewFloat(123)},
+			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123)),
+		},
+		"deprecated-known-nil": {
+			input:       Number{Value: nil},
+			expectation: tftypes.NewValue(tftypes.Number, nil),
+		},
+		"deprecated-unknown": {
+			input:       Number{Unknown: true},
+			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+		},
+		"deprecated-null": {
 			input:       Number{Null: true},
 			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
@@ -138,97 +232,242 @@ func TestNumberEqual(t *testing.T) {
 		expectation bool
 	}
 	tests := map[string]testCase{
-		"value-value-same": {
+		"known-known-same": {
+			input:       NumberValue(big.NewFloat(123)),
+			candidate:   NumberValue(big.NewFloat(123)),
+			expectation: true,
+		},
+		"known-known-diff": {
+			input:       NumberValue(big.NewFloat(123)),
+			candidate:   NumberValue(big.NewFloat(456)),
+			expectation: false,
+		},
+		"known-nil-known": {
+			input:       NumberValue(nil),
+			candidate:   NumberValue(big.NewFloat(456)),
+			expectation: false,
+		},
+		"known-nil-null": {
+			input:       NumberValue(nil),
+			candidate:   NumberNull(),
+			expectation: true,
+		},
+		"known-unknown": {
+			input:       NumberValue(big.NewFloat(123)),
+			candidate:   NumberUnknown(),
+			expectation: false,
+		},
+		"known-null": {
+			input:       NumberValue(big.NewFloat(123)),
+			candidate:   NumberNull(),
+			expectation: false,
+		},
+		"known-wrong-type": {
+			input:       NumberValue(big.NewFloat(123)),
+			candidate:   Float64Value(123),
+			expectation: false,
+		},
+		"known-nil": {
+			input:       NumberValue(big.NewFloat(123)),
+			candidate:   nil,
+			expectation: false,
+		},
+		"unknown-known": {
+			input:       NumberUnknown(),
+			candidate:   NumberValue(big.NewFloat(123)),
+			expectation: false,
+		},
+		"unknown-unknown": {
+			input:       NumberUnknown(),
+			candidate:   NumberUnknown(),
+			expectation: true,
+		},
+		"unknown-null": {
+			input:       NumberUnknown(),
+			candidate:   NumberNull(),
+			expectation: false,
+		},
+		"unknown-wrong-type": {
+			input:       NumberUnknown(),
+			candidate:   Float64Unknown(),
+			expectation: false,
+		},
+		"unknown-nil": {
+			input:       NumberUnknown(),
+			candidate:   nil,
+			expectation: false,
+		},
+		"null-known": {
+			input:       NumberNull(),
+			candidate:   NumberValue(big.NewFloat(123)),
+			expectation: false,
+		},
+		"null-known-nil": {
+			input:       NumberNull(),
+			candidate:   NumberValue(nil),
+			expectation: true,
+		},
+		"null-unknown": {
+			input:       NumberNull(),
+			candidate:   NumberUnknown(),
+			expectation: false,
+		},
+		"null-null": {
+			input:       NumberNull(),
+			candidate:   NumberNull(),
+			expectation: true,
+		},
+		"null-wrong-type": {
+			input:       NumberNull(),
+			candidate:   Float64Null(),
+			expectation: false,
+		},
+		"null-nil": {
+			input:       NumberNull(),
+			candidate:   nil,
+			expectation: false,
+		},
+		"deprecated-known-known-same": {
+			input:       Number{Value: big.NewFloat(123)},
+			candidate:   NumberValue(big.NewFloat(123)),
+			expectation: false, // intentional
+		},
+		"deprecated-known-known-diff": {
+			input:       Number{Value: big.NewFloat(123)},
+			candidate:   NumberValue(big.NewFloat(456)),
+			expectation: false,
+		},
+		"deprecated-known-unknown": {
+			input:       Number{Value: big.NewFloat(123)},
+			candidate:   NumberNull(),
+			expectation: false,
+		},
+		"deprecated-known-null": {
+			input:       Number{Value: big.NewFloat(123)},
+			candidate:   NumberNull(),
+			expectation: false,
+		},
+		"deprecated-known-deprecated-known-same": {
 			input:       Number{Value: big.NewFloat(123)},
 			candidate:   Number{Value: big.NewFloat(123)},
 			expectation: true,
 		},
-		"value-value-diff": {
+		"deprecated-known-deprecated-known-diff": {
 			input:       Number{Value: big.NewFloat(123)},
 			candidate:   Number{Value: big.NewFloat(456)},
 			expectation: false,
 		},
-		"value-unknown": {
+		"deprecated-known-deprecated-unknown": {
 			input:       Number{Value: big.NewFloat(123)},
 			candidate:   Number{Unknown: true},
 			expectation: false,
 		},
-		"value-null": {
+		"deprecated-known-deprecated-null": {
 			input:       Number{Value: big.NewFloat(123)},
 			candidate:   Number{Null: true},
 			expectation: false,
 		},
-		"value-wrongType": {
+		"deprecated-known-wrongType": {
 			input:       Number{Value: big.NewFloat(123)},
 			candidate:   &String{Value: "oops"},
 			expectation: false,
 		},
-		"value-nil": {
+		"deprecated-known-nil": {
 			input:       Number{Value: big.NewFloat(123)},
 			candidate:   nil,
 			expectation: false,
 		},
-		"value-nilValue": {
+		"deprecated-known-nilValue": {
 			input:       Number{Value: big.NewFloat(123)},
 			candidate:   Number{Value: nil},
 			expectation: false,
 		},
-		"unknown-value": {
+		"deprecated-unknown-known": {
+			input:       Number{Unknown: true},
+			candidate:   NumberValue(big.NewFloat(123)),
+			expectation: false,
+		},
+		"deprecated-unknown-unknown": {
+			input:       Number{Unknown: true},
+			candidate:   NumberUnknown(),
+			expectation: false, // intentional
+		},
+		"deprecated-unknown-null": {
+			input:       Number{Unknown: true},
+			candidate:   NumberNull(),
+			expectation: false,
+		},
+		"deprecated-unknown-deprecated-known": {
 			input:       Number{Unknown: true},
 			candidate:   Number{Value: big.NewFloat(123)},
 			expectation: false,
 		},
-		"unknown-unknown": {
+		"deprecated-unknown-deprecated-unknown": {
 			input:       Number{Unknown: true},
 			candidate:   Number{Unknown: true},
 			expectation: true,
 		},
-		"unknown-null": {
+		"deprecated-unknown-deprecated-null": {
 			input:       Number{Unknown: true},
 			candidate:   Number{Null: true},
 			expectation: false,
 		},
-		"unknown-wrongType": {
+		"deprecated-unknown-wrongType": {
 			input:       Number{Unknown: true},
 			candidate:   &String{Value: "oops"},
 			expectation: false,
 		},
-		"unknown-nil": {
+		"deprecated-unknown-nil": {
 			input:       Number{Unknown: true},
 			candidate:   nil,
 			expectation: false,
 		},
-		"unknown-nilValue": {
+		"deprecated-unknown-nilValue": {
 			input:       Number{Unknown: true},
 			candidate:   Number{Value: nil},
 			expectation: false,
 		},
-		"null-value": {
+		"deprecated-null-value": {
+			input:       Number{Null: true},
+			candidate:   NumberValue(big.NewFloat(123)),
+			expectation: false,
+		},
+		"deprecated-null-unknown": {
+			input:       Number{Null: true},
+			candidate:   NumberUnknown(),
+			expectation: false,
+		},
+		"deprecated-null-null": {
+			input:       Number{Null: true},
+			candidate:   NumberNull(),
+			expectation: false, // intentional
+		},
+		"deprecated-null-deprecated-value": {
 			input:       Number{Null: true},
 			candidate:   Number{Value: big.NewFloat(123)},
 			expectation: false,
 		},
-		"null-unknown": {
+		"deprecated-null-deprecated-unknown": {
 			input:       Number{Null: true},
 			candidate:   Number{Unknown: true},
 			expectation: false,
 		},
-		"null-null": {
+		"deprecated-null-deprecated-null": {
 			input:       Number{Null: true},
 			candidate:   Number{Null: true},
 			expectation: true,
 		},
-		"null-wrongType": {
+		"deprecated-null-wrongType": {
 			input:       Number{Null: true},
 			candidate:   &String{Value: "oops"},
 			expectation: false,
 		},
-		"null-nil": {
+		"deprecated-null-nil": {
 			input:       Number{Null: true},
 			candidate:   nil,
 			expectation: false,
 		},
-		"null-nilValue": {
+		"deprecated-null-nilValue": {
 			input:       Number{Null: true},
 			candidate:   Number{Value: nil},
 			expectation: false,
@@ -247,6 +486,110 @@ func TestNumberEqual(t *testing.T) {
 	}
 }
 
+func TestNumberIsNull(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Number
+		expected bool
+	}{
+		"known": {
+			input:    NumberValue(big.NewFloat(2.4)),
+			expected: false,
+		},
+		"deprecated-known": {
+			input:    Number{Value: big.NewFloat(2.4)},
+			expected: false,
+		},
+		"null": {
+			input:    NumberNull(),
+			expected: true,
+		},
+		"deprecated-null": {
+			input:    Number{Null: true},
+			expected: true,
+		},
+		"unknown": {
+			input:    NumberUnknown(),
+			expected: false,
+		},
+		"deprecated-unknown": {
+			input:    Number{Unknown: true},
+			expected: false,
+		},
+		"deprecated-invalid": {
+			input:    Number{Null: true, Unknown: true},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.IsNull()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestNumberIsUnknown(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Number
+		expected bool
+	}{
+		"known": {
+			input:    NumberValue(big.NewFloat(2.4)),
+			expected: false,
+		},
+		"deprecated-known": {
+			input:    Number{Value: big.NewFloat(2.4)},
+			expected: false,
+		},
+		"null": {
+			input:    NumberNull(),
+			expected: false,
+		},
+		"deprecated-null": {
+			input:    Number{Null: true},
+			expected: false,
+		},
+		"unknown": {
+			input:    NumberUnknown(),
+			expected: true,
+		},
+		"deprecated-unknown": {
+			input:    Number{Unknown: true},
+			expected: true,
+		},
+		"deprecated-invalid": {
+			input:    Number{Null: true, Unknown: true},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.IsUnknown()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestNumberString(t *testing.T) {
 	t.Parallel()
 
@@ -255,35 +598,67 @@ func TestNumberString(t *testing.T) {
 		expectation string
 	}
 	tests := map[string]testCase{
-		"less-than-one": {
-			input:       Number{Value: big.NewFloat(0.12340984302980000)},
+		"known-less-than-one": {
+			input:       NumberValue(big.NewFloat(0.12340984302980000)),
 			expectation: "0.123409843",
 		},
-		"more-than-one": {
-			input:       Number{Value: big.NewFloat(92387938173219.327663)},
+		"known-more-than-one": {
+			input:       NumberValue(big.NewFloat(92387938173219.327663)),
 			expectation: "9.238793817e+13",
 		},
-		"negative-more-than-one": {
-			input:       Number{Value: big.NewFloat(-0.12340984302980000)},
+		"known-negative-more-than-one": {
+			input:       NumberValue(big.NewFloat(-0.12340984302980000)),
 			expectation: "-0.123409843",
 		},
-		"negative-less-than-one": {
-			input:       Number{Value: big.NewFloat(-92387938173219.327663)},
+		"known-negative-less-than-one": {
+			input:       NumberValue(big.NewFloat(-92387938173219.327663)),
 			expectation: "-9.238793817e+13",
 		},
-		"min-float64": {
-			input:       Number{Value: big.NewFloat(math.SmallestNonzeroFloat64)},
+		"known-min-float64": {
+			input:       NumberValue(big.NewFloat(math.SmallestNonzeroFloat64)),
 			expectation: "4.940656458e-324",
 		},
-		"max-float64": {
-			input:       Number{Value: big.NewFloat(math.MaxFloat64)},
+		"known-max-float64": {
+			input:       NumberValue(big.NewFloat(math.MaxFloat64)),
 			expectation: "1.797693135e+308",
 		},
 		"unknown": {
-			input:       Number{Unknown: true},
+			input:       NumberUnknown(),
 			expectation: "<unknown>",
 		},
 		"null": {
+			input:       NumberNull(),
+			expectation: "<null>",
+		},
+		"deprecated-known-less-than-one": {
+			input:       Number{Value: big.NewFloat(0.12340984302980000)},
+			expectation: "0.123409843",
+		},
+		"deprecated-known-more-than-one": {
+			input:       Number{Value: big.NewFloat(92387938173219.327663)},
+			expectation: "9.238793817e+13",
+		},
+		"deprecated-known-negative-more-than-one": {
+			input:       Number{Value: big.NewFloat(-0.12340984302980000)},
+			expectation: "-0.123409843",
+		},
+		"deprecated-known-negative-less-than-one": {
+			input:       Number{Value: big.NewFloat(-92387938173219.327663)},
+			expectation: "-9.238793817e+13",
+		},
+		"deprecated-known-min-float64": {
+			input:       Number{Value: big.NewFloat(math.SmallestNonzeroFloat64)},
+			expectation: "4.940656458e-324",
+		},
+		"deprecated-known-max-float64": {
+			input:       Number{Value: big.NewFloat(math.MaxFloat64)},
+			expectation: "1.797693135e+308",
+		},
+		"deprecated-unknown": {
+			input:       Number{Unknown: true},
+			expectation: "<unknown>",
+		},
+		"deprecated-null": {
 			input:       Number{Null: true},
 			expectation: "<null>",
 		},
@@ -301,6 +676,72 @@ func TestNumberString(t *testing.T) {
 			got := test.input.String()
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestNumberValueBigFloat(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Number
+		expected *big.Float
+	}{
+		"known": {
+			input:    NumberValue(big.NewFloat(2.4)),
+			expected: big.NewFloat(2.4),
+		},
+		"known-nil": {
+			input:    NumberValue(nil),
+			expected: nil,
+		},
+		"deprecated-known": {
+			input:    Number{Value: big.NewFloat(2.4)},
+			expected: big.NewFloat(2.4),
+		},
+		"null": {
+			input:    NumberNull(),
+			expected: nil,
+		},
+		"deprecated-null": {
+			input:    Number{Null: true},
+			expected: nil,
+		},
+		"unknown": {
+			input:    NumberUnknown(),
+			expected: nil,
+		},
+		"deprecated-unknown": {
+			input:    Number{Unknown: true},
+			expected: nil,
+		},
+		"deprecated-invalid": {
+			input:    Number{Null: true, Unknown: true},
+			expected: nil,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ValueBigFloat()
+
+			if got == nil && testCase.expected != nil {
+				t.Fatalf("got nil, expected: %s", testCase.expected)
+			}
+
+			if got != nil {
+				if testCase.expected == nil {
+					t.Fatalf("expected nil, got: %s", got)
+				}
+
+				if got.Cmp(testCase.expected) != 0 {
+					t.Fatalf("expected %s, got: %s", testCase.expected, got)
+				}
 			}
 		})
 	}

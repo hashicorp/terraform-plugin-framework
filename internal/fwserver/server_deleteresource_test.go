@@ -109,8 +109,8 @@ func TestServerDeleteResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-						if data.TestRequired.Value != "test-priorstate-value" {
-							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.Value)
+						if data.TestRequired.ValueString() != "test-priorstate-value" {
+							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
 						}
 					},
 				},
@@ -138,8 +138,8 @@ func TestServerDeleteResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-						if data.TestProviderMetaAttribute.Value != "test-provider-meta-value" {
-							resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestProviderMetaAttribute.Value)
+						if data.TestProviderMetaAttribute.ValueString() != "test-provider-meta-value" {
+							resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestProviderMetaAttribute.ValueString())
 						}
 					},
 				},

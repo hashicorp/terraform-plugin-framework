@@ -1,0 +1,99 @@
+```release-note:note
+types: The `Bool` type `Null`, `Unknown`, and `Value` fields have been deprecated in preference of the `BoolNull()`, `BoolUnknown()`, and `BoolValue()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueBool()` methods. The fields will be removed in a future release.
+```
+
+```release-note:note
+types: The `Float64` type `Null`, `Unknown`, and `Value` fields have been deprecated in preference of the `Float64Null()`, `Float64Unknown()`, and `Float64Value()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueFloat64()` methods. The fields will be removed in a future release.
+```
+
+```release-note:note
+types: The `Int64` type `Null`, `Unknown`, and `Value` fields have been deprecated in preference of the `Int64Null()`, `Int64Unknown()`, and `Int64Value()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueInt64()` methods. The fields will be removed in a future release.
+```
+
+```release-note:note
+types: The `List` type `Elems`, `ElemType`, `Null`, and `Unknown` fields have been deprecated in preference of the `ListNull()`, `ListUnknown()`, `ListValue()`, and `ListValueMust()` creation functions and `Elements()`, `ElementsAs()`, `ElementType()`, `IsNull()`, and `IsUnknown()` methods. The fields will be removed in a future release.
+```
+
+```release-note:note
+types: The `Map` type `Elems`, `ElemType`, `Null`, and `Unknown` fields have been deprecated in preference of the `MapNull()`, `MapUnknown()`, `MapValue()`, and `MapValueMust()` creation functions and `Elements()`, `ElementsAs()`, `ElementType()`, `IsNull()`, and `IsUnknown()` methods. The fields will be removed in a future release.
+```
+
+```release-note:note
+types: The `Number` type `Null`, `Unknown`, and `Value` fields have been deprecated in preference of the `NumberNull()`, `NumberUnknown()`, and `NumberValue()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueBigFloat()` methods. The fields will be removed in a future release.
+```
+
+```release-note:note
+types: The `Object` type `Attrs`, `AttrTypes`, `Null`, and `Unknown` fields have been deprecated in preference of the `ObjectNull()`, `ObjectUnknown()`, `ObjectValue()`, and `ObjectValueMust()` creation functions and `As()`, `Attributes()`, `AttributeTypes()`, `IsNull()`, and `IsUnknown()` methods. The fields will be removed in a future release.
+```
+
+```release-note:note
+types: The `Set` type `Elems`, `ElemType`, `Null`, and `Unknown` fields have been deprecated in preference of the `SetNull()`, `SetUnknown()`, `SetValue()`, and `SetValueMust()` creation functions and `Elements()`, `ElementsAs()`, `ElementType()`, `IsNull()`, and `IsUnknown()` methods. The fields will be removed in a future release.
+```
+
+```release-note:note
+types: The `String` type `Null`, `Unknown`, and `Value` fields have been deprecated in preference of the `StringNull()`, `StringUnknown()`, and `StringValue()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueString()` methods. The fields will be removed in a future release.
+```
+
+```release-note:enhancement
+types: Added `BoolNull()`, `BoolUnknown()`, and `BoolValue()` functions, which create immutable `Bool` values
+```
+
+```release-note:enhancement
+types: Added `Float64Null()`, `Float64Unknown()`, and `Float64Value()` functions, which create immutable `Float64` values
+```
+
+```release-note:enhancement
+types: Added `Int64Null()`, `Int64Unknown()`, and `Int64Value()` functions, which create immutable `Int64` values
+```
+
+```release-note:enhancement
+types: Added `ListNull()`, `ListUnknown()`, `ListValue()`, and `ListValueMust()` functions, which create immutable `List` values
+```
+
+```release-note:enhancement
+types: Added `MapNull()`, `MapUnknown()`, `MapValue()`, and `MapValueMust()` functions, which create immutable `Map` values
+```
+
+```release-note:enhancement
+types: Added `NumberNull()`, `NumberUnknown()`, and `NumberValue()` functions, which create immutable `Number` values
+```
+
+```release-note:enhancement
+types: Added `SetNull()`, `SetUnknown()`, `SetValue()`, and `SetValueMust()` functions, which create immutable `Set` values
+```
+
+```release-note:enhancement
+types: Added `StringNull()`, `StringUnknown()`, and `StringValue()` functions, which create immutable `String` values
+```
+
+```release-note:enhancement
+types: Added `Bool` type `ValueBool()` method, which returns the `bool` of the known value or `false` if null or unknown
+```
+
+```release-note:enhancement
+types: Added `Float64` type `ValueFloat64()` method, which returns the `float64` of the known value or `0.0` if null or unknown
+```
+
+```release-note:enhancement
+types: Added `Int64` type `ValueInt64()` method, which returns the `int64` of the known value or `0` if null or unknown
+```
+
+```release-note:enhancement
+types: Added `List` type `Elements()` method, which returns the `[]attr.Value` of the known values or `nil` if null or unknown
+```
+
+```release-note:enhancement
+types: Added `Map` type `Elements()` method, which returns the `map[string]attr.Value` of the known values or `nil` if null or unknown
+```
+
+```release-note:enhancement
+types: Added `Number` type `ValueBigFloat()` method, which returns the `*big.Float` of the known value or `nil` if null or unknown
+```
+
+```release-note:enhancement
+types: Added `Set` type `Elements()` method, which returns the `[]attr.Value` of the known values or `nil` if null or unknown
+```
+
+```release-note:enhancement
+types: Added `String` type `ValueString()` method, which returns the `string` of the known value or `""` if null or unknown
+```

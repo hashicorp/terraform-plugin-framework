@@ -61,7 +61,7 @@ func (d *ThingDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	// Typically data sources will make external calls, however this example
 	// hardcodes setting the id attribute to a specific value for brevity.
-	data.ID = types.String{Value: "example-id"}
+	data.ID = types.StringValue("example-id")
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

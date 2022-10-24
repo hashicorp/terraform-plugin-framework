@@ -85,6 +85,11 @@ func (m stringDefaultModifier) MarkdownDescription(ctx context.Context) string {
 // `resp` contains fields for updating the planned value, triggering resource
 // replacement, and returning diagnostics.
 func (m stringDefaultModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+    // If the value is unknown or known, do not set default value.
+    if !req.AttributePlan.IsNull() {
+        return
+    }
+
     // types.String must be the attr.Value produced by the attr.Type in the schema for this attribute
     // for generic plan modifiers, use
     // https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ConvertValue
@@ -96,11 +101,7 @@ func (m stringDefaultModifier) Modify(ctx context.Context, req tfsdk.ModifyAttri
         return
     }
 
-    if !str.Null {
-        return
-    }
-
-    resp.AttributePlan = types.String{Value: m.Default}
+    resp.AttributePlan = types.StringValue(m.Default)
 }
 ```
 

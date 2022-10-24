@@ -74,6 +74,11 @@ func (v stringLengthBetweenValidator) MarkdownDescription(ctx context.Context) s
 
 // Validate runs the main validation logic of the validator, reading configuration data out of `req` and updating `resp` with diagnostics.
 func (v stringLengthBetweenValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+    // If the value is unknown or null, there is nothing to validate.
+    if req.AttributeConfig.IsUnknown() || req.AttributeConfig.IsNull() {
+        return
+    }
+
     // types.String must be the attr.Value produced by the attr.Type in the schema for this attribute
     // for generic validators, use
     // https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ConvertValue
@@ -85,11 +90,7 @@ func (v stringLengthBetweenValidator) Validate(ctx context.Context, req tfsdk.Va
         return
     }
 
-    if str.Unknown || str.Null {
-        return
-    }
-
-    strLen := len(str.Value)
+    strLen := len(str.ValueString())
 
     if strLen < v.Min || strLen > v.Max {
         resp.Diagnostics.AddAttributeError(
@@ -230,11 +231,11 @@ func (v int64IsGreaterThanValidator) Validate(ctx context.Context, req tfsdk.Val
 				continue
 			}
 
-			if matchedPathConfig.Value >= attributeConfig.Value {
+			if matchedPathConfig.ValueInt64() >= attributeConfig.ValueInt64() {
 				resp.Diagnostics.AddAttributeError(
 					matchedPath,
 					"Invalid Attribute Value",
-					fmt.Sprintf("Must be less than %s value: %d", req.AttributePath, attributeConfig.Value),
+					fmt.Sprintf("Must be less than %s value: %d", req.AttributePath, attributeConfig.ValueInt64()),
 				)
 			}
 		}

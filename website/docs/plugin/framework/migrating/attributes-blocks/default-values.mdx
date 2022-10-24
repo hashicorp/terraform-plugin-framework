@@ -49,7 +49,7 @@ func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnos
         Attributes: map[string]tfsdk.Attribute{
             "attribute_example": {
                 PlanModifiers: []tfsdk.AttributePlanModifier{
-                    defaultValue(types.Bool{Value: true}),
+                    defaultValue(types.BoolValue(true)),
                     /* ... */
 ```
 
@@ -98,7 +98,7 @@ func (r *privateKeyResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Di
         Attributes: map[string]tfsdk.Attribute{
             "rsa_bits": {
                 PlanModifiers: []tfsdk.AttributePlanModifier{
-                    attribute_plan_modifier.DefaultValue(types.Int64{Value: 2048}),
+                    attribute_plan_modifier.DefaultValue(types.Int64Value(2048)),
                     /* ... */
                 },
                 /* ... */

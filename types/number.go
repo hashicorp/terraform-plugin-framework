@@ -109,7 +109,11 @@ type Number struct {
 	// use the ValueBigFloat method to retrieve the Number value instead.
 	Value *big.Float
 
-	// state represents whether the Number is null, unknown, or known.
+	// state represents whether the Number is null, unknown, or known. During the
+	// exported field deprecation period, this state can also be "deprecated",
+	// which remains the zero-value for compatibility to ensure exported field
+	// updates take effect. The zero-value will be changed to null in a future
+	// version.
 	state valueState
 
 	// value contains the known value, if not null or unknown.

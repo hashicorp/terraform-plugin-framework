@@ -207,9 +207,7 @@ func MapUnknown(elementType attr.Type) Map {
 func MapValue(elementType attr.Type, elements map[string]attr.Value) (Map, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	// Ideally, Type() would not require a context.Context as it has no benefit
-	// here or elsewhere. There is also no benefit to adding it to the function
-	// parameters at the moment.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
 	ctx := context.Background()
 
 	for key, element := range elements {
@@ -321,7 +319,11 @@ type Map struct {
 	// elementType is the type of the elements in the Map.
 	elementType attr.Type
 
-	// state represents whether the Map is null, unknown, or known.
+	// state represents whether the Map is null, unknown, or known. During the
+	// exported field deprecation period, this state can also be "deprecated",
+	// which remains the zero-value for compatibility to ensure exported field
+	// updates take effect. The zero-value will be changed to null in a future
+	// version.
 	state valueState
 }
 

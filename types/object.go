@@ -184,9 +184,7 @@ func ObjectUnknown(attributeTypes map[string]attr.Type) Object {
 func ObjectValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	// Ideally, Type() would not require a context.Context as it has no benefit
-	// here or elsewhere. There is also no benefit to adding it to the function
-	// parameters at the moment.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
 	ctx := context.Background()
 
 	for name, attributeType := range attributeTypes {
@@ -325,7 +323,11 @@ type Object struct {
 	// attributeTypes is the type of the attributes in the Object.
 	attributeTypes map[string]attr.Type
 
-	// state represents whether the Object is null, unknown, or known.
+	// state represents whether the Object is null, unknown, or known. During the
+	// exported field deprecation period, this state can also be "deprecated",
+	// which remains the zero-value for compatibility to ensure exported field
+	// updates take effect. The zero-value will be changed to null in a future
+	// version.
 	state valueState
 }
 

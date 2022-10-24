@@ -164,7 +164,11 @@ type Float64 struct {
 	// use the ValueFloat64 method to retrieve the Float64 value instead.
 	Value float64
 
-	// state represents whether the Float64 is null, unknown, or known.
+	// state represents whether the Float64 is null, unknown, or known. During the
+	// exported field deprecation period, this state can also be "deprecated",
+	// which remains the zero-value for compatibility to ensure exported field
+	// updates take effect. The zero-value will be changed to null in a future
+	// version.
 	state valueState
 
 	// value contains the known value, if not null or unknown.

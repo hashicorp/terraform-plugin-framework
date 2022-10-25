@@ -234,6 +234,36 @@ func MapValue(elementType attr.Type, elements map[string]attr.Value) (Map, diag.
 	}, nil
 }
 
+// MapValueFrom creates a Map with a known value, using reflection rules.
+// The elements must be a map of string keys to values which can convert into
+// the given element type. Access the value via the Map type Elements or
+// ElementsAs methods.
+func MapValueFrom(ctx context.Context, elementType attr.Type, elements any) (Map, diag.Diagnostics) {
+	attrValue, diags := reflect.FromValue(
+		ctx,
+		MapType{ElemType: elementType},
+		elements,
+		path.Empty(),
+	)
+
+	if diags.HasError() {
+		return MapUnknown(elementType), diags
+	}
+
+	m, ok := attrValue.(Map)
+
+	// This should not happen, but ensure there is an error if it does.
+	if !ok {
+		diags.AddError(
+			"Unable to Convert Map Value",
+			"An unexpected result occurred when creating a Map using MapValueFrom. "+
+				"This is an issue with terraform-plugin-framework and should be reported to the provider developers.",
+		)
+	}
+
+	return m, diags
+}
+
 // MapValueMust creates a Map with a known value, converting any diagnostics
 // into a panic at runtime. Access the value via the Map
 // type Elements or ElementsAs methods.

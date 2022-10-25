@@ -639,6 +639,124 @@ func TestSetValue(t *testing.T) {
 	}
 }
 
+func TestSetValueFrom(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		elementType   attr.Type
+		elements      any
+		expected      Set
+		expectedDiags diag.Diagnostics
+	}{
+		"valid-StringType-[]attr.Value-empty": {
+			elementType: StringType,
+			elements:    []attr.Value{},
+			expected: Set{
+				ElemType: StringType,
+				Elems:    []attr.Value{},
+			},
+		},
+		"valid-StringType-[]types.String-empty": {
+			elementType: StringType,
+			elements:    []String{},
+			expected: Set{
+				ElemType: StringType,
+				Elems:    []attr.Value{},
+			},
+		},
+		"valid-StringType-[]types.String": {
+			elementType: StringType,
+			elements: []String{
+				StringNull(),
+				StringUnknown(),
+				StringValue("test"),
+			},
+			expected: Set{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Null: true},
+					String{Unknown: true},
+					String{Value: "test"},
+				},
+			},
+		},
+		"valid-StringType-[]*string": {
+			elementType: StringType,
+			elements: []*string{
+				nil,
+				pointer("test1"),
+				pointer("test2"),
+			},
+			expected: Set{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Null: true},
+					String{Value: "test1"},
+					String{Value: "test2"},
+				},
+			},
+		},
+		"valid-StringType-[]string": {
+			elementType: StringType,
+			elements: []string{
+				"test1",
+				"test2",
+			},
+			expected: Set{
+				ElemType: StringType,
+				Elems: []attr.Value{
+					String{Value: "test1"},
+					String{Value: "test2"},
+				},
+			},
+		},
+		"invalid-not-slice": {
+			elementType: StringType,
+			elements:    "oops",
+			expected:    SetUnknown(StringType),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Set Type Validation Error",
+					"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"expected Set value, received tftypes.Value with value: tftypes.String<\"oops\">",
+				),
+			},
+		},
+		"invalid-type": {
+			elementType: StringType,
+			elements:    []bool{true},
+			expected:    SetUnknown(StringType),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty().AtListIndex(0),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert the Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"can't unmarshal tftypes.Bool into *string, expected string",
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := SetValueFrom(context.Background(), testCase.elementType, testCase.elements)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("unexpected diagnostics difference: %s", diff)
+			}
+		})
+	}
+}
+
 // This test verifies the assumptions that creating the Value via function then
 // setting the fields directly has no effects.
 func TestSetValue_DeprecatedFieldSetting(t *testing.T) {

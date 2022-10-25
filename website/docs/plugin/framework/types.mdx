@@ -285,6 +285,7 @@ Call one of the following to create a `types.List`:
 * [`types.ListNull(attr.Type) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListNull): A null list value with the given element type.
 * [`types.ListUnknown(attr.Type) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListUnknown): An unknown list value with the given element type.
 * [`types.ListValue(attr.Type, []attr.Value) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValue): A known value with the given element type and values.
+* [`types.ListValueFrom(context.Context, attr.Type, any) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
 * [`types.ListValueMust(map[string]attr.Type, map[string]attr.Value) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ### MapType and Map
@@ -328,6 +329,7 @@ Call one of the following to create a `types.Map`:
 * [`types.MapNull(attr.Type)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapNull): A null map value with the given element type.
 * [`types.MapUnknown(attr.Type)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapUnknown): An unknown map value with the given element type.
 * [`types.MapValue(attr.Type, map[string]attr.Value) (types.Map, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValue): A known value with the given element type and values.
+* [`types.MapValueFrom(context.Context, attr.Type, any) (types.Map, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
 * [`types.MapValueMust(map[string]attr.Type, map[string]attr.Value) types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ### ObjectType and Object
@@ -375,6 +377,7 @@ Call one of the following to create a `types.Object`:
 * [`types.ObjectNull(map[string]attr.Type) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectNull): A null object value with the given attribute type mapping.
 * [`types.ObjectUnknown(map[string]attr.Type) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectUnknown): An unknown object value with the given attribute type mapping.
 * [`types.ObjectValue(map[string]attr.Type, map[string]attr.Value) (types.Object, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValue): A known value with the given attribute type mapping and attribute value mapping.
+* [`types.ObjectValueFrom(context.Context, attr.Type, any) (types.Object, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom): A known value with the given attribute type mapping and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
 * [`types.ObjectValueMust(map[string]attr.Type, map[string]attr.Value) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueMust): A known value with the given attribute type mapping and attribute value mapping. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ### SetType and Set
@@ -414,6 +417,7 @@ Call one of the following to create a `types.Set`:
 * [`types.SetNull(attr.Type) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetNull): A null list value with the given element type.
 * [`types.SetUnknown(attr.Type) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetUnknown): An unknown list value with the given element type.
 * [`types.SetValue(attr.Type, []attr.Value) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValue): A known value with the given element type and values.
+* [`types.SetValueFrom(context.Context, attr.Type, any) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
 * [`types.SetValueMust(map[string]attr.Type, map[string]attr.Value) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ## Create Provider-Defined Types and Values

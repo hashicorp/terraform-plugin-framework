@@ -90,13 +90,13 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, "world"),
 			}),
-			expected: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
+			expected: SetValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("world"),
 				},
-			},
+			),
 		},
 		"set-of-duplicate-strings": {
 			receiver: SetType{
@@ -110,13 +110,13 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 			}),
 			// Duplicate validation does not occur during this method.
 			// This is okay, as tftypes allows duplicates.
-			expected: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "hello"},
+			expected: SetValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringValue("hello"),
 				},
-			},
+			),
 		},
 		"unknown-set": {
 			receiver: SetType{
@@ -125,10 +125,7 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 			input: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
 			}, tftypes.UnknownValue),
-			expected: Set{
-				ElemType: StringType,
-				Unknown:  true,
-			},
+			expected: SetUnknown(StringType),
 		},
 		"partially-unknown-set": {
 			receiver: SetType{
@@ -140,13 +137,13 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
-			expected: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Unknown: true},
+			expected: SetValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringUnknown(),
 				},
-			},
+			),
 		},
 		"null-set": {
 			receiver: SetType{
@@ -155,10 +152,7 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 			input: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
 			}, nil),
-			expected: Set{
-				ElemType: StringType,
-				Null:     true,
-			},
+			expected: SetNull(StringType),
 		},
 		"partially-null-set": {
 			receiver: SetType{
@@ -170,13 +164,13 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, nil),
 			}),
-			expected: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Null: true},
+			expected: SetValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("hello"),
+					StringNull(),
 				},
-			},
+			),
 		},
 		"wrong-type": {
 			receiver: SetType{
@@ -200,11 +194,8 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 			receiver: SetType{
 				ElemType: StringType,
 			},
-			input: tftypes.NewValue(nil, nil),
-			expected: Set{
-				ElemType: StringType,
-				Null:     true,
-			},
+			input:    tftypes.NewValue(nil, nil),
+			expected: SetNull(StringType),
 		},
 	}
 	for name, test := range tests {
@@ -296,12 +287,13 @@ func TestSetElementsAs_stringSlice(t *testing.T) {
 	var stringSlice []string
 	expected := []string{"hello", "world"}
 
-	diags := (Set{
-		ElemType: StringType,
-		Elems: []attr.Value{
-			String{Value: "hello"},
-			String{Value: "world"},
-		}}).ElementsAs(context.Background(), &stringSlice, false)
+	diags := SetValueMust(
+		StringType,
+		[]attr.Value{
+			StringValue("hello"),
+			StringValue("world"),
+		},
+	).ElementsAs(context.Background(), &stringSlice, false)
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %s", diags)
 	}
@@ -315,16 +307,17 @@ func TestSetElementsAs_attributeValueSlice(t *testing.T) {
 
 	var stringSlice []String
 	expected := []String{
-		{Value: "hello"},
-		{Value: "world"},
+		StringValue("hello"),
+		StringValue("world"),
 	}
 
-	diags := (Set{
-		ElemType: StringType,
-		Elems: []attr.Value{
-			String{Value: "hello"},
-			String{Value: "world"},
-		}}).ElementsAs(context.Background(), &stringSlice, false)
+	diags := SetValueMust(
+		StringType,
+		[]attr.Value{
+			StringValue("hello"),
+			StringValue("world"),
+		},
+	).ElementsAs(context.Background(), &stringSlice, false)
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %s", diags)
 	}
@@ -651,18 +644,18 @@ func TestSetValueFrom(t *testing.T) {
 		"valid-StringType-[]attr.Value-empty": {
 			elementType: StringType,
 			elements:    []attr.Value{},
-			expected: Set{
-				ElemType: StringType,
-				Elems:    []attr.Value{},
-			},
+			expected: SetValueMust(
+				StringType,
+				[]attr.Value{},
+			),
 		},
 		"valid-StringType-[]types.String-empty": {
 			elementType: StringType,
 			elements:    []String{},
-			expected: Set{
-				ElemType: StringType,
-				Elems:    []attr.Value{},
-			},
+			expected: SetValueMust(
+				StringType,
+				[]attr.Value{},
+			),
 		},
 		"valid-StringType-[]types.String": {
 			elementType: StringType,
@@ -671,14 +664,14 @@ func TestSetValueFrom(t *testing.T) {
 				StringUnknown(),
 				StringValue("test"),
 			},
-			expected: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Null: true},
-					String{Unknown: true},
-					String{Value: "test"},
+			expected: SetValueMust(
+				StringType,
+				[]attr.Value{
+					StringNull(),
+					StringUnknown(),
+					StringValue("test"),
 				},
-			},
+			),
 		},
 		"valid-StringType-[]*string": {
 			elementType: StringType,
@@ -687,14 +680,14 @@ func TestSetValueFrom(t *testing.T) {
 				pointer("test1"),
 				pointer("test2"),
 			},
-			expected: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Null: true},
-					String{Value: "test1"},
-					String{Value: "test2"},
+			expected: SetValueMust(
+				StringType,
+				[]attr.Value{
+					StringNull(),
+					StringValue("test1"),
+					StringValue("test2"),
 				},
-			},
+			),
 		},
 		"valid-StringType-[]string": {
 			elementType: StringType,
@@ -702,13 +695,13 @@ func TestSetValueFrom(t *testing.T) {
 				"test1",
 				"test2",
 			},
-			expected: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "test1"},
-					String{Value: "test2"},
+			expected: SetValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("test1"),
+					StringValue("test2"),
 				},
-			},
+			),
 		},
 		"invalid-not-slice": {
 			elementType: StringType,
@@ -754,84 +747,6 @@ func TestSetValueFrom(t *testing.T) {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})
-	}
-}
-
-// This test verifies the assumptions that creating the Value via function then
-// setting the fields directly has no effects.
-func TestSetValue_DeprecatedFieldSetting(t *testing.T) {
-	t.Parallel()
-
-	knownSet := SetValueMust(StringType, []attr.Value{StringValue("test")})
-
-	knownSet.Null = true
-
-	if knownSet.IsNull() {
-		t.Error("unexpected null update after Null field setting")
-	}
-
-	knownSet.Unknown = true
-
-	if knownSet.IsUnknown() {
-		t.Error("unexpected unknown update after Unknown field setting")
-	}
-
-	knownSet.Elems = []attr.Value{StringValue("not-test")}
-
-	if knownSet.Elements()[0].Equal(StringValue("not-test")) {
-		t.Error("unexpected value update after Value field setting")
-	}
-}
-
-// This test verifies the assumptions that creating the Value via function then
-// setting the fields directly has no effects.
-func TestSetNull_DeprecatedFieldSetting(t *testing.T) {
-	t.Parallel()
-
-	nullSet := SetNull(StringType)
-
-	nullSet.Null = false
-
-	if !nullSet.IsNull() {
-		t.Error("unexpected null update after Null field setting")
-	}
-
-	nullSet.Unknown = true
-
-	if nullSet.IsUnknown() {
-		t.Error("unexpected unknown update after Unknown field setting")
-	}
-
-	nullSet.Elems = []attr.Value{StringValue("test")}
-
-	if len(nullSet.Elements()) > 0 {
-		t.Error("unexpected value update after Value field setting")
-	}
-}
-
-// This test verifies the assumptions that creating the Value via function then
-// setting the fields directly has no effects.
-func TestSetUnknown_DeprecatedFieldSetting(t *testing.T) {
-	t.Parallel()
-
-	unknownSet := SetUnknown(StringType)
-
-	unknownSet.Null = true
-
-	if unknownSet.IsNull() {
-		t.Error("unexpected null update after Null field setting")
-	}
-
-	unknownSet.Unknown = false
-
-	if !unknownSet.IsUnknown() {
-		t.Error("unexpected unknown update after Unknown field setting")
-	}
-
-	unknownSet.Elems = []attr.Value{StringValue("test")}
-
-	if len(unknownSet.Elements()) > 0 {
-		t.Error("unexpected value update after Value field setting")
 	}
 }
 
@@ -906,78 +821,6 @@ func TestSetToTerraformValue(t *testing.T) {
 			input:       SetNull(StringType),
 			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 		},
-		"deprecated-known": {
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "hello"),
-				tftypes.NewValue(tftypes.String, "world"),
-			}),
-		},
-		"deprecated-known-duplicates": {
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "hello"},
-				},
-			},
-			// Duplicate validation does not occur during this method.
-			// This is okay, as tftypes allows duplicates.
-			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "hello"),
-				tftypes.NewValue(tftypes.String, "hello"),
-			}),
-		},
-		"deprecated-unknown": {
-			input:       Set{ElemType: StringType, Unknown: true},
-			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, tftypes.UnknownValue),
-		},
-		"deprecated-null": {
-			input:       Set{ElemType: StringType, Null: true},
-			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-		},
-		"deprecated-known-partial-unknown": {
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Unknown: true},
-					String{Value: "hello, world"},
-				},
-			},
-			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				tftypes.NewValue(tftypes.String, "hello, world"),
-			}),
-		},
-		"deprecated-known-partial-null": {
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Null: true},
-					String{Value: "hello, world"},
-				},
-			},
-			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, nil),
-				tftypes.NewValue(tftypes.String, "hello, world"),
-			}),
-		},
-		"no-elem-type": {
-			input: Set{
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expectation: tftypes.Value{},
-			expectedErr: "cannot convert Set to tftypes.Value if ElemType field is not set",
-		},
 	}
 	for name, test := range tests {
 		name, test := name, test
@@ -1021,24 +864,12 @@ func TestSetElements(t *testing.T) {
 			input:    SetValueMust(StringType, []attr.Value{StringValue("test")}),
 			expected: []attr.Value{StringValue("test")},
 		},
-		"deprecated-known": {
-			input:    Set{ElemType: StringType, Elems: []attr.Value{StringValue("test")}},
-			expected: []attr.Value{StringValue("test")},
-		},
 		"null": {
 			input:    SetNull(StringType),
 			expected: nil,
 		},
-		"deprecated-null": {
-			input:    Set{ElemType: StringType, Null: true},
-			expected: nil,
-		},
 		"unknown": {
 			input:    SetUnknown(StringType),
-			expected: nil,
-		},
-		"deprecated-unknown": {
-			input:    Set{ElemType: StringType, Unknown: true},
 			expected: nil,
 		},
 	}
@@ -1069,24 +900,12 @@ func TestSetElementType(t *testing.T) {
 			input:    SetValueMust(StringType, []attr.Value{StringValue("test")}),
 			expected: StringType,
 		},
-		"deprecated-known": {
-			input:    Set{ElemType: StringType, Elems: []attr.Value{StringValue("test")}},
-			expected: StringType,
-		},
 		"null": {
 			input:    SetNull(StringType),
 			expected: StringType,
 		},
-		"deprecated-null": {
-			input:    Set{ElemType: StringType, Null: true},
-			expected: StringType,
-		},
 		"unknown": {
 			input:    SetUnknown(StringType),
-			expected: StringType,
-		},
-		"deprecated-unknown": {
-			input:    Set{ElemType: StringType, Unknown: true},
 			expected: StringType,
 		},
 	}
@@ -1268,231 +1087,6 @@ func TestSetEqual(t *testing.T) {
 			input:    nil,
 			expected: false,
 		},
-		"known-deprecated-known": {
-			receiver: SetValueMust(
-				StringType,
-				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
-				},
-			),
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expected: false, // intentional
-		},
-		"known-deprecated-unknown": {
-			receiver: SetValueMust(
-				StringType,
-				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
-				},
-			),
-			input:    Set{ElemType: StringType, Unknown: true},
-			expected: false,
-		},
-		"known-deprecated-null": {
-			receiver: SetValueMust(
-				StringType,
-				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
-				},
-			),
-			input:    Set{ElemType: StringType, Null: true},
-			expected: false,
-		},
-		"deprecated-known-deprecated-known": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expected: true,
-		},
-		"deprecated-known-deprecated-known-diff-value": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "goodnight"},
-					String{Value: "moon"},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-known-diff-length": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-					String{Value: "test"},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-known-diff-type": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input: Set{
-				ElemType: BoolType,
-				Elems: []attr.Value{
-					Bool{Value: false},
-					Bool{Value: true},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-known-diff-unknown": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Unknown: true},
-				},
-			},
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-known-diff-null": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Null: true},
-				},
-			},
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-unknown": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input:    Set{Unknown: true},
-			expected: false,
-		},
-		"deprecated-known-deprecated-null": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input:    Set{Null: true},
-			expected: false,
-		},
-		"deprecated-known-known": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input: SetValueMust(
-				StringType,
-				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
-				},
-			),
-			expected: false, // intentional
-		},
-		"deprecated-known-unknown": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input:    SetUnknown(StringType),
-			expected: false,
-		},
-		"deprecated-known-null": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input:    SetNull(StringType),
-			expected: false,
-		},
-		"deprecated-known-diff-type": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input:    String{Value: "hello, world"},
-			expected: false,
-		},
-		"deprecated-known-nil": {
-			receiver: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			input:    nil,
-			expected: false,
-		},
 	}
 	for name, test := range tests {
 		name, test := name, test
@@ -1518,29 +1112,13 @@ func TestSetIsNull(t *testing.T) {
 			input:    SetValueMust(StringType, []attr.Value{StringValue("test")}),
 			expected: false,
 		},
-		"deprecated-known": {
-			input:    Set{ElemType: StringType, Elems: []attr.Value{StringValue("test")}},
-			expected: false,
-		},
 		"null": {
 			input:    SetNull(StringType),
-			expected: true,
-		},
-		"deprecated-null": {
-			input:    Set{ElemType: StringType, Null: true},
 			expected: true,
 		},
 		"unknown": {
 			input:    SetUnknown(StringType),
 			expected: false,
-		},
-		"deprecated-unknown": {
-			input:    Set{ElemType: StringType, Unknown: true},
-			expected: false,
-		},
-		"deprecated-invalid": {
-			input:    Set{ElemType: StringType, Null: true, Unknown: true},
-			expected: true,
 		},
 	}
 
@@ -1570,28 +1148,12 @@ func TestSetIsUnknown(t *testing.T) {
 			input:    SetValueMust(StringType, []attr.Value{StringValue("test")}),
 			expected: false,
 		},
-		"deprecated-known": {
-			input:    Set{ElemType: StringType, Elems: []attr.Value{StringValue("test")}},
-			expected: false,
-		},
 		"null": {
 			input:    SetNull(StringType),
 			expected: false,
 		},
-		"deprecated-null": {
-			input:    Set{ElemType: StringType, Null: true},
-			expected: false,
-		},
 		"unknown": {
 			input:    SetUnknown(StringType),
-			expected: true,
-		},
-		"deprecated-unknown": {
-			input:    Set{ElemType: StringType, Unknown: true},
-			expected: true,
-		},
-		"deprecated-invalid": {
-			input:    Set{ElemType: StringType, Null: true, Unknown: true},
 			expected: true,
 		},
 	}
@@ -1661,51 +1223,9 @@ func TestSetString(t *testing.T) {
 			input:       SetNull(StringType),
 			expectation: "<null>",
 		},
-		"deprecated-known": {
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expectation: `["hello","world"]`,
-		},
-		"deprecated-known-set-of-sets": {
-			input: Set{
-				ElemType: SetType{
-					ElemType: StringType,
-				},
-				Elems: []attr.Value{
-					Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
-						},
-					},
-					Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "foo"},
-							String{Value: "bar"},
-						},
-					},
-				},
-			},
-			expectation: `[["hello","world"],["foo","bar"]]`,
-		},
-		"deprecated-unknown": {
-			input:       Set{Unknown: true},
-			expectation: "<unknown>",
-		},
-		"deprecated-null": {
-			input:       Set{Null: true},
-			expectation: "<null>",
-		},
-		"default-empty": {
+		"zero-value": {
 			input:       Set{},
-			expectation: "[]",
+			expectation: "<null>",
 		},
 	}
 
@@ -1774,52 +1294,6 @@ func TestSetType(t *testing.T) {
 		},
 		"null": {
 			input:       SetNull(StringType),
-			expectation: SetType{ElemType: StringType},
-		},
-		"deprecated-known": {
-			input: Set{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "hello"},
-					String{Value: "world"},
-				},
-			},
-			expectation: SetType{ElemType: StringType},
-		},
-		"deprecated-known-set-of-sets": {
-			input: Set{
-				ElemType: SetType{
-					ElemType: StringType,
-				},
-				Elems: []attr.Value{
-					Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
-						},
-					},
-					Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "foo"},
-							String{Value: "bar"},
-						},
-					},
-				},
-			},
-			expectation: SetType{
-				ElemType: SetType{
-					ElemType: StringType,
-				},
-			},
-		},
-		"deprecated-unknown": {
-			input:       Set{ElemType: StringType, Unknown: true},
-			expectation: SetType{ElemType: StringType},
-		},
-		"deprecated-null": {
-			input:       Set{ElemType: StringType, Null: true},
 			expectation: SetType{ElemType: StringType},
 		},
 	}

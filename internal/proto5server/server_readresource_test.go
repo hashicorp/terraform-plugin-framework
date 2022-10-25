@@ -295,7 +295,7 @@ func TestServerReadResource(t *testing.T) {
 
 											resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-											data.TestComputed = types.String{Value: "test-newstate-value"}
+											data.TestComputed = types.StringValue("test-newstate-value")
 
 											resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 										},

@@ -185,16 +185,16 @@ func TestPathsContains(t *testing.T) {
 		},
 		"ElementKeyValue-different": {
 			paths: path.Paths{
-				path.Empty().AtSetValue(types.String{Value: "test"}),
+				path.Empty().AtSetValue(types.StringValue("test")),
 			},
-			contains: path.Empty().AtSetValue(types.String{Value: "not-test"}),
+			contains: path.Empty().AtSetValue(types.StringValue("not-test")),
 			expected: false,
 		},
 		"ElementKeyValue-equal": {
 			paths: path.Paths{
-				path.Empty().AtSetValue(types.String{Value: "test"}),
+				path.Empty().AtSetValue(types.StringValue("test")),
 			},
-			contains: path.Empty().AtSetValue(types.String{Value: "test"}),
+			contains: path.Empty().AtSetValue(types.StringValue("test")),
 			expected: true,
 		},
 	}

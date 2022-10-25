@@ -18,33 +18,33 @@ func TestPathStepElementKeyValueEqual(t *testing.T) {
 		expected bool
 	}{
 		"PathStepAttributeName": {
-			step:     path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+			step:     path.PathStepElementKeyValue{Value: types.StringValue("test")},
 			other:    path.PathStepAttributeName("test"),
 			expected: false,
 		},
 		"PathStepElementKeyInt": {
-			step:     path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+			step:     path.PathStepElementKeyValue{Value: types.StringValue("test")},
 			other:    path.PathStepElementKeyInt(0),
 			expected: false,
 		},
 		"PathStepElementKeyString": {
-			step:     path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+			step:     path.PathStepElementKeyValue{Value: types.StringValue("test")},
 			other:    path.PathStepElementKeyString("test"),
 			expected: false,
 		},
 		"PathStepElementKeyValue-different-type": {
-			step:     path.PathStepElementKeyValue{Value: types.Bool{Value: true}},
-			other:    path.PathStepElementKeyValue{Value: types.String{Value: "not-test"}},
+			step:     path.PathStepElementKeyValue{Value: types.BoolValue(true)},
+			other:    path.PathStepElementKeyValue{Value: types.StringValue("not-test")},
 			expected: false,
 		},
 		"PathStepElementKeyValue-different-value": {
-			step:     path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
-			other:    path.PathStepElementKeyValue{Value: types.String{Value: "not-test"}},
+			step:     path.PathStepElementKeyValue{Value: types.StringValue("test")},
+			other:    path.PathStepElementKeyValue{Value: types.StringValue("not-test")},
 			expected: false,
 		},
 		"PathStepElementKeyValue-equal": {
-			step:     path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
-			other:    path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+			step:     path.PathStepElementKeyValue{Value: types.StringValue("test")},
+			other:    path.PathStepElementKeyValue{Value: types.StringValue("test")},
 			expected: true,
 		},
 	}
@@ -72,8 +72,8 @@ func TestPathStepElementKeyValueExpressionStep(t *testing.T) {
 		expected path.ExpressionStep
 	}{
 		"basic": {
-			step:     path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
-			expected: path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test"}},
+			step:     path.PathStepElementKeyValue{Value: types.StringValue("test")},
+			expected: path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test")},
 		},
 	}
 
@@ -100,60 +100,60 @@ func TestPathStepElementKeyValueString(t *testing.T) {
 		expected string
 	}{
 		"bool-value": {
-			step:     path.PathStepElementKeyValue{Value: types.Bool{Value: true}},
+			step:     path.PathStepElementKeyValue{Value: types.BoolValue(true)},
 			expected: `[Value(true)]`,
 		},
 		"float64-value": {
-			step:     path.PathStepElementKeyValue{Value: types.Float64{Value: 1.2}},
+			step:     path.PathStepElementKeyValue{Value: types.Float64Value(1.2)},
 			expected: `[Value(1.200000)]`,
 		},
 		"int64-value": {
-			step:     path.PathStepElementKeyValue{Value: types.Int64{Value: 123}},
+			step:     path.PathStepElementKeyValue{Value: types.Int64Value(123)},
 			expected: `[Value(123)]`,
 		},
 		"list-value": {
-			step: path.PathStepElementKeyValue{Value: types.List{
-				Elems: []attr.Value{
-					types.String{Value: "test-element-1"},
-					types.String{Value: "test-element-2"},
+			step: path.PathStepElementKeyValue{Value: types.ListValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("test-element-1"),
+					types.StringValue("test-element-2"),
 				},
-				ElemType: types.StringType,
-			}},
+			)},
 			expected: `[Value(["test-element-1","test-element-2"])]`,
 		},
 		"map-value": {
-			step: path.PathStepElementKeyValue{Value: types.Map{
-				Elems: map[string]attr.Value{
-					"test-key-1": types.String{Value: "test-value-1"},
-					"test-key-2": types.String{Value: "test-value-2"},
+			step: path.PathStepElementKeyValue{Value: types.MapValueMust(
+				types.StringType,
+				map[string]attr.Value{
+					"test-key-1": types.StringValue("test-value-1"),
+					"test-key-2": types.StringValue("test-value-2"),
 				},
-				ElemType: types.StringType,
-			}},
+			)},
 			expected: `[Value({"test-key-1":"test-value-1","test-key-2":"test-value-2"})]`,
 		},
 		"object-value": {
-			step: path.PathStepElementKeyValue{Value: types.Object{
-				Attrs: map[string]attr.Value{
-					"test_attr_1": types.Bool{Value: true},
-					"test_attr_2": types.String{Value: "test-value"},
-				},
-				AttrTypes: map[string]attr.Type{
+			step: path.PathStepElementKeyValue{Value: types.ObjectValueMust(
+				map[string]attr.Type{
 					"test_attr_1": types.BoolType,
 					"test_attr_2": types.StringType,
 				},
-			}},
+				map[string]attr.Value{
+					"test_attr_1": types.BoolValue(true),
+					"test_attr_2": types.StringValue("test-value"),
+				},
+			)},
 			expected: `[Value({"test_attr_1":true,"test_attr_2":"test-value"})]`,
 		},
 		"string-null": {
-			step:     path.PathStepElementKeyValue{Value: types.String{Null: true}},
+			step:     path.PathStepElementKeyValue{Value: types.StringNull()},
 			expected: `[Value(<null>)]`,
 		},
 		"string-unknown": {
-			step:     path.PathStepElementKeyValue{Value: types.String{Unknown: true}},
+			step:     path.PathStepElementKeyValue{Value: types.StringUnknown()},
 			expected: `[Value(<unknown>)]`,
 		},
 		"string-value": {
-			step:     path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+			step:     path.PathStepElementKeyValue{Value: types.StringValue("test")},
 			expected: `[Value("test")]`,
 		},
 	}

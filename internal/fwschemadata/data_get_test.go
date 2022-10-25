@@ -144,7 +144,7 @@ func TestDataGet(t *testing.T) {
 			}{
 				String: testtypes.String{
 					CreatedBy:      testtypes.StringTypeWithValidateError{},
-					InternalString: types.String{Value: ""},
+					InternalString: types.StringNull(),
 				},
 			},
 			expectedDiags: diag.Diagnostics{
@@ -180,7 +180,7 @@ func TestDataGet(t *testing.T) {
 			}{
 				String: testtypes.String{
 					CreatedBy:      testtypes.StringTypeWithValidateWarning{},
-					InternalString: types.String{Value: "test"},
+					InternalString: types.StringValue("test"),
 				},
 			},
 			expectedDiags: diag.Diagnostics{
@@ -222,8 +222,8 @@ func TestDataGet(t *testing.T) {
 				One types.String `tfsdk:"one"`
 				Two types.String `tfsdk:"two"`
 			}{
-				One: types.String{Value: "value1"},
-				Two: types.String{Value: "value2"},
+				One: types.StringValue("value1"),
+				Two: types.StringValue("value2"),
 			},
 		},
 		"BoolType-types.Bool-null": {
@@ -253,7 +253,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Bool types.Bool `tfsdk:"bool"`
 			}{
-				Bool: types.Bool{Null: true},
+				Bool: types.BoolNull(),
 			},
 		},
 		"BoolType-types.Bool-unknown": {
@@ -283,7 +283,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Bool types.Bool `tfsdk:"bool"`
 			}{
-				Bool: types.Bool{Unknown: true},
+				Bool: types.BoolUnknown(),
 			},
 		},
 		"BoolType-types.Bool-value": {
@@ -313,7 +313,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Bool types.Bool `tfsdk:"bool"`
 			}{
-				Bool: types.Bool{Value: true},
+				Bool: types.BoolValue(true),
 			},
 		},
 		"BoolType-*bool-null": {
@@ -550,7 +550,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Float64 types.Float64 `tfsdk:"float64"`
 			}{
-				Float64: types.Float64{Null: true},
+				Float64: types.Float64Null(),
 			},
 		},
 		"Float64Type-types.Float64-unknown": {
@@ -580,7 +580,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Float64 types.Float64 `tfsdk:"float64"`
 			}{
-				Float64: types.Float64{Unknown: true},
+				Float64: types.Float64Unknown(),
 			},
 		},
 		"Float64Type-types.Float64-value": {
@@ -610,7 +610,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Float64 types.Float64 `tfsdk:"float64"`
 			}{
-				Float64: types.Float64{Value: 1.2},
+				Float64: types.Float64Value(1.2),
 			},
 		},
 		"Float64Type-*float64-null": {
@@ -847,7 +847,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Int64 types.Int64 `tfsdk:"int64"`
 			}{
-				Int64: types.Int64{Null: true},
+				Int64: types.Int64Null(),
 			},
 		},
 		"Int64Type-types.Int64-unknown": {
@@ -877,7 +877,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Int64 types.Int64 `tfsdk:"int64"`
 			}{
-				Int64: types.Int64{Unknown: true},
+				Int64: types.Int64Unknown(),
 			},
 		},
 		"Int64Type-types.Int64-value": {
@@ -907,7 +907,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Int64 types.Int64 `tfsdk:"int64"`
 			}{
-				Int64: types.Int64{Value: 12},
+				Int64: types.Int64Value(12),
 			},
 		},
 		"Int64Type-*int64-null": {
@@ -1164,14 +1164,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				List types.List `tfsdk:"list"`
 			}{
-				List: types.List{
-					ElemType: types.ObjectType{
+				List: types.ListNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 			},
 		},
 		"ListBlock-types.List-unknown": {
@@ -1221,14 +1220,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				List types.List `tfsdk:"list"`
 			}{
-				List: types.List{
-					ElemType: types.ObjectType{
+				List: types.ListUnknown(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Unknown: true,
-				},
+				),
 			},
 		},
 		"ListBlock-types.List-value": {
@@ -1299,31 +1297,31 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				List types.List `tfsdk:"list"`
 			}{
-				List: types.List{
-					ElemType: types.ObjectType{
+				List: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "test1"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("test1"),
 							},
-						},
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "test2"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("test2"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 		},
 		"ListBlock-[]types.Object-null": {
@@ -1504,22 +1502,22 @@ func TestDataGet(t *testing.T) {
 				List []types.Object `tfsdk:"list"`
 			}{
 				List: []types.Object{
-					{
-						AttrTypes: map[string]attr.Type{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test1"),
 						},
-					},
-					{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test2"),
 						},
-					},
+					),
 				},
 			},
 		},
@@ -1715,8 +1713,8 @@ func TestDataGet(t *testing.T) {
 				List: []struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					{NestedString: types.String{Value: "test1"}},
-					{NestedString: types.String{Value: "test2"}},
+					{NestedString: types.StringValue("test1")},
+					{NestedString: types.StringValue("test2")},
 				},
 			},
 		},
@@ -1767,14 +1765,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				List types.List `tfsdk:"list"`
 			}{
-				List: types.List{
-					ElemType: types.ObjectType{
+				List: types.ListNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 			},
 		},
 		"ListNestedAttributes-types.List-unknown": {
@@ -1824,14 +1821,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				List types.List `tfsdk:"list"`
 			}{
-				List: types.List{
-					ElemType: types.ObjectType{
+				List: types.ListUnknown(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Unknown: true,
-				},
+				),
 			},
 		},
 		"ListNestedAttributes-types.List-value": {
@@ -1902,31 +1898,31 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				List types.List `tfsdk:"list"`
 			}{
-				List: types.List{
-					ElemType: types.ObjectType{
+				List: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "test1"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("test1"),
 							},
-						},
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "test2"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("test2"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 		},
 		"ListNestedAttributes-[]types.Object-null": {
@@ -2107,22 +2103,22 @@ func TestDataGet(t *testing.T) {
 				List []types.Object `tfsdk:"list"`
 			}{
 				List: []types.Object{
-					{
-						AttrTypes: map[string]attr.Type{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test1"),
 						},
-					},
-					{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test2"),
 						},
-					},
+					),
 				},
 			},
 		},
@@ -2318,8 +2314,8 @@ func TestDataGet(t *testing.T) {
 				List: []struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					{NestedString: types.String{Value: "test1"}},
-					{NestedString: types.String{Value: "test2"}},
+					{NestedString: types.StringValue("test1")},
+					{NestedString: types.StringValue("test2")},
 				},
 			},
 		},
@@ -2359,10 +2355,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				List types.List `tfsdk:"list"`
 			}{
-				List: types.List{
-					ElemType: types.StringType,
-					Null:     true,
-				},
+				List: types.ListNull(types.StringType),
 			},
 		},
 		"ListType-types.List-unknown": {
@@ -2401,10 +2394,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				List types.List `tfsdk:"list"`
 			}{
-				List: types.List{
-					ElemType: types.StringType,
-					Unknown:  true,
-				},
+				List: types.ListUnknown(types.StringType),
 			},
 		},
 		"ListType-types.List-value": {
@@ -2446,13 +2436,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				List types.List `tfsdk:"list"`
 			}{
-				List: types.List{
-					ElemType: types.StringType,
-					Elems: []attr.Value{
-						types.String{Value: "test1"},
-						types.String{Value: "test2"},
+				List: types.ListValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("test1"),
+						types.StringValue("test2"),
 					},
-				},
+				),
 			},
 		},
 		"ListType-[]types.String-null": {
@@ -2582,8 +2572,8 @@ func TestDataGet(t *testing.T) {
 				List []types.String `tfsdk:"list"`
 			}{
 				List: []types.String{
-					{Value: "test1"},
-					{Value: "test2"},
+					types.StringValue("test1"),
+					types.StringValue("test2"),
 				},
 			},
 		},
@@ -2766,14 +2756,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Map types.Map `tfsdk:"map"`
 			}{
-				Map: types.Map{
-					ElemType: types.ObjectType{
+				Map: types.MapNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 			},
 		},
 		"MapNestedAttributes-types.Map-unknown": {
@@ -2823,14 +2812,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Map types.Map `tfsdk:"map"`
 			}{
-				Map: types.Map{
-					ElemType: types.ObjectType{
+				Map: types.MapUnknown(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Unknown: true,
-				},
+				),
 			},
 		},
 		"MapNestedAttributes-types.Map-value": {
@@ -2901,31 +2889,31 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Map types.Map `tfsdk:"map"`
 			}{
-				Map: types.Map{
-					ElemType: types.ObjectType{
+				Map: types.MapValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Elems: map[string]attr.Value{
-						"key1": types.Object{
-							AttrTypes: map[string]attr.Type{
+					map[string]attr.Value{
+						"key1": types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "value1"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("value1"),
 							},
-						},
-						"key2": types.Object{
-							AttrTypes: map[string]attr.Type{
+						),
+						"key2": types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "value2"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("value2"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 		},
 		"MapNestedAttributes-map[string]types.Object-null": {
@@ -3106,22 +3094,22 @@ func TestDataGet(t *testing.T) {
 				Map map[string]types.Object `tfsdk:"map"`
 			}{
 				Map: map[string]types.Object{
-					"key1": {
-						AttrTypes: map[string]attr.Type{
+					"key1": types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "value1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("value1"),
 						},
-					},
-					"key2": {
-						AttrTypes: map[string]attr.Type{
+					),
+					"key2": types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "value2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("value2"),
 						},
-					},
+					),
 				},
 			},
 		},
@@ -3317,8 +3305,8 @@ func TestDataGet(t *testing.T) {
 				Map: map[string]struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					"key1": {NestedString: types.String{Value: "value1"}},
-					"key2": {NestedString: types.String{Value: "value2"}},
+					"key1": {NestedString: types.StringValue("value1")},
+					"key2": {NestedString: types.StringValue("value2")},
 				},
 			},
 		},
@@ -3358,10 +3346,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Map types.Map `tfsdk:"map"`
 			}{
-				Map: types.Map{
-					ElemType: types.StringType,
-					Null:     true,
-				},
+				Map: types.MapNull(types.StringType),
 			},
 		},
 		"MapType-types.Map-unknown": {
@@ -3400,10 +3385,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Map types.Map `tfsdk:"map"`
 			}{
-				Map: types.Map{
-					ElemType: types.StringType,
-					Unknown:  true,
-				},
+				Map: types.MapUnknown(types.StringType),
 			},
 		},
 		"MapType-types.Map-value": {
@@ -3445,13 +3427,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Map types.Map `tfsdk:"map"`
 			}{
-				Map: types.Map{
-					ElemType: types.StringType,
-					Elems: map[string]attr.Value{
-						"key1": types.String{Value: "value1"},
-						"key2": types.String{Value: "value2"},
+				Map: types.MapValueMust(
+					types.StringType,
+					map[string]attr.Value{
+						"key1": types.StringValue("value1"),
+						"key2": types.StringValue("value2"),
 					},
-				},
+				),
 			},
 		},
 		"MapType-map[string]types.String-null": {
@@ -3581,8 +3563,8 @@ func TestDataGet(t *testing.T) {
 				Map map[string]types.String `tfsdk:"map"`
 			}{
 				Map: map[string]types.String{
-					"key1": {Value: "value1"},
-					"key2": {Value: "value2"},
+					"key1": types.StringValue("value1"),
+					"key2": types.StringValue("value2"),
 				},
 			},
 		},
@@ -3760,12 +3742,11 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Object types.Object `tfsdk:"object"`
 			}{
-				Object: types.Object{
-					AttrTypes: map[string]attr.Type{
+				Object: types.ObjectNull(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Null: true,
-				},
+				),
 			},
 		},
 		"ObjectType-types.Object-unknown": {
@@ -3810,12 +3791,11 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Object types.Object `tfsdk:"object"`
 			}{
-				Object: types.Object{
-					AttrTypes: map[string]attr.Type{
+				Object: types.ObjectUnknown(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Unknown: true,
-				},
+				),
 			},
 		},
 		"ObjectType-types.Object-value": {
@@ -3862,14 +3842,14 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Object types.Object `tfsdk:"object"`
 			}{
-				Object: types.Object{
-					AttrTypes: map[string]attr.Type{
+				Object: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test1"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test1"),
 					},
-				},
+				),
 			},
 		},
 		"ObjectType-*struct-null": {
@@ -4030,7 +4010,7 @@ func TestDataGet(t *testing.T) {
 				Object: &struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					NestedString: types.String{Value: "test1"},
+					NestedString: types.StringValue("test1"),
 				},
 			},
 		},
@@ -4209,7 +4189,7 @@ func TestDataGet(t *testing.T) {
 				Object: struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					NestedString: types.String{Value: "test1"},
+					NestedString: types.StringValue("test1"),
 				},
 			},
 		},
@@ -4260,14 +4240,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Set types.Set `tfsdk:"set"`
 			}{
-				Set: types.Set{
-					ElemType: types.ObjectType{
+				Set: types.SetNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 			},
 		},
 		"SetBlock-types.Set-unknown": {
@@ -4317,14 +4296,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Set types.Set `tfsdk:"set"`
 			}{
-				Set: types.Set{
-					ElemType: types.ObjectType{
+				Set: types.SetUnknown(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Unknown: true,
-				},
+				),
 			},
 		},
 		"SetBlock-types.Set-value": {
@@ -4395,31 +4373,31 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Set types.Set `tfsdk:"set"`
 			}{
-				Set: types.Set{
-					ElemType: types.ObjectType{
+				Set: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "test1"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("test1"),
 							},
-						},
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "test2"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("test2"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 		},
 		"SetBlock-[]types.Object-null": {
@@ -4600,22 +4578,22 @@ func TestDataGet(t *testing.T) {
 				Set []types.Object `tfsdk:"set"`
 			}{
 				Set: []types.Object{
-					{
-						AttrTypes: map[string]attr.Type{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test1"),
 						},
-					},
-					{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test2"),
 						},
-					},
+					),
 				},
 			},
 		},
@@ -4811,8 +4789,8 @@ func TestDataGet(t *testing.T) {
 				Set: []struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					{NestedString: types.String{Value: "test1"}},
-					{NestedString: types.String{Value: "test2"}},
+					{NestedString: types.StringValue("test1")},
+					{NestedString: types.StringValue("test2")},
 				},
 			},
 		},
@@ -4863,14 +4841,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Set types.Set `tfsdk:"set"`
 			}{
-				Set: types.Set{
-					ElemType: types.ObjectType{
+				Set: types.SetNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 			},
 		},
 		"SetNestedAttributes-types.Set-unknown": {
@@ -4920,14 +4897,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Set types.Set `tfsdk:"set"`
 			}{
-				Set: types.Set{
-					ElemType: types.ObjectType{
+				Set: types.SetUnknown(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Unknown: true,
-				},
+				),
 			},
 		},
 		"SetNestedAttributes-types.Set-value": {
@@ -4998,31 +4974,31 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Set types.Set `tfsdk:"set"`
 			}{
-				Set: types.Set{
-					ElemType: types.ObjectType{
+				Set: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "test1"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("test1"),
 							},
-						},
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_string": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_string": types.String{Value: "test2"},
+							map[string]attr.Value{
+								"nested_string": types.StringValue("test2"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 		},
 		"SetNestedAttributes-[]types.Object-null": {
@@ -5203,22 +5179,22 @@ func TestDataGet(t *testing.T) {
 				Set []types.Object `tfsdk:"set"`
 			}{
 				Set: []types.Object{
-					{
-						AttrTypes: map[string]attr.Type{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test1"),
 						},
-					},
-					{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test2"),
 						},
-					},
+					),
 				},
 			},
 		},
@@ -5414,8 +5390,8 @@ func TestDataGet(t *testing.T) {
 				Set: []struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					{NestedString: types.String{Value: "test1"}},
-					{NestedString: types.String{Value: "test2"}},
+					{NestedString: types.StringValue("test1")},
+					{NestedString: types.StringValue("test2")},
 				},
 			},
 		},
@@ -5455,10 +5431,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Set types.Set `tfsdk:"set"`
 			}{
-				Set: types.Set{
-					ElemType: types.StringType,
-					Null:     true,
-				},
+				Set: types.SetNull(types.StringType),
 			},
 		},
 		"SetType-types.Set-unknown": {
@@ -5497,10 +5470,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Set types.Set `tfsdk:"set"`
 			}{
-				Set: types.Set{
-					ElemType: types.StringType,
-					Unknown:  true,
-				},
+				Set: types.SetUnknown(types.StringType),
 			},
 		},
 		"SetType-types.Set-value": {
@@ -5542,13 +5512,13 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Set types.Set `tfsdk:"set"`
 			}{
-				Set: types.Set{
-					ElemType: types.StringType,
-					Elems: []attr.Value{
-						types.String{Value: "test1"},
-						types.String{Value: "test2"},
+				Set: types.SetValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("test1"),
+						types.StringValue("test2"),
 					},
-				},
+				),
 			},
 		},
 		"SetType-[]types.String-null": {
@@ -5678,8 +5648,8 @@ func TestDataGet(t *testing.T) {
 				Set []types.String `tfsdk:"set"`
 			}{
 				Set: []types.String{
-					{Value: "test1"},
-					{Value: "test2"},
+					types.StringValue("test1"),
+					types.StringValue("test2"),
 				},
 			},
 		},
@@ -5858,12 +5828,11 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Object types.Object `tfsdk:"object"`
 			}{
-				Object: types.Object{
-					AttrTypes: map[string]attr.Type{
+				Object: types.ObjectNull(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Null: true,
-				},
+				),
 			},
 		},
 		"SingleBlock-types.Object-unknown": {
@@ -5909,12 +5878,11 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Object types.Object `tfsdk:"object"`
 			}{
-				Object: types.Object{
-					AttrTypes: map[string]attr.Type{
+				Object: types.ObjectUnknown(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Unknown: true,
-				},
+				),
 			},
 		},
 		"SingleBlock-types.Object-value": {
@@ -5962,14 +5930,14 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Object types.Object `tfsdk:"object"`
 			}{
-				Object: types.Object{
-					AttrTypes: map[string]attr.Type{
+				Object: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test1"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test1"),
 					},
-				},
+				),
 			},
 		},
 		"SingleBlock-*struct-null": {
@@ -6133,7 +6101,7 @@ func TestDataGet(t *testing.T) {
 				Object: &struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					NestedString: types.String{Value: "test1"},
+					NestedString: types.StringValue("test1"),
 				},
 			},
 		},
@@ -6315,7 +6283,7 @@ func TestDataGet(t *testing.T) {
 				Object: struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					NestedString: types.String{Value: "test1"},
+					NestedString: types.StringValue("test1"),
 				},
 			},
 		},
@@ -6362,12 +6330,11 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Object types.Object `tfsdk:"object"`
 			}{
-				Object: types.Object{
-					AttrTypes: map[string]attr.Type{
+				Object: types.ObjectNull(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Null: true,
-				},
+				),
 			},
 		},
 		"SingleNestedAttributes-types.Object-unknown": {
@@ -6413,12 +6380,11 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Object types.Object `tfsdk:"object"`
 			}{
-				Object: types.Object{
-					AttrTypes: map[string]attr.Type{
+				Object: types.ObjectUnknown(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Unknown: true,
-				},
+				),
 			},
 		},
 		"SingleNestedAttributes-types.Object-value": {
@@ -6466,14 +6432,14 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Object types.Object `tfsdk:"object"`
 			}{
-				Object: types.Object{
-					AttrTypes: map[string]attr.Type{
+				Object: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test1"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test1"),
 					},
-				},
+				),
 			},
 		},
 		"SingleNestedAttributes-*struct-null": {
@@ -6637,7 +6603,7 @@ func TestDataGet(t *testing.T) {
 				Object: &struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					NestedString: types.String{Value: "test1"},
+					NestedString: types.StringValue("test1"),
 				},
 			},
 		},
@@ -6819,7 +6785,7 @@ func TestDataGet(t *testing.T) {
 				Object: struct {
 					NestedString types.String `tfsdk:"nested_string"`
 				}{
-					NestedString: types.String{Value: "test1"},
+					NestedString: types.StringValue("test1"),
 				},
 			},
 		},
@@ -6850,7 +6816,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				String types.String `tfsdk:"string"`
 			}{
-				String: types.String{Null: true},
+				String: types.StringNull(),
 			},
 		},
 		"StringType-types.string-unknown": {
@@ -6880,7 +6846,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				String types.String `tfsdk:"string"`
 			}{
-				String: types.String{Unknown: true},
+				String: types.StringUnknown(),
 			},
 		},
 		"StringType-types.string-value": {
@@ -6910,7 +6876,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				String types.String `tfsdk:"string"`
 			}{
-				String: types.String{Value: "test"},
+				String: types.StringValue("test"),
 			},
 		},
 		"StringType-*string-null": {

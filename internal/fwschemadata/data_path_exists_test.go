@@ -373,7 +373,7 @@ func TestDataPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "testvalue"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("testvalue")),
 			expected: true,
 		},
 		"WithAttributeName.WithElementKeyValue-mismatch-child": {
@@ -402,7 +402,7 @@ func TestDataPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "othervalue"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("othervalue")),
 			expected: false,
 		},
 		"WithAttributeName.WithElementKeyValue-mismatch-parent": {
@@ -423,7 +423,7 @@ func TestDataPathExists(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "othervalue"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("othervalue")),
 			expected: false,
 		},
 	}

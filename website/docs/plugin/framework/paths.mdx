@@ -295,27 +295,27 @@ Examples below will presume a `nested_string_attribute` string value of `types.S
 The path which matches the object associated with the `root_set_attribute` block is:
 
 ```go
-path.Root("root_set_attribute").AtSetValue(types.Object{
-	AttrTypes: map[string]attr.Type{
+path.Root("root_set_attribute").AtSetValue(types.ObjectValueMust(
+	map[string]attr.Type{
 		"nested_string_attribute": types.StringType,
 	},
-	Attrs: map[string]attr.Value{
+	map[string]attr.Value{
 		"nested_string_attribute": types.StringValue("example"),
 	}
-})
+))
 ```
 
 The path which matches the `nested_string_attribute` string value associated with `root_set_attribute` block is:
 
 ```go
-path.Root("root_set_attribute").AtSetValue(types.Object{
-	AttrTypes: map[string]attr.Type{
+path.Root("root_set_attribute").AtSetValue(types.ObjectValueMust(
+	map[string]attr.Type{
 		"nested_string_attribute": types.StringType,
 	},
-	Attrs: map[string]attr.Value{
+	map[string]attr.Value{
 		"nested_string_attribute": types.StringValue("example"),
 	}
-}).AtName("nested_string_attribute")
+)).AtName("nested_string_attribute")
 ```
 
 #### Building Single Nested Attributes Paths
@@ -462,27 +462,27 @@ Examples below will presume a `block_string_attribute` string value of `types.St
 The path which matches the object associated with the `root_set_block` block is:
 
 ```go
-path.Root("root_set_block").AtSetValue(types.Object{
-	AttrTypes: map[string]attr.Type{
+path.Root("root_set_block").AtSetValue(types.ObjectValueMust(
+	map[string]attr.Type{
 		"block_string_attribute": types.StringType,
 	},
-	Attrs: map[string]attr.Value{
+	map[string]attr.Value{
 		"block_string_attribute": types.StringValue("example"),
 	}
-})
+))
 ```
 
 The path which matches the `block_string_attribute` string value associated with `root_set_block` block is:
 
 ```go
-path.Root("root_set_block").AtSetValue(types.Object{
-	AttrTypes: map[string]attr.Type{
+path.Root("root_set_block").AtSetValue(types.ObjectValueMust(
+	map[string]attr.Type{
 		"block_string_attribute": types.StringType,
 	},
-	Attrs: map[string]attr.Value{
+	map[string]attr.Value{
 		"block_string_attribute": types.StringValue("example"),
 	}
-}).AtName("block_string_attribute")
+)).AtName("block_string_attribute")
 ```
 
 #### Building Single Block Paths

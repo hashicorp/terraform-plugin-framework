@@ -177,8 +177,6 @@ func (r *passwordResource) ImportState(ctx context.Context, req resource.ImportS
         MinNumeric: types.Int64Value(0),
     }
 
-    state.Keepers.ElemType = types.StringType
-
     hash, err := generateHash(id)
     if err != nil {
         resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)

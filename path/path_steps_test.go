@@ -221,22 +221,22 @@ func TestPathStepsEqual(t *testing.T) {
 		"PathStepAttributeName-PathStepElementKeyValue-different": {
 			steps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			other: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "not-test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("not-test-value")},
 			},
 			expected: false,
 		},
 		"PathStepAttributeName-PathStepElementKeyValue-equal": {
 			steps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			other: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			expected: true,
 		},
@@ -278,19 +278,19 @@ func TestPathStepsEqual(t *testing.T) {
 		},
 		"PathStepElementKeyValue-different": {
 			steps: path.PathSteps{
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			other: path.PathSteps{
-				path.PathStepElementKeyValue{Value: types.String{Value: "not-test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("not-test-value")},
 			},
 			expected: false,
 		},
 		"PathStepElementKeyValue-equal": {
 			steps: path.PathSteps{
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			other: path.PathSteps{
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			expected: true,
 		},
@@ -582,23 +582,23 @@ func TestPathStepsString(t *testing.T) {
 		"AttributeName-ElementKeyValue": {
 			steps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			expected: `test[Value("test-value")]`,
 		},
 		"AttributeName-ElementKeyValue-AttributeName": {
 			steps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.Object{
-					Attrs: map[string]attr.Value{
-						"test_attr_1": types.Bool{Value: true},
-						"test_attr_2": types.String{Value: "test-value"},
-					},
-					AttrTypes: map[string]attr.Type{
+				path.PathStepElementKeyValue{Value: types.ObjectValueMust(
+					map[string]attr.Type{
 						"test_attr_1": types.BoolType,
 						"test_attr_2": types.StringType,
 					},
-				}},
+					map[string]attr.Value{
+						"test_attr_1": types.BoolValue(true),
+						"test_attr_2": types.StringValue("test-value"),
+					},
+				)},
 				path.PathStepAttributeName("test_attr_1"),
 			},
 			expected: `test[Value({"test_attr_1":true,"test_attr_2":"test-value"})].test_attr_1`,
@@ -617,7 +617,7 @@ func TestPathStepsString(t *testing.T) {
 		},
 		"ElementKeyValue": {
 			steps: path.PathSteps{
-				path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test")},
 			},
 			expected: `[Value("test")]`,
 		},

@@ -38,7 +38,7 @@ func TestExpressionStepElementKeyStringAnyEqual(t *testing.T) {
 		},
 		"ExpressionStepElementKeyValueExact": {
 			step:     path.ExpressionStepElementKeyStringAny{},
-			other:    path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test"}},
+			other:    path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test")},
 			expected: false,
 		},
 	}
@@ -83,7 +83,7 @@ func TestExpressionStepElementKeyStringAnyMatches(t *testing.T) {
 		},
 		"StepElementKeyValue": {
 			step:     path.ExpressionStepElementKeyStringAny{},
-			pathStep: path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+			pathStep: path.PathStepElementKeyValue{Value: types.StringValue("test")},
 			expected: false,
 		},
 	}

@@ -93,7 +93,7 @@ func (t TestAttrDefaultValueModifier) Modify(ctx context.Context, req tfsdk.Modi
 	configVal := req.AttributeConfig.(types.String)
 
 	if configVal.IsNull() {
-		resp.AttributePlan = types.String{Value: "DEFAULTVALUE"}
+		resp.AttributePlan = types.StringValue("DEFAULTVALUE")
 	}
 }
 

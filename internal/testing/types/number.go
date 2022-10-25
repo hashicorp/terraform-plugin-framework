@@ -42,13 +42,13 @@ func (t NumberType) TerraformType(_ context.Context) tftypes.Type {
 func (t NumberType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
 		return Number{
-			Number:    types.Number{Unknown: true},
+			Number:    types.NumberUnknown(),
 			CreatedBy: t,
 		}, nil
 	}
 	if in.IsNull() {
 		return Number{
-			Number:    types.Number{Null: true},
+			Number:    types.NumberNull(),
 			CreatedBy: t,
 		}, nil
 	}
@@ -58,7 +58,7 @@ func (t NumberType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 		return nil, err
 	}
 	return Number{
-		Number:    types.Number{Value: n},
+		Number:    types.NumberValue(n),
 		CreatedBy: t,
 	}, nil
 }

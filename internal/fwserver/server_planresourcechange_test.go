@@ -316,7 +316,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					&testprovider.AttributePlanModifier{
 						ModifyMethod: func(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-							resp.AttributePlan = types.String{Value: "test-attributeplanmodifier-value"}
+							resp.AttributePlan = types.StringValue("test-attributeplanmodifier-value")
 						},
 					},
 				},
@@ -1034,7 +1034,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-						data.TestComputed = types.String{Value: "test-plannedstate-value"}
+						data.TestComputed = types.StringValue("test-plannedstate-value")
 
 						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
 					},
@@ -1402,7 +1402,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Resource: &testprovider.ResourceWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 						// This is invalid logic to run during deletion.
-						resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("test_computed"), types.String{Value: "test-plannedstate-value"})...)
+						resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("test_computed"), types.StringValue("test-plannedstate-value"))...)
 					},
 				},
 			},
@@ -2172,7 +2172,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-						data.TestComputed = types.String{Value: "test-plannedstate-value"}
+						data.TestComputed = types.StringValue("test-plannedstate-value")
 
 						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
 					},

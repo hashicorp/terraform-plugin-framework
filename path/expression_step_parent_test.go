@@ -33,7 +33,7 @@ func TestExpressionStepParentEqual(t *testing.T) {
 		},
 		"ExpressionStepElementKeyValueExact": {
 			step:     path.ExpressionStepParent{},
-			other:    path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test"}},
+			other:    path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test")},
 			expected: false,
 		},
 		"StepParent": {
@@ -83,7 +83,7 @@ func TestExpressionStepParentMatches(t *testing.T) {
 		},
 		"StepElementKeyValue": {
 			step:     path.ExpressionStepParent{},
-			pathStep: path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+			pathStep: path.PathStepElementKeyValue{Value: types.StringValue("test")},
 			expected: false,
 		},
 	}

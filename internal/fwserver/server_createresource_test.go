@@ -393,8 +393,8 @@ func TestServerCreateResource(t *testing.T) {
 			expectedResponse: &fwserver.CreateResourceResponse{
 				NewState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
-						"test_computed": tftypes.NewValue(tftypes.String, ""),
-						"test_required": tftypes.NewValue(tftypes.String, ""),
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
 					}),
 					Schema: testSchema,
 				},

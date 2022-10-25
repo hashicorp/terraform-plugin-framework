@@ -444,7 +444,7 @@ func TestUpsertChildTerraformValue(t *testing.T) {
 			parentValue: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
 			}, nil),
-			childStep:  path.PathStepElementKeyValue{Value: types.String{Value: "one"}},
+			childStep:  path.PathStepElementKeyValue{Value: types.StringValue("one")},
 			childValue: tftypes.NewValue(tftypes.String, "one"),
 			expected: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -461,7 +461,7 @@ func TestUpsertChildTerraformValue(t *testing.T) {
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "one"),
 			}),
-			childStep:  path.PathStepElementKeyValue{Value: types.String{Value: "one"}},
+			childStep:  path.PathStepElementKeyValue{Value: types.StringValue("one")},
 			childValue: tftypes.NewValue(tftypes.String, "one"),
 			expected: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -478,7 +478,7 @@ func TestUpsertChildTerraformValue(t *testing.T) {
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "one"),
 			}),
-			childStep:  path.PathStepElementKeyValue{Value: types.String{Value: "two"}},
+			childStep:  path.PathStepElementKeyValue{Value: types.StringValue("two")},
 			childValue: tftypes.NewValue(tftypes.String, "two"),
 			expected: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,

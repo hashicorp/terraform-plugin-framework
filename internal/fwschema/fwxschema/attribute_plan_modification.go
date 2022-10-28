@@ -1,8 +1,8 @@
 package fwxschema
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // AttributeWithPlanModifiers is an optional interface on Attribute which enables
@@ -10,7 +10,7 @@ import (
 type AttributeWithPlanModifiers interface {
 	// Implementations should include the fwschema.Attribute interface methods
 	// for proper attribute handling.
-	fwschema.Attribute
+	types.Attribute
 
 	// GetPlanModifiers should return a list of attribute-based plan modifiers.
 	// This is named differently than PlanModifiers to prevent a conflict with

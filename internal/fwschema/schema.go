@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -18,16 +20,16 @@ type Schema interface {
 
 	// AttributeAtPath should return the Attribute at the given path or return
 	// an error.
-	AttributeAtPath(context.Context, path.Path) (Attribute, diag.Diagnostics)
+	AttributeAtPath(context.Context, path.Path) (types.Attribute, diag.Diagnostics)
 
 	// AttributeAtTerraformPath should return the Attribute at the given
 	// Terraform path or return an error.
-	AttributeAtTerraformPath(context.Context, *tftypes.AttributePath) (Attribute, error)
+	AttributeAtTerraformPath(context.Context, *tftypes.AttributePath) (types.Attribute, error)
 
 	// GetAttributes should return the attributes of a schema. This is named
 	// differently than Attributes to prevent a conflict with the tfsdk.Schema
 	// field name.
-	GetAttributes() map[string]Attribute
+	GetAttributes() map[string]types.Attribute
 
 	// GetBlocks should return the blocks of a schema. This is named
 	// differently than Blocks to prevent a conflict with the tfsdk.Schema

@@ -1,8 +1,9 @@
-package fwschema
+package types
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 // Attribute is the core interface required for implementing Terraform schema

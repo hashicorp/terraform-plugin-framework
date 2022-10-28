@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -29,7 +28,7 @@ type ModifyAttributePlanResponse struct {
 // The extra Attribute parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributeModifyPlan(ctx context.Context, a types.Attribute, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
 
 	var requiresReplace bool
@@ -97,7 +96,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 	nm := a.GetAttributes().GetNestingMode()
 	switch nm {
-	case fwschema.NestingModeList:
+	case types.NestingModeList:
 		configList, diags := coerceListValue(req.AttributePath, req.AttributeConfig)
 
 		resp.Diagnostics.Append(diags...)
@@ -219,7 +218,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 		if resp.Diagnostics.HasError() {
 			return
 		}
-	case fwschema.NestingModeSet:
+	case types.NestingModeSet:
 		configSet, diags := coerceSetValue(req.AttributePath, req.AttributeConfig)
 
 		resp.Diagnostics.Append(diags...)
@@ -341,7 +340,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 		if resp.Diagnostics.HasError() {
 			return
 		}
-	case fwschema.NestingModeMap:
+	case types.NestingModeMap:
 		configMap, diags := coerceMapValue(req.AttributePath, req.AttributeConfig)
 
 		resp.Diagnostics.Append(diags...)
@@ -463,7 +462,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 		if resp.Diagnostics.HasError() {
 			return
 		}
-	case fwschema.NestingModeSingle:
+	case types.NestingModeSingle:
 		configObject, diags := coerceObjectValue(req.AttributePath, req.AttributeConfig)
 
 		resp.Diagnostics.Append(diags...)

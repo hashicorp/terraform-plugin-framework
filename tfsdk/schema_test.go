@@ -7,12 +7,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestSchemaAttributeAtPath(t *testing.T) {
@@ -21,7 +21,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 	testCases := map[string]struct {
 		schema        Schema
 		path          path.Path
-		expected      fwschema.Attribute
+		expected      types.Attribute
 		expectedDiags diag.Diagnostics
 	}{
 		"empty-root": {

@@ -352,6 +352,10 @@ type List struct {
 	state valueState
 }
 
+func (l List) ToFrameworkValue() attr.Value {
+	return l
+}
+
 // Elements returns the collection of elements for the List. Returns nil if the
 // List is null or unknown.
 func (l List) Elements() []attr.Value {

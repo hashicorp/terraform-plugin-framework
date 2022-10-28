@@ -4,7 +4,8 @@ import (
 	"context"
 	"sort"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -12,7 +13,7 @@ import (
 // SchemaAttribute returns the *tfprotov6.SchemaAttribute equivalent of an
 // Attribute. Errors will be tftypes.AttributePathErrors based on `path`.
 // `name` is the name of the attribute.
-func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a fwschema.Attribute) (*tfprotov6.SchemaAttribute, error) {
+func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a types.Attribute) (*tfprotov6.SchemaAttribute, error) {
 	if a.GetAttributes() != nil && len(a.GetAttributes().GetAttributes()) > 0 && a.GetType() != nil {
 		return nil, path.NewErrorf("cannot have both Attributes and Type set")
 	}
@@ -56,13 +57,13 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 	object := &tfprotov6.SchemaObject{}
 	nm := a.GetAttributes().GetNestingMode()
 	switch nm {
-	case fwschema.NestingModeSingle:
+	case types.NestingModeSingle:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeSingle
-	case fwschema.NestingModeList:
+	case types.NestingModeList:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeList
-	case fwschema.NestingModeSet:
+	case types.NestingModeSet:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeSet
-	case fwschema.NestingModeMap:
+	case types.NestingModeMap:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeMap
 	default:
 		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)

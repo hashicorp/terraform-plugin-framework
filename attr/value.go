@@ -46,3 +46,7 @@ type Value interface {
 	// compatibility guarantees within the framework.
 	String() string
 }
+
+type FrameworkValue interface {
+	ToFrameworkValue() Value
+}

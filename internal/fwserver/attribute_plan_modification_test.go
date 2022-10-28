@@ -6,16 +6,16 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestAttributeModifyPlan(t *testing.T) {
@@ -30,7 +30,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testCases := map[string]struct {
-		attribute    fwschema.Attribute
+		attribute    types.Attribute
 		req          tfsdk.ModifyAttributePlanRequest
 		expectedResp ModifyAttributePlanResponse
 	}{

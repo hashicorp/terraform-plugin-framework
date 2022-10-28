@@ -1,11 +1,11 @@
-package fwschema_test
+package types_test
 
 import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -14,12 +14,12 @@ func TestListNestedAttributesType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		listNestedAttributes fwschema.ListNestedAttributes
+		listNestedAttributes types.ListNestedAttributes
 		expected             attr.Type
 	}{
 		"tfsdk-attribute": {
-			listNestedAttributes: fwschema.ListNestedAttributes{
-				UnderlyingAttributes: map[string]fwschema.Attribute{
+			listNestedAttributes: types.ListNestedAttributes{
+				UnderlyingAttributes: map[string]types.Attribute{
 					"test_nested_attribute": tfsdk.Attribute{
 						Required: true,
 						Type:     types.StringType,
@@ -55,12 +55,12 @@ func TestMapNestedAttributesType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		mapNestedAttributes fwschema.MapNestedAttributes
+		mapNestedAttributes types.MapNestedAttributes
 		expected            attr.Type
 	}{
 		"tfsdk-attribute": {
-			mapNestedAttributes: fwschema.MapNestedAttributes{
-				UnderlyingAttributes: map[string]fwschema.Attribute{
+			mapNestedAttributes: types.MapNestedAttributes{
+				UnderlyingAttributes: map[string]types.Attribute{
 					"test_nested_attribute": tfsdk.Attribute{
 						Required: true,
 						Type:     types.StringType,
@@ -96,12 +96,12 @@ func TestSetNestedAttributesType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		setNestedAttributes fwschema.SetNestedAttributes
+		setNestedAttributes types.SetNestedAttributes
 		expected            attr.Type
 	}{
 		"tfsdk-attribute": {
-			setNestedAttributes: fwschema.SetNestedAttributes{
-				UnderlyingAttributes: map[string]fwschema.Attribute{
+			setNestedAttributes: types.SetNestedAttributes{
+				UnderlyingAttributes: map[string]types.Attribute{
 					"test_nested_attribute": tfsdk.Attribute{
 						Required: true,
 						Type:     types.StringType,
@@ -137,12 +137,12 @@ func TestSingleNestedAttributesType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		singleNestedAttributes fwschema.SingleNestedAttributes
+		singleNestedAttributes types.SingleNestedAttributes
 		expected               attr.Type
 	}{
 		"tfsdk-attribute": {
-			singleNestedAttributes: fwschema.SingleNestedAttributes{
-				UnderlyingAttributes: map[string]fwschema.Attribute{
+			singleNestedAttributes: types.SingleNestedAttributes{
+				UnderlyingAttributes: map[string]types.Attribute{
 					"test_nested_attribute": tfsdk.Attribute{
 						Required: true,
 						Type:     types.StringType,

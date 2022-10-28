@@ -3,24 +3,34 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func coerceListValue(schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
-	list, ok := value.(types.List)
-
+	// TODO: This assertion can be removed once attr.Value has been updated to include FrameworkValue interface for all attr.Value(s)
+	_, ok := value.(attr.FrameworkValue)
 	if !ok {
 		return types.List{Null: true}, diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
 		}
 	}
 
-	return list, nil
+	l := value.(attr.FrameworkValue).ToFrameworkValue()
+
+	_, ok = l.(types.List)
+	if !ok {
+		return types.List{Null: true}, diag.Diagnostics{
+			attributePlanModificationWalkError(schemaPath, value),
+		}
+	}
+
+	return l.(types.List), nil
 }
 
 func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {

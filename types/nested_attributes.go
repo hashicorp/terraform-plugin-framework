@@ -1,10 +1,10 @@
-package fwschema
+package types
 
 import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -108,7 +108,7 @@ func (n UnderlyingAttributes) Type() attr.Type {
 	for name, attr := range n {
 		attrTypes[name] = attr.FrameworkType()
 	}
-	return types.ObjectType{
+	return ObjectType{
 		AttrTypes: attrTypes,
 	}
 }
@@ -219,7 +219,7 @@ func (l ListNestedAttributes) Equal(o NestedAttributes) bool {
 
 // Type returns the framework type of the nested attributes.
 func (l ListNestedAttributes) Type() attr.Type {
-	return types.ListType{
+	return ListType{
 		ElemType: l.UnderlyingAttributes.Type(),
 	}
 }
@@ -272,7 +272,7 @@ func (s SetNestedAttributes) Equal(o NestedAttributes) bool {
 
 // Type returns the framework type of the nested attributes.
 func (s SetNestedAttributes) Type() attr.Type {
-	return types.SetType{
+	return SetType{
 		ElemType: s.UnderlyingAttributes.Type(),
 	}
 }
@@ -325,7 +325,7 @@ func (m MapNestedAttributes) Equal(o NestedAttributes) bool {
 
 // Type returns the framework type of the nested attributes.
 func (m MapNestedAttributes) Type() attr.Type {
-	return types.MapType{
+	return MapType{
 		ElemType: m.UnderlyingAttributes.Type(),
 	}
 }

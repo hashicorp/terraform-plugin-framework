@@ -2,6 +2,8 @@ package fwschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -24,7 +26,7 @@ type Block interface {
 	// GetAttributes should return the nested attributes of a block, if
 	// applicable. This is named differently than Attributes to prevent a
 	// conflict with the tfsdk.Block field name.
-	GetAttributes() map[string]Attribute
+	GetAttributes() map[string]types.Attribute
 
 	// GetBlocks should return the nested blocks of a block, if
 	// applicable. This is named differently than Blocks to prevent a

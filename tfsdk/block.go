@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ tftypes.AttributePathStepper = Block{}
@@ -158,7 +159,7 @@ func (b Block) Equal(o fwschema.Block) bool {
 }
 
 // GetAttributes satisfies the fwschema.Block interface.
-func (b Block) GetAttributes() map[string]fwschema.Attribute {
+func (b Block) GetAttributes() map[string]types.Attribute {
 	return schemaAttributes(b.Attributes)
 }
 

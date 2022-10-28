@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
@@ -140,7 +141,7 @@ func (s Schema) TypeAtTerraformPath(_ context.Context, path *tftypes.AttributePa
 	switch typ := rawType.(type) {
 	case attr.Type:
 		return typ, nil
-	case fwschema.UnderlyingAttributes:
+	case types.UnderlyingAttributes:
 		return typ.Type(), nil
 	case fwschema.NestedBlock:
 		return typ.Block.Type(), nil
@@ -156,7 +157,7 @@ func (s Schema) TypeAtTerraformPath(_ context.Context, path *tftypes.AttributePa
 }
 
 // GetAttributes satisfies the fwschema.Schema interface.
-func (s Schema) GetAttributes() map[string]fwschema.Attribute {
+func (s Schema) GetAttributes() map[string]types.Attribute {
 	return schemaAttributes(s.Attributes)
 }
 
@@ -203,7 +204,7 @@ func (s Schema) Type() attr.Type {
 // AttributeAtPath returns the Attribute at the passed path. If the path points
 // to an element or attribute of a complex type, rather than to an Attribute,
 // it will return an ErrPathInsideAtomicAttribute error.
-func (s Schema) AttributeAtPath(ctx context.Context, schemaPath path.Path) (fwschema.Attribute, diag.Diagnostics) {
+func (s Schema) AttributeAtPath(ctx context.Context, schemaPath path.Path) (types.Attribute, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	tftypesPath, tftypesDiags := totftypes.AttributePath(ctx, schemaPath)
@@ -234,7 +235,7 @@ func (s Schema) AttributeAtPath(ctx context.Context, schemaPath path.Path) (fwsc
 // AttributeAtPath returns the Attribute at the passed path. If the path points
 // to an element or attribute of a complex type, rather than to an Attribute,
 // it will return an ErrPathInsideAtomicAttribute error.
-func (s Schema) AttributeAtTerraformPath(_ context.Context, path *tftypes.AttributePath) (fwschema.Attribute, error) {
+func (s Schema) AttributeAtTerraformPath(_ context.Context, path *tftypes.AttributePath) (types.Attribute, error) {
 	res, remaining, err := tftypes.WalkAttributePath(s, path)
 	if err != nil {
 		return Attribute{}, fmt.Errorf("%v still remains in the path: %w", remaining, err)
@@ -243,11 +244,11 @@ func (s Schema) AttributeAtTerraformPath(_ context.Context, path *tftypes.Attrib
 	switch r := res.(type) {
 	case attr.Type:
 		return Attribute{}, ErrPathInsideAtomicAttribute
-	case fwschema.UnderlyingAttributes:
+	case types.UnderlyingAttributes:
 		return Attribute{}, ErrPathInsideAtomicAttribute
 	case fwschema.NestedBlock:
 		return Attribute{}, ErrPathInsideAtomicAttribute
-	case fwschema.Attribute:
+	case types.Attribute:
 		return r, nil
 	case Block:
 		return Attribute{}, ErrPathIsBlock
@@ -257,8 +258,8 @@ func (s Schema) AttributeAtTerraformPath(_ context.Context, path *tftypes.Attrib
 }
 
 // schemaAttributes is a tfsdk to fwschema type conversion function.
-func schemaAttributes(attributes map[string]Attribute) map[string]fwschema.Attribute {
-	result := make(map[string]fwschema.Attribute, len(attributes))
+func schemaAttributes(attributes map[string]Attribute) map[string]types.Attribute {
+	result := make(map[string]types.Attribute, len(attributes))
 
 	for name, attribute := range attributes {
 		result[name] = attribute

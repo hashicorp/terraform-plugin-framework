@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -18,7 +18,7 @@ import (
 // The extra Attribute parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func AttributeValidate(ctx context.Context, a types.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
 	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
 
 	if (a.GetAttributes() == nil || len(a.GetAttributes().GetAttributes()) == 0) && a.GetType() == nil {
@@ -132,15 +132,16 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.Vali
 // The extra Attribute parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func AttributeValidateNestedAttributes(ctx context.Context, a types.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
 	if a.GetAttributes() == nil || len(a.GetAttributes().GetAttributes()) == 0 {
 		return
 	}
 
 	nm := a.GetAttributes().GetNestingMode()
 	switch nm {
-	case fwschema.NestingModeList:
-		l, ok := req.AttributeConfig.(types.List)
+	case types.NestingModeList:
+		// TODO: This assertion can be removed once attr.Value has been updated to include FrameworkValue interface for all attr.Value(s)
+		_, ok := req.AttributeConfig.(attr.FrameworkValue)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
@@ -153,7 +154,21 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		for idx := range l.Elements() {
+		l := req.AttributeConfig.(attr.FrameworkValue).ToFrameworkValue()
+
+		_, ok = l.(types.List)
+		if !ok {
+			err := fmt.Errorf("unknown framework value (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Attribute Validation Error",
+				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+			)
+
+			return
+		}
+
+		for idx := range l.(types.List).Elements() {
 			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtListIndex(idx).AtName(nestedName),
@@ -169,7 +184,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
-	case fwschema.NestingModeSet:
+	case types.NestingModeSet:
 		s, ok := req.AttributeConfig.(types.Set)
 
 		if !ok {
@@ -199,7 +214,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
-	case fwschema.NestingModeMap:
+	case types.NestingModeMap:
 		m, ok := req.AttributeConfig.(types.Map)
 
 		if !ok {
@@ -229,7 +244,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 				resp.Diagnostics = nestedAttrResp.Diagnostics
 			}
 		}
-	case fwschema.NestingModeSingle:
+	case types.NestingModeSingle:
 		o, ok := req.AttributeConfig.(types.Object)
 
 		if !ok {

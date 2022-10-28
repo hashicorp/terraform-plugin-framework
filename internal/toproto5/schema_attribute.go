@@ -3,7 +3,8 @@ package toproto5
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -11,7 +12,7 @@ import (
 // SchemaAttribute returns the *tfprotov5.SchemaAttribute equivalent of an
 // Attribute. Errors will be tftypes.AttributePathErrors based on `path`.
 // `name` is the name of the attribute.
-func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a fwschema.Attribute) (*tfprotov5.SchemaAttribute, error) {
+func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a types.Attribute) (*tfprotov5.SchemaAttribute, error) {
 	if a.GetAttributes() != nil && len(a.GetAttributes().GetAttributes()) > 0 {
 		return nil, path.NewErrorf("protocol version 5 cannot have Attributes set")
 	}

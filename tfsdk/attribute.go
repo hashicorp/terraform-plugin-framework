@@ -4,7 +4,8 @@ import (
 	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -12,7 +13,7 @@ import (
 // fwxschema.AttributeWithPlanModifiers and fwxschema.AttributeWithValidators
 // interfaces, however we cannot check that here or it would introduce an
 // import cycle.
-var _ fwschema.Attribute = Attribute{}
+var _ types.Attribute = Attribute{}
 
 // Attribute defines the constraints and behaviors of a single value field in a
 // schema. Attributes are the fields that show up in Terraform state files and
@@ -29,7 +30,7 @@ type Attribute struct {
 	// type.
 	//
 	// If Attributes is set, Type cannot be.
-	Attributes fwschema.NestedAttributes
+	Attributes types.NestedAttributes
 
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this attribute is,
@@ -159,7 +160,7 @@ func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSt
 }
 
 // Equal returns true if `a` and `o` should be considered Equal.
-func (a Attribute) Equal(o fwschema.Attribute) bool {
+func (a Attribute) Equal(o types.Attribute) bool {
 	if _, ok := o.(Attribute); !ok {
 		return false
 	}
@@ -212,7 +213,7 @@ func (a Attribute) FrameworkType() attr.Type {
 }
 
 // GetAttributes satisfies the fwschema.Attribute interface.
-func (a Attribute) GetAttributes() fwschema.NestedAttributes {
+func (a Attribute) GetAttributes() types.NestedAttributes {
 	return a.Attributes
 }
 

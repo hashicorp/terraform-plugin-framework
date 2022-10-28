@@ -488,8 +488,6 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 			return
 		}
 
-		planAttributes := planObject.Attributes()
-
 		for name, attr := range a.GetAttributes().GetAttributes() {
 			attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 

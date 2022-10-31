@@ -377,6 +377,10 @@ type ObjectAsOptions struct {
 	UnhandledUnknownAsEmpty bool
 }
 
+func (o Object) ToFrameworkValue() attr.Value {
+	return o
+}
+
 // As populates `target` with the data in the Object, throwing an error if the
 // data cannot be stored in `target`.
 func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions) diag.Diagnostics {

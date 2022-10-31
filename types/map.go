@@ -357,6 +357,10 @@ type Map struct {
 	state valueState
 }
 
+func (m Map) ToFrameworkValue() attr.Value {
+	return m
+}
+
 // Elements returns the mapping of elements for the Map. Returns nil if the
 // Map is null or unknown.
 func (m Map) Elements() map[string]attr.Value {

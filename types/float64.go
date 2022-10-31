@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
@@ -173,6 +174,10 @@ type Float64 struct {
 
 	// value contains the known value, if not null or unknown.
 	value float64
+}
+
+func (f Float64) ToFrameworkValue() attr.Value {
+	return f
 }
 
 // Equal returns true if `other` is a Float64 and has the same value as `f`.

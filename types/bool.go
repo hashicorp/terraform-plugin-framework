@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 var (
@@ -112,6 +113,10 @@ type Bool struct {
 
 	// value contains the known value, if not null or unknown.
 	value bool
+}
+
+func (b Bool) ToFrameworkValue() attr.Value {
+	return b
 }
 
 // Type returns a BoolType.

@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
@@ -75,6 +76,10 @@ type String struct {
 
 func (s String) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	return s.InternalString.ToTerraformValue(ctx)
+}
+
+func (s String) ToFrameworkValue() attr.Value {
+	return s.InternalString
 }
 
 func (s String) Type(_ context.Context) attr.Type {

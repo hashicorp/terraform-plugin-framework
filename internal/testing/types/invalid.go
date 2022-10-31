@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 var (
@@ -45,6 +46,10 @@ func (t InvalidType) ValueType(_ context.Context) attr.Value {
 
 // Invalid is an attr.Value that returns errors for methods than can return errors.
 type Invalid struct{}
+
+func (i Invalid) ToFrameworkValue() attr.Value {
+	return i
+}
 
 func (i Invalid) Equal(o attr.Value) bool {
 	_, ok := o.(Invalid)

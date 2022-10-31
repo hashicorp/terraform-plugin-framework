@@ -13,24 +13,16 @@ import (
 )
 
 func coerceListValue(schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
-	// TODO: This assertion can be removed once attr.Value has been updated to include FrameworkValue interface for all attr.Value(s)
-	_, ok := value.(attr.FrameworkValue)
+	v := value.ToFrameworkValue()
+
+	l, ok := v.(types.List)
 	if !ok {
 		return types.List{Null: true}, diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
 		}
 	}
 
-	l := value.(attr.FrameworkValue).ToFrameworkValue()
-
-	_, ok = l.(types.List)
-	if !ok {
-		return types.List{Null: true}, diag.Diagnostics{
-			attributePlanModificationWalkError(schemaPath, value),
-		}
-	}
-
-	return l.(types.List), nil
+	return l, nil
 }
 
 func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {

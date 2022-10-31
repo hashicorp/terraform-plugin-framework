@@ -45,6 +45,8 @@ type Value interface {
 	// logging and error reporting, as they are not protected by
 	// compatibility guarantees within the framework.
 	String() string
+
+	FrameworkValue
 }
 
 type FrameworkValue interface {

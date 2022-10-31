@@ -384,6 +384,10 @@ type Set struct {
 	state valueState
 }
 
+func (s Set) ToFrameworkValue() attr.Value {
+	return s
+}
+
 // Elements returns the collection of elements for the Set. Returns nil if the
 // Set is null or unknown.
 func (s Set) Elements() []attr.Value {

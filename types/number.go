@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 var (
@@ -118,6 +119,10 @@ type Number struct {
 
 	// value contains the known value, if not null or unknown.
 	value *big.Float
+}
+
+func (n Number) ToFrameworkValue() attr.Value {
+	return n
 }
 
 // Type returns a NumberType.

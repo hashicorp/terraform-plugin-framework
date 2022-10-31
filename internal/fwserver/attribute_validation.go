@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -140,23 +139,9 @@ func AttributeValidateNestedAttributes(ctx context.Context, a types.Attribute, r
 	nm := a.GetAttributes().GetNestingMode()
 	switch nm {
 	case types.NestingModeList:
-		// TODO: This assertion can be removed once attr.Value has been updated to include FrameworkValue interface for all attr.Value(s)
-		_, ok := req.AttributeConfig.(attr.FrameworkValue)
+		v := req.AttributeConfig.ToFrameworkValue()
 
-		if !ok {
-			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
-			resp.Diagnostics.AddAttributeError(
-				req.AttributePath,
-				"Attribute Validation Error",
-				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
-			)
-
-			return
-		}
-
-		l := req.AttributeConfig.(attr.FrameworkValue).ToFrameworkValue()
-
-		_, ok = l.(types.List)
+		l, ok := v.(types.List)
 		if !ok {
 			err := fmt.Errorf("unknown framework value (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
@@ -168,7 +153,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a types.Attribute, r
 			return
 		}
 
-		for idx := range l.(types.List).Elements() {
+		for idx := range l.Elements() {
 			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtListIndex(idx).AtName(nestedName),

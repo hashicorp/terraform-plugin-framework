@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 var (
@@ -112,6 +113,10 @@ type String struct {
 
 	// value contains the known value, if not null or unknown.
 	value string
+}
+
+func (s String) ToFrameworkValue() attr.Value {
+	return s
 }
 
 // Type returns a StringType.

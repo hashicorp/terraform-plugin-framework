@@ -26,8 +26,9 @@ func coerceListValue(schemaPath path.Path, value attr.Value) (types.List, diag.D
 }
 
 func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {
-	m, ok := value.(types.Map)
+	v := value.ToFrameworkValue()
 
+	m, ok := v.(types.Map)
 	if !ok {
 		return types.Map{Null: true}, diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
@@ -38,8 +39,9 @@ func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Dia
 }
 
 func coerceObjectValue(schemaPath path.Path, value attr.Value) (types.Object, diag.Diagnostics) {
-	object, ok := value.(types.Object)
+	v := value.ToFrameworkValue()
 
+	object, ok := v.(types.Object)
 	if !ok {
 		return types.Object{Null: true}, diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
@@ -50,7 +52,9 @@ func coerceObjectValue(schemaPath path.Path, value attr.Value) (types.Object, di
 }
 
 func coerceSetValue(schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
-	set, ok := value.(types.Set)
+	v := value.ToFrameworkValue()
+
+	set, ok := v.(types.Set)
 
 	if !ok {
 		return types.Set{Null: true}, diag.Diagnostics{

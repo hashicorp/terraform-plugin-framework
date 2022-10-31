@@ -41,7 +41,7 @@ struct with types that satisfy the `tfsdk.AttributeValidator` interface. Validat
 predefined validators in SDKv2 are
 [available for the Framework](https://github.com/hashicorp/terraform-plugin-framework-validators). If the predefined
 validators do not meet your needs, you must define
-[custom validators](/plugin/framework/migrating/validators-custom).
+[custom validators](/plugin/framework/migrating/attributes-blocks/validators-custom).
 
 ```go
 func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -83,7 +83,7 @@ available for the Framework:
   - [ExactlyOneOf](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#ExactlyOneOf)
   - [AtLeastOneOf](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#AtLeastOneOf)
   - [AlsoRequires](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#AlsoRequires)
-- Define [custom validators](/plugin/framework/migrating/validators-custom) when the predefined validators do not meet
+- Define [custom validators](/plugin/framework/migrating/attributes-blocks/validators-custom) when the predefined validators do not meet
 your requirements.
 
 ## Example

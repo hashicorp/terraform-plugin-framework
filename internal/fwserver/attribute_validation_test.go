@@ -2,17 +2,171 @@ package fwserver
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+type ListNestedAttributesCustomType struct {
+	types.NestedAttributes
+}
+
+func (t ListNestedAttributesCustomType) Type() attr.Type {
+	return ListNestedAttributesCustomTypeType{
+		t.NestedAttributes.Type(),
+	}
+}
+
+type ListNestedAttributesCustomTypeType struct {
+	attr.Type
+}
+
+func (tt ListNestedAttributesCustomTypeType) ValueFromTerraform(ctx context.Context, value tftypes.Value) (attr.Value, error) {
+	val, err := tt.Type.ValueFromTerraform(ctx, value)
+	if err != nil {
+		return nil, err
+	}
+
+	list, ok := val.(types.List)
+	if !ok {
+		return nil, fmt.Errorf("cannot assert %T as types.List", val)
+	}
+
+	return ListNestedAttributesCustomValue{
+		list,
+	}, nil
+}
+
+type ListNestedAttributesCustomValue struct {
+	types.List
+}
+
+func (v ListNestedAttributesCustomValue) ToFrameworkValue() attr.Value {
+	return v.List
+}
+
+type MapNestedAttributesCustomType struct {
+	types.NestedAttributes
+}
+
+func (t MapNestedAttributesCustomType) Type() attr.Type {
+	return MapNestedAttributesCustomTypeType{
+		t.NestedAttributes.Type(),
+	}
+}
+
+type MapNestedAttributesCustomTypeType struct {
+	attr.Type
+}
+
+func (tt MapNestedAttributesCustomTypeType) ValueFromTerraform(ctx context.Context, value tftypes.Value) (attr.Value, error) {
+	val, err := tt.Type.ValueFromTerraform(ctx, value)
+	if err != nil {
+		return nil, err
+	}
+
+	m, ok := val.(types.Map)
+	if !ok {
+		return nil, fmt.Errorf("cannot assert %T as types.Map", val)
+	}
+
+	return MapNestedAttributesCustomValue{
+		m,
+	}, nil
+}
+
+type MapNestedAttributesCustomValue struct {
+	types.Map
+}
+
+func (v MapNestedAttributesCustomValue) ToFrameworkValue() attr.Value {
+	return v.Map
+}
+
+type SetNestedAttributesCustomType struct {
+	types.NestedAttributes
+}
+
+func (t SetNestedAttributesCustomType) Type() attr.Type {
+	return SetNestedAttributesCustomTypeType{
+		t.NestedAttributes.Type(),
+	}
+}
+
+type SetNestedAttributesCustomTypeType struct {
+	attr.Type
+}
+
+func (tt SetNestedAttributesCustomTypeType) ValueFromTerraform(ctx context.Context, value tftypes.Value) (attr.Value, error) {
+	val, err := tt.Type.ValueFromTerraform(ctx, value)
+	if err != nil {
+		return nil, err
+	}
+
+	s, ok := val.(types.Set)
+	if !ok {
+		return nil, fmt.Errorf("cannot assert %T as types.Set", val)
+	}
+
+	return SetNestedAttributesCustomValue{
+		s,
+	}, nil
+}
+
+type SetNestedAttributesCustomValue struct {
+	types.Set
+}
+
+func (v SetNestedAttributesCustomValue) ToFrameworkValue() attr.Value {
+	return v.Set
+}
+
+type SingleNestedAttributesCustomType struct {
+	types.NestedAttributes
+}
+
+func (t SingleNestedAttributesCustomType) Type() attr.Type {
+	return SingleNestedAttributesCustomTypeType{
+		t.NestedAttributes.Type(),
+	}
+}
+
+type SingleNestedAttributesCustomTypeType struct {
+	attr.Type
+}
+
+func (tt SingleNestedAttributesCustomTypeType) ValueFromTerraform(ctx context.Context, value tftypes.Value) (attr.Value, error) {
+	val, err := tt.Type.ValueFromTerraform(ctx, value)
+	if err != nil {
+		return nil, err
+	}
+
+	s, ok := val.(types.Object)
+	if !ok {
+		return nil, fmt.Errorf("cannot assert %T as types.Object", val)
+	}
+
+	return SingleNestedAttributesCustomValue{
+		s,
+	}, nil
+}
+
+type SingleNestedAttributesCustomValue struct {
+	types.Object
+}
+
+func (v SingleNestedAttributesCustomValue) ToFrameworkValue() attr.Value {
+	return v.Object
+}
 
 func TestAttributeValidate(t *testing.T) {
 	t.Parallel()
@@ -729,6 +883,131 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"nested-custom-attr-list-no-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: ListNestedAttributesCustomType{
+									tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"nested-custom-attr-list-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: ListNestedAttributesCustomType{
+									tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+											Validators: []tfsdk.AttributeValidator{
+												testErrorAttributeValidator{},
+											},
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
 		"nested-attr-map-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -838,6 +1117,131 @@ func TestAttributeValidate(t *testing.T) {
 										},
 									},
 								}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
+		"nested-custom-attr-map-no-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: MapNestedAttributesCustomType{
+									tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"nested-custom-attr-map-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: MapNestedAttributesCustomType{
+									tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+											Validators: []tfsdk.AttributeValidator{
+												testErrorAttributeValidator{},
+											},
+										},
+									}),
+								},
 								Required: true,
 							},
 						},
@@ -971,6 +1375,131 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"nested-custom-attr-set-no-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: SetNestedAttributesCustomType{
+									tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"nested-custom-attr-set-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: SetNestedAttributesCustomType{
+									tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+											Validators: []tfsdk.AttributeValidator{
+												testErrorAttributeValidator{},
+											},
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
 		"nested-attr-single-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -1053,6 +1582,104 @@ func TestAttributeValidate(t *testing.T) {
 										},
 									},
 								}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
+		"nested-custom-attr-single-no-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: SingleNestedAttributesCustomType{
+									tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"nested-custom-attr-single-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: SingleNestedAttributesCustomType{
+									tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+											Validators: []tfsdk.AttributeValidator{
+												testErrorAttributeValidator{},
+											},
+										},
+									}),
+								},
 								Required: true,
 							},
 						},

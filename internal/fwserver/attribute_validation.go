@@ -170,8 +170,9 @@ func AttributeValidateNestedAttributes(ctx context.Context, a types.Attribute, r
 			}
 		}
 	case types.NestingModeSet:
-		s, ok := req.AttributeConfig.(types.Set)
+		v := req.AttributeConfig.ToFrameworkValue()
 
+		s, ok := v.(types.Set)
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
@@ -200,8 +201,9 @@ func AttributeValidateNestedAttributes(ctx context.Context, a types.Attribute, r
 			}
 		}
 	case types.NestingModeMap:
-		m, ok := req.AttributeConfig.(types.Map)
+		v := req.AttributeConfig.ToFrameworkValue()
 
+		m, ok := v.(types.Map)
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
@@ -230,8 +232,9 @@ func AttributeValidateNestedAttributes(ctx context.Context, a types.Attribute, r
 			}
 		}
 	case types.NestingModeSingle:
-		o, ok := req.AttributeConfig.(types.Object)
+		v := req.AttributeConfig.ToFrameworkValue()
 
+		o, ok := v.(types.Object)
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(

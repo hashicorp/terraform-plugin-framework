@@ -212,7 +212,7 @@ func TestServerReadDataSource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-						data.TestComputed = types.String{Value: "test-state-value"}
+						data.TestComputed = types.StringValue("test-state-value")
 
 						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 					},

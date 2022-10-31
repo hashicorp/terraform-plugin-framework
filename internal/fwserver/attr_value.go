@@ -15,7 +15,7 @@ func coerceListValue(schemaPath path.Path, value attr.Value) (types.List, diag.D
 	list, ok := value.(types.List)
 
 	if !ok {
-		return types.List{Null: true}, diag.Diagnostics{
+		return types.ListNull(nil), diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
 		}
 	}
@@ -27,7 +27,7 @@ func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Dia
 	m, ok := value.(types.Map)
 
 	if !ok {
-		return types.Map{Null: true}, diag.Diagnostics{
+		return types.MapNull(nil), diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
 		}
 	}
@@ -39,7 +39,7 @@ func coerceObjectValue(schemaPath path.Path, value attr.Value) (types.Object, di
 	object, ok := value.(types.Object)
 
 	if !ok {
-		return types.Object{Null: true}, diag.Diagnostics{
+		return types.ObjectNull(nil), diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
 		}
 	}
@@ -51,7 +51,7 @@ func coerceSetValue(schemaPath path.Path, value attr.Value) (types.Set, diag.Dia
 	set, ok := value.(types.Set)
 
 	if !ok {
-		return types.Set{Null: true}, diag.Diagnostics{
+		return types.SetNull(nil), diag.Diagnostics{
 			attributePlanModificationWalkError(schemaPath, value),
 		}
 	}
@@ -80,7 +80,7 @@ func listElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path,
 	elemValue, err := elemType.ValueFromTerraform(ctx, tftypes.NewValue(elemType.TerraformType(ctx), tfValue))
 
 	if err != nil {
-		return types.Object{Null: true}, diag.Diagnostics{
+		return types.ObjectNull(nil), diag.Diagnostics{
 			attributePlanModificationValueError(ctx, list, description, err),
 		}
 	}
@@ -111,7 +111,7 @@ func mapElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path, 
 	elemValue, err := elemType.ValueFromTerraform(ctx, tftypes.NewValue(elemType.TerraformType(ctx), tfValue))
 
 	if err != nil {
-		return types.Object{Null: true}, diag.Diagnostics{
+		return types.ObjectNull(nil), diag.Diagnostics{
 			attributePlanModificationValueError(ctx, m, description, err),
 		}
 	}
@@ -170,7 +170,7 @@ func setElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path, 
 	elemValue, err := elemType.ValueFromTerraform(ctx, tftypes.NewValue(elemType.TerraformType(ctx), tfValue))
 
 	if err != nil {
-		return types.Object{Null: true}, diag.Diagnostics{
+		return types.ObjectNull(nil), diag.Diagnostics{
 			attributePlanModificationValueError(ctx, set, description, err),
 		}
 	}

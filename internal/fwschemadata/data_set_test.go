@@ -106,7 +106,7 @@ func TestDataSet(t *testing.T) {
 				Two   *string      `tfsdk:"two"`
 				Three string       `tfsdk:"three"`
 			}{
-				One:   types.String{Unknown: true},
+				One:   types.StringUnknown(),
 				Two:   nil,
 				Three: "value3",
 			},

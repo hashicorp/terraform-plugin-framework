@@ -125,7 +125,7 @@ func TestDataGetAtPath(t *testing.T) {
 			target: new(testtypes.String),
 			expected: &testtypes.String{
 				CreatedBy:      testtypes.StringTypeWithValidateError{},
-				InternalString: types.String{Value: ""},
+				InternalString: types.StringNull(),
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestErrorDiagnostic(path.Root("string")),
@@ -156,7 +156,7 @@ func TestDataGetAtPath(t *testing.T) {
 			target: new(testtypes.String),
 			expected: &testtypes.String{
 				CreatedBy:      testtypes.StringTypeWithValidateWarning{},
-				InternalString: types.String{Value: "test"},
+				InternalString: types.StringValue("test"),
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(path.Root("string")),
@@ -185,7 +185,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("bool"),
 			target:   new(types.Bool),
-			expected: &types.Bool{Null: true},
+			expected: pointer(types.BoolNull()),
 		},
 		"BoolType-types.Bool-unknown": {
 			data: fwschemadata.Data{
@@ -210,7 +210,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("bool"),
 			target:   new(types.Bool),
-			expected: &types.Bool{Unknown: true},
+			expected: pointer(types.BoolUnknown()),
 		},
 		"BoolType-types.Bool-value": {
 			data: fwschemadata.Data{
@@ -235,7 +235,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("bool"),
 			target:   new(types.Bool),
-			expected: &types.Bool{Value: true},
+			expected: pointer(types.BoolValue(true)),
 		},
 		"BoolType-*bool-null": {
 			data: fwschemadata.Data{
@@ -437,7 +437,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("float64"),
 			target:   new(types.Float64),
-			expected: &types.Float64{Null: true},
+			expected: pointer(types.Float64Null()),
 		},
 		"Float64Type-types.Float64-unknown": {
 			data: fwschemadata.Data{
@@ -462,7 +462,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("float64"),
 			target:   new(types.Float64),
-			expected: &types.Float64{Unknown: true},
+			expected: pointer(types.Float64Unknown()),
 		},
 		"Float64Type-types.Float64-value": {
 			data: fwschemadata.Data{
@@ -487,7 +487,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("float64"),
 			target:   new(types.Float64),
-			expected: &types.Float64{Value: 1.2},
+			expected: pointer(types.Float64Value(1.2)),
 		},
 		"Float64Type-*float64-null": {
 			data: fwschemadata.Data{
@@ -689,7 +689,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("int64"),
 			target:   new(types.Int64),
-			expected: &types.Int64{Null: true},
+			expected: pointer(types.Int64Null()),
 		},
 		"Int64Type-types.Int64-unknown": {
 			data: fwschemadata.Data{
@@ -714,7 +714,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("int64"),
 			target:   new(types.Int64),
-			expected: &types.Int64{Unknown: true},
+			expected: pointer(types.Int64Unknown()),
 		},
 		"Int64Type-types.Int64-value": {
 			data: fwschemadata.Data{
@@ -739,7 +739,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("int64"),
 			target:   new(types.Int64),
-			expected: &types.Int64{Value: 12},
+			expected: pointer(types.Int64Value(12)),
 		},
 		"Int64Type-*int64-null": {
 			data: fwschemadata.Data{
@@ -961,14 +961,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("list"),
 			target: new(types.List),
-			expected: &types.List{
-				ElemType: types.ObjectType{
+			expected: pointer(types.ListNull(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Null: true,
-			},
+			)),
 		},
 		"ListBlock-types.List-unknown": {
 			data: fwschemadata.Data{
@@ -1013,14 +1012,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("list"),
 			target: new(types.List),
-			expected: &types.List{
-				ElemType: types.ObjectType{
+			expected: pointer(types.ListUnknown(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Unknown: true,
-			},
+			)),
 		},
 		"ListBlock-types.List-value": {
 			data: fwschemadata.Data{
@@ -1086,31 +1084,31 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("list"),
 			target: new(types.List),
-			expected: &types.List{
-				ElemType: types.ObjectType{
+			expected: pointer(types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test1"),
 						},
-					},
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test2"),
 						},
-					},
+					),
 				},
-			},
+			)),
 		},
 		"ListBlock-[]types.Object-null": {
 			data: fwschemadata.Data{
@@ -1276,22 +1274,22 @@ func TestDataGetAtPath(t *testing.T) {
 			path:   path.Root("list"),
 			target: new([]types.Object),
 			expected: &[]types.Object{
-				{
-					AttrTypes: map[string]attr.Type{
+				types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test1"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test1"),
 					},
-				},
-				{
-					AttrTypes: map[string]attr.Type{
+				),
+				types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test2"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test2"),
 					},
-				},
+				),
 			},
 		},
 		"ListBlock-[]struct-null": {
@@ -1470,8 +1468,8 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: &[]struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				{NestedString: types.String{Value: "test1"}},
-				{NestedString: types.String{Value: "test2"}},
+				{NestedString: types.StringValue("test1")},
+				{NestedString: types.StringValue("test2")},
 			},
 		},
 		"ListNestedAttributes-types.List-null": {
@@ -1517,14 +1515,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("list"),
 			target: new(types.List),
-			expected: &types.List{
-				ElemType: types.ObjectType{
+			expected: pointer(types.ListNull(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Null: true,
-			},
+			)),
 		},
 		"ListNestedAttributes-types.List-unknown": {
 			data: fwschemadata.Data{
@@ -1569,14 +1566,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("list"),
 			target: new(types.List),
-			expected: &types.List{
-				ElemType: types.ObjectType{
+			expected: pointer(types.ListUnknown(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Unknown: true,
-			},
+			)),
 		},
 		"ListNestedAttributes-types.List-value": {
 			data: fwschemadata.Data{
@@ -1642,31 +1638,31 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("list"),
 			target: new(types.List),
-			expected: &types.List{
-				ElemType: types.ObjectType{
+			expected: pointer(types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test1"),
 						},
-					},
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test2"),
 						},
-					},
+					),
 				},
-			},
+			)),
 		},
 		"ListNestedAttributes-[]types.Object-null": {
 			data: fwschemadata.Data{
@@ -1832,22 +1828,22 @@ func TestDataGetAtPath(t *testing.T) {
 			path:   path.Root("list"),
 			target: new([]types.Object),
 			expected: &[]types.Object{
-				{
-					AttrTypes: map[string]attr.Type{
+				types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test1"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test1"),
 					},
-				},
-				{
-					AttrTypes: map[string]attr.Type{
+				),
+				types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test2"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test2"),
 					},
-				},
+				),
 			},
 		},
 		"ListNestedAttributes-[]struct-null": {
@@ -2026,8 +2022,8 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: &[]struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				{NestedString: types.String{Value: "test1"}},
-				{NestedString: types.String{Value: "test2"}},
+				{NestedString: types.StringValue("test1")},
+				{NestedString: types.StringValue("test2")},
 			},
 		},
 		"ListType-types.List-null": {
@@ -2060,12 +2056,9 @@ func TestDataGetAtPath(t *testing.T) {
 					},
 				),
 			},
-			path:   path.Root("list"),
-			target: new(types.List),
-			expected: &types.List{
-				ElemType: types.StringType,
-				Null:     true,
-			},
+			path:     path.Root("list"),
+			target:   new(types.List),
+			expected: pointer(types.ListNull(types.StringType)),
 		},
 		"ListType-types.List-unknown": {
 			data: fwschemadata.Data{
@@ -2097,12 +2090,9 @@ func TestDataGetAtPath(t *testing.T) {
 					},
 				),
 			},
-			path:   path.Root("list"),
-			target: new(types.List),
-			expected: &types.List{
-				ElemType: types.StringType,
-				Unknown:  true,
-			},
+			path:     path.Root("list"),
+			target:   new(types.List),
+			expected: pointer(types.ListUnknown(types.StringType)),
 		},
 		"ListType-types.List-value": {
 			data: fwschemadata.Data{
@@ -2139,13 +2129,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("list"),
 			target: new(types.List),
-			expected: &types.List{
-				ElemType: types.StringType,
-				Elems: []attr.Value{
-					types.String{Value: "test1"},
-					types.String{Value: "test2"},
+			expected: pointer(types.ListValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("test1"),
+					types.StringValue("test2"),
 				},
-			},
+			)),
 		},
 		"ListType-[]types.String-null": {
 			data: fwschemadata.Data{
@@ -2260,8 +2250,8 @@ func TestDataGetAtPath(t *testing.T) {
 			path:   path.Root("list"),
 			target: new([]types.String),
 			expected: &[]types.String{
-				{Value: "test1"},
-				{Value: "test2"},
+				types.StringValue("test1"),
+				types.StringValue("test2"),
 			},
 		},
 		"ListType-[]string-null": {
@@ -2424,14 +2414,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("map"),
 			target: new(types.Map),
-			expected: &types.Map{
-				ElemType: types.ObjectType{
+			expected: pointer(types.MapNull(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Null: true,
-			},
+			)),
 		},
 		"MapNestedAttributes-types.Map-unknown": {
 			data: fwschemadata.Data{
@@ -2476,14 +2465,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("map"),
 			target: new(types.Map),
-			expected: &types.Map{
-				ElemType: types.ObjectType{
+			expected: pointer(types.MapUnknown(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Unknown: true,
-			},
+			)),
 		},
 		"MapNestedAttributes-types.Map-value": {
 			data: fwschemadata.Data{
@@ -2549,31 +2537,31 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("map"),
 			target: new(types.Map),
-			expected: &types.Map{
-				ElemType: types.ObjectType{
+			expected: pointer(types.MapValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Elems: map[string]attr.Value{
-					"key1": types.Object{
-						AttrTypes: map[string]attr.Type{
+				map[string]attr.Value{
+					"key1": types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "value1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("value1"),
 						},
-					},
-					"key2": types.Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					"key2": types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "value2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("value2"),
 						},
-					},
+					),
 				},
-			},
+			)),
 		},
 		"MapNestedAttributes-map[string]types.Object-null": {
 			data: fwschemadata.Data{
@@ -2739,22 +2727,22 @@ func TestDataGetAtPath(t *testing.T) {
 			path:   path.Root("map"),
 			target: new(map[string]types.Object),
 			expected: &map[string]types.Object{
-				"key1": {
-					AttrTypes: map[string]attr.Type{
+				"key1": types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "value1"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("value1"),
 					},
-				},
-				"key2": {
-					AttrTypes: map[string]attr.Type{
+				),
+				"key2": types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "value2"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("value2"),
 					},
-				},
+				),
 			},
 		},
 		"MapNestedAttributes-map[string]struct-null": {
@@ -2933,8 +2921,8 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: &map[string]struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				"key1": {NestedString: types.String{Value: "value1"}},
-				"key2": {NestedString: types.String{Value: "value2"}},
+				"key1": {NestedString: types.StringValue("value1")},
+				"key2": {NestedString: types.StringValue("value2")},
 			},
 		},
 		"MapType-types.Map-null": {
@@ -2967,12 +2955,9 @@ func TestDataGetAtPath(t *testing.T) {
 					},
 				),
 			},
-			path:   path.Root("map"),
-			target: new(types.Map),
-			expected: &types.Map{
-				ElemType: types.StringType,
-				Null:     true,
-			},
+			path:     path.Root("map"),
+			target:   new(types.Map),
+			expected: pointer(types.MapNull(types.StringType)),
 		},
 		"MapType-types.Map-unknown": {
 			data: fwschemadata.Data{
@@ -3004,12 +2989,9 @@ func TestDataGetAtPath(t *testing.T) {
 					},
 				),
 			},
-			path:   path.Root("map"),
-			target: new(types.Map),
-			expected: &types.Map{
-				ElemType: types.StringType,
-				Unknown:  true,
-			},
+			path:     path.Root("map"),
+			target:   new(types.Map),
+			expected: pointer(types.MapUnknown(types.StringType)),
 		},
 		"MapType-types.Map-value": {
 			data: fwschemadata.Data{
@@ -3046,13 +3028,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("map"),
 			target: new(types.Map),
-			expected: &types.Map{
-				ElemType: types.StringType,
-				Elems: map[string]attr.Value{
-					"key1": types.String{Value: "value1"},
-					"key2": types.String{Value: "value2"},
+			expected: pointer(types.MapValueMust(
+				types.StringType,
+				map[string]attr.Value{
+					"key1": types.StringValue("value1"),
+					"key2": types.StringValue("value2"),
 				},
-			},
+			)),
 		},
 		"MapType-map[string]types.String-null": {
 			data: fwschemadata.Data{
@@ -3167,8 +3149,8 @@ func TestDataGetAtPath(t *testing.T) {
 			path:   path.Root("map"),
 			target: new(map[string]types.String),
 			expected: &map[string]types.String{
-				"key1": {Value: "value1"},
-				"key2": {Value: "value2"},
+				"key1": types.StringValue("value1"),
+				"key2": types.StringValue("value2"),
 			},
 		},
 		"MapType-map[string]string-null": {
@@ -3326,12 +3308,11 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("object"),
 			target: new(types.Object),
-			expected: &types.Object{
-				AttrTypes: map[string]attr.Type{
+			expected: pointer(types.ObjectNull(
+				map[string]attr.Type{
 					"nested_string": types.StringType,
 				},
-				Null: true,
-			},
+			)),
 		},
 		"ObjectType-types.Object-unknown": {
 			data: fwschemadata.Data{
@@ -3371,12 +3352,11 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("object"),
 			target: new(types.Object),
-			expected: &types.Object{
-				AttrTypes: map[string]attr.Type{
+			expected: pointer(types.ObjectUnknown(
+				map[string]attr.Type{
 					"nested_string": types.StringType,
 				},
-				Unknown: true,
-			},
+			)),
 		},
 		"ObjectType-types.Object-value": {
 			data: fwschemadata.Data{
@@ -3418,14 +3398,14 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("object"),
 			target: new(types.Object),
-			expected: &types.Object{
-				AttrTypes: map[string]attr.Type{
+			expected: pointer(types.ObjectValueMust(
+				map[string]attr.Type{
 					"nested_string": types.StringType,
 				},
-				Attrs: map[string]attr.Value{
-					"nested_string": types.String{Value: "test1"},
+				map[string]attr.Value{
+					"nested_string": types.StringValue("test1"),
 				},
-			},
+			)),
 		},
 		"ObjectType-*struct-null": {
 			data: fwschemadata.Data{
@@ -3569,7 +3549,7 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: pointer(&struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				NestedString: types.String{Value: "test1"},
+				NestedString: types.StringValue("test1"),
 			}),
 		},
 		"ObjectType-struct-null": {
@@ -3727,7 +3707,7 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: &struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				NestedString: types.String{Value: "test1"},
+				NestedString: types.StringValue("test1"),
 			},
 		},
 		"SetBlock-types.Set-null": {
@@ -3773,14 +3753,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("set"),
 			target: new(types.Set),
-			expected: &types.Set{
-				ElemType: types.ObjectType{
+			expected: pointer(types.SetNull(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Null: true,
-			},
+			)),
 		},
 		"SetBlock-types.Set-unknown": {
 			data: fwschemadata.Data{
@@ -3825,14 +3804,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("set"),
 			target: new(types.Set),
-			expected: &types.Set{
-				ElemType: types.ObjectType{
+			expected: pointer(types.SetUnknown(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Unknown: true,
-			},
+			)),
 		},
 		"SetBlock-types.Set-value": {
 			data: fwschemadata.Data{
@@ -3898,31 +3876,31 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("set"),
 			target: new(types.Set),
-			expected: &types.Set{
-				ElemType: types.ObjectType{
+			expected: pointer(types.SetValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test1"),
 						},
-					},
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test2"),
 						},
-					},
+					),
 				},
-			},
+			)),
 		},
 		"SetBlock-[]types.Object-null": {
 			data: fwschemadata.Data{
@@ -4088,22 +4066,22 @@ func TestDataGetAtPath(t *testing.T) {
 			path:   path.Root("set"),
 			target: new([]types.Object),
 			expected: &[]types.Object{
-				{
-					AttrTypes: map[string]attr.Type{
+				types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test1"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test1"),
 					},
-				},
-				{
-					AttrTypes: map[string]attr.Type{
+				),
+				types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test2"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test2"),
 					},
-				},
+				),
 			},
 		},
 		"SetBlock-[]struct-null": {
@@ -4282,8 +4260,8 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: &[]struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				{NestedString: types.String{Value: "test1"}},
-				{NestedString: types.String{Value: "test2"}},
+				{NestedString: types.StringValue("test1")},
+				{NestedString: types.StringValue("test2")},
 			},
 		},
 		"SetNestedAttributes-types.Set-null": {
@@ -4329,14 +4307,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("set"),
 			target: new(types.Set),
-			expected: &types.Set{
-				ElemType: types.ObjectType{
+			expected: pointer(types.SetNull(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Null: true,
-			},
+			)),
 		},
 		"SetNestedAttributes-types.Set-unknown": {
 			data: fwschemadata.Data{
@@ -4381,14 +4358,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("set"),
 			target: new(types.Set),
-			expected: &types.Set{
-				ElemType: types.ObjectType{
+			expected: pointer(types.SetUnknown(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Unknown: true,
-			},
+			)),
 		},
 		"SetNestedAttributes-types.Set-value": {
 			data: fwschemadata.Data{
@@ -4454,31 +4430,31 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("set"),
 			target: new(types.Set),
-			expected: &types.Set{
-				ElemType: types.ObjectType{
+			expected: pointer(types.SetValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test1"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test1"),
 						},
-					},
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_string": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_string": types.String{Value: "test2"},
+						map[string]attr.Value{
+							"nested_string": types.StringValue("test2"),
 						},
-					},
+					),
 				},
-			},
+			)),
 		},
 		"SetNestedAttributes-[]types.Object-null": {
 			data: fwschemadata.Data{
@@ -4644,22 +4620,22 @@ func TestDataGetAtPath(t *testing.T) {
 			path:   path.Root("set"),
 			target: new([]types.Object),
 			expected: &[]types.Object{
-				{
-					AttrTypes: map[string]attr.Type{
+				types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test1"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test1"),
 					},
-				},
-				{
-					AttrTypes: map[string]attr.Type{
+				),
+				types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_string": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_string": types.String{Value: "test2"},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test2"),
 					},
-				},
+				),
 			},
 		},
 		"SetNestedAttributes-[]struct-null": {
@@ -4838,8 +4814,8 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: &[]struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				{NestedString: types.String{Value: "test1"}},
-				{NestedString: types.String{Value: "test2"}},
+				{NestedString: types.StringValue("test1")},
+				{NestedString: types.StringValue("test2")},
 			},
 		},
 		"SetType-types.Set-null": {
@@ -4872,12 +4848,9 @@ func TestDataGetAtPath(t *testing.T) {
 					},
 				),
 			},
-			path:   path.Root("set"),
-			target: new(types.Set),
-			expected: &types.Set{
-				ElemType: types.StringType,
-				Null:     true,
-			},
+			path:     path.Root("set"),
+			target:   new(types.Set),
+			expected: pointer(types.SetNull(types.StringType)),
 		},
 		"SetType-types.Set-unknown": {
 			data: fwschemadata.Data{
@@ -4909,12 +4882,9 @@ func TestDataGetAtPath(t *testing.T) {
 					},
 				),
 			},
-			path:   path.Root("set"),
-			target: new(types.Set),
-			expected: &types.Set{
-				ElemType: types.StringType,
-				Unknown:  true,
-			},
+			path:     path.Root("set"),
+			target:   new(types.Set),
+			expected: pointer(types.SetUnknown(types.StringType)),
 		},
 		"SetType-types.Set-value": {
 			data: fwschemadata.Data{
@@ -4951,13 +4921,13 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("set"),
 			target: new(types.Set),
-			expected: &types.Set{
-				ElemType: types.StringType,
-				Elems: []attr.Value{
-					types.String{Value: "test1"},
-					types.String{Value: "test2"},
+			expected: pointer(types.SetValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("test1"),
+					types.StringValue("test2"),
 				},
-			},
+			)),
 		},
 		"SetType-[]types.String-null": {
 			data: fwschemadata.Data{
@@ -5072,8 +5042,8 @@ func TestDataGetAtPath(t *testing.T) {
 			path:   path.Root("set"),
 			target: new([]types.String),
 			expected: &[]types.String{
-				{Value: "test1"},
-				{Value: "test2"},
+				types.StringValue("test1"),
+				types.StringValue("test2"),
 			},
 		},
 		"SetType-[]string-null": {
@@ -5232,12 +5202,11 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("object"),
 			target: new(types.Object),
-			expected: &types.Object{
-				AttrTypes: map[string]attr.Type{
+			expected: pointer(types.ObjectNull(
+				map[string]attr.Type{
 					"nested_string": types.StringType,
 				},
-				Null: true,
-			},
+			)),
 		},
 		"SingleBlock-types.Object-unknown": {
 			data: fwschemadata.Data{
@@ -5278,12 +5247,11 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("object"),
 			target: new(types.Object),
-			expected: &types.Object{
-				AttrTypes: map[string]attr.Type{
+			expected: pointer(types.ObjectUnknown(
+				map[string]attr.Type{
 					"nested_string": types.StringType,
 				},
-				Unknown: true,
-			},
+			)),
 		},
 		"SingleBlock-types.Object-value": {
 			data: fwschemadata.Data{
@@ -5326,14 +5294,14 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("object"),
 			target: new(types.Object),
-			expected: &types.Object{
-				AttrTypes: map[string]attr.Type{
+			expected: pointer(types.ObjectValueMust(
+				map[string]attr.Type{
 					"nested_string": types.StringType,
 				},
-				Attrs: map[string]attr.Value{
-					"nested_string": types.String{Value: "test1"},
+				map[string]attr.Value{
+					"nested_string": types.StringValue("test1"),
 				},
-			},
+			)),
 		},
 		"SingleBlock-*struct-null": {
 			data: fwschemadata.Data{
@@ -5480,7 +5448,7 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: pointer(&struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				NestedString: types.String{Value: "test1"},
+				NestedString: types.StringValue("test1"),
 			}),
 		},
 		"SingleBlock-struct-null": {
@@ -5641,7 +5609,7 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: &struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				NestedString: types.String{Value: "test1"},
+				NestedString: types.StringValue("test1"),
 			},
 		},
 		"SingleNestedAttributes-types.Object-null": {
@@ -5683,12 +5651,11 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("object"),
 			target: new(types.Object),
-			expected: &types.Object{
-				AttrTypes: map[string]attr.Type{
+			expected: pointer(types.ObjectNull(
+				map[string]attr.Type{
 					"nested_string": types.StringType,
 				},
-				Null: true,
-			},
+			)),
 		},
 		"SingleNestedAttributes-types.Object-unknown": {
 			data: fwschemadata.Data{
@@ -5729,12 +5696,11 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("object"),
 			target: new(types.Object),
-			expected: &types.Object{
-				AttrTypes: map[string]attr.Type{
+			expected: pointer(types.ObjectUnknown(
+				map[string]attr.Type{
 					"nested_string": types.StringType,
 				},
-				Unknown: true,
-			},
+			)),
 		},
 		"SingleNestedAttributes-types.Object-value": {
 			data: fwschemadata.Data{
@@ -5777,14 +5743,14 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:   path.Root("object"),
 			target: new(types.Object),
-			expected: &types.Object{
-				AttrTypes: map[string]attr.Type{
+			expected: pointer(types.ObjectValueMust(
+				map[string]attr.Type{
 					"nested_string": types.StringType,
 				},
-				Attrs: map[string]attr.Value{
-					"nested_string": types.String{Value: "test1"},
+				map[string]attr.Value{
+					"nested_string": types.StringValue("test1"),
 				},
-			},
+			)),
 		},
 		"SingleNestedAttributes-*struct-null": {
 			data: fwschemadata.Data{
@@ -5931,7 +5897,7 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: pointer(&struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				NestedString: types.String{Value: "test1"},
+				NestedString: types.StringValue("test1"),
 			}),
 		},
 		"SingleNestedAttributes-struct-null": {
@@ -6092,7 +6058,7 @@ func TestDataGetAtPath(t *testing.T) {
 			expected: &struct {
 				NestedString types.String `tfsdk:"nested_string"`
 			}{
-				NestedString: types.String{Value: "test1"},
+				NestedString: types.StringValue("test1"),
 			},
 		},
 		"StringType-types.string-null": {
@@ -6118,7 +6084,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("string"),
 			target:   new(types.String),
-			expected: &types.String{Null: true},
+			expected: pointer(types.StringNull()),
 		},
 		"StringType-types.string-unknown": {
 			data: fwschemadata.Data{
@@ -6143,7 +6109,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("string"),
 			target:   new(types.String),
-			expected: &types.String{Unknown: true},
+			expected: pointer(types.StringUnknown()),
 		},
 		"StringType-types.string-value": {
 			data: fwschemadata.Data{
@@ -6168,7 +6134,7 @@ func TestDataGetAtPath(t *testing.T) {
 			},
 			path:     path.Root("string"),
 			target:   new(types.String),
-			expected: &types.String{Value: "test"},
+			expected: pointer(types.StringValue("test")),
 		},
 		"StringType-*string-null": {
 			data: fwschemadata.Data{

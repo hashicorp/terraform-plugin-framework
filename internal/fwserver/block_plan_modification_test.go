@@ -86,58 +86,58 @@ func TestBlockModifyPlan(t *testing.T) {
 
 	modifyAttributePlanRequest := func(attrPath path.Path, schema tfsdk.Schema, values modifyAttributePlanValues) tfsdk.ModifyAttributePlanRequest {
 		return tfsdk.ModifyAttributePlanRequest{
-			AttributeConfig: types.List{
-				ElemType: types.ObjectType{
+			AttributeConfig: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_attr": types.String{Value: values.config},
+						map[string]attr.Value{
+							"nested_attr": types.StringValue(values.config),
 						},
-					},
+					),
 				},
-			},
+			),
 			AttributePath: attrPath,
-			AttributePlan: types.List{
-				ElemType: types.ObjectType{
+			AttributePlan: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_attr": types.String{Value: values.plan},
+						map[string]attr.Value{
+							"nested_attr": types.StringValue(values.plan),
 						},
-					},
+					),
 				},
-			},
-			AttributeState: types.List{
-				ElemType: types.ObjectType{
+			),
+			AttributeState: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"nested_attr": types.String{Value: values.state},
+						map[string]attr.Value{
+							"nested_attr": types.StringValue(values.state),
 						},
-					},
+					),
 				},
-			},
+			),
 			Config: tfsdk.Config{
 				Raw:    schemaTfValue(values.config),
 				Schema: schema,
@@ -207,7 +207,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+								"nested_attr": types.StringValue("testvalue"),
 							},
 						),
 					},
@@ -240,14 +240,13 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			),
 			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.List{
-					ElemType: types.ObjectType{
+				AttributePlan: types.ListNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 				Private: testEmptyProviderData,
 			},
 		},
@@ -290,7 +289,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "TESTATTRONE"},
+								"nested_attr": types.StringValue("TESTATTRONE"),
 							},
 						),
 					},
@@ -336,7 +335,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "TESTATTRONE"},
+								"nested_attr": types.StringValue("TESTATTRONE"),
 							},
 						),
 					},
@@ -361,59 +360,57 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.List{
-					ElemType: types.ObjectType{
+				AttributeConfig: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.List{
-					ElemType: types.ObjectType{
+				AttributePlan: types.ListNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Null: true,
-				},
-				AttributeState: types.List{
-					ElemType: types.ObjectType{
+				),
+				AttributeState: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.List{
-					ElemType: types.ObjectType{
+				AttributePlan: types.ListNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 				Private: testProviderData,
 			},
 		},
@@ -434,49 +431,48 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.List{
-					ElemType: types.ObjectType{
+				AttributeConfig: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.List{
-					ElemType: types.ObjectType{
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
-				AttributeState: types.List{
-					ElemType: types.ObjectType{
+				),
+				AttributeState: types.ListNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.ListValueMust(
@@ -491,7 +487,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+								"nested_attr": types.StringValue("testvalue"),
 							},
 						),
 					},
@@ -516,58 +512,58 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.List{
-					ElemType: types.ObjectType{
+				AttributeConfig: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.List{
-					ElemType: types.ObjectType{
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
-				AttributeState: types.List{
-					ElemType: types.ObjectType{
+				),
+				AttributeState: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.ListValueMust(
@@ -582,7 +578,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+								"nested_attr": types.StringValue("testvalue"),
 							},
 						),
 					},
@@ -607,59 +603,57 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.Set{
-					ElemType: types.ObjectType{
+				AttributeConfig: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.Set{
-					ElemType: types.ObjectType{
+				AttributePlan: types.SetNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Null: true,
-				},
-				AttributeState: types.Set{
-					ElemType: types.ObjectType{
+				),
+				AttributeState: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.Set{
-					ElemType: types.ObjectType{
+				AttributePlan: types.SetNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 				Private: testProviderData,
 			},
 		},
@@ -680,49 +674,48 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.Set{
-					ElemType: types.ObjectType{
+				AttributeConfig: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.Set{
-					ElemType: types.ObjectType{
+				AttributePlan: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
-				AttributeState: types.Set{
-					ElemType: types.ObjectType{
+				),
+				AttributeState: types.SetNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.SetValueMust(
@@ -737,7 +730,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+								"nested_attr": types.StringValue("testvalue"),
 							},
 						),
 					},
@@ -762,58 +755,58 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.Set{
-					ElemType: types.ObjectType{
+				AttributeConfig: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.Set{
-					ElemType: types.ObjectType{
+				AttributePlan: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
-				AttributeState: types.Set{
-					ElemType: types.ObjectType{
+				),
+				AttributeState: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("testvalue"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.SetValueMust(
@@ -828,7 +821,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "testvalue"},
+								"nested_attr": types.StringValue("testvalue"),
 							},
 						),
 					},
@@ -869,8 +862,8 @@ func TestBlockModifyPlan(t *testing.T) {
 				NestingMode: tfsdk.BlockNestingModeList,
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.List{
-					ElemType: types.ObjectType{
+				AttributeConfig: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"id": types.StringType,
 							"list": types.ListType{
@@ -883,9 +876,9 @@ func TestBlockModifyPlan(t *testing.T) {
 							},
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"id": types.StringType,
 								"list": types.ListType{
 									ElemType: types.ObjectType{
@@ -896,35 +889,35 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 							},
-							Attrs: map[string]attr.Value{
-								"id": types.String{Value: "configvalue"},
-								"list": types.List{
-									ElemType: types.ObjectType{
+							map[string]attr.Value{
+								"id": types.StringValue("configvalue"),
+								"list": types.ListValueMust(
+									types.ObjectType{
 										AttrTypes: map[string]attr.Type{
 											"nested_computed": types.StringType,
 											"nested_required": types.StringType,
 										},
 									},
-									Elems: []attr.Value{
-										types.Object{
-											AttrTypes: map[string]attr.Type{
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
 												"nested_computed": types.StringType,
 												"nested_required": types.StringType,
 											},
-											Attrs: map[string]attr.Value{
-												"nested_computed": types.String{Null: true},
-												"nested_required": types.String{Value: "configvalue"},
+											map[string]attr.Value{
+												"nested_computed": types.StringNull(),
+												"nested_required": types.StringValue("configvalue"),
 											},
-										},
+										),
 									},
-								},
+								),
 							},
-						},
+						),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.List{
-					ElemType: types.ObjectType{
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"id": types.StringType,
 							"list": types.ListType{
@@ -937,9 +930,9 @@ func TestBlockModifyPlan(t *testing.T) {
 							},
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"id": types.StringType,
 								"list": types.ListType{
 									ElemType: types.ObjectType{
@@ -950,34 +943,34 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 							},
-							Attrs: map[string]attr.Value{
-								"id": types.String{Value: "one"},
-								"list": types.List{
-									ElemType: types.ObjectType{
+							map[string]attr.Value{
+								"id": types.StringValue("one"),
+								"list": types.ListValueMust(
+									types.ObjectType{
 										AttrTypes: map[string]attr.Type{
 											"nested_computed": types.StringType,
 											"nested_required": types.StringType,
 										},
 									},
-									Elems: []attr.Value{
-										types.Object{
-											AttrTypes: map[string]attr.Type{
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
 												"nested_computed": types.StringType,
 												"nested_required": types.StringType,
 											},
-											Attrs: map[string]attr.Value{
-												"nested_computed": types.String{Unknown: true},
-												"nested_required": types.String{Value: "configvalue"},
+											map[string]attr.Value{
+												"nested_computed": types.StringUnknown(),
+												"nested_required": types.StringValue("configvalue"),
 											},
-										},
+										),
 									},
-								},
+								),
 							},
-						},
+						),
 					},
-				},
-				AttributeState: types.List{
-					ElemType: types.ObjectType{
+				),
+				AttributeState: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"id": types.StringType,
 							"list": types.ListType{
@@ -990,9 +983,9 @@ func TestBlockModifyPlan(t *testing.T) {
 							},
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"id": types.StringType,
 								"list": types.ListType{
 									ElemType: types.ObjectType{
@@ -1003,32 +996,32 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 							},
-							Attrs: map[string]attr.Value{
-								"id": types.String{Value: "one"},
-								"list": types.List{
-									ElemType: types.ObjectType{
+							map[string]attr.Value{
+								"id": types.StringValue("one"),
+								"list": types.ListValueMust(
+									types.ObjectType{
 										AttrTypes: map[string]attr.Type{
 											"nested_computed": types.StringType,
 											"nested_required": types.StringType,
 										},
 									},
-									Elems: []attr.Value{
-										types.Object{
-											AttrTypes: map[string]attr.Type{
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
 												"nested_computed": types.StringType,
 												"nested_required": types.StringType,
 											},
-											Attrs: map[string]attr.Value{
-												"nested_computed": types.String{Value: "statevalue"},
-												"nested_required": types.String{Value: "configvalue"},
+											map[string]attr.Value{
+												"nested_computed": types.StringValue("statevalue"),
+												"nested_required": types.StringValue("configvalue"),
 											},
-										},
+										),
 									},
-								},
+								),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.ListValueMust(
@@ -1059,7 +1052,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								},
 							},
 							map[string]attr.Value{
-								"id": types.String{Value: "one"},
+								"id": types.StringValue("one"),
 								"list": types.ListValueMust(
 									types.ObjectType{
 										AttrTypes: map[string]attr.Type{
@@ -1074,8 +1067,8 @@ func TestBlockModifyPlan(t *testing.T) {
 												"nested_required": types.StringType,
 											},
 											map[string]attr.Value{
-												"nested_computed": types.String{Value: "statevalue"},
-												"nested_required": types.String{Value: "configvalue"},
+												"nested_computed": types.StringValue("statevalue"),
+												"nested_required": types.StringValue("configvalue"),
 											},
 										),
 									},
@@ -1105,97 +1098,97 @@ func TestBlockModifyPlan(t *testing.T) {
 				NestingMode: tfsdk.BlockNestingModeSet,
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.Set{
-					ElemType: types.ObjectType{
+				AttributeConfig: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_computed": types.StringType,
 							"nested_required": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_computed": types.StringType,
 								"nested_required": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_computed": types.String{Null: true},
-								"nested_required": types.String{Value: "testvalue1"},
+							map[string]attr.Value{
+								"nested_computed": types.StringNull(),
+								"nested_required": types.StringValue("testvalue1"),
 							},
-						},
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_computed": types.StringType,
 								"nested_required": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_computed": types.String{Null: true},
-								"nested_required": types.String{Value: "testvalue2"},
+							map[string]attr.Value{
+								"nested_computed": types.StringNull(),
+								"nested_required": types.StringValue("testvalue2"),
 							},
-						},
+						),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.Set{
-					ElemType: types.ObjectType{
+				AttributePlan: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_computed": types.StringType,
 							"nested_required": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_computed": types.StringType,
 								"nested_required": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_computed": types.String{Unknown: true},
-								"nested_required": types.String{Value: "testvalue1"},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue1"),
 							},
-						},
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_computed": types.StringType,
 								"nested_required": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_computed": types.String{Unknown: true},
-								"nested_required": types.String{Value: "testvalue2"},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
 							},
-						},
+						),
 					},
-				},
-				AttributeState: types.Set{
-					ElemType: types.ObjectType{
+				),
+				AttributeState: types.SetValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_computed": types.StringType,
 							"nested_required": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_computed": types.StringType,
 								"nested_required": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_computed": types.String{Value: "statevalue1"},
-								"nested_required": types.String{Value: "testvalue1"},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue1"),
+								"nested_required": types.StringValue("testvalue1"),
 							},
-						},
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_computed": types.StringType,
 								"nested_required": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_computed": types.String{Value: "statevalue2"},
-								"nested_required": types.String{Value: "testvalue2"},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue2"),
+								"nested_required": types.StringValue("testvalue2"),
 							},
-						},
+						),
 					},
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.SetValueMust(
@@ -1212,8 +1205,8 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.String{Value: "statevalue1"},
-								"nested_required": types.String{Value: "testvalue1"},
+								"nested_computed": types.StringValue("statevalue1"),
+								"nested_required": types.StringValue("testvalue1"),
 							},
 						),
 						types.ObjectValueMust(
@@ -1222,8 +1215,8 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.String{Value: "statevalue2"},
-								"nested_required": types.String{Value: "testvalue2"},
+								"nested_computed": types.StringValue("statevalue2"),
+								"nested_required": types.StringValue("testvalue2"),
 							},
 						),
 					},
@@ -1248,37 +1241,35 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.Object{
-					AttrTypes: map[string]attr.Type{
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_attr": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_attr": types.StringValue("testvalue"),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.Object{
-					AttrTypes: map[string]attr.Type{
+				AttributePlan: types.ObjectNull(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Null: true,
-				},
-				AttributeState: types.Object{
-					AttrTypes: map[string]attr.Type{
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_attr": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_attr": types.StringValue("testvalue"),
 					},
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.Object{
-					AttrTypes: map[string]attr.Type{
+				AttributePlan: types.ObjectNull(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Null: true,
-				},
+				),
 				Private: testProviderData,
 			},
 		},
@@ -1299,29 +1290,28 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.Object{
-					AttrTypes: map[string]attr.Type{
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_attr": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_attr": types.StringValue("testvalue"),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.Object{
-					AttrTypes: map[string]attr.Type{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_attr": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_attr": types.StringValue("testvalue"),
 					},
-				},
-				AttributeState: types.Object{
-					AttrTypes: map[string]attr.Type{
+				),
+				AttributeState: types.ObjectNull(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Null: true,
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.ObjectValueMust(
@@ -1329,7 +1319,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						"nested_attr": types.StringType,
 					},
 					map[string]attr.Value{
-						"nested_attr": types.String{Value: "testvalue"},
+						"nested_attr": types.StringValue("testvalue"),
 					},
 				),
 				Private: testProviderData,
@@ -1352,31 +1342,31 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.Object{
-					AttrTypes: map[string]attr.Type{
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_attr": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_attr": types.StringValue("testvalue"),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.Object{
-					AttrTypes: map[string]attr.Type{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_attr": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_attr": types.StringValue("testvalue"),
 					},
-				},
-				AttributeState: types.Object{
-					AttrTypes: map[string]attr.Type{
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_attr": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_attr": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_attr": types.StringValue("testvalue"),
 					},
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.ObjectValueMust(
@@ -1384,7 +1374,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						"nested_attr": types.StringType,
 					},
 					map[string]attr.Value{
-						"nested_attr": types.String{Value: "testvalue"},
+						"nested_attr": types.StringValue("testvalue"),
 					},
 				),
 				Private: testProviderData,
@@ -1408,37 +1398,37 @@ func TestBlockModifyPlan(t *testing.T) {
 				NestingMode: tfsdk.BlockNestingModeSingle,
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: types.Object{
-					AttrTypes: map[string]attr.Type{
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_computed": types.StringType,
 						"nested_required": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_computed": types.String{Null: true},
-						"nested_required": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_computed": types.StringNull(),
+						"nested_required": types.StringValue("testvalue"),
 					},
-				},
+				),
 				AttributePath: path.Root("test"),
-				AttributePlan: types.Object{
-					AttrTypes: map[string]attr.Type{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_computed": types.StringType,
 						"nested_required": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_computed": types.String{Unknown: true},
-						"nested_required": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_computed": types.StringUnknown(),
+						"nested_required": types.StringValue("testvalue"),
 					},
-				},
-				AttributeState: types.Object{
-					AttrTypes: map[string]attr.Type{
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
 						"nested_computed": types.StringType,
 						"nested_required": types.StringType,
 					},
-					Attrs: map[string]attr.Value{
-						"nested_computed": types.String{Value: "statevalue"},
-						"nested_required": types.String{Value: "testvalue"},
+					map[string]attr.Value{
+						"nested_computed": types.StringValue("statevalue"),
+						"nested_required": types.StringValue("testvalue"),
 					},
-				},
+				),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.ObjectValueMust(
@@ -1447,8 +1437,8 @@ func TestBlockModifyPlan(t *testing.T) {
 						"nested_required": types.StringType,
 					},
 					map[string]attr.Value{
-						"nested_computed": types.String{Value: "statevalue"},
-						"nested_required": types.String{Value: "testvalue"},
+						"nested_computed": types.StringValue("statevalue"),
+						"nested_required": types.StringValue("testvalue"),
 					},
 				),
 				Private: testEmptyProviderData,
@@ -1491,7 +1481,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "newtestvalue"},
+								"nested_attr": types.StringValue("newtestvalue"),
 							},
 						),
 					},
@@ -1529,14 +1519,13 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 			),
 			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.List{
-					ElemType: types.ObjectType{
+				AttributePlan: types.ListNull(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Null: true,
-				},
+				),
 				RequiresReplace: path.Paths{
 					path.Root("test"),
 				},
@@ -1582,7 +1571,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "newtestvalue"},
+								"nested_attr": types.StringValue("newtestvalue"),
 							},
 						),
 					},
@@ -1638,7 +1627,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "TESTDIAG"},
+								"nested_attr": types.StringValue("TESTDIAG"),
 							},
 						),
 					},
@@ -1679,23 +1668,23 @@ func TestBlockModifyPlan(t *testing.T) {
 						"This is an error",
 					),
 				},
-				AttributePlan: types.List{
-					ElemType: types.ObjectType{
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
-						types.Object{
-							AttrTypes: map[string]attr.Type{
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
-							Attrs: map[string]attr.Value{
-								"nested_attr": types.String{Value: "TESTDIAG"},
+							map[string]attr.Value{
+								"nested_attr": types.StringValue("TESTDIAG"),
 							},
-						},
+						),
 					},
-				},
+				),
 				Private: testEmptyProviderData,
 			},
 		},
@@ -1783,7 +1772,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "newtestvalue"},
+								"nested_attr": types.StringValue("newtestvalue"),
 							},
 						),
 					},
@@ -1883,7 +1872,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "newtestvalue"},
+								"nested_attr": types.StringValue("newtestvalue"),
 							},
 						),
 					},
@@ -1939,7 +1928,7 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "TESTDIAG"},
+								"nested_attr": types.StringValue("TESTDIAG"),
 							},
 						),
 					},
@@ -1980,23 +1969,23 @@ func TestBlockModifyPlan(t *testing.T) {
 						"This is an error",
 					),
 				},
-				AttributePlan: types.List{
-					ElemType: types.ObjectType{
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"nested_attr": types.StringType,
 						},
 					},
-					Elems: []attr.Value{
+					[]attr.Value{
 						types.ObjectValueMust(
 							map[string]attr.Type{
 								"nested_attr": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_attr": types.String{Value: "TESTDIAG"},
+								"nested_attr": types.StringValue("TESTDIAG"),
 							},
 						),
 					},
-				},
+				),
 				Private: testEmptyProviderData,
 			},
 		},
@@ -2029,14 +2018,13 @@ func (t testBlockPlanModifierNullList) Modify(ctx context.Context, req tfsdk.Mod
 		return
 	}
 
-	resp.AttributePlan = types.List{
-		ElemType: types.ObjectType{
+	resp.AttributePlan = types.ListNull(
+		types.ObjectType{
 			AttrTypes: map[string]attr.Type{
 				"nested_attr": types.StringType,
 			},
 		},
-		Null: true,
-	}
+	)
 }
 
 func (t testBlockPlanModifierNullList) Description(ctx context.Context) string {

@@ -290,13 +290,13 @@ func TestFromUnknownable(t *testing.T) {
 			val: &unknownableString{
 				Unknown: true,
 			},
-			expected: types.String{Unknown: true},
+			expected: types.StringUnknown(),
 		},
 		"value": {
 			val: &unknownableString{
 				String: "hello, world",
 			},
-			expected: types.String{Value: "hello, world"},
+			expected: types.StringValue("hello, world"),
 		},
 	}
 
@@ -388,13 +388,13 @@ func TestFromNullable(t *testing.T) {
 			val: &nullableString{
 				Null: true,
 			},
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"value": {
 			val: &nullableString{
 				String: "hello, world",
 			},
-			expected: types.String{Value: "hello, world"},
+			expected: types.StringValue("hello, world"),
 		},
 	}
 
@@ -428,17 +428,17 @@ func TestNewAttributeValue(t *testing.T) {
 		"unknown": {
 			val:      tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			target:   reflect.ValueOf(types.String{}),
-			expected: types.String{Unknown: true},
+			expected: types.StringUnknown(),
 		},
 		"null": {
 			val:      tftypes.NewValue(tftypes.String, nil),
 			target:   reflect.ValueOf(types.String{}),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"value": {
 			val:      tftypes.NewValue(tftypes.String, "hello"),
 			target:   reflect.ValueOf(types.String{}),
-			expected: types.String{Value: "hello"},
+			expected: types.StringValue("hello"),
 		},
 	}
 
@@ -474,13 +474,13 @@ func TestFromAttributeValue(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"null": {
-			val: types.String{Null: true},
+			val: types.StringNull(),
 		},
 		"unknown": {
-			val: types.String{Unknown: true},
+			val: types.StringUnknown(),
 		},
 		"value": {
-			val: types.String{Value: "hello, world"},
+			val: types.StringValue("hello, world"),
 		},
 	}
 
@@ -575,19 +575,19 @@ func TestFromValueCreator(t *testing.T) {
 			vc: &valueCreator{
 				null: true,
 			},
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"unknown": {
 			vc: &valueCreator{
 				unknown: true,
 			},
-			expected: types.String{Unknown: true},
+			expected: types.StringUnknown(),
 		},
 		"value": {
 			vc: &valueCreator{
 				value: "hello, world",
 			},
-			expected: types.String{Value: "hello, world"},
+			expected: types.StringValue("hello, world"),
 		},
 	}
 

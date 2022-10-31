@@ -469,8 +469,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 			},
 			expectedResponse: &tfprotov5.ApplyResourceChangeResponse{
 				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
-					"test_computed": tftypes.NewValue(tftypes.String, ""),
-					"test_required": tftypes.NewValue(tftypes.String, ""),
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, nil),
 				}),
 				Private: privatestate.MustMarshalToJson(map[string][]byte{
 					"providerKey": []byte(`{"key": "value"}`),

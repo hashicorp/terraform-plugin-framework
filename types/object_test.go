@@ -71,18 +71,18 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 				"b": tftypes.NewValue(tftypes.Bool, true),
 				"c": tftypes.NewValue(tftypes.Number, 123),
 			}),
-			expected: Object{
-				Attrs: map[string]attr.Value{
-					"a": String{Value: "red"},
-					"b": Bool{Value: true},
-					"c": Number{Value: big.NewFloat(123)},
-				},
-				AttrTypes: map[string]attr.Type{
+			expected: ObjectValueMust(
+				map[string]attr.Type{
 					"a": StringType,
 					"b": BoolType,
 					"c": NumberType,
 				},
-			},
+				map[string]attr.Value{
+					"a": StringValue("red"),
+					"b": BoolValue(true),
+					"c": NumberValue(big.NewFloat(123)),
+				},
+			),
 		},
 		"extra-attribute": {
 			receiver: ObjectType{
@@ -133,12 +133,11 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 				},
 			},
 			input: tftypes.NewValue(nil, nil),
-			expected: Object{
-				AttrTypes: map[string]attr.Type{
+			expected: ObjectNull(
+				map[string]attr.Type{
 					"a": StringType,
 				},
-				Null: true,
-			},
+			),
 		},
 		"unknown": {
 			receiver: ObjectType{
@@ -151,12 +150,11 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 					"a": tftypes.String,
 				},
 			}, tftypes.UnknownValue),
-			expected: Object{
-				AttrTypes: map[string]attr.Type{
+			expected: ObjectUnknown(
+				map[string]attr.Type{
 					"a": StringType,
 				},
-				Unknown: true,
-			},
+			),
 		},
 		"null": {
 			receiver: ObjectType{
@@ -169,12 +167,11 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 					"a": tftypes.String,
 				},
 			}, nil),
-			expected: Object{
-				AttrTypes: map[string]attr.Type{
+			expected: ObjectNull(
+				map[string]attr.Type{
 					"a": StringType,
 				},
-				Null: true,
-			},
+			),
 		},
 	}
 
@@ -516,16 +513,16 @@ func TestObjectValueFrom(t *testing.T) {
 				Bool:   BoolValue(true),
 				String: StringValue("test"),
 			}),
-			expected: Object{
-				AttrTypes: map[string]attr.Type{
+			expected: ObjectValueMust(
+				map[string]attr.Type{
 					"bool":   BoolType,
 					"string": StringType,
 				},
-				Attrs: map[string]attr.Value{
-					"bool":   Bool{Value: true},
-					"string": String{Value: "test"},
+				map[string]attr.Value{
+					"bool":   BoolValue(true),
+					"string": StringValue("test"),
 				},
-			},
+			),
 		},
 		"valid-struct": {
 			attributeTypes: map[string]attr.Type{
@@ -539,16 +536,16 @@ func TestObjectValueFrom(t *testing.T) {
 				Bool:   BoolValue(true),
 				String: StringValue("test"),
 			},
-			expected: Object{
-				AttrTypes: map[string]attr.Type{
+			expected: ObjectValueMust(
+				map[string]attr.Type{
 					"bool":   BoolType,
 					"string": StringType,
 				},
-				Attrs: map[string]attr.Value{
-					"bool":   Bool{Value: true},
-					"string": String{Value: "test"},
+				map[string]attr.Value{
+					"bool":   BoolValue(true),
+					"string": StringValue("test"),
 				},
-			},
+			),
 		},
 		"invalid-nil": {
 			attributeTypes: map[string]attr.Type{
@@ -658,87 +655,6 @@ func TestObjectValueFrom(t *testing.T) {
 	}
 }
 
-// This test verifies the assumptions that creating the Value via function then
-// setting the fields directly has no effects.
-func TestObjectValue_DeprecatedFieldSetting(t *testing.T) {
-	t.Parallel()
-
-	knownObject := ObjectValueMust(
-		map[string]attr.Type{"test_attr": StringType},
-		map[string]attr.Value{"test_attr": StringValue("test-value")},
-	)
-
-	knownObject.Null = true
-
-	if knownObject.IsNull() {
-		t.Error("unexpected null update after Null field setting")
-	}
-
-	knownObject.Unknown = true
-
-	if knownObject.IsUnknown() {
-		t.Error("unexpected unknown update after Unknown field setting")
-	}
-
-	knownObject.Attrs = map[string]attr.Value{"test_attr": StringValue("not-test-value")}
-
-	if knownObject.Attributes()["test_attr"].Equal(StringValue("not-test-value")) {
-		t.Error("unexpected value update after Value field setting")
-	}
-}
-
-// This test verifies the assumptions that creating the Value via function then
-// setting the fields directly has no effects.
-func TestObjectNull_DeprecatedFieldSetting(t *testing.T) {
-	t.Parallel()
-
-	nullObject := ObjectNull(map[string]attr.Type{"test_attr": StringType})
-
-	nullObject.Null = false
-
-	if !nullObject.IsNull() {
-		t.Error("unexpected null update after Null field setting")
-	}
-
-	nullObject.Unknown = true
-
-	if nullObject.IsUnknown() {
-		t.Error("unexpected unknown update after Unknown field setting")
-	}
-
-	nullObject.Attrs = map[string]attr.Value{"test_attr": StringValue("test")}
-
-	if len(nullObject.Attributes()) > 0 {
-		t.Error("unexpected value update after Value field setting")
-	}
-}
-
-// This test verifies the assumptions that creating the Value via function then
-// setting the fields directly has no effects.
-func TestObjectUnknown_DeprecatedFieldSetting(t *testing.T) {
-	t.Parallel()
-
-	unknownObject := ObjectUnknown(map[string]attr.Type{"test_attr": StringType})
-
-	unknownObject.Null = true
-
-	if unknownObject.IsNull() {
-		t.Error("unexpected null update after Null field setting")
-	}
-
-	unknownObject.Unknown = false
-
-	if !unknownObject.IsUnknown() {
-		t.Error("unexpected unknown update after Unknown field setting")
-	}
-
-	unknownObject.Attrs = map[string]attr.Value{"test_attr": StringValue("test")}
-
-	if len(unknownObject.Attributes()) > 0 {
-		t.Error("unexpected value update after Value field setting")
-	}
-}
-
 func TestObjectAs_struct(t *testing.T) {
 	t.Parallel()
 
@@ -759,8 +675,8 @@ func TestObjectAs_struct(t *testing.T) {
 		H myEmbeddedStruct `tfsdk:"h"`
 		I Object           `tfsdk:"i"`
 	}
-	object := Object{
-		AttrTypes: map[string]attr.Type{
+	object := ObjectValueMust(
+		map[string]attr.Type{
 			"a": StringType,
 			"b": BoolType,
 			"c": ListType{ElemType: StringType},
@@ -790,121 +706,121 @@ func TestObjectAs_struct(t *testing.T) {
 				},
 			},
 		},
-		Attrs: map[string]attr.Value{
-			"a": String{Value: "hello"},
-			"b": Bool{Value: true},
-			"c": List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "into"},
-					String{Value: "the"},
-					String{Unknown: true},
-					String{Null: true},
+		map[string]attr.Value{
+			"a": StringValue("hello"),
+			"b": BoolValue(true),
+			"c": ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("into"),
+					StringValue("the"),
+					StringUnknown(),
+					StringNull(),
 				},
-			},
-			"d": List{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "it's"},
-					String{Value: "getting"},
-					String{Value: "hard"},
-					String{Value: "to"},
-					String{Value: "come"},
-					String{Value: "up"},
-					String{Value: "with"},
-					String{Value: "test"},
-					String{Value: "values"},
+			),
+			"d": ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("it's"),
+					StringValue("getting"),
+					StringValue("hard"),
+					StringValue("to"),
+					StringValue("come"),
+					StringValue("up"),
+					StringValue("with"),
+					StringValue("test"),
+					StringValue("values"),
 				},
-			},
-			"e": List{
-				ElemType: BoolType,
-				Elems: []attr.Value{
-					Bool{Value: true},
-					Bool{Value: false},
-					Bool{Value: false},
-					Bool{Value: true},
+			),
+			"e": ListValueMust(
+				BoolType,
+				[]attr.Value{
+					BoolValue(true),
+					BoolValue(false),
+					BoolValue(false),
+					BoolValue(true),
 				},
-			},
-			"f": List{
-				ElemType: ListType{
+			),
+			"f": ListValueMust(
+				ListType{
 					ElemType: StringType,
 				},
-				Elems: []attr.Value{
-					List{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "head"},
-							String{Value: "empty"},
+				[]attr.Value{
+					ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("head"),
+							StringValue("empty"),
 						},
-					},
-					List{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "no"},
-							String{Value: "thoughts"},
+					),
+					ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("no"),
+							StringValue("thoughts"),
 						},
-					},
+					),
 				},
-			},
-			"g": Object{
-				AttrTypes: map[string]attr.Type{
+			),
+			"g": ObjectValueMust(
+				map[string]attr.Type{
 					"dogs":  NumberType,
 					"cats":  NumberType,
 					"names": ListType{ElemType: StringType},
 				},
-				Attrs: map[string]attr.Value{
-					"dogs": Number{Value: big.NewFloat(3)},
-					"cats": Number{Value: big.NewFloat(5)},
-					"names": List{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "Roxy"},
-							String{Value: "Jpeg"},
-							String{Value: "Kupo"},
-							String{Value: "Clawde"},
-							String{Value: "Yeti"},
-							String{Value: "Abby"},
-							String{Value: "Ellie"},
-							String{Value: "Lexi"},
+				map[string]attr.Value{
+					"dogs": NumberValue(big.NewFloat(3)),
+					"cats": NumberValue(big.NewFloat(5)),
+					"names": ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("Roxy"),
+							StringValue("Jpeg"),
+							StringValue("Kupo"),
+							StringValue("Clawde"),
+							StringValue("Yeti"),
+							StringValue("Abby"),
+							StringValue("Ellie"),
+							StringValue("Lexi"),
 						},
-					},
+					),
 				},
-			},
-			"h": Object{
-				AttrTypes: map[string]attr.Type{
+			),
+			"h": ObjectValueMust(
+				map[string]attr.Type{
 					"red":    StringType,
 					"blue":   ListType{ElemType: NumberType},
 					"green":  NumberType,
 					"yellow": NumberType,
 				},
-				Attrs: map[string]attr.Value{
-					"red": String{Value: "judge me not too harshly, future maintainers, this much random data is hard to come up with without getting weird."},
-					"blue": List{
-						ElemType: NumberType,
-						Elems: []attr.Value{
-							Number{Value: big.NewFloat(1)},
-							Number{Value: big.NewFloat(2)},
-							Number{Value: big.NewFloat(3)},
+				map[string]attr.Value{
+					"red": StringValue("judge me not too harshly, future maintainers, this much random data is hard to come up with without getting weird."),
+					"blue": ListValueMust(
+						NumberType,
+						[]attr.Value{
+							NumberValue(big.NewFloat(1)),
+							NumberValue(big.NewFloat(2)),
+							NumberValue(big.NewFloat(3)),
 						},
-					},
-					"green":  Number{Value: big.NewFloat(123.456)},
-					"yellow": Number{Value: big.NewFloat(123)},
+					),
+					"green":  NumberValue(big.NewFloat(123.456)),
+					"yellow": NumberValue(big.NewFloat(123)),
 				},
-			},
-			"i": Object{
-				AttrTypes: map[string]attr.Type{
+			),
+			"i": ObjectValueMust(
+				map[string]attr.Type{
 					"name":     StringType,
 					"age":      NumberType,
 					"opted_in": BoolType,
 				},
-				Attrs: map[string]attr.Value{
-					"name":     String{Value: "J Doe"},
-					"age":      Number{Value: big.NewFloat(28)},
-					"opted_in": Bool{Value: true},
+				map[string]attr.Value{
+					"name":     StringValue("J Doe"),
+					"age":      NumberValue(big.NewFloat(28)),
+					"opted_in": BoolValue(true),
 				},
-			},
+			),
 		},
-	}
+	)
 	var target myStruct
 	diags := object.As(context.Background(), &target, ObjectAsOptions{})
 	if diags.HasError() {
@@ -912,88 +828,88 @@ func TestObjectAs_struct(t *testing.T) {
 	}
 	expected := myStruct{
 		A: "hello",
-		B: Bool{Value: true},
-		C: List{
-			ElemType: StringType,
-			Elems: []attr.Value{
-				String{Value: "into"},
-				String{Value: "the"},
-				String{Unknown: true},
-				String{Null: true},
+		B: BoolValue(true),
+		C: ListValueMust(
+			StringType,
+			[]attr.Value{
+				StringValue("into"),
+				StringValue("the"),
+				StringUnknown(),
+				StringNull(),
 			},
-		},
+		),
 		D: []string{"it's", "getting", "hard", "to", "come", "up", "with", "test", "values"},
 		E: []Bool{
-			{Value: true},
-			{Value: false},
-			{Value: false},
-			{Value: true},
+			BoolValue(true),
+			BoolValue(false),
+			BoolValue(false),
+			BoolValue(true),
 		},
 		F: []List{
-			{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "head"},
-					String{Value: "empty"},
+			ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("head"),
+					StringValue("empty"),
 				},
-			},
-			{
-				ElemType: StringType,
-				Elems: []attr.Value{
-					String{Value: "no"},
-					String{Value: "thoughts"},
+			),
+			ListValueMust(
+				StringType,
+				[]attr.Value{
+					StringValue("no"),
+					StringValue("thoughts"),
 				},
-			},
+			),
 		},
-		G: Object{
-			AttrTypes: map[string]attr.Type{
+		G: ObjectValueMust(
+			map[string]attr.Type{
 				"dogs":  NumberType,
 				"cats":  NumberType,
 				"names": ListType{ElemType: StringType},
 			},
-			Attrs: map[string]attr.Value{
-				"dogs": Number{Value: big.NewFloat(3)},
-				"cats": Number{Value: big.NewFloat(5)},
-				"names": List{
-					ElemType: StringType,
-					Elems: []attr.Value{
-						String{Value: "Roxy"},
-						String{Value: "Jpeg"},
-						String{Value: "Kupo"},
-						String{Value: "Clawde"},
-						String{Value: "Yeti"},
-						String{Value: "Abby"},
-						String{Value: "Ellie"},
-						String{Value: "Lexi"},
+			map[string]attr.Value{
+				"dogs": NumberValue(big.NewFloat(3)),
+				"cats": NumberValue(big.NewFloat(5)),
+				"names": ListValueMust(
+					StringType,
+					[]attr.Value{
+						StringValue("Roxy"),
+						StringValue("Jpeg"),
+						StringValue("Kupo"),
+						StringValue("Clawde"),
+						StringValue("Yeti"),
+						StringValue("Abby"),
+						StringValue("Ellie"),
+						StringValue("Lexi"),
 					},
-				},
+				),
 			},
-		},
+		),
 		H: myEmbeddedStruct{
 			Red: "judge me not too harshly, future maintainers, this much random data is hard to come up with without getting weird.",
-			Blue: List{
-				ElemType: NumberType,
-				Elems: []attr.Value{
-					Number{Value: big.NewFloat(1)},
-					Number{Value: big.NewFloat(2)},
-					Number{Value: big.NewFloat(3)},
+			Blue: ListValueMust(
+				NumberType,
+				[]attr.Value{
+					NumberValue(big.NewFloat(1)),
+					NumberValue(big.NewFloat(2)),
+					NumberValue(big.NewFloat(3)),
 				},
-			},
-			Green:  Number{Value: big.NewFloat(123.456)},
+			),
+			Green:  NumberValue(big.NewFloat(123.456)),
 			Yellow: 123,
 		},
-		I: Object{
-			AttrTypes: map[string]attr.Type{
+		I: ObjectValueMust(
+			map[string]attr.Type{
 				"name":     StringType,
 				"age":      NumberType,
 				"opted_in": BoolType,
 			},
-			Attrs: map[string]attr.Value{
-				"name":     String{Value: "J Doe"},
-				"age":      Number{Value: big.NewFloat(28)},
-				"opted_in": Bool{Value: true},
+			map[string]attr.Value{
+				"name":     StringValue("J Doe"),
+				"age":      NumberValue(big.NewFloat(28)),
+				"opted_in": BoolValue(true),
 			},
-		},
+		),
 	}
 	if diff := cmp.Diff(expected, target); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -1014,33 +930,12 @@ func TestObjectAttributes(t *testing.T) {
 			),
 			expected: map[string]attr.Value{"test_attr": StringValue("test-value")},
 		},
-		"deprecated-known": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Attrs:     map[string]attr.Value{"test_attr": StringValue("test-value")},
-			},
-			expected: map[string]attr.Value{"test_attr": StringValue("test-value")},
-		},
 		"null": {
 			input:    ObjectNull(map[string]attr.Type{"test_attr": StringType}),
 			expected: nil,
 		},
-		"deprecated-null": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Null:      true,
-			},
-			expected: nil,
-		},
 		"unknown": {
 			input:    ObjectUnknown(map[string]attr.Type{"test_attr": StringType}),
-			expected: nil,
-		},
-		"deprecated-unknown": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Unknown:   true,
-			},
 			expected: nil,
 		},
 	}
@@ -1074,33 +969,12 @@ func TestObjectAttributeTypes(t *testing.T) {
 			),
 			expected: map[string]attr.Type{"test_attr": StringType},
 		},
-		"deprecated-known": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Attrs:     map[string]attr.Value{"test_attr": StringValue("test-value")},
-			},
-			expected: map[string]attr.Type{"test_attr": StringType},
-		},
 		"null": {
 			input:    ObjectNull(map[string]attr.Type{"test_attr": StringType}),
 			expected: map[string]attr.Type{"test_attr": StringType},
 		},
-		"deprecated-null": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Null:      true,
-			},
-			expected: map[string]attr.Type{"test_attr": StringType},
-		},
 		"unknown": {
 			input:    ObjectUnknown(map[string]attr.Type{"test_attr": StringType}),
-			expected: map[string]attr.Type{"test_attr": StringType},
-		},
-		"deprecated-unknown": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Unknown:   true,
-			},
 			expected: map[string]attr.Type{"test_attr": StringType},
 		},
 	}
@@ -1129,8 +1003,8 @@ func TestObjectToTerraformValue(t *testing.T) {
 	}
 	tests := map[string]testCase{
 		"value": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
+			receiver: ObjectValueMust(
+				map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
@@ -1142,34 +1016,34 @@ func TestObjectToTerraformValue(t *testing.T) {
 					},
 					"f": SetType{ElemType: StringType},
 				},
-				Attrs: map[string]attr.Value{
-					"a": List{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+				map[string]attr.Value{
+					"a": ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
-					"b": String{Value: "woohoo"},
-					"c": Bool{Value: true},
-					"d": Number{Value: big.NewFloat(1234)},
-					"e": Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					"b": StringValue("woohoo"),
+					"c": BoolValue(true),
+					"d": NumberValue(big.NewFloat(1234)),
+					"e": ObjectValueMust(
+						map[string]attr.Type{
 							"name": StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"name": String{Value: "testing123"},
+						map[string]attr.Value{
+							"name": StringValue("testing123"),
 						},
-					},
-					"f": Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+					),
+					"f": SetValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
+					),
 				},
-			},
+			),
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"a": tftypes.List{ElementType: tftypes.String},
@@ -1201,8 +1075,8 @@ func TestObjectToTerraformValue(t *testing.T) {
 			}),
 		},
 		"unknown": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
+			receiver: ObjectUnknown(
+				map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
@@ -1214,8 +1088,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 					},
 					"f": SetType{ElemType: StringType},
 				},
-				Unknown: true,
-			},
+			),
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"a": tftypes.List{ElementType: tftypes.String},
@@ -1232,8 +1105,8 @@ func TestObjectToTerraformValue(t *testing.T) {
 			}, tftypes.UnknownValue),
 		},
 		"null": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
+			receiver: ObjectNull(
+				map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
@@ -1245,8 +1118,7 @@ func TestObjectToTerraformValue(t *testing.T) {
 					},
 					"f": SetType{ElemType: StringType},
 				},
-				Null: true,
-			},
+			),
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"a": tftypes.List{ElementType: tftypes.String},
@@ -1263,8 +1135,8 @@ func TestObjectToTerraformValue(t *testing.T) {
 			}, nil),
 		},
 		"partial-unknown": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
+			receiver: ObjectValueMust(
+				map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
@@ -1276,34 +1148,34 @@ func TestObjectToTerraformValue(t *testing.T) {
 					},
 					"f": SetType{ElemType: StringType},
 				},
-				Attrs: map[string]attr.Value{
-					"a": List{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+				map[string]attr.Value{
+					"a": ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
-					"b": String{Unknown: true},
-					"c": Bool{Value: true},
-					"d": Number{Value: big.NewFloat(1234)},
-					"e": Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					"b": StringUnknown(),
+					"c": BoolValue(true),
+					"d": NumberValue(big.NewFloat(1234)),
+					"e": ObjectValueMust(
+						map[string]attr.Type{
 							"name": StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"name": String{Value: "testing123"},
+						map[string]attr.Value{
+							"name": StringValue("testing123"),
 						},
-					},
-					"f": Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+					),
+					"f": SetValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
+					),
 				},
-			},
+			),
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"a": tftypes.List{ElementType: tftypes.String},
@@ -1339,8 +1211,8 @@ func TestObjectToTerraformValue(t *testing.T) {
 			}),
 		},
 		"partial-null": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
+			receiver: ObjectValueMust(
+				map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
@@ -1352,34 +1224,34 @@ func TestObjectToTerraformValue(t *testing.T) {
 					},
 					"f": SetType{ElemType: StringType},
 				},
-				Attrs: map[string]attr.Value{
-					"a": List{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+				map[string]attr.Value{
+					"a": ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
-					"b": String{Null: true},
-					"c": Bool{Value: true},
-					"d": Number{Value: big.NewFloat(1234)},
-					"e": Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					"b": StringNull(),
+					"c": BoolValue(true),
+					"d": NumberValue(big.NewFloat(1234)),
+					"e": ObjectValueMust(
+						map[string]attr.Type{
 							"name": StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"name": String{Value: "testing123"},
+						map[string]attr.Value{
+							"name": StringValue("testing123"),
 						},
-					},
-					"f": Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+					),
+					"f": SetValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
+					),
 				},
-			},
+			),
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"a": tftypes.List{ElementType: tftypes.String},
@@ -1415,8 +1287,8 @@ func TestObjectToTerraformValue(t *testing.T) {
 			}),
 		},
 		"deep-partial-unknown": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
+			receiver: ObjectValueMust(
+				map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
@@ -1428,34 +1300,34 @@ func TestObjectToTerraformValue(t *testing.T) {
 					},
 					"f": SetType{ElemType: StringType},
 				},
-				Attrs: map[string]attr.Value{
-					"a": List{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+				map[string]attr.Value{
+					"a": ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
-					"b": String{Value: "woohoo"},
-					"c": Bool{Value: true},
-					"d": Number{Value: big.NewFloat(1234)},
-					"e": Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					"b": StringValue("woohoo"),
+					"c": BoolValue(true),
+					"d": NumberValue(big.NewFloat(1234)),
+					"e": ObjectValueMust(
+						map[string]attr.Type{
 							"name": StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"name": String{Unknown: true},
+						map[string]attr.Value{
+							"name": StringUnknown(),
 						},
-					},
-					"f": Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+					),
+					"f": SetValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
+					),
 				},
-			},
+			),
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"a": tftypes.List{ElementType: tftypes.String},
@@ -1491,8 +1363,8 @@ func TestObjectToTerraformValue(t *testing.T) {
 			}),
 		},
 		"deep-partial-null": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
+			receiver: ObjectValueMust(
+				map[string]attr.Type{
 					"a": ListType{ElemType: StringType},
 					"b": StringType,
 					"c": BoolType,
@@ -1504,34 +1376,34 @@ func TestObjectToTerraformValue(t *testing.T) {
 					},
 					"f": SetType{ElemType: StringType},
 				},
-				Attrs: map[string]attr.Value{
-					"a": List{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+				map[string]attr.Value{
+					"a": ListValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
-					"b": String{Value: "woohoo"},
-					"c": Bool{Value: true},
-					"d": Number{Value: big.NewFloat(1234)},
-					"e": Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					"b": StringValue("woohoo"),
+					"c": BoolValue(true),
+					"d": NumberValue(big.NewFloat(1234)),
+					"e": ObjectValueMust(
+						map[string]attr.Type{
 							"name": StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"name": String{Null: true},
+						map[string]attr.Value{
+							"name": StringNull(),
 						},
-					},
-					"f": Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
+					),
+					"f": SetValueMust(
+						StringType,
+						[]attr.Value{
+							StringValue("hello"),
+							StringValue("world"),
 						},
-					},
+					),
 				},
-			},
+			),
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"a": tftypes.List{ElementType: tftypes.String},
@@ -1565,39 +1437,6 @@ func TestObjectToTerraformValue(t *testing.T) {
 					tftypes.NewValue(tftypes.String, "world"),
 				}),
 			}),
-		},
-		"no-attr-types": {
-			receiver: Object{
-				Attrs: map[string]attr.Value{
-					"a": List{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
-						},
-					},
-					"b": String{Value: "woohoo"},
-					"c": Bool{Value: true},
-					"d": Number{Value: big.NewFloat(1234)},
-					"e": Object{
-						AttrTypes: map[string]attr.Type{
-							"name": StringType,
-						},
-						Attrs: map[string]attr.Value{
-							"name": String{Value: "testing123"},
-						},
-					},
-					"f": Set{
-						ElemType: StringType,
-						Elems: []attr.Value{
-							String{Value: "hello"},
-							String{Value: "world"},
-						},
-					},
-				},
-			},
-			expected:    tftypes.Value{},
-			expectedErr: "cannot convert Object to tftypes.Value if AttrTypes field is not set",
 		},
 	}
 
@@ -1695,22 +1534,22 @@ func TestObjectEqual(t *testing.T) {
 			expected: false,
 		},
 		"known-known-diff-attribute-types": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
+			receiver: ObjectValueMust(
+				map[string]attr.Type{
 					"string": StringType,
 				},
-				Attrs: map[string]attr.Value{
+				map[string]attr.Value{
 					"string": StringValue("hello"),
 				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
+			),
+			arg: ObjectValueMust(
+				map[string]attr.Type{
 					"number": NumberType,
 				},
-				Attrs: map[string]attr.Value{
+				map[string]attr.Value{
 					"number": NumberValue(big.NewFloat(123)),
 				},
-			},
+			),
 			expected: false,
 		},
 		"known-known-diff-unknown": {
@@ -1752,18 +1591,18 @@ func TestObjectEqual(t *testing.T) {
 			expected: false,
 		},
 		"known-unknown": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
+			receiver: ObjectValueMust(
+				map[string]attr.Type{
 					"string": StringType,
 					"bool":   BoolType,
 					"number": NumberType,
 				},
-				Attrs: map[string]attr.Value{
+				map[string]attr.Value{
 					"string": StringValue("hello"),
 					"bool":   BoolValue(true),
 					"number": NumberValue(big.NewFloat(123)),
 				},
-			},
+			),
 			arg: ObjectUnknown(
 				map[string]attr.Type{
 					"string": StringType,
@@ -1811,79 +1650,6 @@ func TestObjectEqual(t *testing.T) {
 			arg:      StringValue("whoops"),
 			expected: false,
 		},
-		"known-deprecated-known": {
-			receiver: ObjectValueMust(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				map[string]attr.Value{
-					"string": StringValue("hello"),
-					"bool":   BoolValue(true),
-					"number": NumberValue(big.NewFloat(123)),
-				},
-			),
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			expected: false, // intentional
-		},
-		"known-deprecated-unknown": {
-			receiver: ObjectValueMust(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				map[string]attr.Value{
-					"string": StringValue("hello"),
-					"bool":   BoolValue(true),
-					"number": NumberValue(big.NewFloat(123)),
-				},
-			),
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Unknown: true,
-			},
-			expected: false,
-		},
-		"known-deprecated-null": {
-			receiver: ObjectValueMust(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				map[string]attr.Value{
-					"string": StringValue("hello"),
-					"bool":   BoolValue(true),
-					"number": NumberValue(big.NewFloat(123)),
-				},
-			),
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Null: true,
-			},
-			expected: false,
-		},
 		"unknown-known": {
 			receiver: ObjectUnknown(
 				map[string]attr.Type{
@@ -1899,33 +1665,11 @@ func TestObjectEqual(t *testing.T) {
 					"number": NumberType,
 				},
 				map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
+					"string": StringValue("hello"),
+					"bool":   BoolValue(true),
+					"number": NumberValue(big.NewFloat(123)),
 				},
 			),
-			expected: false,
-		},
-		"unknown-deprecated-known": {
-			receiver: ObjectUnknown(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
 			expected: false,
 		},
 		"unknown-unknown": {
@@ -1945,24 +1689,6 @@ func TestObjectEqual(t *testing.T) {
 			),
 			expected: true,
 		},
-		"unknown-deprecated-unknown": {
-			receiver: ObjectUnknown(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Unknown: true,
-			},
-			expected: false, // intentional
-		},
 		"unknown-null": {
 			receiver: ObjectUnknown(
 				map[string]attr.Type{
@@ -1980,24 +1706,6 @@ func TestObjectEqual(t *testing.T) {
 			),
 			expected: false,
 		},
-		"unknown-deprecated-null": {
-			receiver: ObjectUnknown(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Null: true,
-			},
-			expected: false,
-		},
 		"null-known": {
 			receiver: ObjectNull(
 				map[string]attr.Type{
@@ -2013,33 +1721,11 @@ func TestObjectEqual(t *testing.T) {
 					"number": NumberType,
 				},
 				map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
+					"string": StringValue("hello"),
+					"bool":   BoolValue(true),
+					"number": NumberValue(big.NewFloat(123)),
 				},
 			),
-			expected: false,
-		},
-		"null-deprecated-known": {
-			receiver: ObjectNull(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
 			expected: false,
 		},
 		"null-unknown": {
@@ -2059,24 +1745,6 @@ func TestObjectEqual(t *testing.T) {
 			),
 			expected: false,
 		},
-		"null-deprecated-unknown": {
-			receiver: ObjectNull(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Unknown: true,
-			},
-			expected: false,
-		},
 		"null-null": {
 			receiver: ObjectNull(
 				map[string]attr.Type{
@@ -2093,385 +1761,6 @@ func TestObjectEqual(t *testing.T) {
 				},
 			),
 			expected: true,
-		},
-		"null-deprecated-null": {
-			receiver: ObjectNull(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Null: true,
-			},
-			expected: false, // intentional
-		},
-		"deprecated-known-deprecated-known": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			expected: true,
-		},
-		"deprecated-known-deprecated-known-diff-value": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "world"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-known-diff-attribute-types": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-known-diff-attribute-count": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"list":   ListType{ElemType: StringType},
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"list": List{ElemType: BoolType, Elems: []attr.Value{
-						Bool{Value: true},
-						Bool{Value: false},
-					}},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-known-diff-unknown": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Unknown: true},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-known-diff-null": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Null: true},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-unknown": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Unknown: true,
-			},
-			expected: false,
-		},
-		"deprecated-known-deprecated-null": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Null: true,
-			},
-			expected: false,
-		},
-		"deprecated-known-diff-wrong-type": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			arg:      String{Value: "whoops"},
-			expected: false,
-		},
-		"deprecated-known-invalid-attribute-name": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-				},
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-				},
-				Attrs: map[string]attr.Value{
-					"strng": String{Value: "hello"},
-				},
-			},
-			expected: false,
-		},
-		"deprecated-known-known": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			arg: ObjectValueMust(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			),
-			expected: false, // intentional
-		},
-		"deprecated-known-unknown": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			arg: ObjectUnknown(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			expected: false,
-		},
-		"deprecated-known-null": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Attrs: map[string]attr.Value{
-					"string": String{Value: "hello"},
-					"bool":   Bool{Value: true},
-					"number": Number{Value: big.NewFloat(123)},
-				},
-			},
-			arg: ObjectNull(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			expected: false,
-		},
-		"deprecated-unknown-deprecated-unknown": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Unknown: true,
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Unknown: true,
-			},
-			expected: true,
-		},
-		"deprecated-unknown-unknown": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Unknown: true,
-			},
-			arg: ObjectUnknown(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			expected: false, // intentional
-		},
-		"deprecated-null-deprecated-null": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Null: true,
-			},
-			arg: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Null: true,
-			},
-			expected: true,
-		},
-		"deprecated-null-null": {
-			receiver: Object{
-				AttrTypes: map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-				Null: true,
-			},
-			arg: ObjectNull(
-				map[string]attr.Type{
-					"string": StringType,
-					"bool":   BoolType,
-					"number": NumberType,
-				},
-			),
-			expected: false, // intentional
 		},
 	}
 
@@ -2502,42 +1791,13 @@ func TestObjectIsNull(t *testing.T) {
 			),
 			expected: false,
 		},
-		"deprecated-known": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Attrs:     map[string]attr.Value{"test_attr": StringValue("test-value")},
-			},
-			expected: false,
-		},
 		"null": {
 			input:    ObjectNull(map[string]attr.Type{"test_attr": StringType}),
-			expected: true,
-		},
-		"deprecated-null": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Null:      true,
-			},
 			expected: true,
 		},
 		"unknown": {
 			input:    ObjectUnknown(map[string]attr.Type{"test_attr": StringType}),
 			expected: false,
-		},
-		"deprecated-unknown": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Unknown:   true,
-			},
-			expected: false,
-		},
-		"deprecated-invalid": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Null:      true,
-				Unknown:   true,
-			},
-			expected: true,
 		},
 	}
 
@@ -2570,41 +1830,12 @@ func TestObjectIsUnknown(t *testing.T) {
 			),
 			expected: false,
 		},
-		"deprecated-known": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Attrs:     map[string]attr.Value{"test_attr": StringValue("test-value")},
-			},
-			expected: false,
-		},
 		"null": {
 			input:    ObjectNull(map[string]attr.Type{"test_attr": StringType}),
 			expected: false,
 		},
-		"deprecated-null": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Null:      true,
-			},
-			expected: false,
-		},
 		"unknown": {
 			input:    ObjectUnknown(map[string]attr.Type{"test_attr": StringType}),
-			expected: true,
-		},
-		"deprecated-unknown": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Unknown:   true,
-			},
-			expected: true,
-		},
-		"deprecated-invalid": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Null:      true,
-				Unknown:   true,
-			},
 			expected: true,
 		},
 	}
@@ -2642,11 +1873,11 @@ func TestObjectString(t *testing.T) {
 					"theta": BoolType,
 				},
 				map[string]attr.Value{
-					"alpha": String{Value: "hello"},
-					"beta":  Int64{Value: 98719827987189},
-					"gamma": Float64{Value: -9876.782378},
-					"sigma": Number{Unknown: true},
-					"theta": Bool{Null: true},
+					"alpha": StringValue("hello"),
+					"beta":  Int64Value(98719827987189),
+					"gamma": Float64Value(-9876.782378),
+					"sigma": NumberUnknown(),
+					"theta": BoolNull(),
 				},
 			),
 			expectation: `{"alpha":"hello","beta":98719827987189,"gamma":-9876.782378,"sigma":<unknown>,"theta":<null>}`,
@@ -2680,9 +1911,9 @@ func TestObjectString(t *testing.T) {
 							"three": NumberType,
 						},
 						map[string]attr.Value{
-							"one":   String{Value: "1"},
-							"two":   Bool{Value: true},
-							"three": Number{Value: big.NewFloat(0.3)},
+							"one":   StringValue("1"),
+							"two":   BoolValue(true),
+							"three": NumberValue(big.NewFloat(0.3)),
 						},
 					),
 					"beta": ObjectValueMust(
@@ -2692,14 +1923,14 @@ func TestObjectString(t *testing.T) {
 							"tre": StringType,
 						},
 						map[string]attr.Value{
-							"uno": Int64{Value: 1},
-							"due": Bool{Value: false},
-							"tre": String{Value: "3"},
+							"uno": Int64Value(1),
+							"due": BoolValue(false),
+							"tre": StringValue("3"),
 						},
 					),
-					"gamma": Float64{Value: -9876.782378},
-					"sigma": Number{Unknown: true},
-					"theta": Bool{Null: true},
+					"gamma": Float64Value(-9876.782378),
+					"sigma": NumberUnknown(),
+					"theta": BoolNull(),
 				},
 			),
 			expectation: `{"alpha":{"one":"1","three":0.3,"two":true},"beta":{"due":false,"tre":"3","uno":1},"gamma":-9876.782378,"sigma":<unknown>,"theta":<null>}`,
@@ -2712,79 +1943,9 @@ func TestObjectString(t *testing.T) {
 			input:       ObjectNull(map[string]attr.Type{"test_attr": StringType}),
 			expectation: "<null>",
 		},
-		"deprecated-known": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{
-					"alpha": StringType,
-					"beta":  Int64Type,
-					"gamma": Float64Type,
-					"sigma": NumberType,
-					"theta": BoolType,
-				},
-				Attrs: map[string]attr.Value{
-					"alpha": String{Value: "hello"},
-					"beta":  Int64{Value: 98719827987189},
-					"gamma": Float64{Value: -9876.782378},
-					"sigma": Number{Unknown: true},
-					"theta": Bool{Null: true},
-				},
-			},
-			expectation: `{"alpha":"hello","beta":98719827987189,"gamma":-9876.782378,"sigma":<unknown>,"theta":<null>}`,
-		},
-		"deprecated-known-object-of-objects": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{
-					"alpha": ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"one":   StringType,
-							"two":   BoolType,
-							"three": NumberType,
-						},
-					},
-					"beta": ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"uno": Int64Type,
-							"due": BoolType,
-							"tre": StringType,
-						},
-					},
-					"gamma": Float64Type,
-					"sigma": NumberType,
-					"theta": BoolType,
-				},
-				Attrs: map[string]attr.Value{
-					"alpha": Object{
-						Attrs: map[string]attr.Value{
-							"one":   String{Value: "1"},
-							"two":   Bool{Value: true},
-							"three": Number{Value: big.NewFloat(0.3)},
-						},
-					},
-					"beta": Object{
-						Attrs: map[string]attr.Value{
-							"uno": Int64{Value: 1},
-							"due": Bool{Value: false},
-							"tre": String{Value: "3"},
-						},
-					},
-					"gamma": Float64{Value: -9876.782378},
-					"sigma": Number{Unknown: true},
-					"theta": Bool{Null: true},
-				},
-			},
-			expectation: `{"alpha":{"one":"1","three":0.3,"two":true},"beta":{"due":false,"tre":"3","uno":1},"gamma":-9876.782378,"sigma":<unknown>,"theta":<null>}`,
-		},
-		"deprecated-unknown": {
-			input:       Object{Unknown: true},
-			expectation: "<unknown>",
-		},
-		"deprecated-null": {
-			input:       Object{Null: true},
-			expectation: "<null>",
-		},
-		"default-empty": {
+		"zero-value": {
 			input:       Object{},
-			expectation: "{}",
+			expectation: "<null>",
 		},
 	}
 
@@ -2890,98 +2051,6 @@ func TestObjectType(t *testing.T) {
 		"null": {
 			input:       ObjectNull(map[string]attr.Type{"test_attr": StringType}),
 			expectation: ObjectType{AttrTypes: map[string]attr.Type{"test_attr": StringType}},
-		},
-		"deprecated-known": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{
-					"test_attr1": StringType,
-					"test_attr2": StringType,
-				},
-				Attrs: map[string]attr.Value{
-					"test_attr1": String{Value: "hello"},
-					"test_attr2": String{Value: "world"},
-				},
-			},
-			expectation: ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"test_attr1": StringType,
-					"test_attr2": StringType,
-				},
-			},
-		},
-		"deprecated-known-object-of-objects": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{
-					"test_attr1": ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"test_attr1": StringType,
-							"test_attr2": StringType,
-						},
-					},
-					"test_attr2": ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"test_attr1": StringType,
-							"test_attr2": StringType,
-						},
-					},
-				},
-				Attrs: map[string]attr.Value{
-					"test_attr1": ObjectValueMust(
-						map[string]attr.Type{
-							"test_attr1": StringType,
-							"test_attr2": StringType,
-						},
-						map[string]attr.Value{
-							"test_attr1": StringValue("hello"),
-							"test_attr2": StringValue("world"),
-						},
-					),
-					"test_attr2": ObjectValueMust(
-						map[string]attr.Type{
-							"test_attr1": StringType,
-							"test_attr2": StringType,
-						},
-						map[string]attr.Value{
-							"test_attr1": StringValue("foo"),
-							"test_attr2": StringValue("bar"),
-						},
-					),
-				},
-			},
-			expectation: ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"test_attr1": ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"test_attr1": StringType,
-							"test_attr2": StringType,
-						},
-					},
-					"test_attr2": ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"test_attr1": StringType,
-							"test_attr2": StringType,
-						},
-					},
-				},
-			},
-		},
-		"deprecated-unknown": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Unknown:   true,
-			},
-			expectation: ObjectType{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-			},
-		},
-		"deprecated-null": {
-			input: Object{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-				Null:      true,
-			},
-			expectation: ObjectType{
-				AttrTypes: map[string]attr.Type{"test_attr": StringType},
-			},
 		},
 	}
 

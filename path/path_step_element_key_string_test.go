@@ -38,7 +38,7 @@ func TestPathStepElementKeyStringEqual(t *testing.T) {
 		},
 		"PathStepElementKeyValue": {
 			step:     path.PathStepElementKeyString("test"),
-			other:    path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+			other:    path.PathStepElementKeyValue{Value: types.StringValue("test")},
 			expected: false,
 		},
 	}

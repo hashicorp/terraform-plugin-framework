@@ -88,7 +88,7 @@ func TestAttributePath(t *testing.T) {
 					},
 				},
 			},
-			expected: path.Root("test").AtSetValue(types.String{Value: "test-value"}),
+			expected: path.Root("test").AtSetValue(types.StringValue("test-value")),
 		},
 		"AttributeName-ElementKeyValue-value-conversion-error": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "test-value")),

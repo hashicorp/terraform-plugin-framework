@@ -87,32 +87,32 @@ func TestValueAs(t *testing.T) {
 
 	tests := map[string]testCase{
 		"primitive bool pointer": {
-			val:      types.Bool{Value: true},
+			val:      types.BoolValue(true),
 			target:   newBoolPointer(false),
 			expected: newBoolPointer(true),
 		},
 		"primitive bool pointer pointer": {
-			val:      types.Bool{Value: true},
+			val:      types.BoolValue(true),
 			target:   newBoolPointerPointer(false),
 			expected: newBoolPointerPointer(true),
 		},
 		"primitive float64 pointer": {
-			val:      types.Float64{Value: 12.3},
+			val:      types.Float64Value(12.3),
 			target:   newFloatPointer(0.0),
 			expected: newFloatPointer(12.3),
 		},
 		"primitive float64 pointer pointer": {
-			val:      types.Float64{Value: 12.3},
+			val:      types.Float64Value(12.3),
 			target:   newFloatPointerPointer(0.0),
 			expected: newFloatPointerPointer(12.3),
 		},
 		"primitive int64 pointer": {
-			val:      types.Int64{Value: 12},
+			val:      types.Int64Value(12),
 			target:   newInt64Pointer(0),
 			expected: newInt64Pointer(12),
 		},
 		"primitive int64 pointer pointer": {
-			val:      types.Int64{Value: 12},
+			val:      types.Int64Value(12),
 			target:   newInt64PointerPointer(0),
 			expected: newInt64PointerPointer(12),
 		},
@@ -127,28 +127,28 @@ func TestValueAs(t *testing.T) {
 		// 	expected: newBigFloatPointer(722770156065510359),
 		// },
 		"primitive number pointer pointer": {
-			val:      types.Number{Value: new(big.Float).SetUint64(722770156065510359)},
+			val:      types.NumberValue(new(big.Float).SetUint64(722770156065510359)),
 			target:   newBigFloatPointerPointer(0),
 			expected: newBigFloatPointerPointer(722770156065510359),
 		},
 		"primitive string pointer": {
-			val:      types.String{Value: "hello"},
+			val:      types.StringValue("hello"),
 			target:   newStringPointer(""),
 			expected: newStringPointer("hello"),
 		},
 		"primitive string pointer pointer": {
-			val:      types.String{Value: "hello"},
+			val:      types.StringValue("hello"),
 			target:   newStringPointerPointer(""),
 			expected: newStringPointerPointer("hello"),
 		},
 		"list": {
-			val: types.List{
-				Elems: []attr.Value{
-					types.String{Value: "hello"},
-					types.String{Value: "world"},
+			val: types.ListValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("hello"),
+					types.StringValue("world"),
 				},
-				ElemType: types.StringType,
-			},
+			),
 			target: &[]string{},
 			expected: &[]string{
 				"hello",
@@ -156,13 +156,13 @@ func TestValueAs(t *testing.T) {
 			},
 		},
 		"map": {
-			val: types.Map{
-				Elems: map[string]attr.Value{
-					"hello":   types.String{Value: "world"},
-					"goodbye": types.String{Value: "world"},
+			val: types.MapValueMust(
+				types.StringType,
+				map[string]attr.Value{
+					"hello":   types.StringValue("world"),
+					"goodbye": types.StringValue("world"),
 				},
-				ElemType: types.StringType,
-			},
+			),
 			target: &map[string]string{},
 			expected: &map[string]string{
 				"hello":   "world",
@@ -170,18 +170,18 @@ func TestValueAs(t *testing.T) {
 			},
 		},
 		"object": {
-			val: types.Object{
-				Attrs: map[string]attr.Value{
-					"name":     types.String{Value: "Boris"},
-					"age":      types.Int64{Value: 25},
-					"opted_in": types.Bool{Value: true},
-				},
-				AttrTypes: map[string]attr.Type{
+			val: types.ObjectValueMust(
+				map[string]attr.Type{
 					"name":     types.StringType,
 					"age":      types.Int64Type,
 					"opted_in": types.BoolType,
 				},
-			},
+				map[string]attr.Value{
+					"name":     types.StringValue("Boris"),
+					"age":      types.Int64Value(25),
+					"opted_in": types.BoolValue(true),
+				},
+			),
 			target: &struct {
 				Name    string `tfsdk:"name"`
 				Age     int64  `tfsdk:"age"`
@@ -198,13 +198,13 @@ func TestValueAs(t *testing.T) {
 			},
 		},
 		"set": {
-			val: types.Set{
-				Elems: []attr.Value{
-					types.Bool{Value: true},
-					types.Bool{},
+			val: types.SetValueMust(
+				types.BoolType,
+				[]attr.Value{
+					types.BoolValue(true),
+					types.BoolValue(false),
 				},
-				ElemType: types.BoolType,
-			},
+			),
 			target: &[]bool{},
 			expected: &[]bool{
 				true,
@@ -212,87 +212,87 @@ func TestValueAs(t *testing.T) {
 			},
 		},
 		"struct framework types": {
-			val: types.Object{
-				Attrs: map[string]attr.Value{
-					"name":     types.String{Value: "Boris"},
-					"age":      types.Int64{Value: 25},
-					"opted_in": types.Bool{Value: true},
-					"address": types.Map{
-						Elems: map[string]attr.Value{
-							"first_line": types.String{Value: "10 Downing Street"},
-							"postcode":   types.String{Value: "SW1A 2AA"},
-						},
-						ElemType: types.StringType,
-					},
-					"colours": types.List{
-						Elems: []attr.Value{
-							types.String{Value: "red"},
-							types.String{Value: "green"},
-							types.String{Value: "blue"},
-						},
-						ElemType: types.StringType,
-					},
-				},
-				AttrTypes: map[string]attr.Type{
+			val: types.ObjectValueMust(
+				map[string]attr.Type{
 					"name":     types.StringType,
 					"age":      types.Int64Type,
 					"opted_in": types.BoolType,
 					"address":  types.MapType{ElemType: types.StringType},
 					"colours":  types.ListType{ElemType: types.StringType},
 				},
-			},
+				map[string]attr.Value{
+					"name":     types.StringValue("Boris"),
+					"age":      types.Int64Value(25),
+					"opted_in": types.BoolValue(true),
+					"address": types.MapValueMust(
+						types.StringType,
+						map[string]attr.Value{
+							"first_line": types.StringValue("10 Downing Street"),
+							"postcode":   types.StringValue("SW1A 2AA"),
+						},
+					),
+					"colours": types.ListValueMust(
+						types.StringType,
+						[]attr.Value{
+							types.StringValue("red"),
+							types.StringValue("green"),
+							types.StringValue("blue"),
+						},
+					),
+				},
+			),
 			target: &personFrameworkTypes{},
 			expected: &personFrameworkTypes{
-				Name:    types.String{Value: "Boris"},
-				Age:     types.Int64{Value: 25},
-				OptedIn: types.Bool{Value: true},
-				Address: types.Map{
-					Elems: map[string]attr.Value{
-						"first_line": types.String{Value: "10 Downing Street"},
-						"postcode":   types.String{Value: "SW1A 2AA"},
+				Name:    types.StringValue("Boris"),
+				Age:     types.Int64Value(25),
+				OptedIn: types.BoolValue(true),
+				Address: types.MapValueMust(
+					types.StringType,
+					map[string]attr.Value{
+						"first_line": types.StringValue("10 Downing Street"),
+						"postcode":   types.StringValue("SW1A 2AA"),
 					},
-					ElemType: types.StringType,
-				},
-				Colours: types.List{
-					Elems: []attr.Value{
-						types.String{Value: "red"},
-						types.String{Value: "green"},
-						types.String{Value: "blue"},
+				),
+				Colours: types.ListValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("red"),
+						types.StringValue("green"),
+						types.StringValue("blue"),
 					},
-					ElemType: types.StringType,
-				},
+				),
 			},
 		},
 		"struct go types": {
-			val: types.Object{
-				Attrs: map[string]attr.Value{
-					"name":     types.String{Value: "Boris"},
-					"age":      types.Int64{Value: 25},
-					"opted_in": types.Bool{Value: true},
-					"address": types.Map{
-						Elems: map[string]attr.Value{
-							"first_line": types.String{Value: "10 Downing Street"},
-							"postcode":   types.String{Value: "SW1A 2AA"},
-						},
-						ElemType: types.StringType,
-					},
-					"colours": types.List{
-						Elems: []attr.Value{
-							types.String{Value: "red"},
-							types.String{Value: "green"},
-							types.String{Value: "blue"},
-						},
-						ElemType: types.StringType,
-					},
-				},
-				AttrTypes: map[string]attr.Type{
+			val: types.ObjectValueMust(
+				map[string]attr.Type{
 					"name":     types.StringType,
 					"age":      types.Int64Type,
 					"opted_in": types.BoolType,
 					"address":  types.MapType{ElemType: types.StringType},
 					"colours":  types.ListType{ElemType: types.StringType},
 				},
-			},
+				map[string]attr.Value{
+					"name":     types.StringValue("Boris"),
+					"age":      types.Int64Value(25),
+					"opted_in": types.BoolValue(true),
+					"address": types.MapValueMust(
+						types.StringType,
+						map[string]attr.Value{
+							"first_line": types.StringValue("10 Downing Street"),
+							"postcode":   types.StringValue("SW1A 2AA"),
+						},
+					),
+					"colours": types.ListValueMust(
+						types.StringType,
+						[]attr.Value{
+							types.StringValue("red"),
+							types.StringValue("green"),
+							types.StringValue("blue"),
+						},
+					),
+				},
+			),
 			target: &personGoTypes{},
 			expected: &personGoTypes{
 				Name:    "Boris",
@@ -306,7 +306,7 @@ func TestValueAs(t *testing.T) {
 			},
 		},
 		"incompatible-type": {
-			val:    types.String{Value: "hello"},
+			val:    types.StringValue("hello"),
 			target: newInt64Pointer(0),
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
@@ -320,13 +320,13 @@ func TestValueAs(t *testing.T) {
 			},
 		},
 		"different-type": {
-			val:    types.String{Value: "hello"},
+			val:    types.StringValue("hello"),
 			target: &testtypes.String{},
 			expectedDiags: diag.Diagnostics{
 				diag.WithPath(
 					path.Empty(),
 					reflect.DiagNewAttributeValueIntoWrongType{
-						ValType:    goreflect.TypeOf(types.String{Value: "hello"}),
+						ValType:    goreflect.TypeOf(types.StringValue("hello")),
 						TargetType: goreflect.TypeOf(testtypes.String{}),
 						SchemaType: types.StringType,
 					},
@@ -371,7 +371,7 @@ func TestValueAs_generic(t *testing.T) {
 	t.Parallel()
 
 	var target attr.Value
-	val := types.String{Value: "hello"}
+	val := types.StringValue("hello")
 	diags := ValueAs(context.Background(), val, &target)
 	if len(diags) > 0 {
 		t.Fatalf("Unexpected diagnostics: %s", diags)

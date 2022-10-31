@@ -20,7 +20,7 @@ var (
 // creating a Number with this function has no effect.
 func NumberNull() Number {
 	return Number{
-		state: valueStateNull,
+		state: attr.ValueStateNull,
 	}
 }
 
@@ -31,7 +31,7 @@ func NumberNull() Number {
 // creating a Number with this function has no effect.
 func NumberUnknown() Number {
 	return Number{
-		state: valueStateUnknown,
+		state: attr.ValueStateUnknown,
 	}
 }
 
@@ -46,75 +46,32 @@ func NumberValue(value *big.Float) Number {
 	}
 
 	return Number{
-		state: valueStateKnown,
+		state: attr.ValueStateKnown,
 		value: value,
 	}
 }
 
 func numberValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return Number{
-			Unknown: true,
-			state:   valueStateDeprecated,
-		}, nil
+		return NumberUnknown(), nil
 	}
 	if in.IsNull() {
-		return Number{
-			Null:  true,
-			state: valueStateDeprecated,
-		}, nil
+		return NumberNull(), nil
 	}
 	n := big.NewFloat(0)
 	err := in.As(&n)
 	if err != nil {
 		return nil, err
 	}
-	return Number{
-		Value: n,
-		state: valueStateDeprecated,
-	}, nil
+	return NumberValue(n), nil
 }
 
 // Number represents a number value, exposed as a *big.Float. Numbers can be
 // floats or integers.
 type Number struct {
-	// Unknown will be true if the value is not yet known.
-	//
-	// If the Number was created with the NumberValue, NumberNull, or NumberUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the NumberUnknown function to create an unknown Number
-	// value or use the IsUnknown method to determine whether the Number value
-	// is unknown instead.
-	Unknown bool
-
-	// Null will be true if the value was not set, or was explicitly set to
-	// null.
-	//
-	// If the Number was created with the NumberValue, NumberNull, or NumberUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the NumberNull function to create a null Number value or
-	// use the IsNull method to determine whether the Number value is null
-	// instead.
-	Null bool
-
-	// Value contains the set value, as long as Unknown and Null are both
-	// false.
-	//
-	// If the Number was created with the NumberValue, NumberNull, or NumberUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the NumberValue function to create a known Number value or
-	// use the ValueBigFloat method to retrieve the Number value instead.
-	Value *big.Float
-
-	// state represents whether the Number is null, unknown, or known. During the
-	// exported field deprecation period, this state can also be "deprecated",
-	// which remains the zero-value for compatibility to ensure exported field
-	// updates take effect. The zero-value will be changed to null in a future
-	// version.
-	state valueState
+	// state represents whether the value is null, unknown, or known. The
+	// zero-value is null.
+	state attr.ValueState
 
 	// value contains the known value, if not null or unknown.
 	value *big.Float
@@ -128,21 +85,7 @@ func (n Number) Type(_ context.Context) attr.Type {
 // ToTerraformValue returns the data contained in the Number as a tftypes.Value.
 func (n Number) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	switch n.state {
-	case valueStateDeprecated:
-		if n.Null {
-			return tftypes.NewValue(tftypes.Number, nil), nil
-		}
-		if n.Unknown {
-			return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
-		}
-		if n.Value == nil {
-			return tftypes.NewValue(tftypes.Number, nil), nil
-		}
-		if err := tftypes.ValidateValue(tftypes.Number, n.Value); err != nil {
-			return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), err
-		}
-		return tftypes.NewValue(tftypes.Number, n.Value), nil
-	case valueStateKnown:
+	case attr.ValueStateKnown:
 		if n.value == nil {
 			return tftypes.NewValue(tftypes.Number, nil), nil
 		}
@@ -152,9 +95,9 @@ func (n Number) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 		}
 
 		return tftypes.NewValue(tftypes.Number, n.value), nil
-	case valueStateNull:
+	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.Number, nil), nil
-	case valueStateUnknown:
+	case attr.ValueStateUnknown:
 		return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
 	default:
 		panic(fmt.Sprintf("unhandled Number state in ToTerraformValue: %s", n.state))
@@ -164,50 +107,30 @@ func (n Number) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 // Equal returns true if `other` is a Number and has the same value as `n`.
 func (n Number) Equal(other attr.Value) bool {
 	o, ok := other.(Number)
+
 	if !ok {
 		return false
 	}
+
 	if n.state != o.state {
 		return false
 	}
-	if n.state == valueStateKnown {
-		return n.value.Cmp(o.value) == 0
-	}
-	if n.Unknown != o.Unknown {
-		return false
-	}
-	if n.Null != o.Null {
-		return false
-	}
-	if n.Value == nil && o.Value == nil {
+
+	if n.state != attr.ValueStateKnown {
 		return true
 	}
-	if n.Value == nil || o.Value == nil {
-		return false
-	}
-	return n.Value.Cmp(o.Value) == 0
+
+	return n.value.Cmp(o.value) == 0
 }
 
 // IsNull returns true if the Number represents a null value.
 func (n Number) IsNull() bool {
-	if n.state == valueStateNull {
-		return true
-	}
-
-	if n.state == valueStateDeprecated && n.Null {
-		return true
-	}
-
-	return n.state == valueStateDeprecated && (!n.Unknown && n.Value == nil)
+	return n.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the Number represents a currently unknown value.
 func (n Number) IsUnknown() bool {
-	if n.state == valueStateUnknown {
-		return true
-	}
-
-	return n.state == valueStateDeprecated && n.Unknown
+	return n.state == attr.ValueStateUnknown
 }
 
 // String returns a human-readable representation of the Number value.
@@ -222,19 +145,11 @@ func (n Number) String() string {
 		return attr.NullValueString
 	}
 
-	if n.state == valueStateKnown {
-		return n.value.String()
-	}
-
-	return n.Value.String()
+	return n.value.String()
 }
 
 // ValueBigFloat returns the known *big.Float value. If Number is null or unknown, returns
 // 0.0.
 func (n Number) ValueBigFloat() *big.Float {
-	if n.state == valueStateDeprecated {
-		return n.Value
-	}
-
 	return n.value
 }

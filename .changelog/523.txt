@@ -1,0 +1,47 @@
+```release-note:breaking-change
+types: The `Bool` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `BoolNull()`, `BoolUnknown()`, and `BoolValue()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueBool()` methods instead.
+```
+
+```release-note:breaking-change
+types: The `Float64` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `Float64Null()`, `Float64Unknown()`, and `Float64Value()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueFloat64()` methods instead.
+```
+
+```release-note:breaking-change
+types: The `Int64` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `Int64Null()`, `Int64Unknown()`, and `Int64Value()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueInt64()` methods instead.
+```
+
+```release-note:breaking-change
+types: The `List` type `Elems`, `ElemType`, `Null`, and `Unknown` fields have been removed. Use the `ListNull()`, `ListUnknown()`, `ListValue()`, and `ListValueMust()` creation functions and `Elements()`, `ElementsAs()`, `ElementType()`, `IsNull()`, and `IsUnknown()` methods instead.
+```
+
+```release-note:breaking-change
+types: The `Map` type `Elems`, `ElemType`, `Null`, and `Unknown` fields have been removed. Use the `MapNull()`, `MapUnknown()`, `MapValue()`, and `MapValueMust()` creation functions and `Elements()`, `ElementsAs()`, `ElementType()`, `IsNull()`, and `IsUnknown()` methods instead.
+```
+
+```release-note:breaking-change
+types: The `Number` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `NumberNull()`, `NumberUnknown()`, and `NumberValue()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueBigFloat()` methods instead.
+```
+
+```release-note:breaking-change
+types: The `Object` type `Attrs`, `AttrTypes`, `Null`, and `Unknown` fields have been removed. Use the `ObjectNull()`, `ObjectUnknown()`, `ObjectValue()`, and `ObjectValueMust()` creation functions and `As()`, `Attributes()`, `AttributeTypes()`, `IsNull()`, and `IsUnknown()` methods instead.
+```
+
+```release-note:breaking-change
+types: The `Set` type `Elems`, `ElemType`, `Null`, and `Unknown` fields have been removed. Use the `SetNull()`, `SetUnknown()`, `SetValue()`, and `SetValueMust()` creation functions and `Elements()`, `ElementsAs()`, `ElementType()`, `IsNull()`, and `IsUnknown()` methods instead.
+```
+
+```release-note:breaking-change
+types: The `String` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `StringNull()`, `StringUnknown()`, and `StringValue()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueString()` methods instead.
+```
+
+```release-note:enhancement
+attr: Added `ValueState` type, which custom types can use to consistently represent the three possible value states (known, null, and unknown)
+```
+
+```release-note:bug
+types: Prevented Terraform errors where the zero-value for any `attr.Value` types such as `String` would be a known value instead of null
+```
+
+```release-note:bug
+types: Prevented indeterminate behavior for any `attr.Value` types where they could be any combination of null, unknown, and/or known
+```

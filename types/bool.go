@@ -20,7 +20,7 @@ var (
 // creating a Bool with this function has no effect.
 func BoolNull() Bool {
 	return Bool{
-		state: valueStateNull,
+		state: attr.ValueStateNull,
 	}
 }
 
@@ -31,7 +31,7 @@ func BoolNull() Bool {
 // creating a Bool with this function has no effect.
 func BoolUnknown() Bool {
 	return Bool{
-		state: valueStateUnknown,
+		state: attr.ValueStateUnknown,
 	}
 }
 
@@ -42,74 +42,31 @@ func BoolUnknown() Bool {
 // creating a Bool with this function has no effect.
 func BoolValue(value bool) Bool {
 	return Bool{
-		state: valueStateKnown,
+		state: attr.ValueStateKnown,
 		value: value,
 	}
 }
 
 func boolValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if in.IsNull() {
-		return Bool{
-			Null:  true,
-			state: valueStateDeprecated,
-		}, nil
+		return BoolNull(), nil
 	}
 	if !in.IsKnown() {
-		return Bool{
-			Unknown: true,
-			state:   valueStateDeprecated,
-		}, nil
+		return BoolUnknown(), nil
 	}
 	var b bool
 	err := in.As(&b)
 	if err != nil {
 		return nil, err
 	}
-	return Bool{
-		Value: b,
-		state: valueStateDeprecated,
-	}, nil
+	return BoolValue(b), nil
 }
 
 // Bool represents a boolean value.
 type Bool struct {
-	// Unknown will be true if the value is not yet known.
-	//
-	// If the Bool was created with the BoolValue, BoolNull, or BoolUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the BoolUnknown function to create an unknown Bool
-	// value or use the IsUnknown method to determine whether the Bool value
-	// is unknown instead.
-	Unknown bool
-
-	// Null will be true if the value was not set, or was explicitly set to
-	// null.
-	//
-	// If the Bool was created with the BoolValue, BoolNull, or BoolUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the BoolNull function to create a null Bool value or
-	// use the IsNull method to determine whether the Bool value is null
-	// instead.
-	Null bool
-
-	// Value contains the set value, as long as Unknown and Null are both
-	// false.
-	//
-	// If the Bool was created with the BoolValue, BoolNull, or BoolUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the BoolValue function to create a known Bool value or
-	// use the ValueBool method to retrieve the Bool value instead.
-	Value bool
-
-	// state represents whether the Bool is null, unknown, or known. During the
-	// exported field deprecation period, this state can also be "deprecated",
-	// which remains the zero-value for compatibility to ensure exported field
-	// updates take effect. The zero-value will be changed to null in a future
-	// version.
-	state valueState
+	// state represents whether the value is null, unknown, or known. The
+	// zero-value is null.
+	state attr.ValueState
 
 	// value contains the known value, if not null or unknown.
 	value bool
@@ -127,26 +84,15 @@ func (b Bool) Type(_ context.Context) attr.Type {
 // ToTerraformValue returns the data contained in the Bool as a tftypes.Value.
 func (b Bool) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	switch b.state {
-	case valueStateDeprecated:
-		if b.Null {
-			return tftypes.NewValue(tftypes.Bool, nil), nil
-		}
-		if b.Unknown {
-			return tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), nil
-		}
-		if err := tftypes.ValidateValue(tftypes.Bool, b.Value); err != nil {
-			return tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), err
-		}
-		return tftypes.NewValue(tftypes.Bool, b.Value), nil
-	case valueStateKnown:
+	case attr.ValueStateKnown:
 		if err := tftypes.ValidateValue(tftypes.Bool, b.value); err != nil {
 			return tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), err
 		}
 
 		return tftypes.NewValue(tftypes.Bool, b.value), nil
-	case valueStateNull:
+	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.Bool, nil), nil
-	case valueStateUnknown:
+	case attr.ValueStateUnknown:
 		return tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), nil
 	default:
 		panic(fmt.Sprintf("unhandled Bool state in ToTerraformValue: %s", b.state))
@@ -156,40 +102,30 @@ func (b Bool) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 // Equal returns true if `other` is a *Bool and has the same value as `b`.
 func (b Bool) Equal(other attr.Value) bool {
 	o, ok := other.(Bool)
+
 	if !ok {
 		return false
 	}
+
 	if b.state != o.state {
 		return false
 	}
-	if b.state == valueStateKnown {
-		return b.value == o.value
+
+	if b.state != attr.ValueStateKnown {
+		return true
 	}
-	if b.Unknown != o.Unknown {
-		return false
-	}
-	if b.Null != o.Null {
-		return false
-	}
-	return b.Value == o.Value
+
+	return b.value == o.value
 }
 
 // IsNull returns true if the Bool represents a null value.
 func (b Bool) IsNull() bool {
-	if b.state == valueStateNull {
-		return true
-	}
-
-	return b.state == valueStateDeprecated && b.Null
+	return b.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the Bool represents a currently unknown value.
 func (b Bool) IsUnknown() bool {
-	if b.state == valueStateUnknown {
-		return true
-	}
-
-	return b.state == valueStateDeprecated && b.Unknown
+	return b.state == attr.ValueStateUnknown
 }
 
 // String returns a human-readable representation of the Bool value.
@@ -204,19 +140,11 @@ func (b Bool) String() string {
 		return attr.NullValueString
 	}
 
-	if b.state == valueStateKnown {
-		return fmt.Sprintf("%t", b.value)
-	}
-
-	return fmt.Sprintf("%t", b.Value)
+	return fmt.Sprintf("%t", b.value)
 }
 
 // ValueBool returns the known bool value. If Bool is null or unknown, returns
 // false.
 func (b Bool) ValueBool() bool {
-	if b.state == valueStateDeprecated {
-		return b.Value
-	}
-
 	return b.value
 }

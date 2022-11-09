@@ -192,16 +192,16 @@ func TestExpressionsContains(t *testing.T) {
 		},
 		"ElementKeyValue-different": {
 			expressions: path.Expressions{
-				path.MatchRelative().AtSetValue(types.String{Value: "test"}),
+				path.MatchRelative().AtSetValue(types.StringValue("test")),
 			},
-			contains: path.MatchRelative().AtSetValue(types.String{Value: "not-test"}),
+			contains: path.MatchRelative().AtSetValue(types.StringValue("not-test")),
 			expected: false,
 		},
 		"ElementKeyValue-equal": {
 			expressions: path.Expressions{
-				path.MatchRelative().AtSetValue(types.String{Value: "test"}),
+				path.MatchRelative().AtSetValue(types.StringValue("test")),
 			},
-			contains: path.MatchRelative().AtSetValue(types.String{Value: "test"}),
+			contains: path.MatchRelative().AtSetValue(types.StringValue("test")),
 			expected: true,
 		},
 	}

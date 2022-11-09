@@ -94,18 +94,14 @@ func TestFromPointer(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"simple": {
-			typ: types.StringType,
-			val: reflect.ValueOf(strPtr("hello, world")),
-			expected: types.String{
-				Value: "hello, world",
-			},
+			typ:      types.StringType,
+			val:      reflect.ValueOf(strPtr("hello, world")),
+			expected: types.StringValue("hello, world"),
 		},
 		"null": {
-			typ: types.StringType,
-			val: reflect.ValueOf(new(*string)),
-			expected: types.String{
-				Null: true,
-			},
+			typ:      types.StringType,
+			val:      reflect.ValueOf(new(*string)),
+			expected: types.StringNull(),
 		},
 		"WithValidateError": {
 			typ: testtypes.StringTypeWithValidateError{},
@@ -118,10 +114,8 @@ func TestFromPointer(t *testing.T) {
 			typ: testtypes.StringTypeWithValidateWarning{},
 			val: reflect.ValueOf(strPtr("hello, world")),
 			expected: testtypes.String{
-				InternalString: types.String{
-					Value: "hello, world",
-				},
-				CreatedBy: testtypes.StringTypeWithValidateWarning{},
+				InternalString: types.StringValue("hello, world"),
+				CreatedBy:      testtypes.StringTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(path.Empty()),

@@ -11,84 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// This test verifies the assumptions that creating the Value via function then
-// setting the fields directly has no effects.
-func TestFloat64ValueDeprecatedFieldSetting(t *testing.T) {
-	t.Parallel()
-
-	knownFloat64 := Float64Value(2.4)
-
-	knownFloat64.Null = true
-
-	if knownFloat64.IsNull() {
-		t.Error("unexpected null update after Null field setting")
-	}
-
-	knownFloat64.Unknown = true
-
-	if knownFloat64.IsUnknown() {
-		t.Error("unexpected unknown update after Unknown field setting")
-	}
-
-	knownFloat64.Value = 4.8
-
-	if knownFloat64.ValueFloat64() == 4.8 {
-		t.Error("unexpected value update after Value field setting")
-	}
-}
-
-// This test verifies the assumptions that creating the Value via function then
-// setting the fields directly has no effects.
-func TestFloat64NullDeprecatedFieldSetting(t *testing.T) {
-	t.Parallel()
-
-	nullFloat64 := Float64Null()
-
-	nullFloat64.Null = false
-
-	if !nullFloat64.IsNull() {
-		t.Error("unexpected null update after Null field setting")
-	}
-
-	nullFloat64.Unknown = true
-
-	if nullFloat64.IsUnknown() {
-		t.Error("unexpected unknown update after Unknown field setting")
-	}
-
-	nullFloat64.Value = 4.8
-
-	if nullFloat64.ValueFloat64() == 4.8 {
-		t.Error("unexpected value update after Value field setting")
-	}
-}
-
-// This test verifies the assumptions that creating the Value via function then
-// setting the fields directly has no effects.
-func TestFloat64UnknownDeprecatedFieldSetting(t *testing.T) {
-	t.Parallel()
-
-	unknownFloat64 := Float64Unknown()
-
-	unknownFloat64.Null = true
-
-	if unknownFloat64.IsNull() {
-		t.Error("unexpected null update after Null field setting")
-	}
-
-	unknownFloat64.Unknown = false
-
-	if !unknownFloat64.IsUnknown() {
-		t.Error("unexpected unknown update after Unknown field setting")
-	}
-
-	unknownFloat64.Value = 4.8
-
-	if unknownFloat64.ValueFloat64() == 4.8 {
-		t.Error("unexpected value update after Value field setting")
-	}
-}
-
 func TestFloat64ValueFromTerraform(t *testing.T) {
 	t.Parallel()
 
@@ -104,19 +26,19 @@ func testFloat64ValueFromTerraform(t *testing.T, direct bool) {
 	tests := map[string]testCase{
 		"value-int": {
 			input:       tftypes.NewValue(tftypes.Number, 123),
-			expectation: Float64{Value: 123.0},
+			expectation: Float64Value(123.0),
 		},
 		"value-float": {
 			input:       tftypes.NewValue(tftypes.Number, 123.456),
-			expectation: Float64{Value: 123.456},
+			expectation: Float64Value(123.456),
 		},
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-			expectation: Float64{Unknown: true},
+			expectation: Float64Unknown(),
 		},
 		"null": {
 			input:       tftypes.NewValue(tftypes.Number, nil),
-			expectation: Float64{Null: true},
+			expectation: Float64Null(),
 		},
 		"wrongType": {
 			input:       tftypes.NewValue(tftypes.String, "oops"),
@@ -189,19 +111,19 @@ func TestFloat64ToTerraformValue(t *testing.T) {
 			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 		"deprecated-value-int": {
-			input:       Float64{Value: 123},
+			input:       Float64Value(123),
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.0)),
 		},
 		"deprecated-value-float": {
-			input:       Float64{Value: 123.456},
+			input:       Float64Value(123.456),
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.456)),
 		},
 		"deprecated-unknown": {
-			input:       Float64{Unknown: true},
+			input:       Float64Unknown(),
 			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 		},
 		"deprecated-null": {
-			input:       Float64{Null: true},
+			input:       Float64Null(),
 			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 	}
@@ -282,136 +204,6 @@ func TestFloat64Equal(t *testing.T) {
 			candidate:   Float64Null(),
 			expectation: true,
 		},
-		"deprecated-known-known-same": {
-			input:       Float64{Value: 123},
-			candidate:   Float64Value(123),
-			expectation: false, // intentional
-		},
-		"deprecated-known-known-diff": {
-			input:       Float64{Value: 123},
-			candidate:   Float64Value(456),
-			expectation: false,
-		},
-		"deprecated-known-unknown": {
-			input:       Float64{Value: 123},
-			candidate:   Float64Unknown(),
-			expectation: false,
-		},
-		"deprecated-known-null": {
-			input:       Float64{Value: 123},
-			candidate:   Float64Null(),
-			expectation: false,
-		},
-		"deprecated-known-deprecated-known-same": {
-			input:       Float64{Value: 123},
-			candidate:   Float64{Value: 123},
-			expectation: true,
-		},
-		"deprecated-known-deprecated-known-diff": {
-			input:       Float64{Value: 123},
-			candidate:   Float64{Value: 456},
-			expectation: false,
-		},
-		"deprecated-known-deprecated-unknown": {
-			input:       Float64{Value: 123},
-			candidate:   Float64{Unknown: true},
-			expectation: false,
-		},
-		"deprecated-known-deprecated-null": {
-			input:       Float64{Value: 123},
-			candidate:   Float64{Null: true},
-			expectation: false,
-		},
-		"deprecated-known-wrongType": {
-			input:       Float64{Value: 123},
-			candidate:   &String{Value: "oops"},
-			expectation: false,
-		},
-		"deprecated-known-nil": {
-			input:       Float64{Value: 123},
-			candidate:   nil,
-			expectation: false,
-		},
-		"deprecated-unknown-value": {
-			input:       Float64{Unknown: true},
-			candidate:   Float64Value(123),
-			expectation: false,
-		},
-		"deprecated-unknown-unknown": {
-			input:       Float64{Unknown: true},
-			candidate:   Float64Unknown(),
-			expectation: false, // intentional
-		},
-		"deprecated-unknown-null": {
-			input:       Float64{Unknown: true},
-			candidate:   Float64Null(),
-			expectation: false,
-		},
-		"deprecated-unknown-deprecated-value": {
-			input:       Float64{Unknown: true},
-			candidate:   Float64{Value: 123},
-			expectation: false,
-		},
-		"deprecated-unknown-deprecated-unknown": {
-			input:       Float64{Unknown: true},
-			candidate:   Float64{Unknown: true},
-			expectation: true,
-		},
-		"deprecated-unknown-deprecated-null": {
-			input:       Float64{Unknown: true},
-			candidate:   Float64{Null: true},
-			expectation: false,
-		},
-		"deprecated-unknown-wrongType": {
-			input:       Float64{Unknown: true},
-			candidate:   &String{Value: "oops"},
-			expectation: false,
-		},
-		"deprecated-unknown-nil": {
-			input:       Float64{Unknown: true},
-			candidate:   nil,
-			expectation: false,
-		},
-		"deprecated-null-known": {
-			input:       Float64{Null: true},
-			candidate:   Float64Value(123),
-			expectation: false,
-		},
-		"deprecated-null-unknown": {
-			input:       Float64{Null: true},
-			candidate:   Float64Unknown(),
-			expectation: false,
-		},
-		"deprecated-null-null": {
-			input:       Float64{Null: true},
-			candidate:   Float64Null(),
-			expectation: false, // intentional
-		},
-		"deprecated-null-deprecated-known": {
-			input:       Float64{Null: true},
-			candidate:   Float64{Value: 123},
-			expectation: false,
-		},
-		"deprecated-null-deprecated-unknown": {
-			input:       Float64{Null: true},
-			candidate:   Float64{Unknown: true},
-			expectation: false,
-		},
-		"deprecated-null-deprecated-null": {
-			input:       Float64{Null: true},
-			candidate:   Float64{Null: true},
-			expectation: true,
-		},
-		"deprecated-null-wrongType": {
-			input:       Float64{Null: true},
-			candidate:   &String{Value: "oops"},
-			expectation: false,
-		},
-		"deprecated-null-nil": {
-			input:       Float64{Null: true},
-			candidate:   nil,
-			expectation: false,
-		},
 	}
 	for name, test := range tests {
 		name, test := name, test
@@ -437,29 +229,13 @@ func TestFloat64IsNull(t *testing.T) {
 			input:    Float64Value(2.4),
 			expected: false,
 		},
-		"deprecated-known": {
-			input:    Float64{Value: 2.4},
-			expected: false,
-		},
 		"null": {
 			input:    Float64Null(),
-			expected: true,
-		},
-		"deprecated-null": {
-			input:    Float64{Null: true},
 			expected: true,
 		},
 		"unknown": {
 			input:    Float64Unknown(),
 			expected: false,
-		},
-		"deprecated-unknown": {
-			input:    Float64{Unknown: true},
-			expected: false,
-		},
-		"deprecated-invalid": {
-			input:    Float64{Null: true, Unknown: true},
-			expected: true,
 		},
 	}
 
@@ -489,28 +265,12 @@ func TestFloat64IsUnknown(t *testing.T) {
 			input:    Float64Value(2.4),
 			expected: false,
 		},
-		"deprecated-known": {
-			input:    Float64{Value: 2.4},
-			expected: false,
-		},
 		"null": {
 			input:    Float64Null(),
 			expected: false,
 		},
-		"deprecated-null": {
-			input:    Float64{Null: true},
-			expected: false,
-		},
 		"unknown": {
 			input:    Float64Unknown(),
-			expected: true,
-		},
-		"deprecated-unknown": {
-			input:    Float64{Unknown: true},
-			expected: true,
-		},
-		"deprecated-invalid": {
-			input:    Float64{Null: true, Unknown: true},
 			expected: true,
 		},
 	}
@@ -570,41 +330,9 @@ func TestFloat64String(t *testing.T) {
 			input:       Float64Null(),
 			expectation: "<null>",
 		},
-		"deprecated-known-less-than-one": {
-			input:       Float64{Value: 0.12340984302980000},
-			expectation: "0.123410",
-		},
-		"deprecated-known-more-than-one": {
-			input:       Float64{Value: 92387938173219.327663},
-			expectation: "92387938173219.328125",
-		},
-		"deprecated-known-negative-more-than-one": {
-			input:       Float64{Value: -0.12340984302980000},
-			expectation: "-0.123410",
-		},
-		"deprecated-known-negative-less-than-one": {
-			input:       Float64{Value: -92387938173219.327663},
-			expectation: "-92387938173219.328125",
-		},
-		"deprecated-known-min-float64": {
-			input:       Float64{Value: math.SmallestNonzeroFloat64},
-			expectation: "0.000000",
-		},
-		"deprecated-known-max-float64": {
-			input:       Float64{Value: math.MaxFloat64},
-			expectation: "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000",
-		},
-		"deprecated-known-unknown": {
-			input:       Float64{Unknown: true},
-			expectation: "<unknown>",
-		},
-		"deprecated-known-null": {
-			input:       Float64{Null: true},
-			expectation: "<null>",
-		},
-		"default-0": {
+		"zero-value": {
 			input:       Float64{},
-			expectation: "0.000000",
+			expectation: "<null>",
 		},
 	}
 
@@ -632,28 +360,12 @@ func TestFloat64ValueFloat64(t *testing.T) {
 			input:    Float64Value(2.4),
 			expected: 2.4,
 		},
-		"deprecated-known": {
-			input:    Float64{Value: 2.4},
-			expected: 2.4,
-		},
 		"null": {
 			input:    Float64Null(),
 			expected: 0.0,
 		},
-		"deprecated-null": {
-			input:    Float64{Null: true},
-			expected: 0.0,
-		},
 		"unknown": {
 			input:    Float64Unknown(),
-			expected: 0.0,
-		},
-		"deprecated-unknown": {
-			input:    Float64{Unknown: true},
-			expected: 0.0,
-		},
-		"deprecated-invalid": {
-			input:    Float64{Null: true, Unknown: true},
 			expected: 0.0,
 		},
 	}

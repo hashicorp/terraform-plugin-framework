@@ -252,13 +252,13 @@ func TestExpressionAtSetValue(t *testing.T) {
 	}{
 		"shallow": {
 			expression: path.MatchRoot("test"),
-			value:      types.String{Value: "test"},
-			expected:   path.MatchRoot("test").AtSetValue(types.String{Value: "test"}),
+			value:      types.StringValue("test"),
+			expected:   path.MatchRoot("test").AtSetValue(types.StringValue("test")),
 		},
 		"deep": {
 			expression: path.MatchRoot("test1").AtListIndex(0).AtName("test2"),
-			value:      types.String{Value: "test"},
-			expected:   path.MatchRoot("test1").AtListIndex(0).AtName("test2").AtSetValue(types.String{Value: "test"}),
+			value:      types.StringValue("test"),
+			expected:   path.MatchRoot("test1").AtListIndex(0).AtName("test2").AtSetValue(types.StringValue("test")),
 		},
 	}
 
@@ -459,17 +459,17 @@ func TestExpressionMatches(t *testing.T) {
 		},
 		"AttributeNameExact-ElementKeyValueAny": {
 			expression: path.MatchRoot("test").AtAnySetValue(),
-			path:       path.Root("test").AtSetValue(types.String{Value: "test-value"}),
+			path:       path.Root("test").AtSetValue(types.StringValue("test-value")),
 			expected:   true,
 		},
 		"AttributeNameExact-ElementKeyValueExact-different": {
-			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value"}),
-			path:       path.Root("test").AtSetValue(types.String{Value: "not-test-value"}),
+			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value")),
+			path:       path.Root("test").AtSetValue(types.StringValue("not-test-value")),
 			expected:   false,
 		},
 		"AttributeNameExact-ElementKeyValueExact-equal": {
-			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value"}),
-			path:       path.Root("test").AtSetValue(types.String{Value: "test-value"}),
+			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value")),
+			path:       path.Root("test").AtSetValue(types.StringValue("test-value")),
 			expected:   true,
 		},
 		"AttributeNameExact-Parent-AttributeNameExact-different": {
@@ -644,27 +644,27 @@ func TestExpressionMatchesParent(t *testing.T) {
 		},
 		"AttributeNameExact-ElementKeyValueAny": {
 			expression: path.MatchRoot("test").AtAnySetValue(),
-			path:       path.Root("test").AtSetValue(types.String{Value: "test-value"}),
+			path:       path.Root("test").AtSetValue(types.StringValue("test-value")),
 			expected:   false,
 		},
 		"AttributeNameExact-ElementKeyValueAny-parent": {
 			expression: path.MatchRoot("test1").AtAnySetValue().AtName("test2"),
-			path:       path.Root("test1").AtSetValue(types.String{Value: "test-value"}),
+			path:       path.Root("test1").AtSetValue(types.StringValue("test-value")),
 			expected:   true,
 		},
 		"AttributeNameExact-ElementKeyValueExact-different": {
-			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value"}),
-			path:       path.Root("test").AtSetValue(types.String{Value: "not-test-value"}),
+			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value")),
+			path:       path.Root("test").AtSetValue(types.StringValue("not-test-value")),
 			expected:   false,
 		},
 		"AttributeNameExact-ElementKeyValueExact-equal": {
-			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value"}),
-			path:       path.Root("test").AtSetValue(types.String{Value: "test-value"}),
+			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value")),
+			path:       path.Root("test").AtSetValue(types.StringValue("test-value")),
 			expected:   false,
 		},
 		"AttributeNameExact-ElementKeyValueExact-parent": {
-			expression: path.MatchRoot("test1").AtSetValue(types.String{Value: "test-value"}).AtName("test2"),
-			path:       path.Root("test1").AtSetValue(types.String{Value: "test-value"}),
+			expression: path.MatchRoot("test1").AtSetValue(types.StringValue("test-value")).AtName("test2"),
+			path:       path.Root("test1").AtSetValue(types.StringValue("test-value")),
 			expected:   true,
 		},
 		"AttributeNameExact-Parent": {
@@ -989,20 +989,20 @@ func TestExpressionString(t *testing.T) {
 			expected:   `test[Value(*)]`,
 		},
 		"AttributeNameExact-ElementKeyValueExact": {
-			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value"}),
+			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value")),
 			expected:   `test[Value("test-value")]`,
 		},
 		"AttributeNameExact-ElementKeyValue-AttributeNameExact": {
-			expression: path.MatchRoot("test").AtSetValue(types.Object{
-				Attrs: map[string]attr.Value{
-					"test_attr_1": types.Bool{Value: true},
-					"test_attr_2": types.String{Value: "test-value"},
-				},
-				AttrTypes: map[string]attr.Type{
+			expression: path.MatchRoot("test").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"test_attr_1": types.BoolType,
 					"test_attr_2": types.StringType,
 				},
-			}).AtName("test_attr_1"),
+				map[string]attr.Value{
+					"test_attr_1": types.BoolValue(true),
+					"test_attr_2": types.StringValue("test-value"),
+				},
+			)).AtName("test_attr_1"),
 			expected: `test[Value({"test_attr_1":true,"test_attr_2":"test-value"})].test_attr_1`,
 		},
 	}

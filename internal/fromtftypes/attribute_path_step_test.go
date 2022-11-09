@@ -43,7 +43,7 @@ func TestAttributePathStep(t *testing.T) {
 		"PathStepElementKeyValue": {
 			tfType:   tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
 			attrType: types.StringType,
-			expected: path.PathStepElementKeyValue{Value: types.String{Value: "test"}},
+			expected: path.PathStepElementKeyValue{Value: types.StringValue("test")},
 		},
 		"PathStepElementKeyValue-error": {
 			tfType:        tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),

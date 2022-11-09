@@ -29,25 +29,25 @@ func TestUseStateForUnknownModifier(t *testing.T) {
 			// this honestly just shouldn't happen, but let's be
 			// sure we're not going to panic if it does
 			state:    nil,
-			plan:     types.String{Unknown: true},
-			config:   types.String{Null: true},
-			expected: types.String{Unknown: true},
+			plan:     types.StringUnknown(),
+			config:   types.StringNull(),
+			expected: types.StringUnknown(),
 		},
 		"nil-plan": {
 			// this honestly just shouldn't happen, but let's be
 			// sure we're not going to panic if it does
-			state:    types.String{Null: true},
+			state:    types.StringNull(),
 			plan:     nil,
-			config:   types.String{Null: true},
+			config:   types.StringNull(),
 			expected: nil,
 		},
 		"null-state": {
 			// when we first create the resource, use the unknown
 			// value
-			state:    types.String{Null: true},
-			plan:     types.String{Unknown: true},
-			config:   types.String{Null: true},
-			expected: types.String{Unknown: true},
+			state:    types.StringNull(),
+			plan:     types.StringUnknown(),
+			config:   types.StringNull(),
+			expected: types.StringUnknown(),
 		},
 		"known-plan": {
 			// this would really only happen if we had a plan
@@ -56,18 +56,18 @@ func TestUseStateForUnknownModifier(t *testing.T) {
 			//
 			// but we still want to preserve that value, in this
 			// case
-			state:    types.String{Value: "foo"},
-			plan:     types.String{Value: "bar"},
-			config:   types.String{Null: true},
-			expected: types.String{Value: "bar"},
+			state:    types.StringValue("foo"),
+			plan:     types.StringValue("bar"),
+			config:   types.StringNull(),
+			expected: types.StringValue("bar"),
 		},
 		"non-null-state-unknown-plan": {
 			// this is the situation we want to preserve the state
 			// in
-			state:    types.String{Value: "foo"},
-			plan:     types.String{Unknown: true},
-			config:   types.String{Null: true},
-			expected: types.String{Value: "foo"},
+			state:    types.StringValue("foo"),
+			plan:     types.StringUnknown(),
+			config:   types.StringNull(),
+			expected: types.StringValue("foo"),
 		},
 		"unknown-config": {
 			// this is the situation in which a user is
@@ -76,10 +76,10 @@ func TestUseStateForUnknownModifier(t *testing.T) {
 			// errors for changing the value even though we knew it
 			// was legitimately possible for it to change and the
 			// provider can't prevent this from happening
-			state:    types.String{Value: "foo"},
-			plan:     types.String{Unknown: true},
-			config:   types.String{Unknown: true},
-			expected: types.String{Unknown: true},
+			state:    types.StringValue("foo"),
+			plan:     types.StringUnknown(),
+			config:   types.StringUnknown(),
+			expected: types.StringUnknown(),
 		},
 	}
 
@@ -232,7 +232,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path:         path.Root("optional-computed"),
-			expectedPlan: types.String{Value: "foo"},
+			expectedPlan: types.StringValue("foo"),
 			expectedRR:   false,
 		},
 		"null-plan": {
@@ -287,7 +287,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path:         path.Root("optional"),
-			expectedPlan: types.String{Value: "bar"},
+			expectedPlan: types.StringValue("bar"),
 			expectedRR:   true,
 		},
 		"null-attribute-plan": {
@@ -316,7 +316,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path:         path.Root("optional"),
-			expectedPlan: types.String{Null: true},
+			expectedPlan: types.StringNull(),
 			expectedRR:   true,
 		},
 		"known-state-change": {
@@ -344,7 +344,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path:         path.Root("optional"),
-			expectedPlan: types.String{Value: "quux"},
+			expectedPlan: types.StringValue("quux"),
 			expectedRR:   true,
 		},
 		"known-state-no-change": {
@@ -372,7 +372,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path:         path.Root("optional-computed"),
-			expectedPlan: types.String{Value: "foo"},
+			expectedPlan: types.StringValue("foo"),
 			expectedRR:   false,
 		},
 		"null-config-computed": {
@@ -407,7 +407,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path:         path.Root("optional-computed"),
-			expectedPlan: types.String{Unknown: true},
+			expectedPlan: types.StringUnknown(),
 			expectedRR:   false,
 		},
 		"null-config-not-computed": {
@@ -443,7 +443,7 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path:         path.Root("optional"),
-			expectedPlan: types.String{Null: true},
+			expectedPlan: types.StringNull(),
 			expectedRR:   true,
 		},
 		"block-no-change": {
@@ -520,26 +520,26 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path: path.Root("block"),
-			expectedPlan: types.List{
-				ElemType: types.ObjectType{
+			expectedPlan: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"optional-computed": types.StringType,
 						"optional":          types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"optional-computed": types.StringType,
 							"optional":          types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"optional-computed": types.String{Value: "samevalue"},
-							"optional":          types.String{Value: "samevalue"},
+						map[string]attr.Value{
+							"optional-computed": types.StringValue("samevalue"),
+							"optional":          types.StringValue("samevalue"),
 						},
-					},
+					),
 				},
-			},
+			),
 			expectedRR: false,
 		},
 		"block-element-count-change": {
@@ -634,36 +634,36 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path: path.Root("block"),
-			expectedPlan: types.List{
-				ElemType: types.ObjectType{
+			expectedPlan: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"optional-computed": types.StringType,
 						"optional":          types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"optional-computed": types.StringType,
 							"optional":          types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"optional-computed": types.String{Value: "samevalue"},
-							"optional":          types.String{Value: "samevalue"},
+						map[string]attr.Value{
+							"optional-computed": types.StringValue("samevalue"),
+							"optional":          types.StringValue("samevalue"),
 						},
-					},
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"optional-computed": types.StringType,
 							"optional":          types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"optional-computed": types.String{Value: "newvalue"},
-							"optional":          types.String{Value: "newvalue"},
+						map[string]attr.Value{
+							"optional-computed": types.StringValue("newvalue"),
+							"optional":          types.StringValue("newvalue"),
 						},
-					},
+					),
 				},
-			},
+			),
 			expectedRR: true,
 		},
 		"block-nested-attribute-change": {
@@ -740,26 +740,26 @@ func TestRequiresReplaceModifier(t *testing.T) {
 				}),
 			},
 			path: path.Root("block"),
-			expectedPlan: types.List{
-				ElemType: types.ObjectType{
+			expectedPlan: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"optional-computed": types.StringType,
 						"optional":          types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"optional-computed": types.StringType,
 							"optional":          types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"optional-computed": types.String{Value: "samevalue"},
-							"optional":          types.String{Value: "newvalue"},
+						map[string]attr.Value{
+							"optional-computed": types.StringValue("samevalue"),
+							"optional":          types.StringValue("newvalue"),
 						},
-					},
+					),
 				},
-			},
+			),
 			expectedRR: true,
 		},
 	}
@@ -890,7 +890,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			priorRR:      false,
 			path:         path.Root("optional-computed"),
 			ifReturn:     true,
-			expectedPlan: types.String{Value: "foo"},
+			expectedPlan: types.StringValue("foo"),
 			expectedRR:   false,
 		},
 		"null-plan": {
@@ -949,7 +949,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			priorRR:      false,
 			path:         path.Root("optional"),
 			ifReturn:     true,
-			expectedPlan: types.String{Value: "bar"},
+			expectedPlan: types.StringValue("bar"),
 			expectedRR:   true,
 		},
 		"null-attribute-plan": {
@@ -980,7 +980,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			priorRR:      false,
 			ifReturn:     true,
 			path:         path.Root("optional"),
-			expectedPlan: types.String{Null: true},
+			expectedPlan: types.StringNull(),
 			expectedRR:   true,
 		},
 		"known-state-change-true": {
@@ -1011,7 +1011,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			priorRR:      false,
 			path:         path.Root("optional"),
 			ifReturn:     true,
-			expectedPlan: types.String{Value: "quux"},
+			expectedPlan: types.StringValue("quux"),
 			expectedRR:   true,
 		},
 		"known-state-change-false": {
@@ -1042,7 +1042,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			priorRR:      false,
 			path:         path.Root("optional"),
 			ifReturn:     false,
-			expectedPlan: types.String{Value: "quux"},
+			expectedPlan: types.StringValue("quux"),
 			expectedRR:   false,
 		},
 		"known-state-change-false-dont-override": {
@@ -1074,7 +1074,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			priorRR:      true,
 			path:         path.Root("optional"),
 			ifReturn:     false,
-			expectedPlan: types.String{Value: "quux"},
+			expectedPlan: types.StringValue("quux"),
 			expectedRR:   true,
 		},
 		"known-state-no-change": {
@@ -1104,7 +1104,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			priorRR:      false,
 			path:         path.Root("optional-computed"),
 			ifReturn:     true,
-			expectedPlan: types.String{Value: "foo"},
+			expectedPlan: types.StringValue("foo"),
 			expectedRR:   false,
 		},
 		"null-config-computed": {
@@ -1141,7 +1141,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			priorRR:      false,
 			path:         path.Root("optional-computed"),
 			ifReturn:     true,
-			expectedPlan: types.String{Unknown: true},
+			expectedPlan: types.StringUnknown(),
 			expectedRR:   false,
 		},
 		"null-config-not-computed": {
@@ -1179,7 +1179,7 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 			priorRR:      false,
 			path:         path.Root("optional"),
 			ifReturn:     true,
-			expectedPlan: types.String{Null: true},
+			expectedPlan: types.StringNull(),
 			expectedRR:   true,
 		},
 		"block-no-change": {
@@ -1256,26 +1256,26 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			path: path.Root("block"),
-			expectedPlan: types.List{
-				ElemType: types.ObjectType{
+			expectedPlan: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"optional-computed": types.StringType,
 						"optional":          types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"optional-computed": types.StringType,
 							"optional":          types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"optional-computed": types.String{Value: "samevalue"},
-							"optional":          types.String{Value: "samevalue"},
+						map[string]attr.Value{
+							"optional-computed": types.StringValue("samevalue"),
+							"optional":          types.StringValue("samevalue"),
 						},
-					},
+					),
 				},
-			},
+			),
 			ifReturn:   false,
 			expectedRR: false,
 		},
@@ -1371,36 +1371,36 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			path: path.Root("block"),
-			expectedPlan: types.List{
-				ElemType: types.ObjectType{
+			expectedPlan: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"optional-computed": types.StringType,
 						"optional":          types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"optional-computed": types.StringType,
 							"optional":          types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"optional-computed": types.String{Value: "samevalue"},
-							"optional":          types.String{Value: "samevalue"},
+						map[string]attr.Value{
+							"optional-computed": types.StringValue("samevalue"),
+							"optional":          types.StringValue("samevalue"),
 						},
-					},
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"optional-computed": types.StringType,
 							"optional":          types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"optional-computed": types.String{Value: "newvalue"},
-							"optional":          types.String{Value: "newvalue"},
+						map[string]attr.Value{
+							"optional-computed": types.StringValue("newvalue"),
+							"optional":          types.StringValue("newvalue"),
 						},
-					},
+					),
 				},
-			},
+			),
 			ifReturn:   true,
 			expectedRR: true,
 		},
@@ -1478,26 +1478,26 @@ func TestRequiresReplaceIfModifier(t *testing.T) {
 				}),
 			},
 			path: path.Root("block"),
-			expectedPlan: types.List{
-				ElemType: types.ObjectType{
+			expectedPlan: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"optional-computed": types.StringType,
 						"optional":          types.StringType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"optional-computed": types.StringType,
 							"optional":          types.StringType,
 						},
-						Attrs: map[string]attr.Value{
-							"optional-computed": types.String{Value: "samevalue"},
-							"optional":          types.String{Value: "newvalue"},
+						map[string]attr.Value{
+							"optional-computed": types.StringValue("samevalue"),
+							"optional":          types.StringValue("newvalue"),
 						},
-					},
+					),
 				},
-			},
+			),
 			ifReturn:   true,
 			expectedRR: true,
 		},

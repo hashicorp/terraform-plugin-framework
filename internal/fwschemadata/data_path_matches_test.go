@@ -1061,9 +1061,9 @@ func TestDataPathMatches(t *testing.T) {
 			),
 			expression: path.MatchRoot("test").AtAnySetValue(),
 			expected: path.Paths{
-				path.Root("test").AtSetValue(types.String{Value: "test-value1"}),
-				path.Root("test").AtSetValue(types.String{Value: "test-value2"}),
-				path.Root("test").AtSetValue(types.String{Value: "test-value3"}),
+				path.Root("test").AtSetValue(types.StringValue("test-value1")),
+				path.Root("test").AtSetValue(types.StringValue("test-value2")),
+				path.Root("test").AtSetValue(types.StringValue("test-value3")),
 			},
 		},
 		"AttributeNameExact-ElementKeyValueAny-mismatch": {
@@ -1204,9 +1204,9 @@ func TestDataPathMatches(t *testing.T) {
 					),
 				},
 			),
-			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value2"}),
+			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value2")),
 			expected: path.Paths{
-				path.Root("test").AtSetValue(types.String{Value: "test-value2"}),
+				path.Root("test").AtSetValue(types.StringValue("test-value2")),
 			},
 		},
 		"AttributeNameExact-ElementKeyValueExact-mismatch": {
@@ -1240,7 +1240,7 @@ func TestDataPathMatches(t *testing.T) {
 					),
 				},
 			),
-			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value4"}),
+			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value4")),
 			expected:   nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
@@ -1279,7 +1279,7 @@ func TestDataPathMatches(t *testing.T) {
 					),
 				},
 			),
-			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value2"}),
+			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value2")),
 			expected: path.Paths{
 				path.Root("test"),
 			},
@@ -1311,7 +1311,7 @@ func TestDataPathMatches(t *testing.T) {
 					),
 				},
 			),
-			expression: path.MatchRoot("test").AtSetValue(types.String{Value: "test-value2"}),
+			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value2")),
 			expected: path.Paths{
 				path.Root("test"),
 			},

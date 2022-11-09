@@ -20,7 +20,7 @@ var (
 // creating a String with this function has no effect.
 func StringNull() String {
 	return String{
-		state: valueStateNull,
+		state: attr.ValueStateNull,
 	}
 }
 
@@ -31,7 +31,7 @@ func StringNull() String {
 // creating a String with this function has no effect.
 func StringUnknown() String {
 	return String{
-		state: valueStateUnknown,
+		state: attr.ValueStateUnknown,
 	}
 }
 
@@ -42,74 +42,31 @@ func StringUnknown() String {
 // creating a String with this function has no effect.
 func StringValue(value string) String {
 	return String{
-		state: valueStateKnown,
+		state: attr.ValueStateKnown,
 		value: value,
 	}
 }
 
 func stringValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return String{
-			Unknown: true,
-			state:   valueStateDeprecated,
-		}, nil
+		return StringUnknown(), nil
 	}
 	if in.IsNull() {
-		return String{
-			Null:  true,
-			state: valueStateDeprecated,
-		}, nil
+		return StringNull(), nil
 	}
 	var s string
 	err := in.As(&s)
 	if err != nil {
 		return nil, err
 	}
-	return String{
-		Value: s,
-		state: valueStateDeprecated,
-	}, nil
+	return StringValue(s), nil
 }
 
 // String represents a UTF-8 string value.
 type String struct {
-	// Unknown will be true if the value is not yet known.
-	//
-	// If the String was created with the StringValue, StringNull, or StringUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the StringUnknown function to create an unknown String
-	// value or use the IsUnknown method to determine whether the String value
-	// is unknown instead.
-	Unknown bool
-
-	// Null will be true if the value was not set, or was explicitly set to
-	// null.
-	//
-	// If the String was created with the StringValue, StringNull, or StringUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the StringNull function to create a null String value or
-	// use the IsNull method to determine whether the String value is null
-	// instead.
-	Null bool
-
-	// Value contains the set value, as long as Unknown and Null are both
-	// false.
-	//
-	// If the String was created with the StringValue, StringNull, or StringUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the StringValue function to create a known String value or
-	// use the ValueString method to retrieve the String value instead.
-	Value string
-
-	// state represents whether the String is null, unknown, or known. During the
-	// exported field deprecation period, this state can also be "deprecated",
-	// which remains the zero-value for compatibility to ensure exported field
-	// updates take effect. The zero-value will be changed to null in a future
-	// version.
-	state valueState
+	// state represents whether the value is null, unknown, or known. The
+	// zero-value is null.
+	state attr.ValueState
 
 	// value contains the known value, if not null or unknown.
 	value string
@@ -127,26 +84,15 @@ func (s String) Type(_ context.Context) attr.Type {
 // ToTerraformValue returns the data contained in the *String as a tftypes.Value.
 func (s String) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	switch s.state {
-	case valueStateDeprecated:
-		if s.Null {
-			return tftypes.NewValue(tftypes.String, nil), nil
-		}
-		if s.Unknown {
-			return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nil
-		}
-		if err := tftypes.ValidateValue(tftypes.String, s.Value); err != nil {
-			return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), err
-		}
-		return tftypes.NewValue(tftypes.String, s.Value), nil
-	case valueStateKnown:
+	case attr.ValueStateKnown:
 		if err := tftypes.ValidateValue(tftypes.String, s.value); err != nil {
 			return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), err
 		}
 
 		return tftypes.NewValue(tftypes.String, s.value), nil
-	case valueStateNull:
+	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.String, nil), nil
-	case valueStateUnknown:
+	case attr.ValueStateUnknown:
 		return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nil
 	default:
 		panic(fmt.Sprintf("unhandled String state in ToTerraformValue: %s", s.state))
@@ -156,40 +102,30 @@ func (s String) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 // Equal returns true if `other` is a String and has the same value as `s`.
 func (s String) Equal(other attr.Value) bool {
 	o, ok := other.(String)
+
 	if !ok {
 		return false
 	}
+
 	if s.state != o.state {
 		return false
 	}
-	if s.state == valueStateKnown {
-		return s.value == o.value
+
+	if s.state != attr.ValueStateKnown {
+		return true
 	}
-	if s.Unknown != o.Unknown {
-		return false
-	}
-	if s.Null != o.Null {
-		return false
-	}
-	return s.Value == o.Value
+
+	return s.value == o.value
 }
 
 // IsNull returns true if the String represents a null value.
 func (s String) IsNull() bool {
-	if s.state == valueStateNull {
-		return true
-	}
-
-	return s.state == valueStateDeprecated && s.Null
+	return s.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the String represents a currently unknown value.
 func (s String) IsUnknown() bool {
-	if s.state == valueStateUnknown {
-		return true
-	}
-
-	return s.state == valueStateDeprecated && s.Unknown
+	return s.state == attr.ValueStateUnknown
 }
 
 // String returns a human-readable representation of the String value. Use
@@ -206,19 +142,11 @@ func (s String) String() string {
 		return attr.NullValueString
 	}
 
-	if s.state == valueStateKnown {
-		return fmt.Sprintf("%q", s.value)
-	}
-
-	return fmt.Sprintf("%q", s.Value)
+	return fmt.Sprintf("%q", s.value)
 }
 
 // ValueString returns the known string value. If String is null or unknown, returns
 // "".
 func (s String) ValueString() string {
-	if s.state == valueStateDeprecated {
-		return s.Value
-	}
-
 	return s.value
 }

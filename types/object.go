@@ -56,23 +56,17 @@ func (o ObjectType) TerraformType(ctx context.Context) tftypes.Type {
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
 func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	object := Object{
-		AttrTypes: o.AttrTypes,
-	}
 	if in.Type() == nil {
-		object.Null = true
-		return object, nil
+		return ObjectNull(o.AttrTypes), nil
 	}
 	if !in.Type().Equal(o.TerraformType(ctx)) {
 		return nil, fmt.Errorf("expected %s, got %s", o.TerraformType(ctx), in.Type())
 	}
 	if !in.IsKnown() {
-		object.Unknown = true
-		return object, nil
+		return ObjectUnknown(o.AttrTypes), nil
 	}
 	if in.IsNull() {
-		object.Null = true
-		return object, nil
+		return ObjectNull(o.AttrTypes), nil
 	}
 	attributes := map[string]attr.Value{}
 
@@ -83,14 +77,15 @@ func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 	}
 
 	for k, v := range val {
-		a, err := object.AttrTypes[k].ValueFromTerraform(ctx, v)
+		a, err := o.AttrTypes[k].ValueFromTerraform(ctx, v)
 		if err != nil {
 			return nil, err
 		}
 		attributes[k] = a
 	}
-	object.Attrs = attributes
-	return object, nil
+	// ValueFromTerraform above on each attribute should make this safe.
+	// Otherwise, this will need to do some Diagnostics to error conversion.
+	return ObjectValueMust(o.AttrTypes, attributes), nil
 }
 
 // Equal returns true if `candidate` is also an ObjectType and has the same
@@ -148,39 +143,30 @@ func (o ObjectType) String() string {
 // ValueType returns the Value type.
 func (t ObjectType) ValueType(_ context.Context) attr.Value {
 	return Object{
-		AttrTypes: t.AttrTypes,
+		attributeTypes: t.AttrTypes,
 	}
 }
 
 // ObjectNull creates a Object with a null value. Determine whether the value is
 // null via the Object type IsNull method.
-//
-// Setting the deprecated Object type AttrTypes, Attrs, Null, or Unknown fields
-// after creating a Object with this function has no effect.
 func ObjectNull(attributeTypes map[string]attr.Type) Object {
 	return Object{
 		attributeTypes: attributeTypes,
-		state:          valueStateNull,
+		state:          attr.ValueStateNull,
 	}
 }
 
 // ObjectUnknown creates a Object with an unknown value. Determine whether the
 // value is unknown via the Object type IsUnknown method.
-//
-// Setting the deprecated Object type AttrTypes, Attrs, Null, or Unknown fields
-// after creating a Object with this function has no effect.
 func ObjectUnknown(attributeTypes map[string]attr.Type) Object {
 	return Object{
 		attributeTypes: attributeTypes,
-		state:          valueStateUnknown,
+		state:          attr.ValueStateUnknown,
 	}
 }
 
 // ObjectValue creates a Object with a known value. Access the value via the Object
 // type ElementsAs method.
-//
-// Setting the deprecated Object type AttrTypes, Attrs, Null, or Unknown fields
-// after creating a Object with this function has no effect.
 func ObjectValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -235,7 +221,7 @@ func ObjectValue(attributeTypes map[string]attr.Type, attributes map[string]attr
 	return Object{
 		attributeTypes: attributeTypes,
 		attributes:     attributes,
-		state:          valueStateKnown,
+		state:          attr.ValueStateKnown,
 	}, nil
 }
 
@@ -276,9 +262,6 @@ func ObjectValueFrom(ctx context.Context, attributeTypes map[string]attr.Type, a
 // This creation function is only recommended to create Object values which will
 // not potentially effect practitioners, such as testing, or exhaustively
 // tested provider logic.
-//
-// Objectting the deprecated Object type ElemType, Elems, Null, or Unknown fields
-// after creating a Object with this function has no effect.
 func ObjectValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) Object {
 	object, diags := ObjectValue(attributeTypes, attributes)
 
@@ -302,63 +285,15 @@ func ObjectValueMust(attributeTypes map[string]attr.Type, attributes map[string]
 
 // Object represents an object
 type Object struct {
-	// Unknown will be set to true if the entire object is an unknown value.
-	// If only some of the elements in the object are unknown, their known or
-	// unknown status will be represented however that attr.Value
-	// surfaces that information. The Object's Unknown property only tracks
-	// if the number of elements in a Object is known, not whether the
-	// elements that are in the object are known.
-	//
-	// If the Object was created with the ObjectValue, ObjectNull, or ObjectUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the ObjectNull function to create a null Object value or
-	// use the IsNull method to determine whether the Object value is null
-	// instead.
-	Unknown bool
-
-	// Null will be set to true if the object is null, either because it was
-	// omitted from the configuration, state, or plan, or because it was
-	// explicitly set to null.
-	//
-	// If the Object was created with the ObjectValue, ObjectNull, or ObjectUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the ObjectNull function to create a null Object value or
-	// use the IsNull method to determine whether the Object value is null
-	// instead.
-	Null bool
-
-	// Attrs is the mapping of known attribute values in the Object.
-	//
-	// If the Object was created with the ObjectValue, ObjectNull, or ObjectUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the ObjectValue function to create a known Object value or
-	// use the As or Attributes methods to retrieve the Object attributes
-	// instead.
-	Attrs map[string]attr.Value
-
-	// AttrTypes is the mapping of attribute types in the Object. Required
-	// for a valid Object.
-	//
-	// Deprecated: Use the ObjectValue, ObjectNull, or ObjectUnknown functions
-	// to create a Object or use the AttributeTypes method to retrieve the
-	// Object attribute types instead.
-	AttrTypes map[string]attr.Type
-
 	// attributes is the mapping of known attribute values in the Object.
 	attributes map[string]attr.Value
 
 	// attributeTypes is the type of the attributes in the Object.
 	attributeTypes map[string]attr.Type
 
-	// state represents whether the Object is null, unknown, or known. During the
-	// exported field deprecation period, this state can also be "deprecated",
-	// which remains the zero-value for compatibility to ensure exported field
-	// updates take effect. The zero-value will be changed to null in a future
-	// version.
-	state valueState
+	// state represents whether the value is null, unknown, or known. The
+	// zero-value is null.
+	state attr.ValueState
 }
 
 // ObjectAsOptions is a collection of toggles to control the behavior of
@@ -386,7 +321,7 @@ func (o Object) ToFrameworkValue() attr.Value {
 func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions) diag.Diagnostics {
 	// we need a tftypes.Value for this Object to be able to use it with
 	// our reflection code
-	obj := ObjectType{AttrTypes: o.AttrTypes}
+	obj := ObjectType{AttrTypes: o.attributeTypes}
 	val, err := o.ToTerraformValue(ctx)
 	if err != nil {
 		return diag.Diagnostics{
@@ -405,19 +340,11 @@ func (o Object) As(ctx context.Context, target interface{}, opts ObjectAsOptions
 // Attributes returns the mapping of known attribute values for the Object.
 // Returns nil if the Object is null or unknown.
 func (o Object) Attributes() map[string]attr.Value {
-	if o.state == valueStateDeprecated {
-		return o.Attrs
-	}
-
 	return o.attributes
 }
 
 // AttributeTypes returns the mapping of attribute types for the Object.
 func (o Object) AttributeTypes(_ context.Context) map[string]attr.Type {
-	if o.state == valueStateDeprecated {
-		return o.AttrTypes
-	}
-
 	return o.attributeTypes
 }
 
@@ -429,9 +356,6 @@ func (o Object) Type(ctx context.Context) attr.Type {
 // ToTerraformValue returns the data contained in the attr.Value as
 // a tftypes.Value.
 func (o Object) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	if o.state == valueStateDeprecated && o.AttrTypes == nil {
-		return tftypes.Value{}, fmt.Errorf("cannot convert Object to tftypes.Value if AttrTypes field is not set")
-	}
 	attrTypes := map[string]tftypes.Type{}
 	for attr, typ := range o.AttributeTypes(ctx) {
 		attrTypes[attr] = typ.TerraformType(ctx)
@@ -439,27 +363,7 @@ func (o Object) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch o.state {
-	case valueStateDeprecated:
-		if o.Unknown {
-			return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
-		}
-		if o.Null {
-			return tftypes.NewValue(objectType, nil), nil
-		}
-		vals := map[string]tftypes.Value{}
-
-		for k, v := range o.Attrs {
-			val, err := v.ToTerraformValue(ctx)
-			if err != nil {
-				return tftypes.NewValue(objectType, tftypes.UnknownValue), err
-			}
-			vals[k] = val
-		}
-		if err := tftypes.ValidateValue(objectType, vals); err != nil {
-			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
-		}
-		return tftypes.NewValue(objectType, vals), nil
-	case valueStateKnown:
+	case attr.ValueStateKnown:
 		vals := make(map[string]tftypes.Value, len(o.attributes))
 
 		for name, v := range o.attributes {
@@ -477,9 +381,9 @@ func (o Object) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 		}
 
 		return tftypes.NewValue(objectType, vals), nil
-	case valueStateNull:
+	case attr.ValueStateNull:
 		return tftypes.NewValue(objectType, nil), nil
-	case valueStateUnknown:
+	case attr.ValueStateUnknown:
 		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
 	default:
 		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", o.state))
@@ -490,74 +394,47 @@ func (o Object) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 // (same type and same value) to the attr.Value passed as an argument.
 func (o Object) Equal(c attr.Value) bool {
 	other, ok := c.(Object)
+
 	if !ok {
 		return false
 	}
+
 	if o.state != other.state {
 		return false
 	}
-	if o.state == valueStateKnown {
-		if len(o.attributeTypes) != len(other.attributeTypes) {
-			return false
-		}
 
-		for name, oAttributeType := range o.attributeTypes {
-			otherAttributeType, ok := other.attributeTypes[name]
-
-			if !ok {
-				return false
-			}
-
-			if !oAttributeType.Equal(otherAttributeType) {
-				return false
-			}
-		}
-
-		if len(o.attributes) != len(other.attributes) {
-			return false
-		}
-
-		for name, oAttribute := range o.attributes {
-			otherAttribute, ok := other.attributes[name]
-
-			if !ok {
-				return false
-			}
-
-			if !oAttribute.Equal(otherAttribute) {
-				return false
-			}
-		}
-
+	if o.state != attr.ValueStateKnown {
 		return true
 	}
-	if o.Unknown != other.Unknown {
+
+	if len(o.attributeTypes) != len(other.attributeTypes) {
 		return false
 	}
-	if o.Null != other.Null {
-		return false
-	}
-	if len(o.AttrTypes) != len(other.AttrTypes) {
-		return false
-	}
-	for k, v := range o.AttrTypes {
-		attr, ok := other.AttrTypes[k]
+
+	for name, oAttributeType := range o.attributeTypes {
+		otherAttributeType, ok := other.attributeTypes[name]
+
 		if !ok {
 			return false
 		}
-		if !v.Equal(attr) {
+
+		if !oAttributeType.Equal(otherAttributeType) {
 			return false
 		}
 	}
-	if len(o.Attrs) != len(other.Attrs) {
+
+	if len(o.attributes) != len(other.attributes) {
 		return false
 	}
-	for k, v := range o.Attrs {
-		attr, ok := other.Attrs[k]
+
+	for name, oAttribute := range o.attributes {
+		otherAttribute, ok := other.attributes[name]
+
 		if !ok {
 			return false
 		}
-		if !v.Equal(attr) {
+
+		if !oAttribute.Equal(otherAttribute) {
 			return false
 		}
 	}
@@ -567,20 +444,12 @@ func (o Object) Equal(c attr.Value) bool {
 
 // IsNull returns true if the Object represents a null value.
 func (o Object) IsNull() bool {
-	if o.state == valueStateNull {
-		return true
-	}
-
-	return o.state == valueStateDeprecated && o.Null
+	return o.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the Object represents a currently unknown value.
 func (o Object) IsUnknown() bool {
-	if o.state == valueStateUnknown {
-		return true
-	}
-
-	return o.state == valueStateDeprecated && o.Unknown
+	return o.state == attr.ValueStateUnknown
 }
 
 // String returns a human-readable representation of the Object value.

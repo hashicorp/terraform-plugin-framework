@@ -221,22 +221,22 @@ func TestExpressionStepsEqual(t *testing.T) {
 		"StepAttributeName-StepElementKeyValue-different": {
 			steps: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			other: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "not-test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("not-test-value")},
 			},
 			expected: false,
 		},
 		"StepAttributeName-StepElementKeyValue-equal": {
 			steps: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			other: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			expected: true,
 		},
@@ -278,19 +278,19 @@ func TestExpressionStepsEqual(t *testing.T) {
 		},
 		"StepElementKeyValue-different": {
 			steps: path.ExpressionSteps{
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			other: path.ExpressionSteps{
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "not-test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("not-test-value")},
 			},
 			expected: false,
 		},
 		"StepElementKeyValue-equal": {
 			steps: path.ExpressionSteps{
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			other: path.ExpressionSteps{
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			expected: true,
 		},
@@ -578,29 +578,29 @@ func TestExpressionStepsMatches(t *testing.T) {
 			},
 			pathSteps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			expected: true,
 		},
 		"AttributeNameExact-ElementKeyValueExact-different": {
 			steps: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			pathSteps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "not-test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("not-test-value")},
 			},
 			expected: false,
 		},
 		"AttributeNameExact-ElementKeyValueExact-equal": {
 			steps: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			pathSteps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			expected: true,
 		},
@@ -958,7 +958,7 @@ func TestExpressionStepsMatchesParent(t *testing.T) {
 			},
 			pathSteps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			expected: false,
 		},
@@ -970,41 +970,41 @@ func TestExpressionStepsMatchesParent(t *testing.T) {
 			},
 			pathSteps: path.PathSteps{
 				path.PathStepAttributeName("test1"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			expected: true,
 		},
 		"AttributeNameExact-ElementKeyValueExact-different": {
 			steps: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			pathSteps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "not-test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("not-test-value")},
 			},
 			expected: false,
 		},
 		"AttributeNameExact-ElementKeyValueExact-equal": {
 			steps: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			pathSteps: path.PathSteps{
 				path.PathStepAttributeName("test"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			expected: false,
 		},
 		"AttributeNameExact-ElementKeyValueExact-parent": {
 			steps: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test1"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 				path.ExpressionStepAttributeNameExact("test2"),
 			},
 			pathSteps: path.PathSteps{
 				path.PathStepAttributeName("test1"),
-				path.PathStepElementKeyValue{Value: types.String{Value: "test-value"}},
+				path.PathStepElementKeyValue{Value: types.StringValue("test-value")},
 			},
 			expected: true,
 		},
@@ -1349,23 +1349,23 @@ func TestExpressionStepsString(t *testing.T) {
 		"AttributeName-ElementKeyValue": {
 			steps: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test-value"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test-value")},
 			},
 			expected: `test[Value("test-value")]`,
 		},
 		"AttributeName-ElementKeyValue-AttributeName": {
 			steps: path.ExpressionSteps{
 				path.ExpressionStepAttributeNameExact("test"),
-				path.ExpressionStepElementKeyValueExact{Value: types.Object{
-					Attrs: map[string]attr.Value{
-						"test_attr_1": types.Bool{Value: true},
-						"test_attr_2": types.String{Value: "test-value"},
-					},
-					AttrTypes: map[string]attr.Type{
+				path.ExpressionStepElementKeyValueExact{Value: types.ObjectValueMust(
+					map[string]attr.Type{
 						"test_attr_1": types.BoolType,
 						"test_attr_2": types.StringType,
 					},
-				}},
+					map[string]attr.Value{
+						"test_attr_1": types.BoolValue(true),
+						"test_attr_2": types.StringValue("test-value"),
+					},
+				)},
 				path.ExpressionStepAttributeNameExact("test_attr_1"),
 			},
 			expected: `test[Value({"test_attr_1":true,"test_attr_2":"test-value"})].test_attr_1`,
@@ -1384,7 +1384,7 @@ func TestExpressionStepsString(t *testing.T) {
 		},
 		"ElementKeyValue": {
 			steps: path.ExpressionSteps{
-				path.ExpressionStepElementKeyValueExact{Value: types.String{Value: "test"}},
+				path.ExpressionStepElementKeyValueExact{Value: types.StringValue("test")},
 			},
 			expected: `[Value("test")]`,
 		},

@@ -42,13 +42,13 @@ func (t StringType) TerraformType(_ context.Context) tftypes.Type {
 func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
 		return String{
-			InternalString: types.String{Unknown: true},
+			InternalString: types.StringUnknown(),
 			CreatedBy:      t,
 		}, nil
 	}
 	if in.IsNull() {
 		return String{
-			InternalString: types.String{Null: true},
+			InternalString: types.StringNull(),
 			CreatedBy:      t,
 		}, nil
 	}
@@ -58,7 +58,7 @@ func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 		return nil, err
 	}
 	return String{
-		InternalString: types.String{Value: s},
+		InternalString: types.StringValue(s),
 		CreatedBy:      t,
 	}, nil
 }

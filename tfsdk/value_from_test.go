@@ -35,98 +35,98 @@ func TestValueFrom(t *testing.T) {
 	}
 
 	mrX := person{
-		Name:    types.String{Value: "x"},
-		Age:     types.Int64{Value: 30},
-		OptedIn: types.Bool{Value: true},
-		Address: types.List{
-			ElemType: types.StringType,
-			Elems: []attr.Value{
-				types.String{Value: "1"},
-				types.String{Value: "Beckford Close"},
-				types.String{Value: "Gotham"},
+		Name:    types.StringValue("x"),
+		Age:     types.Int64Value(30),
+		OptedIn: types.BoolValue(true),
+		Address: types.ListValueMust(
+			types.StringType,
+			[]attr.Value{
+				types.StringValue("1"),
+				types.StringValue("Beckford Close"),
+				types.StringValue("Gotham"),
 			},
-		},
-		FullName: types.Map{
-			ElemType: types.StringType,
-			Elems: map[string]attr.Value{
-				"first":  types.String{Value: "x"},
-				"middle": types.String{Value: "b"},
-				"last":   types.String{Value: "c"},
+		),
+		FullName: types.MapValueMust(
+			types.StringType,
+			map[string]attr.Value{
+				"first":  types.StringValue("x"),
+				"middle": types.StringValue("b"),
+				"last":   types.StringValue("c"),
 			},
-		},
+		),
 	}
 
 	mrsY := person{
-		Name:    types.String{Value: "y"},
-		Age:     types.Int64{Value: 23},
-		OptedIn: types.Bool{Value: false},
-		Address: types.List{
-			ElemType: types.StringType,
-			Elems: []attr.Value{
-				types.String{Value: "2"},
-				types.String{Value: "Windmill Close"},
-				types.String{Value: "Smallville"},
+		Name:    types.StringValue("y"),
+		Age:     types.Int64Value(23),
+		OptedIn: types.BoolValue(false),
+		Address: types.ListValueMust(
+			types.StringType,
+			[]attr.Value{
+				types.StringValue("2"),
+				types.StringValue("Windmill Close"),
+				types.StringValue("Smallville"),
 			},
-		},
-		FullName: types.Map{
-			ElemType: types.StringType,
-			Elems: map[string]attr.Value{
-				"first":  types.String{Value: "y"},
-				"middle": types.String{Value: "e"},
-				"last":   types.String{Value: "f"},
+		),
+		FullName: types.MapValueMust(
+			types.StringType,
+			map[string]attr.Value{
+				"first":  types.StringValue("y"),
+				"middle": types.StringValue("e"),
+				"last":   types.StringValue("f"),
 			},
-		},
+		),
 	}
 
-	expectedMrXObj := types.Object{
-		AttrTypes: personAttrTypes,
-		Attrs: map[string]attr.Value{
-			"name":     types.String{Value: "x", Unknown: false, Null: false},
-			"age":      types.Int64{Value: 30, Unknown: false, Null: false},
-			"opted_in": types.Bool{Value: true, Unknown: false, Null: false},
-			"address": types.List{
-				ElemType: types.StringType,
-				Elems: []attr.Value{
-					types.String{Value: "1"},
-					types.String{Value: "Beckford Close"},
-					types.String{Value: "Gotham"},
+	expectedMrXObj := types.ObjectValueMust(
+		personAttrTypes,
+		map[string]attr.Value{
+			"name":     types.StringValue("x"),
+			"age":      types.Int64Value(30),
+			"opted_in": types.BoolValue(true),
+			"address": types.ListValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("1"),
+					types.StringValue("Beckford Close"),
+					types.StringValue("Gotham"),
 				},
-			},
-			"full_name": types.Map{
-				ElemType: types.StringType,
-				Elems: map[string]attr.Value{
-					"first":  types.String{Value: "x"},
-					"middle": types.String{Value: "b"},
-					"last":   types.String{Value: "c"},
+			),
+			"full_name": types.MapValueMust(
+				types.StringType,
+				map[string]attr.Value{
+					"first":  types.StringValue("x"),
+					"middle": types.StringValue("b"),
+					"last":   types.StringValue("c"),
 				},
-			},
+			),
 		},
-	}
+	)
 
-	expectedMrsYObj := types.Object{
-		AttrTypes: personAttrTypes,
-		Attrs: map[string]attr.Value{
-			"name":     types.String{Value: "y", Unknown: false, Null: false},
-			"age":      types.Int64{Value: 23, Unknown: false, Null: false},
-			"opted_in": types.Bool{Value: false, Unknown: false, Null: false},
-			"address": types.List{
-				ElemType: types.StringType,
-				Elems: []attr.Value{
-					types.String{Value: "2"},
-					types.String{Value: "Windmill Close"},
-					types.String{Value: "Smallville"},
+	expectedMrsYObj := types.ObjectValueMust(
+		personAttrTypes,
+		map[string]attr.Value{
+			"name":     types.StringValue("y"),
+			"age":      types.Int64Value(23),
+			"opted_in": types.BoolValue(false),
+			"address": types.ListValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("2"),
+					types.StringValue("Windmill Close"),
+					types.StringValue("Smallville"),
 				},
-			},
-			"full_name": types.Map{
-				ElemType: types.StringType,
-				Elems: map[string]attr.Value{
-					"first":  types.String{Value: "y"},
-					"middle": types.String{Value: "e"},
-					"last":   types.String{Value: "f"},
+			),
+			"full_name": types.MapValueMust(
+				types.StringType,
+				map[string]attr.Value{
+					"first":  types.StringValue("y"),
+					"middle": types.StringValue("e"),
+					"last":   types.StringValue("f"),
 				},
-			},
+			),
 		},
-	}
+	)
 
 	type testCase struct {
 		val           interface{}
@@ -139,48 +139,46 @@ func TestValueFrom(t *testing.T) {
 		"primitive": {
 			val:      "hello",
 			target:   types.String{},
-			expected: types.String{Value: "hello", Unknown: false, Null: false},
+			expected: types.StringValue("hello"),
 		},
 		"struct": {
-			val: mrX,
-			target: types.Object{
-				AttrTypes: personAttrTypes,
-			},
+			val:      mrX,
+			target:   types.ObjectNull(personAttrTypes),
 			expected: expectedMrXObj,
 		},
 		"list": {
 			val: []person{mrX, mrsY},
-			target: types.List{
-				ElemType: types.ObjectType{
+			target: types.ListNull(
+				types.ObjectType{
 					AttrTypes: personAttrTypes,
 				},
-			},
-			expected: types.List{
-				ElemType: types.ObjectType{
+			),
+			expected: types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: personAttrTypes,
 				},
-				Elems: []attr.Value{expectedMrXObj, expectedMrsYObj},
-			},
+				[]attr.Value{expectedMrXObj, expectedMrsYObj},
+			),
 		},
 		"map": {
 			val: map[string]person{
 				"x": mrX,
 				"y": mrsY,
 			},
-			target: types.Map{
-				ElemType: types.ObjectType{
+			target: types.MapNull(
+				types.ObjectType{
 					AttrTypes: personAttrTypes,
 				},
-			},
-			expected: types.Map{
-				ElemType: types.ObjectType{
+			),
+			expected: types.MapValueMust(
+				types.ObjectType{
 					AttrTypes: personAttrTypes,
 				},
-				Elems: map[string]attr.Value{
+				map[string]attr.Value{
 					"x": expectedMrXObj,
 					"y": expectedMrsYObj,
 				},
-			},
+			),
 		},
 		"incompatible-type": {
 			val:    0,

@@ -313,7 +313,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 
 											resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-											data.TestComputed = types.String{Value: "test-plannedstate-value"}
+											data.TestComputed = types.StringValue("test-plannedstate-value")
 
 											resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
 										},
@@ -562,7 +562,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 										},
 										ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 											// This is invalid logic to run during deletion.
-											resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("test_computed"), types.String{Value: "test-plannedstate-value"})...)
+											resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("test_computed"), types.StringValue("test-plannedstate-value"))...)
 										},
 									}
 								},
@@ -948,7 +948,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 
 											resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-											data.TestComputed = types.String{Value: "test-plannedstate-value"}
+											data.TestComputed = types.StringValue("test-plannedstate-value")
 
 											resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
 										},

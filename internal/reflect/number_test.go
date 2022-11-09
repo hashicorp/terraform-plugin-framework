@@ -1183,26 +1183,20 @@ func TestFromInt(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"0": {
-			val: 0,
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(0),
-			},
+			val:      0,
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(0)),
 		},
 		"1": {
-			val: 1,
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(1),
-			},
+			val:      1,
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(1)),
 		},
 		"WithValidateWarning": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateWarning{},
 			expected: testtypes.Number{
-				Number: types.Number{
-					Value: big.NewFloat(1),
-				},
+				Number:    types.NumberValue(big.NewFloat(1)),
 				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
@@ -1245,26 +1239,20 @@ func TestFromUint(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"0": {
-			val: 0,
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(0),
-			},
+			val:      0,
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(0)),
 		},
 		"1": {
-			val: 1,
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(1),
-			},
+			val:      1,
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(1)),
 		},
 		"WithValidateWarning": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateWarning{},
 			expected: testtypes.Number{
-				Number: types.Number{
-					Value: big.NewFloat(1),
-				},
+				Number:    types.NumberValue(big.NewFloat(1)),
 				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
@@ -1307,33 +1295,25 @@ func TestFromFloat(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"0": {
-			val: 0,
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(0),
-			},
+			val:      0,
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(0)),
 		},
 		"1": {
-			val: 1,
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(1),
-			},
+			val:      1,
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(1)),
 		},
 		"1.234": {
-			val: 1.234,
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(1.234),
-			},
+			val:      1.234,
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(1.234)),
 		},
 		"WithValidateWarning": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateWarning{},
 			expected: testtypes.Number{
-				Number: types.Number{
-					Value: big.NewFloat(1),
-				},
+				Number:    types.NumberValue(big.NewFloat(1)),
 				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
@@ -1376,33 +1356,25 @@ func TestFromBigFloat(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"0": {
-			val: big.NewFloat(0),
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(0),
-			},
+			val:      big.NewFloat(0),
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(0)),
 		},
 		"1": {
-			val: big.NewFloat(1),
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(1),
-			},
+			val:      big.NewFloat(1),
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(1)),
 		},
 		"1.234": {
-			val: big.NewFloat(1.234),
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(1.234),
-			},
+			val:      big.NewFloat(1.234),
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(1.234)),
 		},
 		"WithValidateWarning": {
 			val: big.NewFloat(1),
 			typ: testtypes.NumberTypeWithValidateWarning{},
 			expected: testtypes.Number{
-				Number: types.Number{
-					Value: big.NewFloat(1),
-				},
+				Number:    types.NumberValue(big.NewFloat(1)),
 				CreatedBy: testtypes.NumberType{},
 			},
 			expectedDiags: diag.Diagnostics{
@@ -1445,26 +1417,20 @@ func TestFromBigInt(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"0": {
-			val: big.NewInt(0),
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(0),
-			},
+			val:      big.NewInt(0),
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(0)),
 		},
 		"1": {
-			val: big.NewInt(1),
-			typ: types.NumberType,
-			expected: types.Number{
-				Value: big.NewFloat(1),
-			},
+			val:      big.NewInt(1),
+			typ:      types.NumberType,
+			expected: types.NumberValue(big.NewFloat(1)),
 		},
 		"WithValidateWarning": {
 			val: big.NewInt(1),
 			typ: testtypes.NumberTypeWithValidateWarning{},
 			expected: testtypes.Number{
-				Number: types.Number{
-					Value: big.NewFloat(1),
-				},
+				Number:    types.NumberValue(big.NewFloat(1)),
 				CreatedBy: testtypes.NumberTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{

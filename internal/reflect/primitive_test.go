@@ -87,20 +87,16 @@ func TestFromString(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"basic": {
-			val: "mystring",
-			typ: types.StringType,
-			expected: types.String{
-				Value: "mystring",
-			},
+			val:      "mystring",
+			typ:      types.StringType,
+			expected: types.StringValue("mystring"),
 		},
 		"WithValidateWarning": {
 			val: "mystring",
 			typ: testtypes.StringTypeWithValidateWarning{},
 			expected: testtypes.String{
-				InternalString: types.String{
-					Value: "mystring",
-				},
-				CreatedBy: testtypes.StringTypeWithValidateWarning{},
+				InternalString: types.StringValue("mystring"),
+				CreatedBy:      testtypes.StringTypeWithValidateWarning{},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(path.Empty()),
@@ -143,18 +139,14 @@ func TestFromBool(t *testing.T) {
 		expectedDiags diag.Diagnostics
 	}{
 		"true": {
-			val: true,
-			typ: types.BoolType,
-			expected: types.Bool{
-				Value: true,
-			},
+			val:      true,
+			typ:      types.BoolType,
+			expected: types.BoolValue(true),
 		},
 		"false": {
-			val: false,
-			typ: types.BoolType,
-			expected: types.Bool{
-				Value: false,
-			},
+			val:      false,
+			typ:      types.BoolType,
+			expected: types.BoolValue(false),
 		},
 		"WithValidateWarning": {
 			val: true,

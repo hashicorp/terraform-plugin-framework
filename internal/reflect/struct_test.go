@@ -483,9 +483,7 @@ func TestNewStruct_complex(t *testing.T) {
 		Nullable: &nullableString{
 			Null: true,
 		},
-		AttributeValue: types.String{
-			Unknown: true,
-		},
+		AttributeValue: types.StringUnknown(),
 		ValueConverter: &valueConverter{
 			null: true,
 		},
@@ -520,18 +518,18 @@ func TestFromStruct_primitives(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", diags)
 	}
 
-	expectedVal := types.Object{
-		Attrs: map[string]attr.Value{
-			"name":     types.String{Value: "myfirstdisk"},
-			"age":      types.Number{Value: big.NewFloat(30)},
-			"opted_in": types.Bool{Value: true},
-		},
-		AttrTypes: map[string]attr.Type{
+	expectedVal := types.ObjectValueMust(
+		map[string]attr.Type{
 			"name":     types.StringType,
 			"age":      types.NumberType,
 			"opted_in": types.BoolType,
 		},
-	}
+		map[string]attr.Value{
+			"name":     types.StringValue("myfirstdisk"),
+			"age":      types.NumberValue(big.NewFloat(30)),
+			"opted_in": types.BoolValue(true),
+		},
+	)
 
 	if diff := cmp.Diff(expectedVal, actualVal); diff != "" {
 		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
@@ -614,9 +612,7 @@ func TestFromStruct_complex(t *testing.T) {
 		Nullable: &nullableString{
 			Null: true,
 		},
-		AttributeValue: types.String{
-			Unknown: true,
-		},
+		AttributeValue: types.StringUnknown(),
 		ValueCreator: &valueCreator{
 			null: true,
 		},
@@ -674,8 +670,8 @@ func TestFromStruct_complex(t *testing.T) {
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
-	expected := types.Object{
-		AttrTypes: map[string]attr.Type{
+	expected := types.ObjectValueMust(
+		map[string]attr.Type{
 			"list_slice": types.ListType{
 				ElemType: types.StringType,
 			},
@@ -720,134 +716,134 @@ func TestFromStruct_complex(t *testing.T) {
 			"big_int":         types.NumberType,
 			"uint":            types.NumberType,
 		},
-		Attrs: map[string]attr.Value{
-			"list_slice": types.List{
-				ElemType: types.StringType,
-				Elems: []attr.Value{
-					types.String{Value: "red"},
-					types.String{Value: "blue"},
-					types.String{Value: "green"},
+		map[string]attr.Value{
+			"list_slice": types.ListValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("red"),
+					types.StringValue("blue"),
+					types.StringValue("green"),
 				},
-			},
-			"list_slice_of_structs": types.List{
-				ElemType: types.ObjectType{
+			),
+			"list_slice_of_structs": types.ListValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"a": types.StringType,
 						"b": types.NumberType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"a": types.StringType,
 							"b": types.NumberType,
 						},
-						Attrs: map[string]attr.Value{
-							"a": types.String{Value: "hello, world"},
-							"b": types.Number{Value: big.NewFloat(123)},
+						map[string]attr.Value{
+							"a": types.StringValue("hello, world"),
+							"b": types.NumberValue(big.NewFloat(123)),
 						},
-					},
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"a": types.StringType,
 							"b": types.NumberType,
 						},
-						Attrs: map[string]attr.Value{
-							"a": types.String{Value: "goodnight, moon"},
-							"b": types.Number{Value: big.NewFloat(456)},
+						map[string]attr.Value{
+							"a": types.StringValue("goodnight, moon"),
+							"b": types.NumberValue(big.NewFloat(456)),
 						},
-					},
+					),
 				},
-			},
-			"set_slice": types.Set{
-				ElemType: types.StringType,
-				Elems: []attr.Value{
-					types.String{Value: "red"},
-					types.String{Value: "blue"},
-					types.String{Value: "green"},
+			),
+			"set_slice": types.SetValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("red"),
+					types.StringValue("blue"),
+					types.StringValue("green"),
 				},
-			},
-			"set_slice_of_structs": types.Set{
-				ElemType: types.ObjectType{
+			),
+			"set_slice_of_structs": types.SetValueMust(
+				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"a": types.StringType,
 						"b": types.NumberType,
 					},
 				},
-				Elems: []attr.Value{
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+				[]attr.Value{
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"a": types.StringType,
 							"b": types.NumberType,
 						},
-						Attrs: map[string]attr.Value{
-							"a": types.String{Value: "hello, world"},
-							"b": types.Number{Value: big.NewFloat(123)},
+						map[string]attr.Value{
+							"a": types.StringValue("hello, world"),
+							"b": types.NumberValue(big.NewFloat(123)),
 						},
-					},
-					types.Object{
-						AttrTypes: map[string]attr.Type{
+					),
+					types.ObjectValueMust(
+						map[string]attr.Type{
 							"a": types.StringType,
 							"b": types.NumberType,
 						},
-						Attrs: map[string]attr.Value{
-							"a": types.String{Value: "goodnight, moon"},
-							"b": types.Number{Value: big.NewFloat(456)},
+						map[string]attr.Value{
+							"a": types.StringValue("goodnight, moon"),
+							"b": types.NumberValue(big.NewFloat(456)),
 						},
-					},
+					),
 				},
-			},
-			"struct": types.Object{
-				AttrTypes: map[string]attr.Type{
+			),
+			"struct": types.ObjectValueMust(
+				map[string]attr.Type{
 					"a": types.BoolType,
 					"slice": types.ListType{
 						ElemType: types.NumberType,
 					},
 				},
-				Attrs: map[string]attr.Value{
-					"a": types.Bool{Value: true},
-					"slice": types.List{
-						ElemType: types.NumberType,
-						Elems: []attr.Value{
-							types.Number{Value: big.NewFloat(123)},
-							types.Number{Value: big.NewFloat(456)},
-							types.Number{Value: big.NewFloat(789)},
+				map[string]attr.Value{
+					"a": types.BoolValue(true),
+					"slice": types.ListValueMust(
+						types.NumberType,
+						[]attr.Value{
+							types.NumberValue(big.NewFloat(123)),
+							types.NumberValue(big.NewFloat(456)),
+							types.NumberValue(big.NewFloat(789)),
 						},
-					},
+					),
 				},
-			},
-			"map": types.Map{
-				ElemType: types.ListType{
+			),
+			"map": types.MapValueMust(
+				types.ListType{
 					ElemType: types.StringType,
 				},
-				Elems: map[string]attr.Value{
-					"colors": types.List{
-						ElemType: types.StringType,
-						Elems: []attr.Value{
-							types.String{Value: "red"},
-							types.String{Value: "orange"},
-							types.String{Value: "yellow"},
+				map[string]attr.Value{
+					"colors": types.ListValueMust(
+						types.StringType,
+						[]attr.Value{
+							types.StringValue("red"),
+							types.StringValue("orange"),
+							types.StringValue("yellow"),
 						},
-					},
-					"fruits": types.List{
-						ElemType: types.StringType,
-						Elems: []attr.Value{
-							types.String{Value: "apple"},
-							types.String{Value: "banana"},
+					),
+					"fruits": types.ListValueMust(
+						types.StringType,
+						[]attr.Value{
+							types.StringValue("apple"),
+							types.StringValue("banana"),
 						},
-					},
+					),
 				},
-			},
-			"pointer":         types.String{Value: "pointed"},
-			"unknownable":     types.String{Unknown: true},
-			"nullable":        types.String{Null: true},
-			"attribute_value": types.String{Unknown: true},
-			"value_creator":   types.String{Null: true},
-			"big_float":       types.Number{Value: big.NewFloat(123.456)},
-			"big_int":         types.Number{Value: big.NewFloat(123456)},
-			"uint":            types.Number{Value: big.NewFloat(123456)},
+			),
+			"pointer":         types.StringValue("pointed"),
+			"unknownable":     types.StringUnknown(),
+			"nullable":        types.StringNull(),
+			"attribute_value": types.StringUnknown(),
+			"value_creator":   types.StringNull(),
+			"big_float":       types.NumberValue(big.NewFloat(123.456)),
+			"big_int":         types.NumberValue(big.NewFloat(123456)),
+			"uint":            types.NumberValue(big.NewFloat(123456)),
 		},
-	}
+	)
 	if diff := cmp.Diff(expected, result); diff != "" {
 		t.Errorf("Didn't get expected value. Diff (+ is expected, - is result): %s", diff)
 	}

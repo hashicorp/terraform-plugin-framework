@@ -139,18 +139,18 @@ func TestPathAtSetValue(t *testing.T) {
 	}{
 		"empty": {
 			path:     path.Empty(),
-			value:    types.String{Value: "test"},
-			expected: path.Empty().AtSetValue(types.String{Value: "test"}),
+			value:    types.StringValue("test"),
+			expected: path.Empty().AtSetValue(types.StringValue("test")),
 		},
 		"shallow": {
 			path:     path.Root("test"),
-			value:    types.String{Value: "test"},
-			expected: path.Root("test").AtSetValue(types.String{Value: "test"}),
+			value:    types.StringValue("test"),
+			expected: path.Root("test").AtSetValue(types.StringValue("test")),
 		},
 		"deep": {
 			path:     path.Root("test1").AtListIndex(0).AtName("test2"),
-			value:    types.String{Value: "test"},
-			expected: path.Root("test1").AtListIndex(0).AtName("test2").AtSetValue(types.String{Value: "test"}),
+			value:    types.StringValue("test"),
+			expected: path.Root("test1").AtListIndex(0).AtName("test2").AtSetValue(types.StringValue("test")),
 		},
 	}
 
@@ -417,20 +417,20 @@ func TestPathString(t *testing.T) {
 			expected: `test["test-key1"]["test-key2"]`,
 		},
 		"AttributeName-ElementKeyValue": {
-			path:     path.Root("test").AtSetValue(types.String{Value: "test-value"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("test-value")),
 			expected: `test[Value("test-value")]`,
 		},
 		"AttributeName-ElementKeyValue-AttributeName": {
-			path: path.Root("test").AtSetValue(types.Object{
-				Attrs: map[string]attr.Value{
-					"test_attr_1": types.Bool{Value: true},
-					"test_attr_2": types.String{Value: "test-value"},
-				},
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("test").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"test_attr_1": types.BoolType,
 					"test_attr_2": types.StringType,
 				},
-			}).AtName("test_attr_1"),
+				map[string]attr.Value{
+					"test_attr_1": types.BoolValue(true),
+					"test_attr_2": types.StringValue("test-value"),
+				},
+			)).AtName("test_attr_1"),
 			expected: `test[Value({"test_attr_1":true,"test_attr_2":"test-value"})].test_attr_1`,
 		},
 		"ElementKeyInt": {
@@ -442,7 +442,7 @@ func TestPathString(t *testing.T) {
 			expected: `["test"]`,
 		},
 		"ElementKeyValue": {
-			path:     path.Empty().AtSetValue(types.String{Value: "test"}),
+			path:     path.Empty().AtSetValue(types.StringValue("test")),
 			expected: `[Value("test")]`,
 		},
 	}

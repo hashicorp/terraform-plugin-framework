@@ -48,7 +48,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test"),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-nonexistent": {
 			data: fwschemadata.Data{
@@ -110,7 +110,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtListIndex(0),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-List-WithElementKeyInt": {
 			data: fwschemadata.Data{
@@ -146,7 +146,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtListIndex(0),
-			expected: types.String{Value: "value"},
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -190,7 +190,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-ListNestedAttributes-null-WithElementKeyInt-WithAttributeName-Object": {
 			data: fwschemadata.Data{
@@ -247,10 +247,9 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path: path.Root("test").AtListIndex(0).AtName("sub_test"),
-			expected: types.Object{
-				Null:      true,
-				AttrTypes: map[string]attr.Type{"value": types.StringType},
-			},
+			expected: types.ObjectNull(
+				map[string]attr.Type{"value": types.StringType},
+			),
 		},
 		"WithAttributeName-ListNestedAttributes-WithElementKeyInt-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -302,7 +301,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
-			expected: types.String{Value: "value"},
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-ListNestedBlocks-null-WithElementKeyInt-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -371,7 +370,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-ListNestedBlocks-WithElementKeyInt-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -448,7 +447,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtListIndex(0).AtName("sub_test"),
-			expected: types.String{Value: "value"},
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-Map-null-WithElementKeyString": {
 			data: fwschemadata.Data{
@@ -481,7 +480,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtMapKey("sub_test"),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-Map-WithElementKeyString": {
 			data: fwschemadata.Data{
@@ -517,7 +516,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtMapKey("sub_test"),
-			expected: types.String{Value: "value"},
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-Map-WithElementKeyString-nonexistent": {
 			data: fwschemadata.Data{
@@ -552,7 +551,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtMapKey("other"),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-MapNestedAttributes-null-WithElementKeyInt-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -596,7 +595,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtMapKey("element").AtName("sub_test"),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-MapNestedAttributes-WithElementKeyString-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -648,7 +647,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtMapKey("element").AtName("sub_test"),
-			expected: types.String{Value: "value"},
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-Object-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -689,7 +688,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.String{Value: "value"},
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-Set-null-WithElementKeyValue": {
 			data: fwschemadata.Data{
@@ -721,8 +720,8 @@ func TestDataValueAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "value"}),
-			expected: types.String{Null: true},
+			path:     path.Root("test").AtSetValue(types.StringValue("value")),
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-Set-WithElementKeyValue": {
 			data: fwschemadata.Data{
@@ -757,8 +756,8 @@ func TestDataValueAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "value"}),
-			expected: types.String{Value: "value"},
+			path:     path.Root("test").AtSetValue(types.StringValue("value")),
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-SetNestedAttributes-null-WithElementKeyValue-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -801,15 +800,15 @@ func TestDataValueAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("test").AtSetValue(types.Object{
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("test").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
-				Attrs: map[string]attr.Value{
-					"sub_test": types.String{Value: "value"},
+				map[string]attr.Value{
+					"sub_test": types.StringValue("value"),
 				},
-			}).AtName("sub_test"),
-			expected: types.String{Null: true},
+			)).AtName("sub_test"),
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-SetNestedAttributes-WithElementKeyValue-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -860,15 +859,15 @@ func TestDataValueAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("test").AtSetValue(types.Object{
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("test").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
-				Attrs: map[string]attr.Value{
-					"sub_test": types.String{Value: "value"},
+				map[string]attr.Value{
+					"sub_test": types.StringValue("value"),
 				},
-			}).AtName("sub_test"),
-			expected: types.String{Value: "value"},
+			)).AtName("sub_test"),
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-SetNestedBlocks-null-WithElementKeyValue-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -936,15 +935,15 @@ func TestDataValueAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("test").AtSetValue(types.Object{
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("test").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
-				Attrs: map[string]attr.Value{
-					"sub_test": types.String{Value: "value"},
+				map[string]attr.Value{
+					"sub_test": types.StringValue("value"),
 				},
-			}).AtName("sub_test"),
-			expected: types.String{Null: true},
+			)).AtName("sub_test"),
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-SetNestedBlocks-WithElementKeyValue-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -1020,15 +1019,15 @@ func TestDataValueAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("test").AtSetValue(types.Object{
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("test").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"sub_test": types.StringType,
 				},
-				Attrs: map[string]attr.Value{
-					"sub_test": types.String{Value: "value"},
+				map[string]attr.Value{
+					"sub_test": types.StringValue("value"),
 				},
-			}).AtName("sub_test"),
-			expected: types.String{Value: "value"},
+			)).AtName("sub_test"),
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-SingleBlock-null-WithAttributeName-Float64": {
 			data: fwschemadata.Data{
@@ -1089,7 +1088,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.Float64{Null: true},
+			expected: types.Float64Null(),
 		},
 		"WithAttributeName-SingleBlock-null-WithAttributeName-Int64": {
 			data: fwschemadata.Data{
@@ -1150,7 +1149,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.Int64{Null: true},
+			expected: types.Int64Null(),
 		},
 		"WithAttributeName-SingleBlock-null-WithAttributeName-Set": {
 			data: fwschemadata.Data{
@@ -1223,7 +1222,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.Set{ElemType: types.StringType, Null: true},
+			expected: types.SetNull(types.StringType),
 		},
 		"WithAttributeName-SingleBlock-null-WithAttributeName-String": {
 			data: fwschemadata.Data{
@@ -1284,7 +1283,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-SingleBlock-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -1349,7 +1348,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.String{Value: "value"},
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Float64": {
 			data: fwschemadata.Data{
@@ -1389,7 +1388,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.Float64{Null: true},
+			expected: types.Float64Null(),
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Int64": {
 			data: fwschemadata.Data{
@@ -1429,7 +1428,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.Int64{Null: true},
+			expected: types.Int64Null(),
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Set": {
 			data: fwschemadata.Data{
@@ -1475,7 +1474,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.Set{ElemType: types.StringType, Null: true},
+			expected: types.SetNull(types.StringType),
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-String": {
 			data: fwschemadata.Data{
@@ -1515,7 +1514,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-SingleNestedAttributes-WithAttributeName": {
 			data: fwschemadata.Data{
@@ -1557,7 +1556,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.String{Value: "value"},
+			expected: types.StringValue("value"),
 		},
 		"WithAttributeName-String-null": {
 			data: fwschemadata.Data{
@@ -1584,7 +1583,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test"),
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 		"WithAttributeName-String-unknown": {
 			data: fwschemadata.Data{
@@ -1611,7 +1610,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test"),
-			expected: types.String{Unknown: true},
+			expected: types.StringUnknown(),
 		},
 		"WithAttributeName-String-value": {
 			data: fwschemadata.Data{
@@ -1638,7 +1637,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test"),
-			expected: types.String{Value: "value"},
+			expected: types.StringValue("value"),
 		},
 		"AttrTypeWithValidateError": {
 			data: fwschemadata.Data{
@@ -1693,7 +1692,7 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:          path.Root("test"),
-			expected:      testtypes.String{InternalString: types.String{Value: "value"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expected:      testtypes.String{InternalString: types.StringValue("value"), CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("test"))},
 		},
 	}

@@ -53,24 +53,17 @@ func (st SetType) TerraformType(ctx context.Context) tftypes.Type {
 // This is meant to convert the tftypes.Value into a more convenient Go
 // type for the provider to consume the data with.
 func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	set := Set{
-		ElemType: st.ElemType,
-		state:    valueStateDeprecated,
-	}
 	if in.Type() == nil {
-		set.Null = true
-		return set, nil
+		return SetNull(st.ElemType), nil
 	}
 	if !in.Type().Equal(st.TerraformType(ctx)) {
 		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), st.ElemType, st.ElemType.TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
-		set.Unknown = true
-		return set, nil
+		return SetUnknown(st.ElemType), nil
 	}
 	if in.IsNull() {
-		set.Null = true
-		return set, nil
+		return SetNull(st.ElemType), nil
 	}
 	val := []tftypes.Value{}
 	err := in.As(&val)
@@ -85,8 +78,9 @@ func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 		}
 		elems = append(elems, av)
 	}
-	set.Elems = elems
-	return set, nil
+	// ValueFromTerraform above on each element should make this safe.
+	// Otherwise, this will need to do some Diagnostics to error conversion.
+	return SetValueMust(st.ElemType, elems), nil
 }
 
 // Equal returns true if `o` is also a SetType and has the same ElemType.
@@ -199,39 +193,30 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 // ValueType returns the Value type.
 func (t SetType) ValueType(_ context.Context) attr.Value {
 	return Set{
-		ElemType: t.ElemType,
+		elementType: t.ElemType,
 	}
 }
 
 // SetNull creates a Set with a null value. Determine whether the value is
 // null via the Set type IsNull method.
-//
-// Setting the deprecated Set type ElemType, Elems, Null, or Unknown fields
-// after creating a Set with this function has no effect.
 func SetNull(elementType attr.Type) Set {
 	return Set{
 		elementType: elementType,
-		state:       valueStateNull,
+		state:       attr.ValueStateNull,
 	}
 }
 
 // SetUnknown creates a Set with an unknown value. Determine whether the
 // value is unknown via the Set type IsUnknown method.
-//
-// Setting the deprecated Set type ElemType, Elems, Null, or Unknown fields
-// after creating a Set with this function has no effect.
 func SetUnknown(elementType attr.Type) Set {
 	return Set{
 		elementType: elementType,
-		state:       valueStateUnknown,
+		state:       attr.ValueStateUnknown,
 	}
 }
 
 // SetValue creates a Set with a known value. Access the value via the Set
 // type Elements or ElementsAs methods.
-//
-// Setting the deprecated Set type ElemType, Elems, Null, or Unknown fields
-// after creating a Set with this function has no effect.
 func SetValue(elementType attr.Type, elements []attr.Value) (Set, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -258,7 +243,7 @@ func SetValue(elementType attr.Type, elements []attr.Value) (Set, diag.Diagnosti
 	return Set{
 		elementType: elementType,
 		elements:    elements,
-		state:       valueStateKnown,
+		state:       attr.ValueStateKnown,
 	}, nil
 }
 
@@ -298,9 +283,6 @@ func SetValueFrom(ctx context.Context, elementType attr.Type, elements any) (Set
 // This creation function is only recommended to create Set values which will
 // not potentially effect practitioners, such as testing, or exhaustively
 // tested provider logic.
-//
-// Setting the deprecated Set type ElemType, Elems, Null, or Unknown fields
-// after creating a Set with this function has no effect.
 func SetValueMust(elementType attr.Type, elements []attr.Value) Set {
 	set, diags := SetValue(elementType, elements)
 
@@ -325,63 +307,15 @@ func SetValueMust(elementType attr.Type, elements []attr.Value) Set {
 // Set represents a set of attr.Value, all of the same type,
 // indicated by ElemType.
 type Set struct {
-	// Unknown will be set to true if the entire set is an unknown value.
-	// If only some of the elements in the set are unknown, their known or
-	// unknown status will be represented however that attr.Value
-	// surfaces that information. The Set's Unknown property only tracks
-	// if the number of elements in a Set is known, not whether the
-	// elements that are in the set are known.
-	//
-	// If the Set was created with the SetValue, SetNull, or SetUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the SetUnknown function to create an unknown Set
-	// value or use the IsUnknown method to determine whether the Set value
-	// is unknown instead.
-	Unknown bool
-
-	// Null will be set to true if the set is null, either because it was
-	// omitted from the configuration, state, or plan, or because it was
-	// explicitly set to null.
-	//
-	// If the Set was created with the SetValue, SetNull, or SetUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the SetNull function to create a null Set value or
-	// use the IsNull method to determine whether the Set value is null
-	// instead.
-	Null bool
-
-	// Elems are the elements in the set.
-	//
-	// If the Set was created with the SetValue, SetNull, or SetUnknown
-	// functions, changing this field has no effect.
-	//
-	// Deprecated: Use the SetValue function to create a known Set value or
-	// use the Elements or ElementsAs methods to retrieve the Set elements
-	// instead.
-	Elems []attr.Value
-
-	// ElemType is the tftypes.Type of the elements in the set. All
-	// elements in the set must be of this type.
-	//
-	// Deprecated: Use the SetValue, SetNull, or SetUnknown functions
-	// to create a Set or use the ElementType method to retrieve the
-	// Set element type instead.
-	ElemType attr.Type
-
 	// elements is the collection of known values in the Set.
 	elements []attr.Value
 
 	// elementType is the type of the elements in the Set.
 	elementType attr.Type
 
-	// state represents whether the Set is null, unknown, or known. During the
-	// exported field deprecation period, this state can also be "deprecated",
-	// which remains the zero-value for compatibility to ensure exported field
-	// updates take effect. The zero-value will be changed to null in a future
-	// version.
-	state valueState
+	// state represents whether the value is null, unknown, or known. The
+	// zero-value is null.
+	state attr.ValueState
 }
 
 func (s Set) ToFrameworkValue() attr.Value {
@@ -391,10 +325,6 @@ func (s Set) ToFrameworkValue() attr.Value {
 // Elements returns the collection of elements for the Set. Returns nil if the
 // Set is null or unknown.
 func (s Set) Elements() []attr.Value {
-	if s.state == valueStateDeprecated {
-		return s.Elems
-	}
-
 	return s.elements
 }
 
@@ -420,10 +350,6 @@ func (s Set) ElementsAs(ctx context.Context, target interface{}, allowUnhandled 
 
 // ElementType returns the element type for the Set.
 func (s Set) ElementType(_ context.Context) attr.Type {
-	if s.state == valueStateDeprecated {
-		return s.ElemType
-	}
-
 	return s.elementType
 }
 
@@ -434,32 +360,10 @@ func (s Set) Type(ctx context.Context) attr.Type {
 
 // ToTerraformValue returns the data contained in the Set as a tftypes.Value.
 func (s Set) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	if s.state == valueStateDeprecated && s.ElemType == nil {
-		return tftypes.Value{}, fmt.Errorf("cannot convert Set to tftypes.Value if ElemType field is not set")
-	}
 	setType := tftypes.Set{ElementType: s.ElementType(ctx).TerraformType(ctx)}
 
 	switch s.state {
-	case valueStateDeprecated:
-		if s.Unknown {
-			return tftypes.NewValue(setType, tftypes.UnknownValue), nil
-		}
-		if s.Null {
-			return tftypes.NewValue(setType, nil), nil
-		}
-		vals := make([]tftypes.Value, 0, len(s.Elems))
-		for _, elem := range s.Elems {
-			val, err := elem.ToTerraformValue(ctx)
-			if err != nil {
-				return tftypes.NewValue(setType, tftypes.UnknownValue), err
-			}
-			vals = append(vals, val)
-		}
-		if err := tftypes.ValidateValue(setType, vals); err != nil {
-			return tftypes.NewValue(setType, tftypes.UnknownValue), err
-		}
-		return tftypes.NewValue(setType, vals), nil
-	case valueStateKnown:
+	case attr.ValueStateKnown:
 		vals := make([]tftypes.Value, 0, len(s.elements))
 
 		for _, elem := range s.elements {
@@ -477,9 +381,9 @@ func (s Set) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 		}
 
 		return tftypes.NewValue(setType, vals), nil
-	case valueStateNull:
+	case attr.ValueStateNull:
 		return tftypes.NewValue(setType, nil), nil
-	case valueStateUnknown:
+	case attr.ValueStateUnknown:
 		return tftypes.NewValue(setType, tftypes.UnknownValue), nil
 	default:
 		panic(fmt.Sprintf("unhandled Set state in ToTerraformValue: %s", s.state))
@@ -490,49 +394,33 @@ func (s Set) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 // (same type and same value) to the attr.Value passed as an argument.
 func (s Set) Equal(o attr.Value) bool {
 	other, ok := o.(Set)
+
 	if !ok {
 		return false
 	}
+
+	if !s.elementType.Equal(other.elementType) {
+		return false
+	}
+
 	if s.state != other.state {
 		return false
 	}
-	if s.state == valueStateKnown {
-		if !s.elementType.Equal(other.elementType) {
-			return false
-		}
 
-		if len(s.elements) != len(other.elements) {
-			return false
-		}
-
-		for _, elem := range s.elements {
-			if !other.contains(elem) {
-				return false
-			}
-		}
-
+	if s.state != attr.ValueStateKnown {
 		return true
 	}
-	if s.Unknown != other.Unknown {
+
+	if len(s.elements) != len(other.elements) {
 		return false
 	}
-	if s.Null != other.Null {
-		return false
-	}
-	if s.ElemType == nil && other.ElemType != nil {
-		return false
-	}
-	if s.ElemType != nil && !s.ElemType.Equal(other.ElemType) {
-		return false
-	}
-	if len(s.Elems) != len(other.Elems) {
-		return false
-	}
-	for _, elem := range s.Elems {
+
+	for _, elem := range s.elements {
 		if !other.contains(elem) {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -548,22 +436,14 @@ func (s Set) contains(v attr.Value) bool {
 
 // IsNull returns true if the Set represents a null value.
 func (s Set) IsNull() bool {
-	if s.state == valueStateNull {
-		return true
-	}
-
-	return s.state == valueStateDeprecated && s.Null
+	return s.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the Set represents a currently unknown value.
 // Returns false if the Set has a known number of elements, even if all are
 // unknown values.
 func (s Set) IsUnknown() bool {
-	if s.state == valueStateUnknown {
-		return true
-	}
-
-	return s.state == valueStateDeprecated && s.Unknown
+	return s.state == attr.ValueStateUnknown
 }
 
 // String returns a human-readable representation of the Set value.

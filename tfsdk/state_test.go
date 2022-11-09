@@ -53,7 +53,7 @@ func TestStateGet(t *testing.T) {
 			expected: &struct {
 				String types.String `tfsdk:"string"`
 			}{
-				String: types.String{Value: "test"},
+				String: types.StringValue("test"),
 			},
 		},
 		"diagnostic": {
@@ -171,7 +171,7 @@ func TestStateGetAttribute(t *testing.T) {
 				},
 			},
 			target:        new(testtypes.String),
-			expected:      &testtypes.String{InternalString: types.String{Value: "namevalue"}, CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expected:      &testtypes.String{InternalString: types.StringValue("namevalue"), CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("name"))},
 		},
 	}

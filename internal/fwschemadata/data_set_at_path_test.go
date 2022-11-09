@@ -579,16 +579,16 @@ func TestDataSetAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("disks").AtSetValue(types.Object{
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("disks").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
 				},
-				Attrs: map[string]attr.Value{
-					"id":                   types.String{Value: "mynewdisk"},
-					"delete_with_instance": types.Bool{Value: true},
+				map[string]attr.Value{
+					"id":                   types.StringValue("mynewdisk"),
+					"delete_with_instance": types.BoolValue(true),
 				},
-			}),
+			)),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -687,16 +687,16 @@ func TestDataSetAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("disks").AtSetValue(types.Object{
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("disks").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
 				},
-				Attrs: map[string]attr.Value{
-					"id":                   types.String{Value: "mynewdisk"},
-					"delete_with_instance": types.Bool{Value: true},
+				map[string]attr.Value{
+					"id":                   types.StringValue("mynewdisk"),
+					"delete_with_instance": types.BoolValue(true),
 				},
-			}),
+			)),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -1331,16 +1331,16 @@ func TestDataSetAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("disks").AtSetValue(types.Object{
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("disks").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
 				},
-				Attrs: map[string]attr.Value{
-					"id":                   types.String{Value: "disk1"},
-					"delete_with_instance": types.Bool{Value: false},
+				map[string]attr.Value{
+					"id":                   types.StringValue("disk1"),
+					"delete_with_instance": types.BoolValue(false),
 				},
-			}),
+			)),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -1425,7 +1425,7 @@ func TestDataSetAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("tags").AtSetValue(types.String{Value: "three"}),
+			path: path.Root("tags").AtSetValue(types.StringValue("three")),
 			val:  "three",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -2205,16 +2205,16 @@ func TestDataSetAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("disks").AtSetValue(types.Object{
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("disks").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
 				},
-				Attrs: map[string]attr.Value{
-					"id":                   types.String{Value: "mynewdisk"},
-					"delete_with_instance": types.Bool{Value: true},
+				map[string]attr.Value{
+					"id":                   types.StringValue("mynewdisk"),
+					"delete_with_instance": types.BoolValue(true),
 				},
-			}),
+			)),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -2284,7 +2284,7 @@ func TestDataSetAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("test").AtSetValue(types.String{Value: "testvalue"}),
+			path: path.Root("test").AtSetValue(types.StringValue("testvalue")),
 			val:  "testvalue",
 			expected: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
@@ -2343,16 +2343,16 @@ func TestDataSetAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("disks").AtSetValue(types.Object{
-				AttrTypes: map[string]attr.Type{
+			path: path.Root("disks").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
 					"id":                   types.StringType,
 					"delete_with_instance": types.BoolType,
 				},
-				Attrs: map[string]attr.Value{
-					"id":                   types.String{Value: "mynewdisk"},
-					"delete_with_instance": types.Bool{Value: true},
+				map[string]attr.Value{
+					"id":                   types.StringValue("mynewdisk"),
+					"delete_with_instance": types.BoolValue(true),
 				},
-			}),
+			)),
 			val: struct {
 				ID                 string `tfsdk:"id"`
 				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
@@ -2394,16 +2394,16 @@ func TestDataSetAtPath(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectedDiags: diag.Diagnostics{
-				testtypes.TestWarningDiagnostic(path.Root("disks").AtSetValue(types.Object{
-					AttrTypes: map[string]attr.Type{
+				testtypes.TestWarningDiagnostic(path.Root("disks").AtSetValue(types.ObjectValueMust(
+					map[string]attr.Type{
 						"id":                   types.StringType,
 						"delete_with_instance": types.BoolType,
 					},
-					Attrs: map[string]attr.Value{
-						"id":                   types.String{Value: "mynewdisk"},
-						"delete_with_instance": types.Bool{Value: true},
+					map[string]attr.Value{
+						"id":                   types.StringValue("mynewdisk"),
+						"delete_with_instance": types.BoolValue(true),
 					},
-				}).AtName("id")),
+				)).AtName("id")),
 			},
 		},
 		"write-String": {

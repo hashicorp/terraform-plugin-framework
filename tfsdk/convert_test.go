@@ -23,23 +23,23 @@ func TestConvert(t *testing.T) {
 
 	tests := map[string]testCase{
 		"string-to-testtype-string": {
-			val: types.String{Value: "hello"},
+			val: types.StringValue("hello"),
 			typ: testtypes.StringType{},
 			expected: testtypes.String{
-				InternalString: types.String{Value: "hello"},
+				InternalString: types.StringValue("hello"),
 				CreatedBy:      testtypes.StringType{},
 			},
 		},
 		"testtype-string-to-string": {
 			val: testtypes.String{
-				InternalString: types.String{Value: "hello"},
+				InternalString: types.StringValue("hello"),
 				CreatedBy:      testtypes.StringType{},
 			},
 			typ:      types.StringType,
-			expected: types.String{Value: "hello"},
+			expected: types.StringValue("hello"),
 		},
 		"string-to-number": {
-			val: types.String{Value: "hello"},
+			val: types.StringValue("hello"),
 			typ: types.NumberType,
 			expectedDiags: diag.Diagnostics{diag.NewErrorDiagnostic(
 				"Error converting value",

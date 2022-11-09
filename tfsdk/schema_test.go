@@ -235,11 +235,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("sub_test")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					path.Root("test").AtSetValue(types.StringValue("sub_test")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -458,11 +458,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("sub_test")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					path.Root("test").AtSetValue(types.StringValue("sub_test")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -626,11 +626,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("sub_test")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					path.Root("test").AtSetValue(types.StringValue("sub_test")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -766,11 +766,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("sub_test")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					path.Root("test").AtSetValue(types.StringValue("sub_test")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -801,7 +801,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("test").AtSetValue(types.String{Value: "element"}).AtName("sub_test"),
+			path: path.Root("test").AtSetValue(types.StringValue("element")).AtName("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
@@ -978,11 +978,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("sub_test")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					path.Root("test").AtSetValue(types.StringValue("sub_test")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -1024,7 +1024,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path: path.Root("test").AtSetValue(types.String{Value: "element"}).AtName("sub_test"),
+			path: path.Root("test").AtSetValue(types.StringValue("element")).AtName("sub_test"),
 			expected: Attribute{
 				Type:     types.StringType,
 				Required: true,
@@ -1150,11 +1150,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("sub_test")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					path.Root("test").AtSetValue(types.StringValue("sub_test")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -1327,11 +1327,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("sub_test")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Root("test").AtSetValue(types.String{Value: "sub_test"}),
+					path.Root("test").AtSetValue(types.StringValue("sub_test")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -1491,11 +1491,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "element"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("element")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Root("test").AtSetValue(types.String{Value: "element"}),
+					path.Root("test").AtSetValue(types.StringValue("element")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -1519,11 +1519,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Root("test").AtSetValue(types.String{Value: "element"}),
+			path:     path.Root("test").AtSetValue(types.StringValue("element")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Root("test").AtSetValue(types.String{Value: "element"}),
+					path.Root("test").AtSetValue(types.StringValue("element")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -1585,11 +1585,11 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					},
 				},
 			},
-			path:     path.Empty().AtSetValue(types.String{Value: "test"}),
+			path:     path.Empty().AtSetValue(types.StringValue("test")),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Empty().AtSetValue(types.String{Value: "test"}),
+					path.Empty().AtSetValue(types.StringValue("test")),
 					"Invalid Schema Path",
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
@@ -3214,10 +3214,10 @@ func TestSchemaTypeAtPath(t *testing.T) {
 		},
 		"ElementKeyValue": {
 			schema: Schema{},
-			path:   path.Empty().AtSetValue(types.String{Null: true}),
+			path:   path.Empty().AtSetValue(types.StringNull()),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
-					path.Empty().AtSetValue(types.String{Null: true}),
+					path.Empty().AtSetValue(types.StringNull()),
 					"Invalid Schema Path",
 					"When attempting to get the framework type associated with a schema path, an unexpected error was returned. This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: [Value(<null>)]\n"+

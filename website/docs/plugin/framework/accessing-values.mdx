@@ -67,9 +67,9 @@ explanation on how objects can be converted into Go types.
 
 To descend into deeper nested data structures, the `types.List`, `types.Map`, and `types.Set` types each have an `ElementsAs()` method. The `types.Object` type has an `As()` method.
 
-## Get a Single Attribute's Value
+## Get a Single Attribute or Block Value
 
-Use the `GetAttribute` method to retrieve a single attribute value from the configuration, plan, and state.
+Use the `GetAttribute` method to retrieve a top level attribute or block value from the configuration, plan, and state.
 
 ```go
 func (r ThingResource) Read(ctx context.Context,

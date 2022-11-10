@@ -20,8 +20,13 @@ func (c Config) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 	return c.data().Get(ctx, target)
 }
 
-// GetAttribute retrieves the attribute found at `path` and populates the
-// `target` with the value.
+// GetAttribute retrieves the attribute or block found at `path` and populates
+// the `target` with the value. This method is intended for top level schema
+// attributes or blocks. Use `types` package methods or custom types to step
+// into collections.
+//
+// Attributes or elements under null or unknown collections return null
+// values, however this behavior is not protected by compatibility promises.
 func (c Config) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
 	return c.data().GetAtPath(ctx, path, target)
 }

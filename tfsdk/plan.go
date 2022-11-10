@@ -20,8 +20,13 @@ func (p Plan) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 	return p.data().Get(ctx, target)
 }
 
-// GetAttribute retrieves the attribute found at `path` and populates the
-// `target` with the value.
+// GetAttribute retrieves the attribute or block found at `path` and populates
+// the `target` with the value. This method is intended for top level schema
+// attributes or blocks. Use `types` package methods or custom types to step
+// into collections.
+//
+// Attributes or elements under null or unknown collections return null
+// values, however this behavior is not protected by compatibility promises.
 func (p Plan) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
 	return p.data().GetAtPath(ctx, path, target)
 }
@@ -57,6 +62,10 @@ func (p *Plan) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 // attribute path already has a value, it will be overwritten. If the attribute
 // path does not have a value, it will be added, including any parent attribute
 // paths as necessary.
+//
+// The value must not be an untyped nil. Use a typed nil or types package null
+// value function instead. For example with a types.StringType attribute,
+// use (*string)(nil) or types.StringNull().
 //
 // Lists can only have the next element added according to the current length.
 func (p *Plan) SetAttribute(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {

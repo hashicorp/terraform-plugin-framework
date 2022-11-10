@@ -64,9 +64,11 @@ The state information is represented as an object, and gets persisted like an
 object. Refer to the [conversion rules](#conversion-rules) for an explanation on how
 objects get persisted and what Go types are valid for persisting as an object.
 
-## Set a Single Attribute's Value
+## Set a Single Attribute or Block Value
 
-Use the `SetAttribute` method to set an individual attribute value.
+Use the `SetAttribute` method to set an individual attribute or block value.
+
+-> The value must not be an untyped `nil`. Use a typed `nil` or `types` package null value function instead. For example with a `types.StringType` attribute, use `(*string)(nil)` or `types.StringNull()`.
 
 ```go
 func (r ThingResource) Read(ctx context.Context,

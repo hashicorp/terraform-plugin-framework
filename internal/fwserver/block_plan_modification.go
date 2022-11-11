@@ -236,7 +236,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 			return
 		}
 	case fwschema.BlockNestingModeSet:
-		configSet, diags := coerceSetValue(req.AttributePath, req.AttributeConfig)
+		configSet, diags := coerceSetValue(ctx, req.AttributePath, req.AttributeConfig)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -244,7 +244,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 			return
 		}
 
-		planSet, diags := coerceSetValue(req.AttributePath, req.AttributePlan)
+		planSet, diags := coerceSetValue(ctx, req.AttributePath, req.AttributePlan)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -252,7 +252,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 			return
 		}
 
-		stateSet, diags := coerceSetValue(req.AttributePath, req.AttributeState)
+		stateSet, diags := coerceSetValue(ctx, req.AttributePath, req.AttributeState)
 
 		resp.Diagnostics.Append(diags...)
 

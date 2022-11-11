@@ -48,8 +48,8 @@ func coerceObjectValue(schemaPath path.Path, value attr.Value) (types.Object, di
 	return object, nil
 }
 
-func coerceSetValue(schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
-	set, ok := value.(types.Set)
+func coerceSetValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
+	setVal, ok := value.(types.SetVal)
 
 	if !ok {
 		return types.SetNull(nil), diag.Diagnostics{
@@ -57,7 +57,7 @@ func coerceSetValue(schemaPath path.Path, value attr.Value) (types.Set, diag.Dia
 		}
 	}
 
-	return set, nil
+	return setVal.ToFrameworkValue(ctx)
 }
 
 func listElemObject(ctx context.Context, schemaPath path.Path, list types.List, index int, description fwschemadata.DataDescription) (types.Object, diag.Diagnostics) {

@@ -15,10 +15,22 @@ import (
 )
 
 var (
-	_ attr.Type              = SetType{}
+	_ SetTyp                 = SetType{}
 	_ xattr.TypeWithValidate = SetType{}
-	_ attr.Value             = &Set{}
+	_ SetVal                 = &Set{}
 )
+
+type SetTyp interface {
+	attr.Type
+
+	ValueFromFramework(context.Context, Set) (attr.Value, diag.Diagnostics)
+}
+
+type SetVal interface {
+	attr.Value
+
+	ToFrameworkValue(ctx context.Context) (Set, diag.Diagnostics)
+}
 
 // SetType is an AttributeType representing a set of values. All values must
 // be of the same type, which the provider must specify as the ElemType
@@ -191,10 +203,15 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 }
 
 // ValueType returns the Value type.
-func (t SetType) ValueType(_ context.Context) attr.Value {
+func (st SetType) ValueType(_ context.Context) attr.Value {
 	return Set{
-		elementType: t.ElemType,
+		elementType: st.ElemType,
 	}
+}
+
+// ValueFromFramework returns an attr.Value given a Set.
+func (st SetType) ValueFromFramework(_ context.Context, set Set) (attr.Value, diag.Diagnostics) {
+	return set, nil
 }
 
 // SetNull creates a Set with a null value. Determine whether the value is
@@ -466,4 +483,9 @@ func (s Set) String() string {
 	res.WriteString("]")
 
 	return res.String()
+}
+
+// ToFrameworkValue returns the Set.
+func (s Set) ToFrameworkValue(context.Context) (Set, diag.Diagnostics) {
+	return s, nil
 }

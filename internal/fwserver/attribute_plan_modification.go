@@ -220,7 +220,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 			return
 		}
 	case fwschema.NestingModeSet:
-		configSet, diags := coerceSetValue(req.AttributePath, req.AttributeConfig)
+		configSet, diags := coerceSetValue(ctx, req.AttributePath, req.AttributeConfig)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -228,7 +228,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 			return
 		}
 
-		planSet, diags := coerceSetValue(req.AttributePath, req.AttributePlan)
+		planSet, diags := coerceSetValue(ctx, req.AttributePath, req.AttributePlan)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -236,7 +236,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 			return
 		}
 
-		stateSet, diags := coerceSetValue(req.AttributePath, req.AttributeState)
+		stateSet, diags := coerceSetValue(ctx, req.AttributePath, req.AttributeState)
 
 		resp.Diagnostics.Append(diags...)
 

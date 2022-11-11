@@ -35,6 +35,22 @@
         "path": "resources"
       },
       {
+        "title": "Create",
+        "path": "resources/create"
+      },
+      {
+        "title": "Read",
+        "path": "resources/read"
+      },
+      {
+        "title": "Update",
+        "path": "resources/update"
+      },
+      {
+        "title": "Delete",
+        "path": "resources/delete"
+      },
+      {
         "title": "Configure Clients",
         "path": "resources/configure"
       },

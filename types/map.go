@@ -16,9 +16,21 @@ import (
 )
 
 var (
-	_ attr.Type  = MapType{}
-	_ attr.Value = &Map{}
+	_ MapTyp = MapType{}
+	_ MapVal = &Map{}
 )
+
+type MapTyp interface {
+	attr.Type
+
+	ValueFromFramework(context.Context, Map) (attr.Value, diag.Diagnostics)
+}
+
+type MapVal interface {
+	attr.Value
+
+	ToFrameworkValue(ctx context.Context) (Map, diag.Diagnostics)
+}
 
 // MapType is an AttributeType representing a map of values. All values must
 // be of the same type, which the provider must specify as the ElemType
@@ -163,10 +175,15 @@ func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path)
 }
 
 // ValueType returns the Value type.
-func (t MapType) ValueType(_ context.Context) attr.Value {
+func (m MapType) ValueType(_ context.Context) attr.Value {
 	return Map{
-		elementType: t.ElemType,
+		elementType: m.ElemType,
 	}
+}
+
+// ValueFromFramework returns an attr.Value given a Map.
+func (m MapType) ValueFromFramework(_ context.Context, ma Map) (attr.Value, diag.Diagnostics) {
+	return ma, nil
 }
 
 // MapNull creates a Map with a null value. Determine whether the value is
@@ -329,7 +346,7 @@ func (m Map) Type(ctx context.Context) attr.Type {
 	return MapType{ElemType: m.ElementType(ctx)}
 }
 
-// ToTerraformValue returns the data contained in the List as a tftypes.Value.
+// ToTerraformValue returns the data contained in the Map as a tftypes.Value.
 func (m Map) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	mapType := tftypes.Map{ElementType: m.ElementType(ctx).TerraformType(ctx)}
 
@@ -440,4 +457,9 @@ func (m Map) String() string {
 	res.WriteString("}")
 
 	return res.String()
+}
+
+// ToFrameworkValue returns the Map.
+func (m Map) ToFrameworkValue(context.Context) (Map, diag.Diagnostics) {
+	return m, nil
 }

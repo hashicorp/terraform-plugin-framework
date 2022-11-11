@@ -24,8 +24,8 @@ func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value
 	return listVal.ToFrameworkValue(ctx)
 }
 
-func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {
-	m, ok := value.(types.Map)
+func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {
+	mapVal, ok := value.(types.MapVal)
 
 	if !ok {
 		return types.MapNull(nil), diag.Diagnostics{
@@ -33,7 +33,7 @@ func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Dia
 		}
 	}
 
-	return m, nil
+	return mapVal.ToFrameworkValue(ctx)
 }
 
 func coerceObjectValue(schemaPath path.Path, value attr.Value) (types.Object, diag.Diagnostics) {

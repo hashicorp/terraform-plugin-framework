@@ -5,12 +5,20 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.Value = Bool{}
+	_ BoolVal = Bool{}
 )
+
+type BoolVal interface {
+	attr.Value
+
+	ToFrameworkValue(ctx context.Context) (Bool, diag.Diagnostics)
+}
 
 // BoolNull creates a Bool with a null value. Determine whether the value is
 // null via the Bool type IsNull method.
@@ -142,4 +150,9 @@ func (b Bool) String() string {
 // false.
 func (b Bool) ValueBool() bool {
 	return b.value
+}
+
+// ToFrameworkValue returns Bool.
+func (b Bool) ToFrameworkValue(context.Context) (Bool, diag.Diagnostics) {
+	return b, nil
 }

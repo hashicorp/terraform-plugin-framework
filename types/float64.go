@@ -5,15 +5,22 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.Value = Float64{}
+	_ Float64Val = Float64{}
 )
+
+type Float64Val interface {
+	attr.Value
+
+	ToFrameworkValue(ctx context.Context) (Float64, diag.Diagnostics)
+}
 
 // Float64Null creates a Float64 with a null value. Determine whether the value is
 // null via the Float64 type IsNull method.
@@ -203,4 +210,9 @@ func (f Float64) String() string {
 // 0.0.
 func (f Float64) ValueFloat64() float64 {
 	return f.value
+}
+
+// ToFrameworkValue returns Float64.
+func (f Float64) ToFrameworkValue(context.Context) (Float64, diag.Diagnostics) {
+	return f, nil
 }

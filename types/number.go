@@ -5,13 +5,21 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 var (
-	_ attr.Value = Number{}
+	_ NumberVal = Number{}
 )
+
+type NumberVal interface {
+	attr.Value
+
+	ToFrameworkValue(ctx context.Context) (Number, diag.Diagnostics)
+}
 
 // NumberNull creates a Number with a null value. Determine whether the value is
 // null via the Number type IsNull method.
@@ -152,4 +160,9 @@ func (n Number) String() string {
 // 0.0.
 func (n Number) ValueBigFloat() *big.Float {
 	return n.value
+}
+
+// ToFrameworkValue returns Number.
+func (n Number) ToFrameworkValue(context.Context) (Number, diag.Diagnostics) {
+	return n, nil
 }

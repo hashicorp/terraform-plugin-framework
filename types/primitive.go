@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type primitive uint8
@@ -31,12 +32,47 @@ const (
 )
 
 var (
-	_ attr.Type              = StringType
-	_ attr.Type              = NumberType
-	_ attr.Type              = BoolType
-	_ xattr.TypeWithValidate = Int64Type
-	_ xattr.TypeWithValidate = Float64Type
+	_ StringTyp  = StringType
+	_ NumberTyp  = NumberType
+	_ BoolTyp    = BoolType
+	_ Int64Typ   = Int64Type
+	_ Float64Typ = Float64Type
 )
+
+type StringTyp interface {
+	attr.Type
+
+	ValueFromFramework(context.Context, attr.Value) (attr.Value, diag.Diagnostics)
+}
+
+type NumberTyp interface {
+	attr.Type
+
+	ValueFromFramework(context.Context, attr.Value) (attr.Value, diag.Diagnostics)
+}
+
+type BoolTyp interface {
+	attr.Type
+
+	ValueFromFramework(context.Context, attr.Value) (attr.Value, diag.Diagnostics)
+}
+
+type Int64Typ interface {
+	xattr.TypeWithValidate
+
+	ValueFromFramework(context.Context, attr.Value) (attr.Value, diag.Diagnostics)
+}
+
+type Float64Typ interface {
+	xattr.TypeWithValidate
+
+	ValueFromFramework(context.Context, attr.Value) (attr.Value, diag.Diagnostics)
+}
+
+// ValueFromFramework returns an attr.Value given an attr.Value.
+func (p primitive) ValueFromFramework(_ context.Context, val attr.Value) (attr.Value, diag.Diagnostics) {
+	return val, nil
+}
 
 func (p primitive) String() string {
 	switch p {

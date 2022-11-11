@@ -5,15 +5,22 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.Value = Int64{}
+	_ Int64Val = Int64{}
 )
+
+type Int64Val interface {
+	attr.Value
+
+	ToFrameworkValue(ctx context.Context) (Int64, diag.Diagnostics)
+}
 
 // Int64Null creates a Int64 with a null value. Determine whether the value is
 // null via the Int64 type IsNull method.
@@ -216,4 +223,9 @@ func (i Int64) String() string {
 // 0.0.
 func (i Int64) ValueInt64() int64 {
 	return i.value
+}
+
+// ToFrameworkValue returns Int64.
+func (i Int64) ToFrameworkValue(context.Context) (Int64, diag.Diagnostics) {
+	return i, nil
 }

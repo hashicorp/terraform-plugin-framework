@@ -15,9 +15,21 @@ import (
 )
 
 var (
-	_ attr.Type  = ListType{}
-	_ attr.Value = &List{}
+	_ ListTyp = ListType{}
+	_ ListVal = &List{}
 )
+
+type ListTyp interface {
+	attr.Type
+
+	ValueFromFramework(context.Context, List) (attr.Value, diag.Diagnostics)
+}
+
+type ListVal interface {
+	attr.Value
+
+	ToFrameworkValue(ctx context.Context) (List, diag.Diagnostics)
+}
 
 // ListType is an AttributeType representing a list of values. All values must
 // be of the same type, which the provider must specify as the ElemType
@@ -159,10 +171,15 @@ func (l ListType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 }
 
 // ValueType returns the Value type.
-func (t ListType) ValueType(_ context.Context) attr.Value {
+func (l ListType) ValueType(_ context.Context) attr.Value {
 	return List{
-		elementType: t.ElemType,
+		elementType: l.ElemType,
 	}
+}
+
+// ValueFromFramework returns an attr.Value given a List.
+func (l ListType) ValueFromFramework(_ context.Context, list List) (attr.Value, diag.Diagnostics) {
+	return list, nil
 }
 
 // ListNull creates a List with a null value. Determine whether the value is
@@ -249,7 +266,7 @@ func ListValueFrom(ctx context.Context, elementType attr.Type, elements any) (Li
 // type Elements or ElementsAs methods.
 //
 // This creation function is only recommended to create List values which will
-// not potentially effect practitioners, such as testing, or exhaustively
+// not potentially affect practitioners, such as testing, or exhaustively
 // tested provider logic.
 func ListValueMust(elementType attr.Type, elements []attr.Value) List {
 	list, diags := ListValue(elementType, elements)
@@ -426,4 +443,9 @@ func (l List) String() string {
 	res.WriteString("]")
 
 	return res.String()
+}
+
+// ToFrameworkValue returns the List.
+func (l List) ToFrameworkValue(context.Context) (List, diag.Diagnostics) {
+	return l, nil
 }

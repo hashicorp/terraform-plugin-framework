@@ -3,16 +3,17 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func coerceListValue(schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
-	list, ok := value.(types.List)
+func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
+	listVal, ok := value.(types.ListVal)
 
 	if !ok {
 		return types.ListNull(nil), diag.Diagnostics{
@@ -20,7 +21,7 @@ func coerceListValue(schemaPath path.Path, value attr.Value) (types.List, diag.D
 		}
 	}
 
-	return list, nil
+	return listVal.ToFrameworkValue(ctx)
 }
 
 func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {

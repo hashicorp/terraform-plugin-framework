@@ -49,16 +49,23 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 	nm := b.GetNestingMode()
 	switch nm {
 	case fwschema.BlockNestingModeList:
-		l, ok := req.AttributeConfig.(types.List)
+		listVal, ok := req.AttributeConfig.(types.ListVal)
 
 		if !ok {
-			err := fmt.Errorf("unknown block value type (%s) for nesting mode (%T) at path: %s", req.AttributeConfig.Type(ctx), nm, req.AttributePath)
+			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
-				"Block Validation Error",
-				"Block validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				"Block Validation Error Invalid Value Type",
+				"A type from which a types.List can be obtained is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
+			return
+		}
+
+		l, diags := listVal.ToFrameworkValue(ctx)
+
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 

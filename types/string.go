@@ -11,13 +11,13 @@ import (
 )
 
 var (
-	_ StringVal = String{}
+	_ StringValuable = String{}
 )
 
-type StringVal interface {
+type StringValuable interface {
 	attr.Value
 
-	ToFrameworkValue(ctx context.Context) (String, diag.Diagnostics)
+	ToStringValue(ctx context.Context) (String, diag.Diagnostics)
 }
 
 // StringNull creates a String with a null value. Determine whether the value is
@@ -154,7 +154,7 @@ func (s String) ValueString() string {
 	return s.value
 }
 
-// ToFrameworkValue returns String.
-func (s String) ToFrameworkValue(context.Context) (String, diag.Diagnostics) {
+// ToStringValue returns String.
+func (s String) ToStringValue(context.Context) (String, diag.Diagnostics) {
 	return s, nil
 }

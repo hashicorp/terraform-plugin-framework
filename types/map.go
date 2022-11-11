@@ -16,20 +16,20 @@ import (
 )
 
 var (
-	_ MapTyp = MapType{}
-	_ MapVal = &Map{}
+	_ MapTypable  = MapType{}
+	_ MapValuable = &Map{}
 )
 
-type MapTyp interface {
+type MapTypable interface {
 	attr.Type
 
-	ValueFromFramework(context.Context, Map) (attr.Value, diag.Diagnostics)
+	ValueFromMap(context.Context, Map) (attr.Value, diag.Diagnostics)
 }
 
-type MapVal interface {
+type MapValuable interface {
 	attr.Value
 
-	ToFrameworkValue(ctx context.Context) (Map, diag.Diagnostics)
+	ToMapValue(ctx context.Context) (Map, diag.Diagnostics)
 }
 
 // MapType is an AttributeType representing a map of values. All values must
@@ -181,8 +181,8 @@ func (m MapType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
-// ValueFromFramework returns an attr.Value given a Map.
-func (m MapType) ValueFromFramework(_ context.Context, ma Map) (attr.Value, diag.Diagnostics) {
+// ValueFromMap returns an attr.Value given a Map.
+func (m MapType) ValueFromMap(_ context.Context, ma Map) (attr.Value, diag.Diagnostics) {
 	return ma, nil
 }
 
@@ -459,7 +459,7 @@ func (m Map) String() string {
 	return res.String()
 }
 
-// ToFrameworkValue returns the Map.
-func (m Map) ToFrameworkValue(context.Context) (Map, diag.Diagnostics) {
+// ToMapValue returns the Map.
+func (m Map) ToMapValue(context.Context) (Map, diag.Diagnostics) {
 	return m, nil
 }

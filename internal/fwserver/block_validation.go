@@ -49,7 +49,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 	nm := b.GetNestingMode()
 	switch nm {
 	case fwschema.BlockNestingModeList:
-		listVal, ok := req.AttributeConfig.(types.ListVal)
+		listVal, ok := req.AttributeConfig.(types.ListValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
@@ -62,7 +62,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			return
 		}
 
-		l, diags := listVal.ToFrameworkValue(ctx)
+		l, diags := listVal.ToListValue(ctx)
 
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -124,7 +124,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(l.Elements())))
 		}
 	case fwschema.BlockNestingModeSet:
-		setVal, ok := req.AttributeConfig.(types.SetVal)
+		setVal, ok := req.AttributeConfig.(types.SetValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
@@ -137,7 +137,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			return
 		}
 
-		s, diags := setVal.ToFrameworkValue(ctx)
+		s, diags := setVal.ToSetValue(ctx)
 
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -199,7 +199,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elements())))
 		}
 	case fwschema.BlockNestingModeSingle:
-		objectVal, ok := req.AttributeConfig.(types.ObjectVal)
+		objectVal, ok := req.AttributeConfig.(types.ObjectValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
@@ -212,7 +212,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			return
 		}
 
-		o, diags := objectVal.ToFrameworkValue(ctx)
+		o, diags := objectVal.ToObjectValue(ctx)
 
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {

@@ -15,20 +15,20 @@ import (
 )
 
 var (
-	_ ListTyp = ListType{}
-	_ ListVal = &List{}
+	_ ListTypable  = ListType{}
+	_ ListValuable = &List{}
 )
 
-type ListTyp interface {
+type ListTypable interface {
 	attr.Type
 
-	ValueFromFramework(context.Context, List) (attr.Value, diag.Diagnostics)
+	ValueFromList(context.Context, List) (attr.Value, diag.Diagnostics)
 }
 
-type ListVal interface {
+type ListValuable interface {
 	attr.Value
 
-	ToFrameworkValue(ctx context.Context) (List, diag.Diagnostics)
+	ToListValue(ctx context.Context) (List, diag.Diagnostics)
 }
 
 // ListType is an AttributeType representing a list of values. All values must
@@ -177,8 +177,8 @@ func (l ListType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
-// ValueFromFramework returns an attr.Value given a List.
-func (l ListType) ValueFromFramework(_ context.Context, list List) (attr.Value, diag.Diagnostics) {
+// ValueFromList returns an attr.Value given a List.
+func (l ListType) ValueFromList(_ context.Context, list List) (attr.Value, diag.Diagnostics) {
 	return list, nil
 }
 
@@ -445,7 +445,7 @@ func (l List) String() string {
 	return res.String()
 }
 
-// ToFrameworkValue returns the List.
-func (l List) ToFrameworkValue(context.Context) (List, diag.Diagnostics) {
+// ToListValue returns the List.
+func (l List) ToListValue(context.Context) (List, diag.Diagnostics) {
 	return l, nil
 }

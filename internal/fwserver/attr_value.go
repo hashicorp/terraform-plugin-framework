@@ -13,7 +13,7 @@ import (
 )
 
 func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
-	listVal, ok := value.(types.ListVal)
+	listVal, ok := value.(types.ListValuable)
 
 	if !ok {
 		return types.ListNull(nil), diag.Diagnostics{
@@ -21,11 +21,11 @@ func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value
 		}
 	}
 
-	return listVal.ToFrameworkValue(ctx)
+	return listVal.ToListValue(ctx)
 }
 
 func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {
-	mapVal, ok := value.(types.MapVal)
+	mapVal, ok := value.(types.MapValuable)
 
 	if !ok {
 		return types.MapNull(nil), diag.Diagnostics{
@@ -33,11 +33,11 @@ func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value)
 		}
 	}
 
-	return mapVal.ToFrameworkValue(ctx)
+	return mapVal.ToMapValue(ctx)
 }
 
 func coerceObjectValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Object, diag.Diagnostics) {
-	objectVal, ok := value.(types.ObjectVal)
+	objectVal, ok := value.(types.ObjectValuable)
 
 	if !ok {
 		return types.ObjectNull(nil), diag.Diagnostics{
@@ -45,11 +45,11 @@ func coerceObjectValue(ctx context.Context, schemaPath path.Path, value attr.Val
 		}
 	}
 
-	return objectVal.ToFrameworkValue(ctx)
+	return objectVal.ToObjectValue(ctx)
 }
 
 func coerceSetValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
-	setVal, ok := value.(types.SetVal)
+	setVal, ok := value.(types.SetValuable)
 
 	if !ok {
 		return types.SetNull(nil), diag.Diagnostics{
@@ -57,7 +57,7 @@ func coerceSetValue(ctx context.Context, schemaPath path.Path, value attr.Value)
 		}
 	}
 
-	return setVal.ToFrameworkValue(ctx)
+	return setVal.ToSetValue(ctx)
 }
 
 func listElemObject(ctx context.Context, schemaPath path.Path, list types.List, index int, description fwschemadata.DataDescription) (types.Object, diag.Diagnostics) {

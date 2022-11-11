@@ -11,13 +11,13 @@ import (
 )
 
 var (
-	_ BoolVal = Bool{}
+	_ BoolValuable = Bool{}
 )
 
-type BoolVal interface {
+type BoolValuable interface {
 	attr.Value
 
-	ToFrameworkValue(ctx context.Context) (Bool, diag.Diagnostics)
+	ToBoolValue(ctx context.Context) (Bool, diag.Diagnostics)
 }
 
 // BoolNull creates a Bool with a null value. Determine whether the value is
@@ -152,7 +152,7 @@ func (b Bool) ValueBool() bool {
 	return b.value
 }
 
-// ToFrameworkValue returns Bool.
-func (b Bool) ToFrameworkValue(context.Context) (Bool, diag.Diagnostics) {
+// ToBoolValue returns Bool.
+func (b Bool) ToBoolValue(context.Context) (Bool, diag.Diagnostics) {
 	return b, nil
 }

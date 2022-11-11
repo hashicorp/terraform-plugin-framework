@@ -140,7 +140,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 	nm := a.GetAttributes().GetNestingMode()
 	switch nm {
 	case fwschema.NestingModeList:
-		listVal, ok := req.AttributeConfig.(types.ListVal)
+		listVal, ok := req.AttributeConfig.(types.ListValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
@@ -153,7 +153,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		l, diags := listVal.ToFrameworkValue(ctx)
+		l, diags := listVal.ToListValue(ctx)
 
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -177,7 +177,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			}
 		}
 	case fwschema.NestingModeSet:
-		setVal, ok := req.AttributeConfig.(types.SetVal)
+		setVal, ok := req.AttributeConfig.(types.SetValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
@@ -190,7 +190,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		s, diags := setVal.ToFrameworkValue(ctx)
+		s, diags := setVal.ToSetValue(ctx)
 
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -214,7 +214,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			}
 		}
 	case fwschema.NestingModeMap:
-		mapVal, ok := req.AttributeConfig.(types.MapVal)
+		mapVal, ok := req.AttributeConfig.(types.MapValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
@@ -227,7 +227,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		m, diags := mapVal.ToFrameworkValue(ctx)
+		m, diags := mapVal.ToMapValue(ctx)
 
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -251,7 +251,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			}
 		}
 	case fwschema.NestingModeSingle:
-		objectVal, ok := req.AttributeConfig.(types.ObjectVal)
+		objectVal, ok := req.AttributeConfig.(types.ObjectValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
@@ -264,7 +264,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		o, diags := objectVal.ToFrameworkValue(ctx)
+		o, diags := objectVal.ToObjectValue(ctx)
 
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {

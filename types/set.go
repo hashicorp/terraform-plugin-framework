@@ -15,21 +15,21 @@ import (
 )
 
 var (
-	_ SetTyp                 = SetType{}
+	_ SetTypable             = SetType{}
 	_ xattr.TypeWithValidate = SetType{}
-	_ SetVal                 = &Set{}
+	_ SetValuable            = &Set{}
 )
 
-type SetTyp interface {
+type SetTypable interface {
 	attr.Type
 
-	ValueFromFramework(context.Context, Set) (attr.Value, diag.Diagnostics)
+	ValueFromSet(context.Context, Set) (attr.Value, diag.Diagnostics)
 }
 
-type SetVal interface {
+type SetValuable interface {
 	attr.Value
 
-	ToFrameworkValue(ctx context.Context) (Set, diag.Diagnostics)
+	ToSetValue(ctx context.Context) (Set, diag.Diagnostics)
 }
 
 // SetType is an AttributeType representing a set of values. All values must
@@ -209,8 +209,8 @@ func (st SetType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
-// ValueFromFramework returns an attr.Value given a Set.
-func (st SetType) ValueFromFramework(_ context.Context, set Set) (attr.Value, diag.Diagnostics) {
+// ValueFromSet returns an attr.Value given a Set.
+func (st SetType) ValueFromSet(_ context.Context, set Set) (attr.Value, diag.Diagnostics) {
 	return set, nil
 }
 
@@ -485,7 +485,7 @@ func (s Set) String() string {
 	return res.String()
 }
 
-// ToFrameworkValue returns the Set.
-func (s Set) ToFrameworkValue(context.Context) (Set, diag.Diagnostics) {
+// ToSetValue returns the Set.
+func (s Set) ToSetValue(context.Context) (Set, diag.Diagnostics) {
 	return s, nil
 }

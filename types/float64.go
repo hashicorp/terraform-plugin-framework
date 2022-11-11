@@ -13,13 +13,13 @@ import (
 )
 
 var (
-	_ Float64Val = Float64{}
+	_ Float64Valuable = Float64{}
 )
 
-type Float64Val interface {
+type Float64Valuable interface {
 	attr.Value
 
-	ToFrameworkValue(ctx context.Context) (Float64, diag.Diagnostics)
+	ToFloat64Value(ctx context.Context) (Float64, diag.Diagnostics)
 }
 
 // Float64Null creates a Float64 with a null value. Determine whether the value is
@@ -212,7 +212,7 @@ func (f Float64) ValueFloat64() float64 {
 	return f.value
 }
 
-// ToFrameworkValue returns Float64.
-func (f Float64) ToFrameworkValue(context.Context) (Float64, diag.Diagnostics) {
+// ToFloat64Value returns Float64.
+func (f Float64) ToFloat64Value(context.Context) (Float64, diag.Diagnostics) {
 	return f, nil
 }

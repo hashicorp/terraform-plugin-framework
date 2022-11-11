@@ -12,13 +12,13 @@ import (
 )
 
 var (
-	_ NumberVal = Number{}
+	_ NumberValuable = Number{}
 )
 
-type NumberVal interface {
+type NumberValuable interface {
 	attr.Value
 
-	ToFrameworkValue(ctx context.Context) (Number, diag.Diagnostics)
+	ToNumberValue(ctx context.Context) (Number, diag.Diagnostics)
 }
 
 // NumberNull creates a Number with a null value. Determine whether the value is
@@ -162,7 +162,7 @@ func (n Number) ValueBigFloat() *big.Float {
 	return n.value
 }
 
-// ToFrameworkValue returns Number.
-func (n Number) ToFrameworkValue(context.Context) (Number, diag.Diagnostics) {
+// ToNumberValue returns Number.
+func (n Number) ToNumberValue(context.Context) (Number, diag.Diagnostics) {
 	return n, nil
 }

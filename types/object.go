@@ -15,20 +15,20 @@ import (
 )
 
 var (
-	_ ObjectTyp = ObjectType{}
-	_ ObjectVal = &Object{}
+	_ ObjectTypable  = ObjectType{}
+	_ ObjectValuable = &Object{}
 )
 
-type ObjectTyp interface {
+type ObjectTypable interface {
 	attr.Type
 
-	ValueFromFramework(context.Context, Object) (attr.Value, diag.Diagnostics)
+	ValueFromObject(context.Context, Object) (attr.Value, diag.Diagnostics)
 }
 
-type ObjectVal interface {
+type ObjectValuable interface {
 	attr.Value
 
-	ToFrameworkValue(ctx context.Context) (Object, diag.Diagnostics)
+	ToObjectValue(ctx context.Context) (Object, diag.Diagnostics)
 }
 
 // ObjectType is an AttributeType representing an object.
@@ -159,8 +159,8 @@ func (o ObjectType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
-// ValueFromFramework returns an attr.Value given an Object.
-func (o ObjectType) ValueFromFramework(_ context.Context, obj Object) (attr.Value, diag.Diagnostics) {
+// ValueFromObject returns an attr.Value given an Object.
+func (o ObjectType) ValueFromObject(_ context.Context, obj Object) (attr.Value, diag.Diagnostics) {
 	return obj, nil
 }
 
@@ -498,7 +498,7 @@ func (o Object) String() string {
 	return res.String()
 }
 
-// ToFrameworkValue returns the Object.
-func (o Object) ToFrameworkValue(context.Context) (Object, diag.Diagnostics) {
+// ToObjectValue returns the Object.
+func (o Object) ToObjectValue(context.Context) (Object, diag.Diagnostics) {
 	return o, nil
 }

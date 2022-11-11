@@ -15,9 +15,21 @@ import (
 )
 
 var (
-	_ attr.Type  = ObjectType{}
-	_ attr.Value = &Object{}
+	_ ObjectTyp = ObjectType{}
+	_ ObjectVal = &Object{}
 )
+
+type ObjectTyp interface {
+	attr.Type
+
+	ValueFromFramework(context.Context, Object) (attr.Value, diag.Diagnostics)
+}
+
+type ObjectVal interface {
+	attr.Value
+
+	ToFrameworkValue(ctx context.Context) (Object, diag.Diagnostics)
+}
 
 // ObjectType is an AttributeType representing an object.
 type ObjectType struct {
@@ -141,10 +153,15 @@ func (o ObjectType) String() string {
 }
 
 // ValueType returns the Value type.
-func (t ObjectType) ValueType(_ context.Context) attr.Value {
+func (o ObjectType) ValueType(_ context.Context) attr.Value {
 	return Object{
-		attributeTypes: t.AttrTypes,
+		attributeTypes: o.AttrTypes,
 	}
+}
+
+// ValueFromFramework returns an attr.Value given an Object.
+func (o ObjectType) ValueFromFramework(_ context.Context, obj Object) (attr.Value, diag.Diagnostics) {
+	return obj, nil
 }
 
 // ObjectNull creates a Object with a null value. Determine whether the value is
@@ -479,4 +496,9 @@ func (o Object) String() string {
 	res.WriteString("}")
 
 	return res.String()
+}
+
+// ToFrameworkValue returns the Object.
+func (o Object) ToFrameworkValue(context.Context) (Object, diag.Diagnostics) {
+	return o, nil
 }

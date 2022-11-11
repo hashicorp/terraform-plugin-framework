@@ -199,16 +199,23 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elements())))
 		}
 	case fwschema.BlockNestingModeSingle:
-		s, ok := req.AttributeConfig.(types.Object)
+		objectVal, ok := req.AttributeConfig.(types.ObjectVal)
 
 		if !ok {
-			err := fmt.Errorf("unknown block value type (%s) for nesting mode (%T) at path: %s", req.AttributeConfig.Type(ctx), nm, req.AttributePath)
+			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
-				"Block Validation Error",
-				"Block validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				"Block Validation Error Invalid Value Type",
+				"A type from which a types.Object can be obtained is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
+			return
+		}
+
+		o, diags := objectVal.ToFrameworkValue(ctx)
+
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
@@ -242,7 +249,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics = nestedAttrResp.Diagnostics
 		}
 
-		if b.GetMinItems() == 1 && s.IsNull() {
+		if b.GetMinItems() == 1 && o.IsNull() {
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), 0))
 		}
 	default:

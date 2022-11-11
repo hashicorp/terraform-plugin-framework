@@ -135,7 +135,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 				return
 			}
 
-			planObject, diags := coerceObjectValue(attrPath, planElem)
+			planObject, diags := coerceObjectValue(ctx, attrPath, planElem)
 
 			resp.Diagnostics.Append(diags...)
 
@@ -257,7 +257,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 				return
 			}
 
-			planObject, diags := coerceObjectValue(attrPath, planElem)
+			planObject, diags := coerceObjectValue(ctx, attrPath, planElem)
 
 			resp.Diagnostics.Append(diags...)
 
@@ -379,7 +379,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 				return
 			}
 
-			planObject, diags := coerceObjectValue(attrPath, planElem)
+			planObject, diags := coerceObjectValue(ctx, attrPath, planElem)
 
 			resp.Diagnostics.Append(diags...)
 
@@ -464,7 +464,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 			return
 		}
 	case fwschema.NestingModeSingle:
-		configObject, diags := coerceObjectValue(req.AttributePath, req.AttributeConfig)
+		configObject, diags := coerceObjectValue(ctx, req.AttributePath, req.AttributeConfig)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -472,7 +472,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 			return
 		}
 
-		planObject, diags := coerceObjectValue(req.AttributePath, req.AttributePlan)
+		planObject, diags := coerceObjectValue(ctx, req.AttributePath, req.AttributePlan)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -480,7 +480,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 			return
 		}
 
-		stateObject, diags := coerceObjectValue(req.AttributePath, req.AttributeState)
+		stateObject, diags := coerceObjectValue(ctx, req.AttributePath, req.AttributeState)
 
 		resp.Diagnostics.Append(diags...)
 

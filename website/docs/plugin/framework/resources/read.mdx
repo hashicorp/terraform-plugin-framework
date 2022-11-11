@@ -1,0 +1,160 @@
+---
+page_title: 'Plugin Development - Framework: Read Resources'
+description: >-
+  How to implement resource read in the provider development framework.
+---
+
+# Read Resources
+
+-> **Note:** The Plugin Framework is in beta.
+
+Read (refresh) is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply`](/cli/commands/apply), [`terraform plan`](/cli/commands/plan), and [`terraform refresh`](/cli/commands/refresh) commands, Terraform calls the provider `ReadResource` RPC, in which the framework calls the [`resource.Resource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Read). The `Read` method is also executed after [resource import](/plugin/framework/resources/import). The request contains Terraform prior state data. The response contains the refreshed state data. The data is defined by the [schema](/plugin/framework/schemas) of the resource.
+
+Other resource lifecycle implementations include:
+
+- [Create](/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
+- [Update](/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
+- [Delete](/plugin/framework/resources/delete) resources by receiving Terraform prior state data and performing deletion logic.
+
+## Define Read Method
+
+Implement the `Read` method by:
+
+1. [Accessing prior state data](/plugin/framework/accessing-values) from the [`resource.ReadRequest.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest.State).
+1. Retriving updated resource state, such as remote system information.
+1. [Writing state data](/plugin/framework/writing-state) into the [`resource.ReadResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.State).
+
+If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.DeleteResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteResponse.Diagnostics).
+
+In this example, the `Read` function makes a HTTP call and refreshes the state data if the status code was 200 OK or removes the resource if 404 Not Found:
+
+```go
+// ThingResource defines the resource implementation.
+// Some resource.Resource interface methods are omitted for brevity.
+type ThingResource struct {
+	// client is configured via a Configure method, which is not shown in this
+	// example for brevity. Refer to the Configure Resources documentation for
+	// additional details for setting up resources with external clients.
+	client *http.Client
+}
+
+// ThingResourceModel describes the Terraform resource data model to match the
+// resource schema.
+type ThingResourceModel struct {
+	Name types.String `tfsdk:"name"`
+	Id   types.String `tfsdk:"id"`
+}
+
+// ThingResourceAPIModel describes the API data model.
+type ThingResourceAPIModel struct {
+	Name string `json:"name"`
+	Id   string `json:"id"`
+}
+
+func (r ThingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"name": {
+				MarkdownDescription: "Name of the thing to be saved in the service.",
+				Required:            true,
+				Type:                types.StringType,
+			},
+			"id": {
+				Computed:            true,
+				MarkdownDescription: "Service generated identifier for the thing.",
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					resource.UseStateForUnknown(),
+				},
+				Type: types.StringType,
+			},
+		},
+		MarkdownDescription: "Manages a thing.",
+	}, nil
+}
+
+func (r *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data ThingResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	// Convert from Terraform data model into API data model
+	readReq := ThingResourceAPIModel{
+		Id:   data.Id.ValueString(),
+		Name: data.Name.ValueString(),
+	}
+
+	httpReqBody, err := json.Marshal(readReq)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Refresh Resource",
+			"An unexpected error occurred while creating the resource read request. "+
+				"Please report this issue to the provider developers.\n\n"+
+				"JSON Error: "+err.Error(),
+		)
+
+		return
+	}
+
+	// Create HTTP request
+	httpReq := http.NewRequestWithContext(
+		ctx,
+		http.MethodPut,
+		"http://example.com/things",
+		bytes.NewBuffer(httpReqBody),
+	)
+
+	httpResp, err := d.client.Do(httpReq)
+	defer httpResp.Body.Close()
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Refresh Resource",
+			"An unexpected error occurred while attempting to refresh resource state. "+
+				"Please retry the operation or report this issue to the provider developers.\n\n"+
+				"HTTP Error: "+err.Error(),
+		)
+
+		return
+	}
+
+	// Treat HTTP 404 Not Found status as a signal to recreate resource
+	// and return early
+	if httpResp.StatusCode == http.StatusNotFound {
+		resp.State.RemoveResource(ctx)
+
+		return
+	}
+
+	var readResp ThingResourceAPIModel
+
+	err := json.NewDecoder(httpResp.Body).Decode(&readResp)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Refresh Resource",
+			"An unexpected error occurred while parsing the resource read response. "+
+				"Please report this issue to the provider developers.\n\n"+
+				"JSON Error: "+err.Error(),
+		)
+
+		return
+	}
+
+	// Convert from the API data model to the Terraform data model
+	// and refresh any attribute values.
+	data.Name = types.StringValue(readResp.Name)
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+```
+
+## Recommendations
+
+Note these recommendations when implementing the `Read` method:
+
+* Ignore returning errors that signify the resource is no longer existent, call the response state `RemoveResource()` method, and return early. The next Terraform plan will recreate the resource.
+* Refresh all possible values. This will ensure Terraform shows configuration drift and reduces import logic.
+* Preserve the prior state value if the updated value is semantically equal. For example, JSON strings that have inconsequential object property reordering or whitespace differences. This prevents Terraform from showing extraneous drift in plans.

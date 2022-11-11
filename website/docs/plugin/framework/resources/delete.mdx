@@ -1,0 +1,153 @@
+---
+page_title: 'Plugin Development - Framework: Delete Resources'
+description: >-
+  How to implement resource deletion in the provider development framework.
+---
+
+# Delete Resources
+
+-> **Note:** The Plugin Framework is in beta.
+
+Deletion is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/cli/commands/apply), Terraform calls the provider `ApplyResourceChange` RPC, in which the framework calls the [`resource.Resource` interface `Delete` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Delete). The request contains Terraform prior state data. The response is only for returning diagnostics. The data is defined by the [schema](/plugin/framework/schemas) of the resource.
+
+Terraform 1.3 and later enables deletion planning, which resources can implement to return warning and error diagnostics. For additional information, refer to the [resource plan modification documentation](/plugin/framework/resources/plan-modification#resource-destroy-plan-diagnostics).
+
+Other resource lifecycle implementations include:
+
+- [Create](/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
+- [Read](/plugin/framework/resources/read) resources by receiving Terraform prior state data, performing read logic, and saving refreshed Terraform state data.
+- [Update](/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
+
+## Define Delete Method
+
+Implement the `Delete` method by:
+
+1. [Accessing prior state data](/plugin/framework/accessing-values) from the [`resource.DeleteRequest.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteRequest.State).
+1. Performing logic or external calls to destroy the resource.
+
+If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.DeleteResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteResponse.Diagnostics).
+
+In this example, the `Delete` function makes a HTTP call and returns successfully if the status code was 200 OK or 404 Not Found:
+
+```go
+// ThingResource defines the resource implementation.
+// Some resource.Resource interface methods are omitted for brevity.
+type ThingResource struct {
+	// client is configured via a Configure method, which is not shown in this
+	// example for brevity. Refer to the Configure Resources documentation for
+	// additional details for setting up resources with external clients.
+	client *http.Client
+}
+
+// ThingResourceModel describes the Terraform resource data model to match the
+// resource schema.
+type ThingResourceModel struct {
+	Name types.String `tfsdk:"name"`
+	Id   types.String `tfsdk:"id"`
+}
+
+// ThingResourceAPIModel describes the API data model.
+type ThingResourceAPIModel struct {
+	Name string `json:"name"`
+	Id   string `json:"id"`
+}
+
+func (r ThingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"name": {
+				MarkdownDescription: "Name of the thing to be saved in the service.",
+				Required:            true,
+				Type:                types.StringType,
+			},
+			"id": {
+				Computed:            true,
+				MarkdownDescription: "Service generated identifier for the thing.",
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					resource.UseStateForUnknown(),
+				},
+				Type: types.StringType,
+			},
+		},
+		MarkdownDescription: "Manages a thing.",
+	}, nil
+}
+
+func (r ThingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data ThingResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	// Convert from Terraform data model into API data model
+	readReq := ThingResourceAPIModel{
+		Id:   data.Id.ValueString(),
+		Name: data.Name.ValueString(),
+	}
+
+	httpReqBody, err := json.Marshal(readReq)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Delete Resource",
+			"An unexpected error occurred while creating the resource d request. "+
+				"Please report this issue to the provider developers.\n\n"+
+				"JSON Error: "+err.Error(),
+		)
+
+		return
+	}
+
+	// Create HTTP request
+	httpReq := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		"http://example.com/things",
+		bytes.NewBuffer(httpReqBody),
+	)
+
+	// Send HTTP request
+	httpResp, err := d.client.Do(httpReq)
+	defer httpResp.Body.Close()
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Delete Resource",
+			"An unexpected error occurred while attempting to delete the resource. "+
+				"Please retry the operation or report this issue to the provider developers.\n\n"+
+				"HTTP Error: "+err.Error(),
+		)
+
+		return
+	}
+
+	// Return error if the HTTP status code is not 200 OK or 404 Not Found
+	if httpResp.StatusCode != http.StatusNotFound && httpResp.StatusCode != http.StatusOK {
+		resp.Diagnostics.AddError(
+			"Unable to Delete Resource",
+			"An unexpected error occurred while attempting to delete the resource. "+
+				"Please retry the operation or report this issue to the provider developers.\n\n"+
+				"HTTP Status: "+httpResp.Status,
+		)
+
+		return
+	}
+
+	// If the logic reaches here, it implicitly succeeded and will remove
+	// the resource from state if there are no other errors.
+}
+```
+
+## Caveats
+
+Note these caveats when implementing the `Delete` method:
+
+* An error is returned if the response state is set to anything other than null.
+* Any response errors will cause Terraform to keep the resource under management.
+
+## Recommendations
+
+Note these recommendations when implementing the `Delete` method:
+
+* Ignore errors that signify the resource is no longer existent.
+* Skip calling the response state `RemoveResource()` method. The framework automatically handles this logic with the response state if there are no error diagnostics.

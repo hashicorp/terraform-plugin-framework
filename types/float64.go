@@ -21,6 +21,7 @@ var (
 type Float64Valuable interface {
 	attr.Value
 
+	// ToFloat64Value should convert the value type to a Float64.
 	ToFloat64Value(ctx context.Context) (Float64, diag.Diagnostics)
 }
 

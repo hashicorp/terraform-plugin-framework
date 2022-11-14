@@ -19,6 +19,7 @@ var (
 type StringValuable interface {
 	attr.Value
 
+	// ToStringValue should convert the value type to a String.
 	ToStringValue(ctx context.Context) (String, diag.Diagnostics)
 }
 

@@ -44,6 +44,7 @@ var (
 type StringTypable interface {
 	attr.Type
 
+	// ValueFromString should convert the String to a StringValuable type.
 	ValueFromString(context.Context, String) (StringValuable, diag.Diagnostics)
 }
 
@@ -52,6 +53,7 @@ type StringTypable interface {
 type NumberTypable interface {
 	attr.Type
 
+	// ValueFromNumber should convert the Number to a NumberValuable type.
 	ValueFromNumber(context.Context, Number) (NumberValuable, diag.Diagnostics)
 }
 
@@ -60,6 +62,7 @@ type NumberTypable interface {
 type BoolTypable interface {
 	attr.Type
 
+	// ValueFromBool should convert the Bool to a BoolValuable type.
 	ValueFromBool(context.Context, Bool) (BoolValuable, diag.Diagnostics)
 }
 
@@ -68,6 +71,7 @@ type BoolTypable interface {
 type Int64Typable interface {
 	xattr.TypeWithValidate
 
+	// ValueFromInt64 should convert the Int64 to a Int64Valuable type.
 	ValueFromInt64(context.Context, Int64) (Int64Valuable, diag.Diagnostics)
 }
 
@@ -76,6 +80,7 @@ type Int64Typable interface {
 type Float64Typable interface {
 	xattr.TypeWithValidate
 
+	// ValueFromFloat64 should convert the Float64 to a Float64Valuable type.
 	ValueFromFloat64(context.Context, Float64) (Float64Valuable, diag.Diagnostics)
 }
 

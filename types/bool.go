@@ -19,6 +19,7 @@ var (
 type BoolValuable interface {
 	attr.Value
 
+	// ToBoolValue should convert the value type to a Bool.
 	ToBoolValue(ctx context.Context) (Bool, diag.Diagnostics)
 }
 

@@ -21,6 +21,7 @@ var (
 type Int64Valuable interface {
 	attr.Value
 
+	// ToInt64Value should convert the value type to an Int64.
 	ToInt64Value(ctx context.Context) (Int64, diag.Diagnostics)
 }
 

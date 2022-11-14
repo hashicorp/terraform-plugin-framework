@@ -20,6 +20,7 @@ var (
 type NumberValuable interface {
 	attr.Value
 
+	// ToNumberValue should convert the value type to a Number.
 	ToNumberValue(ctx context.Context) (Number, diag.Diagnostics)
 }
 

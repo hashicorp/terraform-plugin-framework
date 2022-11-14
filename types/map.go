@@ -25,6 +25,7 @@ var (
 type MapTypable interface {
 	attr.Type
 
+	// ValueFromMap should convert the Map to a MapValuable type.
 	ValueFromMap(context.Context, Map) (MapValuable, diag.Diagnostics)
 }
 
@@ -33,6 +34,7 @@ type MapTypable interface {
 type MapValuable interface {
 	attr.Value
 
+	// ToMapValue should convert the value type to a Map.
 	ToMapValue(ctx context.Context) (Map, diag.Diagnostics)
 }
 

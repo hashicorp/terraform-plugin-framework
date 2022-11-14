@@ -24,6 +24,7 @@ var (
 type ObjectTypable interface {
 	attr.Type
 
+	// ValueFromObject should convert the Object to an ObjectValuable type.
 	ValueFromObject(context.Context, Object) (ObjectValuable, diag.Diagnostics)
 }
 
@@ -32,6 +33,7 @@ type ObjectTypable interface {
 type ObjectValuable interface {
 	attr.Value
 
+	// ToObjectValue should convert the value type to an Object.
 	ToObjectValue(ctx context.Context) (Object, diag.Diagnostics)
 }
 

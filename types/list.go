@@ -24,6 +24,7 @@ var (
 type ListTypable interface {
 	attr.Type
 
+	// ValueFromList should convert the List to a ListValuable type.
 	ValueFromList(context.Context, List) (ListValuable, diag.Diagnostics)
 }
 
@@ -32,6 +33,7 @@ type ListTypable interface {
 type ListValuable interface {
 	attr.Value
 
+	// ToListValue should convert the value type to a List.
 	ToListValue(ctx context.Context) (List, diag.Diagnostics)
 }
 

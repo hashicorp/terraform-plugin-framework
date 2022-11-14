@@ -25,6 +25,7 @@ var (
 type SetTypable interface {
 	attr.Type
 
+	// ValueFromSet should convert the Set to a SetValuable type.
 	ValueFromSet(context.Context, Set) (SetValuable, diag.Diagnostics)
 }
 
@@ -33,6 +34,7 @@ type SetTypable interface {
 type SetValuable interface {
 	attr.Value
 
+	// ToSetValue should convert the value type to a Set.
 	ToSetValue(ctx context.Context) (Set, diag.Diagnostics)
 }
 

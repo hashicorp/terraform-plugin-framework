@@ -39,58 +39,68 @@ var (
 	_ Float64Typable = Float64Type
 )
 
+// StringTypable extends attr.Type for string type types.
+// Implement this interface to create a custom StringType type type.
 type StringTypable interface {
 	attr.Type
 
-	ValueFromString(context.Context, String) (attr.Value, diag.Diagnostics)
+	ValueFromString(context.Context, String) (StringValuable, diag.Diagnostics)
 }
 
+// NumberTypable extends attr.Type for number type types.
+// Implement this interface to create a custom NumberType type type.
 type NumberTypable interface {
 	attr.Type
 
-	ValueFromNumber(context.Context, Number) (attr.Value, diag.Diagnostics)
+	ValueFromNumber(context.Context, Number) (NumberValuable, diag.Diagnostics)
 }
 
+// BoolTypable extends attr.Type for bool type types.
+// Implement this interface to create a custom BoolType type type.
 type BoolTypable interface {
 	attr.Type
 
-	ValueFromBool(context.Context, Bool) (attr.Value, diag.Diagnostics)
+	ValueFromBool(context.Context, Bool) (BoolValuable, diag.Diagnostics)
 }
 
+// Int64Typable extends attr.Type for int64 type types.
+// Implement this interface to create a custom Int64Type type type.
 type Int64Typable interface {
 	xattr.TypeWithValidate
 
-	ValueFromInt64(context.Context, Int64) (attr.Value, diag.Diagnostics)
+	ValueFromInt64(context.Context, Int64) (Int64Valuable, diag.Diagnostics)
 }
 
+// Float64Typable extends attr.Type for float64 type types.
+// Implement this interface to create a custom Float64Type type type.
 type Float64Typable interface {
 	xattr.TypeWithValidate
 
-	ValueFromFloat64(context.Context, Float64) (attr.Value, diag.Diagnostics)
+	ValueFromFloat64(context.Context, Float64) (Float64Valuable, diag.Diagnostics)
 }
 
 // ValueFromString returns an attr.Value given a String.
-func (p primitive) ValueFromString(_ context.Context, s String) (attr.Value, diag.Diagnostics) {
+func (p primitive) ValueFromString(_ context.Context, s String) (StringValuable, diag.Diagnostics) {
 	return s, nil
 }
 
 // ValueFromNumber returns an attr.Value given a Number.
-func (p primitive) ValueFromNumber(_ context.Context, n Number) (attr.Value, diag.Diagnostics) {
+func (p primitive) ValueFromNumber(_ context.Context, n Number) (NumberValuable, diag.Diagnostics) {
 	return n, nil
 }
 
 // ValueFromBool returns an attr.Value given a Bool.
-func (p primitive) ValueFromBool(_ context.Context, b Bool) (attr.Value, diag.Diagnostics) {
+func (p primitive) ValueFromBool(_ context.Context, b Bool) (BoolValuable, diag.Diagnostics) {
 	return b, nil
 }
 
 // ValueFromInt64 returns an attr.Value given a Int64.
-func (p primitive) ValueFromInt64(_ context.Context, i Int64) (attr.Value, diag.Diagnostics) {
+func (p primitive) ValueFromInt64(_ context.Context, i Int64) (Int64Valuable, diag.Diagnostics) {
 	return i, nil
 }
 
 // ValueFromFloat64 returns an attr.Value given a Float64.
-func (p primitive) ValueFromFloat64(_ context.Context, f Float64) (attr.Value, diag.Diagnostics) {
+func (p primitive) ValueFromFloat64(_ context.Context, f Float64) (Float64Valuable, diag.Diagnostics) {
 	return f, nil
 }
 

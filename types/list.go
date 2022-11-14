@@ -19,12 +19,16 @@ var (
 	_ ListValuable = &List{}
 )
 
+// ListTypable extends attr.Type for list type types.
+// Implement this interface to create a custom ListType type type.
 type ListTypable interface {
 	attr.Type
 
-	ValueFromList(context.Context, List) (attr.Value, diag.Diagnostics)
+	ValueFromList(context.Context, List) (ListValuable, diag.Diagnostics)
 }
 
+// ListValuable extends attr.Value for list value types.
+// Implement this interface to create a custom List value type.
 type ListValuable interface {
 	attr.Value
 
@@ -178,7 +182,7 @@ func (l ListType) ValueType(_ context.Context) attr.Value {
 }
 
 // ValueFromList returns an attr.Value given a List.
-func (l ListType) ValueFromList(_ context.Context, list List) (attr.Value, diag.Diagnostics) {
+func (l ListType) ValueFromList(_ context.Context, list List) (ListValuable, diag.Diagnostics) {
 	return list, nil
 }
 

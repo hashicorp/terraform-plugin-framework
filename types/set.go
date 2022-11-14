@@ -20,12 +20,16 @@ var (
 	_ SetValuable            = &Set{}
 )
 
+// SetTypable extends attr.Type for set type types.
+// Implement this interface to create a custom SetType type type.
 type SetTypable interface {
 	attr.Type
 
-	ValueFromSet(context.Context, Set) (attr.Value, diag.Diagnostics)
+	ValueFromSet(context.Context, Set) (SetValuable, diag.Diagnostics)
 }
 
+// SetValuable extends attr.Value for set value types.
+// Implement this interface to create a custom Set value type.
 type SetValuable interface {
 	attr.Value
 
@@ -210,7 +214,7 @@ func (st SetType) ValueType(_ context.Context) attr.Value {
 }
 
 // ValueFromSet returns an attr.Value given a Set.
-func (st SetType) ValueFromSet(_ context.Context, set Set) (attr.Value, diag.Diagnostics) {
+func (st SetType) ValueFromSet(_ context.Context, set Set) (SetValuable, diag.Diagnostics) {
 	return set, nil
 }
 

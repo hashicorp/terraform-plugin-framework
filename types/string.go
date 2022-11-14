@@ -14,6 +14,8 @@ var (
 	_ StringValuable = String{}
 )
 
+// StringValuable extends attr.Value for string value types.
+// Implement this interface to create a custom String value type.
 type StringValuable interface {
 	attr.Value
 

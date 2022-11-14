@@ -15,6 +15,8 @@ var (
 	_ NumberValuable = Number{}
 )
 
+// NumberValuable extends attr.Value for number value types.
+// Implement this interface to create a custom Number value type.
 type NumberValuable interface {
 	attr.Value
 

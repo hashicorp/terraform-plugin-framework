@@ -20,12 +20,16 @@ var (
 	_ MapValuable = &Map{}
 )
 
+// MapTypable extends attr.Type for map type types.
+// Implement this interface to create a custom MapType type type.
 type MapTypable interface {
 	attr.Type
 
-	ValueFromMap(context.Context, Map) (attr.Value, diag.Diagnostics)
+	ValueFromMap(context.Context, Map) (MapValuable, diag.Diagnostics)
 }
 
+// MapValuable extends attr.Value for map value types.
+// Implement this interface to create a custom Map value type.
 type MapValuable interface {
 	attr.Value
 
@@ -182,7 +186,7 @@ func (m MapType) ValueType(_ context.Context) attr.Value {
 }
 
 // ValueFromMap returns an attr.Value given a Map.
-func (m MapType) ValueFromMap(_ context.Context, ma Map) (attr.Value, diag.Diagnostics) {
+func (m MapType) ValueFromMap(_ context.Context, ma Map) (MapValuable, diag.Diagnostics) {
 	return ma, nil
 }
 

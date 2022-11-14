@@ -14,6 +14,8 @@ var (
 	_ BoolValuable = Bool{}
 )
 
+// BoolValuable extends attr.Value for bool value types.
+// Implement this interface to create a custom Bool value type.
 type BoolValuable interface {
 	attr.Value
 

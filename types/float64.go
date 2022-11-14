@@ -16,6 +16,8 @@ var (
 	_ Float64Valuable = Float64{}
 )
 
+// Float64Valuable extends attr.Value for float64 value types.
+// Implement this interface to create a custom Float64 value type.
 type Float64Valuable interface {
 	attr.Value
 

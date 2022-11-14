@@ -19,12 +19,16 @@ var (
 	_ ObjectValuable = &Object{}
 )
 
+// ObjectTypable extends attr.Type for object type types.
+// Implement this interface to create a custom ObjectType type type.
 type ObjectTypable interface {
 	attr.Type
 
-	ValueFromObject(context.Context, Object) (attr.Value, diag.Diagnostics)
+	ValueFromObject(context.Context, Object) (ObjectValuable, diag.Diagnostics)
 }
 
+// ObjectValuable extends attr.Value for object value types.
+// Implement this interface to create a custom Object value type.
 type ObjectValuable interface {
 	attr.Value
 
@@ -160,7 +164,7 @@ func (o ObjectType) ValueType(_ context.Context) attr.Value {
 }
 
 // ValueFromObject returns an attr.Value given an Object.
-func (o ObjectType) ValueFromObject(_ context.Context, obj Object) (attr.Value, diag.Diagnostics) {
+func (o ObjectType) ValueFromObject(_ context.Context, obj Object) (ObjectValuable, diag.Diagnostics) {
 	return obj, nil
 }
 

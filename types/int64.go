@@ -16,6 +16,8 @@ var (
 	_ Int64Valuable = Int64{}
 )
 
+// Int64Valuable extends attr.Value for int64 value types.
+// Implement this interface to create a custom Int64 value type.
 type Int64Valuable interface {
 	attr.Value
 

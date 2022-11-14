@@ -19,8 +19,8 @@ var (
 	_ ListValuable = &List{}
 )
 
-// ListTypable extends attr.Type for list type types.
-// Implement this interface to create a custom ListType type type.
+// ListTypable extends attr.Type for list types.
+// Implement this interface to create a custom ListType type.
 type ListTypable interface {
 	attr.Type
 

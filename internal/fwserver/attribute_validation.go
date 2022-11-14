@@ -147,7 +147,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Attribute Validation Error Invalid Value Type",
-				"A type from which a types.List can be obtained is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements types.ListValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -184,7 +184,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Attribute Validation Error Invalid Value Type",
-				"A type from which a types.Set can be obtained is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements types.SetValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -221,7 +221,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Attribute Validation Error Invalid Value Type",
-				"A type from which a types.Map can be obtained is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements types.MapValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -258,7 +258,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Attribute Validation Error Invalid Value Type",
-				"A type from which a types.Object can be obtained is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements types.ObjectValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return

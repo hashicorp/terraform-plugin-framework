@@ -20,8 +20,8 @@ var (
 	_ SetValuable            = &Set{}
 )
 
-// SetTypable extends attr.Type for set type types.
-// Implement this interface to create a custom SetType type type.
+// SetTypable extends attr.Type for set types.
+// Implement this interface to create a custom SetType type.
 type SetTypable interface {
 	attr.Type
 

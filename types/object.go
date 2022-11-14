@@ -19,8 +19,8 @@ var (
 	_ ObjectValuable = &Object{}
 )
 
-// ObjectTypable extends attr.Type for object type types.
-// Implement this interface to create a custom ObjectType type type.
+// ObjectTypable extends attr.Type for object types.
+// Implement this interface to create a custom ObjectType type.
 type ObjectTypable interface {
 	attr.Type
 

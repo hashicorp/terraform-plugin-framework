@@ -56,7 +56,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error Invalid Value Type",
-				"A type from which a types.List can be obtained is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements types.ListValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -131,7 +131,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error Invalid Value Type",
-				"A type from which a types.Set can be obtained is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements types.SetValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -206,7 +206,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error Invalid Value Type",
-				"A type from which a types.Object can be obtained is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements types.ObjectValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return

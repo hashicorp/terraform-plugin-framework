@@ -20,8 +20,8 @@ var (
 	_ MapValuable = &Map{}
 )
 
-// MapTypable extends attr.Type for map type types.
-// Implement this interface to create a custom MapType type type.
+// MapTypable extends attr.Type for map types.
+// Implement this interface to create a custom MapType type.
 type MapTypable interface {
 	attr.Type
 

@@ -39,8 +39,8 @@ var (
 	_ Float64Typable = Float64Type
 )
 
-// StringTypable extends attr.Type for string type types.
-// Implement this interface to create a custom StringType type type.
+// StringTypable extends attr.Type for string types.
+// Implement this interface to create a custom StringType type.
 type StringTypable interface {
 	attr.Type
 
@@ -48,8 +48,8 @@ type StringTypable interface {
 	ValueFromString(context.Context, String) (StringValuable, diag.Diagnostics)
 }
 
-// NumberTypable extends attr.Type for number type types.
-// Implement this interface to create a custom NumberType type type.
+// NumberTypable extends attr.Type for number types.
+// Implement this interface to create a custom NumberType type.
 type NumberTypable interface {
 	attr.Type
 
@@ -57,8 +57,8 @@ type NumberTypable interface {
 	ValueFromNumber(context.Context, Number) (NumberValuable, diag.Diagnostics)
 }
 
-// BoolTypable extends attr.Type for bool type types.
-// Implement this interface to create a custom BoolType type type.
+// BoolTypable extends attr.Type for bool types.
+// Implement this interface to create a custom BoolType type.
 type BoolTypable interface {
 	attr.Type
 
@@ -66,8 +66,8 @@ type BoolTypable interface {
 	ValueFromBool(context.Context, Bool) (BoolValuable, diag.Diagnostics)
 }
 
-// Int64Typable extends attr.Type for int64 type types.
-// Implement this interface to create a custom Int64Type type type.
+// Int64Typable extends attr.Type for int64 types.
+// Implement this interface to create a custom Int64Type type.
 type Int64Typable interface {
 	xattr.TypeWithValidate
 
@@ -75,8 +75,8 @@ type Int64Typable interface {
 	ValueFromInt64(context.Context, Int64) (Int64Valuable, diag.Diagnostics)
 }
 
-// Float64Typable extends attr.Type for float64 type types.
-// Implement this interface to create a custom Float64Type type type.
+// Float64Typable extends attr.Type for float64 types.
+// Implement this interface to create a custom Float64Type type.
 type Float64Typable interface {
 	xattr.TypeWithValidate
 

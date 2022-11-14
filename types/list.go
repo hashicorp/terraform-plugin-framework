@@ -183,7 +183,7 @@ func (l ListType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
-// ValueFromList returns an attr.Value given a List.
+// ValueFromList returns a ListValuable type given a List.
 func (l ListType) ValueFromList(_ context.Context, list List) (ListValuable, diag.Diagnostics) {
 	return list, nil
 }

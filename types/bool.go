@@ -14,14 +14,11 @@ var (
 	_ BoolValuable = Bool{}
 )
 
-// BoolValuable extends attr.Value for bool value types.
-// Implement this interface to create a custom Bool value type.
 // BoolValuable extends attr.Value for boolean value types.
 // Implement this interface to create a custom Bool value type.
 type BoolValuable interface {
 	attr.Value
 
-	// ToBoolValue should convert the value type to a Bool.
 	// ToBoolValue should convert the value type to a Bool.
 	ToBoolValue(ctx context.Context) (Bool, diag.Diagnostics)
 }

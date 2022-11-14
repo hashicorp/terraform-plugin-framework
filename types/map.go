@@ -187,7 +187,7 @@ func (m MapType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
-// ValueFromMap returns an attr.Value given a Map.
+// ValueFromMap returns a MapValuable type given a Map.
 func (m MapType) ValueFromMap(_ context.Context, ma Map) (MapValuable, diag.Diagnostics) {
 	return ma, nil
 }

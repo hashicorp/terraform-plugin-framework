@@ -84,27 +84,27 @@ type Float64Typable interface {
 	ValueFromFloat64(context.Context, Float64) (Float64Valuable, diag.Diagnostics)
 }
 
-// ValueFromString returns an attr.Value given a String.
+// ValueFromString returns a StringValuable type given a String.
 func (p primitive) ValueFromString(_ context.Context, s String) (StringValuable, diag.Diagnostics) {
 	return s, nil
 }
 
-// ValueFromNumber returns an attr.Value given a Number.
+// ValueFromNumber returns a NumberValuable type given a Number.
 func (p primitive) ValueFromNumber(_ context.Context, n Number) (NumberValuable, diag.Diagnostics) {
 	return n, nil
 }
 
-// ValueFromBool returns an attr.Value given a Bool.
+// ValueFromBool returns a BoolValuable type given a Bool.
 func (p primitive) ValueFromBool(_ context.Context, b Bool) (BoolValuable, diag.Diagnostics) {
 	return b, nil
 }
 
-// ValueFromInt64 returns an attr.Value given a Int64.
+// ValueFromInt64 returns an Int64Valuable type given an Int64.
 func (p primitive) ValueFromInt64(_ context.Context, i Int64) (Int64Valuable, diag.Diagnostics) {
 	return i, nil
 }
 
-// ValueFromFloat64 returns an attr.Value given a Float64.
+// ValueFromFloat64 returns a Float64Valuable type given a Float64.
 func (p primitive) ValueFromFloat64(_ context.Context, f Float64) (Float64Valuable, diag.Diagnostics) {
 	return f, nil
 }

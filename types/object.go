@@ -165,7 +165,7 @@ func (o ObjectType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
-// ValueFromObject returns an attr.Value given an Object.
+// ValueFromObject returns an ObjectValuable type given an Object.
 func (o ObjectType) ValueFromObject(_ context.Context, obj Object) (ObjectValuable, diag.Diagnostics) {
 	return obj, nil
 }

@@ -215,7 +215,7 @@ func (st SetType) ValueType(_ context.Context) attr.Value {
 	}
 }
 
-// ValueFromSet returns an attr.Value given a Set.
+// ValueFromSet returns a SetValuable type given a Set.
 func (st SetType) ValueFromSet(_ context.Context, set Set) (SetValuable, diag.Diagnostics) {
 	return set, nil
 }

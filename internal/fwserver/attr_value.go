@@ -3,16 +3,17 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func coerceListValue(schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
-	list, ok := value.(types.List)
+func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
+	listVal, ok := value.(types.ListValuable)
 
 	if !ok {
 		return types.ListNull(nil), diag.Diagnostics{
@@ -20,11 +21,11 @@ func coerceListValue(schemaPath path.Path, value attr.Value) (types.List, diag.D
 		}
 	}
 
-	return list, nil
+	return listVal.ToListValue(ctx)
 }
 
-func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {
-	m, ok := value.(types.Map)
+func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {
+	mapVal, ok := value.(types.MapValuable)
 
 	if !ok {
 		return types.MapNull(nil), diag.Diagnostics{
@@ -32,11 +33,11 @@ func coerceMapValue(schemaPath path.Path, value attr.Value) (types.Map, diag.Dia
 		}
 	}
 
-	return m, nil
+	return mapVal.ToMapValue(ctx)
 }
 
-func coerceObjectValue(schemaPath path.Path, value attr.Value) (types.Object, diag.Diagnostics) {
-	object, ok := value.(types.Object)
+func coerceObjectValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Object, diag.Diagnostics) {
+	objectVal, ok := value.(types.ObjectValuable)
 
 	if !ok {
 		return types.ObjectNull(nil), diag.Diagnostics{
@@ -44,11 +45,11 @@ func coerceObjectValue(schemaPath path.Path, value attr.Value) (types.Object, di
 		}
 	}
 
-	return object, nil
+	return objectVal.ToObjectValue(ctx)
 }
 
-func coerceSetValue(schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
-	set, ok := value.(types.Set)
+func coerceSetValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
+	setVal, ok := value.(types.SetValuable)
 
 	if !ok {
 		return types.SetNull(nil), diag.Diagnostics{
@@ -56,7 +57,7 @@ func coerceSetValue(schemaPath path.Path, value attr.Value) (types.Set, diag.Dia
 		}
 	}
 
-	return set, nil
+	return setVal.ToSetValue(ctx)
 }
 
 func listElemObject(ctx context.Context, schemaPath path.Path, list types.List, index int, description fwschemadata.DataDescription) (types.Object, diag.Diagnostics) {
@@ -72,7 +73,7 @@ func listElemObject(ctx context.Context, schemaPath path.Path, list types.List, 
 		return listElemObjectFromTerraformValue(ctx, schemaPath, list, description, nil)
 	}
 
-	return coerceObjectValue(schemaPath, list.Elements()[index])
+	return coerceObjectValue(ctx, schemaPath, list.Elements()[index])
 }
 
 func listElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path, list types.List, description fwschemadata.DataDescription, tfValue any) (types.Object, diag.Diagnostics) {
@@ -85,7 +86,7 @@ func listElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path,
 		}
 	}
 
-	return coerceObjectValue(schemaPath, elemValue)
+	return coerceObjectValue(ctx, schemaPath, elemValue)
 }
 
 func mapElemObject(ctx context.Context, schemaPath path.Path, m types.Map, key string, description fwschemadata.DataDescription) (types.Object, diag.Diagnostics) {
@@ -103,7 +104,7 @@ func mapElemObject(ctx context.Context, schemaPath path.Path, m types.Map, key s
 		return mapElemObjectFromTerraformValue(ctx, schemaPath, m, description, nil)
 	}
 
-	return coerceObjectValue(schemaPath, elemValue)
+	return coerceObjectValue(ctx, schemaPath, elemValue)
 }
 
 func mapElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path, m types.Map, description fwschemadata.DataDescription, tfValue any) (types.Object, diag.Diagnostics) {
@@ -116,7 +117,7 @@ func mapElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path, 
 		}
 	}
 
-	return coerceObjectValue(schemaPath, elemValue)
+	return coerceObjectValue(ctx, schemaPath, elemValue)
 }
 
 func objectAttributeValue(ctx context.Context, object types.Object, attributeName string, description fwschemadata.DataDescription) (attr.Value, diag.Diagnostics) {
@@ -162,7 +163,7 @@ func setElemObject(ctx context.Context, schemaPath path.Path, set types.Set, ind
 		return setElemObjectFromTerraformValue(ctx, schemaPath, set, description, nil)
 	}
 
-	return coerceObjectValue(schemaPath, set.Elements()[index])
+	return coerceObjectValue(ctx, schemaPath, set.Elements()[index])
 }
 
 func setElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path, set types.Set, description fwschemadata.DataDescription, tfValue any) (types.Object, diag.Diagnostics) {
@@ -175,5 +176,5 @@ func setElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path, 
 		}
 	}
 
-	return coerceObjectValue(schemaPath, elemValue)
+	return coerceObjectValue(ctx, schemaPath, elemValue)
 }

@@ -5,15 +5,25 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.Value = Float64{}
+	_ Float64Valuable = Float64{}
 )
+
+// Float64Valuable extends attr.Value for float64 value types.
+// Implement this interface to create a custom Float64 value type.
+type Float64Valuable interface {
+	attr.Value
+
+	// ToFloat64Value should convert the value type to a Float64.
+	ToFloat64Value(ctx context.Context) (Float64, diag.Diagnostics)
+}
 
 // Float64Null creates a Float64 with a null value. Determine whether the value is
 // null via the Float64 type IsNull method.
@@ -203,4 +213,9 @@ func (f Float64) String() string {
 // 0.0.
 func (f Float64) ValueFloat64() float64 {
 	return f.value
+}
+
+// ToFloat64Value returns Float64.
+func (f Float64) ToFloat64Value(context.Context) (Float64, diag.Diagnostics) {
+	return f, nil
 }

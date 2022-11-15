@@ -5,13 +5,24 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 var (
-	_ attr.Value = Number{}
+	_ NumberValuable = Number{}
 )
+
+// NumberValuable extends attr.Value for number value types.
+// Implement this interface to create a custom Number value type.
+type NumberValuable interface {
+	attr.Value
+
+	// ToNumberValue should convert the value type to a Number.
+	ToNumberValue(ctx context.Context) (Number, diag.Diagnostics)
+}
 
 // NumberNull creates a Number with a null value. Determine whether the value is
 // null via the Number type IsNull method.
@@ -152,4 +163,9 @@ func (n Number) String() string {
 // 0.0.
 func (n Number) ValueBigFloat() *big.Float {
 	return n.value
+}
+
+// ToNumberValue returns Number.
+func (n Number) ToNumberValue(context.Context) (Number, diag.Diagnostics) {
+	return n, nil
 }

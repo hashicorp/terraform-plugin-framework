@@ -4,13 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 var (
-	_ attr.Value = String{}
+	_ StringValuable = String{}
 )
+
+// StringValuable extends attr.Value for string value types.
+// Implement this interface to create a custom String value type.
+type StringValuable interface {
+	attr.Value
+
+	// ToStringValue should convert the value type to a String.
+	ToStringValue(ctx context.Context) (String, diag.Diagnostics)
+}
 
 // StringNull creates a String with a null value. Determine whether the value is
 // null via the String type IsNull method.
@@ -144,4 +155,9 @@ func (s String) String() string {
 // "".
 func (s String) ValueString() string {
 	return s.value
+}
+
+// ToStringValue returns String.
+func (s String) ToStringValue(context.Context) (String, diag.Diagnostics) {
+	return s, nil
 }

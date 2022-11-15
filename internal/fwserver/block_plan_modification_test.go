@@ -2013,7 +2013,7 @@ func TestBlockModifyPlan(t *testing.T) {
 type testBlockPlanModifierNullList struct{}
 
 func (t testBlockPlanModifierNullList) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	_, ok := req.AttributePlan.(types.List)
+	_, ok := req.AttributePlan.(types.ListValuable)
 	if !ok {
 		return
 	}

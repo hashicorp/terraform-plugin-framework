@@ -15,9 +15,27 @@ import (
 )
 
 var (
-	_ attr.Type  = ObjectType{}
-	_ attr.Value = &Object{}
+	_ ObjectTypable  = ObjectType{}
+	_ ObjectValuable = &Object{}
 )
+
+// ObjectTypable extends attr.Type for object types.
+// Implement this interface to create a custom ObjectType type.
+type ObjectTypable interface {
+	attr.Type
+
+	// ValueFromObject should convert the Object to an ObjectValuable type.
+	ValueFromObject(context.Context, Object) (ObjectValuable, diag.Diagnostics)
+}
+
+// ObjectValuable extends attr.Value for object value types.
+// Implement this interface to create a custom Object value type.
+type ObjectValuable interface {
+	attr.Value
+
+	// ToObjectValue should convert the value type to an Object.
+	ToObjectValue(ctx context.Context) (Object, diag.Diagnostics)
+}
 
 // ObjectType is an AttributeType representing an object.
 type ObjectType struct {
@@ -141,10 +159,15 @@ func (o ObjectType) String() string {
 }
 
 // ValueType returns the Value type.
-func (t ObjectType) ValueType(_ context.Context) attr.Value {
+func (o ObjectType) ValueType(_ context.Context) attr.Value {
 	return Object{
-		attributeTypes: t.AttrTypes,
+		attributeTypes: o.AttrTypes,
 	}
+}
+
+// ValueFromObject returns an ObjectValuable type given an Object.
+func (o ObjectType) ValueFromObject(_ context.Context, obj Object) (ObjectValuable, diag.Diagnostics) {
+	return obj, nil
 }
 
 // ObjectNull creates a Object with a null value. Determine whether the value is
@@ -479,4 +502,9 @@ func (o Object) String() string {
 	res.WriteString("}")
 
 	return res.String()
+}
+
+// ToObjectValue returns the Object.
+func (o Object) ToObjectValue(context.Context) (Object, diag.Diagnostics) {
+	return o, nil
 }

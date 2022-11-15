@@ -5,15 +5,25 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.Value = Int64{}
+	_ Int64Valuable = Int64{}
 )
+
+// Int64Valuable extends attr.Value for int64 value types.
+// Implement this interface to create a custom Int64 value type.
+type Int64Valuable interface {
+	attr.Value
+
+	// ToInt64Value should convert the value type to an Int64.
+	ToInt64Value(ctx context.Context) (Int64, diag.Diagnostics)
+}
 
 // Int64Null creates a Int64 with a null value. Determine whether the value is
 // null via the Int64 type IsNull method.
@@ -216,4 +226,9 @@ func (i Int64) String() string {
 // 0.0.
 func (i Int64) ValueInt64() int64 {
 	return i.value
+}
+
+// ToInt64Value returns Int64.
+func (i Int64) ToInt64Value(context.Context) (Int64, diag.Diagnostics) {
+	return i, nil
 }

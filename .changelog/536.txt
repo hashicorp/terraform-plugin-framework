@@ -1,0 +1,35 @@
+```release-note:enhancement
+types: Added `BoolTypable` and `BoolValuable` interface types, which enable embedding existing boolean types for custom types
+```
+
+```release-note:enhancement
+types: Added `Float64Typable` and `Float64Valuable` interface types, which enable embedding existing float64 types for custom types
+```
+
+```release-note:enhancement
+types: Added `Int64Typable` and `Int64Valuable` interface types, which enable embedding existing int64 types for custom types
+```
+
+```release-note:enhancement
+types: Added `ListTypable` and `ListValuable` interface types, which enable embedding existing list types for custom types
+```
+
+```release-note:enhancement
+types: Added `MapTypable` and `MapValuable` interface types, which enable embedding existing map types for custom types
+```
+
+```release-note:enhancement
+types: Added `NumberTypable` and `NumberValuable` interface types, which enable embedding existing number types for custom types
+```
+
+```release-note:enhancement
+types: Added `ObjectTypable` and `ObjectValuable` interface types, which enable embedding existing object types for custom types
+```
+
+```release-note:enhancement
+types: Added `SetTypable` and `SetValuable` interface types, which enable embedding existing set types for custom types
+```
+
+```release-note:enhancement
+types: Added `StringTypable` and `StringValuable` interface types, which enable embedding existing string types for custom types
+```

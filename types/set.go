@@ -15,10 +15,28 @@ import (
 )
 
 var (
-	_ attr.Type              = SetType{}
+	_ SetTypable             = SetType{}
 	_ xattr.TypeWithValidate = SetType{}
-	_ attr.Value             = &Set{}
+	_ SetValuable            = &Set{}
 )
+
+// SetTypable extends attr.Type for set types.
+// Implement this interface to create a custom SetType type.
+type SetTypable interface {
+	attr.Type
+
+	// ValueFromSet should convert the Set to a SetValuable type.
+	ValueFromSet(context.Context, Set) (SetValuable, diag.Diagnostics)
+}
+
+// SetValuable extends attr.Value for set value types.
+// Implement this interface to create a custom Set value type.
+type SetValuable interface {
+	attr.Value
+
+	// ToSetValue should convert the value type to a Set.
+	ToSetValue(ctx context.Context) (Set, diag.Diagnostics)
+}
 
 // SetType is an AttributeType representing a set of values. All values must
 // be of the same type, which the provider must specify as the ElemType
@@ -191,10 +209,15 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 }
 
 // ValueType returns the Value type.
-func (t SetType) ValueType(_ context.Context) attr.Value {
+func (st SetType) ValueType(_ context.Context) attr.Value {
 	return Set{
-		elementType: t.ElemType,
+		elementType: st.ElemType,
 	}
+}
+
+// ValueFromSet returns a SetValuable type given a Set.
+func (st SetType) ValueFromSet(_ context.Context, set Set) (SetValuable, diag.Diagnostics) {
+	return set, nil
 }
 
 // SetNull creates a Set with a null value. Determine whether the value is
@@ -466,4 +489,9 @@ func (s Set) String() string {
 	res.WriteString("]")
 
 	return res.String()
+}
+
+// ToSetValue returns the Set.
+func (s Set) ToSetValue(context.Context) (Set, diag.Diagnostics) {
+	return s, nil
 }

@@ -5,12 +5,23 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.Value = Bool{}
+	_ BoolValuable = Bool{}
 )
+
+// BoolValuable extends attr.Value for boolean value types.
+// Implement this interface to create a custom Bool value type.
+type BoolValuable interface {
+	attr.Value
+
+	// ToBoolValue should convert the value type to a Bool.
+	ToBoolValue(ctx context.Context) (Bool, diag.Diagnostics)
+}
 
 // BoolNull creates a Bool with a null value. Determine whether the value is
 // null via the Bool type IsNull method.
@@ -142,4 +153,9 @@ func (b Bool) String() string {
 // false.
 func (b Bool) ValueBool() bool {
 	return b.value
+}
+
+// ToBoolValue returns Bool.
+func (b Bool) ToBoolValue(context.Context) (Bool, diag.Diagnostics) {
+	return b, nil
 }

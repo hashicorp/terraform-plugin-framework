@@ -665,6 +665,65 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: tfsdk.ValidateAttributeResponse{},
 		},
+		"nested-custom-attr-list-no-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: testtypes.ListNestedAttributesCustomType{
+									NestedAttributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
 		"nested-attr-list-validation": {
 			req: tfsdk.ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -729,6 +788,72 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"nested-custom-attr-list-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: testtypes.ListNestedAttributesCustomType{
+									NestedAttributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+											Validators: []tfsdk.AttributeValidator{
+												testErrorAttributeValidator{},
+											},
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
 		"nested-attr-map-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -778,6 +903,65 @@ func TestAttributeValidate(t *testing.T) {
 										Required: true,
 									},
 								}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"nested-custom-attr-map-no-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: testtypes.MapNestedAttributesCustomType{
+									NestedAttributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+										},
+									}),
+								},
 								Required: true,
 							},
 						},
@@ -850,6 +1034,72 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"nested-custom-attr-map-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: testtypes.MapNestedAttributesCustomType{
+									NestedAttributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+											Validators: []tfsdk.AttributeValidator{
+												testErrorAttributeValidator{},
+											},
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
 		"nested-attr-set-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -899,6 +1149,65 @@ func TestAttributeValidate(t *testing.T) {
 										Required: true,
 									},
 								}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"nested-custom-attr-set-no-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: testtypes.SetNestedAttributesCustomType{
+									NestedAttributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+										},
+									}),
+								},
 								Required: true,
 							},
 						},
@@ -971,6 +1280,72 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"nested-custom-attr-set-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: testtypes.SetNestedAttributesCustomType{
+									NestedAttributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+											Validators: []tfsdk.AttributeValidator{
+												testErrorAttributeValidator{},
+											},
+										},
+									}),
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
 		"nested-attr-single-no-validation": {
 			req: tfsdk.ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -1007,6 +1382,52 @@ func TestAttributeValidate(t *testing.T) {
 										Required: true,
 									},
 								}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{},
+		},
+		"nested-custom-attr-single-no-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: testtypes.SingleNestedAttributesCustomType{
+									NestedAttributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+										},
+									}),
+								},
 								Required: true,
 							},
 						},
@@ -1053,6 +1474,58 @@ func TestAttributeValidate(t *testing.T) {
 										},
 									},
 								}),
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			resp: tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					testErrorDiagnostic1,
+				},
+			},
+		},
+		"nested-custom-attr-single-validation": {
+			req: tfsdk.ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: tfsdk.Schema{
+						Attributes: map[string]tfsdk.Attribute{
+							"test": {
+								Attributes: testtypes.SingleNestedAttributesCustomType{
+									NestedAttributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+										"nested_attr": {
+											Type:     types.StringType,
+											Required: true,
+											Validators: []tfsdk.AttributeValidator{
+												testErrorAttributeValidator{},
+											},
+										},
+									}),
+								},
 								Required: true,
 							},
 						},

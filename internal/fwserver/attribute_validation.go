@@ -140,16 +140,23 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 	nm := a.GetAttributes().GetNestingMode()
 	switch nm {
 	case fwschema.NestingModeList:
-		l, ok := req.AttributeConfig.(types.List)
+		listVal, ok := req.AttributeConfig.(types.ListValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
-				"Attribute Validation Error",
-				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				"Attribute Validation Error Invalid Value Type",
+				"A type that implements types.ListValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
+			return
+		}
+
+		l, diags := listVal.ToListValue(ctx)
+
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
@@ -170,16 +177,23 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			}
 		}
 	case fwschema.NestingModeSet:
-		s, ok := req.AttributeConfig.(types.Set)
+		setVal, ok := req.AttributeConfig.(types.SetValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
-				"Attribute Validation Error",
-				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				"Attribute Validation Error Invalid Value Type",
+				"A type that implements types.SetValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
+			return
+		}
+
+		s, diags := setVal.ToSetValue(ctx)
+
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
@@ -200,16 +214,23 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			}
 		}
 	case fwschema.NestingModeMap:
-		m, ok := req.AttributeConfig.(types.Map)
+		mapVal, ok := req.AttributeConfig.(types.MapValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
-				"Attribute Validation Error",
-				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				"Attribute Validation Error Invalid Value Type",
+				"A type that implements types.MapValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
+			return
+		}
+
+		m, diags := mapVal.ToMapValue(ctx)
+
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
@@ -230,16 +251,23 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			}
 		}
 	case fwschema.NestingModeSingle:
-		o, ok := req.AttributeConfig.(types.Object)
+		objectVal, ok := req.AttributeConfig.(types.ObjectValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
-				"Attribute Validation Error",
-				"Attribute validation cannot walk schema. Report this to the provider developer:\n\n"+err.Error(),
+				"Attribute Validation Error Invalid Value Type",
+				"A type that implements types.ObjectValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
+			return
+		}
+
+		o, diags := objectVal.ToObjectValue(ctx)
+
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 

@@ -16,9 +16,27 @@ import (
 )
 
 var (
-	_ attr.Type  = MapType{}
-	_ attr.Value = &Map{}
+	_ MapTypable  = MapType{}
+	_ MapValuable = &Map{}
 )
+
+// MapTypable extends attr.Type for map types.
+// Implement this interface to create a custom MapType type.
+type MapTypable interface {
+	attr.Type
+
+	// ValueFromMap should convert the Map to a MapValuable type.
+	ValueFromMap(context.Context, Map) (MapValuable, diag.Diagnostics)
+}
+
+// MapValuable extends attr.Value for map value types.
+// Implement this interface to create a custom Map value type.
+type MapValuable interface {
+	attr.Value
+
+	// ToMapValue should convert the value type to a Map.
+	ToMapValue(ctx context.Context) (Map, diag.Diagnostics)
+}
 
 // MapType is an AttributeType representing a map of values. All values must
 // be of the same type, which the provider must specify as the ElemType
@@ -163,10 +181,15 @@ func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path)
 }
 
 // ValueType returns the Value type.
-func (t MapType) ValueType(_ context.Context) attr.Value {
+func (m MapType) ValueType(_ context.Context) attr.Value {
 	return Map{
-		elementType: t.ElemType,
+		elementType: m.ElemType,
 	}
+}
+
+// ValueFromMap returns a MapValuable type given a Map.
+func (m MapType) ValueFromMap(_ context.Context, ma Map) (MapValuable, diag.Diagnostics) {
+	return ma, nil
 }
 
 // MapNull creates a Map with a null value. Determine whether the value is
@@ -329,7 +352,7 @@ func (m Map) Type(ctx context.Context) attr.Type {
 	return MapType{ElemType: m.ElementType(ctx)}
 }
 
-// ToTerraformValue returns the data contained in the List as a tftypes.Value.
+// ToTerraformValue returns the data contained in the Map as a tftypes.Value.
 func (m Map) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	mapType := tftypes.Map{ElementType: m.ElementType(ctx).TerraformType(ctx)}
 
@@ -440,4 +463,9 @@ func (m Map) String() string {
 	res.WriteString("}")
 
 	return res.String()
+}
+
+// ToMapValue returns the Map.
+func (m Map) ToMapValue(context.Context) (Map, diag.Diagnostics) {
+	return m, nil
 }

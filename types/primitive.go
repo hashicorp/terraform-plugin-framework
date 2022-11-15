@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type primitive uint8
@@ -31,12 +32,82 @@ const (
 )
 
 var (
-	_ attr.Type              = StringType
-	_ attr.Type              = NumberType
-	_ attr.Type              = BoolType
-	_ xattr.TypeWithValidate = Int64Type
-	_ xattr.TypeWithValidate = Float64Type
+	_ StringTypable  = StringType
+	_ NumberTypable  = NumberType
+	_ BoolTypable    = BoolType
+	_ Int64Typable   = Int64Type
+	_ Float64Typable = Float64Type
 )
+
+// StringTypable extends attr.Type for string types.
+// Implement this interface to create a custom StringType type.
+type StringTypable interface {
+	attr.Type
+
+	// ValueFromString should convert the String to a StringValuable type.
+	ValueFromString(context.Context, String) (StringValuable, diag.Diagnostics)
+}
+
+// NumberTypable extends attr.Type for number types.
+// Implement this interface to create a custom NumberType type.
+type NumberTypable interface {
+	attr.Type
+
+	// ValueFromNumber should convert the Number to a NumberValuable type.
+	ValueFromNumber(context.Context, Number) (NumberValuable, diag.Diagnostics)
+}
+
+// BoolTypable extends attr.Type for bool types.
+// Implement this interface to create a custom BoolType type.
+type BoolTypable interface {
+	attr.Type
+
+	// ValueFromBool should convert the Bool to a BoolValuable type.
+	ValueFromBool(context.Context, Bool) (BoolValuable, diag.Diagnostics)
+}
+
+// Int64Typable extends attr.Type for int64 types.
+// Implement this interface to create a custom Int64Type type.
+type Int64Typable interface {
+	xattr.TypeWithValidate
+
+	// ValueFromInt64 should convert the Int64 to a Int64Valuable type.
+	ValueFromInt64(context.Context, Int64) (Int64Valuable, diag.Diagnostics)
+}
+
+// Float64Typable extends attr.Type for float64 types.
+// Implement this interface to create a custom Float64Type type.
+type Float64Typable interface {
+	xattr.TypeWithValidate
+
+	// ValueFromFloat64 should convert the Float64 to a Float64Valuable type.
+	ValueFromFloat64(context.Context, Float64) (Float64Valuable, diag.Diagnostics)
+}
+
+// ValueFromString returns a StringValuable type given a String.
+func (p primitive) ValueFromString(_ context.Context, s String) (StringValuable, diag.Diagnostics) {
+	return s, nil
+}
+
+// ValueFromNumber returns a NumberValuable type given a Number.
+func (p primitive) ValueFromNumber(_ context.Context, n Number) (NumberValuable, diag.Diagnostics) {
+	return n, nil
+}
+
+// ValueFromBool returns a BoolValuable type given a Bool.
+func (p primitive) ValueFromBool(_ context.Context, b Bool) (BoolValuable, diag.Diagnostics) {
+	return b, nil
+}
+
+// ValueFromInt64 returns an Int64Valuable type given an Int64.
+func (p primitive) ValueFromInt64(_ context.Context, i Int64) (Int64Valuable, diag.Diagnostics) {
+	return i, nil
+}
+
+// ValueFromFloat64 returns a Float64Valuable type given a Float64.
+func (p primitive) ValueFromFloat64(_ context.Context, f Float64) (Float64Valuable, diag.Diagnostics) {
+	return f, nil
+}
 
 func (p primitive) String() string {
 	switch p {

@@ -1,3 +1,35 @@
+# 0.16.0 (November 15, 2022)
+
+BREAKING CHANGES:
+
+* types: The `Bool` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `BoolNull()`, `BoolUnknown()`, and `BoolValue()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueBool()` methods instead. ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: The `Float64` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `Float64Null()`, `Float64Unknown()`, and `Float64Value()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueFloat64()` methods instead. ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: The `Int64` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `Int64Null()`, `Int64Unknown()`, and `Int64Value()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueInt64()` methods instead. ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: The `List` type `Elems`, `ElemType`, `Null`, and `Unknown` fields have been removed. Use the `ListNull()`, `ListUnknown()`, `ListValue()`, and `ListValueMust()` creation functions and `Elements()`, `ElementsAs()`, `ElementType()`, `IsNull()`, and `IsUnknown()` methods instead. ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: The `Map` type `Elems`, `ElemType`, `Null`, and `Unknown` fields have been removed. Use the `MapNull()`, `MapUnknown()`, `MapValue()`, and `MapValueMust()` creation functions and `Elements()`, `ElementsAs()`, `ElementType()`, `IsNull()`, and `IsUnknown()` methods instead. ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: The `Number` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `NumberNull()`, `NumberUnknown()`, and `NumberValue()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueBigFloat()` methods instead. ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: The `Object` type `Attrs`, `AttrTypes`, `Null`, and `Unknown` fields have been removed. Use the `ObjectNull()`, `ObjectUnknown()`, `ObjectValue()`, and `ObjectValueMust()` creation functions and `As()`, `Attributes()`, `AttributeTypes()`, `IsNull()`, and `IsUnknown()` methods instead. ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: The `Set` type `Elems`, `ElemType`, `Null`, and `Unknown` fields have been removed. Use the `SetNull()`, `SetUnknown()`, `SetValue()`, and `SetValueMust()` creation functions and `Elements()`, `ElementsAs()`, `ElementType()`, `IsNull()`, and `IsUnknown()` methods instead. ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: The `String` type `Null`, `Unknown`, and `Value` fields have been removed. Use the `StringNull()`, `StringUnknown()`, and `StringValue()` creation functions and `IsNull()`, `IsUnknown()`, and `ValueString()` methods instead. ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+
+ENHANCEMENTS:
+
+* attr: Added `ValueState` type, which custom types can use to consistently represent the three possible value states (known, null, and unknown) ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: Added `BoolTypable` and `BoolValuable` interface types, which enable embedding existing boolean types for custom types ([#536](https://github.com/hashicorp/terraform-plugin-framework/issues/536))
+* types: Added `Float64Typable` and `Float64Valuable` interface types, which enable embedding existing float64 types for custom types ([#536](https://github.com/hashicorp/terraform-plugin-framework/issues/536))
+* types: Added `Int64Typable` and `Int64Valuable` interface types, which enable embedding existing int64 types for custom types ([#536](https://github.com/hashicorp/terraform-plugin-framework/issues/536))
+* types: Added `ListTypable` and `ListValuable` interface types, which enable embedding existing list types for custom types ([#536](https://github.com/hashicorp/terraform-plugin-framework/issues/536))
+* types: Added `MapTypable` and `MapValuable` interface types, which enable embedding existing map types for custom types ([#536](https://github.com/hashicorp/terraform-plugin-framework/issues/536))
+* types: Added `NumberTypable` and `NumberValuable` interface types, which enable embedding existing number types for custom types ([#536](https://github.com/hashicorp/terraform-plugin-framework/issues/536))
+* types: Added `ObjectTypable` and `ObjectValuable` interface types, which enable embedding existing object types for custom types ([#536](https://github.com/hashicorp/terraform-plugin-framework/issues/536))
+* types: Added `SetTypable` and `SetValuable` interface types, which enable embedding existing set types for custom types ([#536](https://github.com/hashicorp/terraform-plugin-framework/issues/536))
+* types: Added `StringTypable` and `StringValuable` interface types, which enable embedding existing string types for custom types ([#536](https://github.com/hashicorp/terraform-plugin-framework/issues/536))
+
+BUG FIXES:
+
+* types: Prevented Terraform errors where the zero-value for any `attr.Value` types such as `String` would be a known value instead of null ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+* types: Prevented indeterminate behavior for any `attr.Value` types where they could be any combination of null, unknown, and/or known ([#523](https://github.com/hashicorp/terraform-plugin-framework/issues/523))
+
 # 0.15.0 (October 26, 2022)
 
 NOTES:

@@ -96,6 +96,8 @@ type Schema struct {
 }
 ```
 
+
+
 ## Framework
 
 In the Framework, you implement `GetSchema` method for your provider, resources, and data sources. This function is
@@ -145,6 +147,8 @@ Remember the following differences between SDKv2 and the Framework when completi
 `tfsdk.Schema` structs instead.
 - In SDKv2, schema structs are returned when a provider, resource, or data type is created. In the Framework, the
 provider and each resource and data type have a `GetSchema` method that returns the schema.
+- In SDKv2, schema structs have a `Set` field which can be populated with a `SchemaSetFunc` which is used for hashing.
+In the Framework, this is not required and does not need to be migrated.
 - The `tfsdk.Schema` struct includes fields that you use to define
 [attributes](/plugin/framework/migrating/attributes-and-blocks/attribute-schema) and
 [blocks](/plugin/framework/migrating/attributes-and-blocks/blocks) for your provider and each resource

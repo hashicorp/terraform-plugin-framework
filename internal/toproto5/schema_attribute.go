@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -12,8 +13,17 @@ import (
 // Attribute. Errors will be tftypes.AttributePathErrors based on `path`.
 // `name` is the name of the attribute.
 func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a fwschema.Attribute) (*tfprotov5.SchemaAttribute, error) {
-	if a.GetAttributes() != nil && len(a.GetAttributes().GetAttributes()) > 0 {
-		return nil, path.NewErrorf("protocol version 5 cannot have Attributes set")
+	if _, ok := a.(fwschema.NestedAttribute); ok {
+		// Temporarily handle tfsdk.Attribute, which always has a nesting mode, until its removed.
+		tfsdkAttribute, ok := a.(tfsdk.Attribute)
+
+		if !ok {
+			return nil, path.NewErrorf("protocol version 5 cannot have Attributes set")
+		}
+
+		if tfsdkAttribute.GetNestingMode() != fwschema.NestingModeUnknown || len(tfsdkAttribute.GetAttributes()) > 0 {
+			return nil, path.NewErrorf("protocol version 5 cannot have Attributes set")
+		}
 	}
 
 	if a.GetType() == nil {

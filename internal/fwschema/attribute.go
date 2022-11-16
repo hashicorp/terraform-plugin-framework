@@ -5,10 +5,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// Attribute is the core interface required for implementing Terraform schema
-// functionality that can accept a value. This is intended to be the first
-// abstraction of tfsdk.Attribute functionality into data source, provider,
-// and resource specific functionality.
+// Attribute is the core interface required for implementing Terraform
+// schema functionality that can accept a value. Refer to NestedAttribute for
+// the additional interface that defines nested attributes.
 //
 // Refer to the internal/fwschema/fwxschema package for optional interfaces
 // that define framework-specific functionality, such a plan modification and
@@ -20,18 +19,6 @@ type Attribute interface {
 
 	// Equal should return true if the other attribute is exactly equivalent.
 	Equal(o Attribute) bool
-
-	// FrameworkType should return the framework type, whether a direct type
-	// or nested attributes type, for the attribute.
-	//
-	// When tfsdk.Attribute is removed, this should be deprecated and renamed
-	// to Type() to match other interfaces.
-	FrameworkType() attr.Type
-
-	// GetAttributes should return the nested attributes of an attribute, if
-	// applicable. This is named differently than Attribute to prevent a
-	// conflict with the tfsdk.Attribute field name.
-	GetAttributes() NestedAttributes
 
 	// GetDeprecationMessage should return a non-empty string if an attribute
 	// is deprecated. This is named differently than DeprecationMessage to

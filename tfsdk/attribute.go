@@ -12,7 +12,10 @@ import (
 // fwxschema.AttributeWithPlanModifiers and fwxschema.AttributeWithValidators
 // interfaces, however we cannot check that here or it would introduce an
 // import cycle.
-var _ fwschema.Attribute = Attribute{}
+var (
+	_ fwschema.Attribute       = Attribute{}
+	_ fwschema.NestedAttribute = Attribute{}
+)
 
 // Attribute defines the constraints and behaviors of a single value field in a
 // schema. Attributes are the fields that show up in Terraform state files and
@@ -160,23 +163,28 @@ func (a Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSt
 
 // Equal returns true if `a` and `o` should be considered Equal.
 func (a Attribute) Equal(o fwschema.Attribute) bool {
-	if _, ok := o.(Attribute); !ok {
+	other, ok := o.(Attribute)
+
+	if !ok {
 		return false
 	}
-	if a.GetType() == nil && o.GetType() != nil {
-		return false
-	} else if a.GetType() != nil && o.GetType() == nil {
-		return false
-	} else if a.GetType() != nil && o.GetType() != nil && !a.GetType().Equal(o.GetType()) {
+
+	if a.GetNestingMode() != other.GetNestingMode() {
 		return false
 	}
-	if a.GetAttributes() == nil && o.GetAttributes() != nil {
-		return false
-	} else if a.GetAttributes() != nil && o.GetAttributes() == nil {
-		return false
-	} else if a.GetAttributes() != nil && o.GetAttributes() != nil && !a.GetAttributes().Equal(o.GetAttributes()) {
+
+	if a.GetAttributes() != nil && !a.GetAttributes().Equal(other.GetAttributes()) {
 		return false
 	}
+
+	if other.GetAttributes() != nil && !other.GetAttributes().Equal(a.GetAttributes()) {
+		return false
+	}
+
+	if !a.GetType().Equal(other.GetType()) {
+		return false
+	}
+
 	if a.GetDescription() != o.GetDescription() {
 		return false
 	}
@@ -201,19 +209,13 @@ func (a Attribute) Equal(o fwschema.Attribute) bool {
 	return true
 }
 
-// FrameworkType returns the framework type, whether the direct type or nested
-// attributes type, of the attribute.
-func (a Attribute) FrameworkType() attr.Type {
+// GetAttributes satisfies the fwschema.Attribute interface.
+func (a Attribute) GetAttributes() fwschema.UnderlyingAttributes {
 	if a.Attributes != nil {
-		return a.Attributes.Type()
+		return a.Attributes.GetAttributes()
 	}
 
-	return a.Type
-}
-
-// GetAttributes satisfies the fwschema.Attribute interface.
-func (a Attribute) GetAttributes() fwschema.NestedAttributes {
-	return a.Attributes
+	return nil
 }
 
 // GetDeprecationMessage satisfies the fwschema.Attribute interface.
@@ -231,6 +233,20 @@ func (a Attribute) GetMarkdownDescription() string {
 	return a.MarkdownDescription
 }
 
+// GetNestingMode returns the Attributes nesting mode, if set. Otherwise,
+// returns NestingModeUnset.
+func (a Attribute) GetNestingMode() fwschema.NestingMode {
+	if a.Type != nil {
+		return fwschema.NestingModeUnknown
+	}
+
+	if a.Attributes != nil {
+		return a.Attributes.GetNestingMode()
+	}
+
+	return fwschema.NestingModeUnknown
+}
+
 // GetPlanModifiers satisfies the fwxschema.AttributeWithPlanModifiers
 // interface.
 func (a Attribute) GetPlanModifiers() AttributePlanModifiers {
@@ -244,6 +260,10 @@ func (a Attribute) GetValidators() []AttributeValidator {
 
 // GetType satisfies the fwschema.Attribute interface.
 func (a Attribute) GetType() attr.Type {
+	if a.Attributes != nil {
+		return a.Attributes.Type()
+	}
+
 	return a.Type
 }
 

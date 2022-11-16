@@ -215,7 +215,7 @@ func (b Block) Type() attr.Type {
 	}
 
 	for attrName, attr := range b.Attributes {
-		attrType.AttrTypes[attrName] = attr.FrameworkType()
+		attrType.AttrTypes[attrName] = attr.GetType()
 	}
 
 	for blockName, block := range b.Blocks {

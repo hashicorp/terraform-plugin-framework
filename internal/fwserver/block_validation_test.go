@@ -2636,7 +2636,7 @@ func TestBlockValidate(t *testing.T) {
 			t.Parallel()
 
 			var got tfsdk.ValidateAttributeResponse
-			block, ok := tc.req.Config.Schema.Blocks["test"]
+			block, ok := tc.req.Config.Schema.GetBlocks()["test"]
 
 			if !ok {
 				t.Fatalf("Unexpected error getting schema block")

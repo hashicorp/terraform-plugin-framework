@@ -70,21 +70,21 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	if req.Config == nil {
 		req.Config = &tfsdk.Config{
 			Raw:    nullTfValue,
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 		}
 	}
 
 	if req.ProposedNewState == nil {
 		req.ProposedNewState = &tfsdk.Plan{
 			Raw:    nullTfValue,
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 		}
 	}
 
 	if req.PriorState == nil {
 		req.PriorState = &tfsdk.State{
 			Raw:    nullTfValue,
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 		}
 	}
 

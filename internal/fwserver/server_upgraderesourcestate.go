@@ -92,7 +92,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		}
 
 		resp.UpgradedState = &tfsdk.State{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			Raw:    rawStateValue,
 		}
 
@@ -181,7 +181,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 
 	upgradeResourceStateResponse := resource.UpgradeStateResponse{
 		State: tfsdk.State{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			// Raw is intentionally not set.
 		},
 	}
@@ -216,7 +216,7 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		}
 
 		resp.UpgradedState = &tfsdk.State{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			Raw:    upgradedStateValue,
 		}
 

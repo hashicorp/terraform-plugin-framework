@@ -53,12 +53,12 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 
 	readReq := datasource.ReadRequest{
 		Config: tfsdk.Config{
-			Schema: schema(req.DataSourceSchema),
+			Schema: req.DataSourceSchema,
 		},
 	}
 	readResp := datasource.ReadResponse{
 		State: tfsdk.State{
-			Schema: schema(req.DataSourceSchema),
+			Schema: req.DataSourceSchema,
 		},
 	}
 

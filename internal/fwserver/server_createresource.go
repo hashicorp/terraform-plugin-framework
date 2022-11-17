@@ -62,11 +62,11 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 
 	createReq := resource.CreateRequest{
 		Config: tfsdk.Config{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
 		},
 		Plan: tfsdk.Plan{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
 		},
 	}
@@ -75,7 +75,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 
 	createResp := resource.CreateResponse{
 		State: tfsdk.State{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
 		},
 		Private: privateProviderData,

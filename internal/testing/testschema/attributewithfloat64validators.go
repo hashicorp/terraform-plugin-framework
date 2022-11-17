@@ -43,16 +43,6 @@ func (a AttributeWithFloat64Validators) Float64Validators() []validator.Float64 
 	return a.Validators
 }
 
-// FrameworkType satisfies the fwschema.Attribute interface.
-func (a AttributeWithFloat64Validators) FrameworkType() attr.Type {
-	return a.GetType()
-}
-
-// GetAttributes satisfies the fwschema.Attribute interface.
-func (a AttributeWithFloat64Validators) GetAttributes() fwschema.NestedAttributes {
-	return nil
-}
-
 // GetDeprecationMessage satisfies the fwschema.Attribute interface.
 func (a AttributeWithFloat64Validators) GetDeprecationMessage() string {
 	return a.DeprecationMessage

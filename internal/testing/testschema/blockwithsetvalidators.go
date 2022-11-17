@@ -90,7 +90,7 @@ func (b BlockWithSetValidators) Type() attr.Type {
 	}
 
 	for attrName, attr := range b.GetAttributes() {
-		attrType.AttrTypes[attrName] = attr.FrameworkType()
+		attrType.AttrTypes[attrName] = attr.GetType()
 	}
 
 	for blockName, block := range b.GetBlocks() {

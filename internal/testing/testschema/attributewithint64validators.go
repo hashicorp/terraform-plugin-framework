@@ -38,16 +38,6 @@ func (a AttributeWithInt64Validators) Equal(o fwschema.Attribute) bool {
 	return fwschema.AttributesEqual(a, o)
 }
 
-// FrameworkType satisfies the fwschema.Attribute interface.
-func (a AttributeWithInt64Validators) FrameworkType() attr.Type {
-	return a.GetType()
-}
-
-// GetAttributes satisfies the fwschema.Attribute interface.
-func (a AttributeWithInt64Validators) GetAttributes() fwschema.NestedAttributes {
-	return nil
-}
-
 // GetDeprecationMessage satisfies the fwschema.Attribute interface.
 func (a AttributeWithInt64Validators) GetDeprecationMessage() string {
 	return a.DeprecationMessage

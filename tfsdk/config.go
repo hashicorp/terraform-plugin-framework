@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -12,7 +13,7 @@ import (
 // Config represents a Terraform config.
 type Config struct {
 	Raw    tftypes.Value
-	Schema Schema
+	Schema fwschema.Schema
 }
 
 // Get populates the struct passed as `target` with the entire config.

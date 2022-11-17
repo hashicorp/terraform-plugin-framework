@@ -63,21 +63,21 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 
 	updateReq := resource.UpdateRequest{
 		Config: tfsdk.Config{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
 		},
 		Plan: tfsdk.Plan{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
 		},
 		State: tfsdk.State{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
 		},
 	}
 	updateResp := resource.UpdateResponse{
 		State: tfsdk.State{
-			Schema: schema(req.ResourceSchema),
+			Schema: req.ResourceSchema,
 			Raw:    nullSchemaData,
 		},
 	}

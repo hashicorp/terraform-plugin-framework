@@ -1,0 +1,3 @@
+```release-note:breaking-change
+tfsdk: The `Config`, `Plan`, and `State` type `Schema` field type has been updated from `tfsdk.Schema` to the generic `fwschema.Schema` interface to enable additional schema implementations
+```

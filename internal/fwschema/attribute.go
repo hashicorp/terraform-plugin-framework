@@ -61,3 +61,42 @@ type Attribute interface {
 	// conflict with the tfsdk.Attribute field name.
 	IsSensitive() bool
 }
+
+// AttributesEqual is a helper function to perform equality testing on two
+// Attribute. Attribute Equal implementations should still compare the concrete
+// types in addition to using this helper.
+func AttributesEqual(a, b Attribute) bool {
+	if !a.GetType().Equal(b.GetType()) {
+		return false
+	}
+
+	if a.GetDeprecationMessage() != b.GetDeprecationMessage() {
+		return false
+	}
+
+	if a.GetDescription() != b.GetDescription() {
+		return false
+	}
+
+	if a.GetMarkdownDescription() != b.GetMarkdownDescription() {
+		return false
+	}
+
+	if a.IsRequired() != b.IsRequired() {
+		return false
+	}
+
+	if a.IsOptional() != b.IsOptional() {
+		return false
+	}
+
+	if a.IsComputed() != b.IsComputed() {
+		return false
+	}
+
+	if a.IsSensitive() != b.IsSensitive() {
+		return false
+	}
+
+	return true
+}

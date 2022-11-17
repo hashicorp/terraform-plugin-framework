@@ -65,3 +65,34 @@ type Block interface {
 	// Type should return the framework type of a block.
 	Type() attr.Type
 }
+
+// BlocksEqual is a helper function to perform equality testing on two
+// Block. Attribute Equal implementations should still compare the concrete
+// types in addition to using this helper.
+func BlocksEqual(a, b Block) bool {
+	if !a.Type().Equal(b.Type()) {
+		return false
+	}
+
+	if a.GetDeprecationMessage() != b.GetDeprecationMessage() {
+		return false
+	}
+
+	if a.GetDescription() != b.GetDescription() {
+		return false
+	}
+
+	if a.GetMarkdownDescription() != b.GetMarkdownDescription() {
+		return false
+	}
+
+	if a.GetMaxItems() != b.GetMaxItems() {
+		return false
+	}
+
+	if a.GetMinItems() != b.GetMinItems() {
+		return false
+	}
+
+	return true
+}

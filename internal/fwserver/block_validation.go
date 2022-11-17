@@ -9,7 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -21,12 +23,6 @@ import (
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
 func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	blockWithValidators, ok := b.(fwxschema.BlockWithValidators)
-
-	if !ok {
-		return
-	}
-
 	configData := &fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionConfiguration,
 		Schema:         req.Config.Schema,
@@ -42,8 +38,32 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 
 	req.AttributeConfig = attributeConfig
 
-	for _, validator := range blockWithValidators.GetValidators() {
-		validator.Validate(ctx, req, resp)
+	switch blockWithValidators := b.(type) {
+	// Legacy tfsdk.AttributeValidator handling
+	case fwxschema.BlockWithValidators:
+		for _, validator := range blockWithValidators.GetValidators() {
+			logging.FrameworkDebug(
+				ctx,
+				"Calling provider defined AttributeValidator",
+				map[string]interface{}{
+					logging.KeyDescription: validator.Description(ctx),
+				},
+			)
+			validator.Validate(ctx, req, resp)
+			logging.FrameworkDebug(
+				ctx,
+				"Called provider defined AttributeValidator",
+				map[string]interface{}{
+					logging.KeyDescription: validator.Description(ctx),
+				},
+			)
+		}
+	case fwxschema.BlockWithListValidators:
+		BlockValidateList(ctx, blockWithValidators, req, resp)
+	case fwxschema.BlockWithObjectValidators:
+		BlockValidateObject(ctx, blockWithValidators, req, resp)
+	case fwxschema.BlockWithSetValidators:
+		BlockValidateSet(ctx, blockWithValidators, req, resp)
 	}
 
 	nm := b.GetNestingMode()
@@ -270,6 +290,201 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			"Block Deprecated",
 			b.GetDeprecationMessage(),
 		)
+	}
+}
+
+// BlockValidateList performs all types.List validation.
+func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+	// Use types.ListValuable until custom types cannot re-implement
+	// ValueFromTerraform. Until then, custom types are not technically
+	// required to implement this interface. This opts to enforce the
+	// requirement before compatibility promises would interfere.
+	configValuable, ok := req.AttributeConfig.(types.ListValuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid List Attribute Validator Value Type",
+			"An unexpected value type was encountered while attempting to perform List attribute validation. "+
+				"The value type must implement the types.ListValuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
+		)
+
+		return
+	}
+
+	configValue, diags := configValuable.ToListValue(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	validateReq := validator.ListRequest{
+		Config:         req.Config,
+		ConfigValue:    configValue,
+		Path:           req.AttributePath,
+		PathExpression: req.AttributePathExpression,
+	}
+
+	for _, blockValidator := range block.ListValidators() {
+		// Instantiate a new response for each request to prevent validators
+		// from modifying or removing diagnostics.
+		validateResp := &validator.ListResponse{}
+
+		logging.FrameworkDebug(
+			ctx,
+			"Calling provider defined validator.List",
+			map[string]interface{}{
+				logging.KeyDescription: blockValidator.Description(ctx),
+			},
+		)
+
+		blockValidator.ValidateList(ctx, validateReq, validateResp)
+
+		logging.FrameworkDebug(
+			ctx,
+			"Called provider defined validator.List",
+			map[string]interface{}{
+				logging.KeyDescription: blockValidator.Description(ctx),
+			},
+		)
+
+		resp.Diagnostics.Append(validateResp.Diagnostics...)
+	}
+}
+
+// BlockValidateObject performs all types.Object validation.
+func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+	// Use types.ObjectValuable until custom types cannot re-implement
+	// ValueFromTerraform. Until then, custom types are not technically
+	// required to implement this interface. This opts to enforce the
+	// requirement before compatibility promises would interfere.
+	configValuable, ok := req.AttributeConfig.(types.ObjectValuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Object Attribute Validator Value Type",
+			"An unexpected value type was encountered while attempting to perform Object attribute validation. "+
+				"The value type must implement the types.ObjectValuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
+		)
+
+		return
+	}
+
+	configValue, diags := configValuable.ToObjectValue(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	validateReq := validator.ObjectRequest{
+		Config:         req.Config,
+		ConfigValue:    configValue,
+		Path:           req.AttributePath,
+		PathExpression: req.AttributePathExpression,
+	}
+
+	for _, blockValidator := range block.ObjectValidators() {
+		// Instantiate a new response for each request to prevent validators
+		// from modifying or removing diagnostics.
+		validateResp := &validator.ObjectResponse{}
+
+		logging.FrameworkDebug(
+			ctx,
+			"Calling provider defined validator.Object",
+			map[string]interface{}{
+				logging.KeyDescription: blockValidator.Description(ctx),
+			},
+		)
+
+		blockValidator.ValidateObject(ctx, validateReq, validateResp)
+
+		logging.FrameworkDebug(
+			ctx,
+			"Called provider defined validator.Object",
+			map[string]interface{}{
+				logging.KeyDescription: blockValidator.Description(ctx),
+			},
+		)
+
+		resp.Diagnostics.Append(validateResp.Diagnostics...)
+	}
+}
+
+// BlockValidateSet performs all types.Set validation.
+func BlockValidateSet(ctx context.Context, block fwxschema.BlockWithSetValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+	// Use types.SetValuable until custom types cannot re-implement
+	// ValueFromTerraform. Until then, custom types are not technically
+	// required to implement this interface. This opts to enforce the
+	// requirement before compatibility promises would interfere.
+	configValuable, ok := req.AttributeConfig.(types.SetValuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Set Attribute Validator Value Type",
+			"An unexpected value type was encountered while attempting to perform Set attribute validation. "+
+				"The value type must implement the types.SetValuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
+		)
+
+		return
+	}
+
+	configValue, diags := configValuable.ToSetValue(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	validateReq := validator.SetRequest{
+		Config:         req.Config,
+		ConfigValue:    configValue,
+		Path:           req.AttributePath,
+		PathExpression: req.AttributePathExpression,
+	}
+
+	for _, blockValidator := range block.SetValidators() {
+		// Instantiate a new response for each request to prevent validators
+		// from modifying or removing diagnostics.
+		validateResp := &validator.SetResponse{}
+
+		logging.FrameworkDebug(
+			ctx,
+			"Calling provider defined validator.Set",
+			map[string]interface{}{
+				logging.KeyDescription: blockValidator.Description(ctx),
+			},
+		)
+
+		blockValidator.ValidateSet(ctx, validateReq, validateResp)
+
+		logging.FrameworkDebug(
+			ctx,
+			"Called provider defined validator.Set",
+			map[string]interface{}{
+				logging.KeyDescription: blockValidator.Description(ctx),
+			},
+		)
+
+		resp.Diagnostics.Append(validateResp.Diagnostics...)
 	}
 }
 

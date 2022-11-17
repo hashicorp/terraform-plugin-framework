@@ -22,7 +22,9 @@ import (
 func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
 	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
 
-	if (a.GetAttributes() == nil || len(a.GetAttributes().GetAttributes()) == 0) && a.GetType() == nil {
+	tfsdkAttribute, ok := a.(tfsdk.Attribute)
+
+	if ok && tfsdkAttribute.GetType() == nil {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Attribute Definition",
@@ -32,7 +34,7 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.Vali
 		return
 	}
 
-	if a.GetAttributes() != nil && len(a.GetAttributes().GetAttributes()) > 0 && a.GetType() != nil {
+	if ok && len(tfsdkAttribute.GetAttributes()) > 0 && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Attribute Definition",
@@ -739,11 +741,19 @@ func AttributeValidateString(ctx context.Context, attribute fwxschema.AttributeW
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
 func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	if a.GetAttributes() == nil || len(a.GetAttributes().GetAttributes()) == 0 {
+	nestedAttribute, ok := a.(fwschema.NestedAttribute)
+
+	if !ok {
 		return
 	}
 
-	nm := a.GetAttributes().GetNestingMode()
+	tfsdkAttribute, ok := a.(tfsdk.Attribute) //nolint:staticcheck // Handle tfsdk.Attribute until its removed.
+
+	if ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown {
+		return
+	}
+
+	nm := nestedAttribute.GetNestingMode()
 	switch nm {
 	case fwschema.NestingModeList:
 		listVal, ok := req.AttributeConfig.(types.ListValuable)
@@ -767,7 +777,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 		}
 
 		for idx := range l.Elements() {
-			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
+			for nestedName, nestedAttr := range nestedAttribute.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtListIndex(idx).AtName(nestedName),
 					AttributePathExpression: req.AttributePathExpression.AtListIndex(idx).AtName(nestedName),
@@ -804,7 +814,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 		}
 
 		for _, value := range s.Elements() {
-			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
+			for nestedName, nestedAttr := range nestedAttribute.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtSetValue(value).AtName(nestedName),
 					AttributePathExpression: req.AttributePathExpression.AtSetValue(value).AtName(nestedName),
@@ -841,7 +851,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 		}
 
 		for key := range m.Elements() {
-			for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
+			for nestedName, nestedAttr := range nestedAttribute.GetAttributes() {
 				nestedAttrReq := tfsdk.ValidateAttributeRequest{
 					AttributePath:           req.AttributePath.AtMapKey(key).AtName(nestedName),
 					AttributePathExpression: req.AttributePathExpression.AtMapKey(key).AtName(nestedName),
@@ -881,7 +891,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		for nestedName, nestedAttr := range a.GetAttributes().GetAttributes() {
+		for nestedName, nestedAttr := range nestedAttribute.GetAttributes() {
 			nestedAttrReq := tfsdk.ValidateAttributeRequest{
 				AttributePath:           req.AttributePath.AtName(nestedName),
 				AttributePathExpression: req.AttributePathExpression.AtName(nestedName),

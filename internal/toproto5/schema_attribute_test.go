@@ -346,7 +346,7 @@ func TestSchemaAttribute(t *testing.T) {
 				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{}),
 			},
 			path:        tftypes.NewAttributePath(),
-			expectedErr: "must have Type set",
+			expectedErr: "protocol version 5 cannot have Attributes set",
 		},
 		"missing-required-optional-and-computed": {
 			name: "whoops",

@@ -145,7 +145,7 @@ func (s Schema) TypeAtTerraformPath(_ context.Context, path *tftypes.AttributePa
 	case fwschema.NestedBlock:
 		return typ.Block.Type(), nil
 	case Attribute:
-		return typ.FrameworkType(), nil
+		return typ.GetType(), nil
 	case Block:
 		return typ.Type(), nil
 	case Schema:
@@ -190,7 +190,7 @@ func (s Schema) Type() attr.Type {
 	attrTypes := map[string]attr.Type{}
 
 	for name, attr := range s.Attributes {
-		attrTypes[name] = attr.FrameworkType()
+		attrTypes[name] = attr.GetType()
 	}
 
 	for name, block := range s.Blocks {

@@ -39,16 +39,6 @@ func (a AttributeWithListValidators) Equal(o fwschema.Attribute) bool {
 	return fwschema.AttributesEqual(a, o)
 }
 
-// FrameworkType satisfies the fwschema.Attribute interface.
-func (a AttributeWithListValidators) FrameworkType() attr.Type {
-	return a.GetType()
-}
-
-// GetAttributes satisfies the fwschema.Attribute interface.
-func (a AttributeWithListValidators) GetAttributes() fwschema.NestedAttributes {
-	return nil
-}
-
 // GetDeprecationMessage satisfies the fwschema.Attribute interface.
 func (a AttributeWithListValidators) GetDeprecationMessage() string {
 	return a.DeprecationMessage

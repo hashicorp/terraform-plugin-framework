@@ -91,11 +91,18 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 		return
 	}
 
-	if a.GetAttributes() == nil || len(a.GetAttributes().GetAttributes()) == 0 {
+	nestedAttribute, ok := a.(fwschema.NestedAttribute)
+
+	if !ok {
 		return
 	}
 
-	nm := a.GetAttributes().GetNestingMode()
+	// Temporarily handle tfsdk.Attribute, which always has a nesting mode, until its removed.
+	if tfsdkAttribute, ok := a.(tfsdk.Attribute); ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown {
+		return
+	}
+
+	nm := nestedAttribute.GetNestingMode()
 	switch nm {
 	case fwschema.NestingModeList:
 		configList, diags := coerceListValue(ctx, req.AttributePath, req.AttributeConfig)
@@ -153,7 +160,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 			planAttributes := planObject.Attributes()
 
-			for name, attr := range a.GetAttributes().GetAttributes() {
+			for name, attr := range nestedAttribute.GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 				resp.Diagnostics.Append(diags...)
@@ -275,7 +282,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 			planAttributes := planObject.Attributes()
 
-			for name, attr := range a.GetAttributes().GetAttributes() {
+			for name, attr := range nestedAttribute.GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 				resp.Diagnostics.Append(diags...)
@@ -397,7 +404,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 			planAttributes := planObject.Attributes()
 
-			for name, attr := range a.GetAttributes().GetAttributes() {
+			for name, attr := range nestedAttribute.GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 				resp.Diagnostics.Append(diags...)
@@ -494,7 +501,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 		planAttributes := planObject.Attributes()
 
-		for name, attr := range a.GetAttributes().GetAttributes() {
+		for name, attr := range nestedAttribute.GetAttributes() {
 			attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 			resp.Diagnostics.Append(diags...)

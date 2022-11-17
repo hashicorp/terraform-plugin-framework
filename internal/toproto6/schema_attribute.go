@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -13,11 +14,17 @@ import (
 // Attribute. Errors will be tftypes.AttributePathErrors based on `path`.
 // `name` is the name of the attribute.
 func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a fwschema.Attribute) (*tfprotov6.SchemaAttribute, error) {
-	if a.GetAttributes() != nil && len(a.GetAttributes().GetAttributes()) > 0 && a.GetType() != nil {
+	tfsdkAttribute, ok := a.(tfsdk.Attribute)
+
+	if ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown && len(tfsdkAttribute.GetAttributes()) > 0 {
 		return nil, path.NewErrorf("cannot have both Attributes and Type set")
 	}
 
-	if (a.GetAttributes() == nil || len(a.GetAttributes().GetAttributes()) == 0) && a.GetType() == nil {
+	if ok && a.GetType() == nil {
+		return nil, path.NewErrorf("must have Attributes or Type set")
+	}
+
+	if ok && tfsdkAttribute.GetNestingMode() != fwschema.NestingModeUnknown && len(tfsdkAttribute.GetAttributes()) == 0 {
 		return nil, path.NewErrorf("must have Attributes or Type set")
 	}
 
@@ -31,6 +38,7 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 		Optional:  a.IsOptional(),
 		Computed:  a.IsComputed(),
 		Sensitive: a.IsSensitive(),
+		Type:      a.GetType().TerraformType(ctx),
 	}
 
 	if a.GetDeprecationMessage() != "" {
@@ -47,14 +55,18 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 		schemaAttribute.DescriptionKind = tfprotov6.StringKindMarkdown
 	}
 
-	if a.GetType() != nil {
-		schemaAttribute.Type = a.GetType().TerraformType(ctx)
+	if ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown {
+		return schemaAttribute, nil
+	}
 
+	nestedAttribute, ok := a.(fwschema.NestedAttribute)
+
+	if !ok {
 		return schemaAttribute, nil
 	}
 
 	object := &tfprotov6.SchemaObject{}
-	nm := a.GetAttributes().GetNestingMode()
+	nm := nestedAttribute.GetNestingMode()
 	switch nm {
 	case fwschema.NestingModeSingle:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeSingle
@@ -68,7 +80,7 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
 	}
 
-	for nestedName, nestedA := range a.GetAttributes().GetAttributes() {
+	for nestedName, nestedA := range nestedAttribute.GetAttributes() {
 		nestedSchemaAttribute, err := SchemaAttribute(ctx, nestedName, path.WithAttributeName(nestedName), nestedA)
 
 		if err != nil {
@@ -91,6 +103,7 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 	})
 
 	schemaAttribute.NestedType = object
+	schemaAttribute.Type = nil
 
 	return schemaAttribute, nil
 }

@@ -3,7 +3,6 @@ package tfsdk
 import (
 	"fmt"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -106,7 +105,7 @@ func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) 
 			return nil, fmt.Errorf("can't apply %T to block NestingModeList", step)
 		}
 
-		return fwschema.NestedBlock{Block: b}, nil
+		return b.GetNestedObject(), nil
 	case BlockNestingModeSet:
 		_, ok := step.(tftypes.ElementKeyValue)
 
@@ -114,7 +113,7 @@ func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) 
 			return nil, fmt.Errorf("can't apply %T to block NestingModeSet", step)
 		}
 
-		return fwschema.NestedBlock{Block: b}, nil
+		return b.GetNestedObject(), nil
 	case BlockNestingModeSingle:
 		_, ok := step.(tftypes.AttributeName)
 
@@ -122,7 +121,7 @@ func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) 
 			return nil, fmt.Errorf("can't apply %T to block NestingModeSingle", step)
 		}
 
-		return fwschema.NestedBlock{Block: b}.ApplyTerraform5AttributePathStep(step)
+		return b.GetNestedObject().ApplyTerraform5AttributePathStep(step)
 	default:
 		return nil, fmt.Errorf("unsupported block nesting mode: %v", b.NestingMode)
 	}
@@ -130,41 +129,7 @@ func (b Block) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) 
 
 // Equal returns true if `b` and `o` should be considered Equal.
 func (b Block) Equal(o fwschema.Block) bool {
-	if !cmp.Equal(b.GetAttributes(), o.GetAttributes()) {
-		return false
-	}
-	if !cmp.Equal(b.GetBlocks(), o.GetBlocks()) {
-		return false
-	}
-	if b.GetDeprecationMessage() != o.GetDeprecationMessage() {
-		return false
-	}
-	if b.GetDescription() != o.GetDescription() {
-		return false
-	}
-	if b.GetMarkdownDescription() != o.GetMarkdownDescription() {
-		return false
-	}
-	if b.GetMaxItems() != o.GetMaxItems() {
-		return false
-	}
-	if b.GetMinItems() != o.GetMinItems() {
-		return false
-	}
-	if b.GetNestingMode() != o.GetNestingMode() {
-		return false
-	}
-	return true
-}
-
-// GetAttributes satisfies the fwschema.Block interface.
-func (b Block) GetAttributes() map[string]fwschema.Attribute {
-	return schemaAttributes(b.Attributes)
-}
-
-// GetBlocks satisfies the fwschema.Block interface.
-func (b Block) GetBlocks() map[string]fwschema.Block {
-	return schemaBlocks(b.Blocks)
+	return fwschema.BlocksEqual(b, o)
 }
 
 // GetDeprecationMessage satisfies the fwschema.Block interface.
@@ -190,6 +155,15 @@ func (b Block) GetMaxItems() int64 {
 // GetMinItems satisfies the fwschema.Block interface.
 func (b Block) GetMinItems() int64 {
 	return b.MinItems
+}
+
+// GetNestedObject returns a generated NestedBlockObject from the
+// Attributes and Blocks field values.
+func (b Block) GetNestedObject() fwschema.NestedBlockObject {
+	return nestedBlockObject{
+		Attributes: b.Attributes,
+		Blocks:     b.Blocks,
+	}
 }
 
 // GetNestingMode satisfies the fwschema.Block interface.

@@ -44,7 +44,9 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwsc
 		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
 	}
 
-	for attrName, attr := range b.GetAttributes() {
+	nestedBlockObject := b.GetNestedObject()
+
+	for attrName, attr := range nestedBlockObject.GetAttributes() {
 		attrPath := path.WithAttributeName(attrName)
 		attrProto5, err := SchemaAttribute(ctx, attrName, attrPath, attr)
 
@@ -55,7 +57,7 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwsc
 		schemaNestedBlock.Block.Attributes = append(schemaNestedBlock.Block.Attributes, attrProto5)
 	}
 
-	for blockName, block := range b.GetBlocks() {
+	for blockName, block := range nestedBlockObject.GetBlocks() {
 		blockPath := path.WithAttributeName(blockName)
 		blockProto5, err := Block(ctx, blockName, blockPath, block)
 

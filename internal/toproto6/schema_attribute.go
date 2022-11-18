@@ -16,7 +16,7 @@ import (
 func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a fwschema.Attribute) (*tfprotov6.SchemaAttribute, error) {
 	tfsdkAttribute, ok := a.(tfsdk.Attribute)
 
-	if ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown && len(tfsdkAttribute.GetAttributes()) > 0 {
+	if ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown && tfsdkAttribute.Attributes != nil {
 		return nil, path.NewErrorf("cannot have both Attributes and Type set")
 	}
 
@@ -24,7 +24,7 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 		return nil, path.NewErrorf("must have Attributes or Type set")
 	}
 
-	if ok && tfsdkAttribute.GetNestingMode() != fwschema.NestingModeUnknown && len(tfsdkAttribute.GetAttributes()) == 0 {
+	if ok && tfsdkAttribute.GetNestingMode() != fwschema.NestingModeUnknown && (tfsdkAttribute.Attributes == nil || len(tfsdkAttribute.Attributes.GetAttributes()) == 0) {
 		return nil, path.NewErrorf("must have Attributes or Type set")
 	}
 
@@ -80,7 +80,7 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
 	}
 
-	for nestedName, nestedA := range nestedAttribute.GetAttributes() {
+	for nestedName, nestedA := range nestedAttribute.GetNestedObject().GetAttributes() {
 		nestedSchemaAttribute, err := SchemaAttribute(ctx, nestedName, path.WithAttributeName(nestedName), nestedA)
 
 		if err != nil {

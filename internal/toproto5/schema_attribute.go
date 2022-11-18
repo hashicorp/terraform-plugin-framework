@@ -21,7 +21,7 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 			return nil, path.NewErrorf("protocol version 5 cannot have Attributes set")
 		}
 
-		if tfsdkAttribute.GetNestingMode() != fwschema.NestingModeUnknown || len(tfsdkAttribute.GetAttributes()) > 0 {
+		if tfsdkAttribute.GetNestingMode() != fwschema.NestingModeUnknown || tfsdkAttribute.Attributes != nil {
 			return nil, path.NewErrorf("protocol version 5 cannot have Attributes set")
 		}
 	}

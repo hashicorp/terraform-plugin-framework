@@ -3,9 +3,5 @@ tfsdk: The `Attribute` type `FrameworkType()` method has been removed. Use the `
 ```
 
 ```release-note:breaking-change
-tfsdk: The `Attribute` type `GetAttributes()` method now returns underlying attribute information rather than another interface. Use the `GetNestingMode()` method to determine the nesting mode.
-```
-
-```release-note:breaking-change
-tfsdk: The `Attribute` type `GetType()` method now returns type information whether the attribute implements the `Type` field or `Attributes` field. Use the `GetAttributes()` and `GetNestingMode()` methods to determine if the `Attributes` field is explicitly being used.
+tfsdk: The `Attribute` type `GetType()` method now returns type information whether the attribute implements the `Type` field or `Attributes` field.
 ```

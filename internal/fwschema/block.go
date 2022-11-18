@@ -21,16 +21,6 @@ type Block interface {
 	// Equal should return true if the other block is exactly equivalent.
 	Equal(o Block) bool
 
-	// GetAttributes should return the nested attributes of a block, if
-	// applicable. This is named differently than Attributes to prevent a
-	// conflict with the tfsdk.Block field name.
-	GetAttributes() map[string]Attribute
-
-	// GetBlocks should return the nested blocks of a block, if
-	// applicable. This is named differently than Blocks to prevent a
-	// conflict with the tfsdk.Block field name.
-	GetBlocks() map[string]Block
-
 	// GetDeprecationMessage should return a non-empty string if an attribute
 	// is deprecated. This is named differently than DeprecationMessage to
 	// prevent a conflict with the tfsdk.Attribute field name.
@@ -56,6 +46,11 @@ type Block interface {
 	// differently than MinItems to prevent a conflict with the tfsdk.Block
 	// field name.
 	GetMinItems() int64
+
+	// GetNestedObject should return the object underneath the block.
+	// For single nesting mode, the NestedBlockObject can be generated from
+	// the Block.
+	GetNestedObject() NestedBlockObject
 
 	// GetNestingMode should return the nesting mode of a block. This is named
 	// differently than NestingMode to prevent a conflict with the tfsdk.Block

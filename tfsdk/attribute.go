@@ -173,49 +173,15 @@ func (a Attribute) Equal(o fwschema.Attribute) bool {
 		return false
 	}
 
-	if a.GetAttributes() != nil && !a.GetAttributes().Equal(other.GetAttributes()) {
+	if a.GetNestedObject() != nil && !a.GetNestedObject().Equal(other.GetNestedObject()) {
 		return false
 	}
 
-	if other.GetAttributes() != nil && !other.GetAttributes().Equal(a.GetAttributes()) {
+	if other.GetNestedObject() != nil && !other.GetNestedObject().Equal(a.GetNestedObject()) {
 		return false
 	}
 
-	if !a.GetType().Equal(other.GetType()) {
-		return false
-	}
-
-	if a.GetDescription() != o.GetDescription() {
-		return false
-	}
-	if a.GetMarkdownDescription() != o.GetMarkdownDescription() {
-		return false
-	}
-	if a.IsRequired() != o.IsRequired() {
-		return false
-	}
-	if a.IsOptional() != o.IsOptional() {
-		return false
-	}
-	if a.IsComputed() != o.IsComputed() {
-		return false
-	}
-	if a.IsSensitive() != o.IsSensitive() {
-		return false
-	}
-	if a.GetDeprecationMessage() != o.GetDeprecationMessage() {
-		return false
-	}
-	return true
-}
-
-// GetAttributes satisfies the fwschema.Attribute interface.
-func (a Attribute) GetAttributes() fwschema.UnderlyingAttributes {
-	if a.Attributes != nil {
-		return a.Attributes.GetAttributes()
-	}
-
-	return nil
+	return fwschema.AttributesEqual(a, o)
 }
 
 // GetDeprecationMessage satisfies the fwschema.Attribute interface.
@@ -231,6 +197,18 @@ func (a Attribute) GetDescription() string {
 // GetMarkdownDescription satisfies the fwschema.Attribute interface.
 func (a Attribute) GetMarkdownDescription() string {
 	return a.MarkdownDescription
+}
+
+// GetNestedObject returns a generated NestedAttributeObject if the
+// Attribute represents nested attributes, otherwise nil.
+func (a Attribute) GetNestedObject() fwschema.NestedAttributeObject {
+	if a.GetNestingMode() == fwschema.NestingModeUnknown {
+		return nil
+	}
+
+	return nestedAttributeObject{
+		Attributes: a.Attributes.GetAttributes(),
+	}
 }
 
 // GetNestingMode returns the Attributes nesting mode, if set. Otherwise,

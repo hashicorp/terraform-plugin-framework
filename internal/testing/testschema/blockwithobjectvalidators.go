@@ -5,7 +5,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -38,16 +37,6 @@ func (b BlockWithObjectValidators) Equal(o fwschema.Block) bool {
 	return fwschema.BlocksEqual(b, o)
 }
 
-// GetAttributes satisfies the fwschema.Block interface.
-func (b BlockWithObjectValidators) GetAttributes() map[string]fwschema.Attribute {
-	return nil
-}
-
-// GetBlocks satisfies the fwschema.Block interface.
-func (b BlockWithObjectValidators) GetBlocks() map[string]fwschema.Block {
-	return nil
-}
-
 // GetDeprecationMessage satisfies the fwschema.Block interface.
 func (b BlockWithObjectValidators) GetDeprecationMessage() string {
 	return b.DeprecationMessage
@@ -73,6 +62,15 @@ func (b BlockWithObjectValidators) GetMinItems() int64 {
 	return b.MinItems
 }
 
+// GetNestedObject satisfies the fwschema.Block interface.
+func (b BlockWithObjectValidators) GetNestedObject() fwschema.NestedBlockObject {
+	return NestedBlockObjectWithValidators{
+		Attributes: b.Attributes,
+		Blocks:     b.Blocks,
+		Validators: b.Validators,
+	}
+}
+
 // GetNestingMode satisfies the fwschema.Block interface.
 func (b BlockWithObjectValidators) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeSingle
@@ -85,17 +83,5 @@ func (b BlockWithObjectValidators) ObjectValidators() []validator.Object {
 
 // Type satisfies the fwschema.Block interface.
 func (b BlockWithObjectValidators) Type() attr.Type {
-	attrType := types.ObjectType{
-		AttrTypes: make(map[string]attr.Type, len(b.GetAttributes())+len(b.GetBlocks())),
-	}
-
-	for attrName, attr := range b.GetAttributes() {
-		attrType.AttrTypes[attrName] = attr.GetType()
-	}
-
-	for blockName, block := range b.GetBlocks() {
-		attrType.AttrTypes[blockName] = block.Type()
-	}
-
-	return attrType
+	return b.GetNestedObject().Type()
 }

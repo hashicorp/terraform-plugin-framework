@@ -54,7 +54,7 @@ func (u UnderlyingAttributes) Equal(o UnderlyingAttributes) bool {
 }
 
 // Type returns the framework type of the underlying attributes.
-func (u UnderlyingAttributes) Type() attr.Type {
+func (u UnderlyingAttributes) Type() types.ObjectTypable {
 	attrTypes := make(map[string]attr.Type, len(u))
 
 	for name, attr := range u {

@@ -38,16 +38,6 @@ func (b BlockWithListValidators) Equal(o fwschema.Block) bool {
 	return fwschema.BlocksEqual(b, o)
 }
 
-// GetAttributes satisfies the fwschema.Block interface.
-func (b BlockWithListValidators) GetAttributes() map[string]fwschema.Attribute {
-	return nil
-}
-
-// GetBlocks satisfies the fwschema.Block interface.
-func (b BlockWithListValidators) GetBlocks() map[string]fwschema.Block {
-	return nil
-}
-
 // GetDeprecationMessage satisfies the fwschema.Block interface.
 func (b BlockWithListValidators) GetDeprecationMessage() string {
 	return b.DeprecationMessage
@@ -73,6 +63,14 @@ func (b BlockWithListValidators) GetMinItems() int64 {
 	return b.MinItems
 }
 
+// GetNestedObject satisfies the fwschema.Block interface.
+func (b BlockWithListValidators) GetNestedObject() fwschema.NestedBlockObject {
+	return NestedBlockObject{
+		Attributes: b.Attributes,
+		Blocks:     b.Blocks,
+	}
+}
+
 // GetNestingMode satisfies the fwschema.Block interface.
 func (b BlockWithListValidators) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeList
@@ -85,19 +83,7 @@ func (b BlockWithListValidators) ListValidators() []validator.List {
 
 // Type satisfies the fwschema.Block interface.
 func (b BlockWithListValidators) Type() attr.Type {
-	attrType := types.ObjectType{
-		AttrTypes: make(map[string]attr.Type, len(b.GetAttributes())+len(b.GetBlocks())),
-	}
-
-	for attrName, attr := range b.GetAttributes() {
-		attrType.AttrTypes[attrName] = attr.GetType()
-	}
-
-	for blockName, block := range b.GetBlocks() {
-		attrType.AttrTypes[blockName] = block.Type()
-	}
-
 	return types.ListType{
-		ElemType: attrType,
+		ElemType: b.GetNestedObject().Type(),
 	}
 }

@@ -3583,6 +3583,348 @@ func TestBlockValidateSet(t *testing.T) {
 	}
 }
 
+func TestNestedBlockObjectValidateObject(t *testing.T) {
+	t.Parallel()
+
+	testAttributeConfig := types.ObjectValueMust(
+		map[string]attr.Type{
+			"testattr": types.StringType,
+			"testblock": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"testblockattr": types.StringType,
+				},
+			},
+		},
+		map[string]attr.Value{
+			"testattr": types.StringValue("testvalue"),
+			"testblock": types.ObjectValueMust(
+				map[string]attr.Type{"testblockattr": types.StringType},
+				map[string]attr.Value{"testblockattr": types.StringValue("testvalue")},
+			),
+		},
+	)
+	testConfig := tfsdk.Config{
+		Raw: tftypes.NewValue(
+			tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"testattr": tftypes.String,
+							"testblock": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"testblockattr": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+			},
+			map[string]tftypes.Value{
+				"test": tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"testattr": tftypes.String,
+							"testblock": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"testblockattr": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"testattr": tftypes.NewValue(tftypes.String, "testvalue"),
+						"testblock": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"testblockattr": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"testblockattr": tftypes.NewValue(tftypes.String, "testvalue"),
+							},
+						),
+					},
+				),
+			},
+		),
+		Schema: testschema.Schema{
+			Blocks: map[string]fwschema.Block{
+				"test": testschema.BlockWithObjectValidators{
+					Attributes: map[string]fwschema.Attribute{
+						"testattr": testschema.AttributeWithStringValidators{
+							Required: true,
+						},
+					},
+					Blocks: map[string]fwschema.Block{
+						"testblock": testschema.BlockWithObjectValidators{
+							Attributes: map[string]fwschema.Attribute{
+								"testblockattr": testschema.AttributeWithStringValidators{
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testCases := map[string]struct {
+		object   fwschema.NestedBlockObject
+		request  tfsdk.ValidateAttributeRequest
+		response *tfsdk.ValidateAttributeResponse
+		expected *tfsdk.ValidateAttributeResponse
+	}{
+		"request-path": {
+			object: testschema.NestedBlockObjectWithValidators{
+				Validators: []validator.Object{
+					testvalidator.Object{
+						ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: testAttributeConfig,
+				Config:          testConfig,
+			},
+			response: &tfsdk.ValidateAttributeResponse{},
+			expected: &tfsdk.ValidateAttributeResponse{},
+		},
+		"request-pathexpression": {
+			object: testschema.NestedBlockObjectWithValidators{
+				Validators: []validator.Object{
+					testvalidator.Object{
+						ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ValidateAttributeRequest{
+				AttributePath:           path.Root("test"),
+				AttributePathExpression: path.MatchRoot("test"),
+				AttributeConfig:         testAttributeConfig,
+				Config:                  testConfig,
+			},
+			response: &tfsdk.ValidateAttributeResponse{},
+			expected: &tfsdk.ValidateAttributeResponse{},
+		},
+		"request-config": {
+			object: testschema.NestedBlockObjectWithValidators{
+				Validators: []validator.Object{
+					testvalidator.Object{
+						ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+							got := req.Config
+							expected := testConfig
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: testAttributeConfig,
+				Config:          testConfig,
+			},
+			response: &tfsdk.ValidateAttributeResponse{},
+			expected: &tfsdk.ValidateAttributeResponse{},
+		},
+		"request-configvalue": {
+			object: testschema.NestedBlockObjectWithValidators{
+				Validators: []validator.Object{
+					testvalidator.Object{
+						ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+							got := req.ConfigValue
+							expected := testAttributeConfig
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: testAttributeConfig,
+				Config:          testConfig,
+			},
+			response: &tfsdk.ValidateAttributeResponse{},
+			expected: &tfsdk.ValidateAttributeResponse{},
+		},
+		"response-diagnostics": {
+			object: testschema.NestedBlockObjectWithValidators{
+				Validators: []validator.Object{
+					testvalidator.Object{
+						ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: tfsdk.ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: testAttributeConfig,
+				Config:          testConfig,
+			},
+			response: &tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+			},
+			expected: &tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"nested-attributes-validation": {
+			object: testschema.NestedBlockObjectWithValidators{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringValidators{
+						Required: true,
+						Validators: []validator.String{
+							testvalidator.String{
+								ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+									resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+									resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+								},
+							},
+						},
+					},
+				},
+			},
+			request: tfsdk.ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: testAttributeConfig,
+				Config:          testConfig,
+			},
+			response: &tfsdk.ValidateAttributeResponse{},
+			expected: &tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test").AtName("testattr"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test").AtName("testattr"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"nested-blocks-validation": {
+			object: testschema.NestedBlockObjectWithValidators{
+				Blocks: map[string]fwschema.Block{
+					"testblock": testschema.BlockWithObjectValidators{
+						Validators: []validator.Object{
+							testvalidator.Object{
+								ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+									resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+									resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+								},
+							},
+						},
+					},
+				},
+			},
+			request: tfsdk.ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: testAttributeConfig,
+				Config:          testConfig,
+			},
+			response: &tfsdk.ValidateAttributeResponse{},
+			expected: &tfsdk.ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test").AtName("testblock"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test").AtName("testblock"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			NestedBlockObjectValidate(context.Background(), testCase.object, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestBlockMaxItemsDiagnostic(t *testing.T) {
 	t.Parallel()
 

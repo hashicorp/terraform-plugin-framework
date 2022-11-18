@@ -61,6 +61,8 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 		return
 	}
 
+	nestedBlockObject := b.GetNestedObject()
+
 	nm := b.GetNestingMode()
 	switch nm {
 	case fwschema.BlockNestingModeList:
@@ -119,7 +121,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 			planAttributes := planObject.Attributes()
 
-			for name, attr := range b.GetAttributes() {
+			for name, attr := range nestedBlockObject.GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 				resp.Diagnostics.Append(diags...)
@@ -169,7 +171,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 				resp.Private = attrResp.Private
 			}
 
-			for name, block := range b.GetBlocks() {
+			for name, block := range nestedBlockObject.GetBlocks() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 				resp.Diagnostics.Append(diags...)
@@ -291,7 +293,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 
 			planAttributes := planObject.Attributes()
 
-			for name, attr := range b.GetAttributes() {
+			for name, attr := range nestedBlockObject.GetAttributes() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 				resp.Diagnostics.Append(diags...)
@@ -341,7 +343,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 				resp.Private = attrResp.Private
 			}
 
-			for name, block := range b.GetBlocks() {
+			for name, block := range nestedBlockObject.GetBlocks() {
 				attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 				resp.Diagnostics.Append(diags...)
@@ -438,7 +440,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 			planAttributes = make(map[string]attr.Value)
 		}
 
-		for name, attr := range b.GetAttributes() {
+		for name, attr := range nestedBlockObject.GetAttributes() {
 			attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 			resp.Diagnostics.Append(diags...)
@@ -488,7 +490,7 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 			resp.Private = attrResp.Private
 		}
 
-		for name, block := range b.GetBlocks() {
+		for name, block := range nestedBlockObject.GetBlocks() {
 			attrConfig, diags := objectAttributeValue(ctx, configObject, name, fwschemadata.DataDescriptionConfiguration)
 
 			resp.Diagnostics.Append(diags...)

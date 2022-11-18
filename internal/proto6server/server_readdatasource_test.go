@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
@@ -37,15 +38,13 @@ func TestServerReadDataSource(t *testing.T) {
 		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 	})
 
-	testSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_computed": {
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
-			"test_required": {
+			"test_required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
@@ -64,8 +63,8 @@ func TestServerReadDataSource(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{}, nil
+										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+											resp.Schema = schema.Schema{}
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
@@ -93,8 +92,8 @@ func TestServerReadDataSource(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
+										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+											resp.Schema = testSchema
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
@@ -135,8 +134,8 @@ func TestServerReadDataSource(t *testing.T) {
 								return []func() datasource.DataSource{
 									func() datasource.DataSource {
 										return &testprovider.DataSource{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return tfsdk.Schema{}, nil
+											SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+												resp.Schema = schema.Schema{}
 											},
 											MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 												resp.TypeName = "test_data_source"
@@ -159,7 +158,18 @@ func TestServerReadDataSource(t *testing.T) {
 							},
 						},
 						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testSchema, nil
+							return tfsdk.Schema{
+								Attributes: map[string]tfsdk.Attribute{
+									"test_computed": {
+										Computed: true,
+										Type:     types.StringType,
+									},
+									"test_required": {
+										Required: true,
+										Type:     types.StringType,
+									},
+								},
+							}, nil
 						},
 					},
 				},
@@ -181,8 +191,8 @@ func TestServerReadDataSource(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
+										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+											resp.Schema = testSchema
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
@@ -226,8 +236,8 @@ func TestServerReadDataSource(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
+										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+											resp.Schema = testSchema
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -36,15 +37,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test1": {
+										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+											resp.Schema = schema.Schema{
+												Attributes: map[string]schema.Attribute{
+													"test1": schema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source1"
@@ -53,15 +53,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 								},
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test2": {
+										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+											resp.Schema = schema.Schema{
+												Attributes: map[string]schema.Attribute{
+													"test2": schema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source2"
@@ -116,15 +115,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 							return []func() datasource.DataSource{
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test1": {
+										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+											resp.Schema = schema.Schema{
+												Attributes: map[string]schema.Attribute{
+													"test1": schema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"
@@ -133,15 +131,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 								},
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test2": {
+										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+											resp.Schema = schema.Schema{
+												Attributes: map[string]schema.Attribute{
+													"test2": schema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 											resp.TypeName = "test_data_source"

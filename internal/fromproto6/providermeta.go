@@ -25,7 +25,7 @@ func ProviderMeta(ctx context.Context, proto6DynamicValue *tfprotov6.DynamicValu
 
 	fw := &tfsdk.Config{
 		Raw:    tftypes.NewValue(schema.Type().TerraformType(ctx), nil),
-		Schema: tfsdkSchema(schema),
+		Schema: schema,
 	}
 
 	if proto6DynamicValue == nil {

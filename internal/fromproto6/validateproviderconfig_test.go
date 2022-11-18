@@ -80,7 +80,7 @@ func TestValidateProviderConfigRequest(t *testing.T) {
 			expected: &fwserver.ValidateProviderConfigRequest{
 				Config: &tfsdk.Config{
 					Raw:    testProto6Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 			},
 		},

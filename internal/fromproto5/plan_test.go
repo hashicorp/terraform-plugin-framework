@@ -93,7 +93,7 @@ func TestPlan(t *testing.T) {
 			schema: testFwSchema,
 			expected: &tfsdk.Plan{
 				Raw:    testProto5Value,
-				Schema: *testFwSchema,
+				Schema: testFwSchema,
 			},
 		},
 	}

@@ -6,12 +6,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -35,11 +35,10 @@ func TestReadDataSourceRequest(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
 	}
 
-	testFwSchema := &tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_attribute": {
+	testFwSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_attribute": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
@@ -92,7 +91,7 @@ func TestReadDataSourceRequest(t *testing.T) {
 			expected: &fwserver.ReadDataSourceRequest{
 				Config: &tfsdk.Config{
 					Raw:    testProto6Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 				DataSourceSchema: testFwSchema,
 			},
@@ -105,7 +104,7 @@ func TestReadDataSourceRequest(t *testing.T) {
 				DataSourceSchema: testFwSchema,
 				ProviderMeta: &tfsdk.Config{
 					Raw:    tftypes.NewValue(testProto6Type, nil),
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 			},
 		},
@@ -129,7 +128,7 @@ func TestReadDataSourceRequest(t *testing.T) {
 				DataSourceSchema: testFwSchema,
 				ProviderMeta: &tfsdk.Config{
 					Raw:    testProto6Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 			},
 		},

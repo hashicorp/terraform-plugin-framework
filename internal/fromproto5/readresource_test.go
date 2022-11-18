@@ -93,7 +93,7 @@ func TestReadResourceRequest(t *testing.T) {
 			expected: &fwserver.ReadResourceRequest{
 				CurrentState: &tfsdk.State{
 					Raw:    testProto5Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 			},
 		},
@@ -146,7 +146,7 @@ func TestReadResourceRequest(t *testing.T) {
 			expected: &fwserver.ReadResourceRequest{
 				ProviderMeta: &tfsdk.Config{
 					Raw:    tftypes.NewValue(testProto5Type, nil),
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 			},
 		},
@@ -166,7 +166,7 @@ func TestReadResourceRequest(t *testing.T) {
 			expected: &fwserver.ReadResourceRequest{
 				ProviderMeta: &tfsdk.Config{
 					Raw:    testProto5Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 			},
 		},

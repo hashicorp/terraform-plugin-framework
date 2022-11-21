@@ -292,7 +292,7 @@ Call one of the following to create a `types.List`:
 
 Maps are mappings of string keys to values of a single element type.
 
--> Use [MapNestedAttributes](/plugin/framework/schemas#MapNestedAttributes) for maps of objects that need additional schema information. Use [ObjectType and Object](#objecttype-and-object) for structures of string attribute names to any value.
+-> Use [MapNestedAttributes](/plugin/framework/schemas#mapnestedattributes) for maps of objects that need additional schema information. Use [ObjectType and Object](#objecttype-and-object) for structures of string attribute names to any value.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -336,7 +336,7 @@ Call one of the following to create a `types.Map`:
 
 Objects are mappings of string attribute names to values of any type. Objects must always declare all attribute values, even when those attributes are null or unknown, unless the entire object is null or unknown.
 
--> Use [SingleNestedAttributes](/plugin/framework/schemas#SingleNestedAttributes) for objects that need additional schema information. Use [MapType and Map](#maptype-and-map) for mappings of string keys to a single element type.
+-> Use [SingleNestedAttributes](/plugin/framework/schemas#singlenestedattributes) for objects that need additional schema information. Use [MapType and Map](#maptype-and-map) for mappings of string keys to a single element type.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 

@@ -14,15 +14,15 @@ resource, or data source configuration block has, and give Terraform metadata
 about those fields. You can think of the schema as the "type information" or
 the "shape" of a resource, data source, or provider.
 
-[The
-`tfsdk.Schema`
-struct](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Schema)
-defines schemas that are returned from methods on the
-[provider](/plugin/framework/providers),
-[resources](/plugin/framework/resources), and [data
-sources](/plugin/framework/data-sources).
+Each concept has its own `schema` package and `Schema` type, which defines functionality available to that concept:
+
+- [Providers](/plugin/framework/providers): [`provider/schema.Schema`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#Schema)
+- [Resources](/plugin/framework/resources): [`resource/schema.Schema`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#Schema)
+- [Data Sources](/plugin/framework/data-sources): [`datasource/schema.Schema`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#Schema)
 
 ## Version
+
+-> Version is only valid for resources.
 
 Every schema has a version, which is an integer that allows you to track changes to your schemas. It is generally only used when
 [upgrading resource state](/plugin/framework/resources/state-upgrade), to help massage resources created with earlier

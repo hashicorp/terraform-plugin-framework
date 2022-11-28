@@ -4,10 +4,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 var _ provider.Provider = &Provider{}
@@ -16,7 +14,7 @@ var _ provider.Provider = &Provider{}
 type Provider struct {
 	// Provider interface methods
 	ConfigureMethod func(context.Context, provider.ConfigureRequest, *provider.ConfigureResponse)
-	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
+	SchemaMethod    func(context.Context, provider.SchemaRequest, *provider.SchemaResponse)
 
 	// ProviderWithDataSources interface methods
 	DataSourcesMethod func(context.Context) []func() datasource.DataSource
@@ -43,13 +41,13 @@ func (p *Provider) DataSources(ctx context.Context) []func() datasource.DataSour
 	return p.DataSourcesMethod(ctx)
 }
 
-// GetSchema satisfies the provider.Provider interface.
-func (p *Provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	if p == nil || p.GetSchemaMethod == nil {
-		return tfsdk.Schema{}, nil
+// Schema satisfies the provider.Provider interface.
+func (p *Provider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+	if p == nil || p.SchemaMethod == nil {
+		return
 	}
 
-	return p.GetSchemaMethod(ctx)
+	p.SchemaMethod(ctx, req, resp)
 }
 
 // Resources satisfies the provider.ProviderWithResources interface.

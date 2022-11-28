@@ -7,11 +7,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -38,9 +40,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
 										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"test1": schema.StringAttribute{
+											resp.Schema = datasourceschema.Schema{
+												Attributes: map[string]datasourceschema.Attribute{
+													"test1": datasourceschema.StringAttribute{
 														Required: true,
 													},
 												},
@@ -54,9 +56,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
 										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"test2": schema.StringAttribute{
+											resp.Schema = datasourceschema.Schema{
+												Attributes: map[string]datasourceschema.Attribute{
+													"test2": datasourceschema.StringAttribute{
 														Required: true,
 													},
 												},
@@ -116,9 +118,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
 										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"test1": schema.StringAttribute{
+											resp.Schema = datasourceschema.Schema{
+												Attributes: map[string]datasourceschema.Attribute{
+													"test1": datasourceschema.StringAttribute{
 														Required: true,
 													},
 												},
@@ -132,9 +134,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
 										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"test2": schema.StringAttribute{
+											resp.Schema = datasourceschema.Schema{
+												Attributes: map[string]datasourceschema.Attribute{
+													"test2": datasourceschema.StringAttribute{
 														Required: true,
 													},
 												},
@@ -213,15 +215,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return tfsdk.Schema{
-								Attributes: map[string]tfsdk.Attribute{
-									"test": {
+						SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+							resp.Schema = providerschema.Schema{
+								Attributes: map[string]providerschema.Attribute{
+									"test": providerschema.StringAttribute{
 										Required: true,
-										Type:     types.StringType,
 									},
 								},
-							}, nil
+							}
 						},
 					},
 				},
@@ -526,12 +527,12 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		},
 		{
 			"@level":   "debug",
-			"@message": "Calling provider defined Provider GetSchema",
+			"@message": "Calling provider defined Provider Schema",
 			"@module":  "sdk.framework",
 		},
 		{
 			"@level":   "debug",
-			"@message": "Called provider defined Provider GetSchema",
+			"@message": "Called provider defined Provider Schema",
 			"@module":  "sdk.framework",
 		},
 		{

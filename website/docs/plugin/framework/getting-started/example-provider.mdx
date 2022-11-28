@@ -1,0 +1,412 @@
+---
+page_title: 'Plugin Development - Framework: Getting Started'
+description: >-
+  How to setup and configure a simple plugin provider.
+---
+
+# Simple Example Provider
+
+A Terraform plugin provider requires the following as a minimum:
+
+* main
+* provider
+* resource (and/or data source)
+* data source (and/or resource)
+
+## Main
+
+```go
+package main
+
+import (
+    "context"
+    "flag"
+    "log"
+
+    "github.com/hashicorp/terraform-plugin-framework/providerserver"
+
+    "github.com/example_namespace/terraform-provider-example/internal/provider"
+)
+
+func main() {
+    var debug bool
+
+    flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
+    flag.Parse()
+
+    opts := providerserver.ServeOpts{
+        Address: "registry.terraform.io/example_namespace/example",
+        Debug:   debug,
+    }
+
+    err := providerserver.Serve(context.Background(), provider.New(), opts)
+
+    if err != nil {
+        log.Fatal(err.Error())
+    }
+}
+```
+
+The `main()` function defines the [provider server](/plugin/framework/provider-servers).
+
+### provider.New()
+
+`provider.New()` returns a function which returns a type that satisfies the `provider.Provider` interface.
+
+## Provider
+
+```go
+package provider
+
+import (
+    "context"
+
+    "github.com/hashicorp/terraform-plugin-framework/datasource"
+    "github.com/hashicorp/terraform-plugin-framework/diag"
+    "github.com/hashicorp/terraform-plugin-framework/provider"
+    "github.com/hashicorp/terraform-plugin-framework/resource"
+    "github.com/hashicorp/terraform-plugin-framework/tfsdk"
+    "github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+var _ provider.Provider = (*exampleProvider)(nil)
+var _ provider.ProviderWithMetadata = (*exampleProvider)(nil)
+
+type exampleProvider struct{}
+
+func New() func() provider.Provider {
+    return func() provider.Provider {
+        return &exampleProvider{}
+    }
+}
+
+func (p *exampleProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{}, nil
+}
+
+func (p *exampleProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+}
+
+func (p *exampleProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+    return []func() datasource.DataSource{
+        NewDataSource,
+    }
+}
+
+func (p *exampleProvider) Resources(ctx context.Context) []func() resource.Resource {
+    return []func() resource.Resource{
+        NewResource,
+    }
+}
+
+func (p *exampleProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+    resp.TypeName = "example"
+}
+```
+
+### New
+
+`New()` returns a function which returns a type that satisfies the `provider.Provider` interface.
+
+### provider.Provider Interface
+
+The `exampleProvider` struct implements the `provider.Provider` interface which defines the following 4 functions:
+
+* [GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)](/plugin/framework/providers#getschema-method)
+* [Configure(context.Context, ConfigureRequest, *ConfigureResponse)](/plugin/framework/providers#getschema-method)
+* [DataSources(context.Context) []func() datasource.DataSource](/plugin/framework/providers#datasources)
+* [Resources(context.Context) []func() resource.Resource](/plugin/framework/providers#resources)
+
+#### GetSchema
+
+`GetSchema(context.Context)` returns a `tfsdk.Schema` struct which defines the provider schema.
+
+#### Configure
+
+`Configure(context.Context, ConfigureRequest, *ConfigureResponse)` configures the provider.
+
+#### DataSources
+
+`DataSources(context.Context)` returns a slice of functions that return types which implement the `datasource.DataSource` interface.
+
+#### Resources
+
+`Resources(context.Context)` returns a slice of functions that return types which implement the `resource.Resource` interface.
+
+### provider.ProviderWithMetadata Interface
+
+The `exampleProvider` struct also implements the `provider.ProviderWithMetadata` interface which defines the following function:
+
+* Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse)
+
+#### Metadata
+
+`Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse)` returns metadata for the provider such as a `TypeName` and `Version`.
+
+## Resource
+
+```go
+package provider
+
+import (
+    "context"
+
+    "github.com/hashicorp/terraform-plugin-framework/diag"
+    "github.com/hashicorp/terraform-plugin-framework/path"
+    "github.com/hashicorp/terraform-plugin-framework/resource"
+    "github.com/hashicorp/terraform-plugin-framework/tfsdk"
+    "github.com/hashicorp/terraform-plugin-framework/types"
+    "github.com/hashicorp/terraform-plugin-log/tflog"
+)
+
+var _ resource.Resource = (*exampleResource)(nil)
+
+type exampleResource struct {
+    provider exampleProvider
+}
+
+func NewResource() resource.Resource {
+    return &exampleResource{}
+}
+
+func (e *exampleResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+    resp.TypeName = req.ProviderTypeName + "_resource"
+}
+
+func (e *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+    return tfsdk.Schema{
+        Attributes: map[string]tfsdk.Attribute{
+            "configurable_attribute": {
+                MarkdownDescription: "Example configurable attribute",
+                Optional:            true,
+                Type:                types.StringType,
+            },
+            "id": {
+                Computed:            true,
+                MarkdownDescription: "Example identifier",
+                PlanModifiers: tfsdk.AttributePlanModifiers{
+                    resource.UseStateForUnknown(),
+                },
+                Type: types.StringType,
+            },
+        },
+    }, nil
+}
+
+type exampleResourceData struct {
+    ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
+    Id                    types.String `tfsdk:"id"`
+}
+
+func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+    var data exampleResourceData
+
+    diags := req.Plan.Get(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    data.Id = types.StringValue("example-id")
+
+    tflog.Trace(ctx, "created a resource")
+
+    diags = resp.State.Set(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+}
+
+func (e *exampleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+    var data exampleResourceData
+
+    diags := req.State.Get(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    diags = resp.State.Set(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+}
+
+func (e *exampleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+    var data exampleResourceData
+
+    diags := req.Plan.Get(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    diags = resp.State.Set(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+}
+
+func (e *exampleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+    var data exampleResourceData
+
+    diags := req.State.Get(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+
+    if resp.Diagnostics.HasError() {
+        return
+    }
+}
+```
+
+### NewResource
+
+`NewResource()` returns a function which returns a type that satisfies the `resource.Resource` interface.
+
+### resource.Resource Interface
+
+The `exampleResource` struct implements the `resource.Resource` interface which defines the following 6 functions:
+
+* [Metadata(context.Context, MetadataRequest, *MetadataResponse)](/plugin/framework/resources#metadata-method)
+* [GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)](/plugin/framework/resources#getschema-method)
+* [Create(context.Context, CreateRequest, *CreateResponse)](/plugin/framework/resources/create)
+* [Read(context.Context, ReadRequest, *ReadResponse)](/plugin/framework/resources/read)
+* [Update(context.Context, UpdateRequest, *UpdateResponse)](/plugin/framework/resources/update)
+* [Delete(context.Context, DeleteRequest, *DeleteResponse)](/plugin/framework/resources/delete)
+
+#### Metadata
+
+`Metadata(context.Context, MetadataRequest, *MetadataResponse)` returns the full name (`TypeName`) of the resource.
+
+#### GetSchema
+
+`GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)` returns a `tfsdk.Schema` struct which defines the resource schema.
+
+#### Create
+
+`Create(context.Context, CreateRequest, *CreateResponse)` is called when the provider must create a new resource.
+
+#### Read
+
+`Read(context.Context, ReadRequest, *ReadResponse)` is called when the provider must read resource values in order to update state.
+
+### Update
+
+`Update(context.Context, UpdateRequest, *UpdateResponse)` is called to update the state of the resource.
+
+#### Delete
+
+`Delete(context.Context, DeleteRequest, *DeleteResponse)` is called when the provider must delete the resource.
+
+## Data Source
+
+```go
+package provider
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+)
+
+var _ datasource.DataSource = (*exampleDataSource)(nil)
+
+type exampleDataSource struct {
+	provider exampleProvider
+}
+
+func NewDataSource() datasource.DataSource {
+	return &exampleDataSource{}
+}
+
+func (e *exampleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_datasource"
+}
+
+func (e *exampleDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"configurable_attribute": {
+				MarkdownDescription: "Example configurable attribute",
+				Optional:            true,
+				Type:                types.StringType,
+			},
+			"id": {
+				MarkdownDescription: "Example identifier",
+				Type:                types.StringType,
+				Computed:            true,
+			},
+		},
+	}, nil
+}
+
+type exampleDataSourceData struct {
+	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
+	Id                    types.String `tfsdk:"id"`
+}
+
+func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data exampleDataSourceData
+
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	data.Id = types.StringValue("example-id")
+
+	tflog.Trace(ctx, "read a data source")
+
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+}
+```
+
+### NewDataSource
+
+`NewDataSource()` returns a function which returns a type that satisfies the `datasource.DataSource` interface.
+
+### datasource.DataSource Interface
+
+The `exampleDataSource` struct implements the `datasource.DataSource` interface which defines the following 3 functions:
+
+* [Metadata(context.Context, MetadataRequest, *MetadataResponse)](/plugin/framework/data-sources#metadata-method)
+* [GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)](/plugin/framework/data-sources#getschema-method)
+* [Read(context.Context, ReadRequest, *ReadResponse)](/plugin/framework/data-sources#read-method)
+
+#### Metadata
+
+`Metadata(context.Context, MetadataRequest, *MetadataResponse)` returns the full name (`TypeName`) of the data source.
+
+#### GetSchema
+
+`GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)` returns a `tfsdk.Schema` struct which defines the data source schema.
+
+#### Read
+
+`Read(context.Context, ReadRequest, *ReadResponse)` is called when the provider must read data source values in order to update state.
+
+## Terraform Configuration
+
+Once a plugin provider has been defined, it is executed by specifying configuration and running `terraform apply`.
+
+### Resource Configuration
+
+```terraform
+resource "example_resource" "example" {
+  configurable_attribute = "some-value"
+}
+```
+
+### Data Source Configuration
+
+```terraform
+data "example_datasource" "example" {
+  configurable_attribute = "some-value"
+}
+```
+
+

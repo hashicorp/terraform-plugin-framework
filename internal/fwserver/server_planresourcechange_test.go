@@ -2007,7 +2007,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaBlockType, map[string]tftypes.Value{
-						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
 						"test_optional_block": tftypes.NewValue(tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
 								"test_optional_one": tftypes.String,

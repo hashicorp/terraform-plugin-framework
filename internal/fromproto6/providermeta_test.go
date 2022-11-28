@@ -84,7 +84,7 @@ func TestProviderMeta(t *testing.T) {
 			schema: testFwSchema,
 			expected: &tfsdk.Config{
 				Raw:    testProto6Value,
-				Schema: *testFwSchema,
+				Schema: testFwSchema,
 			},
 		},
 		"schema-no-data": {
@@ -92,7 +92,7 @@ func TestProviderMeta(t *testing.T) {
 			schema: testFwSchema,
 			expected: &tfsdk.Config{
 				Raw:    tftypes.NewValue(testProto6Type, nil),
-				Schema: *testFwSchema,
+				Schema: testFwSchema,
 			},
 		},
 	}

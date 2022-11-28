@@ -8,7 +8,9 @@ import (
 )
 
 // DataSource represents an instance of a data source type. This is the core
-// interface that all data sources must implement.
+// interface that all data sources must implement. Data sources must also
+// implement the Schema method or the deprecated GetSchema method. The Schema
+// method will be required in a future version.
 //
 // Data sources can optionally implement these additional concepts:
 //
@@ -19,9 +21,6 @@ type DataSource interface {
 	// Metadata should return the full name of the data source, such as
 	// examplecloud_thing.
 	Metadata(context.Context, MetadataRequest, *MetadataResponse)
-
-	// GetSchema returns the schema for this data source.
-	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// Read is called when the provider must read data source values in
 	// order to update state. Config values should be read from the
@@ -58,6 +57,26 @@ type DataSourceWithConfigValidators interface {
 
 	// ConfigValidators returns a list of ConfigValidators. Each ConfigValidator's Validate method will be called when validating the data source.
 	ConfigValidators(context.Context) []ConfigValidator
+}
+
+// DataSourceWithGetSchema is a temporary interface type that extends
+// DataSource to include the deprecated GetSchema method.
+type DataSourceWithGetSchema interface {
+	DataSource
+
+	// GetSchema returns the schema for this data source.
+	//
+	// Deprecated: Use Schema method instead.
+	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
+}
+
+// DataSourceWithSchema is a temporary interface type that extends
+// DataSource to include the new Schema method.
+type DataSourceWithSchema interface {
+	DataSource
+
+	// Schema should return the schema for this data source.
+	Schema(context.Context, SchemaRequest, *SchemaResponse)
 }
 
 // DataSourceWithValidateConfig is an interface type that extends DataSource to include imperative validation.

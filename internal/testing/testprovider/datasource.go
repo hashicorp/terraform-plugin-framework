@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 var _ datasource.DataSource = &DataSource{}
@@ -13,9 +11,9 @@ var _ datasource.DataSource = &DataSource{}
 // Declarative datasource.DataSource for unit testing.
 type DataSource struct {
 	// DataSource interface methods
-	MetadataMethod  func(context.Context, datasource.MetadataRequest, *datasource.MetadataResponse)
-	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
-	ReadMethod      func(context.Context, datasource.ReadRequest, *datasource.ReadResponse)
+	MetadataMethod func(context.Context, datasource.MetadataRequest, *datasource.MetadataResponse)
+	ReadMethod     func(context.Context, datasource.ReadRequest, *datasource.ReadResponse)
+	SchemaMethod   func(context.Context, datasource.SchemaRequest, *datasource.SchemaResponse)
 }
 
 // Metadata satisfies the datasource.DataSource interface.
@@ -27,15 +25,6 @@ func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataReques
 	d.MetadataMethod(ctx, req, resp)
 }
 
-// GetSchema satisfies the datasource.DataSource interface.
-func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	if d.GetSchemaMethod == nil {
-		return tfsdk.Schema{}, nil
-	}
-
-	return d.GetSchemaMethod(ctx)
-}
-
 // Read satisfies the datasource.DataSource interface.
 func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	if d.ReadMethod == nil {
@@ -43,4 +32,13 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	}
 
 	d.ReadMethod(ctx, req, resp)
+}
+
+// Schema satisfies the datasource.DataSource interface.
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	if d.SchemaMethod == nil {
+		return
+	}
+
+	d.SchemaMethod(ctx, req, resp)
 }

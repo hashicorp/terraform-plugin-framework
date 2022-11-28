@@ -47,7 +47,7 @@ func State(ctx context.Context, proto6DynamicValue *tfprotov6.DynamicValue, sche
 
 	fw := &tfsdk.State{
 		Raw:    proto6Value,
-		Schema: tfsdkSchema(schema),
+		Schema: schema,
 	}
 
 	return fw, nil

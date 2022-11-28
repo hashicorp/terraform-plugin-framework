@@ -30,7 +30,7 @@ func TestImportResourceStateRequest(t *testing.T) {
 
 	testFwEmptyState := tfsdk.State{
 		Raw:    tftypes.NewValue(testFwSchema.Type().TerraformType(context.Background()), nil),
-		Schema: *testFwSchema,
+		Schema: testFwSchema,
 	}
 
 	testCases := map[string]struct {

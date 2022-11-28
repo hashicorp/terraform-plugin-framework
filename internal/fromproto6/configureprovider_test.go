@@ -80,7 +80,7 @@ func TestConfigureProviderRequest(t *testing.T) {
 			expected: &provider.ConfigureRequest{
 				Config: tfsdk.Config{
 					Raw:    testProto6Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 			},
 		},

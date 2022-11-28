@@ -100,7 +100,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 			expected: &fwserver.PlanResourceChangeRequest{
 				Config: &tfsdk.Config{
 					Raw:    testProto6Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 				ResourceSchema: testFwSchema,
 			},
@@ -146,7 +146,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 			expected: &fwserver.PlanResourceChangeRequest{
 				PriorState: &tfsdk.State{
 					Raw:    testProto6Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 				ResourceSchema: testFwSchema,
 			},
@@ -174,7 +174,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 			expected: &fwserver.PlanResourceChangeRequest{
 				ProposedNewState: &tfsdk.Plan{
 					Raw:    testProto6Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 				ResourceSchema: testFwSchema,
 			},
@@ -186,7 +186,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 			expected: &fwserver.PlanResourceChangeRequest{
 				ProviderMeta: &tfsdk.Config{
 					Raw:    tftypes.NewValue(testProto6Type, nil),
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 				ResourceSchema: testFwSchema,
 			},
@@ -210,7 +210,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 			expected: &fwserver.PlanResourceChangeRequest{
 				ProviderMeta: &tfsdk.Config{
 					Raw:    testProto6Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 				ResourceSchema: testFwSchema,
 			},

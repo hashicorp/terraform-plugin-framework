@@ -63,11 +63,10 @@ func (p *provider) DataSources(ctx context.Context) []func() datasource.DataSour
 }
 ```
 
-Like the `resource.Resource` interface, `datasource.DataSource` requires `GetSchema` and `Metadata` methods.
+Like the `resource.Resource` interface, `datasource.DataSource` requires `Schema` and `Metadata` methods.
 These methods work the same way for data sources as they do for resources. The `Read` method is also required.
 
-The `GetSchema` method returns a `tfsdk.Schema` struct which defines your data source's attributes. This is the same
-struct you use to define provider and resource attributes.
+The `Schema` method returns a `schema.Schema` struct which defines your data source's attributes.
 
 The `Metadata` method returns a type name that you define.
 
@@ -83,7 +82,7 @@ func (d *dataSourceExample) Metadata(ctx context.Context, req datasource.Metadat
     /* ... */
 }
 
-func (d *dataSourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *dataSourceExample) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
     /* ... */
 }
 
@@ -169,12 +168,11 @@ func (d *httpDataSource) Metadata(ctx context.Context, req datasource.MetadataRe
     resp.TypeName = "http"
 }
 
-func (d *httpDataSource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "url": {
+func (d *httpDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "url": schema.StringAttribute{
                 Description: "The URL for the request. Supported schemes are `http` and `https`.",
-                Type:        types.StringType,
                 Required:    true,
             },
             /* ... */

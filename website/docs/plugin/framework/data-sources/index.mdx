@@ -38,19 +38,17 @@ func (d *ThingDataSource) Metadata(ctx context.Context, req datasource.MetadataR
 	resp.TypeName = "examplecloud_thing"
 }
 
-func (d *ThingDataSource) GetSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"example_attribute": {
+func (d *ThingDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"example_attribute": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
-			"id": {
+			"id": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
 		},
-	}, nil
+	}
 }
 
 func (d *ThingDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -97,9 +95,9 @@ func (d *ThingDataSource) Metadata(ctx context.Context, req datasource.MetadataR
 }
 ```
 
-### GetSchema Method
+### Schema Method
 
-The [`datasource.DataSource` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the data source's configuration and state.
+The [`datasource.DataSource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Schema) defines a [schema](/plugin/framework/schemas) describing what data is available in the data source's configuration and state.
 
 ### Read Method
 

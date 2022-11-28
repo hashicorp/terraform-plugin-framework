@@ -47,7 +47,7 @@ func Plan(ctx context.Context, proto6DynamicValue *tfprotov6.DynamicValue, schem
 
 	fw := &tfsdk.Plan{
 		Raw:    proto6Value,
-		Schema: tfsdkSchema(schema),
+		Schema: schema,
 	}
 
 	return fw, nil

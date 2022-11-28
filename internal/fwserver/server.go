@@ -230,17 +230,42 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Sch
 	for dataSourceTypeName, dataSourceFunc := range dataSourceFuncs {
 		dataSource := dataSourceFunc()
 
-		logging.FrameworkDebug(ctx, "Calling provider defined DataSource GetSchema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
-		schema, diags := dataSource.GetSchema(ctx)
-		logging.FrameworkDebug(ctx, "Called provider defined DataSource GetSchema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
+		switch dataSourceIface := dataSource.(type) {
+		case datasource.DataSourceWithSchema:
+			schemaReq := datasource.SchemaRequest{}
+			schemaResp := datasource.SchemaResponse{}
 
-		s.dataSourceSchemasDiags.Append(diags...)
+			logging.FrameworkDebug(ctx, "Calling provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
+			dataSourceIface.Schema(ctx, schemaReq, &schemaResp)
+			logging.FrameworkDebug(ctx, "Called provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
 
-		if s.dataSourceSchemasDiags.HasError() {
-			return s.dataSourceSchemas, s.dataSourceSchemasDiags
+			s.dataSourceSchemasDiags.Append(schemaResp.Diagnostics...)
+
+			if s.dataSourceSchemasDiags.HasError() {
+				return s.dataSourceSchemas, s.dataSourceSchemasDiags
+			}
+
+			s.dataSourceSchemas[dataSourceTypeName] = schemaResp.Schema
+		case datasource.DataSourceWithGetSchema:
+			logging.FrameworkDebug(ctx, "Calling provider defined DataSource GetSchema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
+			schema, diags := dataSourceIface.GetSchema(ctx) //nolint:staticcheck // Required internal usage until removal
+			logging.FrameworkDebug(ctx, "Called provider defined DataSource GetSchema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
+
+			s.dataSourceSchemasDiags.Append(diags...)
+
+			if s.dataSourceSchemasDiags.HasError() {
+				return s.dataSourceSchemas, s.dataSourceSchemasDiags
+			}
+
+			s.dataSourceSchemas[dataSourceTypeName] = schema
+		default:
+			s.dataSourceSchemasDiags.AddError(
+				"Data Source Missing Schema",
+				"While attempting to load provider data source schemas, a data source was missing a Schema method. "+
+					"This is always an issue in the provider and should be reported to the provider developers.\n\n"+
+					"Data Source Type Name: "+dataSourceTypeName,
+			)
 		}
-
-		s.dataSourceSchemas[dataSourceTypeName] = schema
 	}
 
 	return s.dataSourceSchemas, s.dataSourceSchemasDiags

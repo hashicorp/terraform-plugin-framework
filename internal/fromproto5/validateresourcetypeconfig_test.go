@@ -82,7 +82,7 @@ func TestValidateResourceTypeConfigRequest(t *testing.T) {
 			expected: &fwserver.ValidateResourceConfigRequest{
 				Config: &tfsdk.Config{
 					Raw:    testProto5Value,
-					Schema: *testFwSchema,
+					Schema: testFwSchema,
 				},
 			},
 		},

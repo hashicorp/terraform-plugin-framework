@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ attr.Type  = StringType{}
-	_ attr.Value = String{}
+	_ types.StringTypable  = StringType{}
+	_ types.StringValuable = String{}
 )
 
 // StringType is a reimplementation of types.StringType that can be used as a base
@@ -36,6 +37,27 @@ func (t StringType) String() string {
 
 func (t StringType) TerraformType(_ context.Context) tftypes.Type {
 	return tftypes.String
+}
+
+func (t StringType) ValueFromString(ctx context.Context, in types.String) (types.StringValuable, diag.Diagnostics) {
+	if in.IsNull() {
+		return String{
+			InternalString: types.StringNull(),
+			CreatedBy:      t,
+		}, nil
+	}
+
+	if in.IsUnknown() {
+		return String{
+			InternalString: types.StringUnknown(),
+			CreatedBy:      t,
+		}, nil
+	}
+
+	return String{
+		InternalString: types.StringValue(in.ValueString()),
+		CreatedBy:      t,
+	}, nil
 }
 
 func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
@@ -71,6 +93,10 @@ type String struct {
 	InternalString types.String
 
 	CreatedBy attr.Type
+}
+
+func (s String) ToStringValue(ctx context.Context) (types.String, diag.Diagnostics) {
+	return s.InternalString.ToStringValue(ctx)
 }
 
 func (s String) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {

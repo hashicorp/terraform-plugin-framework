@@ -6,10 +6,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -28,11 +31,10 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 		"test": tftypes.NewValue(tftypes.String, "test-value"),
 	})
 
-	testSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test": {
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
@@ -42,24 +44,15 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 		Schema: testSchema,
 	}
 
-	testSchemaAttributeValidator := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test": {
+	testSchemaAttributeValidator := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
-				Validators: []tfsdk.AttributeValidator{
-					&testprovider.AttributeValidator{
-						ValidateMethod: func(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-							var got types.String
-
-							resp.Diagnostics.Append(tfsdk.ValueAs(ctx, req.AttributeConfig, &got)...)
-
-							if resp.Diagnostics.HasError() {
-								return
-							}
-
-							if got.ValueString() != "test-value" {
-								resp.Diagnostics.AddError("Incorrect req.AttributeConfig", "expected test-value, got "+got.ValueString())
+				Validators: []validator.String{
+					testvalidator.String{
+						ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+							if req.ConfigValue.ValueString() != "test-value" {
+								resp.Diagnostics.AddError("Incorrect req.AttributeConfig", "expected test-value, got "+req.ConfigValue.ValueString())
 							}
 						},
 					},
@@ -73,15 +66,14 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 		Schema: testSchemaAttributeValidator,
 	}
 
-	testSchemaAttributeValidatorError := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test": {
+	testSchemaAttributeValidatorError := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
-				Validators: []tfsdk.AttributeValidator{
-					&testprovider.AttributeValidator{
-						ValidateMethod: func(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-							resp.Diagnostics.AddAttributeError(req.AttributePath, "error summary", "error detail")
+				Validators: []validator.String{
+					testvalidator.String{
+						ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+							resp.Diagnostics.AddAttributeError(req.Path, "error summary", "error detail")
 						},
 					},
 				},
@@ -112,8 +104,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfig,
 				DataSource: &testprovider.DataSource{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
+					SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+						resp.Schema = testSchema
 					},
 				},
 			},
@@ -126,8 +118,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfigAttributeValidator,
 				DataSource: &testprovider.DataSource{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributeValidator, nil
+					SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+						resp.Schema = testSchemaAttributeValidator
 					},
 				},
 			},
@@ -140,8 +132,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 			request: &fwserver.ValidateDataSourceConfigRequest{
 				Config: &testConfigAttributeValidatorError,
 				DataSource: &testprovider.DataSource{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchemaAttributeValidatorError, nil
+					SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+						resp.Schema = testSchemaAttributeValidatorError
 					},
 				},
 			},
@@ -163,8 +155,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 				Config: &testConfig,
 				DataSource: &testprovider.DataSourceWithConfigValidators{
 					DataSource: &testprovider.DataSource{
-						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testSchema, nil
+						SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+							resp.Schema = testSchema
 						},
 					},
 					ConfigValidatorsMethod: func(ctx context.Context) []datasource.ConfigValidator {
@@ -198,8 +190,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 				Config: &testConfig,
 				DataSource: &testprovider.DataSourceWithConfigValidators{
 					DataSource: &testprovider.DataSource{
-						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testSchema, nil
+						SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+							resp.Schema = testSchema
 						},
 					},
 					ConfigValidatorsMethod: func(ctx context.Context) []datasource.ConfigValidator {
@@ -229,8 +221,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 				Config: &testConfig,
 				DataSource: &testprovider.DataSourceWithValidateConfig{
 					DataSource: &testprovider.DataSource{
-						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testSchema, nil
+						SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+							resp.Schema = testSchema
 						},
 					},
 					ValidateConfigMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
@@ -258,8 +250,8 @@ func TestServerValidateDataSourceConfig(t *testing.T) {
 				Config: &testConfig,
 				DataSource: &testprovider.DataSourceWithValidateConfig{
 					DataSource: &testprovider.DataSource{
-						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testSchema, nil
+						SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+							resp.Schema = testSchema
 						},
 					},
 					ValidateConfigMethod: func(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {

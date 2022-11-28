@@ -47,7 +47,7 @@ func Config(ctx context.Context, proto6DynamicValue *tfprotov6.DynamicValue, sch
 
 	fw := &tfsdk.Config{
 		Raw:    proto6Value,
-		Schema: tfsdkSchema(schema),
+		Schema: schema,
 	}
 
 	return fw, nil

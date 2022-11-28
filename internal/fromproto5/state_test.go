@@ -93,7 +93,7 @@ func TestState(t *testing.T) {
 			schema: testFwSchema,
 			expected: &tfsdk.State{
 				Raw:    testProto5Value,
-				Schema: *testFwSchema,
+				Schema: testFwSchema,
 			},
 		},
 	}

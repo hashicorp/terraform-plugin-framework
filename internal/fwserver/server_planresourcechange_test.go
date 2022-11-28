@@ -274,6 +274,18 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
+	testSchemaBlockType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_required": tftypes.String,
+			"test_optional_block": tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test_optional_one": tftypes.String,
+					"test_optional_two": tftypes.String,
+				},
+			},
+		},
+	}
+
 	testSchemaTypeComputed := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"test_computed": tftypes.String,
@@ -293,6 +305,30 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
+	testSchemaBlock := tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"test_required": {
+				Required: true,
+				Type:     types.StringType,
+			},
+		},
+		Blocks: map[string]tfsdk.Block{
+			"test_optional_block": {
+				Attributes: map[string]tfsdk.Attribute{
+					"test_optional_one": {
+						Type:     types.StringType,
+						Optional: true,
+					},
+					"test_optional_two": {
+						Type:     types.StringType,
+						Optional: true,
+					},
+				},
+				NestingMode: tfsdk.BlockNestingModeSingle,
+			},
+		},
+	}
+
 	testEmptyPlan := &tfsdk.Plan{
 		Raw:    tftypes.NewValue(testSchemaType, nil),
 		Schema: testSchema,
@@ -306,6 +342,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 	type testSchemaData struct {
 		TestComputed types.String `tfsdk:"test_computed"`
 		TestRequired types.String `tfsdk:"test_required"`
+	}
+
+	type testSchemaDataBlock struct {
+		TestRequired      types.String `tfsdk:"test_required"`
+		TestOptionalBlock types.Object `tfsdk:"test_optional_block"`
 	}
 
 	testSchemaAttributePlanModifierAttributePlan := tfsdk.Schema{
@@ -1931,6 +1972,76 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"update-resourcewithmodifyplan-request-config-nil-block": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaBlockType, map[string]tftypes.Value{
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+						"test_optional_block": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test_optional_one": tftypes.String,
+								"test_optional_two": tftypes.String,
+							},
+						}, nil),
+					}),
+					Schema: testSchemaBlock,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaBlockType, map[string]tftypes.Value{
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+						"test_optional_block": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test_optional_one": tftypes.String,
+								"test_optional_two": tftypes.String,
+							},
+						}, nil),
+					}),
+					Schema: testSchemaBlock,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaBlockType, map[string]tftypes.Value{
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+						"test_optional_block": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test_optional_one": tftypes.String,
+								"test_optional_two": tftypes.String,
+							},
+						}, nil),
+					}),
+					Schema: testSchemaBlock,
+				},
+				ResourceSchema: testSchemaBlock,
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaDataBlock
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+						if data.TestRequired.ValueString() != "test-new-value" {
+							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.ValueString())
+						}
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaBlockType, map[string]tftypes.Value{
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+						"test_optional_block": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test_optional_one": tftypes.String,
+								"test_optional_two": tftypes.String,
+							},
+						}, nil),
+					}),
+					Schema: testSchemaBlock,
 				},
 				PlannedPrivate: testEmptyPrivate,
 			},

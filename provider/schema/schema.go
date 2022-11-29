@@ -13,9 +13,9 @@ import (
 // Schema must satify the fwschema.Schema interface.
 var _ fwschema.Schema = Schema{}
 
-// Schema defines the structure and value types of data source data. This type
-// is used as the datasource.SchemaResponse type Schema field, which is
-// implemented by the datasource.DataSource type Schema method.
+// Schema defines the structure and value types of provider configuration data.
+// This type is used as the provider.SchemaResponse type Schema field, which is
+// implemented by the provider.Provider type Schema method.
 type Schema struct {
 	// Attributes is the mapping of underlying attribute names to attribute
 	// definitions.
@@ -31,28 +31,26 @@ type Schema struct {
 	Blocks map[string]Block
 
 	// Description is used in various tooling, like the language server, to
-	// give practitioners more information about what this data source is,
+	// give practitioners more information about what this provider is,
 	// what it's for, and how it should be used. It should be written as
 	// plain text, with no special formatting.
 	Description string
 
 	// MarkdownDescription is used in various tooling, like the
 	// documentation generator, to give practitioners more information
-	// about what this data source is, what it's for, and how it should be
+	// about what this provider is, what it's for, and how it should be
 	// used. It should be formatted using Markdown.
 	MarkdownDescription string
 
 	// DeprecationMessage defines warning diagnostic details to display when
-	// practitioner configurations use this data source. The warning diagnostic
-	// summary is automatically set to "Data Source Deprecated" along with
+	// practitioner configurations use this provider. The warning diagnostic
+	// summary is automatically set to "Provider Deprecated" along with
 	// configuration source file and line information.
 	//
 	// Set this field to a practitioner actionable message such as:
 	//
-	//  - "Use examplecloud_other data source instead. This data source
-	//    will be removed in the next major version of the provider."
-	//  - "Remove this data source as it no longer is valid and
-	//    will be removed in the next major version of the provider."
+	//  - "Use examplenewcloud provider instead."
+	//  - "Remove this provider as it no longer is valid."
 	//
 	DeprecationMessage string
 }
@@ -102,7 +100,7 @@ func (s Schema) GetMarkdownDescription() string {
 	return s.MarkdownDescription
 }
 
-// GetVersion always returns 0 as data source schemas cannot be versioned.
+// GetVersion always returns 0 as provider schemas cannot be versioned.
 func (s Schema) GetVersion() int64 {
 	return 0
 }
@@ -122,7 +120,7 @@ func (s Schema) TypeAtTerraformPath(ctx context.Context, p *tftypes.AttributePat
 	return fwschema.SchemaTypeAtTerraformPath(ctx, s, p)
 }
 
-// schemaAttributes is a datasource to fwschema type conversion function.
+// schemaAttributes is a provider to fwschema type conversion function.
 func schemaAttributes(attributes map[string]Attribute) map[string]fwschema.Attribute {
 	result := make(map[string]fwschema.Attribute, len(attributes))
 
@@ -133,7 +131,7 @@ func schemaAttributes(attributes map[string]Attribute) map[string]fwschema.Attri
 	return result
 }
 
-// schemaBlocks is a datasource to fwschema type conversion function.
+// schemaBlocks is a provider to fwschema type conversion function.
 func schemaBlocks(blocks map[string]Block) map[string]fwschema.Block {
 	result := make(map[string]fwschema.Block, len(blocks))
 

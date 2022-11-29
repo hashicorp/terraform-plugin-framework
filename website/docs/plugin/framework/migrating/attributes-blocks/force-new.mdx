@@ -34,16 +34,16 @@ func resourceExample() *schema.Resource {
 ## Framework
 
 In the Framework, you implement the same behavior by using the `resource.RequiresReplace` plan modifier on your
-attribute's `tfsdk.Attribute` struct.
+attribute's `schema.Attribute` implementation.
 
 ```go
-func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    return schema.Schema{
         /* ... */
-        Attributes: map[string]tfsdk.Attribute{
-            "attribute_example": {
-                PlanModifiers: []tfsdk.AttributePlanModifier{
-                    resource.RequiresReplace(),
+        Attributes: map[string]schema.Attribute{
+            "attribute_example": schema.StringAttribute{
+                PlanModifiers: []planmodifier.String{
+                    stringplanmodifier.RequiresReplace(),
                     /* ... */
 ```
 
@@ -96,17 +96,17 @@ This code forces the replacement of a `random_password` resource when the value 
 The example does this using the `PlanModifiers` field within the `random_password` attribute's schema.
 
 ```go
-func (r *passwordResource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "keepers": {
-                PlanModifiers: []tfsdk.AttributePlanModifier{
-                    resource.RequiresReplace(),
+func (r *passwordResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "keepers": schema.MapAttribute{
+                PlanModifiers: []planmodifier.Map{
+                    mapplanmodifier.RequiresReplace(),
                 },
                 /* ... */
             },
             /* ... */
         },
-    }, nil
+    }
 }
 ```

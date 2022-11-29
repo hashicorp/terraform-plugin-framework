@@ -38,11 +38,10 @@ The framework implementation for paths is in the [`path` package](https://pkg.go
 Given this example schema with a root attribute named `example_root_attribute`:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"example_root_attribute": {
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"example_root_attribute": schema.StringAttribute{
 			Required: true,
-			Type:     types.StringType,
 		},
 	},
 }
@@ -59,11 +58,10 @@ For blocks, the beginning of a path is similarly defined. Attribute and block na
 Given this example schema with a root block named `example_root_block`:
 
 ```go
-tfsdk.Schema{
-	Blocks: map[string]tfsdk.Block{
-		"example_root_block": {
-			Attributes: map[string]tfsdk.Attribute{/* ... */},
-			NestingMode: tfsdk.BlockNestingModeList,
+schema.Schema{
+	Blocks: map[string]schema.Block{
+		"example_root_block": schema.ListNestedBlock{
+			NestedObject: schema.NestedBlockObject{/* ... */},
 		},
 	},
 }
@@ -87,30 +85,28 @@ This pattern can be extended to as many calls as necessary. The different framew
 
 ### Building Attribute Paths
 
-The following table shows the different [`path.Path` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Path) methods associated with building paths for [`tfsdk.Attribute` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute) implementations using the `Type` field. Attribute types that cannot be traversed further are shown with N/A (not applicable).
+The following table shows the different [`path.Path` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Path) methods associated with building paths for attribute implementations. Attribute types that cannot be traversed further are shown with N/A (not applicable).
 
-| Attribute Type      | Child Path Method |
-| ------------------- | ----------------- |
-| `types.BoolType`    | N/A               |
-| `types.Float64Type` | N/A               |
-| `types.Int64Type`   | N/A               |
-| `types.ListType`    | `AtListIndex()`   |
-| `types.MapType`     | `AtMapKey()`      |
-| `types.NumberType`  | N/A               |
-| `types.ObjectType`  | `AtName()`        |
-| `types.SetType`     | `AtSetValue()`    |
-| `types.StringType`  | N/A               |
+| Attribute Type            | Child Path Method |
+| ------------------------- | ----------------- |
+| `schema.BoolAttribute`    | N/A               |
+| `schema.Float64Attribute` | N/A               |
+| `schema.Int64Attribute`   | N/A               |
+| `schema.ListAttribute`    | `AtListIndex()`   |
+| `schema.MapAttribute`     | `AtMapKey()`      |
+| `schema.NumberAttribute`  | N/A               |
+| `schema.ObjectAttribute`  | `AtName()`        |
+| `schema.SetAttribute`     | `AtSetValue()`    |
+| `schema.StringAttribute`  | N/A               |
 
 Given following schema example:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"root_map_attribute": {
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_map_attribute": schema.MapAttribute{
+			ElementType: types.StringType,
 			Required: true,
-			Type: types.MapType{
-				ElemType: types.StringType,
-			},
 		},
 	},
 }
@@ -127,15 +123,13 @@ Any type that supports a child path may define an element type that also support
 Given following schema example:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"root_map_attribute": {
-			Required: true,
-			Type: types.MapType{
-				ElemType: types.ListType{
-					ElemType: types.StringType,
-				},
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_map_attribute": schema.MapAttribute{
+			ElementType: types.ListType{
+				ElemType: types.StringType,
 			},
+			Required: true,
 		},
 	},
 }
@@ -147,7 +141,7 @@ The path which matches the third string value associated with the list value of 
 path.Root("root_map_attribute").AtMapKey("example-key").AtListIndex(2)
 ```
 
-Unless there is a very well defined data structure involved, the level of path specificity in the example above is fairly uncommon to manually build in provider logic though. Most provider logic will typically build a path to the value of an attribute (e.g. its first `Type`) and work with that data, or potentially one level deeper in well known cases, since each level introduces additional complexity associated with potentially null or unknown values. Provider logic can instead use an iterative path building approach when dealing with attributes that have multiple levels.
+Unless there is a very well defined data structure involved, the level of path specificity in the example above is fairly uncommon to manually build in provider logic though. Most provider logic will typically build a path to the value of an attribute (e.g. its first type) and work with that data, or potentially one level deeper in well known cases, since each level introduces additional complexity associated with potentially null or unknown values. Provider logic can instead use an iterative path building approach when dealing with attributes that have multiple levels.
 
 This example shows an iterative path building approach to handle any map keys and list indices in the above schema:
 
@@ -156,12 +150,12 @@ attributePath := path.Root("root_map_attribute")
 
 // attributeValue is an example types.Map value which was previously fetched,
 // potentially using the path above.
-for mapKey, mapValue := range attributeValue.Value {
+for mapKey, mapValue := range attributeValue.Elements() {
 	mapKeyPath := attributePath.AtMapKey(mapKey)
 
 	// ...
 
-	for listIndex, listValue := range mapValue.Value {
+	for listIndex, listValue := range mapValue.Elements() {
 		listIndexPath := mapKeyPath.AtListIndex(listIndex)
 
 		// ...
@@ -171,33 +165,34 @@ for mapKey, mapValue := range attributeValue.Value {
 
 ### Building Nested Attribute Paths
 
-The following table shows the different [`path.Path` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Path) methods associated with building paths for [`tfsdk.Attribute` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute) implementations using the `Attributes` field ([`tfsdk.NestedAttibutes` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#NestedAttributes) implementations).
+The following table shows the different [`path.Path` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Path) methods associated with building paths for nested attributes.
 
 | Nested Attribute Type          | Child Path Method |
 | ------------------------------ | ----------------- |
-| `tfsdk.ListNestedAttributes`   | `AtListIndex()`   |
-| `tfsdk.MapNestedAttributes`    | `AtMapKey()`      |
-| `tfsdk.SetNestedAttributes`    | `AtSetValue()`    |
-| `tfsdk.SingleNestedAttributes` | `AtName()`        |
+| `schema.ListNestedAttribute`   | `AtListIndex()`   |
+| `schema.MapNestedAttribute`    | `AtMapKey()`      |
+| `schema.SetNestedAttribute`    | `AtSetValue()`    |
+| `schema.SingleNestedAttribute` | `AtName()`        |
 
 Nested attributes eventually implement attributes at child paths, which follow the methods shown in the [Building Attribute Paths section](#building-attribute-paths).
 
 #### Building List Nested Attributes Paths
 
-An attribute that implements `tfsdk.ListNestedAttributes` conceptually is a list containing objects with attribute names.
+An attribute that implements `schema.ListNestedAttribute` conceptually is a list containing objects with attribute names.
 
 Given the following schema example:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"root_list_attribute": {
-			Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-				"nested_string_attribute": {
-					Required: true,
-					Type:     types.StringType,
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_list_attribute": schema.ListNestedAttribute{
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"nested_string_attribute": schema.StringAttribute{
+						Required: true,
+					},
 				},
-			}),
+			},
 			Required: true,
 		},
 	},
@@ -224,20 +219,21 @@ path.Root("root_list_attribute").AtListIndex(0).AtName("nested_string_attribute"
 
 #### Building Map Nested Attributes Paths
 
-An attribute that implements `tfsdk.MapNestedAttributes` conceptually is a map containing values of objects with attribute names.
+An attribute that implements `schema.MapNestedAttribute` conceptually is a map containing values of objects with attribute names.
 
 Given the following schema example:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"root_map_attribute": {
-			Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-				"nested_string_attribute": {
-					Required: true,
-					Type:     types.StringType,
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_map_attribute": schema.MapNestedAttribute{
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"nested_string_attribute": schema.StringAttribute{
+						Required: true,
+					},
 				},
-			}),
+			},
 			Required: true,
 		},
 	},
@@ -264,20 +260,21 @@ path.Root("root_map_attribute").AtMapKey("example-key").AtName("nested_string_at
 
 #### Building Set Nested Attributes Paths
 
-An attribute that implements `tfsdk.SetNestedAttributes` conceptually is a set containing objects with attribute names. Attempting to build set nested attribute paths is extremely tedius as set element selection is based on the entire value of the element, including any null or unknown values. Avoid manual set-based path building. Instead, use functionality which supports [path expressions](/plugin/framework/path-expressions) as that supports wildcard path matching ([`path.Expression` type `AtAnySetValue()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.AtAnySetValue)) or relative paths.
+An attribute that implements `schema.SetNestedAttribute` conceptually is a set containing objects with attribute names. Attempting to build set nested attribute paths is extremely tedius as set element selection is based on the entire value of the element, including any null or unknown values. Avoid manual set-based path building. Instead, use functionality which supports [path expressions](/plugin/framework/path-expressions) as that supports wildcard path matching ([`path.Expression` type `AtAnySetValue()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.AtAnySetValue)) or relative paths.
 
 Given the following schema example:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"root_set_attribute": {
-			Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-				"nested_string_attribute": {
-					Required: true,
-					Type:     types.StringType,
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_set_attribute": schema.SetNestedAttribute{
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"nested_string_attribute": schema.StringAttribute{
+						Required: true,
+					},
 				},
-			}),
+			},
 			Required: true,
 		},
 	},
@@ -320,20 +317,19 @@ path.Root("root_set_attribute").AtSetValue(types.ObjectValueMust(
 
 #### Building Single Nested Attributes Paths
 
-An attribute that implements `tfsdk.SingleNestedAttributes` conceptually is an object with attribute names.
+An attribute that implements `schema.SingleNestedAttribute` conceptually is an object with attribute names.
 
 Given the following schema example:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"root_grouped_attributes": {
-			Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-				"nested_string_attribute": {
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_grouped_attributes": schema.SingleNestedAttribute{
+			Attributes: map[string]schema.Attribute{
+				"nested_string_attribute": schema.StringAttribute{
 					Required: true,
-					Type:     types.StringType,
 				},
-			}),
+			},
 			Required: true,
 		},
 	},
@@ -354,13 +350,13 @@ path.Root("root_grouped_attributes").AtName("nested_string_attribute")
 
 ### Building Block Paths
 
-The following table shows the different [`path.Path` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Path) methods associated with building paths for [`tfsdk.Block` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Block) implementations based on the `NestingMode` field.
+The following table shows the different [`path.Path` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Path) methods associated with building paths for blocks.
 
-| Block NestingMode              | Child Path Method |
-| ------------------------------ | ----------------- |
-| `tfsdk.BlockNestingModeList`   | `AtListIndex()`   |
-| `tfsdk.BlockNestingModeSet`    | `AtSetValue()`    |
-| `tfsdk.BlockNestingModeSingle` | `AtName()`        |
+| Block Type                 | Child Path Method |
+| -------------------------- | ----------------- |
+| `schema.ListNestedBlock`   | `AtListIndex()`   |
+| `schema.SetNestedBlock`    | `AtSetValue()`    |
+| `schema.SingleNestedBlock` | `AtName()`        |
 
 Blocks can implement nested blocks. Paths can continue to be built using the associated method with each level of the block type.
 
@@ -368,32 +364,30 @@ Blocks eventually implement attributes at child paths, which follow the methods 
 
 #### Building List Block Paths
 
-A block defined with `tfsdk.BlockNestingModeList` conceptually is a list containing objects with attribute or block names.
+A block defined with `schema.ListNestedBlock` conceptually is a list containing objects with attribute or block names.
 
 Given following schema example:
 
 ```go
-tfsdk.Schema{
-	Blocks: map[string]tfsdk.Block{
-		"root_list_block": {
-			Attributes: map[string]tfsdk.Attribute{
-				"block_string_attribute": {
-					Required: true,
-					Type:     types.StringType,
+schema.Schema{
+	Blocks: map[string]schema.Block{
+		"root_list_block": schema.ListNestedBlock{
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"block_string_attribute": schema.StringAttribute{
+						Required: true,
+					},
 				},
-			},
-			Blocks: map[string]tfsdk.Block{
-				"nested_list_block": {
-					Attributes: map[string]tfsdk.Attribute{
-						"nested_block_string_attribute": {
-							Required: true,
-							Type:     types.StringType,
+				Blocks: map[string]schema.Block{
+					"nested_list_block": schema.ListNestedBlock{
+						Attributes: map[string]schema.Attribute{
+							"nested_block_string_attribute": schema.StringAttribute{
+								Required: true,
+							},
 						},
 					},
-					NestingMode: tfsdk.BlockNestingModeList,
 				},
 			},
-			NestingMode: tfsdk.BlockNestingModeList,
 		},
 	},
 }
@@ -431,21 +425,21 @@ path.Root("root_list_block").AtListIndex(0).AtName("nested_list_block").AtListIn
 
 #### Building Set Block Paths
 
-A block defined with `tfsdk.BlockNestingModeSet` conceptually is a set containing objects with attribute or block names. Attempting to build set block paths is extremely tedius as set element selection is based on the entire value of the element, including any null or unknown values. Avoid manual set-based path building. Instead, use functionality which supports [path expressions](/plugin/framework/path-expressions) as that supports wildcard path matching ([`path.Expression` type `AtAnySetValue()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.AtAnySetValue)) or relative paths.
+A block defined with `schema.SetNestedBlock` conceptually is a set containing objects with attribute or block names. Attempting to build set block paths is extremely tedius as set element selection is based on the entire value of the element, including any null or unknown values. Avoid manual set-based path building. Instead, use functionality which supports [path expressions](/plugin/framework/path-expressions) as that supports wildcard path matching ([`path.Expression` type `AtAnySetValue()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.AtAnySetValue)) or relative paths.
 
 Given following schema example:
 
 ```go
-tfsdk.Schema{
-	Blocks: map[string]tfsdk.Block{
-		"root_set_block": {
-			Attributes: map[string]tfsdk.Attribute{
-				"block_string_attribute": {
-					Optional: true,
-					Type:     types.StringType,
+schema.Schema{
+	Blocks: map[string]schema.Block{
+		"root_set_block": schema.SetNestedBlock{
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"block_string_attribute": schema.StringAttribute{
+						Optional: true,
+					},
 				},
 			},
-			NestingMode: tfsdk.BlockNestingModeSet,
 		},
 	},
 }
@@ -487,32 +481,28 @@ path.Root("root_set_block").AtSetValue(types.ObjectValueMust(
 
 #### Building Single Block Paths
 
-A block defined with `tfsdk.BlockNestingModeSingle` conceptually is an object with attribute or block names.
+A block defined with `schema.SingleNestedBlock` conceptually is an object with attribute or block names.
 
 Given following schema example:
 
 ```go
-tfsdk.Schema{
-	Blocks: map[string]tfsdk.Block{
-		"root_single_block": {
-			Attributes: map[string]tfsdk.Attribute{
-				"block_string_attribute": {
+schema.Schema{
+	Blocks: map[string]schema.Block{
+		"root_single_block": schema.SingleNestedBlock{
+			Attributes: map[string]schema.Attribute{
+				"block_string_attribute": schema.StringAttribute{
 					Required: true,
-					Type:     types.StringType,
 				},
 			},
-			Blocks: map[string]tfsdk.Block{
-				"nested_single_block": {
-					Attributes: map[string]tfsdk.Attribute{
-						"nested_block_string_attribute": {
+			Blocks: map[string]schema.Block{
+				"nested_single_block": schema.SingleNestedBlock{
+					Attributes: map[string]schema.Attribute{
+						"nested_block_string_attribute": schema.StringAttribute{
 							Required: true,
-							Type:     types.StringType,
 						},
 					},
-					NestingMode: tfsdk.BlockNestingModeSingle,
 				},
 			},
-			NestingMode: tfsdk.BlockNestingModeSingle,
 		},
 	},
 }

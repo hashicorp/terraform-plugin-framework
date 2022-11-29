@@ -61,34 +61,24 @@ used instead of the `Description` property. It is possible that a different stra
 
 Attributes are the main point of a schema. They are used to describe the fields
 of a provider, resource, or data source. Attributes are defined as a map of
-[`tfsdk.Attribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute)s,
-with string keys.
+string names to definitions.
 
-The keys are the names of the fields, and should only contain lowercase
+The name should only contain lowercase
 letters, numbers, and underscores. Practitioners will enter these strings in
 the configuration block of the provider, resource, or data source to set a
 value for that field.
 
-The values are descriptions of the constraints on that field and the metadata
-about it, expressed as a `tfsdk.Attribute` struct value.
+The value is the implementation details for the attribute.
 
-### Type
+### Nested Attributes
 
-The `Type` property of a `tfsdk.Attribute` is used to specify the [attribute
-type](/plugin/framework/types) of the attribute. If the practitioner
-enters data of the wrong type, Terraform will automatically return a validation
-error to the practitioner, and this type determines what kind of attribute
-value is used when [accessing state, config, and plan
-values](/plugin/framework/accessing-values).
+-> Only supported when using protocol version 6.
 
-You must specify one of the `Type` and `Attributes` properties of
-`tfsdk.Attribute`. You cannot specify both.
+Nested attributes enable provider developers to define objects of attributes which fully support attribute behaviors and practitioners to configure these directly using [expressions](/language/expressions).
 
-### Attributes
+#### SingleNestedAttribute
 
-The `Attributes` property of a `tfsdk.Attribute` is used to specify the
-attribute's nested attributes. Nested attributes are attributes that are
-grouped beneath another attribute:
+With single nested attributes, the attribute behaves like an object. The practitioner can only specify one definition of the nested attributes.
 
 ```tf
 resource "example_foo" "bar" {
@@ -99,47 +89,9 @@ resource "example_foo" "bar" {
 }
 ```
 
-In this example, `hello` and `demo` are nested attributes of the
-`nested_attribute` attribute. Nested attributes have their own computed,
-optional, required, and sensitive flags, and their own properties to hold
-descriptions, markdown-formatted descriptions, and deprecation messages.
+#### ListNestedAttribute
 
-If an attribute is required and its nested attribute is optional, the attribute
-must be specified, and the nested attribute can be omitted inside the curly
-braces. If an attribute is optional and its nested attribute is required, the
-attribute can be omitted, but if it is specified, the nested attribute must be
-specified as well.
-
-If an attribute is computed, all its nested attributes are considered computed,
-as well. Likewise, if an attribute is considered sensitive or deprecated, all
-its nested attributes are considered sensitive or deprecated.
-
-You must specify one of the `Type` and `Attributes` properties of
-`tfsdk.Attribute`. You cannot specify both.
-
--> **Note**: We recommend using an attribute with nested attributes when any of the inner fields should have their own flags or metadata (required, optional, computed, deprecated, sensitive, descriptions, etc.).  If the attribute is an atomic unit, we recommend using an object or list of objects instead.
-
-#### SingleNestedAttributes
-
-When the `Attributes` property of a `tfsdk.Attribute` is set to the
-[`schema.SingleNestedAttributes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#SingleNestedAttributes)
-type, the nested attributes behave like an object. There can only be one group
-of the nested attributes.
-
-```tf
-resource "example_foo" "bar" {
-  nested_attribute = {
-    hello = "world"
-    demo = true
-  }
-}
-```
-
-#### ListNestedAttributes
-
-When the `Attributes` property of a `tfsdk.Attribute` is set to the
-[`schema.ListNestedAttributes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#ListNestedAttributes)
-type, the nested attributes behave like a list of objects. The practitioner can
+With list nested attributes, the attribute behaves like a list of objects. The practitioner can
 specify any number of groups of these attributes.
 
 ```tf
@@ -157,17 +109,9 @@ resource "example_foo" "bar" {
 }
 ```
 
-In addition to a map of the attributes, `ListNestedAttributes` accepts a
-[`schema.ListNestedAttributesOptions`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#ListNestedAttributesOptions)
-struct that can be used to specify a minimum or maximum number of instances of
-that group of fields. If the user enters fewer than or more than those numbers
-of groups, Terraform will automatically return a validation error.
+#### MapNestedAttribute
 
-#### MapNestedAttributes
-
-When the `Attributes` property of a `tfsdk.Attribute` is set to the
-[`schema.MapNestedAttributes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#MapNestedAttributes)
-type, the nested attributes behave like a map of objects. The practitioner can
+With map nested attributes, the attribute behaves like a map of objects. The practitioner can
 specify any number of groups of these attributes, with string keys associated
 with each group.
 
@@ -186,11 +130,25 @@ resource "example_foo" "bar" {
 }
 ```
 
-In addition to a map of the attributes, `MapNestedAttributes` accepts a
-[`schema.MapNestedAttributesOptions`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema#MapNestedAttributesOptions)
-struct that can be used to specify a minimum or maximum number of instances of
-that group of fields. If the user enters fewer than or more than those numbers
-of groups, Terraform will automatically return a validation error.
+#### SetNestedAttribute
+
+With set nested attributes, the attributes behave like a set of objects. The practitioner can
+specify any number of groups of these attributes.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = [
+    {
+      hello = "world"
+      demo = true
+    },
+    {
+      hello = "moon"
+      demo = false
+    },
+  ]
+}
+```
 
 ### Required
 

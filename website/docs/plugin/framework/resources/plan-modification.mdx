@@ -33,15 +33,15 @@ Refer to the [Resource Instance Change Lifecycle document](https://github.com/ha
 
 ## Attribute Plan Modification
 
-You can supply the [`tfsdk.Attribute` type `PlanModifiers` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute.PlanModifiers) with a list of plan modifiers for that attribute. For example:
+You can supply the attribute type `PlanModifiers` field with a list of plan modifiers for that attribute. For example:
 
 ```go
-// Typically within the tfsdk.Schema returned by GetSchema() for a resource.
-tfsdk.Attribute{
+// Typically within the schema.Schema returned by Schema() for a resource.
+schema.StringAttribute{
     // ... other Attribute configuration ...
 
-    PlanModifiers: []AttributePlanModifiers{
-        resource.RequiresReplace(),
+    PlanModifiers: []planmodifier.String{
+        stringplanmodifier.RequiresReplace(),
     },
 }
 ```
@@ -58,7 +58,7 @@ The framework implements some common use case modifiers:
 
 ### Creating Attribute Plan Modifiers
 
-To create an attribute plan modifier, you must implement the [`tfsdk.AttributePlanModifier` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier). For example:
+To create an attribute plan modifier, you must implement the one of the [`planmodifier` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier) interfaces. For example:
 
 ```go
 // stringDefaultModifier is a plan modifier that sets a default value for a
@@ -84,20 +84,9 @@ func (m stringDefaultModifier) MarkdownDescription(ctx context.Context) string {
 // Access to the configuration, plan, and state is available in `req`, while
 // `resp` contains fields for updating the planned value, triggering resource
 // replacement, and returning diagnostics.
-func (m stringDefaultModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (m stringDefaultModifier) ModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
     // If the value is unknown or known, do not set default value.
-    if !req.AttributePlan.IsNull() {
-        return
-    }
-
-    // types.String must be the attr.Value produced by the attr.Type in the schema for this attribute
-    // for generic plan modifiers, use
-    // https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ConvertValue
-    // to convert into a known type.
-    var str types.String
-    diags := tfsdk.ValueAs(ctx, req.AttributePlan, &str)
-    resp.Diagnostics.Append(diags...)
-    if diags.HasError() {
+    if !req.PlanValue.IsNull() {
         return
     }
 
@@ -108,7 +97,7 @@ func (m stringDefaultModifier) Modify(ctx context.Context, req tfsdk.ModifyAttri
 Optionally, you may also want to create a helper function to instantiate the plan modifier. For example:
 
 ```go
-func stringDefault(defaultValue string) stringDefaultModifier {
+func stringDefault(defaultValue string) planmodifier.String {
     return stringDefaultModifier{
         Default: defaultValue,
     }

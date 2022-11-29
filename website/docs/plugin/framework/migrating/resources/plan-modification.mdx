@@ -108,22 +108,22 @@ Many existing `CustomizeDiff` implementations would be better suited to migratio
 Framework. This code shows the implementation using attribute plan modifiers with the Framework.
 
 ```go
-func passwordSchemaV2() tfsdk.Schema {
-    return tfsdk.Schema{
+func passwordSchemaV2() schema.Schema {
+    return schema.Schema{
         /* ... */
-        Attributes: map[string]tfsdk.Attribute{
+        Attributes: map[string]schema.Attribute{
             /* ... */
-            "number": {
+            "number": schema.BoolAttribute{
                 /* ... */
-                PlanModifiers: []tfsdk.AttributePlanModifier{
+                PlanModifiers: []planmodifier.Bool{
                     planmodifiers.NumberNumericAttributePlanModifier(),
                     /* ... */
                 },
             },
 
-            "numeric": {
+            "numeric": schema.BoolAttribute{
                 /* ... */
-                PlanModifiers: []tfsdk.AttributePlanModifier{
+                PlanModifiers: []planmodifier.Bool{
                     planmodifiers.NumberNumericAttributePlanModifier(),
                     /* ... */
                 },
@@ -133,7 +133,7 @@ func passwordSchemaV2() tfsdk.Schema {
 The following shows an implementation of `NumberNumericAttributePlanModifier` in the Framework.
 
 ```go
-func NumberNumericAttributePlanModifier() tfsdk.AttributePlanModifier {
+func NumberNumericAttributePlanModifier() planmodifier.Bool {
     return &numberNumericAttributePlanModifier{}
 }
 
@@ -148,7 +148,7 @@ func (d *numberNumericAttributePlanModifier) MarkdownDescription(ctx context.Con
     return d.Description(ctx)
 }
 
-func (d *numberNumericAttributePlanModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (d *numberNumericAttributePlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
     var numberConfig types.Bool
     diags := req.Config.GetAttribute(ctx, path.Root("number"), &numberConfig)
     resp.Diagnostics.Append(diags...)
@@ -173,19 +173,19 @@ func (d *numberNumericAttributePlanModifier) Modify(ctx context.Context, req tfs
 
     // Default to true for both number and numeric when both are null.
     if numberConfig.IsNull() && numericConfig.IsNull() {
-        resp.AttributePlan = types.BoolValue(true)
+        resp.PlanValue = types.BoolValue(true)
         return
     }
 
     // Default to using value for numeric if number is null
     if numberConfig.IsNull() && !numericConfig.IsNull() {
-        resp.AttributePlan = numericConfig
+        resp.PlanValue = numericConfig
         return
     }
 
     // Default to using value for number if numeric is null
     if !numberConfig.IsNull() && numericConfig.IsNull() {
-        resp.AttributePlan = numberConfig
+        resp.PlanValue = numberConfig
         return
     }
 }

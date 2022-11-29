@@ -29,8 +29,8 @@ SDKv2 uses `schema.Schema` structs to define the structure, type, and behavior o
 state, or plan data. The same `schema.Schema` struct type is used for providers, resources, and data sources. The
 schema struct is returned by the function that creates the provider, resource, or data source in question.
 
-The Framework uses `tfsdk.Schema` structs for providers, resources, and data sources. The schema struct is returned by
-a `GetSchema` function you define for the provider and each resource type and data source type. Refer to
+The Framework uses `schema.Schema` structs for providers, resources, and data sources. The schema struct is returned by
+a `Schema` method you define for the provider and each resource type and data source type. Refer to
 [Framework](#framework) for details.
 
 ## SDKv2
@@ -98,39 +98,26 @@ type Schema struct {
 
 ## Framework
 
-In the Framework, you implement `GetSchema` method for your provider, resources, and data sources. This function is
+In the Framework, you implement `Schema` method for your provider, resources, and data sources. This function is
 required by the `provider.Provider`, `resource.Resource`, and `datasource.DataSource` interfaces, respectively.
 
-The following code shows how you define the `GetSchema` function for your provider, resources, and data sources.
+The following code shows how you define the `Schema` method for your provider, resources, and data sources.
 
 ```go
-func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{}, nil
+func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+    resp.Schema = schema.Schema{/* ... */}
 }
 ```
 
 ```go
-func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{}, nil
+func (r *resourceExample) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{/* ... */}
 }
 ```
 
 ```go
-func (r *dataSourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{}, nil
-}
-```
-
-The Framework defines the `schema.Schema` struct as follows.
-
-```go
-type Schema struct {
-    Attributes          map[string]Attribute
-    Blocks              map[string]Block
-    Version             int64
-    DeprecationMessage  string
-    Description         string
-    MarkdownDescription string
+func (r *dataSourceExample) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+    resp.Schema = schema.Schema{/* ... */}
 }
 ```
 
@@ -141,15 +128,15 @@ You use the `Attributes` field to define attributes for your provider, resources
 
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
-- SDKv2 uses `schema.Schema` structs to define the provider, resources, and data sources. The Framework uses
-`tfsdk.Schema` structs instead.
+- SDKv2 uses `schema.Schema` structs to define the provider, resources, and data sources. The Framework uses concept-specific
+`schema.Schema` structs instead.
 - In SDKv2, schema structs are returned when a provider, resource, or data type is created. In the Framework, the
-provider and each resource and data type have a `GetSchema` method that returns the schema.
+provider and each resource and data type have a `Schema` method that returns the schema.
 - In SDKv2, schema structs have a `Set` field which can be populated with a `SchemaSetFunc` which is used for hashing.
 In the Framework, this is not required and does not need to be migrated.
-- The `tfsdk.Schema` struct includes fields that you use to define
+- The `schema.Schema` struct includes fields that you use to define
 [attributes](/plugin/framework/migrating/attributes-and-blocks/attribute-schema) and
 [blocks](/plugin/framework/migrating/attributes-and-blocks/blocks) for your provider and each resource
 and data source.
-- When you populate the `Version` field in `tfsdk.Schema` for a resource in the Framework, copy the `Version`
+- When you populate the `Version` field in `schema.Schema` for a resource in the Framework, copy the `Version`
 field in `schema.Schema` from the SDKv2 version of that resource.

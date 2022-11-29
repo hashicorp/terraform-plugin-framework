@@ -9,8 +9,7 @@ description: >-
 -> **Note:** The Plugin Framework is in beta.
 
 An attribute either contains a primitive type, such as an integer or a string, or contains other attributes. Attributes
-that contain other attributes are referred to as nested attributes, and are implemented by populating the
-`NestedAttributes` field on the `tfsdk.Attribute` struct. Refer to
+that contain other attributes are referred to as nested attributes. Refer to
 [Schemas - Attributes](/plugin/framework/schemas#type) in the Framework documentation for details.
 
 This page explains how to migrate a primitive attribute from SDKv2 to the plugin Framework. For an example of
@@ -67,39 +66,35 @@ func resourceExample() *schema.Resource {
 ```
 ## Framework
 
-In the Framework, you set your attribute's type with the `Type` field on your attribute's `tfsdk.Attribute` struct.
+In the Framework, you set your attribute's type with the attribute's `schema.Attribute` implementation.
 
 ```go
-func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schea.Schema{
         /* ... */
-        Attributes: map[string]tfsdk.Attribute{
-            "bool_example": {
-				Type:    types.BoolType,
+        Attributes: map[string]schema.Attribute{
+            "bool_example": schema.BoolAttribute{
 				/* ... */
 			},
-			"float64_example": {
-				Type:    types.Float64Type,
+			"float64_example": schema.Float64Attribute{
 				/* ... */
 			},
-			"int64_example": {
-				Type:    types.Int64Type,
+			"int64_example": schema.Int64Attribute{
 				/* ... */
 			},
-			"list_example": {
-				Type:    types.ListType{ElemType: types.BoolType},
+			"list_example": schema.ListAttribute{
+				ElementType: types.BoolType,
 				/* ... */
 			},
-			"map_example": {
-				Type:    types.MapType{ElemType: types.Float64Type},
+			"map_example": schema.MapAttribute{
+				ElementType: types.Float64Type,
 				/* ... */
 			},
-			"set_example": {
-				Type:    types.SetType{ElemType: types.Int64Type},
+			"set_example": schema.SetAttribute{
+				ElementType: types.Int64Type,
 				/* ... */
 			},
-			"string_example": {
-				Type:    types.StringType,
+			"string_example": schema.StringAttribute{
 				/* ... */
 			},
             /* ... */
@@ -109,11 +104,7 @@ func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnos
 
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
-- In the Framework, an `Attribute` struct has either the `Type` or `Attributes` field defined. The `Type` field is set to
-a primitive type such as an integer or string, and you use the `Attributes` field for `NestedAttributes`. Refer to
-[Providers](/plugin/framework/migrating/providers#example-1) for an example of using a single
-nested attribute. Nested attributes are also described in more detail on the
-[Schemas](/plugin/framework/schemas#attributes-1) page in the Framework documentation.
+- In the Framework, the `schema.Attribute` implementation determines the required details.
 
 ## Example
 
@@ -148,11 +139,10 @@ The following example from the `data_source_http.go` file shows how the type of 
 source is defined with the Framework after the migration.
 
 ```go
-func (d *httpDataSource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "url": {
-                Type:        types.StringType,
+func (d *httpDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "url": schema.StringAttribute{
                 /* ... */
             },
             /* ... */
@@ -192,13 +182,11 @@ The following example from the `data_source_http.go` file shows how the type of 
 source is defined with the Framework after the migration.
 
 ```go
-func (r *certRequestResource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "dns_names": {
-                Type:    types.ListType{
-                    ElemType: types.StringType
-                },
+func (r *certRequestResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "dns_names": schema.ListAttribute{
+                ElementType: types.StringType,
                 /* ... */
             },
             /* ... */

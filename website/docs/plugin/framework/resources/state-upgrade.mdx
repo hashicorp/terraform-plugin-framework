@@ -24,7 +24,7 @@ A resource schema captures the structure and types of the resource [state](/lang
 
 ## Implementing State Upgrade Support
 
-Ensure the [`tfsdk.Schema` type `Version` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Schema.Version) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) is greater than `0`, then implement the [`resource.ResourceWithStateUpgrade` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithStateUpgrade) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource). Conventionally the version is incremented by `1` for each state upgrade.
+Ensure the [`schema.Schema` type `Version` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#Schema.Version) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) is greater than `0`, then implement the [`resource.ResourceWithStateUpgrade` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithStateUpgrade) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource). Conventionally the version is incremented by `1` for each state upgrade.
 
 This example shows a `Resource` with the necessary `StateUpgrade` method to implement the `ResourceWithStateUpgrade` interface:
 
@@ -35,8 +35,8 @@ var _ resource.ResourceWithUpgradeState = &ThingResource{}
 
 type ThingResource struct{/* ... */}
 
-func (r *ThingResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (r *ThingResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
         // ... other fields ...
 
         // This example conventionally declares that the resource has prior
@@ -92,19 +92,18 @@ type ThingResourceModelV1 struct {
     RequiredAttribute string  `tfsdk:"required_attribute"`
 }
 
-func (r *ThingResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]Attribute{
-            "id": {
-                Type:     types.StringType,
+func (r *ThingResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "id": schema.StringAttribute{
                 Computed: true,
             },
-            "optional_attribute": {
-                Type:     types.StringType, // As compared to prior types.BoolType below
+            "optional_attribute": schema.StringAttribute{
+                // As compared to prior schema.BoolAttribute below
                 Optional: true,
             },
-            "required_attribute": {
-                Type:     types.StringType, // As compared to prior types.BoolType below
+            "required_attribute": schema.StringAttribute{
+                // As compared to prior schema.BoolAttribute below
                 Required: true,
             },
         },
@@ -118,18 +117,17 @@ func (r *ThingResource) UpgradeState(ctx context.Context) map[int64]resource.Sta
     return map[int64]resource.StateUpgrader{
         // State upgrade implementation from 0 (prior state version) to 1 (Schema.Version)
         0: {
-            PriorSchema: &tfsdk.Schema{
-                Attributes: map[string]Attribute{
-                    "id": {
-                        Type:     types.StringType,
+            PriorSchema: &schema.Schema{
+                Attributes: map[string]schema.Attribute{
+                    "id": schema.StringAttribute{
                         Computed: true,
                     },
-                    "optional_attribute": {
-                        Type:     types.BoolType, // As compared to current types.StringType above
+                    "optional_attribute": schema.BoolAttribute{
+                        // As compared to current schema.StringAttribute above
                         Optional: true,
                     },
-                    "required_attribute": {
-                        Type:     types.BoolType, // As compared to current types.StringType above
+                    "required_attribute": schema.BoolAttribute{
+                        // As compared to current schema.StringAttribute above
                         Required: true,
                     },
                 },
@@ -189,19 +187,18 @@ var ThingResourceTftypesDataV1 = tftypes.Object{
 
 type ThingResource struct{/* ... */}
 
-func (r *ThingResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]Attribute{
-            "id": {
-                Type:     types.StringType,
+func (r *ThingResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "id": schema.StringAttribute{
                 Computed: true,
             },
-            "optional_attribute": {
-                Type:     types.StringType, // As compared to prior types.BoolType below
+            "optional_attribute": schema.StringAttribute{
+                // As compared to prior schema.BoolAttribute below
                 Optional: true,
             },
-            "required_attribute": {
-                Type:     types.StringType, // As compared to prior types.BoolType below
+            "required_attribute": schema.StringAttribute{
+                // As compared to prior schema.BoolAttribute below
                 Required: true,
             },
         },

@@ -39,42 +39,24 @@ func resourceExample() *schema.Resource {
 ## Framework
 
 In the Framework, you define attributes by setting the `Attributes` field on your provider, resource, or data type's
-schema, as returned by the `GetSchema` function. The `tfsdk.Schema` type returned by `GetSchema` includes an
-`Attributes` field that maps each attribute name (string) to the attribute's `tfsdk.Attribute` struct.
+schema, as returned by the `Schema` method. The `schema.Schema` type returned by `SchemaResponse` includes an
+`Attributes` field that maps each attribute name (string) to the attribute's definition.
 
 The following code shows how to define an attribute for a resource with the Framework.
 
 ```go
-func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "example": {
-                /* ... */
+func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "example": /* ... */
 ```
 
-The Framework defines the `tfsdk.Attribute` struct as follows.
-
-```go
-type Attribute struct {
-    Type                attr.Type
-    Attributes          NestedAttributes
-    Description         string
-    MarkdownDescription string
-    Required            bool
-    Optional            bool
-    Computed            bool
-    Sensitive           bool
-    DeprecationMessage  string
-    Validators          []AttributeValidator
-    PlanModifiers       AttributePlanModifiers
-}
-```
 ## Migration Notes
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
 - In SDKv2, attributes are defined by a map from attribute names to `schema.Schema` structs in the `Schema` field of
-your resource's schema. In the Framework, attributes are defined by a map from attribute names to `tfsdk.Attribute`
-structs in your resource's schema, which is returned by the `GetSchema` function.
+your resource's schema. In the Framework, attributes are defined by a map from attribute names to `schema.Attribute`
+implementations in your resource's schema, which is returned by the resource `Schema` method.
 - There are several differences between the implementation of attributes in SDKv2 and the Framework. Refer to the other
 pages in the Attributes & Blocks section of this migration guide for more details.
 
@@ -115,13 +97,12 @@ The following shows the same section of provider code after the migration.
 This code implements the `url` attribute for the `http` data source with the Framework.
 
 ```go
-func (d *httpDataSource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (d *httpDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+    return schema.Schema{
         /* ... */
-        Attributes: map[string]tfsdk.Attribute{
-            "url": {
+        Attributes: map[string]schema.Attribute{
+            "url": schema.StringAttribute{
                 Description: "The URL for the request. Supported schemes are `http` and `https`.",
-                Type:        types.StringType,
                 Required:    true,
             },
             /* ... */

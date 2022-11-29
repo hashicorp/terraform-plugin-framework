@@ -42,20 +42,18 @@ The `terraform import` command will need to accept the multiple attribute values
 In this example, the resource requires two attributes to refresh state and accepts them as an import identifier of `attr_one,attr_two`:
 
 ```go
-func (r *ThingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "attr_one": {
-                Type:     types.StringType,
+func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "attr_one": schema.StringAttribute{
                 Required: true,
             },
-            "attr_two": {
-                Type:     types.StringType,
+            "attr_two": schema.StringAttribute{
                 Required: true,
             },
             /* ... */
         },
-    }, nil
+    }
 }
 
 func (r *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {

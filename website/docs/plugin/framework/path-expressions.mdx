@@ -47,11 +47,10 @@ Call the [`path.MatchRoot()` function](https://pkg.go.dev/github.com/hashicorp/t
 Given this example schema with a root attribute named `example_root_attribute`:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"example_root_attribute": {
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"example_root_attribute": schema.StringAttribute{
 			Required: true,
-			Type:     types.StringType,
 		},
 	},
 }
@@ -68,11 +67,10 @@ For blocks, the beginning of a path expression is similarly defined. Attribute a
 Given this example schema with a root block named `example_root_block`:
 
 ```go
-tfsdk.Schema{
-	Blocks: map[string]tfsdk.Block{
-		"example_root_block": {
-			Attributes: map[string]tfsdk.Attribute{/* ... */},
-			NestingMode: tfsdk.BlockNestingModeList,
+schema.Schema{
+	Blocks: map[string]schema.Block{
+		"example_root_block": schema.ListNestedBlock{
+			NestedObject: schema.NestedBlockObject{/* ... */},
 		},
 	},
 }
@@ -101,29 +99,31 @@ Relative path expressions are, by nature, contextual to the actual path where th
 This example shows a relative path expression which references a child attribute:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"root_list_attribute": {
-			Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-				"nested_list_attribute": {
-					Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-						"deeply_nested_string_attribute": {
-							Required: true,
-							Type:     types.StringType,
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_list_attribute": schema.ListNestedAttribute{
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"nested_list_attribute": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"deeply_nested_string_attribute": schema.StringAttribute{
+									Required: true,
+								},
+							},
 						},
-					}),
-					Required: true,
-					Validators: []tfsdk.AttributeValidator{
-						exampleValidatorThatAcceptsExpressions(
-							path.MatchRelative().AtAnyListIndex().AtName("deeply_nested_string_attribute"),
-						),
+						Required: true,
+						Validators: []validator.List{
+							exampleValidatorThatAcceptsExpressions(
+								path.MatchRelative().AtAnyListIndex().AtName("deeply_nested_string_attribute"),
+							),
+						},
+					},
+					"nested_string_attribute": schema.StringAttribute{
+						Required: true,
 					},
 				},
-				"nested_string_attribute": {
-					Required: true,
-					Type:     types.StringType,
-				},
-			}),
+			},
 			Required: true,
 		},
 	},
@@ -133,29 +133,31 @@ tfsdk.Schema{
 This example shows a relative path expression which references a different attribute within the same list index:
 
 ```go
-tfsdk.Schema{
-	Attributes: map[string]tfsdk.Attribute{
-		"root_list_attribute": {
-			Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-				"nested_list_attribute": {
-					Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-						"deeply_nested_string_attribute": {
-							Required: true,
-							Type:     types.StringType,
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_list_attribute": schema.ListNestedAttribute{
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"nested_list_attribute": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"deeply_nested_string_attribute": schema.StringAttribute{
+									Required: true,
+								},
+							},
 						},
-					}),
-					Required: true,
-					Validators: []tfsdk.AttributeValidator{
-						exampleValidatorThatAcceptsExpressions(
-							path.MatchRelative().AtParent().AtName("nested_string_attribute"),
-						),
+						Required: true,
+						Validators: []validator.List{
+							exampleValidatorThatAcceptsExpressions(
+								path.MatchRelative().AtParent().AtName("nested_string_attribute"),
+							),
+						},
+					},
+					"nested_string_attribute": schema.StringAttribute{
+						Required: true,
 					},
 				},
-				"nested_string_attribute": {
-					Required: true,
-					Type:     types.StringType,
-				},
-			}),
+			},
 			Required: true,
 		},
 	},

@@ -53,25 +53,23 @@ type ThingResourceAPIModel struct {
 	Id   string `json:"id"`
 }
 
-func (r ThingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"name": {
+func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"name": schema.StringAttribute{
 				MarkdownDescription: "Name of the thing to be saved in the service.",
 				Required:            true,
-				Type:                types.StringType,
 			},
-			"id": {
+			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Service generated identifier for the thing.",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
-				Type: types.StringType,
 			},
 		},
 		MarkdownDescription: "Manages a thing.",
-	}, nil
+	}
 }
 
 func (r ThingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

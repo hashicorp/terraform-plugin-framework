@@ -92,10 +92,9 @@ func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
 }
 ```
 
-The `resource.Resource` interface requires `Metadata`, `GetSchema`, `Create`, `Read`, `Update`, and `Delete`  methods.
+The `resource.Resource` interface requires `Metadata`, `Schema`, `Create`, `Read`, `Update`, and `Delete`  methods.
 
-The `GetSchema` method returns a `tfsdk.Schema` struct which defines your resource's attributes. This is the same
-struct you use to define provider and data source attributes.
+The `Schema` method returns a `schema.Schema` struct which defines your resource's attributes.
 
 The `Metadata` method returns a type name that you define.
 
@@ -109,7 +108,7 @@ func (r *resourceExample) Metadata(ctx context.Context, req resource.MetadataReq
     /* ... */
 }
 
-func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *resourceExample) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     /* ... */
 }
 
@@ -130,20 +129,6 @@ func (r *resourceExample) Delete(ctx context.Context, req resource.DeleteRequest
 }
 ```
 
-The `tfsdk.Schema` is used for defining the schema for providers, resources and data sources. The Framework defines the
-`tfsdk.Schema` struct as follows.
-
-```go
-type Schema struct {
-    Attributes          map[string]Attribute
-    Blocks              map[string]Block
-    Version             int64
-    DeprecationMessage  string
-    Description         string
-    MarkdownDescription string
-}
-```
-
 Refer to the [Resources - CRUD functions](/plugin/framework/migrating/resources/crud) page in this guide to learn how to
 implement the `resource.Resource` interface.
 
@@ -153,7 +138,7 @@ Remember the following differences between SDKv2 and the Framework when completi
 
 - SDKv2 uses `schema.Resource` structs to define resources. These structs have a `Schema` field which holds a
 `schema.Schema` to define the resource's attributes and behavior. In the Framework, you define a type that implements
-the `resource.Resource` interface, which includes a `GetSchema` method that returns your resource's schema.
+the `resource.Resource` interface, which includes a `Schema` method that returns your resource's schema.
 - SDKv2 implements a resource's CRUD operations as functions on the `schema.Resource`. In the Framework, you define a
 type that implements the `resource.Resource` interface. The resource interface contains the functions that define your resource's
 CRUD operations.
@@ -213,7 +198,7 @@ The following shows the same section of provider code after the migration.
 This code defines the `tls_private_key` resource by mapping the resource name to the `privateKeyResourceType` struct.
 
 ```go
-func (p *provider) Resources(_ context.Context) []func() resource.Resource {
+func (p *TlsProvider) Resources(_ context.Context) []func() resource.Resource {
     return []func() resource.Resource{
         func() resource.Resource {
             return &privateKeyResource{}
@@ -223,31 +208,30 @@ func (p *provider) Resources(_ context.Context) []func() resource.Resource {
 }
 ```
 
-This code defines the `GetSchema` and `Metadata` methods for the `privateKeyResource`.
+This code defines the `Schema` and `Metadata` methods for the `privateKeyResource`.
 
 ```go
 func (r *privateKeyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
     resp.TypeName = "tls_private_key"
 }
 
-func (r *privateKeyResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
+func (r *privateKeyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
             // Required attributes
-            "algorithm": {
-                Type:     types.StringType,
+            "algorithm": schema.StringAttribute{
                 Required: true,
-                PlanModifiers: []tfsdk.AttributePlanModifier{
-                    resource.RequiresReplace(),
+                PlanModifiers: []planmodifier.String{
+                    stringplanmodifier.RequiresReplace(),
                 },
-                Validators: []tfsdk.AttributeValidator{
-                    attribute_validation.OneOf(supportedAlgorithmsAttrValue()...),
+                Validators: []validator.String{
+                    stringvalidator.OneOf(supportedAlgorithmsAttrValue()...),
                 },
                 Description: "Name of the algorithm to use when generating the private key. " +
                     fmt.Sprintf("Currently-supported values are: `%s`. ", strings.Join(supportedAlgorithmsStr(), "`, `")),
             },
             /* ... */
         },
-    }, nil
+    }
 }
 ```

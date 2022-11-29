@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -57,11 +57,10 @@ func TestServerApplyResourceChange(t *testing.T) {
 		"test_provider_meta_attribute": tftypes.NewValue(tftypes.String, "test-provider-meta-value"),
 	})
 
-	testProviderMetaSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_provider_meta_attribute": {
+	testProviderMetaSchema := metaschema.Schema{
+		Attributes: map[string]metaschema.Attribute{
+			"test_provider_meta_attribute": metaschema.StringAttribute{
 				Optional: true,
-				Type:     types.StringType,
 			},
 		},
 	}
@@ -233,8 +232,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 								}
 							},
 						},
-						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testProviderMetaSchema, nil
+						MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+							resp.Schema = testProviderMetaSchema
 						},
 					},
 				},
@@ -559,8 +558,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 								}
 							},
 						},
-						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testProviderMetaSchema, nil
+						MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+							resp.Schema = testProviderMetaSchema
 						},
 					},
 				},
@@ -946,8 +945,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 								}
 							},
 						},
-						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testProviderMetaSchema, nil
+						MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+							resp.Schema = testProviderMetaSchema
 						},
 					},
 				},
@@ -1015,8 +1014,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 								}
 							},
 						},
-						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testProviderMetaSchema, nil
+						MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+							resp.Schema = testProviderMetaSchema
 						},
 					},
 				},

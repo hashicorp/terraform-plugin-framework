@@ -1,4 +1,12 @@
 issues:
+  # Temporary rules for unit testing until tfsdk.Schema is removed.
+  exclude-rules:
+    - linters:
+        - staticcheck
+      text: 'SA1019: tfsdk.(Attribute|Block|Schema) is deprecated'
+    - linters:
+        - staticcheck
+      text: 'SA1019: tfsdk.(List|Map|Set|Single)NestedAttributes is deprecated'
   max-per-linter: 0
   max-same-issues: 0
 

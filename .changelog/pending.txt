@@ -1,0 +1,7 @@
+```release-note:note
+tfsdk: The `Attribute`, `Block`, and `Schema` types have been deprecated. Use the similarly named types in the `datasource/schema`, `provider/schema`, and `resource/schema` packages instead.
+```
+
+```release-note:note
+tfsdk: The `ListNestedAttributes`, `MapNestedAttributes`, `SetNestedAttributes`, and `SingleNestedAttributes` functions have been deprecated. Use the similarly named types in the `datasource/schema`, `provider/schema`, and `resource/schema` packages instead.
+```

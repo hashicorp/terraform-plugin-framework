@@ -20,6 +20,11 @@ var (
 // Attribute defines the constraints and behaviors of a single value field in a
 // schema. Attributes are the fields that show up in Terraform state files and
 // can be used in configuration files.
+//
+// Deprecated: Use datasource/schema.Attribute, provider/schema.Attribute, or
+// resource/schema.Attribute instead. This can be switched by using the
+// datasource/schema.Schema, provider/schema.Schema, or resource/schema.Schema
+// types.
 type Attribute struct {
 	// Type indicates what kind of attribute this is. You'll most likely
 	// want to use one of the types in the types package.

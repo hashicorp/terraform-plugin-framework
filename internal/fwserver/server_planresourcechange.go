@@ -285,13 +285,13 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 		attribute, err := resourceSchema.AttributeAtTerraformPath(ctx, path)
 
 		if err != nil {
-			if errors.Is(err, tfsdk.ErrPathInsideAtomicAttribute) {
+			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
 				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown")
 				return val, nil
 			}
 
-			if errors.Is(err, tfsdk.ErrPathIsBlock) {
+			if errors.Is(err, fwschema.ErrPathIsBlock) {
 				// ignore blocks, they do not have a computed field
 				logging.FrameworkTrace(ctx, "attribute is a block, not marking unknown")
 				return val, nil

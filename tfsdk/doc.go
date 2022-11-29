@@ -1,2 +1,2 @@
-// Package tfsdk contains core framework functionality for schemas and schema data.
+// Package tfsdk contains core framework functionality for schema data.
 package tfsdk

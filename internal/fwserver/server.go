@@ -315,7 +315,7 @@ func (s *Server) ProviderSchema(ctx context.Context) (fwschema.Schema, diag.Diag
 // it implements the ProviderWithMetaSchema interface. The Schema and
 // Diagnostics are cached on first use.
 func (s *Server) ProviderMetaSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
-	providerWithProviderMeta, ok := s.Provider.(provider.ProviderWithMetaSchema)
+	providerWithMetaSchema, ok := s.Provider.(provider.ProviderWithMetaSchema)
 
 	if !ok {
 		return nil, nil
@@ -330,12 +330,15 @@ func (s *Server) ProviderMetaSchema(ctx context.Context) (fwschema.Schema, diag.
 		return s.providerMetaSchema, s.providerMetaSchemaDiags
 	}
 
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetMetaSchema")
-	providerMetaSchema, diags := providerWithProviderMeta.GetMetaSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider GetMetaSchema")
+	req := provider.MetaSchemaRequest{}
+	resp := &provider.MetaSchemaResponse{}
 
-	s.providerMetaSchema = &providerMetaSchema
-	s.providerMetaSchemaDiags = diags
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider MetaSchema")
+	providerWithMetaSchema.MetaSchema(ctx, req, resp)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider MetaSchema")
+
+	s.providerMetaSchema = resp.Schema
+	s.providerMetaSchemaDiags = resp.Diagnostics
 
 	return s.providerMetaSchema, s.providerMetaSchemaDiags
 }

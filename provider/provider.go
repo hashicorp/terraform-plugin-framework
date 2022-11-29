@@ -15,11 +15,7 @@ import (
 //
 // Providers can optionally implement these additional concepts:
 //
-//   - Resources: ProviderWithResources or (deprecated)
-//     ProviderWithGetResources.
-//   - Data Sources: ProviderWithDataSources or (deprecated)
-//     ProviderWithGetDataSources.
-//   - Validation: Schema-based via tfsdk.Attribute or entire configuration
+//   - Validation: Schema-based or entire configuration
 //     via ProviderWithConfigValidators or ProviderWithValidateConfig.
 //   - Meta Schema: ProviderWithMetaSchema
 type Provider interface {
@@ -89,15 +85,25 @@ type ProviderWithMetadata interface {
 	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 }
 
-// ProviderWithMetaSchema is a provider with a provider meta schema.
+// ProviderWithMetaSchema is a provider with a provider meta schema, which
+// is configured by practitioners via the provider_meta configuration block
+// and the configuration data is included with certain data source and resource
+// operations. The intended use case is to enable Terraform module authors
+// within the same organization of the provider to track module usage in
+// requests. Other use cases are explicitly not supported. All provider
+// instances (aliases) receive the same data.
+//
 // This functionality is currently experimental and subject to change or break
-// without warning; it should only be used by providers that are collaborating
-// on its use with the Terraform team.
+// without warning. It is not protected by version compatibility guarantees.
 type ProviderWithMetaSchema interface {
 	Provider
 
-	// GetMetaSchema returns the provider meta schema.
-	GetMetaSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
+	// MetaSchema should return the meta schema for this provider.
+	//
+	// This functionality is currently experimental and subject to change or
+	// break without warning. It is not protected by version compatibility
+	// guarantees.
+	MetaSchema(context.Context, MetaSchemaRequest, *MetaSchemaResponse)
 }
 
 // ProviderWithSchema is a temporary interface type that extends

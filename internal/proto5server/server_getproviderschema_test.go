@@ -8,16 +8,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tfsdklogtest"
@@ -253,15 +251,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.ProviderWithMetaSchema{
 						Provider: &testprovider.Provider{},
-						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return tfsdk.Schema{
-								Attributes: map[string]tfsdk.Attribute{
-									"test": {
+						MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+							resp.Schema = metaschema.Schema{
+								Attributes: map[string]metaschema.Attribute{
+									"test": metaschema.StringAttribute{
 										Required: true,
-										Type:     types.StringType,
 									},
 								},
-							}, nil
+							}
 						},
 					},
 				},

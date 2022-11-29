@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -42,6 +42,19 @@ func TestServerReadResource(t *testing.T) {
 	})
 
 	testNewStateRemovedDynamicValue, _ := tfprotov6.NewDynamicValue(testType, tftypes.NewValue(testType, nil))
+
+	testProviderMetaDynamicValue := testNewDynamicValue(t,
+		tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"test_optional": tftypes.String,
+				"test_required": tftypes.String,
+			},
+		},
+		map[string]tftypes.Value{
+			"test_optional": tftypes.NewValue(tftypes.String, nil),
+			"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+		},
+	)
 
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -143,14 +156,14 @@ func TestServerReadResource(t *testing.T) {
 											},
 											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 												var data struct {
-													TestComputed types.String `tfsdk:"test_computed"`
+													TestOptional types.String `tfsdk:"test_optional"`
 													TestRequired types.String `tfsdk:"test_required"`
 												}
 
 												resp.Diagnostics.Append(req.ProviderMeta.Get(ctx, &data)...)
 
-												if data.TestRequired.ValueString() != "test-currentstate-value" {
-													resp.Diagnostics.AddError("unexpected req.ProviderMeta value: %s", data.TestRequired.ValueString())
+												if data.TestRequired.ValueString() != "test-config-value" {
+													resp.Diagnostics.AddError("Unexpected req.ProviderMeta", data.TestRequired.ValueString())
 												}
 											},
 										}
@@ -158,26 +171,24 @@ func TestServerReadResource(t *testing.T) {
 								}
 							},
 						},
-						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return tfsdk.Schema{
-								Attributes: map[string]tfsdk.Attribute{
-									"test_computed": {
-										Computed: true,
-										Type:     types.StringType,
+						MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+							resp.Schema = metaschema.Schema{
+								Attributes: map[string]metaschema.Attribute{
+									"test_optional": metaschema.StringAttribute{
+										Optional: true,
 									},
-									"test_required": {
+									"test_required": metaschema.StringAttribute{
 										Required: true,
-										Type:     types.StringType,
 									},
 								},
-							}, nil
+							}
 						},
 					},
 				},
 			},
 			request: &tfprotov6.ReadResourceRequest{
 				CurrentState: testEmptyDynamicValue,
-				ProviderMeta: testCurrentStateValue,
+				ProviderMeta: testProviderMetaDynamicValue,
 				TypeName:     "test_resource",
 			},
 			expectedResponse: &tfprotov6.ReadResourceResponse{

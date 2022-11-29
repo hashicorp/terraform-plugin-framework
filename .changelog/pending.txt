@@ -1,0 +1,3 @@
+```release-note:feature
+resource/schema/planmodifier: New package which contains type-specific schema plan modifier interfaces
+```

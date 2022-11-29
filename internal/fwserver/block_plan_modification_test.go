@@ -2,6 +2,7 @@ package fwserver
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -10,10 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -2004,7 +2009,3613 @@ func TestBlockModifyPlan(t *testing.T) {
 			BlockModifyPlan(context.Background(), tc.block, tc.req, &got)
 
 			if diff := cmp.Diff(tc.expectedResp, got, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
+				for _, d := range got.Diagnostics {
+					t.Logf("%s: %s\n%s\n", d.Severity(), d.Summary(), d.Detail())
+				}
 				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestBlockPlanModifyList(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		block    fwxschema.BlockWithListPlanModifiers
+		request  tfsdk.ModifyAttributePlanRequest
+		response *ModifyAttributePlanResponse
+		expected *ModifyAttributePlanResponse
+	}{
+		"request-path": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-pathexpression": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:           path.Root("test"),
+				AttributePathExpression: path.MatchRoot("test"),
+				AttributeConfig:         types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:           types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:          types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-config": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							got := req.Config
+							expected := tfsdk.Config{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.List{ElementType: tftypes.String},
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(
+											tftypes.List{ElementType: tftypes.String},
+											[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+										),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{ElementType: tftypes.String},
+								[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+							),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-configvalue": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							got := req.ConfigValue
+							expected := types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.ListNull(types.StringType),
+				AttributeState:  types.ListNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListNull(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListNull(types.StringType),
+			},
+		},
+		"request-plan": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							got := req.Plan
+							expected := tfsdk.Plan{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.List{ElementType: tftypes.String},
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(
+											tftypes.List{ElementType: tftypes.String},
+											[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+										),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.Plan",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{ElementType: tftypes.String},
+								[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+							),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-planvalue": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							got := req.PlanValue
+							expected := types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.PlanValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListNull(types.StringType),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-private": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							got, diags := req.Private.GetKey(ctx, "testkey")
+							expected := []byte(`{"testproperty":true}`)
+
+							resp.Diagnostics.Append(diags...)
+
+							if diff := cmp.Diff(got, expected); diff != "" {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.Private",
+									diff,
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListNull(types.StringType),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListNull(types.StringType),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+		},
+		"request-state": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							got := req.State
+							expected := tfsdk.State{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.List{ElementType: tftypes.String},
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(
+											tftypes.List{ElementType: tftypes.String},
+											[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+										),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.State",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{ElementType: tftypes.String},
+								[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+							),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-statevalue": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							got := req.StateValue
+							expected := types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.StateValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListNull(types.StringType),
+				AttributePlan:   types.ListNull(types.StringType),
+				AttributeState:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListNull(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListNull(types.StringType),
+			},
+		},
+		"response-diagnostics": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"response-planvalue": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							resp.PlanValue = types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListNull(types.StringType),
+				AttributePlan:   types.ListUnknown(types.StringType),
+				AttributeState:  types.ListNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListUnknown(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"response-private": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							resp.Diagnostics.Append(
+								resp.Private.SetKey(ctx, "testkey", []byte(`{"newtestproperty":true}`))...,
+							)
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListNull(types.StringType),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListNull(types.StringType),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"newtestproperty":true}`),
+					}),
+				),
+			},
+		},
+		"response-requiresreplace-add": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("oldtestvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
+		"response-requiresreplace-false": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							resp.RequiresReplace = false // same as not being set
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("oldtestvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains as it should not be removed
+				},
+			},
+		},
+		"response-requiresreplace-update": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("oldtestvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			BlockPlanModifyList(context.Background(), testCase.block, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestBlockPlanModifyObject(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		block    fwxschema.BlockWithObjectPlanModifiers
+		request  tfsdk.ModifyAttributePlanRequest
+		response *ModifyAttributePlanResponse
+		expected *ModifyAttributePlanResponse
+	}{
+		"request-path": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+		},
+		"request-pathexpression": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:           path.Root("test"),
+				AttributePathExpression: path.MatchRoot("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+		},
+		"request-config": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.Config
+							expected := tfsdk.Config{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"testattr": tftypes.String,
+												},
+											},
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(
+											tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"testattr": tftypes.String,
+												},
+											},
+											map[string]tftypes.Value{
+												"testattr": tftypes.NewValue(tftypes.String, "testvalue"),
+											},
+										),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"testattr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+		},
+		"request-configvalue": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.ConfigValue
+							expected := types.ObjectValueMust(
+								map[string]attr.Type{
+									"testattr": types.StringType,
+								},
+								map[string]attr.Value{
+									"testattr": types.StringValue("testvalue"),
+								},
+							)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				AttributeState: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+			},
+		},
+		"request-plan": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.Plan
+							expected := tfsdk.Plan{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"testattr": tftypes.String,
+												},
+											},
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(
+											tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"testattr": tftypes.String,
+												},
+											},
+											map[string]tftypes.Value{
+												"testattr": tftypes.NewValue(tftypes.String, "testvalue"),
+											},
+										),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Plan",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"testattr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+		},
+		"request-planvalue": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.PlanValue
+							expected := types.ObjectValueMust(
+								map[string]attr.Type{
+									"testattr": types.StringType,
+								},
+								map[string]attr.Value{
+									"testattr": types.StringValue("testvalue"),
+								},
+							)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.PlanValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+		},
+		"request-private": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got, diags := req.Private.GetKey(ctx, "testkey")
+							expected := []byte(`{"testproperty":true}`)
+
+							resp.Diagnostics.Append(diags...)
+
+							if diff := cmp.Diff(got, expected); diff != "" {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Private",
+									diff,
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+		},
+		"request-state": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.State
+							expected := tfsdk.State{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"testattr": tftypes.String,
+												},
+											},
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(
+											tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"testattr": tftypes.String,
+												},
+											},
+											map[string]tftypes.Value{
+												"testattr": tftypes.NewValue(tftypes.String, "testvalue"),
+											},
+										),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.State",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"testattr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+		},
+		"request-statevalue": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.StateValue
+							expected := types.ObjectValueMust(
+								map[string]attr.Type{
+									"testattr": types.StringType,
+								},
+								map[string]attr.Value{
+									"testattr": types.StringValue("testvalue"),
+								},
+							)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.StateValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				AttributePlan: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+			},
+		},
+		"response-diagnostics": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"response-planvalue": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.PlanValue = types.ObjectValueMust(
+								map[string]attr.Type{
+									"testattr": types.StringType,
+								},
+								map[string]attr.Value{
+									"testattr": types.StringValue("testvalue"),
+								},
+							)
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				AttributePlan: types.ObjectUnknown(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				AttributeState: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectUnknown(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+		},
+		"response-private": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.Diagnostics.Append(
+								resp.Private.SetKey(ctx, "testkey", []byte(`{"newtestproperty":true}`))...,
+							)
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectNull(map[string]attr.Type{
+					"testattr": types.StringType,
+				}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"newtestproperty":true}`),
+					}),
+				),
+			},
+		},
+		"response-requiresreplace-add": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("oldtestvalue"),
+					},
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
+		"response-requiresreplace-false": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.RequiresReplace = false // same as not being set
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("oldtestvalue"),
+					},
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains as it should not be removed
+				},
+			},
+		},
+		"response-requiresreplace-update": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("oldtestvalue"),
+					},
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+					},
+				),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			BlockPlanModifyObject(context.Background(), testCase.block, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestBlockPlanModifySet(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		block    fwxschema.BlockWithSetPlanModifiers
+		request  tfsdk.ModifyAttributePlanRequest
+		response *ModifyAttributePlanResponse
+		expected *ModifyAttributePlanResponse
+	}{
+		"request-path": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-pathexpression": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:           path.Root("test"),
+				AttributePathExpression: path.MatchRoot("test"),
+				AttributeConfig:         types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:           types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:          types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-config": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							got := req.Config
+							expected := tfsdk.Config{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Set{ElementType: tftypes.String},
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(
+											tftypes.Set{ElementType: tftypes.String},
+											[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+										),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{ElementType: tftypes.String},
+								[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+							),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-configvalue": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							got := req.ConfigValue
+							expected := types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.SetNull(types.StringType),
+				AttributeState:  types.SetNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetNull(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetNull(types.StringType),
+			},
+		},
+		"request-plan": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							got := req.Plan
+							expected := tfsdk.Plan{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Set{ElementType: tftypes.String},
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(
+											tftypes.Set{ElementType: tftypes.String},
+											[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+										),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.Plan",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{ElementType: tftypes.String},
+								[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+							),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-planvalue": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							got := req.PlanValue
+							expected := types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.PlanValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetNull(types.StringType),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-private": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							got, diags := req.Private.GetKey(ctx, "testkey")
+							expected := []byte(`{"testproperty":true}`)
+
+							resp.Diagnostics.Append(diags...)
+
+							if diff := cmp.Diff(got, expected); diff != "" {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.Private",
+									diff,
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetNull(types.StringType),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetNull(types.StringType),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+		},
+		"request-state": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							got := req.State
+							expected := tfsdk.State{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Set{ElementType: tftypes.String},
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(
+											tftypes.Set{ElementType: tftypes.String},
+											[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+										),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.State",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{ElementType: tftypes.String},
+								[]tftypes.Value{tftypes.NewValue(tftypes.String, "testvalue")},
+							),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"request-statevalue": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							got := req.StateValue
+							expected := types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.StateValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetNull(types.StringType),
+				AttributePlan:   types.SetNull(types.StringType),
+				AttributeState:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetNull(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetNull(types.StringType),
+			},
+		},
+		"response-diagnostics": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"response-planvalue": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							resp.PlanValue = types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetNull(types.StringType),
+				AttributePlan:   types.SetUnknown(types.StringType),
+				AttributeState:  types.SetNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetUnknown(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"response-private": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							resp.Diagnostics.Append(
+								resp.Private.SetKey(ctx, "testkey", []byte(`{"newtestproperty":true}`))...,
+							)
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetNull(types.StringType),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetNull(types.StringType),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"newtestproperty":true}`),
+					}),
+				),
+			},
+		},
+		"response-requiresreplace-add": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("oldtestvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
+		"response-requiresreplace-false": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							resp.RequiresReplace = false // same as not being set
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("oldtestvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains as it should not be removed
+				},
+			},
+		},
+		"response-requiresreplace-update": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: tfsdk.ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				AttributeState:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("oldtestvalue")}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			BlockPlanModifySet(context.Background(), testCase.block, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestNestedBlockObjectPlanModify(t *testing.T) {
+	t.Parallel()
+
+	fwSchema := testschema.Schema{
+		Blocks: map[string]fwschema.Block{
+			"test": testschema.BlockWithObjectPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringPlanModifiers{},
+				},
+				Blocks: map[string]fwschema.Block{
+					"testblock": testschema.BlockWithObjectPlanModifiers{
+						Attributes: map[string]fwschema.Attribute{
+							"testblockattr": testschema.AttributeWithStringPlanModifiers{},
+						},
+					},
+				},
+			},
+		},
+	}
+	fwValue := types.ObjectValueMust(
+		map[string]attr.Type{
+			"testattr": types.StringType,
+			"testblock": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"testblockattr": types.StringType,
+				},
+			},
+		},
+		map[string]attr.Value{
+			"testattr": types.StringValue("testvalue"),
+			"testblock": types.ObjectValueMust(
+				map[string]attr.Type{
+					"testblockattr": types.StringType,
+				},
+				map[string]attr.Value{
+					"testblockattr": types.StringValue("testvalue"),
+				},
+			),
+		},
+	)
+	tfValue := tftypes.NewValue(
+		tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"test": tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"testattr": tftypes.String,
+						"testblock": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"testblockattr": tftypes.String,
+							},
+						},
+					},
+				},
+			},
+		},
+		map[string]tftypes.Value{
+			"test": tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"testattr": tftypes.String,
+						"testblock": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"testblockattr": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"testattr": tftypes.NewValue(tftypes.String, "testvalue"),
+					"testblock": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"testblockattr": tftypes.String,
+							},
+						},
+						map[string]tftypes.Value{
+							"testblockattr": tftypes.NewValue(tftypes.String, "testvalue"),
+						},
+					),
+				},
+			),
+		},
+	)
+	testConfig := tfsdk.Config{
+		Raw:    tfValue,
+		Schema: fwSchema,
+	}
+	testPlan := tfsdk.Plan{
+		Raw:    tfValue,
+		Schema: fwSchema,
+	}
+	testState := tfsdk.State{
+		Raw:    tfValue,
+		Schema: fwSchema,
+	}
+
+	testCases := map[string]struct {
+		object   fwschema.NestedBlockObject
+		request  planmodifier.ObjectRequest
+		response *ModifyAttributePlanResponse
+		expected *ModifyAttributePlanResponse
+	}{
+		"request-path": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+		},
+		"request-pathexpression": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+		},
+		"request-config": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.Config
+							expected := testConfig
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+		},
+		"request-configvalue": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.ConfigValue
+							expected := fwValue
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+		},
+		"request-plan": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.Plan
+							expected := testPlan
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Plan",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+		},
+		"request-planvalue": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.PlanValue
+							expected := fwValue
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.PlanValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+		},
+		"request-private": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got, diags := req.Private.GetKey(ctx, "testkey")
+							expected := []byte(`{"testproperty":true}`)
+
+							resp.Diagnostics.Append(diags...)
+
+							if diff := cmp.Diff(got, expected); diff != "" {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.Private",
+									diff,
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+				State:      testState,
+				StateValue: fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+		},
+		"request-state": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.State
+							expected := testState
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.State",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+		},
+		"request-statevalue": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.StateValue
+							expected := fwValue
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.StateValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+		},
+		"response-diagnostics": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+				AttributePlan: fwValue,
+			},
+		},
+		"response-diagnostics-nested-attributes": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringPlanModifiers{
+						Required: true,
+						PlanModifiers: []planmodifier.String{
+							testplanmodifier.String{
+								PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+									resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+									resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+								},
+							},
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test").AtName("testattr"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test").AtName("testattr"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"response-diagnostics-nested-blocks": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				Blocks: map[string]fwschema.Block{
+					"testblock": testschema.BlockWithObjectPlanModifiers{
+						PlanModifiers: []planmodifier.Object{
+							testplanmodifier.Object{
+								PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+									resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+									resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+								},
+							},
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test").AtName("testblock"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test").AtName("testblock"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"response-planvalue": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.PlanValue = types.ObjectValueMust(
+								map[string]attr.Type{
+									"testattr": types.StringType,
+									"testblock": types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"testblockattr": types.StringType,
+										},
+									},
+								},
+								map[string]attr.Value{
+									"testattr": types.StringValue("newtestvalue"),
+									"testblock": types.ObjectValueMust(
+										map[string]attr.Type{
+											"testblockattr": types.StringType,
+										},
+										map[string]attr.Value{
+											"testblockattr": types.StringValue("newtestvalue"),
+										},
+									),
+								},
+							)
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+						"testblock": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+						},
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+						"testblock": types.ObjectValueMust(
+							map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+							map[string]attr.Value{
+								"testblockattr": types.StringValue("testvalue"),
+							},
+						),
+					},
+				),
+				State:      testState,
+				StateValue: fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+						"testblock": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+						},
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+						"testblock": types.ObjectValueMust(
+							map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+							map[string]attr.Value{
+								"testblockattr": types.StringValue("testvalue"),
+							},
+						),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+						"testblock": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+						},
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("newtestvalue"),
+						"testblock": types.ObjectValueMust(
+							map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+							map[string]attr.Value{
+								"testblockattr": types.StringValue("newtestvalue"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"response-planvalue-nested-attributes": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringPlanModifiers{
+						Required: true,
+						PlanModifiers: []planmodifier.String{
+							testplanmodifier.String{
+								PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+									resp.PlanValue = types.StringValue("newtestvalue")
+								},
+							},
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+						"testblock": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+						},
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+						"testblock": types.ObjectValueMust(
+							map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+							map[string]attr.Value{
+								"testblockattr": types.StringValue("testvalue"),
+							},
+						),
+					},
+				),
+				State:      testState,
+				StateValue: fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+						"testblock": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+						},
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+						"testblock": types.ObjectValueMust(
+							map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+							map[string]attr.Value{
+								"testblockattr": types.StringValue("testvalue"),
+							},
+						),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+						"testblock": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+						},
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("newtestvalue"),
+						"testblock": types.ObjectValueMust(
+							map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+							map[string]attr.Value{
+								"testblockattr": types.StringValue("testvalue"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"response-planvalue-nested-blocks": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				Blocks: map[string]fwschema.Block{
+					"testblock": testschema.BlockWithObjectPlanModifiers{
+						PlanModifiers: []planmodifier.Object{
+							testplanmodifier.Object{
+								PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+									resp.PlanValue = types.ObjectValueMust(
+										map[string]attr.Type{
+											"testblockattr": types.StringType,
+										},
+										map[string]attr.Value{
+											"testblockattr": types.StringValue("newtestvalue"),
+										},
+									)
+								},
+							},
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+						"testblock": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+						},
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+						"testblock": types.ObjectValueMust(
+							map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+							map[string]attr.Value{
+								"testblockattr": types.StringValue("testvalue"),
+							},
+						),
+					},
+				),
+				State:      testState,
+				StateValue: fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+						"testblock": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+						},
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+						"testblock": types.ObjectValueMust(
+							map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+							map[string]attr.Value{
+								"testblockattr": types.StringValue("testvalue"),
+							},
+						),
+					},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+						"testblock": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+						},
+					},
+					map[string]attr.Value{
+						"testattr": types.StringValue("testvalue"),
+						"testblock": types.ObjectValueMust(
+							map[string]attr.Type{
+								"testblockattr": types.StringType,
+							},
+							map[string]attr.Value{
+								"testblockattr": types.StringValue("newtestvalue"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"response-private": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.Diagnostics.Append(
+								resp.Private.SetKey(ctx, "testkey", []byte(`{"newtestproperty":true}`))...,
+							)
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+				State:      testState,
+				StateValue: fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"newtestproperty":true}`),
+					}),
+				),
+			},
+		},
+		"response-private-nested-attributes": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringPlanModifiers{
+						Required: true,
+						PlanModifiers: []planmodifier.String{
+							testplanmodifier.String{
+								PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+									resp.Diagnostics.Append(
+										resp.Private.SetKey(ctx, "testkey", []byte(`{"newtestproperty":true}`))...,
+									)
+								},
+							},
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+				State:      testState,
+				StateValue: fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"newtestproperty":true}`),
+					}),
+				),
+			},
+		},
+		"response-private-nested-blocks": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				Blocks: map[string]fwschema.Block{
+					"testblock": testschema.BlockWithObjectPlanModifiers{
+						PlanModifiers: []planmodifier.Object{
+							testplanmodifier.Object{
+								PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+									resp.Diagnostics.Append(
+										resp.Private.SetKey(ctx, "testkey", []byte(`{"newtestproperty":true}`))...,
+									)
+								},
+							},
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+				State:      testState,
+				StateValue: fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"newtestproperty":true}`),
+					}),
+				),
+			},
+		},
+		"response-requiresreplace-add": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
+		"response-requiresreplace-false": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.RequiresReplace = false // same as not being set
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				RequiresReplace: path.Paths{
+					path.Root("test"), // set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				RequiresReplace: path.Paths{
+					path.Root("test"), // should not be removed
+				},
+			},
+		},
+		"response-requiresreplace-nested-attributes": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringPlanModifiers{
+						Required: true,
+						PlanModifiers: []planmodifier.String{
+							testplanmodifier.String{
+								PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+									resp.RequiresReplace = true
+								},
+							},
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				RequiresReplace: path.Paths{
+					path.Root("test").AtName("testattr"),
+				},
+			},
+		},
+		"response-requiresreplace-nested-blocks": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				Blocks: map[string]fwschema.Block{
+					"testblock": testschema.BlockWithObjectPlanModifiers{
+						PlanModifiers: []planmodifier.Object{
+							testplanmodifier.Object{
+								PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+									resp.RequiresReplace = true
+								},
+							},
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				RequiresReplace: path.Paths{
+					path.Root("test").AtName("testblock"),
+				},
+			},
+		},
+		"response-requiresreplace-update": {
+			object: testschema.NestedBlockObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config:         testConfig,
+				ConfigValue:    fwValue,
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan:           testPlan,
+				PlanValue:      fwValue,
+				State:          testState,
+				StateValue:     fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				RequiresReplace: path.Paths{
+					path.Root("test"), // set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: fwValue,
+				RequiresReplace: path.Paths{
+					path.Root("test"), // remains deduplicated
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			NestedBlockObjectPlanModify(context.Background(), testCase.object, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

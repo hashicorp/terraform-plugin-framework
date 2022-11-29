@@ -549,6 +549,95 @@ func TestNewProviderData(t *testing.T) {
 	}
 }
 
+func TestProviderDataEqual(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		providerData *ProviderData
+		other        *ProviderData
+		expected     bool
+	}{
+		"nil-nil": {
+			providerData: nil,
+			other:        nil,
+			expected:     true,
+		},
+		"nil-empty": {
+			providerData: nil,
+			other:        EmptyProviderData(context.Background()),
+			expected:     false,
+		},
+		"empty-nil": {
+			providerData: EmptyProviderData(context.Background()),
+			other:        nil,
+			expected:     false,
+		},
+		"empty-data": {
+			providerData: EmptyProviderData(context.Background()),
+			other: MustProviderData(
+				context.Background(),
+				MustMarshalToJson(map[string][]byte{"test": []byte(`{}`)}),
+			),
+			expected: false,
+		},
+		"data-empty": {
+			providerData: MustProviderData(
+				context.Background(),
+				MustMarshalToJson(map[string][]byte{"test": []byte(`{}`)}),
+			),
+			other:    EmptyProviderData(context.Background()),
+			expected: false,
+		},
+		"data-data-different-keys": {
+			providerData: MustProviderData(
+				context.Background(),
+				MustMarshalToJson(map[string][]byte{"test1": []byte(`{}`)}),
+			),
+			other: MustProviderData(
+				context.Background(),
+				MustMarshalToJson(map[string][]byte{"test2": []byte(`{}`)}),
+			),
+			expected: false,
+		},
+		"data-data-different-values": {
+			providerData: MustProviderData(
+				context.Background(),
+				MustMarshalToJson(map[string][]byte{"test": []byte(`{"subtest":true}`)}),
+			),
+			other: MustProviderData(
+				context.Background(),
+				MustMarshalToJson(map[string][]byte{"test": []byte(`{"subtest":false}`)}),
+			),
+			expected: false,
+		},
+		"data-data-equal": {
+			providerData: MustProviderData(
+				context.Background(),
+				MustMarshalToJson(map[string][]byte{"test": []byte(`{}`)}),
+			),
+			other: MustProviderData(
+				context.Background(),
+				MustMarshalToJson(map[string][]byte{"test": []byte(`{}`)}),
+			),
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.providerData.Equal(testCase.other)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestProviderData_GetKey(t *testing.T) {
 	testCases := map[string]struct {
 		providerData  *ProviderData

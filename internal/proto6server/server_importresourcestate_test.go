@@ -8,14 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 func TestServerImportResourceState(t *testing.T) {
@@ -35,19 +33,16 @@ func TestServerImportResourceState(t *testing.T) {
 		"required": tftypes.NewValue(tftypes.String, nil),
 	})
 
-	testSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
-			"optional": {
+			"optional": schema.StringAttribute{
 				Optional: true,
-				Type:     types.StringType,
 			},
-			"required": {
+			"required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
@@ -67,8 +62,8 @@ func TestServerImportResourceState(t *testing.T) {
 								func() resource.Resource {
 									return &testprovider.ResourceWithImportState{
 										Resource: &testprovider.Resource{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return testSchema, nil
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
@@ -110,8 +105,8 @@ func TestServerImportResourceState(t *testing.T) {
 								func() resource.Resource {
 									return &testprovider.ResourceWithImportState{
 										Resource: &testprovider.Resource{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return testSchema, nil
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
@@ -156,8 +151,8 @@ func TestServerImportResourceState(t *testing.T) {
 								func() resource.Resource {
 									return &testprovider.ResourceWithImportState{
 										Resource: &testprovider.Resource{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return testSchema, nil
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
@@ -195,8 +190,8 @@ func TestServerImportResourceState(t *testing.T) {
 								func() resource.Resource {
 									return &testprovider.ResourceWithImportState{
 										Resource: &testprovider.Resource{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return testSchema, nil
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"

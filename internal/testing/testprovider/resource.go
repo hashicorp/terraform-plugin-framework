@@ -3,9 +3,7 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 var _ resource.Resource = &Resource{}
@@ -13,12 +11,12 @@ var _ resource.Resource = &Resource{}
 // Declarative resource.Resource for unit testing.
 type Resource struct {
 	// Resource interface methods
-	MetadataMethod  func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
-	GetSchemaMethod func(context.Context) (tfsdk.Schema, diag.Diagnostics)
-	CreateMethod    func(context.Context, resource.CreateRequest, *resource.CreateResponse)
-	DeleteMethod    func(context.Context, resource.DeleteRequest, *resource.DeleteResponse)
-	ReadMethod      func(context.Context, resource.ReadRequest, *resource.ReadResponse)
-	UpdateMethod    func(context.Context, resource.UpdateRequest, *resource.UpdateResponse)
+	MetadataMethod func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
+	SchemaMethod   func(context.Context, resource.SchemaRequest, *resource.SchemaResponse)
+	CreateMethod   func(context.Context, resource.CreateRequest, *resource.CreateResponse)
+	DeleteMethod   func(context.Context, resource.DeleteRequest, *resource.DeleteResponse)
+	ReadMethod     func(context.Context, resource.ReadRequest, *resource.ReadResponse)
+	UpdateMethod   func(context.Context, resource.UpdateRequest, *resource.UpdateResponse)
 }
 
 // Metadata satisfies the resource.Resource interface.
@@ -30,13 +28,13 @@ func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, r
 	r.MetadataMethod(ctx, req, resp)
 }
 
-// GetSchema satisfies the resource.Resource interface.
-func (r *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	if r.GetSchemaMethod == nil {
-		return tfsdk.Schema{}, nil
+// Schema satisfies the resource.Resource interface.
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	if r.SchemaMethod == nil {
+		return
 	}
 
-	return r.GetSchemaMethod(ctx)
+	r.SchemaMethod(ctx, req, resp)
 }
 
 // Create satisfies the resource.Resource interface.

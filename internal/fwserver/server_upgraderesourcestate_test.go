@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -23,24 +24,21 @@ func TestServerUpgradeResourceState(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	schema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Type:     types.StringType,
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Computed: true,
 			},
-			"optional_attribute": {
-				Type:     types.StringType,
+			"optional_attribute": schema.StringAttribute{
 				Optional: true,
 			},
-			"required_attribute": {
-				Type:     types.StringType,
+			"required_attribute": schema.StringAttribute{
 				Required: true,
 			},
 		},
 		Version: 1, // Must be above 0
 	}
-	schemaType := schema.Type().TerraformType(ctx)
+	schemaType := testSchema.Type().TerraformType(ctx)
 
 	testCases := map[string]struct {
 		server           *fwserver.Server
@@ -63,7 +61,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithConfigureAndUpgradeState{
 					ConfigureMethod: func(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 						providerData, ok := req.ProviderData.(string)
@@ -150,7 +148,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),
-					Schema: schema,
+					Schema: testSchema,
 				},
 			},
 		},
@@ -159,7 +157,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.UpgradeResourceStateRequest{
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource:       &testprovider.Resource{},
 				Version:        0,
 			},
@@ -174,7 +172,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithUpgradeState{
 					Resource: &testprovider.Resource{},
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
@@ -268,7 +266,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),
-					Schema: schema,
+					Schema: testSchema,
 				},
 			},
 		},
@@ -281,7 +279,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithUpgradeState{
 					Resource: &testprovider.Resource{},
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
@@ -341,7 +339,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),
-					Schema: schema,
+					Schema: testSchema,
 				},
 			},
 		},
@@ -354,7 +352,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource:       &testprovider.Resource{},
 				Version:        0,
 			},
@@ -378,7 +376,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithUpgradeState{
 					Resource: &testprovider.Resource{},
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
@@ -407,7 +405,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithUpgradeState{
 					Resource: &testprovider.Resource{},
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
@@ -458,7 +456,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithUpgradeState{
 					Resource: &testprovider.Resource{},
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
@@ -522,7 +520,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),
-					Schema: schema,
+					Schema: testSchema,
 				},
 			},
 		},
@@ -536,7 +534,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"required_attribute":    true,
 					"nonexistent_attribute": "value",
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithUpgradeState{
 					Resource: &testprovider.Resource{},
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
@@ -600,7 +598,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),
-					Schema: schema,
+					Schema: testSchema,
 				},
 			},
 		},
@@ -613,7 +611,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithUpgradeState{
 					Resource: &testprovider.Resource{},
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
@@ -646,8 +644,8 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						return []func() resource.Resource{
 							func() resource.Resource {
 								return &testprovider.Resource{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return schema, nil
+									SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+										resp.Schema = testSchema
 									},
 									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 										resp.TypeName = "test_resource"
@@ -664,7 +662,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						"flatmap": "is not supported",
 					},
 				},
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource:       &testprovider.Resource{},
 				Version:        1, // Must match current tfsdk.Schema version to trigger framework implementation
 			},
@@ -688,8 +686,8 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						return []func() resource.Resource{
 							func() resource.Resource {
 								return &testprovider.Resource{
-									GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-										return schema, nil
+									SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+										resp.Schema = testSchema
 									},
 									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 										resp.TypeName = "test_resource"
@@ -705,7 +703,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": "true",
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource:       &testprovider.Resource{},
 				Version:        1, // Must match current tfsdk.Schema version to trigger framework implementation
 			},
@@ -716,7 +714,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),
-					Schema: schema,
+					Schema: testSchema,
 				},
 			},
 		},
@@ -730,7 +728,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"required_attribute":    "true",
 					"nonexistent_attribute": "value",
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource:       &testprovider.Resource{},
 				Version:        1, // Must match current tfsdk.Schema version to trigger framework implementation
 			},
@@ -741,7 +739,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),
-					Schema: schema,
+					Schema: testSchema,
 				},
 			},
 		},
@@ -754,7 +752,7 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
-				ResourceSchema: schema,
+				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithUpgradeState{
 					Resource: &testprovider.Resource{},
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {

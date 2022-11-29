@@ -7,12 +7,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -38,9 +39,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
 										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"test1": schema.StringAttribute{
+											resp.Schema = datasourceschema.Schema{
+												Attributes: map[string]datasourceschema.Attribute{
+													"test1": datasourceschema.StringAttribute{
 														Required: true,
 													},
 												},
@@ -54,9 +55,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
 										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"test2": schema.StringAttribute{
+											resp.Schema = datasourceschema.Schema{
+												Attributes: map[string]datasourceschema.Attribute{
+													"test2": datasourceschema.StringAttribute{
 														Required: true,
 													},
 												},
@@ -116,9 +117,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
 										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"test1": schema.StringAttribute{
+											resp.Schema = datasourceschema.Schema{
+												Attributes: map[string]datasourceschema.Attribute{
+													"test1": datasourceschema.StringAttribute{
 														Required: true,
 													},
 												},
@@ -132,9 +133,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
 										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"test2": schema.StringAttribute{
+											resp.Schema = datasourceschema.Schema{
+												Attributes: map[string]datasourceschema.Attribute{
+													"test2": datasourceschema.StringAttribute{
 														Required: true,
 													},
 												},
@@ -295,15 +296,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test1": {
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test1": resourceschema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource1"
@@ -312,15 +312,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 								},
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test2": {
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test2": resourceschema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource2"
@@ -375,15 +374,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test1": {
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test1": resourceschema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
@@ -392,15 +390,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 								},
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test2": {
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test2": resourceschema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"

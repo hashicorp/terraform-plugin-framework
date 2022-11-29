@@ -1,0 +1,7 @@
+```release-note:note
+resource: The `Resource` type `GetSchema` method has been deprecated. Use the `Schema` method instead.
+```
+
+```release-note:feature
+resource/schema: New package which contains schema interfaces and types relevant to resources
+```

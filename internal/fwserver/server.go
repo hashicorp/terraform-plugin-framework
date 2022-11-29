@@ -433,17 +433,42 @@ func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schem
 	for resourceTypeName, resourceFunc := range resourceFuncs {
 		res := resourceFunc()
 
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
-		schema, diags := res.GetSchema(ctx)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+		switch resourceIface := res.(type) {
+		case resource.ResourceWithSchema:
+			schemaReq := resource.SchemaRequest{}
+			schemaResp := resource.SchemaResponse{}
 
-		s.resourceSchemasDiags.Append(diags...)
+			logging.FrameworkDebug(ctx, "Calling provider defined Resource Schema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+			resourceIface.Schema(ctx, schemaReq, &schemaResp)
+			logging.FrameworkDebug(ctx, "Called provider defined Resource Schema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
 
-		if s.resourceSchemasDiags.HasError() {
-			return s.resourceSchemas, s.resourceSchemasDiags
+			s.resourceSchemasDiags.Append(schemaResp.Diagnostics...)
+
+			if s.resourceSchemasDiags.HasError() {
+				return s.resourceSchemas, s.resourceSchemasDiags
+			}
+
+			s.resourceSchemas[resourceTypeName] = schemaResp.Schema
+		case resource.ResourceWithGetSchema:
+			logging.FrameworkDebug(ctx, "Calling provider defined Resource GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+			schema, diags := resourceIface.GetSchema(ctx) //nolint:staticcheck // Required internal usage until removal
+			logging.FrameworkDebug(ctx, "Called provider defined Resource GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+
+			s.resourceSchemasDiags.Append(diags...)
+
+			if s.resourceSchemasDiags.HasError() {
+				return s.resourceSchemas, s.resourceSchemasDiags
+			}
+
+			s.resourceSchemas[resourceTypeName] = schema
+		default:
+			s.resourceSchemasDiags.AddError(
+				"Resource Missing Schema",
+				"While attempting to load provider resource schemas, a resource was missing a Schema method. "+
+					"This is always an issue in the provider and should be reported to the provider developers.\n\n"+
+					"Resource Type Name: "+resourceTypeName,
+			)
 		}
-
-		s.resourceSchemas[resourceTypeName] = schema
 	}
 
 	return s.resourceSchemas, s.resourceSchemasDiags

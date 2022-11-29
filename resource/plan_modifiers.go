@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -104,7 +105,7 @@ func (r requiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAtt
 
 	// Path may lead to block instead of attribute. Blocks cannot be Computed.
 	// If ErrPathIsBlock, attrSchema.Computed will still be false later.
-	if err != nil && !errors.Is(err, tfsdk.ErrPathIsBlock) {
+	if err != nil && !errors.Is(err, fwschema.ErrPathIsBlock) {
 		resp.Diagnostics.AddAttributeError(req.AttributePath,
 			"Error finding attribute schema",
 			fmt.Sprintf("An unexpected error was encountered retrieving the schema for this attribute. This is always a bug in the provider.\n\nError: %s", err),
@@ -249,7 +250,7 @@ func (r requiresReplaceIfModifier) Modify(ctx context.Context, req tfsdk.ModifyA
 
 	// Path may lead to block instead of attribute. Blocks cannot be Computed.
 	// If ErrPathIsBlock, attrSchema.Computed will still be false later.
-	if err != nil && !errors.Is(err, tfsdk.ErrPathIsBlock) {
+	if err != nil && !errors.Is(err, fwschema.ErrPathIsBlock) {
 		resp.Diagnostics.AddAttributeError(req.AttributePath,
 			"Error finding attribute schema",
 			fmt.Sprintf("An unexpected error was encountered retrieving the schema for this attribute. This is always a bug in the provider.\n\nError: %s", err),

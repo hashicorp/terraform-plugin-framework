@@ -5,12 +5,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -19,18 +18,15 @@ func TestServerUpgradeResourceState(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	schema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Type:     types.StringType,
+	schema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Computed: true,
 			},
-			"optional_attribute": {
-				Type:     types.StringType,
+			"optional_attribute": schema.StringAttribute{
 				Optional: true,
 			},
-			"required_attribute": {
-				Type:     types.StringType,
+			"required_attribute": schema.StringAttribute{
 				Required: true,
 			},
 		},
@@ -62,8 +58,8 @@ func TestServerUpgradeResourceState(t *testing.T) {
 								func() resource.Resource {
 									return &testprovider.ResourceWithUpgradeState{
 										Resource: &testprovider.Resource{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return schema, nil
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = schema
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
@@ -163,8 +159,8 @@ func TestServerUpgradeResourceState(t *testing.T) {
 								func() resource.Resource {
 									return &testprovider.ResourceWithUpgradeState{
 										Resource: &testprovider.Resource{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return schema, nil
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = schema
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
@@ -219,8 +215,8 @@ func TestServerUpgradeResourceState(t *testing.T) {
 								func() resource.Resource {
 									return &testprovider.ResourceWithUpgradeState{
 										Resource: &testprovider.Resource{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return schema, nil
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = schema
 											},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"

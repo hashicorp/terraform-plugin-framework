@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -42,15 +43,13 @@ func TestServerReadResource(t *testing.T) {
 
 	testNewStateRemovedDynamicValue, _ := tfprotov5.NewDynamicValue(testType, tftypes.NewValue(testType, nil))
 
-	testSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_computed": {
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
-			"test_required": {
+			"test_required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
@@ -69,9 +68,7 @@ func TestServerReadResource(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{}, nil
-										},
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
@@ -98,8 +95,8 @@ func TestServerReadResource(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = testSchema
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
@@ -140,9 +137,7 @@ func TestServerReadResource(t *testing.T) {
 								return []func() resource.Resource{
 									func() resource.Resource {
 										return &testprovider.Resource{
-											GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-												return tfsdk.Schema{}, nil
-											},
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {},
 											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
 											},
@@ -164,7 +159,18 @@ func TestServerReadResource(t *testing.T) {
 							},
 						},
 						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testSchema, nil
+							return tfsdk.Schema{
+								Attributes: map[string]tfsdk.Attribute{
+									"test_computed": {
+										Computed: true,
+										Type:     types.StringType,
+									},
+									"test_required": {
+										Required: true,
+										Type:     types.StringType,
+									},
+								},
+							}, nil
 						},
 					},
 				},
@@ -186,9 +192,7 @@ func TestServerReadResource(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{}, nil
-										},
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
@@ -236,8 +240,8 @@ func TestServerReadResource(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = testSchema
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
@@ -281,8 +285,8 @@ func TestServerReadResource(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = testSchema
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
@@ -322,8 +326,8 @@ func TestServerReadResource(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return testSchema, nil
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = testSchema
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
@@ -354,9 +358,7 @@ func TestServerReadResource(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{}, nil
-										},
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},

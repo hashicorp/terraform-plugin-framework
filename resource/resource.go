@@ -8,7 +8,9 @@ import (
 )
 
 // Resource represents an instance of a managed resource type. This is the core
-// interface that all resources must implement.
+// interface that all resources must implement. Resources must also
+// implement the Schema method or the deprecated GetSchema method. The Schema
+// method will be required in a future version.
 //
 // Resources can optionally implement these additional concepts:
 //
@@ -26,9 +28,6 @@ type Resource interface {
 	// Metadata should return the full name of the resource, such as
 	// examplecloud_thing.
 	Metadata(context.Context, MetadataRequest, *MetadataResponse)
-
-	// GetSchema returns the schema for this resource.
-	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 	// Create is called when the provider must create a new resource. Config
 	// and planned state values should be read from the
@@ -85,6 +84,17 @@ type ResourceWithConfigValidators interface {
 	ConfigValidators(context.Context) []ConfigValidator
 }
 
+// ResourceWithGetSchema is a temporary interface type that extends
+// Resource to include the deprecated GetSchema method.
+type ResourceWithGetSchema interface {
+	Resource
+
+	// GetSchema returns the schema for this resource.
+	//
+	// Deprecated: Use Schema method instead.
+	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
+}
+
 // Optional interface on top of Resource that enables provider control over
 // the ImportResourceState RPC. This RPC is called by Terraform when the
 // `terraform import` command is executed. Afterwards, the ReadResource RPC
@@ -125,6 +135,15 @@ type ResourceWithModifyPlan interface {
 	//
 	// Any errors will prevent further resource-level plan modifications.
 	ModifyPlan(context.Context, ModifyPlanRequest, *ModifyPlanResponse)
+}
+
+// ResourceWithSchema is a temporary interface type that extends
+// Resource to include the new Schema method.
+type ResourceWithSchema interface {
+	Resource
+
+	// Schema should return the schema for this resource.
+	Schema(context.Context, SchemaRequest, *SchemaResponse)
 }
 
 // Optional interface on top of Resource that enables provider control over

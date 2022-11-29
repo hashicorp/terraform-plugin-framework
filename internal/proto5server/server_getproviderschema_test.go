@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -296,15 +297,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test1": {
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test1": resourceschema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource1"
@@ -313,15 +313,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 								},
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test2": {
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test2": resourceschema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource2"
@@ -376,15 +375,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 							return []func() resource.Resource{
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test1": {
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test1": resourceschema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
@@ -393,15 +391,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 								},
 								func() resource.Resource {
 									return &testprovider.Resource{
-										GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-											return tfsdk.Schema{
-												Attributes: map[string]tfsdk.Attribute{
-													"test2": {
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test2": resourceschema.StringAttribute{
 														Required: true,
-														Type:     types.StringType,
 													},
 												},
-											}, nil
+											}
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"

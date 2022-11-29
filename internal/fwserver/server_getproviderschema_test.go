@@ -12,11 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestServerGetProviderSchema(t *testing.T) {
@@ -280,15 +279,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 			server: &fwserver.Server{
 				Provider: &testprovider.ProviderWithMetaSchema{
 					Provider: &testprovider.Provider{},
-					GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return tfsdk.Schema{
-							Attributes: map[string]tfsdk.Attribute{
-								"test": {
+					MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+						resp.Schema = metaschema.Schema{
+							Attributes: map[string]metaschema.Attribute{
+								"test": metaschema.StringAttribute{
 									Required: true,
-									Type:     types.StringType,
 								},
 							},
-						}, nil
+						}
 					},
 				},
 			},
@@ -296,11 +294,10 @@ func TestServerGetProviderSchema(t *testing.T) {
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{},
 				Provider:          providerschema.Schema{},
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test": metaschema.StringAttribute{
 							Required: true,
-							Type:     types.StringType,
 						},
 					},
 				},

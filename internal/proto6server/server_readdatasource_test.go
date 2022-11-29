@@ -7,10 +7,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -32,6 +32,19 @@ func TestServerReadDataSource(t *testing.T) {
 	})
 
 	testEmptyDynamicValue := testNewDynamicValue(t, tftypes.Object{}, nil)
+
+	testProviderMetaDynamicValue := testNewDynamicValue(t,
+		tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"test_optional": tftypes.String,
+				"test_required": tftypes.String,
+			},
+		},
+		map[string]tftypes.Value{
+			"test_optional": tftypes.NewValue(tftypes.String, nil),
+			"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+		},
+	)
 
 	testStateDynamicValue := testNewDynamicValue(t, testType, map[string]tftypes.Value{
 		"test_computed": tftypes.NewValue(tftypes.String, "test-state-value"),
@@ -142,7 +155,7 @@ func TestServerReadDataSource(t *testing.T) {
 											},
 											ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 												var config struct {
-													TestComputed types.String `tfsdk:"test_computed"`
+													TestOptional types.String `tfsdk:"test_optional"`
 													TestRequired types.String `tfsdk:"test_required"`
 												}
 
@@ -157,26 +170,24 @@ func TestServerReadDataSource(t *testing.T) {
 								}
 							},
 						},
-						GetMetaSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return tfsdk.Schema{
-								Attributes: map[string]tfsdk.Attribute{
-									"test_computed": {
-										Computed: true,
-										Type:     types.StringType,
+						MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+							resp.Schema = metaschema.Schema{
+								Attributes: map[string]metaschema.Attribute{
+									"test_optional": metaschema.StringAttribute{
+										Optional: true,
 									},
-									"test_required": {
+									"test_required": metaschema.StringAttribute{
 										Required: true,
-										Type:     types.StringType,
 									},
 								},
-							}, nil
+							}
 						},
 					},
 				},
 			},
 			request: &tfprotov6.ReadDataSourceRequest{
 				Config:       testEmptyDynamicValue,
-				ProviderMeta: testConfigDynamicValue,
+				ProviderMeta: testProviderMetaDynamicValue,
 				TypeName:     "test_data_source",
 			},
 			expectedResponse: &tfprotov6.ReadDataSourceResponse{
@@ -284,6 +295,9 @@ func TestServerReadDataSource(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(testCase.expectedResponse, got); diff != "" {
+				for _, d := range got.Diagnostics {
+					t.Logf("%s: %s\n%s\n", d.Severity, d.Summary, d.Detail)
+				}
 				t.Errorf("unexpected response difference: %s", diff)
 			}
 		})

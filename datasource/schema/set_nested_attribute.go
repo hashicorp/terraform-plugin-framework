@@ -3,12 +3,13 @@ package schema
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -178,7 +179,7 @@ func (a SetNestedAttribute) GetNestedObject() fwschema.NestedAttributeObject {
 
 // GetNestingMode always returns NestingModeList.
 func (a SetNestedAttribute) GetNestingMode() fwschema.NestingMode {
-	return fwschema.NestingModeList
+	return fwschema.NestingModeSet
 }
 
 // GetType returns SetType of ObjectType or CustomType.

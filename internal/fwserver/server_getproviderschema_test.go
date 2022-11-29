@@ -6,12 +6,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -32,7 +33,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{},
-				Provider:          &tfsdk.Schema{},
+				Provider:          providerschema.Schema{},
 				ResourceSchemas:   map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
@@ -47,9 +48,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() datasource.DataSource {
 								return &testprovider.DataSource{
 									SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-										resp.Schema = schema.Schema{
-											Attributes: map[string]schema.Attribute{
-												"test1": schema.StringAttribute{
+										resp.Schema = datasourceschema.Schema{
+											Attributes: map[string]datasourceschema.Attribute{
+												"test1": datasourceschema.StringAttribute{
 													Required: true,
 												},
 											},
@@ -63,9 +64,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() datasource.DataSource {
 								return &testprovider.DataSource{
 									SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-										resp.Schema = schema.Schema{
-											Attributes: map[string]schema.Attribute{
-												"test2": schema.StringAttribute{
+										resp.Schema = datasourceschema.Schema{
+											Attributes: map[string]datasourceschema.Attribute{
+												"test2": datasourceschema.StringAttribute{
 													Required: true,
 												},
 											},
@@ -83,22 +84,22 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source1": schema.Schema{
-						Attributes: map[string]schema.Attribute{
-							"test1": schema.StringAttribute{
+					"test_data_source1": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test1": datasourceschema.StringAttribute{
 								Required: true,
 							},
 						},
 					},
-					"test_data_source2": schema.Schema{
-						Attributes: map[string]schema.Attribute{
-							"test2": schema.StringAttribute{
+					"test_data_source2": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test2": datasourceschema.StringAttribute{
 								Required: true,
 							},
 						},
 					},
 				},
-				Provider:        &tfsdk.Schema{},
+				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
@@ -113,9 +114,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() datasource.DataSource {
 								return &testprovider.DataSource{
 									SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-										resp.Schema = schema.Schema{
-											Attributes: map[string]schema.Attribute{
-												"test1": schema.StringAttribute{
+										resp.Schema = datasourceschema.Schema{
+											Attributes: map[string]datasourceschema.Attribute{
+												"test1": datasourceschema.StringAttribute{
 													Required: true,
 												},
 											},
@@ -129,9 +130,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() datasource.DataSource {
 								return &testprovider.DataSource{
 									SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-										resp.Schema = schema.Schema{
-											Attributes: map[string]schema.Attribute{
-												"test2": schema.StringAttribute{
+										resp.Schema = datasourceschema.Schema{
+											Attributes: map[string]datasourceschema.Attribute{
+												"test2": datasourceschema.StringAttribute{
 													Required: true,
 												},
 											},
@@ -157,7 +158,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Provider:        &tfsdk.Schema{},
+				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
@@ -190,7 +191,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Provider:        &tfsdk.Schema{},
+				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
@@ -209,9 +210,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() datasource.DataSource {
 									return &testprovider.DataSource{
 										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"test": schema.StringAttribute{
+											resp.Schema = datasourceschema.Schema{
+												Attributes: map[string]datasourceschema.Attribute{
+													"test": datasourceschema.StringAttribute{
 														Required: true,
 													},
 												},
@@ -230,15 +231,15 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"testprovidertype_data_source": schema.Schema{
-						Attributes: map[string]schema.Attribute{
-							"test": schema.StringAttribute{
+					"testprovidertype_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test": datasourceschema.StringAttribute{
 								Required: true,
 							},
 						},
 					},
 				},
-				Provider:        &tfsdk.Schema{},
+				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
@@ -248,26 +249,24 @@ func TestServerGetProviderSchema(t *testing.T) {
 		"provider": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return tfsdk.Schema{
-							Attributes: map[string]tfsdk.Attribute{
-								"test": {
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+						resp.Schema = providerschema.Schema{
+							Attributes: map[string]providerschema.Attribute{
+								"test": providerschema.StringAttribute{
 									Required: true,
-									Type:     types.StringType,
 								},
 							},
-						}, nil
+						}
 					},
 				},
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{},
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test": providerschema.StringAttribute{
 							Required: true,
-							Type:     types.StringType,
 						},
 					},
 				},
@@ -296,7 +295,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{},
-				Provider:          &tfsdk.Schema{},
+				Provider:          providerschema.Schema{},
 				ProviderMeta: &tfsdk.Schema{
 					Attributes: map[string]tfsdk.Attribute{
 						"test": {
@@ -355,7 +354,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{},
-				Provider:          &tfsdk.Schema{},
+				Provider:          providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{
 					"test_resource1": resourceschema.Schema{
 						Attributes: map[string]resourceschema.Attribute{
@@ -429,7 +428,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Provider:        &tfsdk.Schema{},
+				Provider:        providerschema.Schema{},
 				ResourceSchemas: nil,
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
@@ -462,7 +461,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Provider:        &tfsdk.Schema{},
+				Provider:        providerschema.Schema{},
 				ResourceSchemas: nil,
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
@@ -502,7 +501,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{},
-				Provider:          &tfsdk.Schema{},
+				Provider:          providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{
 					"testprovidertype_resource": resourceschema.Schema{
 						Attributes: map[string]resourceschema.Attribute{

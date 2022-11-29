@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -34,11 +32,10 @@ func TestServerValidateProviderConfig(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
 	}
 
-	testSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test": {
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
@@ -62,9 +59,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return tfsdk.Schema{}, nil
-						},
+						SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
 					},
 				},
 			},
@@ -75,8 +70,8 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return testSchema, nil
+						SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+							resp.Schema = testSchema
 						},
 					},
 				},
@@ -93,8 +88,8 @@ func TestServerValidateProviderConfig(t *testing.T) {
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.ProviderWithValidateConfig{
 						Provider: &testprovider.Provider{
-							GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-								return testSchema, nil
+							SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+								resp.Schema = testSchema
 							},
 						},
 						ValidateConfigMethod: func(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {

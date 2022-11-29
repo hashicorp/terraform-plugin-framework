@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -214,15 +216,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
-						GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-							return tfsdk.Schema{
-								Attributes: map[string]tfsdk.Attribute{
-									"test": {
+						SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+							resp.Schema = providerschema.Schema{
+								Attributes: map[string]providerschema.Attribute{
+									"test": providerschema.StringAttribute{
 										Required: true,
-										Type:     types.StringType,
 									},
 								},
-							}, nil
+							}
 						},
 					},
 				},
@@ -523,12 +524,12 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		},
 		{
 			"@level":   "debug",
-			"@message": "Calling provider defined Provider GetSchema",
+			"@message": "Calling provider defined Provider Schema",
 			"@module":  "sdk.framework",
 		},
 		{
 			"@level":   "debug",
-			"@message": "Called provider defined Provider GetSchema",
+			"@message": "Called provider defined Provider Schema",
 			"@module":  "sdk.framework",
 		},
 		{

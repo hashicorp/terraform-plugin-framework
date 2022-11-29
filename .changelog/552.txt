@@ -1,0 +1,3 @@
+```release-note:bug
+internal/fwserver: Ensured blocks are ignored when marking computed nils as unknown during resource change planning
+```

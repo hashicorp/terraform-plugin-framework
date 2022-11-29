@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -28,11 +29,10 @@ func TestServerConfigureProvider(t *testing.T) {
 		"test": tftypes.NewValue(tftypes.String, "test-value"),
 	})
 
-	testSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test": {
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
@@ -56,8 +56,8 @@ func TestServerConfigureProvider(t *testing.T) {
 		"request-config": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return testSchema, nil
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+						resp.Schema = testSchema
 					},
 					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 						var got types.String
@@ -82,9 +82,7 @@ func TestServerConfigureProvider(t *testing.T) {
 		"request-terraformversion": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return tfsdk.Schema{}, nil
-					},
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
 					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 						if req.TerraformVersion != "1.0.0" {
 							resp.Diagnostics.AddError("Incorrect req.TerraformVersion", "expected 1.0.0, got "+req.TerraformVersion)
@@ -100,9 +98,7 @@ func TestServerConfigureProvider(t *testing.T) {
 		"response-datasourcedata": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return tfsdk.Schema{}, nil
-					},
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
 					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 						resp.DataSourceData = "test-provider-configure-value"
 					},
@@ -116,9 +112,7 @@ func TestServerConfigureProvider(t *testing.T) {
 		"response-diagnostics": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return tfsdk.Schema{}, nil
-					},
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
 					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 						resp.Diagnostics.AddWarning("warning summary", "warning detail")
 						resp.Diagnostics.AddError("error summary", "error detail")
@@ -142,9 +136,7 @@ func TestServerConfigureProvider(t *testing.T) {
 		"response-resourcedata": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
-					GetSchemaMethod: func(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-						return tfsdk.Schema{}, nil
-					},
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
 					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 						resp.ResourceData = "test-provider-configure-value"
 					},

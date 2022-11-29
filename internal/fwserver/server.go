@@ -282,12 +282,31 @@ func (s *Server) ProviderSchema(ctx context.Context) (fwschema.Schema, diag.Diag
 		return s.providerSchema, s.providerSchemaDiags
 	}
 
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
-	providerSchema, diags := s.Provider.GetSchema(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
+	switch providerIface := s.Provider.(type) {
+	case provider.ProviderWithSchema:
+		schemaReq := provider.SchemaRequest{}
+		schemaResp := provider.SchemaResponse{}
 
-	s.providerSchema = &providerSchema
-	s.providerSchemaDiags = diags
+		logging.FrameworkDebug(ctx, "Calling provider defined Provider Schema")
+		providerIface.Schema(ctx, schemaReq, &schemaResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Provider Schema")
+
+		s.providerSchema = schemaResp.Schema
+		s.providerSchemaDiags = schemaResp.Diagnostics
+	case provider.ProviderWithGetSchema:
+		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
+		schema, diags := providerIface.GetSchema(ctx) //nolint:staticcheck // Required internal usage until removal
+		logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
+
+		s.providerSchema = schema
+		s.providerSchemaDiags = diags
+	default:
+		s.providerSchemaDiags.AddError(
+			"Provier Missing Schema",
+			"While attempting to load provider schemas, the provider itself was missing a Schema method. "+
+				"This is always an issue in the provider and should be reported to the provider developers.",
+		)
+	}
 
 	return s.providerSchema, s.providerSchemaDiags
 }

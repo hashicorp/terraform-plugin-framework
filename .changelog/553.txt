@@ -1,0 +1,7 @@
+```release-note:note
+provider: The `Provider` type `GetSchema` method has been deprecated. Use the `Schema` method instead.
+```
+
+```release-note:feature
+provider/schema: New package which contains schema interfaces and types relevant to providers
+```

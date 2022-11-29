@@ -291,6 +291,12 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 				return val, nil
 			}
 
+			if errors.Is(err, tfsdk.ErrPathIsBlock) {
+				// ignore blocks, they do not have a computed field
+				logging.FrameworkTrace(ctx, "attribute is a block, not marking unknown")
+				return val, nil
+			}
+
 			logging.FrameworkError(ctx, "couldn't find attribute in resource schema")
 
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)

@@ -1,21 +1,17 @@
-package schema
+package metaschema
 
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ NestedAttribute                      = SetNestedAttribute{}
-	_ fwxschema.AttributeWithSetValidators = SetNestedAttribute{}
+	_ NestedAttribute = SetNestedAttribute{}
 )
 
 // SetNestedAttribute represents an attribute that is a set of objects where
@@ -60,20 +56,6 @@ type SetNestedAttribute struct {
 	// for this attribute or not. Optional and Required cannot both be true.
 	Optional bool
 
-	// Computed indicates whether the provider may return its own value for
-	// this Attribute or not. Required and Computed cannot both be true. If
-	// Required and Optional are both false, Computed must be true, and the
-	// attribute will be considered "read only" for the practitioner, with
-	// only the provider able to set its value.
-	Computed bool
-
-	// Sensitive indicates whether the value of this attribute should be
-	// considered sensitive data. Setting it to true will obscure the value
-	// in CLI output. Sensitive does not impact how values are stored, and
-	// practitioners are encouraged to store their state as if the entire
-	// file is sensitive.
-	Sensitive bool
-
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this attribute is,
 	// what it's for, and how it should be used. It should be written as
@@ -85,54 +67,6 @@ type SetNestedAttribute struct {
 	// about what this attribute is, what it's for, and how it should be
 	// used. It should be formatted using Markdown.
 	MarkdownDescription string
-
-	// DeprecationMessage defines warning diagnostic details to display when
-	// practitioner configurations use this Attribute. The warning diagnostic
-	// summary is automatically set to "Attribute Deprecated" along with
-	// configuration source file and line information.
-	//
-	// Set this field to a practitioner actionable message such as:
-	//
-	//  - "Configure other_attribute instead. This attribute will be removed
-	//    in the next major version of the provider."
-	//  - "Remove this attribute's configuration as it no longer is used and
-	//    the attribute will be removed in the next major version of the
-	//    provider."
-	//
-	// In Terraform 1.2.7 and later, this warning diagnostic is displayed any
-	// time a practitioner attempts to configure a value for this attribute and
-	// certain scenarios where this attribute is referenced.
-	//
-	// In Terraform 1.2.6 and earlier, this warning diagnostic is only
-	// displayed when the Attribute is Required or Optional, and if the
-	// practitioner configuration sets the value to a known or unknown value
-	// (which may eventually be null). It has no effect when the Attribute is
-	// Computed-only (read-only; not Required or Optional).
-	//
-	// Across any Terraform version, there are no warnings raised for
-	// practitioner configuration values set directly to null, as there is no
-	// way for the framework to differentiate between an unset and null
-	// configuration due to how Terraform sends configuration information
-	// across the protocol.
-	//
-	// Additional information about deprecation enhancements for read-only
-	// attributes can be found in:
-	//
-	//  - https://github.com/hashicorp/terraform/issues/7569
-	//
-	DeprecationMessage string
-
-	// Validators define value validation functionality for the attribute. All
-	// elements of the slice of AttributeValidator are run, regardless of any
-	// previous error diagnostics.
-	//
-	// Many common use case validators can be found in the
-	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
-	//
-	// If the Type field points to a custom type that implements the
-	// xattr.TypeWithValidate interface, the validators defined in this field
-	// are run in addition to the validation defined by the type.
-	Validators []validator.Set
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -157,9 +91,10 @@ func (a SetNestedAttribute) Equal(o fwschema.Attribute) bool {
 	return fwschema.AttributesEqual(a, o)
 }
 
-// GetDeprecationMessage returns the DeprecationMessage field value.
+// GetDeprecationMessage always returns an empty string as there is no
+// deprecation validation support for provider meta schemas.
 func (a SetNestedAttribute) GetDeprecationMessage() string {
-	return a.DeprecationMessage
+	return ""
 }
 
 // GetDescription returns the Description field value.
@@ -193,9 +128,9 @@ func (a SetNestedAttribute) GetType() attr.Type {
 	}
 }
 
-// IsComputed returns the Computed field value.
+// IsComputed always returns false as provider schemas cannot be Computed.
 func (a SetNestedAttribute) IsComputed() bool {
-	return a.Computed
+	return false
 }
 
 // IsOptional returns the Optional field value.
@@ -208,12 +143,8 @@ func (a SetNestedAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive returns the Sensitive field value.
+// IsSensitive always returns false as there is no plan for provider meta
+// schema data.
 func (a SetNestedAttribute) IsSensitive() bool {
-	return a.Sensitive
-}
-
-// SetValidators returns the Validators field value.
-func (a SetNestedAttribute) SetValidators() []validator.Set {
-	return a.Validators
+	return false
 }

@@ -1,0 +1,11 @@
+```release-note:bug
+datasource/schema: Fix map, set and single attribute nesting mode to return the correct nesting mode for the type
+```
+
+```release-note:bug
+provider/schema: Fix map, set and single attribute nesting mode to return the correct nesting mode for the type
+```
+
+```release-note:bug
+resource/schema: Fix map, set and single attribute nesting mode to return the correct nesting mode for the type
+```

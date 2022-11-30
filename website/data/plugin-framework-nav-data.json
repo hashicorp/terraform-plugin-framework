@@ -16,12 +16,12 @@
       {
         "title": "Core Concepts",
         "path": "getting-started/core-concepts"
+      },
+      {
+        "title": "Learn Collection",
+        "href": "https://learn.hashicorp.com/collections/terraform/providers-plugin-framework?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS"
       }
     ]
-  },
-  {
-    "title": "Learn Collection",
-    "href": "https://learn.hashicorp.com/collections/terraform/providers-plugin-framework?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS"
   },
   {
     "title": "Provider Servers",
@@ -115,8 +115,13 @@
     ]
   },
   {
-    "title": "Schemas",
-    "path": "schemas"
+    "title": "Handling Data",
+    "routes": [
+      {
+        "title": "Schemas",
+        "path": "handling-data/schemas"
+      }
+    ]
   },
   {
     "title": "Paths",

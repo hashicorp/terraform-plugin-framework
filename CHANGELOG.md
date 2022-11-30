@@ -1,3 +1,37 @@
+# 0.17.0 (November 30, 2022)
+
+NOTES:
+
+* datasource: The `DataSource` type `GetSchema` method has been deprecated. Use the `Schema` method instead. ([#546](https://github.com/hashicorp/terraform-plugin-framework/issues/546))
+* provider: The `Provider` type `GetSchema` method has been deprecated. Use the `Schema` method instead. ([#553](https://github.com/hashicorp/terraform-plugin-framework/issues/553))
+* resource: The `RequiresReplace()` plan modifier has been deprecated. Use a type-specific plan modifier instead, such as `resource/schema/stringplanmodifier.RequiresReplace()` or `resource/schema/stringplanmodifier.RequiresReplaceIfConfigured()` ([#565](https://github.com/hashicorp/terraform-plugin-framework/issues/565))
+* resource: The `RequiresReplaceIf()` plan modifier has been deprecated. Use a type-specific plan modifier instead, such as `resource/schema/stringplanmodifier.RequiresReplaceIf()` ([#565](https://github.com/hashicorp/terraform-plugin-framework/issues/565))
+* resource: The `Resource` type `GetSchema` method has been deprecated. Use the `Schema` method instead. ([#558](https://github.com/hashicorp/terraform-plugin-framework/issues/558))
+* resource: The `UseStateForUnknown()` plan modifier has been deprecated. Use a type-specific plan modifier instead, such as `resource/schema/stringplanmodifier.UseStateForUnknown()` ([#565](https://github.com/hashicorp/terraform-plugin-framework/issues/565))
+* tfsdk: The `Attribute`, `Block`, and `Schema` types have been deprecated. Use the similarly named types in the `datasource/schema`, `provider/schema`, and `resource/schema` packages instead. ([#563](https://github.com/hashicorp/terraform-plugin-framework/issues/563))
+* tfsdk: The `ListNestedAttributes`, `MapNestedAttributes`, `SetNestedAttributes`, and `SingleNestedAttributes` functions have been deprecated. Use the similarly named types in the `datasource/schema`, `provider/schema`, and `resource/schema` packages instead. ([#563](https://github.com/hashicorp/terraform-plugin-framework/issues/563))
+
+BREAKING CHANGES:
+
+* provider: The `ProviderWithMetaSchema` type `GetMetaSchema` method has been replaced with the `MetaSchema` method ([#562](https://github.com/hashicorp/terraform-plugin-framework/issues/562))
+* tfsdk: The `Attribute` type `FrameworkType()` method has been removed. Use the `GetType()` method instead which returns the same information. ([#543](https://github.com/hashicorp/terraform-plugin-framework/issues/543))
+* tfsdk: The `Attribute` type `GetType()` method now returns type information whether the attribute implements the `Type` field or `Attributes` field. ([#543](https://github.com/hashicorp/terraform-plugin-framework/issues/543))
+* tfsdk: The `Config`, `Plan`, and `State` type `Schema` field type has been updated from `tfsdk.Schema` to the generic `fwschema.Schema` interface to enable additional schema implementations ([#544](https://github.com/hashicorp/terraform-plugin-framework/issues/544))
+
+FEATURES:
+
+* datasource/schema: New package which contains schema interfaces and types relevant to data sources ([#546](https://github.com/hashicorp/terraform-plugin-framework/issues/546))
+* provider/schema: New package which contains schema interfaces and types relevant to providers ([#553](https://github.com/hashicorp/terraform-plugin-framework/issues/553))
+* resource/schema/planmodifier: New package which contains type-specific schema plan modifier interfaces ([#557](https://github.com/hashicorp/terraform-plugin-framework/issues/557))
+* resource/schema: New package which contains schema interfaces and types relevant to resources ([#558](https://github.com/hashicorp/terraform-plugin-framework/issues/558))
+* resource/schema: New packages, such as `stringplanmodifier` which contain type-specific schema plan modifier implementations ([#565](https://github.com/hashicorp/terraform-plugin-framework/issues/565))
+* schema/validator: New package which contains type-specific schema validator interfaces ([#542](https://github.com/hashicorp/terraform-plugin-framework/issues/542))
+
+BUG FIXES:
+
+* diag: Allow diagnostic messages with incorrect UTF-8 encoding to pass through with the invalid sequences replaced with the Unicode Replacement Character. This avoids returning the unhelpful message "string field contains invalid UTF-8" in that case. ([#549](https://github.com/hashicorp/terraform-plugin-framework/issues/549))
+* internal/fwserver: Ensured blocks are ignored when marking computed nils as unknown during resource change planning ([#552](https://github.com/hashicorp/terraform-plugin-framework/issues/552))
+
 # 0.16.0 (November 15, 2022)
 
 BREAKING CHANGES:

@@ -1,5 +1,9 @@
 // Package planmodifier contains schema plan modifier interfaces and
-// implementations. These plan modifiers are used by resource/schema.
+// request/response implementations. These plan modifier interfaces
+// are used by resource/schema and internally in the framework.
+// Refer to the typed plan modifier packages, such as stringplanmodifier,
+// for framework-defined plan modifiers that can be used in
+// provider-defined schemas.
 //
 // Each attr.Type has a corresponding {TYPE}PlanModifer interface which
 // implements concretely typed Modify{TYPE} methods, such as

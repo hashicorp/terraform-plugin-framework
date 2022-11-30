@@ -1,0 +1,729 @@
+---
+page_title: 'Plugin Development - Framework: Getting Started - Core Concepts'
+description: >-
+  Configuration, Schemas, Attributes and Blocks.
+---
+
+# Configuration, Schemas, Attributes and Blocks
+
+Schemas specify the fields that a provider, resource or data source configuration can have.
+
+The fields defined within the schema are either attributes or blocks.
+
+Attributes and blocks within Terraform configuration have different syntax, either using, or omitting and equals sign in their definition, respectively.
+
+Providers, resources and data sources have their own type-specific schema, which use type-specific attributes and blocks.
+
+The following examples use a resource but the same schema attribute and block types are also defined with the schema for providers and data sources. The examples focus on type-related information, the `Optional` field is included just to provide working examples but refer to Schema (add link) for information about the other fields that can be defined within attributes and blocks.
+
+## Attributes
+
+### Simple Attributes
+
+Simple attributes include attributes for boolean, float64, int64, number and string.
+
+#### Terraform Configuration
+
+Within Terraform configuration simple attributes are represented using the following syntax:
+
+```hcl
+resource "example_resource" "example" {
+  bool_attribute = true
+
+  float64_attribute = 1234.5
+
+  int64_attribute = 9223372036854775807
+
+  number_attribute = 1.79769313486231570814527423731704356798070e+1000
+
+  string_attribute = "string"
+```
+
+#### Schema
+
+Within the schema, simple attributes are defined as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"bool_attribute": schema.BoolAttribute{
+				Optional: true,
+			},
+
+			"float64_attribute": schema.Float64Attribute{
+				Optional: true,
+			},
+
+			"int64_attribute": schema.Int64Attribute{
+				Optional: true,
+			},
+
+			"number_attribute": schema.NumberAttribute{
+				Optional: true,
+			},
+
+			"string_attribute": schema.StringAttribute{
+				Optional: true,
+			},
+		},
+	}
+}
+```
+
+### Collection Attributes
+
+Collection attributes include attributes for lists, maps and sets.
+
+#### Terraform Configuration
+
+Within Terraform configuration, collection attributes are represented using the following syntax:
+
+```hcl
+resource "example_resource" "example" {
+  list_attribute = ["list-element", "list-element"]
+
+  map_attribute = { "map-key-1" : "map-value-1" }
+
+  set_attribute = ["set-element-1", "set-element-2"]
+}
+```
+
+#### Schema
+
+Within the schema collection attributes are defined as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"list_attribute": schema.ListAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+			},
+
+			"map_attribute": schema.MapAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+			},
+
+			"set_attribute": schema.SetAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+			},
+		},
+	}
+}
+```
+
+### Object Attribute
+
+An object attribute is used when the attribute is an atomic unit and all fields defined within it need to be specified.
+
+Nested attributes (i.e., ListNestedAttribute, MapNestedAttribute, SetNestedAttribute and SingleNestedAttribute) should be used when any of the inner fields should have their own flags or metadata (e.g., Required, Optional, Sensitive etc).
+
+#### Terraform Configuration
+
+Within Terraform configuration, object attributes are represented using the following syntax:
+
+```hcl
+resource "example_resource" "example" {
+  object_attribute = {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["obj-list-element", "obj-list-element"]
+    map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+    number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+    set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+    string_attribute  = "obj-string"
+  }
+}
+```
+
+#### Schema
+
+Within the schema, object attributes are defined as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"object_attribute": schema.ObjectAttribute{
+				Optional: true,
+				AttributeTypes: map[string]attr.Type{
+					"bool_attribute":    types.BoolType,
+					"float64_attribute": types.Float64Type,
+					"int64_attribute":   types.Int64Type,
+					"list_attribute":    types.ListType{ElemType: types.StringType},
+					"map_attribute":     types.MapType{ElemType: types.StringType},
+					"number_attribute":  types.NumberType,
+					"set_attribute":     types.ListType{ElemType: types.StringType},
+					"string_attribute":  types.StringType,
+				},
+			},
+		},
+	}
+}
+```
+
+### Nested Attributes
+
+#### Terraform Configuration
+
+Within Terraform configuration, nested attributes are represented using the following syntax:
+
+```hcl
+resource "example_resource" "example" {
+  list_nested_attribute = [
+    {
+      int64_attribute = 9223372036854775807
+      list_attribute  = ["list-element", "list-element"]
+    },
+    {
+      int64_attribute = 9223372036854775807
+      list_attribute  = ["list-element", "list-element"]
+    }
+  ]
+
+  map_nested_attribute = {
+    "one" = {
+      map_attribute    = { "map-key-1" : "map-value-1" }
+      number_attribute = 1.79769313486231570814527423731704356798070e+1000
+    },
+    "two" = {
+      map_attribute    = { "map-key-1" : "map-value-1" }
+      number_attribute = 1.79769313486231570814527423731704356798070e+1000
+    }
+  }
+
+  set_nested_attribute = [
+    {
+      object_attribute = {
+        bool_attribute    = true
+        float64_attribute = 1234.5
+        int64_attribute   = 9223372036854775807
+        list_attribute    = ["obj-list-element", "obj-list-element"]
+        map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+        number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+        set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+        string_attribute  = "obj-string"
+      }
+      set_attribute    = ["set-element-1", "set-element-2"]
+      string_attribute = "string"
+    },
+    {
+      object_attribute = {
+        bool_attribute    = false
+        float64_attribute = 1234.5
+        int64_attribute   = 9223372036854775807
+        list_attribute    = ["obj-list-element", "obj-list-element"]
+        map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+        number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+        set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+        string_attribute  = "obj-string"
+      }
+      set_attribute    = ["set-element-1", "set-element-2"]
+      string_attribute = "string"
+    }
+  ]
+
+  single_nested_attribute = {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+  }
+}
+```
+
+#### Schema
+
+Within the schema, nested attributes are defined as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"list_nested_attribute": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"int64_attribute": schema.Int64Attribute{
+							Optional: true,
+						},
+						"list_attribute": schema.ListAttribute{
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+					},
+				},
+			},
+
+			"map_nested_attribute": schema.MapNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"map_attribute": schema.MapAttribute{
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+						"number_attribute": schema.NumberAttribute{
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"set_nested_attribute": schema.SetNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"object_attribute": schema.ObjectAttribute{
+							Optional: true,
+							AttributeTypes: map[string]attr.Type{
+								"bool_attribute":    types.BoolType,
+								"float64_attribute": types.Float64Type,
+								"int64_attribute":   types.Int64Type,
+								"list_attribute":    types.ListType{ElemType: types.StringType},
+								"map_attribute":     types.MapType{ElemType: types.StringType},
+								"number_attribute":  types.NumberType,
+								"set_attribute":     types.ListType{ElemType: types.StringType},
+								"string_attribute":  types.StringType,
+							},
+						},
+
+						"set_attribute": schema.SetAttribute{
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+						"string_attribute": schema.StringAttribute{
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"single_nested_attribute": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"bool_attribute": schema.BoolAttribute{
+						Optional: true,
+					},
+					"float64_attribute": schema.Float64Attribute{
+						Optional: true,
+					},
+				},
+			},
+		},
+	}
+}
+```
+
+## Blocks
+
+### Nested Blocks
+
+#### Terraform Configuration
+
+Within Terraform configuration, nested blocks are represented using the following syntax:
+
+```hcl
+resource "example_resource" "example" {
+  list_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["list-element", "list-element"]
+    list_nested_nested_block {
+      bool_attribute = true
+    }
+    list_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+  list_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["list-element", "list-element"]
+    list_nested_nested_block {
+      bool_attribute = true
+    }
+    list_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+
+  set_nested_block {
+    map_attribute    = { "map-key-1" : "map-value-1" }
+    number_attribute = 1.79769313486231570814527423731704356798070e+1000
+    object_attribute = {
+      bool_attribute    = true
+      float64_attribute = 1234.5
+      int64_attribute   = 9223372036854775807
+      list_attribute    = ["obj-list-element", "obj-list-element"]
+      map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+      number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+      set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+      string_attribute  = "obj-string"
+    }
+    set_attribute = ["set-element-1", "set-element-2"]
+    set_nested_nested_block {
+      bool_attribute = true
+    }
+    set_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+  set_nested_block {
+    map_attribute    = { "map-key-1" : "map-value-1" }
+    number_attribute = 1.79769313486231570814527423731704356798070e+1000
+    object_attribute = {
+      bool_attribute    = false
+      float64_attribute = 1234.5
+      int64_attribute   = 9223372036854775807
+      list_attribute    = ["obj-list-element", "obj-list-element"]
+      map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+      number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+      set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+      string_attribute  = "obj-string"
+    }
+    set_attribute = ["set-element-1", "set-element-2"]
+    set_nested_nested_block {
+      bool_attribute = true
+    }
+    set_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+
+  single_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+  }
+}
+```
+
+#### Schema
+
+Within the schema, nested blocks are defined as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Blocks: map[string]schema.Block{
+			"list_nested_block": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"bool_attribute": schema.BoolAttribute{
+							Optional: true,
+						},
+						"float64_attribute": schema.Float64Attribute{
+							Optional: true,
+						},
+
+						"int64_attribute": schema.Int64Attribute{
+							Optional: true,
+						},
+						"list_attribute": schema.ListAttribute{
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"list_nested_nested_block": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"bool_attribute": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"set_nested_block": schema.SetNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"map_attribute": schema.MapAttribute{
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+						"number_attribute": schema.NumberAttribute{
+							Optional: true,
+						},
+						"object_attribute": schema.ObjectAttribute{
+							Optional: true,
+							AttributeTypes: map[string]attr.Type{
+								"bool_attribute":    types.BoolType,
+								"float64_attribute": types.Float64Type,
+								"int64_attribute":   types.Int64Type,
+								"list_attribute":    types.ListType{ElemType: types.StringType},
+								"map_attribute":     types.MapType{ElemType: types.StringType},
+								"number_attribute":  types.NumberType,
+								"set_attribute":     types.ListType{ElemType: types.StringType},
+								"string_attribute":  types.StringType,
+							},
+						},
+						"set_attribute": schema.SetAttribute{
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"set_nested_nested_block": schema.SetNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"bool_attribute": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"single_nested_block": schema.SingleNestedBlock{
+				Attributes: map[string]schema.Attribute{
+					"bool_attribute": schema.BoolAttribute{
+						Optional: true,
+					},
+					"float64_attribute": schema.Float64Attribute{
+						Optional: true,
+					},
+				},
+			},
+		},
+	}
+}
+```
+
+## Custom Types
+
+Custom types can be used for both attributes and blocks.
+
+### Custom Type and Value
+
+For instance, a minimal implementation of a custom type for `ListType` and `List` that leverages embedding looks as follows:
+
+```go
+type CustomListType struct {
+	types.ListType
+}
+
+func (c CustomListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	val, err := c.ListType.ValueFromTerraform(ctx, in)
+
+	return CustomListValue{
+		// unchecked type assertion
+		val.(types.List),
+	}, err
+}
+
+type CustomListValue struct {
+	types.List
+}
+
+func (c CustomListValue) DoSomething(ctx context.Context) {
+	tflog.Info(ctx, "called DoSomething on CustomListValue")
+}
+```
+
+### Terraform Configuration
+
+Using the custom type does not require any changes to the Terraform configuration.
+
+```hcl
+resource "example_resource" "example" {
+  list_attribute = ["list-element", "list-element"]
+
+  list_nested_attribute = [
+    {
+      int64_attribute = 9223372036854775807
+      list_attribute  = ["list-element", "list-element"]
+    },
+    {
+      int64_attribute = 9223372036854775807
+      list_attribute  = ["list-element", "list-element"]
+    }
+  ]
+
+  list_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["list-element", "list-element"]
+    list_nested_nested_block {
+      bool_attribute = true
+    }
+    list_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+  list_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["list-element", "list-element"]
+    list_nested_nested_block {
+      bool_attribute = true
+    }
+    list_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+}
+```
+
+### Schema
+
+Within the schema, the custom type is used as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"list_attribute": schema.ListAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+				CustomType: CustomListType{
+					types.ListType{
+						ElemType: types.StringType,
+					},
+				},
+			},
+
+			"list_nested_attribute": schema.ListNestedAttribute{
+				Optional: true,
+				CustomType: CustomListType{
+					types.ListType{
+						ElemType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"int64_attribute": types.Int64Type,
+								"list_attribute": types.ListType{
+									ElemType: types.StringType,
+								},
+							},
+						},
+					},
+				},
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"int64_attribute": schema.Int64Attribute{
+							Optional: true,
+						},
+						"list_attribute": schema.ListAttribute{
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+					},
+				},
+			},
+		},
+
+		Blocks: map[string]schema.Block{
+			"list_nested_block": schema.ListNestedBlock{
+				CustomType: CustomListType{
+					types.ListType{
+						ElemType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"bool_attribute":    types.BoolType,
+								"float64_attribute": types.Float64Type,
+								"int64_attribute":   types.Int64Type,
+								"list_attribute": types.ListType{
+									ElemType: types.StringType,
+								},
+								"list_nested_nested_block": types.ListType{
+									ElemType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"bool_attribute": types.BoolType,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"bool_attribute": schema.BoolAttribute{
+							Optional: true,
+						},
+						"float64_attribute": schema.Float64Attribute{
+							Optional: true,
+						},
+
+						"int64_attribute": schema.Int64Attribute{
+							Optional: true,
+						},
+						"list_attribute": schema.ListAttribute{
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"list_nested_nested_block": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"bool_attribute": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+```
+
+### Model
+
+The custom type value is then used within the model.
+
+Where previously the model would have looked as follows:
+
+```go
+type exampleResourceData struct {
+	ListAttribute         types.List `tfsdk:"list_attribute"`
+	ListNestedAttribute   types.List `tfsdk:"list_nested_attribute"`
+	ListNestedBlock       types.List `tfsdk:"list_nested_block"`
+}
+```
+
+The custom type value is used by updating the model to:
+
+```go
+type exampleResourceData struct {
+	ListAttribute         CustomListValue `tfsdk:"list_attribute"`
+	ListNestedAttribute   CustomListValue `tfsdk:"list_nested_attribute"`
+	ListNestedBlock       CustomListValue `tfsdk:"list_nested_block"`
+}
+```
+
+### Create
+
+The functions on `CustomListValue` are then available.
+
+```go
+func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleResourceData
+
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	data.ListAttribute.DoSomething(ctx)
+	data.ListNestedAttribute.DoSomething(ctx)
+	data.ListNestedBlock.DoSomething(ctx)
+
+	/*...*/
+}
+```

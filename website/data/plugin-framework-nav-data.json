@@ -12,6 +12,10 @@
       {
         "title": "Example Provider",
         "path": "getting-started/example-provider"
+      },
+      {
+        "title": "Core Concepts",
+        "path": "getting-started/core-concepts"
       }
     ]
   },

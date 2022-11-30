@@ -36,14 +36,14 @@ resource "timeouts_example" "example" {
 }
 ```
 
-You can use this module to mutate the `tfsdk.Schema` as follows:
+You can use this module to mutate the `schema.Schema` as follows:
 
 ```go
-func (t *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (t *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
         /* ... */
 
-        Blocks: map[string]tfsdk.Block{
+        Blocks: map[string]schema.Block{
             "timeouts": timeouts.Block(ctx, timeouts.Opts{
                 Create: true,
             }),
@@ -64,12 +64,12 @@ resource "timeouts_example" "example" {
 }
 ```
 
-You can use this module to mutate the `tfsdk.Schema` as follows:
+You can use this module to mutate the `schema.Schema` as follows:
 
 ```go
-func (t *exampleResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
+func (t *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
             /* ... */
             "timeouts": timeouts.Attributes(ctx, timeouts.Opts{
                 Create: true,

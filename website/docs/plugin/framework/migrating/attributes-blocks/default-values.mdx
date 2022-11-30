@@ -39,16 +39,15 @@ func resourceExample() *schema.Resource {
 
 ## Framework
 
-In the Framework, you set default values with the `PlanModifiers` field on your attribute's `tfsdk.Attribute`
-struct.
+In the Framework, you set default values with the `PlanModifiers` field on your attribute's definition.
 
 ```go
-func (r *resourceExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (r *resourceExample) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
         /* ... */
-        Attributes: map[string]tfsdk.Attribute{
-            "attribute_example": {
-                PlanModifiers: []tfsdk.AttributePlanModifier{
+        Attributes: map[string]schema.Attribute{
+            "attribute_example": schema.BoolAttribute{
+                PlanModifiers: []planmodifier.Bool{
                     defaultValue(types.BoolValue(true)),
                     /* ... */
 ```
@@ -93,12 +92,12 @@ The following shows the same section of code after the migration.
 This code implements the `PlanModifiers` field for the `rsa_bits` attribute with the Framework.
 
 ```go
-func (r *privateKeyResource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "rsa_bits": {
-                PlanModifiers: []tfsdk.AttributePlanModifier{
-                    attribute_plan_modifier.DefaultValue(types.Int64Value(2048)),
+func (r *privateKeyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "rsa_bits": schema.Int64Attribute{
+                PlanModifiers: []planmodifier.Int64{
+                    attribute_plan_modifier.Int64DefaultValue(types.Int64Value(2048)),
                     /* ... */
                 },
                 /* ... */
@@ -113,36 +112,36 @@ The following example from the `attribute_plan_modifiers.go` file implements the
 that the `rsa_bits` attribute uses.
 
 ```go
-func DefaultValue(v attr.Value) tfsdk.AttributePlanModifier {
-    return &defaultValueAttributePlanModifier{v}
+func Int64DefaultValue(v types.Int64) planmodifier.Int64 {
+    return &int64DefaultValuePlanModifier{v}
 }
 
-type defaultValueAttributePlanModifier struct {
-    DefaultValue attr.Value
+type int64DefaultValuePlanModifier struct {
+    DefaultValue types.Int64
 }
 
-var _ tfsdk.AttributePlanModifier = (*defaultValueAttributePlanModifier)(nil)
+var _ planmodifier.Int64 = (*int64DefaultValuePlanModifier)(nil)
 
-func (apm *defaultValueAttributePlanModifier) Description(ctx context.Context) string {
+func (apm *int64DefaultValuePlanModifier) Description(ctx context.Context) string {
     /* ... */
 }
 
-func (apm *defaultValueAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
+func (apm *int64DefaultValuePlanModifier) MarkdownDescription(ctx context.Context) string {
     /* ... */
 }
 
-func (apm *defaultValueAttributePlanModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, res *tfsdk.ModifyAttributePlanResponse) {
+func (apm *int64DefaultValuePlanModifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, res *planmodifier.Int64Response) {
     // If the attribute configuration is not null, we are done here
-    if !req.AttributeConfig.IsNull() {
+    if !req.ConfigValue.IsNull() {
         return
     }
 
     // If the attribute plan is "known" and "not null", then a previous plan modifier in the sequence
     // has already been applied, and we don't want to interfere.
-    if !req.AttributePlan.IsUnknown() && !req.AttributePlan.IsNull() {
+    if !req.PlanValue.IsUnknown() && !req.PlanValue.IsNull() {
         return
     }
 
-    res.AttributePlan = apm.DefaultValue
+    res.PlanValue = apm.DefaultValue
 }
 ```

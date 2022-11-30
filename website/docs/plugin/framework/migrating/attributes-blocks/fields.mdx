@@ -33,14 +33,14 @@ func resourceExample() *schema.Resource {
 
 ## Framework
 
-In the Framework, you set the same fields on the `tfsdk.Attribute` struct, with the same behavior.
+In the Framework, you set the same fields on the `schema.Attribute` implementation, with the same behavior.
 
 ```go
-func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
         /* ... */
-        Attributes: map[string]tfsdk.Attribute{
-            "attribute_example": {
+        Attributes: map[string]schema.Attribute{
+            "attribute_example": schema.XXXAttribute{
                 Required:   bool
                 Optional:   bool
                 Computed:   bool
@@ -81,10 +81,10 @@ The following example from the `data_source_http.go` file shows how the `url` at
 to be required with the Framework.
 
 ```go
-func (d *httpDataSource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "url": {
+func (d *httpDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "url": schema.StringAttribute{
                 Required:   true,
                 /* ... */
             },

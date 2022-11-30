@@ -69,7 +69,7 @@ You can use this module to mutate the `schema.Schema` as follows:
 ```go
 func (d *ThingDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
     resp.Schema = schema.Schema{
-        Attributes: map[string]tfsdk.Attribute{
+        Attributes: map[string]schema.Attribute{
             /* ... */
             "timeouts": timeouts.Attributes(ctx, timeouts.Opts{
                 Read: true,

@@ -25,15 +25,15 @@ Terraform CLI syntax and basic schema checks occur during the [`terraform apply`
 
 ## Attribute Validation
 
-You can introduce validation on attributes using the generic framework-defined types such as [`types.String`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#String). To do this, supply the [`tfsdk.Attribute` type `Validators` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute.Validators) with a list of validations, and the framework will return diagnostics from all validators. For example:
+You can introduce validation on attributes using the generic framework-defined types such as [`types.String`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#String). To do this, supply the `Validators` field with a list of validations, and the framework will return diagnostics from all validators. For example:
 
 ```go
-// Typically within the tfsdk.Schema returned by GetSchema() for a provider,
+// Typically within the schema.Schema returned by Schema() for a provider,
 // resource, or data source.
-tfsdk.Attribute{
+schema.StringAttribute{
     // ... other Attribute configuration ...
 
-    Validators: []AttributeValidators{
+    Validators: []validator.String{
         // These are example validators from terraform-plugin-framework-validators
         stringvalidator.LengthBetween(10, 256),
         stringvalidator.RegexMatches(
@@ -54,7 +54,7 @@ You can implement attribute validators from the [terraform-plugin-framework-vali
 
 If there is not an attribute validator in `terraform-plugin-framework-validators` that meets a specific use case, a provider-defined attribute validator can be created.
 
-To create an attribute validator, you must implement the [`tfsdk.AttributeValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributeValidator). For example:
+To create an attribute validator, you must implement at least one of the [`validator` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schema/validator) interfaces. For example:
 
 ```go
 type stringLengthBetweenValidator struct {
@@ -73,24 +73,13 @@ func (v stringLengthBetweenValidator) MarkdownDescription(ctx context.Context) s
 }
 
 // Validate runs the main validation logic of the validator, reading configuration data out of `req` and updating `resp` with diagnostics.
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func (v stringLengthBetweenValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
     // If the value is unknown or null, there is nothing to validate.
-    if req.AttributeConfig.IsUnknown() || req.AttributeConfig.IsNull() {
+    if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
         return
     }
 
-    // types.String must be the attr.Value produced by the attr.Type in the schema for this attribute
-    // for generic validators, use
-    // https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ConvertValue
-    // to convert into a known type.
-    var str types.String
-    diags := tfsdk.ValueAs(ctx, req.AttributeConfig, &str)
-    resp.Diagnostics.Append(diags...)
-    if diags.HasError() {
-        return
-    }
-
-    strLen := len(str.ValueString())
+    strLen := len(req.ConfigValue.ValueString())
 
     if strLen < v.Min || strLen > v.Max {
         resp.Diagnostics.AddAttributeError(
@@ -123,17 +112,17 @@ Path expressions may represent one or more actual paths in the data. To find tho
 
 The general structure for working with path expressions in an attribute validator is:
 
-- Merge the given path expression(s) with the current attribute path expression, such as calling the [`tfsdk.ValidateAttributeRequest` type `AttributePathExpression` field `MergeExpressions()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.MergeExpressions).
-- Loop through each merged path expression to get the matching paths within the data, such as calling the [`tfsdk.ValidateAttributeRequest` type `Config` field `PathMatches()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config.PathMatches).
-- Loop through each matched path to get the generic `attr.Value` value, such as calling the [`tfsdk.ValidateAttributeRequest` type `Config` field `GetAttribute()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config.GetAttribute).
+- Merge the given path expression(s) with the current attribute path expression, such as calling the request type `PathExpression` field [`MergeExpressions()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.MergeExpressions).
+- Loop through each merged path expression to get the matching paths within the data, such as calling the request type `Config` field [`PathMatches()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config.PathMatches).
+- Loop through each matched path to get the generic `attr.Value` value, such as calling the request type `Config` field [`GetAttribute()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config.GetAttribute).
 - Perform null and unknown value checks on the `attr.Value`, such as the [`IsNull()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value.IsNull) and [`IsUnknown()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value.IsUnknown).
 - If the `attr.Value` is not null and not unknown, then use [`tfsdk.ValueAs()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ValueAs) using the expected value implementation as the target.
 
 The following example shows a generic path based attribute validator that returns an error if `types.Int64` values at the given path expressions are less than the current attribute `types.Int64` value.
 
 ```go
-// Ensure our implementation satisfies the tfsdk.AttributeValidator interface.
-var _ tfsdk.AttributeValidator = &int64IsGreaterThanValidator{}
+// Ensure our implementation satisfies the validator.Int64 interface.
+var _ validator.Int64 = &int64IsGreaterThanValidator{}
 
 // int64IsGreaterThanValidator is the underlying type implementing Int64IsGreaterThan.
 type int64IsGreaterThanValidator struct {
@@ -151,25 +140,10 @@ func (v int64IsGreaterThanValidator) MarkdownDescription(ctx context.Context) st
 }
 
 // Validate performs the validation logic for the validator.
-func (v int64IsGreaterThanValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func (v int64IsGreaterThanValidator) ValidateInt64(ctx context.Context, req validator.Int64Request, resp *validator.Int64Response) {
 	// If the current attribute configuration is null or unknown, there
 	// cannot be any value comparisons, so exit early without error.
-	if req.AttributeConfig.IsNull() || req.AttributeConfig.IsUnknown() {
-		return
-	}
-
-	// Convert the current attribute configuration to our expected attr.Value
-	// implementation. This will raise an error if the validator is not put
-	// on an attribute that is types.Int64Type.
-	var attributeConfig types.Int64
-
-	diags := tftypes.ValueAs(ctx, req.AttributeConfig, &attributeConfig)
-
-	resp.Diagnostics.Append(diags...)
-
-	// If the current attribute configuration is not valid, there cannot be
-	// any value comparisons, so exit early.
-	if resp.Diagnostics.HasError() {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 
@@ -244,7 +218,7 @@ func (v int64IsGreaterThanValidator) Validate(ctx context.Context, req tfsdk.Val
 
 // Int64IsGreaterThan checks that any Int64 values in the paths described by the
 // path.Expression are less than the current attribute value.
-func Int64IsGreaterThan(expressions ...path.Expression) tfsdk.AttributeValidator {
+func Int64IsGreaterThan(expressions ...path.Expression) validator.Int64 {
 	return &int64IsGreaterThanValidator{
 		expressions: expressions,
 	}
@@ -256,17 +230,17 @@ func Int64IsGreaterThan(expressions ...path.Expression) tfsdk.AttributeValidator
 You may want to create a custom type to simplify schemas if your provider contains common attribute values with consistent validation rules. When you implement validation on a type, you do not need to declare the same validation on the attribute, but you can supply additional validations in that manner. For example:
 
 ```go
-// Typically within the tfsdk.Schema returned by GetSchema() for a provider,
+// Typically within the schema.Schema returned by Schema() for a provider,
 // resource, or data source.
-tfsdk.Attribute{
+schema.StringAttribute{
     // ... other Attribute configuration ...
 
     // This is an example type which implements its own validation
-    Type: computeInstanceIdentifierType,
+    CustomType: computeInstanceIdentifierType,
 
     // This is optional, example validation that is checked in addition
     // to any validation performed by the type
-    Validators: []AttributeValidators{
+    Validators: []validator.String{
         stringvalidator.LengthBetween(10, 256),
     },
 }

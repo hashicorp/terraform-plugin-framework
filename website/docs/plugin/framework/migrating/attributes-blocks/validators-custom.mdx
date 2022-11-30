@@ -35,19 +35,19 @@ func resourceExample() *schema.Resource {
 
 ## Framework
 
-In the Framework, you implement either type of validation by setting the `Validators` field on the `tfsdk.Attribute`
-struct with types that satisfy the `tfsdk.AttributeValidator` interface.
+In the Framework, you implement either type of validation by setting the `Validators` field on the `schema.Attribute`
+implementation.
 
 The following example shows how to implement a validation that ensures that an integer attribute has a value
 greater than one.
 
 ```go
-func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
         /* ... */
-        Attributes: map[string]tfsdk.Attribute{
-            "attribute_example": {
-                Validators: []tfsdk.AttributeValidator{
+        Attributes: map[string]schema.Attribute{
+            "attribute_example": schema.Int64Attribute{
+                Validators: []validator.Int64{
                     int64validator.AtLeast(1),
                     /* ... */
 ```
@@ -57,7 +57,7 @@ func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Dia
 Remember the following details when migrating from SDKv2 to the Framework.
 
 - In SDKv2, `ValidateDiagFunc` is a field on `schema.Schema` that you can use to define custom validation functions. In
-the Framework, `Validators` is a field on each `tfsdk.Attribute` struct that can be used for custom validations.
+the Framework, `Validators` is a field on each `schema.Attribute` implementation that can be used for custom validations.
 - Use [predefined validators](/plugin/framework/migrating/attributes-blocks/validators-predefined) when there is a validator that meets
 your requirements.
 
@@ -96,16 +96,17 @@ This code validates that the `random_password`'s `length` attribute is greater t
 validator.
 
 ```go
-func (r *passwordResource) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "length": {
-                Validators: []tfsdk.AttributeValidator{
+func (r *passwordResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "length": schema.Int64Attribute{
+                Required: true,
+                Validators: []validator.Int64{
                     int64validator.AtLeast(1),
                 },
             },
         },
-    }, nil
+    }
 }
 ```
 
@@ -114,7 +115,7 @@ This example code is taken from
 to illustrate how you can implement your own validators.
 
 ```go
-var _ tfsdk.AttributeValidator = atLeastValidator{}
+var _ validator.Int64 = atLeastValidator{}
 
 // atLeastValidator validates that an integer Attribute's value is at least a certain value.
 type atLeastValidator struct {
@@ -122,31 +123,23 @@ type atLeastValidator struct {
 }
 
 // Description describes the validation in plain text formatting.
-func (validator atLeastValidator) Description(_ context.Context) string {
+func (v atLeastValidator) Description(_ context.Context) string {
     return fmt.Sprintf("value must be at least %d", validator.min)
 }
 
 // MarkdownDescription describes the validation in Markdown formatting.
-func (validator atLeastValidator) MarkdownDescription(ctx context.Context) string {
+func (v atLeastValidator) MarkdownDescription(ctx context.Context) string {
     return validator.Description(ctx)
 }
 
 // Validate performs the validation.
-func (validator atLeastValidator) Validate(ctx context.Context, request tfsdk.ValidateAttributeRequest, response *tfsdk.ValidateAttributeResponse) {
-    i, ok := validateInt(ctx, request, response)
-
-    if !ok {
-        return
-    }
-
-    if i < validator.min {
+func (v atLeastValidator) ValidateInt64(ctx context.Context, request validator.Int64Request, response *validator.Int64Response) {
+    if req.ConfigValue.Int64Value() < validator.min {
         response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
-            request.AttributePath,
-            validator.Description(ctx),
-            fmt.Sprintf("%d", i),
+            request.Path,
+            v.Description(ctx),
+            fmt.Sprintf("%d", req.ConfigValue.Int64Value()),
         ))
-
-        return
     }
 }
 
@@ -157,7 +150,7 @@ func (validator atLeastValidator) Validate(ctx context.Context, request tfsdk.Va
 //     - Is exclusively greater than the given minimum.
 //
 // Null (unconfigured) and unknown (known after apply) values are skipped.
-func AtLeast(min int64) tfsdk.AttributeValidator {
+func AtLeast(min int64) validator.Int64 {
     return atLeastValidator{
         min: min,
     }

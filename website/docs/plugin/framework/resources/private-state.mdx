@@ -33,7 +33,7 @@ type in the `Private` field present in the _request_ that is passed into:
 | --- | --- |
 | Delete | [resource.DeleteRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteRequest.Private) |
 | Plan Modification ([resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan)) | [resource.ModifyPlanRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ModifyPlanRequest.Private) |
-| Plan Modification ([tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier)) | [tfsdk.ModifyAttributePlanRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ModifyAttributePlanRequest.Private) |
+| Plan Modification (`planmodifier` package interfaces) | Request type `Private` fields |
 | Read | [resource.ReadRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest.Private) |
 | Update | [resource.UpdateRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest.Private)
 
@@ -45,7 +45,7 @@ type in the `Private` field present in the _response_ that is returned from:
 | Create | [resource.CreateResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateResponse.Private) |
 | Import | [resource.ImportStateResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.Private) |
 | Plan Modification ([resource.ResourceWithModifyPlan](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan)) | [resource.ModifyPlanResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ModifyPlanResponse.Private) |
-| Plan Modification ([tfsdk.AttributePlanModifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#AttributePlanModifier)) | [tfsdk.ModifyAttributePlanResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ModifyAttributePlanResponse.Private) |
+| Plan Modification (`planmodifier` package interfaces) | Response type `Private` fields |
 | Read | [resource.ReadResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.Private) |
 | Update | [resource.UpdateResponse.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateResponse.Private)
 

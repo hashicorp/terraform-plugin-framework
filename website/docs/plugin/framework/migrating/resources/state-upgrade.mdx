@@ -45,7 +45,7 @@ The following code shows how you define an `UpgradeState` function with the Fram
 func (r *resourceExample) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
     return map[int64]resource.StateUpgrader{
         0: {
-            PriorSchema:  *tfsdk.Schema,
+            PriorSchema:   *schema.Schema,
             StateUpgrader: func(context.Context, UpgradeStateRequest, *UpgradeStateResponse),
         },
         /* ... */

@@ -150,21 +150,21 @@ Refer to the [Resources](/plugin/framework/migrating/resources) and
 provider.
 
 ```go
-type provider struct {
+type ExampleCloudProvider struct {
 }
 
 func New() provider.Provider {
-    return &provider{}
+    return &ExampleCloudProvider{}
 }
 
-func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{}, nil
+func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+    resp.Schema = schema.Schema{}
 }
 
-func (p *provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 }
 
-func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *ExampleCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
     return []func() resource.Resource {
         func() resource.Resource {
             return resourceExample{},
@@ -172,7 +172,7 @@ func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
     }
 }
 
-func (p *provider) GetDataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *ExampleCloudProvider) GetDataSources(ctx context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource {
         func() datasource.DataSource {
             return dataSourceExample{},
@@ -188,8 +188,8 @@ Remember the following differences between SDKv2 and the Framework when completi
 - In SDKv2, your provider's `New` function returns a `schema.Provider` struct. In the Framework, `New` returns a type
 that you define which satisfies the `provider.Provider` interface.
 - In SDKv2, `Schema` is a field on `schema.Provider` that contains `map[string]*schema.Schema`, which maps attribute
-names to `schema.Schema` structs. In the Framework, `GetSchema` is a function you define on your provider's
-`provider.Provider` interface that returns your provider's `tfsdk.Schema` struct.
+names to `schema.Schema` structs. In the Framework, `Schema` is a method you define on your provider's
+`provider.Provider` interface that returns your provider's `schema.Schema` struct.
 - In SDKv2, `ConfigureContextFunc` is a field on `schema.Provider` containing a function that configures the provider.
 In the Framework, `Configure` is a function you define on your provider that configures your provider.
 - In SDKv2, `ResourcesMap` is a field on `schema.Provider` containing `map[string]*schema.Resource`, which maps resource
@@ -241,13 +241,13 @@ func New() (*schema.Provider, error) {
 The following shows the same section of provider code after the migration.
 
 ```go
-var _ provider.Provider = (*provider)(nil)
+var _ provider.Provider = (*TlsProvider)(nil)
 
 func New() provider.Provider {
-    return &provider{}
+    return &TlsProvider{}
 }
 
-func (p *provider) Resources(_ context.Context) []func() resource.Resource {
+func (p *TlsProvider) Resources(_ context.Context) []func() resource.Resource {
     return []func() resource.Resource{
         func() resource.Resource {
             return &privateKeyResource{}
@@ -256,7 +256,7 @@ func (p *provider) Resources(_ context.Context) []func() resource.Resource {
     }
 }
 
-func (p *provider) DataSources(_ context.Context) []func() datasource.DataSource {
+func (p *TlsProvider) DataSources(_ context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource{
         func() datasource.DataSource {
             return &publicKeyDataSource{},
@@ -265,17 +265,17 @@ func (p *provider) DataSources(_ context.Context) []func() datasource.DataSource
     }
 }
 
-func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "proxy": {
+func (p *TlsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "proxy": schema.SingleNestedBlock{
                 /* ... */
             },
         },
-    }, nil
+    }
 }
 
-func (p *provider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
+func (p *TlsProvider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
     /* ... */
 }
 ```
@@ -303,19 +303,19 @@ func New() *schema.Provider {
 
 ### Framework
 
-In the Framework, the `GetSchema` function returns the provider schema. The `GetSchema` function is part of the
-`provider.Provider` interface that your provider must implement. `GetSchema` returns a struct containing fields for
-`Attributes` and `Blocks`. These `Attributes` and `Blocks` contain `map[string]tfsdk.Attribute` and
-`map[string]tfsdk.Block`, respectively. Refer to [Providers - GetSchema](/plugin/framework/providers#getschema) in the
+In the Framework, the `Schema` method returns the provider schema. The `Schema` method is part of the
+`provider.Provider` interface that your provider must implement. `Schema` returns a struct containing fields for
+`Attributes` and `Blocks`. These `Attributes` and `Blocks` contain `map[string]schema.Attribute` and
+`map[string]schema.Block`, respectively. Refer to [Providers - Schema](/plugin/framework/providers#schema) in the
 Framework documentation for details.
 
-The following code shows the `GetSchema` function, which returns the provider schema.
+The following code shows the `Schema` method, which returns the provider schema.
 
 ```go
-func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+    resp.Schema = schema.Schema{
         /* ... */
-    }, nil
+    }
 }
 ```
 
@@ -328,8 +328,7 @@ those fields to the Framework.
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
 - In SDKv2, `schema.Schema` is a struct that defines attributes and behaviors (e.g., `Type`, `Optional`). In the
-Framework `tfsdk.Schema` is a struct that includes `tfsdk.Attributes`, which are structs that define attributes and behaviors
-(e.g., `Type`, `Optional`).
+Framework `schema.Schema` is a struct that includes attributes and blocks.
 
 ### Example
 
@@ -376,18 +375,17 @@ The following shows the same section of provider code after the migration.
 This code implements the `url` attribute for the `proxy` block with the Framework.
 
 ```go
-func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "proxy": {
+func (p *TlsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "proxy": schema.SingleNestedBlock{
                 Optional: true,
-                Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-                    "url": {
-                        Type:     types.StringType,
+                Attributes: map[string]schema.Attribute{
+                    "url": schema.StringAttribute{
                         Optional: true,
-                        Validators: []tfsdk.AttributeValidator{
+                        Validators: []validator.String{
                             attribute_validator.UrlWithScheme(supportedProxySchemesStr()...),
-                            schemavalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
+                            stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
                         },
                         MarkdownDescription: "URL used to connect to the Proxy. " +
                             fmt.Sprintf("Accepted schemes are: `%s`. ", strings.Join(supportedProxySchemesStr(), "`, `")),

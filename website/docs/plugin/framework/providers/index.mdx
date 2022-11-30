@@ -36,12 +36,12 @@ type ExampleCloudProvider struct{
 }
 
 // GetSchema satisfies the provider.Provider interface for exampleProvider.
-func (p *ExampleCloudProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
+func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
 			// Provider specific implementation.
 		},
-	}, nil
+	}
 }
 
 // Configure satisfies the provider.Provider interface for ExampleCloudProvider.
@@ -78,7 +78,7 @@ func New(version string) func() provider.Provider {
 
 ### GetSchema Method
 
-The [`provider.Provider` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the provider's configuration. This configuration block is used to offer practitioners the opportunity to supply values to the provider and configure its behavior, rather than needing to include those values in every resource and data source. It is usually used to gather credentials, endpoints, and the other data used to authenticate with the API, but it is not limited to those uses.
+The [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema) defines a [schema](/plugin/framework/schemas) describing what data is available in the provider's configuration. This configuration block is used to offer practitioners the opportunity to supply values to the provider and configure its behavior, rather than needing to include those values in every resource and data source. It is usually used to gather credentials, endpoints, and the other data used to authenticate with the API, but it is not limited to those uses.
 
 In this example, a sample configuration and schema definition are provided:
 
@@ -90,23 +90,21 @@ In this example, a sample configuration and schema definition are provided:
 //   endpoint  = "https://example.com/"
 // }
 
-func (p *ExampleCloudProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"api_token": {
+func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"api_token": schema.StringAttribute{
 				Optional: true,
-				Type:     types.StringType,
 			},
-			"endpoint": {
+			"endpoint": schema.StringAttribute{
 				Optional: true,
-				Type:     types.StringType,
 			},
 		},
-	}, nil
+	}
 }
 ```
 
-If the provider does not accept practitioner Terraform configuration, it must return an empty schema (`tfsdk.Schema{}`).
+If the provider does not accept practitioner Terraform configuration, leave the method defined, but empty.
 
 ### Configure Method
 
@@ -126,19 +124,17 @@ type ExampleCloudProviderModel struct {
 	Endpoint types.String `tfsdk:"endpoint"`
 }
 
-func (p *ExampleCloudProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"api_token": {
+func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"api_token": schema.StringAttribute{
 				Optional: true,
-				Type:     types.StringType,
 			},
-			"endpoint": {
+			"endpoint": schema.StringAttribute{
 				Optional: true,
-				Type:     types.StringType,
 			},
 		},
-	}, nil
+	}
 }
 
 func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {

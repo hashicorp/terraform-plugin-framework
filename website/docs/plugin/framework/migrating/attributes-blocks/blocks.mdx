@@ -59,22 +59,20 @@ func resourceExample() *schema.Resource {
 ## Framework
 
 In the Framework, you implement nested blocks with the `Blocks` field of your provider, resource, or data source's
-`tfsdk.Schema`, as returned by the `GetSchema` function. The `Blocks` field maps the name of each block to a
-`tfsdk.Block` struct which defines the block's behavior.
+schema, as returned by the `Schema` method. The `Blocks` field maps the name of each block to a
+`schema.Block` definition.
 
 ```go
-func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    return schema.Schema{
         /* ... */
-        Blocks: map[string]tfsdk.Block{
-            "example": {
-                NestingMode: tfsdk.BlockNestingModeList,
-                MaxItems:    int,
-                Attributes: map[string]tfsdk.Attribute{
-                    "nested_example": {
-                        Type:     types.StringType,
-                        Optional: bool
-                        /* ... */
+        Blocks: map[string]schema.Block{
+            "example": schema.ListNestedBlock{
+                NestedObject: schema.NestedBlockObject{
+                    Attributes: map[string]schema.Attribute{
+                        "nested_example": schema.StringAttribute{
+                            Optional: bool
+                            /* ... */
 ```
 
 
@@ -122,24 +120,22 @@ The following example from the `resource_cert_request.go` file shows how the nes
 `cert_request` resource is defined with the Framework after the migration.
 
 ```go
-tfsdk.Schema{
-        Attributes: map[string]tfsdk.Attribute{
-            "private_key_pem": {
-                Type:     types.StringType,
-        /* ... */
+schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "private_key_pem": schema.StringAttribute{
+            /* ... */
 
-        Blocks: map[string]tfsdk.Block{
-            "subject": {
-                NestingMode: tfsdk.BlockNestingModeList,
-                MinItems:    0,
-                MaxItems:    1,
-                Attributes: map[string]tfsdk.Attribute{
-                    "organization": {
-                        Type:     types.StringType,
-                        /* ... */
-                    },
-                    "common_name": {
-                        Type:     types.StringType,
-                        /* ... */
-                    },
+        Blocks: map[string]schema.Block{
+            "subject": schema.ListNestedBlock{
+                NestedObject: schema.NestedBlockObject{
+                    Attributes: map[string]schema.Attribute{
+                        "organization": schema.StringAttribute{
+                            /* ... */
+                        },
+                        "common_name": schema.StringAttribute{
+                            /* ... */
+                        },
+                Validators: validator.List{
+                    listvalidator.SizeAtMost(1),
+                },
 ```

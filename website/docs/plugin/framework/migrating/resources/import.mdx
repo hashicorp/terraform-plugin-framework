@@ -57,7 +57,7 @@ Remember the following differences between SDKv2 and the Framework when completi
 functions can only access the value (e.g., the resource's `ID`) supplied to the `terraform import` command.
 - In SDKv2, you implement resource importing by populating the `Importer` field on the `schema.Resource` struct. In the
 Framework, you define an `ImportState` function on the type which implements `resource.Resource`. This implementation
-satisfies the `tfsdk.ResourceWithImportState` interface.
+satisfies the `resource.ResourceWithImportState` interface.
 
 ## Example
 

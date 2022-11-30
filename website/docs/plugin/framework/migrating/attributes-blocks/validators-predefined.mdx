@@ -36,21 +36,21 @@ func resourceExample() *schema.Resource {
 ```
 ## Framework
 
-In the Framework, you implement either type of validation by setting the `Validators` field on the `tfsdk.Attribute`
-struct with types that satisfy the `tfsdk.AttributeValidator` interface. Validators that perform the same checks as the
+In the Framework, you implement either type of validation by setting the `Validators` field on the `schema.Attribute`
+implementation. Validators that perform the same checks as the
 predefined validators in SDKv2 are
 [available for the Framework](https://github.com/hashicorp/terraform-plugin-framework-validators). If the predefined
 validators do not meet your needs, you must define
 [custom validators](/plugin/framework/migrating/attributes-blocks/validators-custom).
 
 ```go
-func (d *resourceTypeExample) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
+func (r *resourceExample) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
         /* ... */
-        Attributes: map[string]tfsdk.Attribute{
-            "attribute_example": {
-                Validators: []tfsdk.AttributeValidator{
-                    schemavalidator.ConflictsWith( /* ... */ ),
+        Attributes: map[string]schema.Attribute{
+            "attribute_example": schema.StringAttribute{
+                Validators: []validator.String{
+                    stringvalidator.ConflictsWith( /* ... */ ),
                     /* ... */
 ```
 
@@ -76,13 +76,10 @@ Remember the following details when migrating from SDKv2 to the Framework.
 
 - In SDKv2, `ValidateDiagFunc` is a field on `schema.Schema` that you can use to define validation functions. In SDKv2,
 there are also built-in validations. For example, `ConflictsWith` is a field on the `schema.Schema` struct in SDKv2. In
-the Framework, `Validators` is a field on each `tfsdk.Attribute` struct.
+the Framework, `Validators` is a field on each `schema.Attribute` implementation.
 - Validators replicating the behavior of `ConflictsWith`, `ExactlyOneOf`, `AtLeastOneOf`, and `RequiredWith` in SDKv2 are
-available for the Framework:
-  - [ConflictsWith](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#ConflictsWith)
-  - [ExactlyOneOf](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#ExactlyOneOf)
-  - [AtLeastOneOf](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#AtLeastOneOf)
-  - [AlsoRequires](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator#AlsoRequires)
+available for the Framework in each of the type-specific packages of
+[terraform-plugin-framework-validators](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators).
 - Define [custom validators](/plugin/framework/migrating/attributes-blocks/validators-custom) when the predefined validators do not meet
 your requirements.
 
@@ -142,41 +139,43 @@ This code implements the `ConflictsWith` and `AlsoRequires` validators with the 
 via the `Validators` field of the provider's `proxy` block's attribute schema.
 
 ```go
-func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-    return tfsdk.Schema{
-        Blocks: map[string]tfsdk.Block{
-            "proxy": {
-                Attributes: map[string]tfsdk.Attribute{
-                    "url": {
-                        Validators: []tfsdk.AttributeValidator{
-                            schemavalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
+func (p *TlsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Blocks: map[string]schema.Block{
+            "proxy": schema.ListNestedBlock{
+                NestedObject: schema.NestedBlockObject{
+                    Attributes: map[string]schema.Attribute{
+                        "url": schema.StringAttribute{
+                            Validators: []validator.String{
+                                stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
+                            },
+                            /* ... */
                         },
-                        /* ... */
-                    },
-                    "username": {
-                        Validators: []tfsdk.AttributeValidator{
-                            schemavalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("url")),
+                        "username": schema.StringAttribute{
+                            Validators: []validator.String{
+                                stringvalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("url")),
+                            },
+                            /* ... */
                         },
-                        /* ... */
-                    },
-                    "password": {
-                        Validators: []tfsdk.AttributeValidator{
-                            schemavalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("username")),
+                        "password": schema.StringAttribute{
+                            Validators: []validator.String{
+                                stringvalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("username")),
+                            },
+                            /* ... */
                         },
-                        /* ... */
-                    },
-                    "from_env": {
-                        Validators: []tfsdk.AttributeValidator{
-                            schemavalidator.ConflictsWith(
-                                path.MatchRelative().AtParent().AtName("url"),
-                                path.MatchRelative().AtParent().AtName("username"),
-                                path.MatchRelative().AtParent().AtName("password"),
-                            ),
+                        "from_env": schema.BoolAttribute{
+                            Validators: []validator.Bool{
+                                boolvalidator.ConflictsWith(
+                                    path.MatchRelative().AtParent().AtName("url"),
+                                    path.MatchRelative().AtParent().AtName("username"),
+                                    path.MatchRelative().AtParent().AtName("password"),
+                                ),
+                            },
+                            /* ... */
                         },
-                        /* ... */
                     },
                 },
             },
-    }, nil
+    }
 }
 ```

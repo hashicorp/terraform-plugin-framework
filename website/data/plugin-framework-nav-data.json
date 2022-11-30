@@ -118,6 +118,10 @@
     "title": "Handling Data",
     "routes": [
       {
+        "title": "Terraform Concepts",
+        "path": "handling-data/terraform-concepts"
+      },
+      {
         "title": "Schemas",
         "path": "handling-data/schemas"
       }

@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	_ NumberValuable = Number{}
+	_ NumberValuable = NumberValue{}
 )
 
 // NumberValuable extends attr.Value for number value types.
@@ -21,65 +21,41 @@ type NumberValuable interface {
 	attr.Value
 
 	// ToNumberValue should convert the value type to a Number.
-	ToNumberValue(ctx context.Context) (Number, diag.Diagnostics)
+	ToNumberValue(ctx context.Context) (NumberValue, diag.Diagnostics)
 }
 
-// NumberNull creates a Number with a null value. Determine whether the value is
+// NewNumberNull creates a Number with a null value. Determine whether the value is
 // null via the Number type IsNull method.
-//
-// Setting the deprecated Number type Null, Unknown, or Value fields after
-// creating a Number with this function has no effect.
-func NumberNull() Number {
-	return Number{
+func NewNumberNull() NumberValue {
+	return NumberValue{
 		state: attr.ValueStateNull,
 	}
 }
 
-// NumberUnknown creates a Number with an unknown value. Determine whether the
+// NewNumberUnknown creates a Number with an unknown value. Determine whether the
 // value is unknown via the Number type IsUnknown method.
-//
-// Setting the deprecated Number type Null, Unknown, or Value fields after
-// creating a Number with this function has no effect.
-func NumberUnknown() Number {
-	return Number{
+func NewNumberUnknown() NumberValue {
+	return NumberValue{
 		state: attr.ValueStateUnknown,
 	}
 }
 
-// NumberValue creates a Number with a known value. Access the value via the Number
+// NewNumberValue creates a Number with a known value. Access the value via the Number
 // type ValueBigFloat method. If the given value is nil, a null Number is created.
-//
-// Setting the deprecated Number type Null, Unknown, or Value fields after
-// creating a Number with this function has no effect.
-func NumberValue(value *big.Float) Number {
+func NewNumberValue(value *big.Float) NumberValue {
 	if value == nil {
-		return NumberNull()
+		return NewNumberNull()
 	}
 
-	return Number{
+	return NumberValue{
 		state: attr.ValueStateKnown,
 		value: value,
 	}
 }
 
-func numberValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	if !in.IsKnown() {
-		return NumberUnknown(), nil
-	}
-	if in.IsNull() {
-		return NumberNull(), nil
-	}
-	n := big.NewFloat(0)
-	err := in.As(&n)
-	if err != nil {
-		return nil, err
-	}
-	return NumberValue(n), nil
-}
-
-// Number represents a number value, exposed as a *big.Float. Numbers can be
+// NumberValue represents a number value, exposed as a *big.Float. Numbers can be
 // floats or integers.
-type Number struct {
+type NumberValue struct {
 	// state represents whether the value is null, unknown, or known. The
 	// zero-value is null.
 	state attr.ValueState
@@ -89,12 +65,12 @@ type Number struct {
 }
 
 // Type returns a NumberType.
-func (n Number) Type(_ context.Context) attr.Type {
-	return NumberType
+func (n NumberValue) Type(_ context.Context) attr.Type {
+	return NumberType{}
 }
 
 // ToTerraformValue returns the data contained in the Number as a tftypes.Value.
-func (n Number) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
+func (n NumberValue) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	switch n.state {
 	case attr.ValueStateKnown:
 		if n.value == nil {
@@ -116,8 +92,8 @@ func (n Number) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 }
 
 // Equal returns true if `other` is a Number and has the same value as `n`.
-func (n Number) Equal(other attr.Value) bool {
-	o, ok := other.(Number)
+func (n NumberValue) Equal(other attr.Value) bool {
+	o, ok := other.(NumberValue)
 
 	if !ok {
 		return false
@@ -135,19 +111,19 @@ func (n Number) Equal(other attr.Value) bool {
 }
 
 // IsNull returns true if the Number represents a null value.
-func (n Number) IsNull() bool {
+func (n NumberValue) IsNull() bool {
 	return n.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the Number represents a currently unknown value.
-func (n Number) IsUnknown() bool {
+func (n NumberValue) IsUnknown() bool {
 	return n.state == attr.ValueStateUnknown
 }
 
 // String returns a human-readable representation of the Number value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.
-func (n Number) String() string {
+func (n NumberValue) String() string {
 	if n.IsUnknown() {
 		return attr.UnknownValueString
 	}
@@ -161,11 +137,11 @@ func (n Number) String() string {
 
 // ValueBigFloat returns the known *big.Float value. If Number is null or unknown, returns
 // 0.0.
-func (n Number) ValueBigFloat() *big.Float {
+func (n NumberValue) ValueBigFloat() *big.Float {
 	return n.value
 }
 
 // ToNumberValue returns Number.
-func (n Number) ToNumberValue(context.Context) (Number, diag.Diagnostics) {
+func (n NumberValue) ToNumberValue(context.Context) (NumberValue, diag.Diagnostics) {
 	return n, nil
 }

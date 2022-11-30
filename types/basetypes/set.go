@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 var (
 	_ SetTypable             = SetType{}
 	_ xattr.TypeWithValidate = SetType{}
-	_ SetValuable            = &Set{}
+	_ SetValuable            = &SetValue{}
 )
 
 // SetTypable extends attr.Type for set types.
@@ -26,7 +26,7 @@ type SetTypable interface {
 	attr.Type
 
 	// ValueFromSet should convert the Set to a SetValuable type.
-	ValueFromSet(context.Context, Set) (SetValuable, diag.Diagnostics)
+	ValueFromSet(context.Context, SetValue) (SetValuable, diag.Diagnostics)
 }
 
 // SetValuable extends attr.Value for set value types.
@@ -35,7 +35,7 @@ type SetValuable interface {
 	attr.Value
 
 	// ToSetValue should convert the value type to a Set.
-	ToSetValue(ctx context.Context) (Set, diag.Diagnostics)
+	ToSetValue(ctx context.Context) (SetValue, diag.Diagnostics)
 }
 
 // SetType is an AttributeType representing a set of values. All values must
@@ -72,16 +72,16 @@ func (st SetType) TerraformType(ctx context.Context) tftypes.Type {
 // type for the provider to consume the data with.
 func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if in.Type() == nil {
-		return SetNull(st.ElemType), nil
+		return NewSetNull(st.ElemType), nil
 	}
 	if !in.Type().Equal(st.TerraformType(ctx)) {
 		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), st.ElemType, st.ElemType.TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
-		return SetUnknown(st.ElemType), nil
+		return NewSetUnknown(st.ElemType), nil
 	}
 	if in.IsNull() {
-		return SetNull(st.ElemType), nil
+		return NewSetNull(st.ElemType), nil
 	}
 	val := []tftypes.Value{}
 	err := in.As(&val)
@@ -98,7 +98,7 @@ func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 	}
 	// ValueFromTerraform above on each element should make this safe.
 	// Otherwise, this will need to do some Diagnostics to error conversion.
-	return SetValueMust(st.ElemType, elems), nil
+	return NewSetValueMust(st.ElemType, elems), nil
 }
 
 // Equal returns true if `o` is also a SetType and has the same ElemType.
@@ -210,37 +210,37 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 
 // ValueType returns the Value type.
 func (st SetType) ValueType(_ context.Context) attr.Value {
-	return Set{
+	return SetValue{
 		elementType: st.ElemType,
 	}
 }
 
 // ValueFromSet returns a SetValuable type given a Set.
-func (st SetType) ValueFromSet(_ context.Context, set Set) (SetValuable, diag.Diagnostics) {
+func (st SetType) ValueFromSet(_ context.Context, set SetValue) (SetValuable, diag.Diagnostics) {
 	return set, nil
 }
 
-// SetNull creates a Set with a null value. Determine whether the value is
+// NewSetNull creates a Set with a null value. Determine whether the value is
 // null via the Set type IsNull method.
-func SetNull(elementType attr.Type) Set {
-	return Set{
+func NewSetNull(elementType attr.Type) SetValue {
+	return SetValue{
 		elementType: elementType,
 		state:       attr.ValueStateNull,
 	}
 }
 
-// SetUnknown creates a Set with an unknown value. Determine whether the
+// NewSetUnknown creates a Set with an unknown value. Determine whether the
 // value is unknown via the Set type IsUnknown method.
-func SetUnknown(elementType attr.Type) Set {
-	return Set{
+func NewSetUnknown(elementType attr.Type) SetValue {
+	return SetValue{
 		elementType: elementType,
 		state:       attr.ValueStateUnknown,
 	}
 }
 
-// SetValue creates a Set with a known value. Access the value via the Set
+// NewSetValue creates a Set with a known value. Access the value via the Set
 // type Elements or ElementsAs methods.
-func SetValue(elementType attr.Type, elements []attr.Value) (Set, diag.Diagnostics) {
+func NewSetValue(elementType attr.Type, elements []attr.Value) (SetValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
@@ -260,20 +260,20 @@ func SetValue(elementType attr.Type, elements []attr.Value) (Set, diag.Diagnosti
 	}
 
 	if diags.HasError() {
-		return SetUnknown(elementType), diags
+		return NewSetUnknown(elementType), diags
 	}
 
-	return Set{
+	return SetValue{
 		elementType: elementType,
 		elements:    elements,
 		state:       attr.ValueStateKnown,
 	}, nil
 }
 
-// SetValueFrom creates a Set with a known value, using reflection rules.
+// NewSetValueFrom creates a Set with a known value, using reflection rules.
 // The elements must be a slice which can convert into the given element type.
 // Access the value via the Set type Elements or ElementsAs methods.
-func SetValueFrom(ctx context.Context, elementType attr.Type, elements any) (Set, diag.Diagnostics) {
+func NewSetValueFrom(ctx context.Context, elementType attr.Type, elements any) (SetValue, diag.Diagnostics) {
 	attrValue, diags := reflect.FromValue(
 		ctx,
 		SetType{ElemType: elementType},
@@ -282,10 +282,10 @@ func SetValueFrom(ctx context.Context, elementType attr.Type, elements any) (Set
 	)
 
 	if diags.HasError() {
-		return SetUnknown(elementType), diags
+		return NewSetUnknown(elementType), diags
 	}
 
-	set, ok := attrValue.(Set)
+	set, ok := attrValue.(SetValue)
 
 	// This should not happen, but ensure there is an error if it does.
 	if !ok {
@@ -299,15 +299,15 @@ func SetValueFrom(ctx context.Context, elementType attr.Type, elements any) (Set
 	return set, diags
 }
 
-// SetValueMust creates a Set with a known value, converting any diagnostics
+// NewSetValueMust creates a Set with a known value, converting any diagnostics
 // into a panic at runtime. Access the value via the Set
 // type Elements or ElementsAs methods.
 //
 // This creation function is only recommended to create Set values which will
 // not potentially effect practitioners, such as testing, or exhaustively
 // tested provider logic.
-func SetValueMust(elementType attr.Type, elements []attr.Value) Set {
-	set, diags := SetValue(elementType, elements)
+func NewSetValueMust(elementType attr.Type, elements []attr.Value) SetValue {
+	set, diags := NewSetValue(elementType, elements)
 
 	if diags.HasError() {
 		// This could potentially be added to the diag package.
@@ -327,9 +327,9 @@ func SetValueMust(elementType attr.Type, elements []attr.Value) Set {
 	return set
 }
 
-// Set represents a set of attr.Value, all of the same type,
+// SetValue represents a set of attr.Value, all of the same type,
 // indicated by ElemType.
-type Set struct {
+type SetValue struct {
 	// elements is the collection of known values in the Set.
 	elements []attr.Value
 
@@ -343,13 +343,13 @@ type Set struct {
 
 // Elements returns the collection of elements for the Set. Returns nil if the
 // Set is null or unknown.
-func (s Set) Elements() []attr.Value {
+func (s SetValue) Elements() []attr.Value {
 	return s.elements
 }
 
-// ElementsAs populates `target` with the elements of the Set, throwing an
+// ElementsAs populates `target` with the elements of the SetValue, throwing an
 // error if the elements cannot be stored in `target`.
-func (s Set) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
+func (s SetValue) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
 	// we need a tftypes.Value for this Set to be able to use it with our
 	// reflection code
 	val, err := s.ToTerraformValue(ctx)
@@ -368,17 +368,17 @@ func (s Set) ElementsAs(ctx context.Context, target interface{}, allowUnhandled 
 }
 
 // ElementType returns the element type for the Set.
-func (s Set) ElementType(_ context.Context) attr.Type {
+func (s SetValue) ElementType(_ context.Context) attr.Type {
 	return s.elementType
 }
 
 // Type returns a SetType with the same element type as `s`.
-func (s Set) Type(ctx context.Context) attr.Type {
+func (s SetValue) Type(ctx context.Context) attr.Type {
 	return SetType{ElemType: s.ElementType(ctx)}
 }
 
 // ToTerraformValue returns the data contained in the Set as a tftypes.Value.
-func (s Set) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+func (s SetValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	setType := tftypes.Set{ElementType: s.ElementType(ctx).TerraformType(ctx)}
 
 	switch s.state {
@@ -411,8 +411,8 @@ func (s Set) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 
 // Equal returns true if the Set is considered semantically equal
 // (same type and same value) to the attr.Value passed as an argument.
-func (s Set) Equal(o attr.Value) bool {
-	other, ok := o.(Set)
+func (s SetValue) Equal(o attr.Value) bool {
+	other, ok := o.(SetValue)
 
 	if !ok {
 		return false
@@ -443,7 +443,7 @@ func (s Set) Equal(o attr.Value) bool {
 	return true
 }
 
-func (s Set) contains(v attr.Value) bool {
+func (s SetValue) contains(v attr.Value) bool {
 	for _, elem := range s.Elements() {
 		if elem.Equal(v) {
 			return true
@@ -454,21 +454,21 @@ func (s Set) contains(v attr.Value) bool {
 }
 
 // IsNull returns true if the Set represents a null value.
-func (s Set) IsNull() bool {
+func (s SetValue) IsNull() bool {
 	return s.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the Set represents a currently unknown value.
 // Returns false if the Set has a known number of elements, even if all are
 // unknown values.
-func (s Set) IsUnknown() bool {
+func (s SetValue) IsUnknown() bool {
 	return s.state == attr.ValueStateUnknown
 }
 
 // String returns a human-readable representation of the Set value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.
-func (s Set) String() string {
+func (s SetValue) String() string {
 	if s.IsUnknown() {
 		return attr.UnknownValueString
 	}
@@ -492,6 +492,6 @@ func (s Set) String() string {
 }
 
 // ToSetValue returns the Set.
-func (s Set) ToSetValue(context.Context) (Set, diag.Diagnostics) {
+func (s SetValue) ToSetValue(context.Context) (SetValue, diag.Diagnostics) {
 	return s, nil
 }

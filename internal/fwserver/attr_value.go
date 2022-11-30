@@ -10,10 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
-	listVal, ok := value.(types.ListValuable)
+	listVal, ok := value.(basetypes.ListValuable)
 
 	if !ok {
 		return types.ListNull(nil), diag.Diagnostics{
@@ -25,7 +26,7 @@ func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value
 }
 
 func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {
-	mapVal, ok := value.(types.MapValuable)
+	mapVal, ok := value.(basetypes.MapValuable)
 
 	if !ok {
 		return types.MapNull(nil), diag.Diagnostics{
@@ -37,7 +38,7 @@ func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value)
 }
 
 func coerceObjectValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Object, diag.Diagnostics) {
-	objectVal, ok := value.(types.ObjectValuable)
+	objectVal, ok := value.(basetypes.ObjectValuable)
 
 	if !ok {
 		return types.ObjectNull(nil), diag.Diagnostics{
@@ -49,7 +50,7 @@ func coerceObjectValue(ctx context.Context, schemaPath path.Path, value attr.Val
 }
 
 func coerceSetValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
-	setVal, ok := value.(types.SetValuable)
+	setVal, ok := value.(basetypes.SetValuable)
 
 	if !ok {
 		return types.SetNull(nil), diag.Diagnostics{

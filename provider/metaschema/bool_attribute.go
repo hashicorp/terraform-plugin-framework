@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -26,9 +27,9 @@ var (
 //	.example_attribute
 type BoolAttribute struct {
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.BoolType. When retrieving data, the types.BoolValuable
+	// default basetypes.BoolType. When retrieving data, the basetypes.BoolValuable
 	// associated with this custom type must be used in place of types.Bool.
-	CustomType types.BoolTypable
+	CustomType basetypes.BoolTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,

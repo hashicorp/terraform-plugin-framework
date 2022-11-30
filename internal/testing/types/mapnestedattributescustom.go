@@ -9,11 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var (
-	_ types.MapTypable  = MapNestedAttributesCustomTypeType{}
-	_ types.MapValuable = &MapNestedAttributesCustomValue{}
+	_ basetypes.MapTypable  = MapNestedAttributesCustomTypeType{}
+	_ basetypes.MapValuable = &MapNestedAttributesCustomValue{}
 )
 
 type MapNestedAttributesCustomType struct {

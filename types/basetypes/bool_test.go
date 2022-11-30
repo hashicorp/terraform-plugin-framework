@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -9,13 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestBoolValueFromTerraform(t *testing.T) {
+func TestBoolTypeValueFromTerraform(t *testing.T) {
 	t.Parallel()
 
-	testBoolValueFromTerraform(t, true)
-}
-
-func testBoolValueFromTerraform(t *testing.T, direct bool) {
 	type testCase struct {
 		input       tftypes.Value
 		expectation attr.Value
@@ -24,19 +20,19 @@ func testBoolValueFromTerraform(t *testing.T, direct bool) {
 	tests := map[string]testCase{
 		"true": {
 			input:       tftypes.NewValue(tftypes.Bool, true),
-			expectation: BoolValue(true),
+			expectation: NewBoolValue(true),
 		},
 		"false": {
 			input:       tftypes.NewValue(tftypes.Bool, false),
-			expectation: BoolValue(false),
+			expectation: NewBoolValue(false),
 		},
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-			expectation: BoolUnknown(),
+			expectation: NewBoolUnknown(),
 		},
 		"null": {
 			input:       tftypes.NewValue(tftypes.Bool, nil),
-			expectation: BoolNull(),
+			expectation: NewBoolNull(),
 		},
 		"wrongType": {
 			input:       tftypes.NewValue(tftypes.String, "oops"),
@@ -49,11 +45,7 @@ func testBoolValueFromTerraform(t *testing.T, direct bool) {
 			t.Parallel()
 			ctx := context.Background()
 
-			f := BoolType.ValueFromTerraform
-			if direct {
-				f = boolValueFromTerraform
-			}
-			got, err := f(ctx, test.input)
+			got, err := BoolType{}.ValueFromTerraform(ctx, test.input)
 			if err != nil {
 				if test.expectedErr == "" {
 					t.Errorf("Unexpected error: %s", err)
@@ -84,28 +76,28 @@ func testBoolValueFromTerraform(t *testing.T, direct bool) {
 	}
 }
 
-func TestBoolToTerraformValue(t *testing.T) {
+func TestBoolValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Bool
+		input       BoolValue
 		expectation interface{}
 	}
 	tests := map[string]testCase{
 		"known-true": {
-			input:       BoolValue(true),
+			input:       NewBoolValue(true),
 			expectation: tftypes.NewValue(tftypes.Bool, true),
 		},
 		"known-false": {
-			input:       BoolValue(false),
+			input:       NewBoolValue(false),
 			expectation: tftypes.NewValue(tftypes.Bool, false),
 		},
 		"unknown": {
-			input:       BoolUnknown(),
+			input:       NewBoolUnknown(),
 			expectation: tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       BoolNull(),
+			input:       NewBoolNull(),
 			expectation: tftypes.NewValue(tftypes.Bool, nil),
 		},
 	}
@@ -127,103 +119,103 @@ func TestBoolToTerraformValue(t *testing.T) {
 	}
 }
 
-func TestBoolEqual(t *testing.T) {
+func TestBoolValueEqual(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Bool
+		input       BoolValue
 		candidate   attr.Value
 		expectation bool
 	}
 	tests := map[string]testCase{
 		"known-true-nil": {
-			input:       BoolValue(true),
+			input:       NewBoolValue(true),
 			candidate:   nil,
 			expectation: false,
 		},
 		"known-true-wrongtype": {
-			input:       BoolValue(true),
-			candidate:   StringValue("true"),
+			input:       NewBoolValue(true),
+			candidate:   NewStringValue("true"),
 			expectation: false,
 		},
 		"known-true-known-false": {
-			input:       BoolValue(true),
-			candidate:   BoolValue(false),
+			input:       NewBoolValue(true),
+			candidate:   NewBoolValue(false),
 			expectation: false,
 		},
 		"known-true-known-true": {
-			input:       BoolValue(true),
-			candidate:   BoolValue(true),
+			input:       NewBoolValue(true),
+			candidate:   NewBoolValue(true),
 			expectation: true,
 		},
 		"known-true-null": {
-			input:       BoolValue(true),
-			candidate:   BoolNull(),
+			input:       NewBoolValue(true),
+			candidate:   NewBoolNull(),
 			expectation: false,
 		},
 		"known-true-unknown": {
-			input:       BoolValue(true),
-			candidate:   BoolUnknown(),
+			input:       NewBoolValue(true),
+			candidate:   NewBoolUnknown(),
 			expectation: false,
 		},
 		"known-false-nil": {
-			input:       BoolValue(false),
+			input:       NewBoolValue(false),
 			candidate:   nil,
 			expectation: false,
 		},
 		"known-false-wrongtype": {
-			input:       BoolValue(false),
-			candidate:   StringValue("false"),
+			input:       NewBoolValue(false),
+			candidate:   NewStringValue("false"),
 			expectation: false,
 		},
 		"known-false-known-false": {
-			input:       BoolValue(false),
-			candidate:   BoolValue(false),
+			input:       NewBoolValue(false),
+			candidate:   NewBoolValue(false),
 			expectation: true,
 		},
 		"known-false-known-true": {
-			input:       BoolValue(false),
-			candidate:   BoolValue(true),
+			input:       NewBoolValue(false),
+			candidate:   NewBoolValue(true),
 			expectation: false,
 		},
 		"known-false-null": {
-			input:       BoolValue(false),
-			candidate:   BoolNull(),
+			input:       NewBoolValue(false),
+			candidate:   NewBoolNull(),
 			expectation: false,
 		},
 		"known-false-unknown": {
-			input:       BoolValue(false),
-			candidate:   BoolUnknown(),
+			input:       NewBoolValue(false),
+			candidate:   NewBoolUnknown(),
 			expectation: false,
 		},
 		"null-nil": {
-			input:       BoolNull(),
+			input:       NewBoolNull(),
 			candidate:   nil,
 			expectation: false,
 		},
 		"null-wrongtype": {
-			input:       BoolNull(),
-			candidate:   StringValue("true"),
+			input:       NewBoolNull(),
+			candidate:   NewStringValue("true"),
 			expectation: false,
 		},
 		"null-known-false": {
-			input:       BoolNull(),
-			candidate:   BoolValue(false),
+			input:       NewBoolNull(),
+			candidate:   NewBoolValue(false),
 			expectation: false,
 		},
 		"null-known-true": {
-			input:       BoolNull(),
-			candidate:   BoolValue(true),
+			input:       NewBoolNull(),
+			candidate:   NewBoolValue(true),
 			expectation: false,
 		},
 		"null-null": {
-			input:       BoolNull(),
-			candidate:   BoolNull(),
+			input:       NewBoolNull(),
+			candidate:   NewBoolNull(),
 			expectation: true,
 		},
 		"null-unknown": {
-			input:       BoolNull(),
-			candidate:   BoolUnknown(),
+			input:       NewBoolNull(),
+			candidate:   NewBoolUnknown(),
 			expectation: false,
 		},
 	}
@@ -240,23 +232,23 @@ func TestBoolEqual(t *testing.T) {
 	}
 }
 
-func TestBoolIsNull(t *testing.T) {
+func TestBoolValueIsNull(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Bool
+		input    BoolValue
 		expected bool
 	}{
 		"known": {
-			input:    BoolValue(true),
+			input:    NewBoolValue(true),
 			expected: false,
 		},
 		"null": {
-			input:    BoolNull(),
+			input:    NewBoolNull(),
 			expected: true,
 		},
 		"unknown": {
-			input:    BoolUnknown(),
+			input:    NewBoolUnknown(),
 			expected: false,
 		},
 	}
@@ -276,23 +268,23 @@ func TestBoolIsNull(t *testing.T) {
 	}
 }
 
-func TestBoolIsUnknown(t *testing.T) {
+func TestBoolValueIsUnknown(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Bool
+		input    BoolValue
 		expected bool
 	}{
 		"known": {
-			input:    BoolValue(true),
+			input:    NewBoolValue(true),
 			expected: false,
 		},
 		"null": {
-			input:    BoolNull(),
+			input:    NewBoolNull(),
 			expected: false,
 		},
 		"unknown": {
-			input:    BoolUnknown(),
+			input:    NewBoolUnknown(),
 			expected: true,
 		},
 	}
@@ -312,28 +304,28 @@ func TestBoolIsUnknown(t *testing.T) {
 	}
 }
 
-func TestBoolString(t *testing.T) {
+func TestBoolValueString(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Bool
+		input       BoolValue
 		expectation string
 	}
 	tests := map[string]testCase{
 		"known-true": {
-			input:       BoolValue(true),
+			input:       NewBoolValue(true),
 			expectation: "true",
 		},
 		"known-false": {
-			input:       BoolValue(false),
+			input:       NewBoolValue(false),
 			expectation: "false",
 		},
 		"null": {
-			input:       BoolNull(),
+			input:       NewBoolNull(),
 			expectation: "<null>",
 		},
 		"unknown": {
-			input:       BoolUnknown(),
+			input:       NewBoolUnknown(),
 			expectation: "<unknown>",
 		},
 	}
@@ -351,27 +343,27 @@ func TestBoolString(t *testing.T) {
 	}
 }
 
-func TestBoolValueBool(t *testing.T) {
+func TestBoolValueValueBool(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Bool
+		input    BoolValue
 		expected bool
 	}{
 		"known-false": {
-			input:    BoolValue(false),
+			input:    NewBoolValue(false),
 			expected: false,
 		},
 		"known-true": {
-			input:    BoolValue(true),
+			input:    NewBoolValue(true),
 			expected: true,
 		},
 		"null": {
-			input:    BoolNull(),
+			input:    NewBoolNull(),
 			expected: false,
 		},
 		"unknown": {
-			input:    BoolUnknown(),
+			input:    NewBoolUnknown(),
 			expected: false,
 		},
 	}

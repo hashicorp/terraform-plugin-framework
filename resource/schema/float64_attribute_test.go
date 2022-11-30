@@ -29,25 +29,25 @@ func TestFloat64AttributeApplyTerraform5AttributePathStep(t *testing.T) {
 			attribute:     schema.Float64Attribute{},
 			step:          tftypes.AttributeName("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to types.Float64Type"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to basetypes.Float64Type"),
 		},
 		"ElementKeyInt": {
 			attribute:     schema.Float64Attribute{},
 			step:          tftypes.ElementKeyInt(1),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to types.Float64Type"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.Float64Type"),
 		},
 		"ElementKeyString": {
 			attribute:     schema.Float64Attribute{},
 			step:          tftypes.ElementKeyString("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to types.Float64Type"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to basetypes.Float64Type"),
 		},
 		"ElementKeyValue": {
 			attribute:     schema.Float64Attribute{},
 			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to types.Float64Type"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to basetypes.Float64Type"),
 		},
 	}
 

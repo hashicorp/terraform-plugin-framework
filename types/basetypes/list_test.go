@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -21,7 +21,7 @@ func TestListTypeTerraformType(t *testing.T) {
 	tests := map[string]testCase{
 		"list-of-strings": {
 			input: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			expected: tftypes.List{
 				ElementType: tftypes.String,
@@ -30,7 +30,7 @@ func TestListTypeTerraformType(t *testing.T) {
 		"list-of-list-of-strings": {
 			input: ListType{
 				ElemType: ListType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 			},
 			expected: tftypes.List{
@@ -43,7 +43,7 @@ func TestListTypeTerraformType(t *testing.T) {
 			input: ListType{
 				ElemType: ListType{
 					ElemType: ListType{
-						ElemType: StringType,
+						ElemType: StringType{},
 					},
 				},
 			},
@@ -79,7 +79,7 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 	tests := map[string]testCase{
 		"list-of-strings": {
 			receiver: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
@@ -87,26 +87,26 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, "world"),
 			}),
-			expected: ListValueMust(
-				StringType,
+			expected: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 		},
 		"unknown-list": {
 			receiver: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, tftypes.UnknownValue),
-			expected: ListUnknown(StringType),
+			expected: NewListUnknown(StringType{}),
 		},
 		"partially-unknown-list": {
 			receiver: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
@@ -114,26 +114,26 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
-			expected: ListValueMust(
-				StringType,
+			expected: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringUnknown(),
+					NewStringValue("hello"),
+					NewStringUnknown(),
 				},
 			),
 		},
 		"null-list": {
 			receiver: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
 			}, nil),
-			expected: ListNull(StringType),
+			expected: NewListNull(StringType{}),
 		},
 		"partially-null-list": {
 			receiver: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
@@ -141,38 +141,38 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, nil),
 			}),
-			expected: ListValueMust(
-				StringType,
+			expected: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringNull(),
+					NewStringValue("hello"),
+					NewStringNull(),
 				},
 			),
 		},
 		"wrong-type": {
 			receiver: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input:       tftypes.NewValue(tftypes.String, "wrong"),
-			expectedErr: `can't use tftypes.String<"wrong"> as value of List with ElementType types.primitive, can only use tftypes.String values`,
+			expectedErr: `can't use tftypes.String<"wrong"> as value of List with ElementType basetypes.StringType, can only use tftypes.String values`,
 		},
 		"wrong-element-type": {
 			receiver: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.Number,
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.Number, 1),
 			}),
-			expectedErr: `can't use tftypes.List[tftypes.Number]<tftypes.Number<"1">> as value of List with ElementType types.primitive, can only use tftypes.String values`,
+			expectedErr: `can't use tftypes.List[tftypes.Number]<tftypes.Number<"1">> as value of List with ElementType basetypes.StringType, can only use tftypes.String values`,
 		},
 		"nil-type": {
 			receiver: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input:    tftypes.NewValue(nil, nil),
-			expected: ListNull(StringType),
+			expected: NewListNull(StringType{}),
 		},
 	}
 	for name, test := range tests {
@@ -216,22 +216,22 @@ func TestListTypeEqual(t *testing.T) {
 	}
 	tests := map[string]testCase{
 		"equal": {
-			receiver: ListType{ElemType: StringType},
-			input:    ListType{ElemType: StringType},
+			receiver: ListType{ElemType: StringType{}},
+			input:    ListType{ElemType: StringType{}},
 			expected: true,
 		},
 		"diff": {
-			receiver: ListType{ElemType: StringType},
-			input:    ListType{ElemType: NumberType},
+			receiver: ListType{ElemType: StringType{}},
+			input:    ListType{ElemType: NumberType{}},
 			expected: false,
 		},
 		"wrongType": {
-			receiver: ListType{ElemType: StringType},
-			input:    NumberType,
+			receiver: ListType{ElemType: StringType{}},
+			input:    NumberType{},
 			expected: false,
 		},
 		"nil": {
-			receiver: ListType{ElemType: StringType},
+			receiver: ListType{ElemType: StringType{}},
 			input:    nil,
 			expected: false,
 		},
@@ -256,51 +256,51 @@ func TestListTypeEqual(t *testing.T) {
 	}
 }
 
-func TestListValue(t *testing.T) {
+func TestNewListValue(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		elementType   attr.Type
 		elements      []attr.Value
-		expected      List
+		expected      ListValue
 		expectedDiags diag.Diagnostics
 	}{
 		"valid-no-elements": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements:    []attr.Value{},
-			expected:    ListValueMust(StringType, []attr.Value{}),
+			expected:    NewListValueMust(StringType{}, []attr.Value{}),
 		},
 		"valid-elements": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements: []attr.Value{
-				StringNull(),
-				StringUnknown(),
-				StringValue("test"),
+				NewStringNull(),
+				NewStringUnknown(),
+				NewStringValue("test"),
 			},
-			expected: ListValueMust(
-				StringType,
+			expected: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringNull(),
-					StringUnknown(),
-					StringValue("test"),
+					NewStringNull(),
+					NewStringUnknown(),
+					NewStringValue("test"),
 				},
 			),
 		},
 		"invalid-element-type": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements: []attr.Value{
-				StringValue("test"),
-				BoolValue(true),
+				NewStringValue("test"),
+				NewBoolValue(true),
 			},
-			expected: ListUnknown(StringType),
+			expected: NewListUnknown(StringType{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"Invalid List Element Type",
 					"While creating a List value, an invalid element was detected. "+
 						"A List must use the single, given element type. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"List Element Type: types.StringType\n"+
-						"List Index (1) Element Type: types.BoolType",
+						"List Element Type: basetypes.StringType\n"+
+						"List Index (1) Element Type: basetypes.BoolType",
 				),
 			},
 		},
@@ -312,7 +312,7 @@ func TestListValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := ListValue(testCase.elementType, testCase.elements)
+			got, diags := NewListValue(testCase.elementType, testCase.elements)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -325,81 +325,81 @@ func TestListValue(t *testing.T) {
 	}
 }
 
-func TestListValueFrom(t *testing.T) {
+func TestNewListValueFrom(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		elementType   attr.Type
 		elements      any
-		expected      List
+		expected      ListValue
 		expectedDiags diag.Diagnostics
 	}{
-		"valid-StringType-[]attr.Value-empty": {
-			elementType: StringType,
+		"valid-StringType{}-[]attr.Value-empty": {
+			elementType: StringType{},
 			elements:    []attr.Value{},
-			expected: ListValueMust(
-				StringType,
+			expected: NewListValueMust(
+				StringType{},
 				[]attr.Value{},
 			),
 		},
-		"valid-StringType-[]types.String-empty": {
-			elementType: StringType,
-			elements:    []String{},
-			expected: ListValueMust(
-				StringType,
+		"valid-StringType{}-[]types.String-empty": {
+			elementType: StringType{},
+			elements:    []StringValue{},
+			expected: NewListValueMust(
+				StringType{},
 				[]attr.Value{},
 			),
 		},
-		"valid-StringType-[]types.String": {
-			elementType: StringType,
-			elements: []String{
-				StringNull(),
-				StringUnknown(),
-				StringValue("test"),
+		"valid-StringType{}-[]types.String": {
+			elementType: StringType{},
+			elements: []StringValue{
+				NewStringNull(),
+				NewStringUnknown(),
+				NewStringValue("test"),
 			},
-			expected: ListValueMust(
-				StringType,
+			expected: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringNull(),
-					StringUnknown(),
-					StringValue("test"),
+					NewStringNull(),
+					NewStringUnknown(),
+					NewStringValue("test"),
 				},
 			),
 		},
-		"valid-StringType-[]*string": {
-			elementType: StringType,
+		"valid-StringType{}-[]*string": {
+			elementType: StringType{},
 			elements: []*string{
 				nil,
 				pointer("test1"),
 				pointer("test2"),
 			},
-			expected: ListValueMust(
-				StringType,
+			expected: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringNull(),
-					StringValue("test1"),
-					StringValue("test2"),
+					NewStringNull(),
+					NewStringValue("test1"),
+					NewStringValue("test2"),
 				},
 			),
 		},
-		"valid-StringType-[]string": {
-			elementType: StringType,
+		"valid-StringType{}-[]string": {
+			elementType: StringType{},
 			elements: []string{
 				"test1",
 				"test2",
 			},
-			expected: ListValueMust(
-				StringType,
+			expected: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("test1"),
-					StringValue("test2"),
+					NewStringValue("test1"),
+					NewStringValue("test2"),
 				},
 			),
 		},
 		"invalid-not-slice": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements:    "oops",
-			expected:    ListUnknown(StringType),
+			expected:    NewListUnknown(StringType{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty(),
@@ -410,9 +410,9 @@ func TestListValueFrom(t *testing.T) {
 			},
 		},
 		"invalid-type": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements:    []bool{true},
-			expected:    ListUnknown(StringType),
+			expected:    NewListUnknown(StringType{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty().AtListIndex(0),
@@ -430,7 +430,7 @@ func TestListValueFrom(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := ListValueFrom(context.Background(), testCase.elementType, testCase.elements)
+			got, diags := NewListValueFrom(context.Background(), testCase.elementType, testCase.elements)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -449,11 +449,11 @@ func TestListElementsAs_stringSlice(t *testing.T) {
 	var stringSlice []string
 	expected := []string{"hello", "world"}
 
-	diags := ListValueMust(
-		StringType,
+	diags := NewListValueMust(
+		StringType{},
 		[]attr.Value{
-			StringValue("hello"),
-			StringValue("world"),
+			NewStringValue("hello"),
+			NewStringValue("world"),
 		},
 	).ElementsAs(context.Background(), &stringSlice, false)
 	if diags.HasError() {
@@ -467,17 +467,17 @@ func TestListElementsAs_stringSlice(t *testing.T) {
 func TestListElementsAs_attributeValueSlice(t *testing.T) {
 	t.Parallel()
 
-	var stringSlice []String
-	expected := []String{
-		StringValue("hello"),
-		StringValue("world"),
+	var stringSlice []StringValue
+	expected := []StringValue{
+		NewStringValue("hello"),
+		NewStringValue("world"),
 	}
 
-	diags := ListValueMust(
-		StringType,
+	diags := NewListValueMust(
+		StringType{},
 		[]attr.Value{
-			StringValue("hello"),
-			StringValue("world"),
+			NewStringValue("hello"),
+			NewStringValue("world"),
 		},
 	).ElementsAs(context.Background(), &stringSlice, false)
 	if diags.HasError() {
@@ -488,21 +488,21 @@ func TestListElementsAs_attributeValueSlice(t *testing.T) {
 	}
 }
 
-func TestListToTerraformValue(t *testing.T) {
+func TestListValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       List
+		input       ListValue
 		expectation tftypes.Value
 		expectedErr string
 	}
 	tests := map[string]testCase{
 		"known": {
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
@@ -511,11 +511,11 @@ func TestListToTerraformValue(t *testing.T) {
 			}),
 		},
 		"known-partial-unknown": {
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringUnknown(),
-					StringValue("hello, world"),
+					NewStringUnknown(),
+					NewStringValue("hello, world"),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
@@ -524,11 +524,11 @@ func TestListToTerraformValue(t *testing.T) {
 			}),
 		},
 		"known-partial-null": {
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringNull(),
-					StringValue("hello, world"),
+					NewStringNull(),
+					NewStringValue("hello, world"),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
@@ -537,11 +537,11 @@ func TestListToTerraformValue(t *testing.T) {
 			}),
 		},
 		"unknown": {
-			input:       ListUnknown(StringType),
+			input:       NewListUnknown(StringType{}),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       ListNull(StringType),
+			input:       NewListNull(StringType{}),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
 		},
 	}
@@ -576,23 +576,23 @@ func TestListToTerraformValue(t *testing.T) {
 	}
 }
 
-func TestListElements(t *testing.T) {
+func TestListValueElements(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    List
+		input    ListValue
 		expected []attr.Value
 	}{
 		"known": {
-			input:    ListValueMust(StringType, []attr.Value{StringValue("test")}),
-			expected: []attr.Value{StringValue("test")},
+			input:    NewListValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
+			expected: []attr.Value{NewStringValue("test")},
 		},
 		"null": {
-			input:    ListNull(StringType),
+			input:    NewListNull(StringType{}),
 			expected: nil,
 		},
 		"unknown": {
-			input:    ListUnknown(StringType),
+			input:    NewListUnknown(StringType{}),
 			expected: nil,
 		},
 	}
@@ -612,24 +612,24 @@ func TestListElements(t *testing.T) {
 	}
 }
 
-func TestListElementType(t *testing.T) {
+func TestListValueElementType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    List
+		input    ListValue
 		expected attr.Type
 	}{
 		"known": {
-			input:    ListValueMust(StringType, []attr.Value{StringValue("test")}),
-			expected: StringType,
+			input:    NewListValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
+			expected: StringType{},
 		},
 		"null": {
-			input:    ListNull(StringType),
-			expected: StringType,
+			input:    NewListNull(StringType{}),
+			expected: StringType{},
 		},
 		"unknown": {
-			input:    ListUnknown(StringType),
-			expected: StringType,
+			input:    NewListUnknown(StringType{}),
+			expected: StringType{},
 		},
 	}
 
@@ -648,163 +648,163 @@ func TestListElementType(t *testing.T) {
 	}
 }
 
-func TestListEqual(t *testing.T) {
+func TestListValueEqual(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		receiver List
+		receiver ListValue
 		input    attr.Value
 		expected bool
 	}
 	tests := map[string]testCase{
 		"known-known": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expected: true,
 		},
 		"known-known-diff-value": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("goodnight"),
-					StringValue("moon"),
+					NewStringValue("goodnight"),
+					NewStringValue("moon"),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-length": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
-					StringValue("extra"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
+					NewStringValue("extra"),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-type": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: SetValueMust(
-				BoolType,
+			input: NewSetValueMust(
+				BoolType{},
 				[]attr.Value{
-					BoolValue(false),
-					BoolValue(true),
+					NewBoolValue(false),
+					NewBoolValue(true),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-unknown": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringUnknown(),
+					NewStringValue("hello"),
+					NewStringUnknown(),
 				},
 			),
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-null": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringNull(),
+					NewStringValue("hello"),
+					NewStringNull(),
 				},
 			),
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expected: false,
 		},
 		"known-unknown": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input:    ListUnknown(StringType),
+			input:    NewListUnknown(StringType{}),
 			expected: false,
 		},
 		"known-null": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input:    ListNull(StringType),
+			input:    NewListNull(StringType{}),
 			expected: false,
 		},
 		"known-diff-type": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expected: false,
 		},
 		"known-nil": {
-			receiver: ListValueMust(
-				StringType,
+			receiver: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			input:    nil,
@@ -824,23 +824,23 @@ func TestListEqual(t *testing.T) {
 	}
 }
 
-func TestListIsNull(t *testing.T) {
+func TestListValueIsNull(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    List
+		input    ListValue
 		expected bool
 	}{
 		"known": {
-			input:    ListValueMust(StringType, []attr.Value{StringValue("test")}),
+			input:    NewListValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
 			expected: false,
 		},
 		"null": {
-			input:    ListNull(StringType),
+			input:    NewListNull(StringType{}),
 			expected: true,
 		},
 		"unknown": {
-			input:    ListUnknown(StringType),
+			input:    NewListUnknown(StringType{}),
 			expected: false,
 		},
 	}
@@ -860,23 +860,23 @@ func TestListIsNull(t *testing.T) {
 	}
 }
 
-func TestListIsUnknown(t *testing.T) {
+func TestListValueIsUnknown(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    List
+		input    ListValue
 		expected bool
 	}{
 		"known": {
-			input:    ListValueMust(StringType, []attr.Value{StringValue("test")}),
+			input:    NewListValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
 			expected: false,
 		},
 		"null": {
-			input:    ListNull(StringType),
+			input:    NewListNull(StringType{}),
 			expected: false,
 		},
 		"unknown": {
-			input:    ListUnknown(StringType),
+			input:    NewListUnknown(StringType{}),
 			expected: true,
 		},
 	}
@@ -896,42 +896,42 @@ func TestListIsUnknown(t *testing.T) {
 	}
 }
 
-func TestListString(t *testing.T) {
+func TestListValueString(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       List
+		input       ListValue
 		expectation string
 	}
 	tests := map[string]testCase{
 		"known": {
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expectation: `["hello","world"]`,
 		},
 		"known-list-of-lists": {
-			input: ListValueMust(
+			input: NewListValueMust(
 				ListType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 				[]attr.Value{
-					ListValueMust(
-						StringType,
+					NewListValueMust(
+						StringType{},
 						[]attr.Value{
-							StringValue("hello"),
-							StringValue("world"),
+							NewStringValue("hello"),
+							NewStringValue("world"),
 						},
 					),
-					ListValueMust(
-						StringType,
+					NewListValueMust(
+						StringType{},
 						[]attr.Value{
-							StringValue("foo"),
-							StringValue("bar"),
+							NewStringValue("foo"),
+							NewStringValue("bar"),
 						},
 					),
 				},
@@ -939,15 +939,15 @@ func TestListString(t *testing.T) {
 			expectation: `[["hello","world"],["foo","bar"]]`,
 		},
 		"unknown": {
-			input:       ListUnknown(StringType),
+			input:       NewListUnknown(StringType{}),
 			expectation: "<unknown>",
 		},
 		"null": {
-			input:       ListNull(StringType),
+			input:       NewListNull(StringType{}),
 			expectation: "<null>",
 		},
 		"zero-value": {
-			input:       List{},
+			input:       ListValue{},
 			expectation: "<null>",
 		},
 	}
@@ -965,59 +965,59 @@ func TestListString(t *testing.T) {
 	}
 }
 
-func TestListType(t *testing.T) {
+func TestListValueType(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       List
+		input       ListValue
 		expectation attr.Type
 	}
 	tests := map[string]testCase{
 		"known": {
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			expectation: ListType{ElemType: StringType},
+			expectation: ListType{ElemType: StringType{}},
 		},
 		"known-list-of-lists": {
-			input: ListValueMust(
+			input: NewListValueMust(
 				ListType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 				[]attr.Value{
-					ListValueMust(
-						StringType,
+					NewListValueMust(
+						StringType{},
 						[]attr.Value{
-							StringValue("hello"),
-							StringValue("world"),
+							NewStringValue("hello"),
+							NewStringValue("world"),
 						},
 					),
-					ListValueMust(
-						StringType,
+					NewListValueMust(
+						StringType{},
 						[]attr.Value{
-							StringValue("foo"),
-							StringValue("bar"),
+							NewStringValue("foo"),
+							NewStringValue("bar"),
 						},
 					),
 				},
 			),
 			expectation: ListType{
 				ElemType: ListType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 			},
 		},
 		"unknown": {
-			input:       ListUnknown(StringType),
-			expectation: ListType{ElemType: StringType},
+			input:       NewListUnknown(StringType{}),
+			expectation: ListType{ElemType: StringType{}},
 		},
 		"null": {
-			input:       ListNull(StringType),
-			expectation: ListType{ElemType: StringType},
+			input:       NewListNull(StringType{}),
+			expectation: ListType{ElemType: StringType{}},
 		},
 	}
 
@@ -1045,7 +1045,7 @@ func TestListTypeValidate(t *testing.T) {
 	}{
 		"wrong-value-type": {
 			listType: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			tfValue: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -1064,7 +1064,7 @@ func TestListTypeValidate(t *testing.T) {
 		},
 		"no-validation": {
 			listType: ListType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			tfValue: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,

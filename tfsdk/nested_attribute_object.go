@@ -2,7 +2,7 @@ package tfsdk
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -39,6 +39,6 @@ func (o nestedAttributeObject) GetAttributes() fwschema.UnderlyingAttributes {
 }
 
 // Type returns the framework type of the nestedAttributeObject.
-func (o nestedAttributeObject) Type() types.ObjectTypable {
+func (o nestedAttributeObject) Type() basetypes.ObjectTypable {
 	return fwschema.NestedAttributeObjectType(o)
 }

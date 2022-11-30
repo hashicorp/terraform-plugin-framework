@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -39,9 +40,9 @@ type ObjectAttribute struct {
 	AttributeTypes map[string]attr.Type
 
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.ObjectType. When retrieving data, the types.ObjectValuable
+	// default basetypes.ObjectType. When retrieving data, the basetypes.ObjectValuable
 	// associated with this custom type must be used in place of types.Object.
-	CustomType types.ObjectTypable
+	CustomType basetypes.ObjectTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,

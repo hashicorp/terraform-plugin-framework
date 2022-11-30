@@ -30,25 +30,25 @@ func TestBoolAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 			attribute:     schema.BoolAttribute{},
 			step:          tftypes.AttributeName("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to types.BoolType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to basetypes.BoolType"),
 		},
 		"ElementKeyInt": {
 			attribute:     schema.BoolAttribute{},
 			step:          tftypes.ElementKeyInt(1),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to types.BoolType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.BoolType"),
 		},
 		"ElementKeyString": {
 			attribute:     schema.BoolAttribute{},
 			step:          tftypes.ElementKeyString("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to types.BoolType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to basetypes.BoolType"),
 		},
 		"ElementKeyValue": {
 			attribute:     schema.BoolAttribute{},
 			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to types.BoolType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to basetypes.BoolType"),
 		},
 	}
 

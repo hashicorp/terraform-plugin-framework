@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func TestBlockModifyPlan(t *testing.T) {
@@ -5624,7 +5625,7 @@ func TestNestedBlockObjectPlanModify(t *testing.T) {
 type testBlockPlanModifierNullList struct{}
 
 func (t testBlockPlanModifierNullList) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	_, ok := req.AttributePlan.(types.ListValuable)
+	_, ok := req.AttributePlan.(basetypes.ListValuable)
 	if !ok {
 		return
 	}

@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -48,6 +48,6 @@ func (o NestedBlockObjectWithPlanModifiers) ObjectPlanModifiers() []planmodifier
 }
 
 // Type returns the framework type of the NestedBlockObjectWithPlanModifiers.
-func (o NestedBlockObjectWithPlanModifiers) Type() types.ObjectTypable {
+func (o NestedBlockObjectWithPlanModifiers) Type() basetypes.ObjectTypable {
 	return fwschema.NestedBlockObjectType(o)
 }

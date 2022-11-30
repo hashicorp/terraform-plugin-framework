@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestInt64ValueFromTerraform(t *testing.T) {
-	t.Parallel()
-
-	testInt64ValueFromTerraform(t, true)
+func numberComparer(i, j *big.Float) bool {
+	return (i == nil && j == nil) || (i != nil && j != nil && i.Cmp(j) == 0)
 }
 
-func testInt64ValueFromTerraform(t *testing.T, direct bool) {
+func TestNumberTypeValueFromTerraform(t *testing.T) {
+	t.Parallel()
+
 	type testCase struct {
 		input       tftypes.Value
 		expectation attr.Value
@@ -26,15 +26,15 @@ func testInt64ValueFromTerraform(t *testing.T, direct bool) {
 	tests := map[string]testCase{
 		"value": {
 			input:       tftypes.NewValue(tftypes.Number, 123),
-			expectation: Int64Value(123),
+			expectation: NewNumberValue(big.NewFloat(123)),
 		},
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-			expectation: Int64Unknown(),
+			expectation: NewNumberUnknown(),
 		},
 		"null": {
 			input:       tftypes.NewValue(tftypes.Number, nil),
-			expectation: Int64Null(),
+			expectation: NewNumberNull(),
 		},
 		"wrongType": {
 			input:       tftypes.NewValue(tftypes.String, "oops"),
@@ -47,11 +47,7 @@ func testInt64ValueFromTerraform(t *testing.T, direct bool) {
 			t.Parallel()
 			ctx := context.Background()
 
-			f := Int64Type.ValueFromTerraform
-			if direct {
-				f = int64ValueFromTerraform
-			}
-			got, err := f(ctx, test.input)
+			got, err := NumberType{}.ValueFromTerraform(ctx, test.input)
 			if err != nil {
 				if test.expectedErr == "" {
 					t.Errorf("Unexpected error: %s", err)
@@ -82,24 +78,28 @@ func testInt64ValueFromTerraform(t *testing.T, direct bool) {
 	}
 }
 
-func TestInt64ToTerraformValue(t *testing.T) {
+func TestNumberValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Int64
-		expectation interface{}
+		input       NumberValue
+		expectation tftypes.Value
 	}
 	tests := map[string]testCase{
-		"known": {
-			input:       Int64Value(123),
+		"value": {
+			input:       NewNumberValue(big.NewFloat(123)),
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123)),
 		},
+		"known-nil": {
+			input:       NewNumberValue(nil),
+			expectation: tftypes.NewValue(tftypes.Number, nil),
+		},
 		"unknown": {
-			input:       Int64Unknown(),
+			input:       NewNumberUnknown(),
 			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       Int64Null(),
+			input:       NewNumberNull(),
 			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 	}
@@ -121,64 +121,109 @@ func TestInt64ToTerraformValue(t *testing.T) {
 	}
 }
 
-func TestInt64Equal(t *testing.T) {
+func TestNumberValueEqual(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Int64
+		input       NumberValue
 		candidate   attr.Value
 		expectation bool
 	}
 	tests := map[string]testCase{
 		"known-known-same": {
-			input:       Int64Value(123),
-			candidate:   Int64Value(123),
+			input:       NewNumberValue(big.NewFloat(123)),
+			candidate:   NewNumberValue(big.NewFloat(123)),
 			expectation: true,
 		},
 		"known-known-diff": {
-			input:       Int64Value(123),
-			candidate:   Int64Value(456),
+			input:       NewNumberValue(big.NewFloat(123)),
+			candidate:   NewNumberValue(big.NewFloat(456)),
 			expectation: false,
 		},
+		"known-nil-known": {
+			input:       NewNumberValue(nil),
+			candidate:   NewNumberValue(big.NewFloat(456)),
+			expectation: false,
+		},
+		"known-nil-null": {
+			input:       NewNumberValue(nil),
+			candidate:   NewNumberNull(),
+			expectation: true,
+		},
 		"known-unknown": {
-			input:       Int64Value(123),
-			candidate:   Int64Unknown(),
+			input:       NewNumberValue(big.NewFloat(123)),
+			candidate:   NewNumberUnknown(),
 			expectation: false,
 		},
 		"known-null": {
-			input:       Int64Value(123),
-			candidate:   Int64Null(),
+			input:       NewNumberValue(big.NewFloat(123)),
+			candidate:   NewNumberNull(),
 			expectation: false,
 		},
-		"unknown-value": {
-			input:       Int64Unknown(),
-			candidate:   Int64Value(123),
+		"known-wrong-type": {
+			input:       NewNumberValue(big.NewFloat(123)),
+			candidate:   NewFloat64Value(123),
+			expectation: false,
+		},
+		"known-nil": {
+			input:       NewNumberValue(big.NewFloat(123)),
+			candidate:   nil,
+			expectation: false,
+		},
+		"unknown-known": {
+			input:       NewNumberUnknown(),
+			candidate:   NewNumberValue(big.NewFloat(123)),
 			expectation: false,
 		},
 		"unknown-unknown": {
-			input:       Int64Unknown(),
-			candidate:   Int64Unknown(),
+			input:       NewNumberUnknown(),
+			candidate:   NewNumberUnknown(),
 			expectation: true,
 		},
 		"unknown-null": {
-			input:       Int64Unknown(),
-			candidate:   Int64Null(),
+			input:       NewNumberUnknown(),
+			candidate:   NewNumberNull(),
+			expectation: false,
+		},
+		"unknown-wrong-type": {
+			input:       NewNumberUnknown(),
+			candidate:   NewFloat64Unknown(),
+			expectation: false,
+		},
+		"unknown-nil": {
+			input:       NewNumberUnknown(),
+			candidate:   nil,
 			expectation: false,
 		},
 		"null-known": {
-			input:       Int64Null(),
-			candidate:   Int64Value(123),
+			input:       NewNumberNull(),
+			candidate:   NewNumberValue(big.NewFloat(123)),
 			expectation: false,
 		},
+		"null-known-nil": {
+			input:       NewNumberNull(),
+			candidate:   NewNumberValue(nil),
+			expectation: true,
+		},
 		"null-unknown": {
-			input:       Int64Null(),
-			candidate:   Int64Unknown(),
+			input:       NewNumberNull(),
+			candidate:   NewNumberUnknown(),
 			expectation: false,
 		},
 		"null-null": {
-			input:       Int64Null(),
-			candidate:   Int64Null(),
+			input:       NewNumberNull(),
+			candidate:   NewNumberNull(),
 			expectation: true,
+		},
+		"null-wrong-type": {
+			input:       NewNumberNull(),
+			candidate:   NewFloat64Null(),
+			expectation: false,
+		},
+		"null-nil": {
+			input:       NewNumberNull(),
+			candidate:   nil,
+			expectation: false,
 		},
 	}
 	for name, test := range tests {
@@ -194,23 +239,23 @@ func TestInt64Equal(t *testing.T) {
 	}
 }
 
-func TestInt64IsNull(t *testing.T) {
+func TestNumberValueIsNull(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Int64
+		input    NumberValue
 		expected bool
 	}{
 		"known": {
-			input:    Int64Value(24),
+			input:    NewNumberValue(big.NewFloat(2.4)),
 			expected: false,
 		},
 		"null": {
-			input:    Int64Null(),
+			input:    NewNumberNull(),
 			expected: true,
 		},
 		"unknown": {
-			input:    Int64Unknown(),
+			input:    NewNumberUnknown(),
 			expected: false,
 		},
 	}
@@ -230,23 +275,23 @@ func TestInt64IsNull(t *testing.T) {
 	}
 }
 
-func TestInt64IsUnknown(t *testing.T) {
+func TestNumberValueIsUnknown(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Int64
+		input    NumberValue
 		expected bool
 	}{
 		"known": {
-			input:    Int64Value(24),
+			input:    NewNumberValue(big.NewFloat(2.4)),
 			expected: false,
 		},
 		"null": {
-			input:    Int64Null(),
+			input:    NewNumberNull(),
 			expected: false,
 		},
 		"unknown": {
-			input:    Int64Unknown(),
+			input:    NewNumberUnknown(),
 			expected: true,
 		},
 	}
@@ -266,40 +311,44 @@ func TestInt64IsUnknown(t *testing.T) {
 	}
 }
 
-func TestInt64String(t *testing.T) {
+func TestNumberValueString(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Int64
+		input       NumberValue
 		expectation string
 	}
 	tests := map[string]testCase{
 		"known-less-than-one": {
-			input:       Int64Value(-12340984302980000),
-			expectation: "-12340984302980000",
+			input:       NewNumberValue(big.NewFloat(0.12340984302980000)),
+			expectation: "0.123409843",
 		},
 		"known-more-than-one": {
-			input:       Int64Value(92387938173219327),
-			expectation: "92387938173219327",
+			input:       NewNumberValue(big.NewFloat(92387938173219.327663)),
+			expectation: "9.238793817e+13",
 		},
-		"known-min-int64": {
-			input:       Int64Value(math.MinInt64),
-			expectation: "-9223372036854775808",
+		"known-negative-more-than-one": {
+			input:       NewNumberValue(big.NewFloat(-0.12340984302980000)),
+			expectation: "-0.123409843",
 		},
-		"known-max-int64": {
-			input:       Int64Value(math.MaxInt64),
-			expectation: "9223372036854775807",
+		"known-negative-less-than-one": {
+			input:       NewNumberValue(big.NewFloat(-92387938173219.327663)),
+			expectation: "-9.238793817e+13",
+		},
+		"known-min-float64": {
+			input:       NewNumberValue(big.NewFloat(math.SmallestNonzeroFloat64)),
+			expectation: "4.940656458e-324",
+		},
+		"known-max-float64": {
+			input:       NewNumberValue(big.NewFloat(math.MaxFloat64)),
+			expectation: "1.797693135e+308",
 		},
 		"unknown": {
-			input:       Int64Unknown(),
+			input:       NewNumberUnknown(),
 			expectation: "<unknown>",
 		},
 		"null": {
-			input:       Int64Null(),
-			expectation: "<null>",
-		},
-		"zero-value": {
-			input:       Int64{},
+			input:       NewNumberNull(),
 			expectation: "<null>",
 		},
 	}
@@ -317,24 +366,28 @@ func TestInt64String(t *testing.T) {
 	}
 }
 
-func TestInt64ValueInt64(t *testing.T) {
+func TestNumberValueValueBigFloat(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Int64
-		expected int64
+		input    NumberValue
+		expected *big.Float
 	}{
 		"known": {
-			input:    Int64Value(24),
-			expected: 24,
+			input:    NewNumberValue(big.NewFloat(2.4)),
+			expected: big.NewFloat(2.4),
+		},
+		"known-nil": {
+			input:    NewNumberValue(nil),
+			expected: nil,
 		},
 		"null": {
-			input:    Int64Null(),
-			expected: 0,
+			input:    NewNumberNull(),
+			expected: nil,
 		},
 		"unknown": {
-			input:    Int64Unknown(),
-			expected: 0,
+			input:    NewNumberUnknown(),
+			expected: nil,
 		},
 	}
 
@@ -344,10 +397,20 @@ func TestInt64ValueInt64(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.input.ValueInt64()
+			got := testCase.input.ValueBigFloat()
 
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
+			if got == nil && testCase.expected != nil {
+				t.Fatalf("got nil, expected: %s", testCase.expected)
+			}
+
+			if got != nil {
+				if testCase.expected == nil {
+					t.Fatalf("expected nil, got: %s", got)
+				}
+
+				if got.Cmp(testCase.expected) != 0 {
+					t.Fatalf("expected %s, got: %s", testCase.expected, got)
+				}
 			}
 		})
 	}

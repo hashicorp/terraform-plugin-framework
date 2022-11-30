@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -34,9 +34,9 @@ type NestedBlockObject struct {
 	Blocks map[string]Block
 
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.ObjectType. When retrieving data, the types.ObjectValuable
+	// default basetypes.ObjectType. When retrieving data, the basetypes.ObjectValuable
 	// associated with this custom type must be used in place of types.Object.
-	CustomType types.ObjectTypable
+	CustomType basetypes.ObjectTypable
 
 	// Validators define value validation functionality for the attribute. All
 	// elements of the slice of AttributeValidator are run, regardless of any
@@ -82,7 +82,7 @@ func (o NestedBlockObject) ObjectValidators() []validator.Object {
 }
 
 // Type returns the framework type of the NestedBlockObject.
-func (o NestedBlockObject) Type() types.ObjectTypable {
+func (o NestedBlockObject) Type() basetypes.ObjectTypable {
 	if o.CustomType != nil {
 		return o.CustomType
 	}

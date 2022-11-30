@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ BoolValuable = Bool{}
+	_ BoolValuable = BoolValue{}
 )
 
 // BoolValuable extends attr.Value for boolean value types.
@@ -20,60 +20,36 @@ type BoolValuable interface {
 	attr.Value
 
 	// ToBoolValue should convert the value type to a Bool.
-	ToBoolValue(ctx context.Context) (Bool, diag.Diagnostics)
+	ToBoolValue(ctx context.Context) (BoolValue, diag.Diagnostics)
 }
 
-// BoolNull creates a Bool with a null value. Determine whether the value is
+// NewBoolNull creates a Bool with a null value. Determine whether the value is
 // null via the Bool type IsNull method.
-//
-// Setting the deprecated Bool type Null, Unknown, or Value fields after
-// creating a Bool with this function has no effect.
-func BoolNull() Bool {
-	return Bool{
+func NewBoolNull() BoolValue {
+	return BoolValue{
 		state: attr.ValueStateNull,
 	}
 }
 
-// BoolUnknown creates a Bool with an unknown value. Determine whether the
+// NewBoolUnknown creates a Bool with an unknown value. Determine whether the
 // value is unknown via the Bool type IsUnknown method.
-//
-// Setting the deprecated Bool type Null, Unknown, or Value fields after
-// creating a Bool with this function has no effect.
-func BoolUnknown() Bool {
-	return Bool{
+func NewBoolUnknown() BoolValue {
+	return BoolValue{
 		state: attr.ValueStateUnknown,
 	}
 }
 
-// BoolValue creates a Bool with a known value. Access the value via the Bool
+// NewBoolValue creates a Bool with a known value. Access the value via the Bool
 // type ValueBool method.
-//
-// Setting the deprecated Bool type Null, Unknown, or Value fields after
-// creating a Bool with this function has no effect.
-func BoolValue(value bool) Bool {
-	return Bool{
+func NewBoolValue(value bool) BoolValue {
+	return BoolValue{
 		state: attr.ValueStateKnown,
 		value: value,
 	}
 }
 
-func boolValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	if in.IsNull() {
-		return BoolNull(), nil
-	}
-	if !in.IsKnown() {
-		return BoolUnknown(), nil
-	}
-	var b bool
-	err := in.As(&b)
-	if err != nil {
-		return nil, err
-	}
-	return BoolValue(b), nil
-}
-
-// Bool represents a boolean value.
-type Bool struct {
+// BoolValue represents a boolean value.
+type BoolValue struct {
 	// state represents whether the value is null, unknown, or known. The
 	// zero-value is null.
 	state attr.ValueState
@@ -83,12 +59,12 @@ type Bool struct {
 }
 
 // Type returns a BoolType.
-func (b Bool) Type(_ context.Context) attr.Type {
-	return BoolType
+func (b BoolValue) Type(_ context.Context) attr.Type {
+	return BoolType{}
 }
 
 // ToTerraformValue returns the data contained in the Bool as a tftypes.Value.
-func (b Bool) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
+func (b BoolValue) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	switch b.state {
 	case attr.ValueStateKnown:
 		if err := tftypes.ValidateValue(tftypes.Bool, b.value); err != nil {
@@ -106,8 +82,8 @@ func (b Bool) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 }
 
 // Equal returns true if `other` is a *Bool and has the same value as `b`.
-func (b Bool) Equal(other attr.Value) bool {
-	o, ok := other.(Bool)
+func (b BoolValue) Equal(other attr.Value) bool {
+	o, ok := other.(BoolValue)
 
 	if !ok {
 		return false
@@ -125,19 +101,19 @@ func (b Bool) Equal(other attr.Value) bool {
 }
 
 // IsNull returns true if the Bool represents a null value.
-func (b Bool) IsNull() bool {
+func (b BoolValue) IsNull() bool {
 	return b.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the Bool represents a currently unknown value.
-func (b Bool) IsUnknown() bool {
+func (b BoolValue) IsUnknown() bool {
 	return b.state == attr.ValueStateUnknown
 }
 
 // String returns a human-readable representation of the Bool value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.
-func (b Bool) String() string {
+func (b BoolValue) String() string {
 	if b.IsUnknown() {
 		return attr.UnknownValueString
 	}
@@ -151,11 +127,11 @@ func (b Bool) String() string {
 
 // ValueBool returns the known bool value. If Bool is null or unknown, returns
 // false.
-func (b Bool) ValueBool() bool {
+func (b BoolValue) ValueBool() bool {
 	return b.value
 }
 
 // ToBoolValue returns Bool.
-func (b Bool) ToBoolValue(context.Context) (Bool, diag.Diagnostics) {
+func (b BoolValue) ToBoolValue(context.Context) (BoolValue, diag.Diagnostics) {
 	return b, nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -54,9 +55,9 @@ type MapNestedAttribute struct {
 
 	// CustomType enables the use of a custom attribute type in place of the
 	// default types.MapType of types.ObjectType. When retrieving data, the
-	// types.MapValuable associated with this custom type must be used in
+	// basetypes.MapValuable associated with this custom type must be used in
 	// place of types.Map.
-	CustomType types.MapTypable
+	CustomType basetypes.MapTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,

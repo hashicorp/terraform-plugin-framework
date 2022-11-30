@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func TestMapTypeTerraformType(t *testing.T) {
 	tests := map[string]testCase{
 		"map-of-strings": {
 			input: MapType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			expected: tftypes.Map{
 				ElementType: tftypes.String,
@@ -31,7 +31,7 @@ func TestMapTypeTerraformType(t *testing.T) {
 		"map-of-map-of-strings": {
 			input: MapType{
 				ElemType: MapType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 			},
 			expected: tftypes.Map{
@@ -44,7 +44,7 @@ func TestMapTypeTerraformType(t *testing.T) {
 			input: MapType{
 				ElemType: MapType{
 					ElemType: MapType{
-						ElemType: StringType,
+						ElemType: StringType{},
 					},
 				},
 			},
@@ -80,7 +80,7 @@ func TestMapTypeValueFromTerraform(t *testing.T) {
 	tests := map[string]testCase{
 		"basic-map": {
 			receiver: MapType{
-				ElemType: NumberType,
+				ElemType: NumberType{},
 			},
 			input: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.Number,
@@ -89,46 +89,46 @@ func TestMapTypeValueFromTerraform(t *testing.T) {
 				"two":   tftypes.NewValue(tftypes.Number, 2),
 				"three": tftypes.NewValue(tftypes.Number, 3),
 			}),
-			expected: MapValueMust(
-				NumberType,
+			expected: NewMapValueMust(
+				NumberType{},
 				map[string]attr.Value{
-					"one":   NumberValue(big.NewFloat(1)),
-					"two":   NumberValue(big.NewFloat(2)),
-					"three": NumberValue(big.NewFloat(3)),
+					"one":   NewNumberValue(big.NewFloat(1)),
+					"two":   NewNumberValue(big.NewFloat(2)),
+					"three": NewNumberValue(big.NewFloat(3)),
 				},
 			),
 		},
 		"wrong-type": {
 			receiver: MapType{
-				ElemType: NumberType,
+				ElemType: NumberType{},
 			},
 			input:       tftypes.NewValue(tftypes.String, "wrong"),
-			expectedErr: `can't use tftypes.String<"wrong"> as value of Map, can only use tftypes.Map values`,
+			expectedErr: `can't use tftypes.String<"wrong"> as value of MapValue, can only use tftypes.Map values`,
 		},
 		"nil-type": {
 			receiver: MapType{
-				ElemType: NumberType,
+				ElemType: NumberType{},
 			},
 			input:    tftypes.NewValue(nil, nil),
-			expected: MapNull(NumberType),
+			expected: NewMapNull(NumberType{}),
 		},
 		"unknown": {
 			receiver: MapType{
-				ElemType: NumberType,
+				ElemType: NumberType{},
 			},
 			input: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.Number,
 			}, tftypes.UnknownValue),
-			expected: MapUnknown(NumberType),
+			expected: NewMapUnknown(NumberType{}),
 		},
 		"null": {
 			receiver: MapType{
-				ElemType: NumberType,
+				ElemType: NumberType{},
 			},
 			input: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.Number,
 			}, nil),
-			expected: MapNull(NumberType),
+			expected: NewMapNull(NumberType{}),
 		},
 	}
 
@@ -177,12 +177,12 @@ func TestMapTypeEqual(t *testing.T) {
 		"equal": {
 			receiver: MapType{
 				ElemType: ListType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 			},
 			input: MapType{
 				ElemType: ListType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 			},
 			expected: true,
@@ -190,26 +190,26 @@ func TestMapTypeEqual(t *testing.T) {
 		"diff": {
 			receiver: MapType{
 				ElemType: ListType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 			},
 			input: MapType{
 				ElemType: ListType{
-					ElemType: NumberType,
+					ElemType: NumberType{},
 				},
 			},
 			expected: false,
 		},
 		"wrongType": {
 			receiver: MapType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
-			input:    NumberType,
+			input:    NumberType{},
 			expected: false,
 		},
 		"nil": {
 			receiver: MapType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input:    nil,
 			expected: false,
@@ -235,51 +235,51 @@ func TestMapTypeEqual(t *testing.T) {
 	}
 }
 
-func TestMapValue(t *testing.T) {
+func TestNewMapValue(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		elementType   attr.Type
 		elements      map[string]attr.Value
-		expected      Map
+		expected      MapValue
 		expectedDiags diag.Diagnostics
 	}{
 		"valid-no-elements": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements:    map[string]attr.Value{},
-			expected:    MapValueMust(StringType, map[string]attr.Value{}),
+			expected:    NewMapValueMust(StringType{}, map[string]attr.Value{}),
 		},
 		"valid-elements": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements: map[string]attr.Value{
-				"null":    StringNull(),
-				"unknown": StringUnknown(),
-				"known":   StringValue("test"),
+				"null":    NewStringNull(),
+				"unknown": NewStringUnknown(),
+				"known":   NewStringValue("test"),
 			},
-			expected: MapValueMust(
-				StringType,
+			expected: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"null":    StringNull(),
-					"unknown": StringUnknown(),
-					"known":   StringValue("test"),
+					"null":    NewStringNull(),
+					"unknown": NewStringUnknown(),
+					"known":   NewStringValue("test"),
 				},
 			),
 		},
 		"invalid-element-type": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements: map[string]attr.Value{
-				"string": StringValue("test"),
-				"bool":   BoolValue(true),
+				"string": NewStringValue("test"),
+				"bool":   NewBoolValue(true),
 			},
-			expected: MapUnknown(StringType),
+			expected: NewMapUnknown(StringType{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"Invalid Map Element Type",
 					"While creating a Map value, an invalid element was detected. "+
 						"A Map must use the single, given element type. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Map Element Type: types.StringType\n"+
-						"Map Key (bool) Element Type: types.BoolType",
+						"Map Element Type: basetypes.StringType\n"+
+						"Map Key (bool) Element Type: basetypes.BoolType",
 				),
 			},
 		},
@@ -291,7 +291,7 @@ func TestMapValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := MapValue(testCase.elementType, testCase.elements)
+			got, diags := NewMapValue(testCase.elementType, testCase.elements)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -304,81 +304,81 @@ func TestMapValue(t *testing.T) {
 	}
 }
 
-func TestMapValueFrom(t *testing.T) {
+func TestNewMapValueFrom(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		elementType   attr.Type
 		elements      any
-		expected      Map
+		expected      MapValue
 		expectedDiags diag.Diagnostics
 	}{
-		"valid-StringType-map[string]attr.Value-empty": {
-			elementType: StringType,
+		"valid-StringType{}-map[string]attr.Value-empty": {
+			elementType: StringType{},
 			elements:    map[string]attr.Value{},
-			expected: MapValueMust(
-				StringType,
+			expected: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{},
 			),
 		},
-		"valid-StringType-map[string]types.String-empty": {
-			elementType: StringType,
-			elements:    map[string]String{},
-			expected: MapValueMust(
-				StringType,
+		"valid-StringType{}-map[string]types.String-empty": {
+			elementType: StringType{},
+			elements:    map[string]StringValue{},
+			expected: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{},
 			),
 		},
-		"valid-StringType-map[string]types.String": {
-			elementType: StringType,
-			elements: map[string]String{
-				"key1": StringNull(),
-				"key2": StringUnknown(),
-				"key3": StringValue("test"),
+		"valid-StringType{}-map[string]types.String": {
+			elementType: StringType{},
+			elements: map[string]StringValue{
+				"key1": NewStringNull(),
+				"key2": NewStringUnknown(),
+				"key3": NewStringValue("test"),
 			},
-			expected: MapValueMust(
-				StringType,
+			expected: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringNull(),
-					"key2": StringUnknown(),
-					"key3": StringValue("test"),
+					"key1": NewStringNull(),
+					"key2": NewStringUnknown(),
+					"key3": NewStringValue("test"),
 				},
 			),
 		},
-		"valid-StringType-map[string]*string": {
-			elementType: StringType,
+		"valid-StringType{}-map[string]*string": {
+			elementType: StringType{},
 			elements: map[string]*string{
 				"key1": nil,
 				"key2": pointer("test1"),
 				"key3": pointer("test2"),
 			},
-			expected: MapValueMust(
-				StringType,
+			expected: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringNull(),
-					"key2": StringValue("test1"),
-					"key3": StringValue("test2"),
+					"key1": NewStringNull(),
+					"key2": NewStringValue("test1"),
+					"key3": NewStringValue("test2"),
 				},
 			),
 		},
-		"valid-StringType-map[string]string": {
-			elementType: StringType,
+		"valid-StringType{}-map[string]string": {
+			elementType: StringType{},
 			elements: map[string]string{
 				"key1": "test1",
 				"key2": "test2",
 			},
-			expected: MapValueMust(
-				StringType,
+			expected: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("test1"),
-					"key2": StringValue("test2"),
+					"key1": NewStringValue("test1"),
+					"key2": NewStringValue("test2"),
 				},
 			),
 		},
 		"invalid-not-map": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements:    "oops",
-			expected:    MapUnknown(StringType),
+			expected:    NewMapUnknown(StringType{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty(),
@@ -389,9 +389,9 @@ func TestMapValueFrom(t *testing.T) {
 			},
 		},
 		"invalid-type": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements:    map[string]bool{"key1": true},
-			expected:    MapUnknown(StringType),
+			expected:    NewMapUnknown(StringType{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty().AtMapKey("key1"),
@@ -409,7 +409,7 @@ func TestMapValueFrom(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := MapValueFrom(context.Background(), testCase.elementType, testCase.elements)
+			got, diags := NewMapValueFrom(context.Background(), testCase.elementType, testCase.elements)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -431,11 +431,11 @@ func TestMapElementsAs_mapStringString(t *testing.T) {
 		"w": "world",
 	}
 
-	diags := MapValueMust(
-		StringType,
+	diags := NewMapValueMust(
+		StringType{},
 		map[string]attr.Value{
-			"h": StringValue("hello"),
-			"w": StringValue("world"),
+			"h": NewStringValue("hello"),
+			"w": NewStringValue("world"),
 		},
 	).ElementsAs(context.Background(), &stringSlice, false)
 	if diags.HasError() {
@@ -449,17 +449,17 @@ func TestMapElementsAs_mapStringString(t *testing.T) {
 func TestMapElementsAs_mapStringAttributeValue(t *testing.T) {
 	t.Parallel()
 
-	var stringSlice map[string]String
-	expected := map[string]String{
-		"h": StringValue("hello"),
-		"w": StringValue("world"),
+	var stringSlice map[string]StringValue
+	expected := map[string]StringValue{
+		"h": NewStringValue("hello"),
+		"w": NewStringValue("world"),
 	}
 
-	diags := MapValueMust(
-		StringType,
+	diags := NewMapValueMust(
+		StringType{},
 		map[string]attr.Value{
-			"h": StringValue("hello"),
-			"w": StringValue("world"),
+			"h": NewStringValue("hello"),
+			"w": NewStringValue("world"),
 		},
 	).ElementsAs(context.Background(), &stringSlice, false)
 	if diags.HasError() {
@@ -470,21 +470,21 @@ func TestMapElementsAs_mapStringAttributeValue(t *testing.T) {
 	}
 }
 
-func TestMapToTerraformValue(t *testing.T) {
+func TestMapValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Map
+		input       MapValue
 		expectation tftypes.Value
 		expectedErr string
 	}
 	tests := map[string]testCase{
 		"known": {
-			input: MapValueMust(
-				StringType,
+			input: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
@@ -493,11 +493,11 @@ func TestMapToTerraformValue(t *testing.T) {
 			}),
 		},
 		"known-partial-unknown": {
-			input: MapValueMust(
-				StringType,
+			input: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringUnknown(),
-					"key2": StringValue("hello, world"),
+					"key1": NewStringUnknown(),
+					"key2": NewStringValue("hello, world"),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
@@ -506,11 +506,11 @@ func TestMapToTerraformValue(t *testing.T) {
 			}),
 		},
 		"known-partial-null": {
-			input: MapValueMust(
-				StringType,
+			input: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringNull(),
-					"key2": StringValue("hello, world"),
+					"key1": NewStringNull(),
+					"key2": NewStringValue("hello, world"),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{
@@ -519,11 +519,11 @@ func TestMapToTerraformValue(t *testing.T) {
 			}),
 		},
 		"unknown": {
-			input:       MapUnknown(StringType),
+			input:       NewMapUnknown(StringType{}),
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       MapNull(StringType),
+			input:       NewMapNull(StringType{}),
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
 		},
 	}
@@ -558,23 +558,23 @@ func TestMapToTerraformValue(t *testing.T) {
 	}
 }
 
-func TestMapElements(t *testing.T) {
+func TestMapValueElements(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Map
+		input    MapValue
 		expected map[string]attr.Value
 	}{
 		"known": {
-			input:    MapValueMust(StringType, map[string]attr.Value{"test-key": StringValue("test-value")}),
-			expected: map[string]attr.Value{"test-key": StringValue("test-value")},
+			input:    NewMapValueMust(StringType{}, map[string]attr.Value{"test-key": NewStringValue("test-value")}),
+			expected: map[string]attr.Value{"test-key": NewStringValue("test-value")},
 		},
 		"null": {
-			input:    MapNull(StringType),
+			input:    NewMapNull(StringType{}),
 			expected: nil,
 		},
 		"unknown": {
-			input:    MapUnknown(StringType),
+			input:    NewMapUnknown(StringType{}),
 			expected: nil,
 		},
 	}
@@ -594,24 +594,24 @@ func TestMapElements(t *testing.T) {
 	}
 }
 
-func TestMapElementType(t *testing.T) {
+func TestMapValueElementType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Map
+		input    MapValue
 		expected attr.Type
 	}{
 		"known": {
-			input:    MapValueMust(StringType, map[string]attr.Value{"test-key": StringValue("test-value")}),
-			expected: StringType,
+			input:    NewMapValueMust(StringType{}, map[string]attr.Value{"test-key": NewStringValue("test-value")}),
+			expected: StringType{},
 		},
 		"null": {
-			input:    MapNull(StringType),
-			expected: StringType,
+			input:    NewMapNull(StringType{}),
+			expected: StringType{},
 		},
 		"unknown": {
-			input:    MapUnknown(StringType),
-			expected: StringType,
+			input:    NewMapUnknown(StringType{}),
+			expected: StringType{},
 		},
 	}
 
@@ -630,163 +630,163 @@ func TestMapElementType(t *testing.T) {
 	}
 }
 
-func TestMapEqual(t *testing.T) {
+func TestMapValueEqual(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		receiver Map
+		receiver MapValue
 		input    attr.Value
 		expected bool
 	}
 	tests := map[string]testCase{
 		"known-known": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
-			input: MapValueMust(
-				StringType,
+			input: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
 			expected: true,
 		},
 		"known-known-diff-value": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
-			input: MapValueMust(
-				StringType,
+			input: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("goodnight"),
-					"key2": StringValue("moon"),
+					"key1": NewStringValue("goodnight"),
+					"key2": NewStringValue("moon"),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-length": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
-			input: MapValueMust(
-				StringType,
+			input: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
-					"key3": StringValue("extra"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
+					"key3": NewStringValue("extra"),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-type": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
-			input: SetValueMust(
-				BoolType,
+			input: NewSetValueMust(
+				BoolType{},
 				[]attr.Value{
-					BoolValue(false),
-					BoolValue(true),
+					NewBoolValue(false),
+					NewBoolValue(true),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-unknown": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringUnknown(),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringUnknown(),
 				},
 			),
-			input: MapValueMust(
-				StringType,
+			input: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-null": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringNull(),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringNull(),
 				},
 			),
-			input: MapValueMust(
-				StringType,
+			input: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
 			expected: false,
 		},
 		"known-unknown": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
-			input:    MapUnknown(StringType),
+			input:    NewMapUnknown(StringType{}),
 			expected: false,
 		},
 		"known-null": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
-			input:    MapNull(StringType),
+			input:    NewMapNull(StringType{}),
 			expected: false,
 		},
 		"known-diff-type": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expected: false,
 		},
 		"known-nil": {
-			receiver: MapValueMust(
-				StringType,
+			receiver: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
 			input:    nil,
@@ -806,23 +806,23 @@ func TestMapEqual(t *testing.T) {
 	}
 }
 
-func TestMapIsNull(t *testing.T) {
+func TestMapValueIsNull(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Map
+		input    MapValue
 		expected bool
 	}{
 		"known": {
-			input:    MapValueMust(StringType, map[string]attr.Value{"test-key": StringValue("test-value")}),
+			input:    NewMapValueMust(StringType{}, map[string]attr.Value{"test-key": NewStringValue("test-value")}),
 			expected: false,
 		},
 		"null": {
-			input:    MapNull(StringType),
+			input:    NewMapNull(StringType{}),
 			expected: true,
 		},
 		"unknown": {
-			input:    MapUnknown(StringType),
+			input:    NewMapUnknown(StringType{}),
 			expected: false,
 		},
 	}
@@ -842,23 +842,23 @@ func TestMapIsNull(t *testing.T) {
 	}
 }
 
-func TestMapIsUnknown(t *testing.T) {
+func TestMapValueIsUnknown(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Map
+		input    MapValue
 		expected bool
 	}{
 		"known": {
-			input:    MapValueMust(StringType, map[string]attr.Value{"test-key": StringValue("test-value")}),
+			input:    NewMapValueMust(StringType{}, map[string]attr.Value{"test-key": NewStringValue("test-value")}),
 			expected: false,
 		},
 		"null": {
-			input:    MapNull(StringType),
+			input:    NewMapNull(StringType{}),
 			expected: false,
 		},
 		"unknown": {
-			input:    MapUnknown(StringType),
+			input:    NewMapUnknown(StringType{}),
 			expected: true,
 		},
 	}
@@ -878,45 +878,45 @@ func TestMapIsUnknown(t *testing.T) {
 	}
 }
 
-func TestMapString(t *testing.T) {
+func TestMapValueString(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Map
+		input       MapValue
 		expectation string
 	}
 	tests := map[string]testCase{
 		"known": {
-			input: MapValueMust(
-				Int64Type,
+			input: NewMapValueMust(
+				Int64Type{},
 				map[string]attr.Value{
-					"alpha": Int64Value(1234),
-					"beta":  Int64Value(56789),
-					"gamma": Int64Value(9817),
-					"sigma": Int64Value(62534),
+					"alpha": NewInt64Value(1234),
+					"beta":  NewInt64Value(56789),
+					"gamma": NewInt64Value(9817),
+					"sigma": NewInt64Value(62534),
 				},
 			),
 			expectation: `{"alpha":1234,"beta":56789,"gamma":9817,"sigma":62534}`,
 		},
 		"known-map-of-maps": {
-			input: MapValueMust(
+			input: NewMapValueMust(
 				MapType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 				map[string]attr.Value{
-					"first": MapValueMust(
-						StringType,
+					"first": NewMapValueMust(
+						StringType{},
 						map[string]attr.Value{
-							"alpha": StringValue("hello"),
-							"beta":  StringValue("world"),
-							"gamma": StringValue("foo"),
-							"sigma": StringValue("bar"),
+							"alpha": NewStringValue("hello"),
+							"beta":  NewStringValue("world"),
+							"gamma": NewStringValue("foo"),
+							"sigma": NewStringValue("bar"),
 						},
 					),
-					"second": MapValueMust(
-						StringType,
+					"second": NewMapValueMust(
+						StringType{},
 						map[string]attr.Value{
-							"echo": StringValue("echo"),
+							"echo": NewStringValue("echo"),
 						},
 					),
 				},
@@ -924,24 +924,24 @@ func TestMapString(t *testing.T) {
 			expectation: `{"first":{"alpha":"hello","beta":"world","gamma":"foo","sigma":"bar"},"second":{"echo":"echo"}}`,
 		},
 		"known-key-quotes": {
-			input: MapValueMust(
-				BoolType,
+			input: NewMapValueMust(
+				BoolType{},
 				map[string]attr.Value{
-					`testing is "fun"`: BoolValue(true),
+					`testing is "fun"`: NewBoolValue(true),
 				},
 			),
 			expectation: `{"testing is \"fun\"":true}`,
 		},
 		"unknown": {
-			input:       MapUnknown(StringType),
+			input:       NewMapUnknown(StringType{}),
 			expectation: "<unknown>",
 		},
 		"null": {
-			input:       MapNull(StringType),
+			input:       NewMapNull(StringType{}),
 			expectation: "<null>",
 		},
 		"zero-value": {
-			input:       Map{},
+			input:       MapValue{},
 			expectation: "<null>",
 		},
 	}
@@ -959,59 +959,59 @@ func TestMapString(t *testing.T) {
 	}
 }
 
-func TestMapType(t *testing.T) {
+func TestMapValueType(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Map
+		input       MapValue
 		expectation attr.Type
 	}
 	tests := map[string]testCase{
 		"known": {
-			input: MapValueMust(
-				StringType,
+			input: NewMapValueMust(
+				StringType{},
 				map[string]attr.Value{
-					"key1": StringValue("hello"),
-					"key2": StringValue("world"),
+					"key1": NewStringValue("hello"),
+					"key2": NewStringValue("world"),
 				},
 			),
-			expectation: MapType{ElemType: StringType},
+			expectation: MapType{ElemType: StringType{}},
 		},
 		"known-map-of-maps": {
-			input: MapValueMust(
+			input: NewMapValueMust(
 				MapType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 				map[string]attr.Value{
-					"key1": MapValueMust(
-						StringType,
+					"key1": NewMapValueMust(
+						StringType{},
 						map[string]attr.Value{
-							"key1": StringValue("hello"),
-							"key2": StringValue("world"),
+							"key1": NewStringValue("hello"),
+							"key2": NewStringValue("world"),
 						},
 					),
-					"key2": MapValueMust(
-						StringType,
+					"key2": NewMapValueMust(
+						StringType{},
 						map[string]attr.Value{
-							"key1": StringValue("foo"),
-							"key2": StringValue("bar"),
+							"key1": NewStringValue("foo"),
+							"key2": NewStringValue("bar"),
 						},
 					),
 				},
 			),
 			expectation: MapType{
 				ElemType: MapType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 			},
 		},
 		"unknown": {
-			input:       MapUnknown(StringType),
-			expectation: MapType{ElemType: StringType},
+			input:       NewMapUnknown(StringType{}),
+			expectation: MapType{ElemType: StringType{}},
 		},
 		"null": {
-			input:       MapNull(StringType),
-			expectation: MapType{ElemType: StringType},
+			input:       NewMapNull(StringType{}),
+			expectation: MapType{ElemType: StringType{}},
 		},
 	}
 
@@ -1039,7 +1039,7 @@ func TestMapTypeValidate(t *testing.T) {
 	}{
 		"wrong-value-type": {
 			mapType: MapType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			tfValue: tftypes.NewValue(tftypes.List{
 				ElementType: tftypes.String,
@@ -1058,7 +1058,7 @@ func TestMapTypeValidate(t *testing.T) {
 		},
 		"no-validation": {
 			mapType: MapType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			tfValue: tftypes.NewValue(tftypes.Map{
 				ElementType: tftypes.String,

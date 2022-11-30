@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -45,9 +46,9 @@ type MapAttribute struct {
 	ElementType attr.Type
 
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.MapType. When retrieving data, the types.MapValuable
+	// default basetypes.MapType. When retrieving data, the basetypes.MapValuable
 	// associated with this custom type must be used in place of types.Map.
-	CustomType types.MapTypable
+	CustomType basetypes.MapTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,

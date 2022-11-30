@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -11,13 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestFloat64ValueFromTerraform(t *testing.T) {
+func TestFloat64TypeValueFromTerraform(t *testing.T) {
 	t.Parallel()
 
-	testFloat64ValueFromTerraform(t, true)
-}
-
-func testFloat64ValueFromTerraform(t *testing.T, direct bool) {
 	type testCase struct {
 		input       tftypes.Value
 		expectation attr.Value
@@ -26,19 +22,19 @@ func testFloat64ValueFromTerraform(t *testing.T, direct bool) {
 	tests := map[string]testCase{
 		"value-int": {
 			input:       tftypes.NewValue(tftypes.Number, 123),
-			expectation: Float64Value(123.0),
+			expectation: NewFloat64Value(123.0),
 		},
 		"value-float": {
 			input:       tftypes.NewValue(tftypes.Number, 123.456),
-			expectation: Float64Value(123.456),
+			expectation: NewFloat64Value(123.456),
 		},
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-			expectation: Float64Unknown(),
+			expectation: NewFloat64Unknown(),
 		},
 		"null": {
 			input:       tftypes.NewValue(tftypes.Number, nil),
-			expectation: Float64Null(),
+			expectation: NewFloat64Null(),
 		},
 		"wrongType": {
 			input:       tftypes.NewValue(tftypes.String, "oops"),
@@ -51,11 +47,7 @@ func testFloat64ValueFromTerraform(t *testing.T, direct bool) {
 			t.Parallel()
 			ctx := context.Background()
 
-			f := Float64Type.ValueFromTerraform
-			if direct {
-				f = float64ValueFromTerraform
-			}
-			got, err := f(ctx, test.input)
+			got, err := Float64Type{}.ValueFromTerraform(ctx, test.input)
 			if err != nil {
 				if test.expectedErr == "" {
 					t.Errorf("Unexpected error: %s", err)
@@ -86,44 +78,44 @@ func testFloat64ValueFromTerraform(t *testing.T, direct bool) {
 	}
 }
 
-func TestFloat64ToTerraformValue(t *testing.T) {
+func TestFloat64ValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Float64
+		input       Float64Value
 		expectation interface{}
 	}
 	tests := map[string]testCase{
 		"known-int": {
-			input:       Float64Value(123),
+			input:       NewFloat64Value(123),
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.0)),
 		},
 		"known-float": {
-			input:       Float64Value(123.456),
+			input:       NewFloat64Value(123.456),
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.456)),
 		},
 		"unknown": {
-			input:       Float64Unknown(),
+			input:       NewFloat64Unknown(),
 			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       Float64Null(),
+			input:       NewFloat64Null(),
 			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 		"deprecated-value-int": {
-			input:       Float64Value(123),
+			input:       NewFloat64Value(123),
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.0)),
 		},
 		"deprecated-value-float": {
-			input:       Float64Value(123.456),
+			input:       NewFloat64Value(123.456),
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.456)),
 		},
 		"deprecated-unknown": {
-			input:       Float64Unknown(),
+			input:       NewFloat64Unknown(),
 			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 		},
 		"deprecated-null": {
-			input:       Float64Null(),
+			input:       NewFloat64Null(),
 			expectation: tftypes.NewValue(tftypes.Number, nil),
 		},
 	}
@@ -145,63 +137,63 @@ func TestFloat64ToTerraformValue(t *testing.T) {
 	}
 }
 
-func TestFloat64Equal(t *testing.T) {
+func TestFloat64ValueEqual(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Float64
+		input       Float64Value
 		candidate   attr.Value
 		expectation bool
 	}
 	tests := map[string]testCase{
 		"known-known-same": {
-			input:       Float64Value(123),
-			candidate:   Float64Value(123),
+			input:       NewFloat64Value(123),
+			candidate:   NewFloat64Value(123),
 			expectation: true,
 		},
 		"known-known-diff": {
-			input:       Float64Value(123),
-			candidate:   Float64Value(456),
+			input:       NewFloat64Value(123),
+			candidate:   NewFloat64Value(456),
 			expectation: false,
 		},
 		"known-unknown": {
-			input:       Float64Value(123),
-			candidate:   Float64Unknown(),
+			input:       NewFloat64Value(123),
+			candidate:   NewFloat64Unknown(),
 			expectation: false,
 		},
 		"known-null": {
-			input:       Float64Value(123),
-			candidate:   Float64Null(),
+			input:       NewFloat64Value(123),
+			candidate:   NewFloat64Null(),
 			expectation: false,
 		},
 		"unknown-value": {
-			input:       Float64Unknown(),
-			candidate:   Float64Value(123),
+			input:       NewFloat64Unknown(),
+			candidate:   NewFloat64Value(123),
 			expectation: false,
 		},
 		"unknown-unknown": {
-			input:       Float64Unknown(),
-			candidate:   Float64Unknown(),
+			input:       NewFloat64Unknown(),
+			candidate:   NewFloat64Unknown(),
 			expectation: true,
 		},
 		"unknown-null": {
-			input:       Float64Unknown(),
-			candidate:   Float64Null(),
+			input:       NewFloat64Unknown(),
+			candidate:   NewFloat64Null(),
 			expectation: false,
 		},
 		"null-known": {
-			input:       Float64Null(),
-			candidate:   Float64Value(123),
+			input:       NewFloat64Null(),
+			candidate:   NewFloat64Value(123),
 			expectation: false,
 		},
 		"null-unknown": {
-			input:       Float64Null(),
-			candidate:   Float64Unknown(),
+			input:       NewFloat64Null(),
+			candidate:   NewFloat64Unknown(),
 			expectation: false,
 		},
 		"null-null": {
-			input:       Float64Null(),
-			candidate:   Float64Null(),
+			input:       NewFloat64Null(),
+			candidate:   NewFloat64Null(),
 			expectation: true,
 		},
 	}
@@ -218,23 +210,23 @@ func TestFloat64Equal(t *testing.T) {
 	}
 }
 
-func TestFloat64IsNull(t *testing.T) {
+func TestFloat64ValueIsNull(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Float64
+		input    Float64Value
 		expected bool
 	}{
 		"known": {
-			input:    Float64Value(2.4),
+			input:    NewFloat64Value(2.4),
 			expected: false,
 		},
 		"null": {
-			input:    Float64Null(),
+			input:    NewFloat64Null(),
 			expected: true,
 		},
 		"unknown": {
-			input:    Float64Unknown(),
+			input:    NewFloat64Unknown(),
 			expected: false,
 		},
 	}
@@ -254,23 +246,23 @@ func TestFloat64IsNull(t *testing.T) {
 	}
 }
 
-func TestFloat64IsUnknown(t *testing.T) {
+func TestFloat64ValueIsUnknown(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Float64
+		input    Float64Value
 		expected bool
 	}{
 		"known": {
-			input:    Float64Value(2.4),
+			input:    NewFloat64Value(2.4),
 			expected: false,
 		},
 		"null": {
-			input:    Float64Null(),
+			input:    NewFloat64Null(),
 			expected: false,
 		},
 		"unknown": {
-			input:    Float64Unknown(),
+			input:    NewFloat64Unknown(),
 			expected: true,
 		},
 	}
@@ -290,48 +282,48 @@ func TestFloat64IsUnknown(t *testing.T) {
 	}
 }
 
-func TestFloat64String(t *testing.T) {
+func TestFloat64ValueString(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Float64
+		input       Float64Value
 		expectation string
 	}
 	tests := map[string]testCase{
 		"less-than-one": {
-			input:       Float64Value(0.12340984302980000),
+			input:       NewFloat64Value(0.12340984302980000),
 			expectation: "0.123410",
 		},
 		"more-than-one": {
-			input:       Float64Value(92387938173219.327663),
+			input:       NewFloat64Value(92387938173219.327663),
 			expectation: "92387938173219.328125",
 		},
 		"negative-more-than-one": {
-			input:       Float64Value(-0.12340984302980000),
+			input:       NewFloat64Value(-0.12340984302980000),
 			expectation: "-0.123410",
 		},
 		"negative-less-than-one": {
-			input:       Float64Value(-92387938173219.327663),
+			input:       NewFloat64Value(-92387938173219.327663),
 			expectation: "-92387938173219.328125",
 		},
 		"min-float64": {
-			input:       Float64Value(math.SmallestNonzeroFloat64),
+			input:       NewFloat64Value(math.SmallestNonzeroFloat64),
 			expectation: "0.000000",
 		},
 		"max-float64": {
-			input:       Float64Value(math.MaxFloat64),
+			input:       NewFloat64Value(math.MaxFloat64),
 			expectation: "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000",
 		},
 		"unknown": {
-			input:       Float64Unknown(),
+			input:       NewFloat64Unknown(),
 			expectation: "<unknown>",
 		},
 		"null": {
-			input:       Float64Null(),
+			input:       NewFloat64Null(),
 			expectation: "<null>",
 		},
 		"zero-value": {
-			input:       Float64{},
+			input:       Float64Value{},
 			expectation: "<null>",
 		},
 	}
@@ -349,23 +341,23 @@ func TestFloat64String(t *testing.T) {
 	}
 }
 
-func TestFloat64ValueFloat64(t *testing.T) {
+func TestFloat64ValueValueFloat64(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Float64
+		input    Float64Value
 		expected float64
 	}{
 		"known": {
-			input:    Float64Value(2.4),
+			input:    NewFloat64Value(2.4),
 			expected: 2.4,
 		},
 		"null": {
-			input:    Float64Null(),
+			input:    NewFloat64Null(),
 			expected: 0.0,
 		},
 		"unknown": {
-			input:    Float64Unknown(),
+			input:    NewFloat64Unknown(),
 			expected: 0.0,
 		},
 	}

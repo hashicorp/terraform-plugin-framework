@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func TestSetTypeTerraformType(t *testing.T) {
 	tests := map[string]testCase{
 		"set-of-strings": {
 			input: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			expected: tftypes.Set{
 				ElementType: tftypes.String,
@@ -31,7 +31,7 @@ func TestSetTypeTerraformType(t *testing.T) {
 		"set-of-set-of-strings": {
 			input: SetType{
 				ElemType: SetType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 			},
 			expected: tftypes.Set{
@@ -44,7 +44,7 @@ func TestSetTypeTerraformType(t *testing.T) {
 			input: SetType{
 				ElemType: SetType{
 					ElemType: SetType{
-						ElemType: StringType,
+						ElemType: StringType{},
 					},
 				},
 			},
@@ -82,7 +82,7 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 	tests := map[string]testCase{
 		"set-of-strings": {
 			receiver: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -90,17 +90,17 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, "world"),
 			}),
-			expected: SetValueMust(
-				StringType,
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 		},
 		"set-of-duplicate-strings": {
 			receiver: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -110,26 +110,26 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 			}),
 			// Duplicate validation does not occur during this method.
 			// This is okay, as tftypes allows duplicates.
-			expected: SetValueMust(
-				StringType,
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("hello"),
+					NewStringValue("hello"),
+					NewStringValue("hello"),
 				},
 			),
 		},
 		"unknown-set": {
 			receiver: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
 			}, tftypes.UnknownValue),
-			expected: SetUnknown(StringType),
+			expected: NewSetUnknown(StringType{}),
 		},
 		"partially-unknown-set": {
 			receiver: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -137,26 +137,26 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
-			expected: SetValueMust(
-				StringType,
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringUnknown(),
+					NewStringValue("hello"),
+					NewStringUnknown(),
 				},
 			),
 		},
 		"null-set": {
 			receiver: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
 			}, nil),
-			expected: SetNull(StringType),
+			expected: NewSetNull(StringType{}),
 		},
 		"partially-null-set": {
 			receiver: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.String,
@@ -164,38 +164,38 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, nil),
 			}),
-			expected: SetValueMust(
-				StringType,
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringNull(),
+					NewStringValue("hello"),
+					NewStringNull(),
 				},
 			),
 		},
 		"wrong-type": {
 			receiver: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input:       tftypes.NewValue(tftypes.String, "wrong"),
-			expectedErr: `can't use tftypes.String<"wrong"> as value of Set with ElementType types.primitive, can only use tftypes.String values`,
+			expectedErr: `can't use tftypes.String<"wrong"> as value of Set with ElementType basetypes.StringType, can only use tftypes.String values`,
 		},
 		"wrong-element-type": {
 			receiver: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input: tftypes.NewValue(tftypes.Set{
 				ElementType: tftypes.Number,
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.Number, 1),
 			}),
-			expectedErr: `can't use tftypes.Set[tftypes.Number]<tftypes.Number<"1">> as value of Set with ElementType types.primitive, can only use tftypes.String values`,
+			expectedErr: `can't use tftypes.Set[tftypes.Number]<tftypes.Number<"1">> as value of Set with ElementType basetypes.StringType, can only use tftypes.String values`,
 		},
 		"nil-type": {
 			receiver: SetType{
-				ElemType: StringType,
+				ElemType: StringType{},
 			},
 			input:    tftypes.NewValue(nil, nil),
-			expected: SetNull(StringType),
+			expected: NewSetNull(StringType{}),
 		},
 	}
 	for name, test := range tests {
@@ -241,22 +241,22 @@ func TestSetTypeEqual(t *testing.T) {
 	}
 	tests := map[string]testCase{
 		"equal": {
-			receiver: SetType{ElemType: StringType},
-			input:    SetType{ElemType: StringType},
+			receiver: SetType{ElemType: StringType{}},
+			input:    SetType{ElemType: StringType{}},
 			expected: true,
 		},
 		"diff": {
-			receiver: SetType{ElemType: StringType},
-			input:    SetType{ElemType: NumberType},
+			receiver: SetType{ElemType: StringType{}},
+			input:    SetType{ElemType: NumberType{}},
 			expected: false,
 		},
 		"wrongType": {
-			receiver: SetType{ElemType: StringType},
-			input:    NumberType,
+			receiver: SetType{ElemType: StringType{}},
+			input:    NumberType{},
 			expected: false,
 		},
 		"nil": {
-			receiver: SetType{ElemType: StringType},
+			receiver: SetType{ElemType: StringType{}},
 			input:    nil,
 			expected: false,
 		},
@@ -287,11 +287,11 @@ func TestSetElementsAs_stringSlice(t *testing.T) {
 	var stringSlice []string
 	expected := []string{"hello", "world"}
 
-	diags := SetValueMust(
-		StringType,
+	diags := NewSetValueMust(
+		StringType{},
 		[]attr.Value{
-			StringValue("hello"),
-			StringValue("world"),
+			NewStringValue("hello"),
+			NewStringValue("world"),
 		},
 	).ElementsAs(context.Background(), &stringSlice, false)
 	if diags.HasError() {
@@ -305,17 +305,17 @@ func TestSetElementsAs_stringSlice(t *testing.T) {
 func TestSetElementsAs_attributeValueSlice(t *testing.T) {
 	t.Parallel()
 
-	var stringSlice []String
-	expected := []String{
-		StringValue("hello"),
-		StringValue("world"),
+	var stringSlice []StringValue
+	expected := []StringValue{
+		NewStringValue("hello"),
+		NewStringValue("world"),
 	}
 
-	diags := SetValueMust(
-		StringType,
+	diags := NewSetValueMust(
+		StringType{},
 		[]attr.Value{
-			StringValue("hello"),
-			StringValue("world"),
+			NewStringValue("hello"),
+			NewStringValue("world"),
 		},
 	).ElementsAs(context.Background(), &stringSlice, false)
 	if diags.HasError() {
@@ -563,51 +563,51 @@ func TestSetTypeValidate(t *testing.T) {
 	}
 }
 
-func TestSetValue(t *testing.T) {
+func TestNewSetValue(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		elementType   attr.Type
 		elements      []attr.Value
-		expected      Set
+		expected      SetValue
 		expectedDiags diag.Diagnostics
 	}{
 		"valid-no-elements": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements:    []attr.Value{},
-			expected:    SetValueMust(StringType, []attr.Value{}),
+			expected:    NewSetValueMust(StringType{}, []attr.Value{}),
 		},
 		"valid-elements": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements: []attr.Value{
-				StringNull(),
-				StringUnknown(),
-				StringValue("test"),
+				NewStringNull(),
+				NewStringUnknown(),
+				NewStringValue("test"),
 			},
-			expected: SetValueMust(
-				StringType,
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringNull(),
-					StringUnknown(),
-					StringValue("test"),
+					NewStringNull(),
+					NewStringUnknown(),
+					NewStringValue("test"),
 				},
 			),
 		},
 		"invalid-element-type": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements: []attr.Value{
-				StringValue("test"),
-				BoolValue(true),
+				NewStringValue("test"),
+				NewBoolValue(true),
 			},
-			expected: SetUnknown(StringType),
+			expected: NewSetUnknown(StringType{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"Invalid Set Element Type",
 					"While creating a Set value, an invalid element was detected. "+
 						"A Set must use the single, given element type. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Set Element Type: types.StringType\n"+
-						"Set Index (1) Element Type: types.BoolType",
+						"Set Element Type: basetypes.StringType\n"+
+						"Set Index (1) Element Type: basetypes.BoolType",
 				),
 			},
 		},
@@ -619,7 +619,7 @@ func TestSetValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := SetValue(testCase.elementType, testCase.elements)
+			got, diags := NewSetValue(testCase.elementType, testCase.elements)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -632,81 +632,81 @@ func TestSetValue(t *testing.T) {
 	}
 }
 
-func TestSetValueFrom(t *testing.T) {
+func TestNewSetValueFrom(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		elementType   attr.Type
 		elements      any
-		expected      Set
+		expected      SetValue
 		expectedDiags diag.Diagnostics
 	}{
-		"valid-StringType-[]attr.Value-empty": {
-			elementType: StringType,
+		"valid-StringType{}-[]attr.Value-empty": {
+			elementType: StringType{},
 			elements:    []attr.Value{},
-			expected: SetValueMust(
-				StringType,
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{},
 			),
 		},
-		"valid-StringType-[]types.String-empty": {
-			elementType: StringType,
-			elements:    []String{},
-			expected: SetValueMust(
-				StringType,
+		"valid-StringType{}-[]types.String-empty": {
+			elementType: StringType{},
+			elements:    []StringValue{},
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{},
 			),
 		},
-		"valid-StringType-[]types.String": {
-			elementType: StringType,
-			elements: []String{
-				StringNull(),
-				StringUnknown(),
-				StringValue("test"),
+		"valid-StringType{}-[]types.String": {
+			elementType: StringType{},
+			elements: []StringValue{
+				NewStringNull(),
+				NewStringUnknown(),
+				NewStringValue("test"),
 			},
-			expected: SetValueMust(
-				StringType,
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringNull(),
-					StringUnknown(),
-					StringValue("test"),
+					NewStringNull(),
+					NewStringUnknown(),
+					NewStringValue("test"),
 				},
 			),
 		},
-		"valid-StringType-[]*string": {
-			elementType: StringType,
+		"valid-StringType{}-[]*string": {
+			elementType: StringType{},
 			elements: []*string{
 				nil,
 				pointer("test1"),
 				pointer("test2"),
 			},
-			expected: SetValueMust(
-				StringType,
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringNull(),
-					StringValue("test1"),
-					StringValue("test2"),
+					NewStringNull(),
+					NewStringValue("test1"),
+					NewStringValue("test2"),
 				},
 			),
 		},
-		"valid-StringType-[]string": {
-			elementType: StringType,
+		"valid-StringType{}-[]string": {
+			elementType: StringType{},
 			elements: []string{
 				"test1",
 				"test2",
 			},
-			expected: SetValueMust(
-				StringType,
+			expected: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("test1"),
-					StringValue("test2"),
+					NewStringValue("test1"),
+					NewStringValue("test2"),
 				},
 			),
 		},
 		"invalid-not-slice": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements:    "oops",
-			expected:    SetUnknown(StringType),
+			expected:    NewSetUnknown(StringType{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty(),
@@ -717,9 +717,9 @@ func TestSetValueFrom(t *testing.T) {
 			},
 		},
 		"invalid-type": {
-			elementType: StringType,
+			elementType: StringType{},
 			elements:    []bool{true},
-			expected:    SetUnknown(StringType),
+			expected:    NewSetUnknown(StringType{}),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty().AtListIndex(0),
@@ -737,7 +737,7 @@ func TestSetValueFrom(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := SetValueFrom(context.Background(), testCase.elementType, testCase.elements)
+			got, diags := NewSetValueFrom(context.Background(), testCase.elementType, testCase.elements)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -750,21 +750,21 @@ func TestSetValueFrom(t *testing.T) {
 	}
 }
 
-func TestSetToTerraformValue(t *testing.T) {
+func TestSetValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Set
+		input       SetValue
 		expectation tftypes.Value
 		expectedErr string
 	}
 	tests := map[string]testCase{
 		"known": {
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
@@ -773,11 +773,11 @@ func TestSetToTerraformValue(t *testing.T) {
 			}),
 		},
 		"known-duplicates": {
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("hello"),
+					NewStringValue("hello"),
+					NewStringValue("hello"),
 				},
 			),
 			// Duplicate validation does not occur during this method.
@@ -788,11 +788,11 @@ func TestSetToTerraformValue(t *testing.T) {
 			}),
 		},
 		"known-partial-unknown": {
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringUnknown(),
-					StringValue("hello, world"),
+					NewStringUnknown(),
+					NewStringValue("hello, world"),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
@@ -801,11 +801,11 @@ func TestSetToTerraformValue(t *testing.T) {
 			}),
 		},
 		"known-partial-null": {
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringNull(),
-					StringValue("hello, world"),
+					NewStringNull(),
+					NewStringValue("hello, world"),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
@@ -814,11 +814,11 @@ func TestSetToTerraformValue(t *testing.T) {
 			}),
 		},
 		"unknown": {
-			input:       SetUnknown(StringType),
+			input:       NewSetUnknown(StringType{}),
 			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       SetNull(StringType),
+			input:       NewSetNull(StringType{}),
 			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 		},
 	}
@@ -853,23 +853,23 @@ func TestSetToTerraformValue(t *testing.T) {
 	}
 }
 
-func TestSetElements(t *testing.T) {
+func TestSetValueElements(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Set
+		input    SetValue
 		expected []attr.Value
 	}{
 		"known": {
-			input:    SetValueMust(StringType, []attr.Value{StringValue("test")}),
-			expected: []attr.Value{StringValue("test")},
+			input:    NewSetValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
+			expected: []attr.Value{NewStringValue("test")},
 		},
 		"null": {
-			input:    SetNull(StringType),
+			input:    NewSetNull(StringType{}),
 			expected: nil,
 		},
 		"unknown": {
-			input:    SetUnknown(StringType),
+			input:    NewSetUnknown(StringType{}),
 			expected: nil,
 		},
 	}
@@ -889,24 +889,24 @@ func TestSetElements(t *testing.T) {
 	}
 }
 
-func TestSetElementType(t *testing.T) {
+func TestSetValueElementType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Set
+		input    SetValue
 		expected attr.Type
 	}{
 		"known": {
-			input:    SetValueMust(StringType, []attr.Value{StringValue("test")}),
-			expected: StringType,
+			input:    NewSetValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
+			expected: StringType{},
 		},
 		"null": {
-			input:    SetNull(StringType),
-			expected: StringType,
+			input:    NewSetNull(StringType{}),
+			expected: StringType{},
 		},
 		"unknown": {
-			input:    SetUnknown(StringType),
-			expected: StringType,
+			input:    NewSetUnknown(StringType{}),
+			expected: StringType{},
 		},
 	}
 
@@ -925,163 +925,163 @@ func TestSetElementType(t *testing.T) {
 	}
 }
 
-func TestSetEqual(t *testing.T) {
+func TestSetValueEqual(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		receiver Set
+		receiver SetValue
 		input    attr.Value
 		expected bool
 	}
 	tests := map[string]testCase{
 		"known-known": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expected: true,
 		},
 		"known-known-diff-value": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("goodnight"),
-					StringValue("moon"),
+					NewStringValue("goodnight"),
+					NewStringValue("moon"),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-length": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
-					StringValue("extra"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
+					NewStringValue("extra"),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-type": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: SetValueMust(
-				BoolType,
+			input: NewSetValueMust(
+				BoolType{},
 				[]attr.Value{
-					BoolValue(false),
-					BoolValue(true),
+					NewBoolValue(false),
+					NewBoolValue(true),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-unknown": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringUnknown(),
+					NewStringValue("hello"),
+					NewStringUnknown(),
 				},
 			),
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expected: false,
 		},
 		"known-known-diff-null": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringNull(),
+					NewStringValue("hello"),
+					NewStringNull(),
 				},
 			),
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expected: false,
 		},
 		"known-unknown": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input:    SetUnknown(StringType),
+			input:    NewSetUnknown(StringType{}),
 			expected: false,
 		},
 		"known-null": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input:    SetNull(StringType),
+			input:    NewSetNull(StringType{}),
 			expected: false,
 		},
 		"known-diff-type": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			input: ListValueMust(
-				StringType,
+			input: NewListValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expected: false,
 		},
 		"known-nil": {
-			receiver: SetValueMust(
-				StringType,
+			receiver: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			input:    nil,
@@ -1101,23 +1101,23 @@ func TestSetEqual(t *testing.T) {
 	}
 }
 
-func TestSetIsNull(t *testing.T) {
+func TestSetValueIsNull(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Set
+		input    SetValue
 		expected bool
 	}{
 		"known": {
-			input:    SetValueMust(StringType, []attr.Value{StringValue("test")}),
+			input:    NewSetValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
 			expected: false,
 		},
 		"null": {
-			input:    SetNull(StringType),
+			input:    NewSetNull(StringType{}),
 			expected: true,
 		},
 		"unknown": {
-			input:    SetUnknown(StringType),
+			input:    NewSetUnknown(StringType{}),
 			expected: false,
 		},
 	}
@@ -1137,23 +1137,23 @@ func TestSetIsNull(t *testing.T) {
 	}
 }
 
-func TestSetIsUnknown(t *testing.T) {
+func TestSetValueIsUnknown(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    Set
+		input    SetValue
 		expected bool
 	}{
 		"known": {
-			input:    SetValueMust(StringType, []attr.Value{StringValue("test")}),
+			input:    NewSetValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
 			expected: false,
 		},
 		"null": {
-			input:    SetNull(StringType),
+			input:    NewSetNull(StringType{}),
 			expected: false,
 		},
 		"unknown": {
-			input:    SetUnknown(StringType),
+			input:    NewSetUnknown(StringType{}),
 			expected: true,
 		},
 	}
@@ -1173,42 +1173,42 @@ func TestSetIsUnknown(t *testing.T) {
 	}
 }
 
-func TestSetString(t *testing.T) {
+func TestSetValueString(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Set
+		input       SetValue
 		expectation string
 	}
 	tests := map[string]testCase{
 		"known": {
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
 			expectation: `["hello","world"]`,
 		},
 		"known-set-of-sets": {
-			input: SetValueMust(
+			input: NewSetValueMust(
 				SetType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 				[]attr.Value{
-					SetValueMust(
-						StringType,
+					NewSetValueMust(
+						StringType{},
 						[]attr.Value{
-							StringValue("hello"),
-							StringValue("world"),
+							NewStringValue("hello"),
+							NewStringValue("world"),
 						},
 					),
-					SetValueMust(
-						StringType,
+					NewSetValueMust(
+						StringType{},
 						[]attr.Value{
-							StringValue("foo"),
-							StringValue("bar"),
+							NewStringValue("foo"),
+							NewStringValue("bar"),
 						},
 					),
 				},
@@ -1216,15 +1216,15 @@ func TestSetString(t *testing.T) {
 			expectation: `[["hello","world"],["foo","bar"]]`,
 		},
 		"unknown": {
-			input:       SetUnknown(StringType),
+			input:       NewSetUnknown(StringType{}),
 			expectation: "<unknown>",
 		},
 		"null": {
-			input:       SetNull(StringType),
+			input:       NewSetNull(StringType{}),
 			expectation: "<null>",
 		},
 		"zero-value": {
-			input:       Set{},
+			input:       SetValue{},
 			expectation: "<null>",
 		},
 	}
@@ -1242,59 +1242,59 @@ func TestSetString(t *testing.T) {
 	}
 }
 
-func TestSetType(t *testing.T) {
+func TestSetValueType(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       Set
+		input       SetValue
 		expectation attr.Type
 	}
 	tests := map[string]testCase{
 		"known": {
-			input: SetValueMust(
-				StringType,
+			input: NewSetValueMust(
+				StringType{},
 				[]attr.Value{
-					StringValue("hello"),
-					StringValue("world"),
+					NewStringValue("hello"),
+					NewStringValue("world"),
 				},
 			),
-			expectation: SetType{ElemType: StringType},
+			expectation: SetType{ElemType: StringType{}},
 		},
 		"known-set-of-sets": {
-			input: SetValueMust(
+			input: NewSetValueMust(
 				SetType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 				[]attr.Value{
-					SetValueMust(
-						StringType,
+					NewSetValueMust(
+						StringType{},
 						[]attr.Value{
-							StringValue("hello"),
-							StringValue("world"),
+							NewStringValue("hello"),
+							NewStringValue("world"),
 						},
 					),
-					SetValueMust(
-						StringType,
+					NewSetValueMust(
+						StringType{},
 						[]attr.Value{
-							StringValue("foo"),
-							StringValue("bar"),
+							NewStringValue("foo"),
+							NewStringValue("bar"),
 						},
 					),
 				},
 			),
 			expectation: SetType{
 				ElemType: SetType{
-					ElemType: StringType,
+					ElemType: StringType{},
 				},
 			},
 		},
 		"unknown": {
-			input:       SetUnknown(StringType),
-			expectation: SetType{ElemType: StringType},
+			input:       NewSetUnknown(StringType{}),
+			expectation: SetType{ElemType: StringType{}},
 		},
 		"null": {
-			input:       SetNull(StringType),
-			expectation: SetType{ElemType: StringType},
+			input:       NewSetNull(StringType{}),
+			expectation: SetType{ElemType: StringType{}},
 		},
 	}
 

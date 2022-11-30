@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 
 var (
 	_ MapTypable  = MapType{}
-	_ MapValuable = &Map{}
+	_ MapValuable = &MapValue{}
 )
 
 // MapTypable extends attr.Type for map types.
@@ -26,7 +26,7 @@ type MapTypable interface {
 	attr.Type
 
 	// ValueFromMap should convert the Map to a MapValuable type.
-	ValueFromMap(context.Context, Map) (MapValuable, diag.Diagnostics)
+	ValueFromMap(context.Context, MapValue) (MapValuable, diag.Diagnostics)
 }
 
 // MapValuable extends attr.Value for map value types.
@@ -35,7 +35,7 @@ type MapValuable interface {
 	attr.Value
 
 	// ToMapValue should convert the value type to a Map.
-	ToMapValue(ctx context.Context) (Map, diag.Diagnostics)
+	ToMapValue(ctx context.Context) (MapValue, diag.Diagnostics)
 }
 
 // MapType is an AttributeType representing a map of values. All values must
@@ -72,19 +72,19 @@ func (m MapType) TerraformType(ctx context.Context) tftypes.Type {
 // provider to consume the data with.
 func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if in.Type() == nil {
-		return MapNull(m.ElemType), nil
+		return NewMapNull(m.ElemType), nil
 	}
 	if !in.Type().Is(tftypes.Map{}) {
-		return nil, fmt.Errorf("can't use %s as value of Map, can only use tftypes.Map values", in.String())
+		return nil, fmt.Errorf("can't use %s as value of MapValue, can only use tftypes.Map values", in.String())
 	}
 	if !in.Type().Equal(tftypes.Map{ElementType: m.ElemType.TerraformType(ctx)}) {
 		return nil, fmt.Errorf("can't use %s as value of Map with ElementType %T, can only use %s values", in.String(), m.ElemType, m.ElemType.TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
-		return MapUnknown(m.ElemType), nil
+		return NewMapUnknown(m.ElemType), nil
 	}
 	if in.IsNull() {
-		return MapNull(m.ElemType), nil
+		return NewMapNull(m.ElemType), nil
 	}
 	val := map[string]tftypes.Value{}
 	err := in.As(&val)
@@ -101,7 +101,7 @@ func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr
 	}
 	// ValueFromTerraform above on each element should make this safe.
 	// Otherwise, this will need to do some Diagnostics to error conversion.
-	return MapValueMust(m.ElemType, elems), nil
+	return NewMapValueMust(m.ElemType, elems), nil
 }
 
 // Equal returns true if `o` is also a MapType and has the same ElemType.
@@ -182,37 +182,37 @@ func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path)
 
 // ValueType returns the Value type.
 func (m MapType) ValueType(_ context.Context) attr.Value {
-	return Map{
+	return MapValue{
 		elementType: m.ElemType,
 	}
 }
 
 // ValueFromMap returns a MapValuable type given a Map.
-func (m MapType) ValueFromMap(_ context.Context, ma Map) (MapValuable, diag.Diagnostics) {
+func (m MapType) ValueFromMap(_ context.Context, ma MapValue) (MapValuable, diag.Diagnostics) {
 	return ma, nil
 }
 
-// MapNull creates a Map with a null value. Determine whether the value is
+// NewMapNull creates a Map with a null value. Determine whether the value is
 // null via the Map type IsNull method.
-func MapNull(elementType attr.Type) Map {
-	return Map{
+func NewMapNull(elementType attr.Type) MapValue {
+	return MapValue{
 		elementType: elementType,
 		state:       attr.ValueStateNull,
 	}
 }
 
-// MapUnknown creates a Map with an unknown value. Determine whether the
+// NewMapUnknown creates a Map with an unknown value. Determine whether the
 // value is unknown via the Map type IsUnknown method.
-func MapUnknown(elementType attr.Type) Map {
-	return Map{
+func NewMapUnknown(elementType attr.Type) MapValue {
+	return MapValue{
 		elementType: elementType,
 		state:       attr.ValueStateUnknown,
 	}
 }
 
-// MapValue creates a Map with a known value. Access the value via the Map
+// NewMapValue creates a Map with a known value. Access the value via the Map
 // type Elements or ElementsAs methods.
-func MapValue(elementType attr.Type, elements map[string]attr.Value) (Map, diag.Diagnostics) {
+func NewMapValue(elementType attr.Type, elements map[string]attr.Value) (MapValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
@@ -232,21 +232,21 @@ func MapValue(elementType attr.Type, elements map[string]attr.Value) (Map, diag.
 	}
 
 	if diags.HasError() {
-		return MapUnknown(elementType), diags
+		return NewMapUnknown(elementType), diags
 	}
 
-	return Map{
+	return MapValue{
 		elementType: elementType,
 		elements:    elements,
 		state:       attr.ValueStateKnown,
 	}, nil
 }
 
-// MapValueFrom creates a Map with a known value, using reflection rules.
+// NewMapValueFrom creates a Map with a known value, using reflection rules.
 // The elements must be a map of string keys to values which can convert into
 // the given element type. Access the value via the Map type Elements or
 // ElementsAs methods.
-func MapValueFrom(ctx context.Context, elementType attr.Type, elements any) (Map, diag.Diagnostics) {
+func NewMapValueFrom(ctx context.Context, elementType attr.Type, elements any) (MapValue, diag.Diagnostics) {
 	attrValue, diags := reflect.FromValue(
 		ctx,
 		MapType{ElemType: elementType},
@@ -255,10 +255,10 @@ func MapValueFrom(ctx context.Context, elementType attr.Type, elements any) (Map
 	)
 
 	if diags.HasError() {
-		return MapUnknown(elementType), diags
+		return NewMapUnknown(elementType), diags
 	}
 
-	m, ok := attrValue.(Map)
+	m, ok := attrValue.(MapValue)
 
 	// This should not happen, but ensure there is an error if it does.
 	if !ok {
@@ -272,15 +272,15 @@ func MapValueFrom(ctx context.Context, elementType attr.Type, elements any) (Map
 	return m, diags
 }
 
-// MapValueMust creates a Map with a known value, converting any diagnostics
+// NewMapValueMust creates a Map with a known value, converting any diagnostics
 // into a panic at runtime. Access the value via the Map
 // type Elements or ElementsAs methods.
 //
 // This creation function is only recommended to create Map values which will
 // not potentially effect practitioners, such as testing, or exhaustively
 // tested provider logic.
-func MapValueMust(elementType attr.Type, elements map[string]attr.Value) Map {
-	m, diags := MapValue(elementType, elements)
+func NewMapValueMust(elementType attr.Type, elements map[string]attr.Value) MapValue {
+	m, diags := NewMapValue(elementType, elements)
 
 	if diags.HasError() {
 		// This could potentially be added to the diag package.
@@ -300,9 +300,9 @@ func MapValueMust(elementType attr.Type, elements map[string]attr.Value) Map {
 	return m
 }
 
-// Map represents a mapping of string keys to attr.Value values of a single
+// MapValue represents a mapping of string keys to attr.Value values of a single
 // type.
-type Map struct {
+type MapValue struct {
 	// elements is the mapping of known values in the Map.
 	elements map[string]attr.Value
 
@@ -316,13 +316,13 @@ type Map struct {
 
 // Elements returns the mapping of elements for the Map. Returns nil if the
 // Map is null or unknown.
-func (m Map) Elements() map[string]attr.Value {
+func (m MapValue) Elements() map[string]attr.Value {
 	return m.elements
 }
 
-// ElementsAs populates `target` with the elements of the Map, throwing an
+// ElementsAs populates `target` with the elements of the MapValue, throwing an
 // error if the elements cannot be stored in `target`.
-func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
+func (m MapValue) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
 	// we need a tftypes.Value for this Map to be able to use it with our
 	// reflection code
 	val, err := m.ToTerraformValue(ctx)
@@ -343,17 +343,17 @@ func (m Map) ElementsAs(ctx context.Context, target interface{}, allowUnhandled 
 }
 
 // ElementType returns the element type for the Map.
-func (m Map) ElementType(_ context.Context) attr.Type {
+func (m MapValue) ElementType(_ context.Context) attr.Type {
 	return m.elementType
 }
 
 // Type returns a MapType with the same element type as `m`.
-func (m Map) Type(ctx context.Context) attr.Type {
+func (m MapValue) Type(ctx context.Context) attr.Type {
 	return MapType{ElemType: m.ElementType(ctx)}
 }
 
 // ToTerraformValue returns the data contained in the Map as a tftypes.Value.
-func (m Map) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+func (m MapValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	mapType := tftypes.Map{ElementType: m.ElementType(ctx).TerraformType(ctx)}
 
 	switch m.state {
@@ -386,8 +386,8 @@ func (m Map) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 
 // Equal returns true if the Map is considered semantically equal
 // (same type and same value) to the attr.Value passed as an argument.
-func (m Map) Equal(o attr.Value) bool {
-	other, ok := o.(Map)
+func (m MapValue) Equal(o attr.Value) bool {
+	other, ok := o.(MapValue)
 
 	if !ok {
 		return false
@@ -421,21 +421,21 @@ func (m Map) Equal(o attr.Value) bool {
 }
 
 // IsNull returns true if the Map represents a null value.
-func (m Map) IsNull() bool {
+func (m MapValue) IsNull() bool {
 	return m.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the Map represents a currently unknown value.
 // Returns false if the Map has a known number of elements, even if all are
 // unknown values.
-func (m Map) IsUnknown() bool {
+func (m MapValue) IsUnknown() bool {
 	return m.state == attr.ValueStateUnknown
 }
 
 // String returns a human-readable representation of the Map value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.
-func (m Map) String() string {
+func (m MapValue) String() string {
 	if m.IsUnknown() {
 		return attr.UnknownValueString
 	}
@@ -466,6 +466,6 @@ func (m Map) String() string {
 }
 
 // ToMapValue returns the Map.
-func (m Map) ToMapValue(context.Context) (Map, diag.Diagnostics) {
+func (m MapValue) ToMapValue(context.Context) (MapValue, diag.Diagnostics) {
 	return m, nil
 }

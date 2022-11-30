@@ -1392,7 +1392,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: test[0]\n"+
-						"Original Error: ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to types.StringType",
+						"Original Error: ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.StringType",
 				),
 			},
 		},
@@ -1446,7 +1446,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: test[\"element\"]\n"+
-						"Original Error: ElementKeyString(\"element\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to types.StringType",
+						"Original Error: ElementKeyString(\"element\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to basetypes.StringType",
 				),
 			},
 		},
@@ -1500,7 +1500,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: test[Value(\"element\")]\n"+
-						"Original Error: ElementKeyValue(tftypes.String<\"element\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to types.StringType",
+						"Original Error: ElementKeyValue(tftypes.String<\"element\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to basetypes.StringType",
 				),
 			},
 		},
@@ -2747,7 +2747,7 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 			},
 			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(0),
 			expected:    Attribute{},
-			expectedErr: "ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to types.StringType",
+			expectedErr: "ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.StringType",
 		},
 		"WithAttributeName-WithElementKeyInt-valid-parent": {
 			schema: Schema{
@@ -2783,7 +2783,7 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 			},
 			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyString("element"),
 			expected:    Attribute{},
-			expectedErr: "ElementKeyString(\"element\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to types.StringType",
+			expectedErr: "ElementKeyString(\"element\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to basetypes.StringType",
 		},
 		"WithAttributeName-WithElementKeyString-valid-parent": {
 			schema: Schema{
@@ -2819,7 +2819,7 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 			},
 			path:        tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "element")),
 			expected:    Attribute{},
-			expectedErr: "ElementKeyValue(tftypes.String<\"element\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to types.StringType",
+			expectedErr: "ElementKeyValue(tftypes.String<\"element\">) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to basetypes.StringType",
 		},
 		"WithAttributeName-WithElementKeyValue-valid-parent": {
 			schema: Schema{

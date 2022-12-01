@@ -7,13 +7,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
@@ -802,6 +803,169 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSchemaValidate(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		schema        metaschema.Schema
+		expectedDiags diag.Diagnostics
+	}{
+		"empty-schema": {
+			schema: metaschema.Schema{},
+		},
+		"attribute-using-reserved-field-name": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"alias": metaschema.StringAttribute{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("alias"),
+					"Schema Using Reserved Field Name",
+					`"alias" is a reserved field name`,
+				),
+			},
+		},
+		"single-nested-attribute-using-nested-reserved-field-name": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"single_nested_attribute": metaschema.SingleNestedAttribute{
+						Attributes: map[string]metaschema.Attribute{
+							"alias": metaschema.BoolAttribute{},
+						},
+					},
+				},
+			},
+		},
+		"list-nested-attribute-using-nested-reserved-field-name": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"list_nested_attribute": metaschema.ListNestedAttribute{
+						NestedObject: metaschema.NestedAttributeObject{
+							Attributes: map[string]metaschema.Attribute{
+								"alias": metaschema.Int64Attribute{},
+							},
+						},
+					},
+				},
+			},
+		},
+		"attribute-using-invalid-field-name": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"^": metaschema.StringAttribute{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"single-nested-attribute-using-nested-invalid-field-name": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"single_nested_attribute": metaschema.SingleNestedAttribute{
+						Attributes: map[string]metaschema.Attribute{
+							"^": metaschema.BoolAttribute{},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("single_nested_attribute").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"single-nested-attribute-using-invalid-field-names": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"$": metaschema.SingleNestedAttribute{
+						Attributes: map[string]metaschema.Attribute{
+							"^": metaschema.BoolAttribute{},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$"),
+					"Invalid Schema Field Name",
+					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"list-nested-attribute-using-nested-invalid-field-name": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"list_nested_attribute": metaschema.ListNestedAttribute{
+						NestedObject: metaschema.NestedAttributeObject{
+							Attributes: map[string]metaschema.Attribute{
+								"^": metaschema.Int64Attribute{},
+							},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("list_nested_attribute").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"list-nested-attribute-using-invalid-field-names": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"$": metaschema.ListNestedAttribute{
+						NestedObject: metaschema.NestedAttributeObject{
+							Attributes: map[string]metaschema.Attribute{
+								"^": metaschema.Int64Attribute{},
+							},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$"),
+					"Invalid Schema Field Name",
+					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			diags := testCase.schema.Validate()
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 		})
 	}

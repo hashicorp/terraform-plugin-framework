@@ -245,6 +245,12 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Sch
 				return s.dataSourceSchemas, s.dataSourceSchemasDiags
 			}
 
+			s.dataSourceSchemasDiags.Append(schemaResp.Schema.Validate()...)
+
+			if s.dataSourceSchemasDiags.HasError() {
+				return s.dataSourceSchemas, s.dataSourceSchemasDiags
+			}
+
 			s.dataSourceSchemas[dataSourceTypeName] = schemaResp.Schema
 		case datasource.DataSourceWithGetSchema:
 			logging.FrameworkDebug(ctx, "Calling provider defined DataSource GetSchema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
@@ -293,6 +299,8 @@ func (s *Server) ProviderSchema(ctx context.Context) (fwschema.Schema, diag.Diag
 
 		s.providerSchema = schemaResp.Schema
 		s.providerSchemaDiags = schemaResp.Diagnostics
+
+		s.providerSchemaDiags.Append(schemaResp.Schema.Validate()...)
 	case provider.ProviderWithGetSchema:
 		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
 		schema, diags := providerIface.GetSchema(ctx) //nolint:staticcheck // Required internal usage until removal
@@ -339,6 +347,8 @@ func (s *Server) ProviderMetaSchema(ctx context.Context) (fwschema.Schema, diag.
 
 	s.providerMetaSchema = resp.Schema
 	s.providerMetaSchemaDiags = resp.Diagnostics
+
+	s.providerMetaSchemaDiags.Append(resp.Schema.Validate()...)
 
 	return s.providerMetaSchema, s.providerMetaSchemaDiags
 }
@@ -465,6 +475,12 @@ func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schem
 			logging.FrameworkDebug(ctx, "Called provider defined Resource Schema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
 
 			s.resourceSchemasDiags.Append(schemaResp.Diagnostics...)
+
+			if s.resourceSchemasDiags.HasError() {
+				return s.resourceSchemas, s.resourceSchemasDiags
+			}
+
+			s.resourceSchemasDiags.Append(schemaResp.Schema.Validate()...)
 
 			if s.resourceSchemasDiags.HasError() {
 				return s.resourceSchemas, s.resourceSchemasDiags

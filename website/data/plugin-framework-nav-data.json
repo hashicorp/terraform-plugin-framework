@@ -18,7 +18,7 @@
         "path": "getting-started/core-concepts"
       },
       {
-        "title": "Learn Collection",
+        "title": "Tutorials",
         "href": "https://learn.hashicorp.com/collections/terraform/providers-plugin-framework?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS"
       }
     ]
@@ -124,28 +124,32 @@
       {
         "title": "Schemas",
         "path": "handling-data/schemas"
+      },
+      {
+        "title": "Attributes",
+        "path": "handling-data/attributes"
+      },
+      {
+        "title": "Blocks",
+        "path": "handling-data/blocks"
+      },
+      {
+        "title": "Paths",
+        "path": "handling-data/paths"
+      },
+      {
+        "title": "Path Expressions",
+        "path": "handling-data/path-expressions"
+      },
+      {
+        "title": "Accessing Terraform Data",
+        "path": "handling-data/accessing-values"
+      },
+      {
+        "title": "Writing Data",
+        "path": "handling-data/writing-state"
       }
     ]
-  },
-  {
-    "title": "Paths",
-    "path": "paths"
-  },
-  {
-    "title": "Path Expressions",
-    "path": "path-expressions"
-  },
-  {
-    "title": "Attribute Types",
-    "path": "types"
-  },
-  {
-    "title": "Accessing State, Config, and Plan",
-    "path": "accessing-values"
-  },
-  {
-    "title": "Writing State",
-    "path": "writing-state"
   },
   {
     "title": "Returning Errors and Warnings",

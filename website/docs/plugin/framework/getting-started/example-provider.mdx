@@ -6,14 +6,39 @@ description: >-
 
 # Simple Example Provider
 
+[Terraform providers](/terraform/language/providers) allow Terraform core to communicate with 3rd parties such as cloud providers, SaaS providers, and other APIs.
+Communication between Terraform core and Terraform providers uses gRPC, with core operating as a gRPC client and providers operating as gRPC servers, respectively.
+Terraform provider resources are used to manage infrastructure objects, such as virtual networks and compute instances.
+Terraform provider data sources give a read-only view of infrastructure objects.
+
+The purpose of this example is to show the relationship between the components that are required to build a minimal Terraform provider.
+In a real provider the resource and data source would typically interact with a cloud provider via an API but in this example we are simply storing values in state.
+Stripping the Terraform provider back to the bare essentials allows us to focus on the minimum requirements needed to build a functional provider.
+
 A Terraform plugin provider requires the following as a minimum:
 
-* main
+* provider server
 * provider
 * resource (and/or data source)
 * data source (and/or resource)
 
-## Main
+A provider server is the gRPC server that the Terraform core gRPC client communicates with.
+The provider wraps the resource(s) and/or data source(s), and can be used to configure a client which communicates with a 3rd party service via an API.
+Resources are used to manage infrastructure objects.
+Data sources are used to read infrastructure objects.
+
+## Provider Server
+
+Each provider must implement a gRPC server that supports Terraform-specific connection and handshake handling on startup.
+
+A [provider server](/plugin/framework/provider-servers) is required in order for a Terraform provider to:
+* expose resources that can be managed by Terraform core.
+* expose data sources that can be read by Terraform core.
+
+The `main()` function is used for defining a provider server.
+
+The `provider.New()` returns a function which returns a type that satisfies the `provider.Provider` interface.
+The `provider.Provider` interface defines functions for obtaining the resource(s) and/or data source(s) from a provider.
 
 ```go
 package main
@@ -47,13 +72,24 @@ func main() {
 }
 ```
 
-The `main()` function defines the [provider server](/plugin/framework/provider-servers).
-
-### provider.New()
-
-`provider.New()` returns a function which returns a type that satisfies the `provider.Provider` interface.
+Refer to [Provider Servers](/plugin/framework/provider-servers) for more details.
 
 ## Provider
+
+The provider wraps resources and data sources which are typically used for interacting with cloud providers, SaaS providers, or other APIs.
+
+In this example the provider wraps a resource and a data source which simply interact with Terraform state. Refer to the [tutorial](/tutorials/providers-plugin-framework/providers-plugin-framework-provider-configure) for an example of provider configuration that configures an API client.
+
+`New()` returns a function which returns a type that satisfies the `provider.Provider` interface. The `New()` function is called by the [provider server](#provider-server) to obtain the provider.
+
+The `exampleProvider` struct implements the `provider.Provider` interface. This interface defines the following functions:
+
+- `Schema`: This function returns a provider `schema.Schema` struct that defines the provider schema. Schemas specify the constraints of Terraform configuration blocks. They define what fields a provider, resource, or data source configuration block has, and give Terraform metadata about those fields.
+- [`Configure`]((/plugin/framework/providers#configure-method)): This function lets you configure provider-level data or clients. These configuration values may be from the practitioner Terraform configuration, environment variables, or other means such as reading vendor-specific configuration files.
+- [`Resources`]((/plugin/framework/providers#resources)): This function returns a slice of functions that return types that implement the `resource.Resource` interface. Resources let Terraform manage infrastructure objects, such as a compute instance, an access policy, or disk.
+- [`DataSources`]((/plugin/framework/providers#datasources)): This function returns a slice of functions that return types which implement the `datasource.DataSource` interface. Data sources let Terraform reference external data. For example a database instance.
+
+The `exampleProvider` struct also implements the `provider.ProviderWithMetadata` interface which defines the `Metadata` function. The `Metadata` function returns metadata for the provider such as a `TypeName` and `Version`. The `TypeName` is used as a prefix within a provider by for naming [resources](#resource) and [data sources](#data-source).
 
 ```go
 package provider
@@ -99,56 +135,27 @@ func (p *exampleProvider) Resources(ctx context.Context) []func() resource.Resou
 }
 
 func (p *exampleProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
-    resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{
-            "configurable_attribute": schema.StringAttribute{
-                Optional: true,
-            },
-        },
-    }
 }
 ```
 
-### New
-
-`New()` returns a function which returns a type that satisfies the `provider.Provider` interface.
-
-### provider.Provider Interface
-
-The `exampleProvider` struct implements the `provider.Provider` interface which defines the following 4 functions:
-
-* Schema(context.Context, provider.SchemaRequest, *provider.SchemaResponse) (link needs adding)
-* [Configure(context.Context, ConfigureRequest, *ConfigureResponse)](/plugin/framework/providers#getschema-method)
-* [DataSources(context.Context) []func() datasource.DataSource](/plugin/framework/providers#datasources)
-* [Resources(context.Context) []func() resource.Resource](/plugin/framework/providers#resources)
-
-#### Schema
-
-`Schema(context.Context, provider.SchemaRequest, *provider.SchemaResponse)` returns a provider `schema.Schema` struct which defines the provider schema.
-
-#### Configure
-
-`Configure(context.Context, ConfigureRequest, *ConfigureResponse)` configures the provider.
-
-#### DataSources
-
-`DataSources(context.Context)` returns a slice of functions that return types which implement the `datasource.DataSource` interface.
-
-#### Resources
-
-`Resources(context.Context)` returns a slice of functions that return types which implement the `resource.Resource` interface.
-
-### provider.ProviderWithMetadata Interface
-
-The `exampleProvider` struct also implements the `provider.ProviderWithMetadata` interface which defines the following function:
-
-* Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse)
-
-#### Metadata
-
-`Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse)` returns metadata for the provider such as a `TypeName` and `Version`.
+Refer to [Providers](/plugin/framework/providers) for more details and configuration examples.
 
 ## Resource
+
+A resource is typically used to manage infrastructure objects such as virtual networks and compute instances.
+
+In this example the resource simply interacts with Terraform state.
+
+`NewResource()` returns a function which returns a type that satisfies the `resource.Resource` interface. The `NewResource()` function is used within the `provider.Resources` function to make the resource available to the provider.
+
+The `exampleResource` struct implements the `resource.Resource` interface. This interface defines the following functions:
+
+- [`Metadata`](/plugin/framework/resources#metadata-method): This function returns the full name (`TypeName`) of the resource. The full name is used in [Terraform configuration](#resource-configuration) as `resource <full name> <alias>`.
+- `Schema`: This function returns a resource `schema.Schema` struct that defines the resource schema. The schema specifies the constraints of the resource Terraform configuration block. It defines what fields a resource configuration block has, and gives Terraform metadata about those fields. For instance, defining whether a field is required.
+- [`Create`](/plugin/framework/resources/create): This function lets the provider create a new resource of this type.
+- [`Read`](/plugin/framework/resources/read): This function lets the provider read resource values in order to update state.
+- [`Update`](/plugin/framework/resources/update): This function lets the provider update the resource and state.
+- [`Delete`](/plugin/framework/resources/delete): This function lets the provider delete the resource.
 
 ```go
 package provider
@@ -182,11 +189,9 @@ func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest
         Attributes: map[string]schema.Attribute{
             "configurable_attribute": schema.StringAttribute{
                 Optional:            true,
-                MarkdownDescription: "Example configurable attribute",
             },
             "id": schema.StringAttribute{
                 Computed:            true,
-                MarkdownDescription: "Example identifier",
                 PlanModifiers: []planmodifier.String{
                     stringplanmodifier.UseStateForUnknown(),
                 },
@@ -210,6 +215,8 @@ func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest
         return
     }
 
+	// Create resource using 3rd party API.
+
     data.Id = types.StringValue("example-id")
 
     tflog.Trace(ctx, "created a resource")
@@ -228,6 +235,8 @@ func (e *exampleResource) Read(ctx context.Context, req resource.ReadRequest, re
         return
     }
 
+	// Read resource using 3rd party API.
+
     diags = resp.State.Set(ctx, &data)
     resp.Diagnostics.Append(diags...)
 }
@@ -242,6 +251,8 @@ func (e *exampleResource) Update(ctx context.Context, req resource.UpdateRequest
         return
     }
 
+	// Update resource using 3rd party API.
+
     diags = resp.State.Set(ctx, &data)
     resp.Diagnostics.Append(diags...)
 }
@@ -255,49 +266,26 @@ func (e *exampleResource) Delete(ctx context.Context, req resource.DeleteRequest
     if resp.Diagnostics.HasError() {
         return
     }
+
+	// Delete resource using 3rd party API.
 }
 ```
 
-### NewResource
-
-`NewResource()` returns a function which returns a type that satisfies the `resource.Resource` interface.
-
-### resource.Resource Interface
-
-The `exampleResource` struct implements the `resource.Resource` interface which defines the following 6 functions:
-
-* [Metadata(context.Context, MetadataRequest, *MetadataResponse)](/plugin/framework/resources#metadata-method)
-* Schema(context.Context, resource.SchemaRequest, *resource.SchemaResponse) (tfsdk.Schema, diag.Diagnostics) (link needs adding)
-* [Create(context.Context, CreateRequest, *CreateResponse)](/plugin/framework/resources/create)
-* [Read(context.Context, ReadRequest, *ReadResponse)](/plugin/framework/resources/read)
-* [Update(context.Context, UpdateRequest, *UpdateResponse)](/plugin/framework/resources/update)
-* [Delete(context.Context, DeleteRequest, *DeleteResponse)](/plugin/framework/resources/delete)
-
-#### Metadata
-
-`Metadata(context.Context, MetadataRequest, *MetadataResponse)` returns the full name (`TypeName`) of the resource.
-
-#### Schema
-
-`GetSchema(context.Context, resource.SchemaRequest, *resource.SchemaResponse)` returns a resource `schema.Schema` struct which defines the resource schema.
-
-#### Create
-
-`Create(context.Context, CreateRequest, *CreateResponse)` is called when the provider must create a new resource.
-
-#### Read
-
-`Read(context.Context, ReadRequest, *ReadResponse)` is called when the provider must read resource values in order to update state.
-
-### Update
-
-`Update(context.Context, UpdateRequest, *UpdateResponse)` is called to update the state of the resource.
-
-#### Delete
-
-`Delete(context.Context, DeleteRequest, *DeleteResponse)` is called when the provider must delete the resource.
+Refer to [Resources](/plugin/framework/resources) for more details and configuration examples.
 
 ## Data Source
+
+A data source is typically used to provide a read-only view of infrastructure objects.
+
+In this example the data source simply interacts with Terraform state.
+
+`NewDataSource()` returns a function which returns a type that satisfies the `datasource.DataSource` interface. The `NewDataSource()` function is used within the `provider.DataSources` function to make the data source available to the provider.
+
+The `exampleDataSource` struct implements the `datasource.DataSource` interface. This interface defines the following functions:
+
+- [`Metadata`](/plugin/framework/data-sources#metadata-method): This function returns the full name (`TypeName`) of the data source. The full name is used in [Terraform configuration](#data-source-configuration) as `data <full name> <alias>`.
+- `Schema`: This function returns a data source `schema.Schema` struct that defines the data source schema. The schema specifies the constraints of the resource Terraform configuration block. It defines what fields a resource configuration block has, and gives Terraform metadata about those fields. For instance, defining whether a field is optional.
+- [`Read`]((/plugin/framework/data-sources#read-method)): This function lets the provider read data source values in order to update state.
 
 ```go
 package provider
@@ -355,6 +343,8 @@ func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest
         return
     }
 
+	// Interact with 3rd party API to read data source.
+
     data.Id = types.StringValue("example-id")
 
     tflog.Trace(ctx, "read a data source")
@@ -364,33 +354,11 @@ func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest
 }
 ```
 
-### NewDataSource
-
-`NewDataSource()` returns a function which returns a type that satisfies the `datasource.DataSource` interface.
-
-### datasource.DataSource Interface
-
-The `exampleDataSource` struct implements the `datasource.DataSource` interface which defines the following 3 functions:
-
-* [Metadata(context.Context, MetadataRequest, *MetadataResponse)](/plugin/framework/data-sources#metadata-method)
-* Schema(context.Context, datasource.SchemaRequest, *datasource.SchemaResponse) (link needs adding)
-* [Read(context.Context, ReadRequest, *ReadResponse)](/plugin/framework/data-sources#read-method)
-
-#### Metadata
-
-`Metadata(context.Context, MetadataRequest, *MetadataResponse)` returns the full name (`TypeName`) of the data source.
-
-#### Schema
-
-`Schema(context.Context, datasource.SchemaRequest, *datasource.SchemaResponse)` returns a data source `schema.Schema` struct which defines the data source schema.
-
-#### Read
-
-`Read(context.Context, ReadRequest, *ReadResponse)` is called when the provider must read data source values in order to update state.
+Refer to [Data Sources](/plugin/framework/data-sources) for more details and configuration examples.
 
 ## Terraform Configuration
 
-Once a plugin provider has been defined, it is executed by specifying configuration and running `terraform apply`.
+With the definitions we have for [provider server](#provider-server), [provider](#provider), [resource](#resource) and [data source](#data-source), we can run the provider by specifying configuration and executing `terraform apply`.
 
 ### Resource Configuration
 
@@ -402,7 +370,7 @@ resource "example_resource" "example" {
 
 The `configurable_attribute` is defined within the [schema](#resource) as a string type attribute.
 
-Examples of the various types of attributes and their representation within Terraform configuration and schema definitions is detailed in Core Concepts. (link needs adding)
+Examples of the various types of attributes and their representation within Terraform configuration and schema definitions is detailed in [Core Concepts](/plugin/framework/getting-started/core-concepts).
 
 ### Data Source Configuration
 
@@ -414,4 +382,4 @@ data "example_datasource" "example" {
 
 The `configurable_attribute` is defined within the [schema](#data-source) as a string type attribute.
 
-Examples of the various types of attributes and their representation within Terraform configuration and schema definitions is detailed in Core Concepts. (link needs adding)
+Examples of the various types of attributes and their representation within Terraform configuration and schema definitions is detailed in [Core Concepts](/plugin/framework/getting-started/core-concepts).

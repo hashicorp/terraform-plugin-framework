@@ -302,7 +302,7 @@ func (s *Server) ProviderSchema(ctx context.Context) (fwschema.Schema, diag.Diag
 		s.providerSchemaDiags = diags
 	default:
 		s.providerSchemaDiags.AddError(
-			"Provier Missing Schema",
+			"Provider Missing Schema",
 			"While attempting to load provider schemas, the provider itself was missing a Schema method. "+
 				"This is always an issue in the provider and should be reported to the provider developers.",
 		)

@@ -84,69 +84,31 @@ func (r *resourceExample) ImportState(ctx context.Context, req resource.ImportSt
 }
 ```
 
-The following examples show how to migrate portions of the
-[random](https://github.com/hashicorp/terraform-provider-random) provider.
-
-For a complete example, clone the
-`terraform-provider-random` repository and compare the `resource_password.go` file in
-[v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
-with [v3.4.1](https://github.com/hashicorp/terraform-provider-random/blob/v3.4.1/internal/provider/resource_password.go).
-
 This example also shows one way to handle populating attributes with their default values during import.
 
 ### SDKv2
 
-The following example from the `resource_password.go` file shows the import function for the `random_password` resource
-with SDKv2.
+The following example shows the import function for the `example_resource` resource with SDKv2.
 
 ```go
-func resourcePassword() *schema.Resource {
+func exampleResource() *schema.Resource {
     return &schema.Resource{
         Importer: &schema.ResourceImporter{
-            StateContext: importPasswordFunc,
+            StateContext: importFunc,
         },
         /* ... */
     }
 }
 ```
 
-The following example shows the implementation of the `importPasswordFunc` function with SDKv2.
+The following example shows the implementation of the `importFunc` function with SDKv2.
 
 ```go
-func importPasswordFunc(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-    for k, v := range passwordSchemaV2() {
-        if v.Default == nil {
-            continue
-        }
-        if err := d.Set(k, v.Default); err != nil {
-            return nil, fmt.Errorf("error setting %s: %w", k, err)
-        }
-    }
+func importFunc(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+    d.SetId("id")
 
-    for _, key := range []string{"number", "numeric"} {
-        if err := d.Set(key, true); err != nil {
-            return nil, fmt.Errorf("error setting %s: %w", key, err)
-        }
-    }
-
-    val := d.Id()
-    d.SetId("none")
-
-    if err := d.Set("result", val); err != nil {
-        return nil, fmt.Errorf("resource password import failed, error setting result: %w", err)
-    }
-
-    if err := d.Set("length", len(val)); err != nil {
-        return nil, fmt.Errorf("error setting length: %w", err)
-    }
-
-    hash, err := generateHash(val)
-    if err != nil {
-        return nil, fmt.Errorf("resource password import failed, generate hash error: %w", err)
-    }
-
-    if err := d.Set("bcrypt_hash", hash); err != nil {
-        return nil, fmt.Errorf("resource password import failed, error setting bcrypt_hash: %w", err)
+    if err := d.Set("attribute", "value"); err != nil {
+        return nil, fmt.Errorf("resource example import failed, error setting attribute: %w", err)
     }
 
     return []*schema.ResourceData{d}, nil
@@ -156,33 +118,17 @@ func importPasswordFunc(ctx context.Context, d *schema.ResourceData, meta interf
 ### Framework
 The following shows the same section of provider code after the migration.
 
-This code implements the `ResourceWithImportState` interface on the `passwordResource` type by defining an `ImportState`
+This code implements the `ResourceWithImportState` interface on the `exampleResource` type by defining an `ImportState`
 function.
 
 ```go
-func (r *passwordResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *exampleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
     id := req.ID
 
-    state := passwordModelV2{
-        ID:         types.StringValue("none"),
-        Result:     types.StringValue(id),
-        Length:     types.Int64Value(int64(len(id))),
-        Special:    types.BoolValue(true),
-        Upper:      types.BoolValue(true),
-        Lower:      types.BoolValue(true),
-        Numeric:    types.BoolValue(true),
-        MinSpecial: types.Int64Value(0),
-        MinUpper:   types.Int64Value(0),
-        MinLower:   types.Int64Value(0),
-        MinNumeric: types.Int64Value(0),
+    state := exampleModel{
+        ID:         types.StringValue("id"),
+        Attribute:  types.StringValue("value"),
     }
-
-    hash, err := generateHash(id)
-    if err != nil {
-        resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
-    }
-
-    state.BcryptHash = types.StringValue(hash)
 
     diags := resp.State.Set(ctx, &state)
     resp.Diagnostics.Append(diags...)

@@ -37,7 +37,7 @@ provider, which is built on SDKv2.
 http provider repository. The second step also uses `PlanOnly` to verify that a no-op plan is generated.
 
 ```go
-func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
+func TestDataSource_UpgradeFromVersion(t *testing.T) {
     /* ... */
     resource.Test(t, resource.TestCase{
         Steps: []resource.TestStep{

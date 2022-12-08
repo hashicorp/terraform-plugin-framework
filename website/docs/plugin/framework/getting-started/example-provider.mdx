@@ -6,39 +6,35 @@ description: >-
 
 # Simple Example Provider
 
-[Terraform providers](/terraform/language/providers) allow Terraform core to communicate with 3rd parties such as cloud providers, SaaS providers, and other APIs.
-Communication between Terraform core and Terraform providers uses gRPC, with core operating as a gRPC client and providers operating as gRPC servers, respectively.
-Terraform provider resources are used to manage infrastructure objects, such as virtual networks and compute instances.
-Terraform provider data sources give a read-only view of infrastructure objects.
+[Terraform providers](/terraform/language/providers) let Terraform communicate with third parties, such as cloud providers, SaaS providers, and other APIs. Terraform and Terraform providers use gRPC to communicate. Terraform operates as a gRPC client and providers operate as gRPC servers.
 
-The purpose of this example is to show the relationship between the components that are required to build a minimal Terraform provider.
-In a real provider the resource and data source would typically interact with a cloud provider via an API but in this example we are simply storing values in state.
-Stripping the Terraform provider back to the bare essentials allows us to focus on the minimum requirements needed to build a functional provider.
+Each provider defines resources that let Terraform manage infrastructure objects and data sources that let Terraform read data. Terraform practitioners then write configuration to define resources, such as compute storage or networking resources. Terraform then communicates this configuration to the provider, and the provider creates the infrastructure.
 
-A Terraform plugin provider requires the following as a minimum:
+This example provider shows the relationship between the required provider components. The resources and data sources in a typical provider interact with a cloud provider through an API, but the example only stores values in state.
 
-* provider server
-* provider
-* resource (and/or data source)
-* data source (and/or resource)
+## Core Provider Components
 
-A provider server is the gRPC server that the Terraform core gRPC client communicates with.
+A Terraform plugin provider requires at least the following components:
+
+- [provider server](#provider-server)
+- [provider](#provider)
+- [resource](#resource) or [data source](#data-source)
+
+Every provider also requires a provider server, which is the gRPC server that communicates with the Terraform gRPC client.
 The provider wraps the resource(s) and/or data source(s), and can be used to configure a client which communicates with a 3rd party service via an API.
 Resources are used to manage infrastructure objects.
 Data sources are used to read infrastructure objects.
 
 ## Provider Server
 
-Each provider must implement a gRPC server that supports Terraform-specific connection and handshake handling on startup.
+Each provider must implement a gRPC server that supports Terraform-specific connection and handshake handling on startup. A [provider server](/plugin/framework/provider-servers) is required in order for a Terraform provider to:
 
-A [provider server](/plugin/framework/provider-servers) is required in order for a Terraform provider to:
 * expose resources that can be managed by Terraform core.
 * expose data sources that can be read by Terraform core.
 
 The `main()` function is used for defining a provider server.
 
-The `provider.New()` returns a function which returns a type that satisfies the `provider.Provider` interface.
-The `provider.Provider` interface defines functions for obtaining the resource(s) and/or data source(s) from a provider.
+The `provider.New()` returns a function which returns a type that satisfies the `provider.Provider` interface. The `provider.Provider` interface defines functions for obtaining the resource(s) and/or data source(s) from a provider.
 
 ```go
 package main
@@ -146,7 +142,7 @@ A resource is typically used to manage infrastructure objects such as virtual ne
 
 In this example the resource simply interacts with Terraform state.
 
-`NewResource()` returns a function which returns a type that satisfies the `resource.Resource` interface. The `NewResource()` function is used within the `provider.Resources` function to make the resource available to the provider.
+`NewResource()` returns a function which returns a type that satisfies the `resource.Resource` interface. The provider calls the `NewResource()` function within `provider.Resources` to obtain an instance of the resource.
 
 The `exampleResource` struct implements the `resource.Resource` interface. This interface defines the following functions:
 

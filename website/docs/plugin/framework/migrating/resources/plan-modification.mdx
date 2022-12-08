@@ -55,27 +55,19 @@ Framework.
 
 ## Example
 
-The following examples show how to migrate portions of the
-[random](https://github.com/hashicorp/terraform-provider-random) provider.
-
-For a complete example, clone the
-`terraform-provider-random` repository and compare the `resource_password.go` file in
-[v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
-with [v3.4.1](https://github.com/hashicorp/terraform-provider-random/blob/v3.4.1/internal/provider/resource_password.go).
-
 ### SDKv2
 
 In SDKv2, the `CustomizeDiff` field on the `schema.Resource` struct refers to a function or set of functions that
 implement plan modification.
 
-The following example from the `resource_password.go` files shows the use of `CustomizeDiff` to keep two attributes
+The following example shows the use of `CustomizeDiff` to keep two attributes
 synchronized (i.e., ensure that they contain the same value) with SDKv2.
 
 ```go
 func resourcePassword() *schema.Resource {
     /* ... */
-    customizeDiffFuncs = append(customizeDiffFuncs, planSyncIfChange("number", "numeric"))
-    customizeDiffFuncs = append(customizeDiffFuncs, planSyncIfChange("numeric", "number"))
+    customizeDiffFuncs = append(customizeDiffFuncs, planSyncIfChange("attribute_one", "attribute_two"))
+    customizeDiffFuncs = append(customizeDiffFuncs, planSyncIfChange("attribute_two", "attribute_one"))
 
     return &schema.Resource{
         /* ... */
@@ -108,83 +100,83 @@ Many existing `CustomizeDiff` implementations would be better suited to migratio
 Framework. This code shows the implementation using attribute plan modifiers with the Framework.
 
 ```go
-func passwordSchemaV2() schema.Schema {
+func exampleSchema() schema.Schema {
     return schema.Schema{
         /* ... */
         Attributes: map[string]schema.Attribute{
             /* ... */
-            "number": schema.BoolAttribute{
+            "attribute_one": schema.BoolAttribute{
                 /* ... */
                 PlanModifiers: []planmodifier.Bool{
-                    planmodifiers.NumberNumericAttributePlanModifier(),
+                    planmodifiers.SyncAttributePlanModifier(),
                     /* ... */
                 },
             },
 
-            "numeric": schema.BoolAttribute{
+            "attribute_two": schema.BoolAttribute{
                 /* ... */
                 PlanModifiers: []planmodifier.Bool{
-                    planmodifiers.NumberNumericAttributePlanModifier(),
+                    planmodifiers.SyncAttributePlanModifier(),
                     /* ... */
                 },
             },
 ```
 
-The following shows an implementation of `NumberNumericAttributePlanModifier` in the Framework.
+The following shows an implementation of `SyncAttributePlanModifier` in the Framework.
 
 ```go
-func NumberNumericAttributePlanModifier() planmodifier.Bool {
-    return &numberNumericAttributePlanModifier{}
+func SyncAttributePlanModifier() planmodifier.Bool {
+    return &syncAttributePlanModifier{}
 }
 
-type numberNumericAttributePlanModifier struct {
+type syncAttributePlanModifier struct {
 }
 
-func (d *numberNumericAttributePlanModifier) Description(ctx context.Context) string {
-    return "Ensures that number and numeric attributes are kept synchronised."
+func (d *syncAttributePlanModifier) Description(ctx context.Context) string {
+    return "Ensures that attribute_one and attribute_two attributes are kept synchronised."
 }
 
-func (d *numberNumericAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
+func (d *syncAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
     return d.Description(ctx)
 }
 
-func (d *numberNumericAttributePlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
-    var numberConfig types.Bool
-    diags := req.Config.GetAttribute(ctx, path.Root("number"), &numberConfig)
+func (d *syncAttributePlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+    var attributeOne types.Bool
+    diags := req.Plan.GetAttribute(ctx, path.Root("attribute_one"), &attributeOne)
     resp.Diagnostics.Append(diags...)
     if resp.Diagnostics.HasError() {
         return
     }
 
-    var numericConfig types.Bool
-    req.Config.GetAttribute(ctx, path.Root("numeric"), &numericConfig)
+    var attributeTwo types.Bool
+    req.Plan.GetAttribute(ctx, path.Root("attribute_two"), &attributeTwo)
     resp.Diagnostics.Append(diags...)
     if resp.Diagnostics.HasError() {
         return
     }
 
-	if !numberConfig.IsNull() && !numericConfig.IsNull() && (numberConfig.ValueBool() != numericConfig.ValueBool()) {
+	if !attributeOne.IsNull() && !attributeTwo.IsNull() && (attributeOne.ValueBool() != attributeTwo.ValueBool()) {
 		resp.Diagnostics.AddError(
-			"Number and numeric are both configured with different values",
-			"Number is deprecated, use numeric instead",
+			"attribute_one and attribute_two are both configured with different values",
+			"attribute_one is deprecated, use attribute_two instead",
 		)
 		return
 	}
 
-    // Default to true for both number and numeric when both are null.
-    if numberConfig.IsNull() && numericConfig.IsNull() {
+    // Default to true for both attribute_one and attribute_two when both are null.
+    if attributeOne.IsNull() && attributeTwo.IsNull() {
         resp.PlanValue = types.BoolValue(true)
         return
     }
 
-    // Default to using value for numeric if number is null
-    if numberConfig.IsNull() && !numericConfig.IsNull() {
+    // Default to using value for attribute_two if attribute_one is null
+    if attributeOne.IsNull() && !attributeTwo.IsNull() {
         resp.PlanValue = numericConfig
         return
     }
 
-    // Default to using value for number if numeric is null
-    if !numberConfig.IsNull() && numericConfig.IsNull() {
+    // Default to using value for attribute_one if attribute_two is null
+    if !attributeOne.IsNull() && attributeTwo.IsNull() {
         resp.PlanValue = numberConfig
         return
     }

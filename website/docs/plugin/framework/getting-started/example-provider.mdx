@@ -280,7 +280,7 @@ In this example the data source simply interacts with Terraform state.
 The `exampleDataSource` struct implements the `datasource.DataSource` interface. This interface defines the following functions:
 
 - [`Metadata`](/plugin/framework/data-sources#metadata-method): This function returns the full name (`TypeName`) of the data source. The full name is used in [Terraform configuration](#data-source-configuration) as `data <full name> <alias>`.
-- `Schema`: This function returns a data source `schema.Schema` struct that defines the data source schema. The schema specifies the constraints of the resource Terraform configuration block. It defines what fields a resource configuration block has, and gives Terraform metadata about those fields. For instance, defining whether a field is optional.
+- `Schema`: This function returns a data source `schema.Schema` struct that defines the data source schema. The schema specifies the constraints of the data source Terraform configuration block. It defines what fields a data source configuration block has, and gives Terraform metadata about those fields. For instance, defining whether a field is optional.
 - [`Read`]((/plugin/framework/data-sources#read-method)): This function lets the provider read data source values in order to update state.
 
 ```go

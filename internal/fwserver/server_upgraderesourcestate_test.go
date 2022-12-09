@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestServerUpgradeResourceState(t *testing.T) {
@@ -85,18 +84,15 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
 						return map[int64]resource.StateUpgrader{
 							0: {
-								PriorSchema: &tfsdk.Schema{
-									Attributes: map[string]tfsdk.Attribute{
-										"id": {
-											Type:     types.StringType,
+								PriorSchema: &schema.Schema{
+									Attributes: map[string]schema.Attribute{
+										"id": schema.StringAttribute{
 											Computed: true,
 										},
-										"optional_attribute": {
-											Type:     types.BoolType,
+										"optional_attribute": schema.BoolAttribute{
 											Optional: true,
 										},
-										"required_attribute": {
-											Type:     types.BoolType,
+										"required_attribute": schema.BoolAttribute{
 											Required: true,
 										},
 									},
@@ -411,18 +407,15 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
 						return map[int64]resource.StateUpgrader{
 							0: {
-								PriorSchema: &tfsdk.Schema{
-									Attributes: map[string]tfsdk.Attribute{
-										"id": {
-											Type:     types.StringType,
+								PriorSchema: &schema.Schema{
+									Attributes: map[string]schema.Attribute{
+										"id": schema.StringAttribute{
 											Computed: true,
 										},
-										"optional_attribute": {
-											Type:     types.Int64Type, // Purposefully incorrect
+										"optional_attribute": schema.Int64Attribute{ // Purposefully incorrect
 											Optional: true,
 										},
-										"required_attribute": {
-											Type:     types.Int64Type, // Purposefully incorrect
+										"required_attribute": schema.Int64Attribute{ // Purposefully incorrect
 											Required: true,
 										},
 									},
@@ -462,18 +455,15 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
 						return map[int64]resource.StateUpgrader{
 							0: {
-								PriorSchema: &tfsdk.Schema{
-									Attributes: map[string]tfsdk.Attribute{
-										"id": {
-											Type:     types.StringType,
+								PriorSchema: &schema.Schema{
+									Attributes: map[string]schema.Attribute{
+										"id": schema.StringAttribute{
 											Computed: true,
 										},
-										"optional_attribute": {
-											Type:     types.BoolType,
+										"optional_attribute": schema.BoolAttribute{
 											Optional: true,
 										},
-										"required_attribute": {
-											Type:     types.BoolType,
+										"required_attribute": schema.BoolAttribute{
 											Required: true,
 										},
 									},
@@ -540,18 +530,15 @@ func TestServerUpgradeResourceState(t *testing.T) {
 					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
 						return map[int64]resource.StateUpgrader{
 							0: {
-								PriorSchema: &tfsdk.Schema{
-									Attributes: map[string]tfsdk.Attribute{
-										"id": {
-											Type:     types.StringType,
+								PriorSchema: &schema.Schema{
+									Attributes: map[string]schema.Attribute{
+										"id": schema.StringAttribute{
 											Computed: true,
 										},
-										"optional_attribute": {
-											Type:     types.BoolType,
+										"optional_attribute": schema.BoolAttribute{
 											Optional: true,
 										},
-										"required_attribute": {
-											Type:     types.BoolType,
+										"required_attribute": schema.BoolAttribute{
 											Required: true,
 										},
 									},

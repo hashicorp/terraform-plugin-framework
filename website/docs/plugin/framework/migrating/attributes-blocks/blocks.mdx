@@ -75,39 +75,28 @@ func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, 
                             /* ... */
 ```
 
-
 ##  Example
-
-The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
-provider.
-
-For a complete example, clone the
-`terraform-provider-tls` repository and compare the `common_cert.go` file in
-[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/common_cert.go)
-with the `resource_cert_request.go` file in
-[v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/resource_cert_request.go).
 
 ### SDKv2
 
-The following example from the `common_cert.go` file shows the implementation of the `subject` nested block on the
-`cert_request` resource's schema with SDKv2.
+The following example shows the implementation of the `example_nested_block` nested block with SDKv2.
 
 ```go
 map[string]*schema.Schema{
-    "private_key_pem": &schema.Schema{
+    "example_attribute": &schema.Schema{
         Type:      schema.TypeString,
         /* ... */
 
-    "subject" = &schema.Schema{
+    "example_nested_block" = &schema.Schema{
         Type:     schema.TypeList,
         MaxItems: 1,
         Elem: &schema.Resource{
             Schema: map[string]*schema.Schema{
-                "organization": {
+                "example_block_attribute_one": {
                     Type:        schema.TypeString,
                     /* ... */
                 },
-                "common_name": {
+                "example_block_attribute_two": {
                     Type:        schema.TypeString,
                     /* ... */
                 },
@@ -116,23 +105,23 @@ map[string]*schema.Schema{
 
 ### Framework
 
-The following example from the `resource_cert_request.go` file shows how the nested `subject` block on the
-`cert_request` resource is defined with the Framework after the migration.
+The following example shows how the nested `example_nested_block` block
+is defined with the Framework after the migration.
 
 ```go
 schema.Schema{
         Attributes: map[string]schema.Attribute{
-            "private_key_pem": schema.StringAttribute{
+            "example_attribute": schema.StringAttribute{
             /* ... */
 
         Blocks: map[string]schema.Block{
-            "subject": schema.ListNestedBlock{
+            "example_nested_block": schema.ListNestedBlock{
                 NestedObject: schema.NestedBlockObject{
                     Attributes: map[string]schema.Attribute{
-                        "organization": schema.StringAttribute{
+                        "example_block_attribute_one": schema.StringAttribute{
                             /* ... */
                         },
-                        "common_name": schema.StringAttribute{
+                        "example_block_attribute_two": schema.StringAttribute{
                             /* ... */
                         },
                 Validators: validator.List{

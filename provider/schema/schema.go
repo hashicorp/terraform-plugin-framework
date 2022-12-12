@@ -2,12 +2,15 @@ package schema
 
 import (
 	"context"
+	"fmt"
+	"regexp"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Schema must satify the fwschema.Schema interface.
@@ -118,6 +121,126 @@ func (s Schema) TypeAtPath(ctx context.Context, p path.Path) (attr.Type, diag.Di
 // TypeAtTerraformPath returns the framework type at the given tftypes path.
 func (s Schema) TypeAtTerraformPath(ctx context.Context, p *tftypes.AttributePath) (attr.Type, error) {
 	return fwschema.SchemaTypeAtTerraformPath(ctx, s, p)
+}
+
+// Validate verifies that the schema is not using a reserved field name for a top-level attribute.
+func (s Schema) Validate() diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// Raise error diagnostics when data source configuration uses reserved
+	// field names for root-level attributes.
+	reservedFieldNames := map[string]struct{}{
+		"alias":   {},
+		"version": {},
+	}
+
+	attributes := s.GetAttributes()
+
+	for k, v := range attributes {
+		if _, ok := reservedFieldNames[k]; ok {
+			diags.AddAttributeError(
+				path.Root(k),
+				"Schema Using Reserved Field Name",
+				fmt.Sprintf("%q is a reserved field name", k),
+			)
+		}
+
+		d := validateAttributeFieldName(path.Root(k), k, v)
+
+		diags.Append(d...)
+	}
+
+	blocks := s.GetBlocks()
+
+	for k, v := range blocks {
+		if _, ok := reservedFieldNames[k]; ok {
+			diags.AddAttributeError(
+				path.Root(k),
+				"Schema Using Reserved Field Name",
+				fmt.Sprintf("%q is a reserved field name", k),
+			)
+		}
+
+		d := validateBlockFieldName(path.Root(k), k, v)
+
+		diags.Append(d...)
+	}
+
+	return diags
+}
+
+// validFieldNameRegex is used to verify that name used for attributes and blocks
+// comply with the defined regular expression.
+var validFieldNameRegex = regexp.MustCompile("^[a-z0-9_]+$")
+
+// validateAttributeFieldName verifies that the name used for an attribute complies with the regular
+// expression defined in validFieldNameRegex.
+func validateAttributeFieldName(path path.Path, name string, attr fwschema.Attribute) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if !validFieldNameRegex.MatchString(name) {
+		diags.AddAttributeError(
+			path,
+			"Invalid Schema Field Name",
+			fmt.Sprintf("Field name %q is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.", name),
+		)
+	}
+
+	if na, ok := attr.(fwschema.NestedAttribute); ok {
+		nestedObject := na.GetNestedObject()
+
+		if nestedObject == nil {
+			return diags
+		}
+
+		attributes := nestedObject.GetAttributes()
+
+		for k, v := range attributes {
+			d := validateAttributeFieldName(path.AtName(k), k, v)
+
+			diags.Append(d...)
+		}
+	}
+
+	return diags
+}
+
+// validateBlockFieldName verifies that the name used for a block complies with the regular
+// expression defined in validFieldNameRegex.
+func validateBlockFieldName(path path.Path, name string, b fwschema.Block) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if !validFieldNameRegex.MatchString(name) {
+		diags.AddAttributeError(
+			path,
+			"Invalid Schema Field Name",
+			fmt.Sprintf("Field name %q is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.", name),
+		)
+	}
+
+	nestedObject := b.GetNestedObject()
+
+	if nestedObject == nil {
+		return diags
+	}
+
+	blocks := nestedObject.GetBlocks()
+
+	for k, v := range blocks {
+		d := validateBlockFieldName(path.AtName(k), k, v)
+
+		diags.Append(d...)
+	}
+
+	attributes := nestedObject.GetAttributes()
+
+	for k, v := range attributes {
+		d := validateAttributeFieldName(path.AtName(k), k, v)
+
+		diags.Append(d...)
+	}
+
+	return diags
 }
 
 // schemaAttributes is a provider to fwschema type conversion function.

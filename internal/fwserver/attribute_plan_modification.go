@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 type ModifyAttributePlanResponse struct {
@@ -443,18 +444,18 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 
 // AttributePlanModifyBool performs all types.Bool plan modification.
 func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeWithBoolPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.BoolValuable until custom types cannot re-implement
+	// Use basetypes.BoolValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.BoolValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.BoolValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Bool Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Bool attribute plan modification. "+
-				"The value type must implement the types.BoolValuable interface. "+
+				"The value type must implement the basetypes.BoolValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -472,14 +473,14 @@ func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeW
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.BoolValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.BoolValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Bool Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Bool attribute plan modification. "+
-				"The value type must implement the types.BoolValuable interface. "+
+				"The value type must implement the basetypes.BoolValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -497,14 +498,14 @@ func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeW
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.BoolValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.BoolValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Bool Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Bool attribute plan modification. "+
-				"The value type must implement the types.BoolValuable interface. "+
+				"The value type must implement the basetypes.BoolValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -578,18 +579,18 @@ func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeW
 
 // AttributePlanModifyFloat64 performs all types.Float64 plan modification.
 func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.AttributeWithFloat64PlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.Float64Valuable until custom types cannot re-implement
+	// Use basetypes.Float64Valuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.Float64Valuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.Float64Valuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Float64 Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Float64 attribute plan modification. "+
-				"The value type must implement the types.Float64Valuable interface. "+
+				"The value type must implement the basetypes.Float64Valuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -607,14 +608,14 @@ func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.Attribu
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.Float64Valuable)
+	planValuable, ok := req.AttributePlan.(basetypes.Float64Valuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Float64 Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Float64 attribute plan modification. "+
-				"The value type must implement the types.Float64Valuable interface. "+
+				"The value type must implement the basetypes.Float64Valuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -632,14 +633,14 @@ func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.Attribu
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.Float64Valuable)
+	stateValuable, ok := req.AttributeState.(basetypes.Float64Valuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Float64 Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Float64 attribute plan modification. "+
-				"The value type must implement the types.Float64Valuable interface. "+
+				"The value type must implement the basetypes.Float64Valuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -713,18 +714,18 @@ func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.Attribu
 
 // AttributePlanModifyInt64 performs all types.Int64 plan modification.
 func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.AttributeWithInt64PlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.Int64Valuable until custom types cannot re-implement
+	// Use basetypes.Int64Valuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.Int64Valuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.Int64Valuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Int64 Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Int64 attribute plan modification. "+
-				"The value type must implement the types.Int64Valuable interface. "+
+				"The value type must implement the basetypes.Int64Valuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -742,14 +743,14 @@ func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.Attribute
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.Int64Valuable)
+	planValuable, ok := req.AttributePlan.(basetypes.Int64Valuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Int64 Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Int64 attribute plan modification. "+
-				"The value type must implement the types.Int64Valuable interface. "+
+				"The value type must implement the basetypes.Int64Valuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -767,14 +768,14 @@ func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.Attribute
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.Int64Valuable)
+	stateValuable, ok := req.AttributeState.(basetypes.Int64Valuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Int64 Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Int64 attribute plan modification. "+
-				"The value type must implement the types.Int64Valuable interface. "+
+				"The value type must implement the basetypes.Int64Valuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -848,18 +849,18 @@ func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.Attribute
 
 // AttributePlanModifyList performs all types.List plan modification.
 func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeWithListPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.ListValuable until custom types cannot re-implement
+	// Use basetypes.ListValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ListValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ListValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid List Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform List attribute plan modification. "+
-				"The value type must implement the types.ListValuable interface. "+
+				"The value type must implement the basetypes.ListValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -877,14 +878,14 @@ func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeW
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.ListValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.ListValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid List Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform List attribute plan modification. "+
-				"The value type must implement the types.ListValuable interface. "+
+				"The value type must implement the basetypes.ListValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -902,14 +903,14 @@ func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeW
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.ListValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.ListValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid List Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform List attribute plan modification. "+
-				"The value type must implement the types.ListValuable interface. "+
+				"The value type must implement the basetypes.ListValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -983,18 +984,18 @@ func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeW
 
 // AttributePlanModifyMap performs all types.Map plan modification.
 func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWithMapPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.MapValuable until custom types cannot re-implement
+	// Use basetypes.MapValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.MapValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.MapValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Map Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Map attribute plan modification. "+
-				"The value type must implement the types.MapValuable interface. "+
+				"The value type must implement the basetypes.MapValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -1012,14 +1013,14 @@ func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWi
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.MapValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.MapValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Map Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Map attribute plan modification. "+
-				"The value type must implement the types.MapValuable interface. "+
+				"The value type must implement the basetypes.MapValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -1037,14 +1038,14 @@ func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWi
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.MapValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.MapValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Map Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Map attribute plan modification. "+
-				"The value type must implement the types.MapValuable interface. "+
+				"The value type must implement the basetypes.MapValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -1118,18 +1119,18 @@ func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWi
 
 // AttributePlanModifyNumber performs all types.Number plan modification.
 func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.AttributeWithNumberPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.NumberValuable until custom types cannot re-implement
+	// Use basetypes.NumberValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.NumberValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.NumberValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Number Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Number attribute plan modification. "+
-				"The value type must implement the types.NumberValuable interface. "+
+				"The value type must implement the basetypes.NumberValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -1147,14 +1148,14 @@ func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.Attribut
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.NumberValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.NumberValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Number Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Number attribute plan modification. "+
-				"The value type must implement the types.NumberValuable interface. "+
+				"The value type must implement the basetypes.NumberValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -1172,14 +1173,14 @@ func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.Attribut
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.NumberValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.NumberValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Number Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Number attribute plan modification. "+
-				"The value type must implement the types.NumberValuable interface. "+
+				"The value type must implement the basetypes.NumberValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -1253,18 +1254,18 @@ func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.Attribut
 
 // AttributePlanModifyObject performs all types.Object plan modification.
 func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.AttributeWithObjectPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.ObjectValuable until custom types cannot re-implement
+	// Use basetypes.ObjectValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ObjectValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Object Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Object attribute plan modification. "+
-				"The value type must implement the types.ObjectValuable interface. "+
+				"The value type must implement the basetypes.ObjectValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -1282,14 +1283,14 @@ func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.Attribut
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.ObjectValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.ObjectValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Object Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Object attribute plan modification. "+
-				"The value type must implement the types.ObjectValuable interface. "+
+				"The value type must implement the basetypes.ObjectValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -1307,14 +1308,14 @@ func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.Attribut
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.ObjectValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.ObjectValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Object Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Object attribute plan modification. "+
-				"The value type must implement the types.ObjectValuable interface. "+
+				"The value type must implement the basetypes.ObjectValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -1388,18 +1389,18 @@ func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.Attribut
 
 // AttributePlanModifySet performs all types.Set plan modification.
 func AttributePlanModifySet(ctx context.Context, attribute fwxschema.AttributeWithSetPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.SetValuable until custom types cannot re-implement
+	// Use basetypes.SetValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.SetValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.SetValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Set Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Set attribute plan modification. "+
-				"The value type must implement the types.SetValuable interface. "+
+				"The value type must implement the basetypes.SetValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -1417,14 +1418,14 @@ func AttributePlanModifySet(ctx context.Context, attribute fwxschema.AttributeWi
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.SetValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.SetValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Set Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Set attribute plan modification. "+
-				"The value type must implement the types.SetValuable interface. "+
+				"The value type must implement the basetypes.SetValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -1442,14 +1443,14 @@ func AttributePlanModifySet(ctx context.Context, attribute fwxschema.AttributeWi
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.SetValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.SetValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Set Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Set attribute plan modification. "+
-				"The value type must implement the types.SetValuable interface. "+
+				"The value type must implement the basetypes.SetValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -1523,18 +1524,18 @@ func AttributePlanModifySet(ctx context.Context, attribute fwxschema.AttributeWi
 
 // AttributePlanModifyString performs all types.String plan modification.
 func AttributePlanModifyString(ctx context.Context, attribute fwxschema.AttributeWithStringPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.StringValuable until custom types cannot re-implement
+	// Use basetypes.StringValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.StringValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.StringValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid String Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform String attribute plan modification. "+
-				"The value type must implement the types.StringValuable interface. "+
+				"The value type must implement the basetypes.StringValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -1552,14 +1553,14 @@ func AttributePlanModifyString(ctx context.Context, attribute fwxschema.Attribut
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.StringValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.StringValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid String Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform String attribute plan modification. "+
-				"The value type must implement the types.StringValuable interface. "+
+				"The value type must implement the basetypes.StringValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -1577,14 +1578,14 @@ func AttributePlanModifyString(ctx context.Context, attribute fwxschema.Attribut
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.StringValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.StringValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid String Attribute Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform String attribute plan modification. "+
-				"The value type must implement the types.StringValuable interface. "+
+				"The value type must implement the basetypes.StringValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)

@@ -11,7 +11,7 @@
 //
 // The framework has to choose between plan modifier developers handling a
 // concrete framework value type, such as types.Bool, or the framework
-// interface for custom value types, such as types.BoolValuable.
+// interface for custom value basetypes. such as basetypes.BoolValuable.
 //
 // In the framework type model, the developer can immediately use the value.
 // If the value was associated with a custom type and using the custom value

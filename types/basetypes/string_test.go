@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -9,13 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestStringValueFromTerraform(t *testing.T) {
+func TestStringTypeValueFromTerraform(t *testing.T) {
 	t.Parallel()
 
-	testStringValueFromTerraform(t, true)
-}
-
-func testStringValueFromTerraform(t *testing.T, direct bool) {
 	type testCase struct {
 		input       tftypes.Value
 		expectation attr.Value
@@ -24,15 +20,15 @@ func testStringValueFromTerraform(t *testing.T, direct bool) {
 	tests := map[string]testCase{
 		"true": {
 			input:       tftypes.NewValue(tftypes.String, "hello"),
-			expectation: StringValue("hello"),
+			expectation: NewStringValue("hello"),
 		},
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-			expectation: StringUnknown(),
+			expectation: NewStringUnknown(),
 		},
 		"null": {
 			input:       tftypes.NewValue(tftypes.String, nil),
-			expectation: StringNull(),
+			expectation: NewStringNull(),
 		},
 		"wrongType": {
 			input:       tftypes.NewValue(tftypes.Number, 123),
@@ -45,11 +41,7 @@ func testStringValueFromTerraform(t *testing.T, direct bool) {
 			t.Parallel()
 			ctx := context.Background()
 
-			f := StringType.ValueFromTerraform
-			if direct {
-				f = stringValueFromTerraform
-			}
-			got, err := f(ctx, test.input)
+			got, err := StringType{}.ValueFromTerraform(ctx, test.input)
 			if err != nil {
 				if test.expectedErr == "" {
 					t.Errorf("Unexpected error: %s", err)
@@ -80,24 +72,24 @@ func testStringValueFromTerraform(t *testing.T, direct bool) {
 	}
 }
 
-func TestStringToTerraformValue(t *testing.T) {
+func TestStringValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       String
+		input       StringValue
 		expectation interface{}
 	}
 	tests := map[string]testCase{
 		"known": {
-			input:       StringValue("test"),
+			input:       NewStringValue("test"),
 			expectation: tftypes.NewValue(tftypes.String, "test"),
 		},
 		"unknown": {
-			input:       StringUnknown(),
+			input:       NewStringUnknown(),
 			expectation: tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       StringNull(),
+			input:       NewStringNull(),
 			expectation: tftypes.NewValue(tftypes.String, nil),
 		},
 	}
@@ -119,63 +111,63 @@ func TestStringToTerraformValue(t *testing.T) {
 	}
 }
 
-func TestStringEqual(t *testing.T) {
+func TestStringValueEqual(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       String
+		input       StringValue
 		candidate   attr.Value
 		expectation bool
 	}
 	tests := map[string]testCase{
 		"known-known-same": {
-			input:       StringValue("test"),
-			candidate:   StringValue("test"),
+			input:       NewStringValue("test"),
+			candidate:   NewStringValue("test"),
 			expectation: true,
 		},
 		"known-known-diff": {
-			input:       StringValue("test"),
-			candidate:   StringValue("not-test"),
+			input:       NewStringValue("test"),
+			candidate:   NewStringValue("not-test"),
 			expectation: false,
 		},
 		"known-unknown": {
-			input:       StringValue("test"),
-			candidate:   StringUnknown(),
+			input:       NewStringValue("test"),
+			candidate:   NewStringUnknown(),
 			expectation: false,
 		},
 		"known-null": {
-			input:       StringValue("test"),
-			candidate:   StringNull(),
+			input:       NewStringValue("test"),
+			candidate:   NewStringNull(),
 			expectation: false,
 		},
 		"unknown-value": {
-			input:       StringUnknown(),
-			candidate:   StringValue("test"),
+			input:       NewStringUnknown(),
+			candidate:   NewStringValue("test"),
 			expectation: false,
 		},
 		"unknown-unknown": {
-			input:       StringUnknown(),
-			candidate:   StringUnknown(),
+			input:       NewStringUnknown(),
+			candidate:   NewStringUnknown(),
 			expectation: true,
 		},
 		"unknown-null": {
-			input:       StringUnknown(),
-			candidate:   StringNull(),
+			input:       NewStringUnknown(),
+			candidate:   NewStringNull(),
 			expectation: false,
 		},
 		"null-known": {
-			input:       StringNull(),
-			candidate:   StringValue("test"),
+			input:       NewStringNull(),
+			candidate:   NewStringValue("test"),
 			expectation: false,
 		},
 		"null-unknown": {
-			input:       StringNull(),
-			candidate:   StringUnknown(),
+			input:       NewStringNull(),
+			candidate:   NewStringUnknown(),
 			expectation: false,
 		},
 		"null-null": {
-			input:       StringNull(),
-			candidate:   StringNull(),
+			input:       NewStringNull(),
+			candidate:   NewStringNull(),
 			expectation: true,
 		},
 	}
@@ -192,23 +184,23 @@ func TestStringEqual(t *testing.T) {
 	}
 }
 
-func TestStringIsNull(t *testing.T) {
+func TestStringValueIsNull(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    String
+		input    StringValue
 		expected bool
 	}{
 		"known": {
-			input:    StringValue("test"),
+			input:    NewStringValue("test"),
 			expected: false,
 		},
 		"null": {
-			input:    StringNull(),
+			input:    NewStringNull(),
 			expected: true,
 		},
 		"unknown": {
-			input:    StringUnknown(),
+			input:    NewStringUnknown(),
 			expected: false,
 		},
 	}
@@ -228,23 +220,23 @@ func TestStringIsNull(t *testing.T) {
 	}
 }
 
-func TestStringIsUnknown(t *testing.T) {
+func TestStringValueIsUnknown(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    String
+		input    StringValue
 		expected bool
 	}{
 		"known": {
-			input:    StringValue("test"),
+			input:    NewStringValue("test"),
 			expected: false,
 		},
 		"null": {
-			input:    StringNull(),
+			input:    NewStringNull(),
 			expected: false,
 		},
 		"unknown": {
-			input:    StringUnknown(),
+			input:    NewStringUnknown(),
 			expected: true,
 		},
 	}
@@ -264,36 +256,36 @@ func TestStringIsUnknown(t *testing.T) {
 	}
 }
 
-func TestStringString(t *testing.T) {
+func TestStringValueString(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       String
+		input       StringValue
 		expectation string
 	}
 	tests := map[string]testCase{
 		"known-non-empty": {
-			input:       StringValue("test"),
+			input:       NewStringValue("test"),
 			expectation: `"test"`,
 		},
 		"known-empty": {
-			input:       StringValue(""),
+			input:       NewStringValue(""),
 			expectation: `""`,
 		},
 		"known-quotes": {
-			input:       StringValue(`testing is "fun"`),
+			input:       NewStringValue(`testing is "fun"`),
 			expectation: `"testing is \"fun\""`,
 		},
 		"unknown": {
-			input:       StringUnknown(),
+			input:       NewStringUnknown(),
 			expectation: "<unknown>",
 		},
 		"null": {
-			input:       StringNull(),
+			input:       NewStringNull(),
 			expectation: "<null>",
 		},
 		"zero-value": {
-			input:       String{},
+			input:       StringValue{},
 			expectation: `<null>`,
 		},
 	}
@@ -311,23 +303,23 @@ func TestStringString(t *testing.T) {
 	}
 }
 
-func TestStringValueString(t *testing.T) {
+func TestStringValueValueString(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    String
+		input    StringValue
 		expected string
 	}{
 		"known": {
-			input:    StringValue("test"),
+			input:    NewStringValue("test"),
 			expected: "test",
 		},
 		"null": {
-			input:    StringNull(),
+			input:    NewStringNull(),
 			expected: "",
 		},
 		"unknown": {
-			input:    StringUnknown(),
+			input:    NewStringUnknown(),
 			expected: "",
 		},
 	}

@@ -1,4 +1,4 @@
-package types
+package basetypes
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ StringValuable = String{}
+	_ StringValuable = StringValue{}
 )
 
 // StringValuable extends attr.Value for string value types.
@@ -20,60 +20,45 @@ type StringValuable interface {
 	attr.Value
 
 	// ToStringValue should convert the value type to a String.
-	ToStringValue(ctx context.Context) (String, diag.Diagnostics)
+	ToStringValue(ctx context.Context) (StringValue, diag.Diagnostics)
 }
 
-// StringNull creates a String with a null value. Determine whether the value is
+// NewStringNull creates a String with a null value. Determine whether the value is
 // null via the String type IsNull method.
 //
 // Setting the deprecated String type Null, Unknown, or Value fields after
 // creating a String with this function has no effect.
-func StringNull() String {
-	return String{
+func NewStringNull() StringValue {
+	return StringValue{
 		state: attr.ValueStateNull,
 	}
 }
 
-// StringUnknown creates a String with an unknown value. Determine whether the
+// NewStringUnknown creates a String with an unknown value. Determine whether the
 // value is unknown via the String type IsUnknown method.
 //
 // Setting the deprecated String type Null, Unknown, or Value fields after
 // creating a String with this function has no effect.
-func StringUnknown() String {
-	return String{
+func NewStringUnknown() StringValue {
+	return StringValue{
 		state: attr.ValueStateUnknown,
 	}
 }
 
-// StringValue creates a String with a known value. Access the value via the String
+// NewStringValue creates a String with a known value. Access the value via the String
 // type ValueString method.
 //
 // Setting the deprecated String type Null, Unknown, or Value fields after
 // creating a String with this function has no effect.
-func StringValue(value string) String {
-	return String{
+func NewStringValue(value string) StringValue {
+	return StringValue{
 		state: attr.ValueStateKnown,
 		value: value,
 	}
 }
 
-func stringValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	if !in.IsKnown() {
-		return StringUnknown(), nil
-	}
-	if in.IsNull() {
-		return StringNull(), nil
-	}
-	var s string
-	err := in.As(&s)
-	if err != nil {
-		return nil, err
-	}
-	return StringValue(s), nil
-}
-
-// String represents a UTF-8 string value.
-type String struct {
+// StringValue represents a UTF-8 string value.
+type StringValue struct {
 	// state represents whether the value is null, unknown, or known. The
 	// zero-value is null.
 	state attr.ValueState
@@ -83,12 +68,12 @@ type String struct {
 }
 
 // Type returns a StringType.
-func (s String) Type(_ context.Context) attr.Type {
-	return StringType
+func (s StringValue) Type(_ context.Context) attr.Type {
+	return StringType{}
 }
 
 // ToTerraformValue returns the data contained in the *String as a tftypes.Value.
-func (s String) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
+func (s StringValue) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	switch s.state {
 	case attr.ValueStateKnown:
 		if err := tftypes.ValidateValue(tftypes.String, s.value); err != nil {
@@ -106,8 +91,8 @@ func (s String) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 }
 
 // Equal returns true if `other` is a String and has the same value as `s`.
-func (s String) Equal(other attr.Value) bool {
-	o, ok := other.(String)
+func (s StringValue) Equal(other attr.Value) bool {
+	o, ok := other.(StringValue)
 
 	if !ok {
 		return false
@@ -125,12 +110,12 @@ func (s String) Equal(other attr.Value) bool {
 }
 
 // IsNull returns true if the String represents a null value.
-func (s String) IsNull() bool {
+func (s StringValue) IsNull() bool {
 	return s.state == attr.ValueStateNull
 }
 
 // IsUnknown returns true if the String represents a currently unknown value.
-func (s String) IsUnknown() bool {
+func (s StringValue) IsUnknown() bool {
 	return s.state == attr.ValueStateUnknown
 }
 
@@ -139,7 +124,7 @@ func (s String) IsUnknown() bool {
 //
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.
-func (s String) String() string {
+func (s StringValue) String() string {
 	if s.IsUnknown() {
 		return attr.UnknownValueString
 	}
@@ -153,11 +138,11 @@ func (s String) String() string {
 
 // ValueString returns the known string value. If String is null or unknown, returns
 // "".
-func (s String) ValueString() string {
+func (s StringValue) ValueString() string {
 	return s.value
 }
 
 // ToStringValue returns String.
-func (s String) ToStringValue(context.Context) (String, diag.Diagnostics) {
+func (s StringValue) ToStringValue(context.Context) (StringValue, diag.Diagnostics) {
 	return s, nil
 }

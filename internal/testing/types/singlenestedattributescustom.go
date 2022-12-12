@@ -9,11 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var (
-	_ types.SetTypable  = SetNestedAttributesCustomTypeType{}
-	_ types.SetValuable = &SetNestedAttributesCustomValue{}
+	_ basetypes.SetTypable  = SetNestedAttributesCustomTypeType{}
+	_ basetypes.SetValuable = &SetNestedAttributesCustomValue{}
 )
 
 type SingleNestedAttributesCustomType struct {

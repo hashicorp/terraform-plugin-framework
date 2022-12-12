@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // BlockValidate performs all Block validation.
@@ -71,14 +71,14 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 	nm := b.GetNestingMode()
 	switch nm {
 	case fwschema.BlockNestingModeList:
-		listVal, ok := req.AttributeConfig.(types.ListValuable)
+		listVal, ok := req.AttributeConfig.(basetypes.ListValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error Invalid Value Type",
-				"A type that implements types.ListValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.ListValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -128,14 +128,14 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(l.Elements())))
 		}
 	case fwschema.BlockNestingModeSet:
-		setVal, ok := req.AttributeConfig.(types.SetValuable)
+		setVal, ok := req.AttributeConfig.(basetypes.SetValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error Invalid Value Type",
-				"A type that implements types.SetValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.SetValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -185,14 +185,14 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elements())))
 		}
 	case fwschema.BlockNestingModeSingle:
-		objectVal, ok := req.AttributeConfig.(types.ObjectValuable)
+		objectVal, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error Invalid Value Type",
-				"A type that implements types.ObjectValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.ObjectValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -243,18 +243,18 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 
 // BlockValidateList performs all types.List validation.
 func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.ListValuable until custom types cannot re-implement
+	// Use basetypes.ListValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ListValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ListValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid List Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform List attribute validation. "+
-				"The value type must implement the types.ListValuable interface. "+
+				"The value type must implement the basetypes.ListValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -308,18 +308,18 @@ func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidat
 
 // BlockValidateObject performs all types.Object validation.
 func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.ObjectValuable until custom types cannot re-implement
+	// Use basetypes.ObjectValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ObjectValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Object Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Object attribute validation. "+
-				"The value type must implement the types.ObjectValuable interface. "+
+				"The value type must implement the basetypes.ObjectValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -373,18 +373,18 @@ func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectVal
 
 // BlockValidateSet performs all types.Set validation.
 func BlockValidateSet(ctx context.Context, block fwxschema.BlockWithSetValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.SetValuable until custom types cannot re-implement
+	// Use basetypes.SetValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.SetValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.SetValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Set Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Set attribute validation. "+
-				"The value type must implement the types.SetValuable interface. "+
+				"The value type must implement the basetypes.SetValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -440,7 +440,7 @@ func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject
 	objectWithValidators, ok := o.(fwxschema.NestedBlockObjectWithValidators)
 
 	if ok {
-		objectVal, ok := req.AttributeConfig.(types.ObjectValuable)
+		objectVal, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 		if !ok {
 			resp.Diagnostics.AddAttributeError(

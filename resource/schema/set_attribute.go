@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -40,9 +41,9 @@ type SetAttribute struct {
 	ElementType attr.Type
 
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.SetType. When retrieving data, the types.SetValuable
+	// default basetypes.SetType. When retrieving data, the basetypes.SetValuable
 	// associated with this custom type must be used in place of types.Set.
-	CustomType types.SetTypable
+	CustomType basetypes.SetTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,

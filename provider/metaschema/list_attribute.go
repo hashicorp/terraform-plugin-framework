@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -37,9 +38,9 @@ type ListAttribute struct {
 	ElementType attr.Type
 
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.ListType. When retrieving data, the types.ListValuable
+	// default basetypes.ListType. When retrieving data, the basetypes.ListValuable
 	// associated with this custom type must be used in place of types.List.
-	CustomType types.ListTypable
+	CustomType basetypes.ListTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,

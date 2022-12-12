@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -51,9 +52,9 @@ type ListNestedAttribute struct {
 
 	// CustomType enables the use of a custom attribute type in place of the
 	// default types.ListType of types.ObjectType. When retrieving data, the
-	// types.ListValuable associated with this custom type must be used in
+	// basetypes.ListValuable associated with this custom type must be used in
 	// place of types.List.
-	CustomType types.ListTypable
+	CustomType basetypes.ListTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,

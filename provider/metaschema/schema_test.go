@@ -818,44 +818,6 @@ func TestSchemaValidate(t *testing.T) {
 		"empty-schema": {
 			schema: metaschema.Schema{},
 		},
-		"attribute-using-reserved-field-name": {
-			schema: metaschema.Schema{
-				Attributes: map[string]metaschema.Attribute{
-					"alias": metaschema.StringAttribute{},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("alias"),
-					"Schema Using Reserved Field Name",
-					`"alias" is a reserved field name`,
-				),
-			},
-		},
-		"single-nested-attribute-using-nested-reserved-field-name": {
-			schema: metaschema.Schema{
-				Attributes: map[string]metaschema.Attribute{
-					"single_nested_attribute": metaschema.SingleNestedAttribute{
-						Attributes: map[string]metaschema.Attribute{
-							"alias": metaschema.BoolAttribute{},
-						},
-					},
-				},
-			},
-		},
-		"list-nested-attribute-using-nested-reserved-field-name": {
-			schema: metaschema.Schema{
-				Attributes: map[string]metaschema.Attribute{
-					"list_nested_attribute": metaschema.ListNestedAttribute{
-						NestedObject: metaschema.NestedAttributeObject{
-							Attributes: map[string]metaschema.Attribute{
-								"alias": metaschema.Int64Attribute{},
-							},
-						},
-					},
-				},
-			},
-		},
 		"attribute-using-invalid-field-name": {
 			schema: metaschema.Schema{
 				Attributes: map[string]metaschema.Attribute{

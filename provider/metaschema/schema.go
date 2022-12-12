@@ -103,24 +103,9 @@ func (s Schema) TypeAtTerraformPath(ctx context.Context, p *tftypes.AttributePat
 func (s Schema) Validate() diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Raise error diagnostics when data source configuration uses reserved
-	// field names for root-level attributes.
-	reservedFieldNames := map[string]struct{}{
-		"alias":   {},
-		"version": {},
-	}
-
 	attributes := s.GetAttributes()
 
 	for k, v := range attributes {
-		if _, ok := reservedFieldNames[k]; ok {
-			diags.AddAttributeError(
-				path.Root(k),
-				"Schema Using Reserved Field Name",
-				fmt.Sprintf("%q is a reserved field name", k),
-			)
-		}
-
 		d := validateAttributeFieldName(path.Root(k), k, v)
 
 		diags.Append(d...)

@@ -10,12 +10,16 @@
     "title": "Getting Started",
     "routes": [
       {
-        "title": "Example Provider",
-        "path": "getting-started/example-provider"
+        "title": "Code Walkthrough",
+        "path": "getting-started/code-walkthrough"
       },
       {
         "title": "Tutorials",
         "href": "https://learn.hashicorp.com/collections/terraform/providers-plugin-framework?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS"
+      },
+      {
+        "title": "Terraform Provider Scaffolding",
+        "href": "https://github.com/hashicorp/terraform-provider-scaffolding-framework"
       }
     ]
   },

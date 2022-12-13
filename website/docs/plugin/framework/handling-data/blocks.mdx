@@ -32,7 +32,7 @@ For list and set blocks, configurations can implement [`dynamic` block expressio
 
 ## Terraform Configuration
 
-Within Terraform configuration, nested blocks are represented using the following syntax:
+Use the following syntax in Terraform configuration for nested blocks:
 
 ```hcl
 resource "example_resource" "example" {
@@ -113,7 +113,7 @@ resource "example_resource" "example" {
 
 ## Schema
 
-Within the schema, nested blocks are defined as follows:
+Define nested blocks in the schema as follows:
 
 ```go
 func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

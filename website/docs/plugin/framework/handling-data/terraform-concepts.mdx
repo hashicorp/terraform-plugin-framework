@@ -24,7 +24,7 @@ Simple attributes include attributes for boolean, float64, int64, number and str
 
 #### Terraform Configuration
 
-Within Terraform configuration simple attributes are represented using the following syntax:
+Use the following syntax in Terraform configuration for simple attributes:
 
 ```hcl
 resource "example_resource" "example" {
@@ -41,7 +41,7 @@ resource "example_resource" "example" {
 
 #### Schema
 
-Within the schema, simple attributes are defined as follows:
+Define simple attributes in the schema as follows:
 
 ```go
 func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -77,7 +77,7 @@ Collection attributes include attributes for lists, maps and sets.
 
 #### Terraform Configuration
 
-Within Terraform configuration, collection attributes are represented using the following syntax:
+Use the following syntax in Terraform configuration for collection attributes:
 
 ```hcl
 resource "example_resource" "example" {
@@ -91,7 +91,7 @@ resource "example_resource" "example" {
 
 #### Schema
 
-Within the schema collection attributes are defined as follows:
+Define collection attributes in the schema as follows:
 
 ```go
 func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -118,13 +118,13 @@ func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 ### Object Attribute
 
-An object attribute is used when the attribute is an atomic unit and all fields defined within it need to be specified.
+Use an object attribute when the attribute is an atomic unit and all fields defined within it need to be specified.
 
 Nested attributes (i.e., ListNestedAttribute, MapNestedAttribute, SetNestedAttribute and SingleNestedAttribute) should be used when any of the inner fields should have their own flags or metadata (e.g., Required, Optional, Sensitive etc).
 
 #### Terraform Configuration
 
-Within Terraform configuration, object attributes are represented using the following syntax:
+Use the following syntax in Terraform configuration for object attributes:
 
 ```hcl
 resource "example_resource" "example" {
@@ -143,7 +143,7 @@ resource "example_resource" "example" {
 
 #### Schema
 
-Within the schema, object attributes are defined as follows:
+Define object attributes in the schema as follows:
 
 ```go
 func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -171,7 +171,7 @@ func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 #### Terraform Configuration
 
-Within Terraform configuration, nested attributes are represented using the following syntax:
+Use the following syntax in Terraform configuration for nested attributes:
 
 ```hcl
 resource "example_resource" "example" {
@@ -237,7 +237,7 @@ resource "example_resource" "example" {
 
 #### Schema
 
-Within the schema, nested attributes are defined as follows:
+Define nested attributes in the schema as follows:
 
 ```go
 func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -324,7 +324,7 @@ func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 #### Terraform Configuration
 
-Within Terraform configuration, nested blocks are represented using the following syntax:
+Use the following syntax in Terraform configuration for nested blocks:
 
 ```hcl
 resource "example_resource" "example" {
@@ -405,7 +405,7 @@ resource "example_resource" "example" {
 
 #### Schema
 
-Within the schema, nested blocks are defined as follows:
+Define nested blocks in the schema as follows:
 
 ```go
 func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -502,7 +502,7 @@ func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 ## Custom Types
 
-Custom types can be used for both attributes and blocks.
+You can use custom types for both attributes and blocks.
 
 ### Custom Type and Value
 
@@ -579,7 +579,7 @@ resource "example_resource" "example" {
 
 ### Schema
 
-Within the schema, the custom type is used as follows:
+Use the custom type in the schema as follows:
 
 ```go
 func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

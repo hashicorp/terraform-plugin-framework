@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -22,7 +21,7 @@ import (
 // The extra Block parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func BlockValidate(ctx context.Context, b fwschema.Block, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	configData := &fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionConfiguration,
 		Schema:         req.Config.Schema,
@@ -39,25 +38,6 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 	req.AttributeConfig = attributeConfig
 
 	switch blockWithValidators := b.(type) {
-	// Legacy tfsdk.AttributeValidator handling
-	case fwxschema.BlockWithValidators:
-		for _, validator := range blockWithValidators.GetValidators() {
-			logging.FrameworkDebug(
-				ctx,
-				"Calling provider defined AttributeValidator",
-				map[string]interface{}{
-					logging.KeyDescription: validator.Description(ctx),
-				},
-			)
-			validator.Validate(ctx, req, resp)
-			logging.FrameworkDebug(
-				ctx,
-				"Called provider defined AttributeValidator",
-				map[string]interface{}{
-					logging.KeyDescription: validator.Description(ctx),
-				},
-			)
-		}
 	case fwxschema.BlockWithListValidators:
 		BlockValidateList(ctx, blockWithValidators, req, resp)
 	case fwxschema.BlockWithObjectValidators:
@@ -92,13 +72,13 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		}
 
 		for idx, value := range l.Elements() {
-			nestedBlockObjectReq := tfsdk.ValidateAttributeRequest{
+			nestedBlockObjectReq := ValidateAttributeRequest{
 				AttributeConfig:         value,
 				AttributePath:           req.AttributePath.AtListIndex(idx),
 				AttributePathExpression: req.AttributePathExpression.AtListIndex(idx),
 				Config:                  req.Config,
 			}
-			nestedBlockObjectResp := &tfsdk.ValidateAttributeResponse{}
+			nestedBlockObjectResp := &ValidateAttributeResponse{}
 
 			NestedBlockObjectValidate(ctx, nestedBlockObject, nestedBlockObjectReq, nestedBlockObjectResp)
 
@@ -149,13 +129,13 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		}
 
 		for _, value := range s.Elements() {
-			nestedBlockObjectReq := tfsdk.ValidateAttributeRequest{
+			nestedBlockObjectReq := ValidateAttributeRequest{
 				AttributeConfig:         value,
 				AttributePath:           req.AttributePath.AtSetValue(value),
 				AttributePathExpression: req.AttributePathExpression.AtSetValue(value),
 				Config:                  req.Config,
 			}
-			nestedBlockObjectResp := &tfsdk.ValidateAttributeResponse{}
+			nestedBlockObjectResp := &ValidateAttributeResponse{}
 
 			NestedBlockObjectValidate(ctx, nestedBlockObject, nestedBlockObjectReq, nestedBlockObjectResp)
 
@@ -205,13 +185,13 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			return
 		}
 
-		nestedBlockObjectReq := tfsdk.ValidateAttributeRequest{
+		nestedBlockObjectReq := ValidateAttributeRequest{
 			AttributeConfig:         o,
 			AttributePath:           req.AttributePath,
 			AttributePathExpression: req.AttributePathExpression,
 			Config:                  req.Config,
 		}
-		nestedBlockObjectResp := &tfsdk.ValidateAttributeResponse{}
+		nestedBlockObjectResp := &ValidateAttributeResponse{}
 
 		NestedBlockObjectValidate(ctx, nestedBlockObject, nestedBlockObjectReq, nestedBlockObjectResp)
 
@@ -242,7 +222,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 }
 
 // BlockValidateList performs all types.List validation.
-func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	// Use basetypes.ListValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -307,7 +287,7 @@ func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidat
 }
 
 // BlockValidateObject performs all types.Object validation.
-func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	// Use basetypes.ObjectValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -372,7 +352,7 @@ func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectVal
 }
 
 // BlockValidateSet performs all types.Set validation.
-func BlockValidateSet(ctx context.Context, block fwxschema.BlockWithSetValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func BlockValidateSet(ctx context.Context, block fwxschema.BlockWithSetValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	// Use basetypes.SetValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -436,7 +416,7 @@ func BlockValidateSet(ctx context.Context, block fwxschema.BlockWithSetValidator
 	}
 }
 
-func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	objectWithValidators, ok := o.(fwxschema.NestedBlockObjectWithValidators)
 
 	if ok {
@@ -499,12 +479,12 @@ func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject
 	}
 
 	for nestedName, nestedAttr := range o.GetAttributes() {
-		nestedAttrReq := tfsdk.ValidateAttributeRequest{
+		nestedAttrReq := ValidateAttributeRequest{
 			AttributePath:           req.AttributePath.AtName(nestedName),
 			AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
 			Config:                  req.Config,
 		}
-		nestedAttrResp := &tfsdk.ValidateAttributeResponse{}
+		nestedAttrResp := &ValidateAttributeResponse{}
 
 		AttributeValidate(ctx, nestedAttr, nestedAttrReq, nestedAttrResp)
 
@@ -512,12 +492,12 @@ func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject
 	}
 
 	for nestedName, nestedBlock := range o.GetBlocks() {
-		nestedBlockReq := tfsdk.ValidateAttributeRequest{
+		nestedBlockReq := ValidateAttributeRequest{
 			AttributePath:           req.AttributePath.AtName(nestedName),
 			AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
 			Config:                  req.Config,
 		}
-		nestedBlockResp := &tfsdk.ValidateAttributeResponse{}
+		nestedBlockResp := &ValidateAttributeResponse{}
 
 		BlockValidate(ctx, nestedBlock, nestedBlockReq, nestedBlockResp)
 

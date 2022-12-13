@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -16,16 +15,6 @@ var (
 	_ basetypes.MapTypable  = MapNestedAttributesCustomTypeType{}
 	_ basetypes.MapValuable = &MapNestedAttributesCustomValue{}
 )
-
-type MapNestedAttributesCustomType struct {
-	fwschema.NestedAttributes
-}
-
-func (t MapNestedAttributesCustomType) Type() attr.Type {
-	return MapNestedAttributesCustomTypeType{
-		t.NestedAttributes.Type().(types.MapType),
-	}
-}
 
 type MapNestedAttributesCustomTypeType struct {
 	types.MapType

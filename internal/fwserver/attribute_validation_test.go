@@ -26,11 +26,11 @@ func TestAttributeValidate(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		req  tfsdk.ValidateAttributeRequest
-		resp tfsdk.ValidateAttributeResponse
+		req  ValidateAttributeRequest
+		resp ValidateAttributeResponse
 	}{
 		"missing-required-optional-and-computed": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -49,7 +49,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
@@ -60,7 +60,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 		},
 		"config-error": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -80,7 +80,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
@@ -92,7 +92,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 		},
 		"config-computed-null": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -112,10 +112,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"config-computed-unknown": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -135,7 +135,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
@@ -147,7 +147,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 		},
 		"config-computed-value": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -167,7 +167,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
@@ -179,7 +179,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 		},
 		"config-optional-computed-null": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -200,10 +200,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"config-optional-computed-unknown": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -224,10 +224,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"config-optional-computed-value": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -248,10 +248,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"config-required-null": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -271,7 +271,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
@@ -283,7 +283,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 		},
 		"config-required-unknown": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -303,10 +303,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"config-required-value": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -326,10 +326,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"no-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -349,10 +349,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"deprecation-message-known": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -373,7 +373,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("test"),
@@ -384,7 +384,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 		},
 		"deprecation-message-null": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -405,10 +405,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"deprecation-message-unknown": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -429,10 +429,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"warnings": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -463,7 +463,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testWarningDiagnostic1,
 					testWarningDiagnostic2,
@@ -471,7 +471,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 		},
 		"errors": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -502,7 +502,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testErrorDiagnostic1,
 					testErrorDiagnostic2,
@@ -510,7 +510,7 @@ func TestAttributeValidate(t *testing.T) {
 			},
 		},
 		"type-with-validate-error": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -530,14 +530,14 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testtypes.TestErrorDiagnostic(path.Root("test")),
 				},
 			},
 		},
 		"type-with-validate-warning": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -557,14 +557,14 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testtypes.TestWarningDiagnostic(path.Root("test")),
 				},
 			},
 		},
 		"nested-attr-list-no-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -621,10 +621,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"nested-custom-attr-list-no-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -690,10 +690,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"nested-attr-list-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -756,14 +756,14 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testErrorDiagnostic1,
 				},
 			},
 		},
 		"nested-custom-attr-list-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -835,14 +835,14 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testErrorDiagnostic1,
 				},
 			},
 		},
 		"nested-attr-map-no-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -899,10 +899,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"nested-custom-attr-map-no-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -968,10 +968,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"nested-attr-map-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1034,14 +1034,14 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testErrorDiagnostic1,
 				},
 			},
 		},
 		"nested-custom-attr-map-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1113,14 +1113,14 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testErrorDiagnostic1,
 				},
 			},
 		},
 		"nested-attr-set-no-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1177,10 +1177,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"nested-custom-attr-set-no-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1246,10 +1246,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"nested-attr-set-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1312,14 +1312,14 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testErrorDiagnostic1,
 				},
 			},
 		},
 		"nested-custom-attr-set-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1391,14 +1391,14 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testErrorDiagnostic1,
 				},
 			},
 		},
 		"nested-attr-single-no-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1442,10 +1442,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"nested-custom-attr-single-no-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1496,10 +1496,10 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{},
 		},
 		"nested-attr-single-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1548,14 +1548,14 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testErrorDiagnostic1,
 				},
 			},
 		},
 		"nested-custom-attr-single-validation": {
-			req: tfsdk.ValidateAttributeRequest{
+			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(
@@ -1611,7 +1611,7 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: tfsdk.ValidateAttributeResponse{
+			resp: ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					testErrorDiagnostic1,
 				},
@@ -1626,7 +1626,7 @@ func TestAttributeValidate(t *testing.T) {
 
 			ctx := context.Background()
 
-			var got tfsdk.ValidateAttributeResponse
+			var got ValidateAttributeResponse
 
 			attribute, diags := tc.req.Config.Schema.AttributeAtPath(ctx, tc.req.AttributePath)
 
@@ -1648,9 +1648,9 @@ func TestAttributeValidateBool(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithBoolValidators
-		request   tfsdk.ValidateAttributeRequest
-		response  *tfsdk.ValidateAttributeResponse
-		expected  *tfsdk.ValidateAttributeResponse
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
 	}{
 		"request-path": {
 			attribute: testschema.AttributeWithBoolValidators{
@@ -1670,12 +1670,12 @@ func TestAttributeValidateBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			attribute: testschema.AttributeWithBoolValidators{
@@ -1695,13 +1695,13 @@ func TestAttributeValidateBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.BoolValue(true),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			attribute: testschema.AttributeWithBoolValidators{
@@ -1732,7 +1732,7 @@ func TestAttributeValidateBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				Config: tfsdk.Config{
@@ -1748,8 +1748,8 @@ func TestAttributeValidateBool(t *testing.T) {
 					),
 				},
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			attribute: testschema.AttributeWithBoolValidators{
@@ -1769,12 +1769,12 @@ func TestAttributeValidateBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			attribute: testschema.AttributeWithBoolValidators{
@@ -1787,11 +1787,11 @@ func TestAttributeValidateBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -1805,7 +1805,7 @@ func TestAttributeValidateBool(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -1852,9 +1852,9 @@ func TestAttributeValidateFloat64(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithFloat64Validators
-		request   tfsdk.ValidateAttributeRequest
-		response  *tfsdk.ValidateAttributeResponse
-		expected  *tfsdk.ValidateAttributeResponse
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
 	}{
 		"request-path": {
 			attribute: testschema.AttributeWithFloat64Validators{
@@ -1874,12 +1874,12 @@ func TestAttributeValidateFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			attribute: testschema.AttributeWithFloat64Validators{
@@ -1899,13 +1899,13 @@ func TestAttributeValidateFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.Float64Value(1.2),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			attribute: testschema.AttributeWithFloat64Validators{
@@ -1936,7 +1936,7 @@ func TestAttributeValidateFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				Config: tfsdk.Config{
@@ -1952,8 +1952,8 @@ func TestAttributeValidateFloat64(t *testing.T) {
 					),
 				},
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			attribute: testschema.AttributeWithFloat64Validators{
@@ -1973,12 +1973,12 @@ func TestAttributeValidateFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			attribute: testschema.AttributeWithFloat64Validators{
@@ -1991,11 +1991,11 @@ func TestAttributeValidateFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2009,7 +2009,7 @@ func TestAttributeValidateFloat64(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2056,9 +2056,9 @@ func TestAttributeValidateInt64(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithInt64Validators
-		request   tfsdk.ValidateAttributeRequest
-		response  *tfsdk.ValidateAttributeResponse
-		expected  *tfsdk.ValidateAttributeResponse
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
 	}{
 		"request-path": {
 			attribute: testschema.AttributeWithInt64Validators{
@@ -2078,12 +2078,12 @@ func TestAttributeValidateInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(123),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			attribute: testschema.AttributeWithInt64Validators{
@@ -2103,13 +2103,13 @@ func TestAttributeValidateInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.Int64Value(123),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			attribute: testschema.AttributeWithInt64Validators{
@@ -2140,7 +2140,7 @@ func TestAttributeValidateInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(123),
 				Config: tfsdk.Config{
@@ -2156,8 +2156,8 @@ func TestAttributeValidateInt64(t *testing.T) {
 					),
 				},
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			attribute: testschema.AttributeWithInt64Validators{
@@ -2177,12 +2177,12 @@ func TestAttributeValidateInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(123),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			attribute: testschema.AttributeWithInt64Validators{
@@ -2195,11 +2195,11 @@ func TestAttributeValidateInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(123),
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2213,7 +2213,7 @@ func TestAttributeValidateInt64(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2260,9 +2260,9 @@ func TestAttributeValidateList(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithListValidators
-		request   tfsdk.ValidateAttributeRequest
-		response  *tfsdk.ValidateAttributeResponse
-		expected  *tfsdk.ValidateAttributeResponse
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
 	}{
 		"request-path": {
 			attribute: testschema.AttributeWithListValidators{
@@ -2283,12 +2283,12 @@ func TestAttributeValidateList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			attribute: testschema.AttributeWithListValidators{
@@ -2309,13 +2309,13 @@ func TestAttributeValidateList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			attribute: testschema.AttributeWithListValidators{
@@ -2352,7 +2352,7 @@ func TestAttributeValidateList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 				Config: tfsdk.Config{
@@ -2373,8 +2373,8 @@ func TestAttributeValidateList(t *testing.T) {
 					),
 				},
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			attribute: testschema.AttributeWithListValidators{
@@ -2395,12 +2395,12 @@ func TestAttributeValidateList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			attribute: testschema.AttributeWithListValidators{
@@ -2414,11 +2414,11 @@ func TestAttributeValidateList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2432,7 +2432,7 @@ func TestAttributeValidateList(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2479,9 +2479,9 @@ func TestAttributeValidateMap(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithMapValidators
-		request   tfsdk.ValidateAttributeRequest
-		response  *tfsdk.ValidateAttributeResponse
-		expected  *tfsdk.ValidateAttributeResponse
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
 	}{
 		"request-path": {
 			attribute: testschema.AttributeWithMapValidators{
@@ -2502,15 +2502,15 @@ func TestAttributeValidateMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
 					map[string]attr.Value{"testkey": types.StringValue("testvalue")},
 				),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			attribute: testschema.AttributeWithMapValidators{
@@ -2531,7 +2531,7 @@ func TestAttributeValidateMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig: types.MapValueMust(
@@ -2539,8 +2539,8 @@ func TestAttributeValidateMap(t *testing.T) {
 					map[string]attr.Value{"testkey": types.StringValue("testvalue")},
 				),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			attribute: testschema.AttributeWithMapValidators{
@@ -2577,7 +2577,7 @@ func TestAttributeValidateMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -2601,8 +2601,8 @@ func TestAttributeValidateMap(t *testing.T) {
 					),
 				},
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			attribute: testschema.AttributeWithMapValidators{
@@ -2626,15 +2626,15 @@ func TestAttributeValidateMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
 					map[string]attr.Value{"testkey": types.StringValue("testvalue")},
 				),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			attribute: testschema.AttributeWithMapValidators{
@@ -2648,14 +2648,14 @@ func TestAttributeValidateMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
 					map[string]attr.Value{"testkey": types.StringValue("testvalue")},
 				),
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2669,7 +2669,7 @@ func TestAttributeValidateMap(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2716,9 +2716,9 @@ func TestAttributeValidateNumber(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithNumberValidators
-		request   tfsdk.ValidateAttributeRequest
-		response  *tfsdk.ValidateAttributeResponse
-		expected  *tfsdk.ValidateAttributeResponse
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
 	}{
 		"request-path": {
 			attribute: testschema.AttributeWithNumberValidators{
@@ -2738,12 +2738,12 @@ func TestAttributeValidateNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1.2)),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			attribute: testschema.AttributeWithNumberValidators{
@@ -2763,13 +2763,13 @@ func TestAttributeValidateNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.NumberValue(big.NewFloat(1.2)),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			attribute: testschema.AttributeWithNumberValidators{
@@ -2800,7 +2800,7 @@ func TestAttributeValidateNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1.2)),
 				Config: tfsdk.Config{
@@ -2816,8 +2816,8 @@ func TestAttributeValidateNumber(t *testing.T) {
 					),
 				},
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			attribute: testschema.AttributeWithNumberValidators{
@@ -2837,12 +2837,12 @@ func TestAttributeValidateNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1.2)),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			attribute: testschema.AttributeWithNumberValidators{
@@ -2855,11 +2855,11 @@ func TestAttributeValidateNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1.2)),
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2873,7 +2873,7 @@ func TestAttributeValidateNumber(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -2920,9 +2920,9 @@ func TestAttributeValidateObject(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithObjectValidators
-		request   tfsdk.ValidateAttributeRequest
-		response  *tfsdk.ValidateAttributeResponse
-		expected  *tfsdk.ValidateAttributeResponse
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
 	}{
 		"request-path": {
 			attribute: testschema.AttributeWithObjectValidators{
@@ -2945,15 +2945,15 @@ func TestAttributeValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{"testattr": types.StringType},
 					map[string]attr.Value{"testattr": types.StringValue("testvalue")},
 				),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			attribute: testschema.AttributeWithObjectValidators{
@@ -2976,7 +2976,7 @@ func TestAttributeValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig: types.ObjectValueMust(
@@ -2984,8 +2984,8 @@ func TestAttributeValidateObject(t *testing.T) {
 					map[string]attr.Value{"testattr": types.StringValue("testvalue")},
 				),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			attribute: testschema.AttributeWithObjectValidators{
@@ -3024,7 +3024,7 @@ func TestAttributeValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{"testattr": types.StringType},
@@ -3048,8 +3048,8 @@ func TestAttributeValidateObject(t *testing.T) {
 					),
 				},
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			attribute: testschema.AttributeWithObjectValidators{
@@ -3075,15 +3075,15 @@ func TestAttributeValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{"testattr": types.StringType},
 					map[string]attr.Value{"testattr": types.StringValue("testvalue")},
 				),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			attribute: testschema.AttributeWithObjectValidators{
@@ -3099,14 +3099,14 @@ func TestAttributeValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{"testattr": types.StringType},
 					map[string]attr.Value{"testattr": types.StringValue("testvalue")},
 				),
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -3120,7 +3120,7 @@ func TestAttributeValidateObject(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -3167,9 +3167,9 @@ func TestAttributeValidateSet(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithSetValidators
-		request   tfsdk.ValidateAttributeRequest
-		response  *tfsdk.ValidateAttributeResponse
-		expected  *tfsdk.ValidateAttributeResponse
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
 	}{
 		"request-path": {
 			attribute: testschema.AttributeWithSetValidators{
@@ -3190,12 +3190,12 @@ func TestAttributeValidateSet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			attribute: testschema.AttributeWithSetValidators{
@@ -3216,13 +3216,13 @@ func TestAttributeValidateSet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.SetValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			attribute: testschema.AttributeWithSetValidators{
@@ -3259,7 +3259,7 @@ func TestAttributeValidateSet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 				Config: tfsdk.Config{
@@ -3280,8 +3280,8 @@ func TestAttributeValidateSet(t *testing.T) {
 					),
 				},
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			attribute: testschema.AttributeWithSetValidators{
@@ -3302,12 +3302,12 @@ func TestAttributeValidateSet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			attribute: testschema.AttributeWithSetValidators{
@@ -3321,11 +3321,11 @@ func TestAttributeValidateSet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -3339,7 +3339,7 @@ func TestAttributeValidateSet(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -3386,9 +3386,9 @@ func TestAttributeValidateString(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithStringValidators
-		request   tfsdk.ValidateAttributeRequest
-		response  *tfsdk.ValidateAttributeResponse
-		expected  *tfsdk.ValidateAttributeResponse
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
 	}{
 		"request-path": {
 			attribute: testschema.AttributeWithStringValidators{
@@ -3408,12 +3408,12 @@ func TestAttributeValidateString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("test"),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			attribute: testschema.AttributeWithStringValidators{
@@ -3433,13 +3433,13 @@ func TestAttributeValidateString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.StringValue("test"),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			attribute: testschema.AttributeWithStringValidators{
@@ -3470,7 +3470,7 @@ func TestAttributeValidateString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("test"),
 				Config: tfsdk.Config{
@@ -3486,8 +3486,8 @@ func TestAttributeValidateString(t *testing.T) {
 					),
 				},
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			attribute: testschema.AttributeWithStringValidators{
@@ -3507,12 +3507,12 @@ func TestAttributeValidateString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("test"),
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			attribute: testschema.AttributeWithStringValidators{
@@ -3525,11 +3525,11 @@ func TestAttributeValidateString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("test"),
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -3543,7 +3543,7 @@ func TestAttributeValidateString(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -3622,9 +3622,9 @@ func TestNestedAttributeObjectValidateObject(t *testing.T) {
 
 	testCases := map[string]struct {
 		object   fwschema.NestedAttributeObject
-		request  tfsdk.ValidateAttributeRequest
-		response *tfsdk.ValidateAttributeResponse
-		expected *tfsdk.ValidateAttributeResponse
+		request  ValidateAttributeRequest
+		response *ValidateAttributeResponse
+		expected *ValidateAttributeResponse
 	}{
 		"request-path": {
 			object: testschema.NestedAttributeObjectWithValidators{
@@ -3644,13 +3644,13 @@ func TestNestedAttributeObjectValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: testAttributeConfig,
 				Config:          testConfig,
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-pathexpression": {
 			object: testschema.NestedAttributeObjectWithValidators{
@@ -3670,14 +3670,14 @@ func TestNestedAttributeObjectValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         testAttributeConfig,
 				Config:                  testConfig,
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-config": {
 			object: testschema.NestedAttributeObjectWithValidators{
@@ -3697,13 +3697,13 @@ func TestNestedAttributeObjectValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: testAttributeConfig,
 				Config:          testConfig,
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"request-configvalue": {
 			object: testschema.NestedAttributeObjectWithValidators{
@@ -3723,13 +3723,13 @@ func TestNestedAttributeObjectValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: testAttributeConfig,
 				Config:          testConfig,
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
 		},
 		"response-diagnostics": {
 			object: testschema.NestedAttributeObjectWithValidators{
@@ -3742,12 +3742,12 @@ func TestNestedAttributeObjectValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: testAttributeConfig,
 				Config:          testConfig,
 			},
-			response: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -3761,7 +3761,7 @@ func TestNestedAttributeObjectValidateObject(t *testing.T) {
 					),
 				},
 			},
-			expected: &tfsdk.ValidateAttributeResponse{
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("other"),
@@ -3802,13 +3802,13 @@ func TestNestedAttributeObjectValidateObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ValidateAttributeRequest{
+			request: ValidateAttributeRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: testAttributeConfig,
 				Config:          testConfig,
 			},
-			response: &tfsdk.ValidateAttributeResponse{},
-			expected: &tfsdk.ValidateAttributeResponse{
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeWarningDiagnostic(
 						path.Root("test").AtName("testattr"),

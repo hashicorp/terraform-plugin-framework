@@ -37,7 +37,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute    fwschema.Attribute
-		req          tfsdk.ModifyAttributePlanRequest
+		req          ModifyAttributePlanRequest
 		expectedResp ModifyAttributePlanResponse
 	}{
 		"no-plan-modifiers": {
@@ -45,7 +45,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 				Type:     types.StringType,
 				Required: true,
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -75,7 +75,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.StringValue("TESTATTRONE"),
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("TESTATTRONE"),
@@ -92,7 +92,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					planmodifiers.TestAttrPlanPrivateModifierGet{},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.StringValue("TESTATTRONE"),
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("TESTATTRONE"),
@@ -111,7 +111,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.StringValue("TESTATTRONE"),
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("TESTATTRONE"),
@@ -140,7 +140,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.ListValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -233,7 +233,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.SetValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -328,7 +328,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 				NestingMode: fwschema.NestingModeSet,
 				Required:    true,
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.SetValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -471,7 +471,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.MapValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -564,7 +564,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
 						"testing": types.StringType,
@@ -611,7 +611,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.StringValue("newtestvalue"),
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("newtestvalue"),
@@ -678,7 +678,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.StringValue("TESTATTRONE"),
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("TESTATTRONE"),
@@ -753,7 +753,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -779,7 +779,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.StringValue("TESTDIAG"),
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("TESTDIAG"),
@@ -814,7 +814,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 					},
 				},
 			},
-			req: tfsdk.ModifyAttributePlanRequest{
+			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.StringValue("TESTDIAG"),
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("TESTDIAG"),
@@ -857,7 +857,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithBoolPlanModifiers
-		request   tfsdk.ModifyAttributePlanRequest
+		request   ModifyAttributePlanRequest
 		response  *ModifyAttributePlanResponse
 		expected  *ModifyAttributePlanResponse
 	}{
@@ -879,7 +879,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				AttributePlan:   types.BoolValue(true),
@@ -910,7 +910,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.BoolValue(true),
@@ -953,7 +953,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				AttributePlan:   types.BoolValue(true),
@@ -996,7 +996,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				AttributePlan:   types.BoolNull(),
@@ -1038,7 +1038,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				AttributePlan:   types.BoolValue(true),
@@ -1081,7 +1081,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolNull(),
 				AttributePlan:   types.BoolValue(true),
@@ -1114,7 +1114,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolNull(),
 				AttributePlan:   types.BoolValue(true),
@@ -1174,7 +1174,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				AttributePlan:   types.BoolValue(true),
@@ -1217,7 +1217,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolNull(),
 				AttributePlan:   types.BoolNull(),
@@ -1241,7 +1241,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				AttributePlan:   types.BoolValue(true),
@@ -1298,7 +1298,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolNull(),
 				AttributePlan:   types.BoolUnknown(),
@@ -1323,7 +1323,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolNull(),
 				AttributePlan:   types.BoolValue(true),
@@ -1364,7 +1364,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				AttributePlan:   types.BoolValue(true),
@@ -1390,7 +1390,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				AttributePlan:   types.BoolValue(true),
@@ -1419,7 +1419,7 @@ func TestAttributePlanModifyBool(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.BoolValue(true),
 				AttributePlan:   types.BoolValue(true),
@@ -1460,7 +1460,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithFloat64PlanModifiers
-		request   tfsdk.ModifyAttributePlanRequest
+		request   ModifyAttributePlanRequest
 		response  *ModifyAttributePlanResponse
 		expected  *ModifyAttributePlanResponse
 	}{
@@ -1482,7 +1482,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				AttributePlan:   types.Float64Value(1.2),
@@ -1513,7 +1513,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.Float64Value(1.2),
@@ -1556,7 +1556,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				AttributePlan:   types.Float64Value(1.2),
@@ -1599,7 +1599,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				AttributePlan:   types.Float64Null(),
@@ -1641,7 +1641,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				AttributePlan:   types.Float64Value(1.2),
@@ -1684,7 +1684,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Null(),
 				AttributePlan:   types.Float64Value(1.2),
@@ -1717,7 +1717,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Null(),
 				AttributePlan:   types.Float64Value(1.2),
@@ -1777,7 +1777,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				AttributePlan:   types.Float64Value(1.2),
@@ -1820,7 +1820,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Null(),
 				AttributePlan:   types.Float64Null(),
@@ -1844,7 +1844,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				AttributePlan:   types.Float64Value(1.2),
@@ -1901,7 +1901,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Null(),
 				AttributePlan:   types.Float64Unknown(),
@@ -1926,7 +1926,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Null(),
 				AttributePlan:   types.Float64Value(1.2),
@@ -1967,7 +1967,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				AttributePlan:   types.Float64Value(1.2),
@@ -1993,7 +1993,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				AttributePlan:   types.Float64Value(1.2),
@@ -2022,7 +2022,7 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Float64Value(1.2),
 				AttributePlan:   types.Float64Value(1.2),
@@ -2063,7 +2063,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithInt64PlanModifiers
-		request   tfsdk.ModifyAttributePlanRequest
+		request   ModifyAttributePlanRequest
 		response  *ModifyAttributePlanResponse
 		expected  *ModifyAttributePlanResponse
 	}{
@@ -2085,7 +2085,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(1),
 				AttributePlan:   types.Int64Value(1),
@@ -2116,7 +2116,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.Int64Value(1),
@@ -2159,7 +2159,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(1),
 				AttributePlan:   types.Int64Value(1),
@@ -2202,7 +2202,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(1),
 				AttributePlan:   types.Int64Null(),
@@ -2244,7 +2244,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(1),
 				AttributePlan:   types.Int64Value(1),
@@ -2287,7 +2287,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Null(),
 				AttributePlan:   types.Int64Value(1),
@@ -2320,7 +2320,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Null(),
 				AttributePlan:   types.Int64Value(1),
@@ -2380,7 +2380,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(1),
 				AttributePlan:   types.Int64Value(1),
@@ -2423,7 +2423,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Null(),
 				AttributePlan:   types.Int64Null(),
@@ -2447,7 +2447,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(1),
 				AttributePlan:   types.Int64Value(1),
@@ -2504,7 +2504,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Null(),
 				AttributePlan:   types.Int64Unknown(),
@@ -2529,7 +2529,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Null(),
 				AttributePlan:   types.Int64Value(1),
@@ -2570,7 +2570,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(1),
 				AttributePlan:   types.Int64Value(1),
@@ -2596,7 +2596,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(1),
 				AttributePlan:   types.Int64Value(1),
@@ -2625,7 +2625,7 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.Int64Value(1),
 				AttributePlan:   types.Int64Value(1),
@@ -2666,7 +2666,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithListPlanModifiers
-		request   tfsdk.ModifyAttributePlanRequest
+		request   ModifyAttributePlanRequest
 		response  *ModifyAttributePlanResponse
 		expected  *ModifyAttributePlanResponse
 	}{
@@ -2688,7 +2688,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -2719,7 +2719,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -2765,7 +2765,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -2811,7 +2811,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.ListNull(types.StringType),
@@ -2856,7 +2856,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -2902,7 +2902,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListNull(types.StringType),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -2935,7 +2935,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListNull(types.StringType),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -2998,7 +2998,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -3044,7 +3044,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListNull(types.StringType),
 				AttributePlan:   types.ListNull(types.StringType),
@@ -3068,7 +3068,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -3125,7 +3125,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListNull(types.StringType),
 				AttributePlan:   types.ListUnknown(types.StringType),
@@ -3150,7 +3150,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListNull(types.StringType),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -3191,7 +3191,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -3217,7 +3217,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -3246,7 +3246,7 @@ func TestAttributePlanModifyList(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -3287,7 +3287,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithMapPlanModifiers
-		request   tfsdk.ModifyAttributePlanRequest
+		request   ModifyAttributePlanRequest
 		response  *ModifyAttributePlanResponse
 		expected  *ModifyAttributePlanResponse
 	}{
@@ -3309,7 +3309,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -3365,7 +3365,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig: types.MapValueMust(
@@ -3438,7 +3438,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -3516,7 +3516,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -3568,7 +3568,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -3646,7 +3646,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.MapNull(types.StringType),
 				AttributePlan: types.MapValueMust(
@@ -3694,7 +3694,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.MapNull(types.StringType),
 				AttributePlan: types.MapValueMust(
@@ -3774,7 +3774,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -3852,7 +3852,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.MapNull(types.StringType),
 				AttributePlan:   types.MapNull(types.StringType),
@@ -3881,7 +3881,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -3968,7 +3968,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.MapNull(types.StringType),
 				AttributePlan:   types.MapUnknown(types.StringType),
@@ -3998,7 +3998,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.MapNull(types.StringType),
 				AttributePlan: types.MapValueMust(
@@ -4054,7 +4054,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -4105,7 +4105,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -4159,7 +4159,7 @@ func TestAttributePlanModifyMap(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.MapValueMust(
 					types.StringType,
@@ -4225,7 +4225,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithNumberPlanModifiers
-		request   tfsdk.ModifyAttributePlanRequest
+		request   ModifyAttributePlanRequest
 		response  *ModifyAttributePlanResponse
 		expected  *ModifyAttributePlanResponse
 	}{
@@ -4247,7 +4247,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1)),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4278,7 +4278,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.NumberValue(big.NewFloat(1)),
@@ -4321,7 +4321,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1)),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4364,7 +4364,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1)),
 				AttributePlan:   types.NumberNull(),
@@ -4406,7 +4406,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1)),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4449,7 +4449,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberNull(),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4482,7 +4482,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberNull(),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4542,7 +4542,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1)),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4585,7 +4585,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberNull(),
 				AttributePlan:   types.NumberNull(),
@@ -4609,7 +4609,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1)),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4666,7 +4666,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberNull(),
 				AttributePlan:   types.NumberUnknown(),
@@ -4691,7 +4691,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberNull(),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4732,7 +4732,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1)),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4758,7 +4758,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1)),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4787,7 +4787,7 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.NumberValue(big.NewFloat(1)),
 				AttributePlan:   types.NumberValue(big.NewFloat(1)),
@@ -4828,7 +4828,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithObjectPlanModifiers
-		request   tfsdk.ModifyAttributePlanRequest
+		request   ModifyAttributePlanRequest
 		response  *ModifyAttributePlanResponse
 		expected  *ModifyAttributePlanResponse
 	}{
@@ -4850,7 +4850,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
@@ -4916,7 +4916,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig: types.ObjectValueMust(
@@ -5007,7 +5007,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
@@ -5105,7 +5105,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
@@ -5175,7 +5175,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
@@ -5273,7 +5273,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectNull(map[string]attr.Type{
 					"testattr": types.StringType,
@@ -5331,7 +5331,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectNull(map[string]attr.Type{
 					"testattr": types.StringType,
@@ -5429,7 +5429,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
@@ -5527,7 +5527,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectNull(map[string]attr.Type{
 					"testattr": types.StringType,
@@ -5566,7 +5566,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
@@ -5665,7 +5665,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectNull(map[string]attr.Type{
 					"testattr": types.StringType,
@@ -5705,7 +5705,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectNull(map[string]attr.Type{
 					"testattr": types.StringType,
@@ -5771,7 +5771,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
@@ -5832,7 +5832,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
@@ -5896,7 +5896,7 @@ func TestAttributePlanModifyObject(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath: path.Root("test"),
 				AttributeConfig: types.ObjectValueMust(
 					map[string]attr.Type{
@@ -5972,7 +5972,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithSetPlanModifiers
-		request   tfsdk.ModifyAttributePlanRequest
+		request   ModifyAttributePlanRequest
 		response  *ModifyAttributePlanResponse
 		expected  *ModifyAttributePlanResponse
 	}{
@@ -5994,7 +5994,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6025,7 +6025,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6071,7 +6071,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6117,7 +6117,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.SetNull(types.StringType),
@@ -6162,7 +6162,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6208,7 +6208,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetNull(types.StringType),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6241,7 +6241,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetNull(types.StringType),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6304,7 +6304,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6350,7 +6350,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetNull(types.StringType),
 				AttributePlan:   types.SetNull(types.StringType),
@@ -6374,7 +6374,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6431,7 +6431,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetNull(types.StringType),
 				AttributePlan:   types.SetUnknown(types.StringType),
@@ -6456,7 +6456,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetNull(types.StringType),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6497,7 +6497,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6523,7 +6523,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6552,7 +6552,7 @@ func TestAttributePlanModifySet(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				AttributePlan:   types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
@@ -6593,7 +6593,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 
 	testCases := map[string]struct {
 		attribute fwxschema.AttributeWithStringPlanModifiers
-		request   tfsdk.ModifyAttributePlanRequest
+		request   ModifyAttributePlanRequest
 		response  *ModifyAttributePlanResponse
 		expected  *ModifyAttributePlanResponse
 	}{
@@ -6615,7 +6615,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -6646,7 +6646,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:           path.Root("test"),
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         types.StringValue("testvalue"),
@@ -6689,7 +6689,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -6732,7 +6732,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePlan:   types.StringNull(),
@@ -6774,7 +6774,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -6817,7 +6817,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringNull(),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -6850,7 +6850,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringNull(),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -6910,7 +6910,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -6953,7 +6953,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringNull(),
 				AttributePlan:   types.StringNull(),
@@ -6977,7 +6977,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -7034,7 +7034,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringNull(),
 				AttributePlan:   types.StringUnknown(),
@@ -7059,7 +7059,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringNull(),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -7100,7 +7100,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -7126,7 +7126,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePlan:   types.StringValue("testvalue"),
@@ -7155,7 +7155,7 @@ func TestAttributePlanModifyString(t *testing.T) {
 					},
 				},
 			},
-			request: tfsdk.ModifyAttributePlanRequest{
+			request: ModifyAttributePlanRequest{
 				AttributePath:   path.Root("test"),
 				AttributeConfig: types.StringValue("testvalue"),
 				AttributePlan:   types.StringValue("testvalue"),

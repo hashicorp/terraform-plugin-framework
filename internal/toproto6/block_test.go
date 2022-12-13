@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -52,7 +51,7 @@ func TestBlock(t *testing.T) {
 						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeList,
+				NestingMode: fwschema.BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -89,11 +88,11 @@ func TestBlock(t *testing.T) {
 									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeList,
+				NestingMode: fwschema.BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -139,11 +138,11 @@ func TestBlock(t *testing.T) {
 									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeList,
+				NestingMode: fwschema.BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -179,7 +178,7 @@ func TestBlock(t *testing.T) {
 						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeSet,
+				NestingMode: fwschema.BlockNestingModeSet,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -216,11 +215,11 @@ func TestBlock(t *testing.T) {
 									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeSet,
+				NestingMode: fwschema.BlockNestingModeSet,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -266,11 +265,11 @@ func TestBlock(t *testing.T) {
 									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeSet,
+				NestingMode: fwschema.BlockNestingModeSet,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -306,7 +305,7 @@ func TestBlock(t *testing.T) {
 						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeSingle,
+				NestingMode: fwschema.BlockNestingModeSingle,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -343,11 +342,11 @@ func TestBlock(t *testing.T) {
 									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeSingle,
+				NestingMode: fwschema.BlockNestingModeSingle,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -393,11 +392,11 @@ func TestBlock(t *testing.T) {
 									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeSingle,
+				NestingMode: fwschema.BlockNestingModeSingle,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -434,7 +433,7 @@ func TestBlock(t *testing.T) {
 					},
 				},
 				DeprecationMessage: "deprecated, use something else instead",
-				NestingMode:        tfsdk.BlockNestingModeList,
+				NestingMode:        fwschema.BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -464,7 +463,7 @@ func TestBlock(t *testing.T) {
 					},
 				},
 				Description: "test description",
-				NestingMode: tfsdk.BlockNestingModeList,
+				NestingMode: fwschema.BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -496,7 +495,7 @@ func TestBlock(t *testing.T) {
 				},
 				Description:         "test plain description",
 				MarkdownDescription: "test markdown description",
-				NestingMode:         tfsdk.BlockNestingModeList,
+				NestingMode:         fwschema.BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -527,7 +526,7 @@ func TestBlock(t *testing.T) {
 					},
 				},
 				MarkdownDescription: "test description",
-				NestingMode:         tfsdk.BlockNestingModeList,
+				NestingMode:         fwschema.BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -558,7 +557,7 @@ func TestBlock(t *testing.T) {
 					},
 				},
 				MaxItems:    10,
-				NestingMode: tfsdk.BlockNestingModeList,
+				NestingMode: fwschema.BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{
@@ -588,7 +587,7 @@ func TestBlock(t *testing.T) {
 					},
 				},
 				MinItems:    10,
-				NestingMode: tfsdk.BlockNestingModeList,
+				NestingMode: fwschema.BlockNestingModeList,
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov6.SchemaNestedBlock{

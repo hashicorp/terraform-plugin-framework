@@ -36,12 +36,12 @@ type ValidateSchemaResponse struct {
 func SchemaValidate(ctx context.Context, s fwschema.Schema, req ValidateSchemaRequest, resp *ValidateSchemaResponse) {
 	for name, attribute := range s.GetAttributes() {
 
-		attributeReq := tfsdk.ValidateAttributeRequest{
+		attributeReq := ValidateAttributeRequest{
 			AttributePath:           path.Root(name),
 			AttributePathExpression: path.MatchRoot(name),
 			Config:                  req.Config,
 		}
-		attributeResp := &tfsdk.ValidateAttributeResponse{
+		attributeResp := &ValidateAttributeResponse{
 			Diagnostics: resp.Diagnostics,
 		}
 
@@ -51,12 +51,12 @@ func SchemaValidate(ctx context.Context, s fwschema.Schema, req ValidateSchemaRe
 	}
 
 	for name, block := range s.GetBlocks() {
-		attributeReq := tfsdk.ValidateAttributeRequest{
+		attributeReq := ValidateAttributeRequest{
 			AttributePath:           path.Root(name),
 			AttributePathExpression: path.MatchRoot(name),
 			Config:                  req.Config,
 		}
-		attributeResp := &tfsdk.ValidateAttributeResponse{
+		attributeResp := &ValidateAttributeResponse{
 			Diagnostics: resp.Diagnostics,
 		}
 

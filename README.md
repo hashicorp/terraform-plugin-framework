@@ -16,15 +16,9 @@ terraform-plugin-framework is a module for building [Terraform providers](https:
 
 ## Status
 
-terraform-plugin-framework has reached **Public Beta** phase. We are committed to moving forward with the module, but cannot guarantee any of its interfaces will not change as long as it is in version 0. We're waiting for additional feedback, usage, and maturity before we're comfortable committing to APIs with the same years-long support timelines that [terraform-plugin-sdk](https://github.com/hashicorp/terraform-plugin-sdk) brings. We do not expect practitioner experiences to break or change as a result of these changes, only the abstractions surfaced to provider developers.
+terraform-plugin-framework has reached **General Availability** phase and follows [semantic versioning](https://semver.org/) for Go and Terraform compatibility promises. We recommend only using tagged releases of this Go module and examining the CHANGELOG when upgrading to a new release. Major version releases contain breaking changes to existing provider code. Minor version releases introduce new functionality. Patch version releases contain bug fixes or documentation updates.
 
-Refer to [Which SDK Should I Use?](https://terraform.io/docs/plugin/which-sdk.html) for more information.
-
-We believe terraform-plugin-framework is a suitable and reliable module to build Terraform providers on, and encourage community members that can afford occasional breaking changes to build with it. terraform-plugin-framework will eventually become generally available with a new major version release, at which point its interfaces will be stable, but we need real-world use and feedback before we can be comfortable making those commitments. 
-
-We recommend only using tagged releases of this module, and examining the CHANGELOG when upgrading to a new release. Breaking changes will only be made in minor versions; patch releases will always maintain backwards compatibility.
-
-We welcome and appreciate issues and PRs discussing both the design and implementation of this module.
+Refer to [Which SDK Should I Use?](https://terraform.io/docs/plugin/which-sdk.html) for more information about benefits over [terraform-plugin-sdk](https://github.com/hashicorp/terraform-plugin-sdk).
 
 ## Terraform CLI Compatibility
 

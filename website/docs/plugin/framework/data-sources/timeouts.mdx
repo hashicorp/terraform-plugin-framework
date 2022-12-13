@@ -6,8 +6,6 @@ description: >-
 
 # Timeouts
 
--> **Note:** The Plugin Framework is in beta.
-
 The reality of cloud infrastructure is that it typically takes time to perform operations such as booting operating systems, discovering services, and replicating state across network edges. As the provider developer you should take known delays in data source APIs into account in the `Read` function of the data source. Terraform supports configurable timeouts to assist in these situations.
 
 The Framework can be used in conjunction with the [terraform-plugin-framework-timeouts](https://github.com/hashicorp/terraform-plugin-framework-timeouts) module in order to allow defining timeouts in configuration and have them be available in the `Read` function.

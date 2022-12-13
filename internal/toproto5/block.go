@@ -17,8 +17,6 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwsc
 		Block: &tfprotov5.SchemaBlock{
 			Deprecated: b.GetDeprecationMessage() != "",
 		},
-		MinItems: b.GetMinItems(),
-		MaxItems: b.GetMaxItems(),
 		TypeName: name,
 	}
 

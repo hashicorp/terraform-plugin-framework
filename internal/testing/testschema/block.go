@@ -13,8 +13,6 @@ type Block struct {
 	DeprecationMessage  string
 	Description         string
 	MarkdownDescription string
-	MaxItems            int64
-	MinItems            int64
 	NestedObject        fwschema.NestedBlockObject
 	NestingMode         fwschema.BlockNestingMode
 }
@@ -48,16 +46,6 @@ func (b Block) GetDescription() string {
 // GetMarkdownDescription satisfies the fwschema.Block interface.
 func (b Block) GetMarkdownDescription() string {
 	return b.MarkdownDescription
-}
-
-// GetMaxItems satisfies the fwschema.Block interface.
-func (b Block) GetMaxItems() int64 {
-	return b.MaxItems
-}
-
-// GetMinItems satisfies the fwschema.Block interface.
-func (b Block) GetMinItems() int64 {
-	return b.MinItems
 }
 
 // GetNestedObject satisfies the fwschema.Block interface.

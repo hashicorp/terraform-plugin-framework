@@ -1,4 +1,4 @@
-package tfsdk
+package tfsdk_test
 
 import (
 	"context"
@@ -7,9 +7,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	intreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -18,7 +21,7 @@ func TestPlanGet(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		plan          Plan
+		plan          tfsdk.Plan
 		target        any
 		expected      any
 		expectedDiags diag.Diagnostics
@@ -27,7 +30,7 @@ func TestPlanGet(t *testing.T) {
 		// These test cases are to ensure Plan schema and data values are
 		// passed appropriately to the shared implementation.
 		"valid": {
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Raw: tftypes.NewValue(
 					tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -38,9 +41,9 @@ func TestPlanGet(t *testing.T) {
 						"string": tftypes.NewValue(tftypes.String, "test"),
 					},
 				),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -57,7 +60,7 @@ func TestPlanGet(t *testing.T) {
 			},
 		},
 		"diagnostic": {
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Raw: tftypes.NewValue(
 					tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -68,9 +71,9 @@ func TestPlanGet(t *testing.T) {
 						"bool": tftypes.NewValue(tftypes.Bool, nil),
 					},
 				),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -121,7 +124,7 @@ func TestPlanGetAttribute(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		plan          Plan
+		plan          tfsdk.Plan
 		target        interface{}
 		expected      interface{}
 		expectedDiags diag.Diagnostics
@@ -132,7 +135,7 @@ func TestPlanGetAttribute(t *testing.T) {
 		// testing. These test cases are to ensure Plan schema and data values
 		// are passed appropriately to the shared implementation.
 		"valid": {
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"name": tftypes.String,
@@ -140,9 +143,9 @@ func TestPlanGetAttribute(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "namevalue"),
 				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -150,10 +153,10 @@ func TestPlanGetAttribute(t *testing.T) {
 				},
 			},
 			target:   new(string),
-			expected: newStringPointer("namevalue"),
+			expected: pointer("namevalue"),
 		},
 		"diagnostics": {
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"name": tftypes.String,
@@ -161,9 +164,9 @@ func TestPlanGetAttribute(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "namevalue"),
 				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateWarning{},
 							Required: true,
 						},
@@ -198,7 +201,7 @@ func TestPlanPathMatches(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		plan          Plan
+		plan          tfsdk.Plan
 		expression    path.Expression
 		expected      path.Paths
 		expectedDiags diag.Diagnostics
@@ -207,10 +210,10 @@ func TestPlanPathMatches(t *testing.T) {
 		// These test cases are to ensure Plan schema and data values are
 		// passed appropriately to the shared implementation.
 		"AttributeNameExact-match": {
-			plan: Plan{
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
+			plan: tfsdk.Plan{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.StringType,
 						},
 					},
@@ -232,10 +235,10 @@ func TestPlanPathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-mismatch": {
-			plan: Plan{
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
+			plan: tfsdk.Plan{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.StringType,
 						},
 					},
@@ -288,7 +291,7 @@ func TestPlanSet(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		plan          Plan
+		plan          tfsdk.Plan
 		val           interface{}
 		expected      tftypes.Value
 		expectedDiags diag.Diagnostics
@@ -299,7 +302,7 @@ func TestPlanSet(t *testing.T) {
 		// These test cases are to ensure Plan schema and data values are
 		// passed appropriately to the shared implementation.
 		"valid": {
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"name": tftypes.String,
@@ -307,9 +310,9 @@ func TestPlanSet(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "oldvalue"),
 				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -330,11 +333,11 @@ func TestPlanSet(t *testing.T) {
 			}),
 		},
 		"diagnostics": {
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Raw: tftypes.Value{},
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateWarning{},
 							Required: true,
 						},
@@ -379,7 +382,7 @@ func TestPlanSetAttribute(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		plan          Plan
+		plan          tfsdk.Plan
 		path          path.Path
 		val           interface{}
 		expected      tftypes.Value
@@ -391,7 +394,7 @@ func TestPlanSetAttribute(t *testing.T) {
 		// testing. These test cases are to ensure Plan schema and data values
 		// are passed appropriately to the shared implementation.
 		"valid": {
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test":  tftypes.String,
@@ -401,13 +404,13 @@ func TestPlanSetAttribute(t *testing.T) {
 					"test":  tftypes.NewValue(tftypes.String, "originalvalue"),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -427,7 +430,7 @@ func TestPlanSetAttribute(t *testing.T) {
 			}),
 		},
 		"diagnostics": {
-			plan: Plan{
+			plan: tfsdk.Plan{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"name": tftypes.String,
@@ -435,9 +438,9 @@ func TestPlanSetAttribute(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "originalname"),
 				}),
-				Schema: Schema{
-					Attributes: map[string]Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateWarning{},
 							Required: true,
 						},

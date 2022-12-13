@@ -79,7 +79,7 @@ func SchemaModifyPlan(ctx context.Context, s fwschema.Schema, req ModifySchemaPl
 	}
 
 	for name, attribute := range s.GetAttributes() {
-		attrReq := tfsdk.ModifyAttributePlanRequest{
+		attrReq := ModifyAttributePlanRequest{
 			AttributePath: path.Root(name),
 			Config:        req.Config,
 			State:         req.State,
@@ -136,7 +136,7 @@ func SchemaModifyPlan(ctx context.Context, s fwschema.Schema, req ModifySchemaPl
 	}
 
 	for name, block := range s.GetBlocks() {
-		blockReq := tfsdk.ModifyAttributePlanRequest{
+		blockReq := ModifyAttributePlanRequest{
 			AttributePath: path.Root(name),
 			Config:        req.Config,
 			State:         req.State,

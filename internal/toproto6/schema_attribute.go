@@ -5,7 +5,6 @@ import (
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -14,20 +13,6 @@ import (
 // Attribute. Errors will be tftypes.AttributePathErrors based on `path`.
 // `name` is the name of the attribute.
 func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a fwschema.Attribute) (*tfprotov6.SchemaAttribute, error) {
-	tfsdkAttribute, ok := a.(tfsdk.Attribute)
-
-	if ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown && tfsdkAttribute.Attributes != nil {
-		return nil, path.NewErrorf("cannot have both Attributes and Type set")
-	}
-
-	if ok && a.GetType() == nil {
-		return nil, path.NewErrorf("must have Attributes or Type set")
-	}
-
-	if ok && tfsdkAttribute.GetNestingMode() != fwschema.NestingModeUnknown && (tfsdkAttribute.Attributes == nil || len(tfsdkAttribute.Attributes.GetAttributes()) == 0) {
-		return nil, path.NewErrorf("must have Attributes or Type set")
-	}
-
 	if !a.IsRequired() && !a.IsOptional() && !a.IsComputed() {
 		return nil, path.NewErrorf("must have Required, Optional, or Computed set")
 	}
@@ -53,10 +38,6 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 	if a.GetMarkdownDescription() != "" {
 		schemaAttribute.Description = a.GetMarkdownDescription()
 		schemaAttribute.DescriptionKind = tfprotov6.StringKindMarkdown
-	}
-
-	if ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown {
-		return schemaAttribute, nil
 	}
 
 	nestedAttribute, ok := a.(fwschema.NestedAttribute)

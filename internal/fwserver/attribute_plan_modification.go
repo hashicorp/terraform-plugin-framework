@@ -18,6 +18,54 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
+// ModifyAttributePlanRequest represents a request for the provider to modify an
+// attribute value, or mark it as requiring replacement, at plan time. An
+// instance of this request struct is supplied as an argument to the Modify
+// function of an attribute's plan modifier(s).
+type ModifyAttributePlanRequest struct {
+	// AttributePath is the path of the attribute. Use this path for any
+	// response diagnostics.
+	AttributePath path.Path
+
+	// AttributePathExpression is the expression matching the exact path of the
+	// attribute.
+	AttributePathExpression path.Expression
+
+	// Config is the configuration the user supplied for the resource.
+	Config tfsdk.Config
+
+	// State is the current state of the resource.
+	State tfsdk.State
+
+	// Plan is the planned new state for the resource.
+	Plan tfsdk.Plan
+
+	// AttributeConfig is the configuration the user supplied for the attribute.
+	AttributeConfig attr.Value
+
+	// AttributeState is the current state of the attribute.
+	AttributeState attr.Value
+
+	// AttributePlan is the planned new state for the attribute.
+	AttributePlan attr.Value
+
+	// ProviderMeta is metadata from the provider_meta block of the module.
+	ProviderMeta tfsdk.Config
+
+	// Private is provider-defined resource private state data which was previously
+	// stored with the resource state. This data is opaque to Terraform and does
+	// not affect plan output. Any existing data is copied to
+	// ModifyAttributePlanResponse.Private to prevent accidental private state data loss.
+	//
+	// The private state data is always the original data when the schema-based plan
+	// modification began or, is updated as the logic traverses deeper into underlying
+	// attributes.
+	//
+	// Use the GetKey method to read data. Use the SetKey method on
+	// ModifyAttributePlanResponse.Private to update or remove a value.
+	Private *privatestate.ProviderData
+}
+
 type ModifyAttributePlanResponse struct {
 	AttributePlan   attr.Value
 	Diagnostics     diag.Diagnostics
@@ -31,59 +79,14 @@ type ModifyAttributePlanResponse struct {
 // The extra Attribute parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
-
-	privateProviderData := privatestate.EmptyProviderData(ctx)
 
 	if req.Private != nil {
 		resp.Private = req.Private
-		privateProviderData = req.Private
 	}
 
 	switch attributeWithPlanModifiers := a.(type) {
-	// Legacy tfsdk.AttributePlanModifier handling
-	case fwxschema.AttributeWithPlanModifiers:
-		var requiresReplace bool
-
-		for _, planModifier := range attributeWithPlanModifiers.GetPlanModifiers() {
-			modifyResp := &tfsdk.ModifyAttributePlanResponse{
-				AttributePlan:   req.AttributePlan,
-				RequiresReplace: requiresReplace,
-				Private:         privateProviderData,
-			}
-
-			logging.FrameworkDebug(
-				ctx,
-				"Calling provider defined AttributePlanModifier",
-				map[string]interface{}{
-					logging.KeyDescription: planModifier.Description(ctx),
-				},
-			)
-			planModifier.Modify(ctx, req, modifyResp)
-			logging.FrameworkDebug(
-				ctx,
-				"Called provider defined AttributePlanModifier",
-				map[string]interface{}{
-					logging.KeyDescription: planModifier.Description(ctx),
-				},
-			)
-
-			req.AttributePlan = modifyResp.AttributePlan
-			resp.Diagnostics.Append(modifyResp.Diagnostics...)
-			requiresReplace = modifyResp.RequiresReplace
-			resp.AttributePlan = modifyResp.AttributePlan
-			resp.Private = modifyResp.Private
-
-			// Only on new errors.
-			if modifyResp.Diagnostics.HasError() {
-				return
-			}
-		}
-
-		if requiresReplace {
-			resp.RequiresReplace = append(resp.RequiresReplace, req.AttributePath)
-		}
 	case fwxschema.AttributeWithBoolPlanModifiers:
 		AttributePlanModifyBool(ctx, attributeWithPlanModifiers, req, resp)
 	case fwxschema.AttributeWithFloat64PlanModifiers:
@@ -116,11 +119,6 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 	nestedAttribute, ok := a.(fwschema.NestedAttribute)
 
 	if !ok {
-		return
-	}
-
-	// Temporarily handle tfsdk.Attribute, which always has a nesting mode, until its removed.
-	if tfsdkAttribute, ok := a.(tfsdk.Attribute); ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown {
 		return
 	}
 
@@ -443,7 +441,7 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req tfsdk.Mo
 }
 
 // AttributePlanModifyBool performs all types.Bool plan modification.
-func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeWithBoolPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeWithBoolPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	// Use basetypes.BoolValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -578,7 +576,7 @@ func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeW
 }
 
 // AttributePlanModifyFloat64 performs all types.Float64 plan modification.
-func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.AttributeWithFloat64PlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.AttributeWithFloat64PlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	// Use basetypes.Float64Valuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -713,7 +711,7 @@ func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.Attribu
 }
 
 // AttributePlanModifyInt64 performs all types.Int64 plan modification.
-func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.AttributeWithInt64PlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.AttributeWithInt64PlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	// Use basetypes.Int64Valuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -848,7 +846,7 @@ func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.Attribute
 }
 
 // AttributePlanModifyList performs all types.List plan modification.
-func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeWithListPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeWithListPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	// Use basetypes.ListValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -983,7 +981,7 @@ func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeW
 }
 
 // AttributePlanModifyMap performs all types.Map plan modification.
-func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWithMapPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWithMapPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	// Use basetypes.MapValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -1118,7 +1116,7 @@ func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWi
 }
 
 // AttributePlanModifyNumber performs all types.Number plan modification.
-func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.AttributeWithNumberPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.AttributeWithNumberPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	// Use basetypes.NumberValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -1253,7 +1251,7 @@ func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.Attribut
 }
 
 // AttributePlanModifyObject performs all types.Object plan modification.
-func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.AttributeWithObjectPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.AttributeWithObjectPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	// Use basetypes.ObjectValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -1388,7 +1386,7 @@ func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.Attribut
 }
 
 // AttributePlanModifySet performs all types.Set plan modification.
-func AttributePlanModifySet(ctx context.Context, attribute fwxschema.AttributeWithSetPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributePlanModifySet(ctx context.Context, attribute fwxschema.AttributeWithSetPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	// Use basetypes.SetValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -1523,7 +1521,7 @@ func AttributePlanModifySet(ctx context.Context, attribute fwxschema.AttributeWi
 }
 
 // AttributePlanModifyString performs all types.String plan modification.
-func AttributePlanModifyString(ctx context.Context, attribute fwxschema.AttributeWithStringPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+func AttributePlanModifyString(ctx context.Context, attribute fwxschema.AttributeWithStringPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	// Use basetypes.StringValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
@@ -1728,7 +1726,7 @@ func NestedAttributeObjectPlanModify(ctx context.Context, o fwschema.NestedAttri
 			return
 		}
 
-		nestedAttrReq := tfsdk.ModifyAttributePlanRequest{
+		nestedAttrReq := ModifyAttributePlanRequest{
 			AttributeConfig:         nestedAttrConfig,
 			AttributePath:           req.Path.AtName(nestedName),
 			AttributePathExpression: req.PathExpression.AtName(nestedName),

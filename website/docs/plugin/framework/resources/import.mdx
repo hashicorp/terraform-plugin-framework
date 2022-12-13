@@ -6,8 +6,6 @@ description: >-
 
 # Resource Import
 
--> **Note:** The Plugin Framework is in beta.
-
 Practitioners can use the  [`terraform import` command](/cli/commands/import) to let Terraform begin managing existing infrastructure resources. Resources can implement the `ImportState` method, which must either specify enough Terraform state for the `Read` method to refresh [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) or return an error.
 
 ## Define Resource ImportState Method

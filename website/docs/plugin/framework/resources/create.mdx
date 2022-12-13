@@ -6,8 +6,6 @@ description: >-
 
 # Create Resources
 
--> **Note:** The Plugin Framework is in beta.
-
 Creation is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/cli/commands/apply), Terraform calls the provider `ApplyResourceChange` RPC, in which the framework calls the [`resource.Resource` interface `Create` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Create). The request contains Terraform configuration and plan data. The response expects the applied Terraform state data, including any computed values. The data is defined by the [schema](/plugin/framework/schemas) of the resource.
 
 Other resource lifecycle implementations include:

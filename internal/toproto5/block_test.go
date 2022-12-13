@@ -545,66 +545,6 @@ func TestBlock(t *testing.T) {
 				TypeName: "test",
 			},
 		},
-		"maxitems": {
-			name: "test",
-			block: testschema.Block{
-				NestedObject: testschema.NestedBlockObject{
-					Attributes: map[string]fwschema.Attribute{
-						"sub_test": testschema.Attribute{
-							Type:     types.StringType,
-							Optional: true,
-						},
-					},
-				},
-				MaxItems:    10,
-				NestingMode: fwschema.BlockNestingModeList,
-			},
-			path: tftypes.NewAttributePath(),
-			expected: &tfprotov5.SchemaNestedBlock{
-				Block: &tfprotov5.SchemaBlock{
-					Attributes: []*tfprotov5.SchemaAttribute{
-						{
-							Name:     "sub_test",
-							Optional: true,
-							Type:     tftypes.String,
-						},
-					},
-				},
-				MaxItems: 10,
-				Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-				TypeName: "test",
-			},
-		},
-		"minitems": {
-			name: "test",
-			block: testschema.Block{
-				NestedObject: testschema.NestedBlockObject{
-					Attributes: map[string]fwschema.Attribute{
-						"sub_test": testschema.Attribute{
-							Type:     types.StringType,
-							Optional: true,
-						},
-					},
-				},
-				MinItems:    10,
-				NestingMode: fwschema.BlockNestingModeList,
-			},
-			path: tftypes.NewAttributePath(),
-			expected: &tfprotov5.SchemaNestedBlock{
-				Block: &tfprotov5.SchemaBlock{
-					Attributes: []*tfprotov5.SchemaAttribute{
-						{
-							Name:     "sub_test",
-							Optional: true,
-							Type:     tftypes.String,
-						},
-					},
-				},
-				MinItems: 10,
-				Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-				TypeName: "test",
-			},
-		},
 	}
 
 	for name, tc := range tests {

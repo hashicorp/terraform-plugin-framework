@@ -17,8 +17,6 @@ type BlockWithListPlanModifiers struct {
 	DeprecationMessage  string
 	Description         string
 	MarkdownDescription string
-	MaxItems            int64
-	MinItems            int64
 	PlanModifiers       []planmodifier.List
 }
 
@@ -51,16 +49,6 @@ func (b BlockWithListPlanModifiers) GetDescription() string {
 // GetMarkdownDescription satisfies the fwschema.Block interface.
 func (b BlockWithListPlanModifiers) GetMarkdownDescription() string {
 	return b.MarkdownDescription
-}
-
-// GetMaxItems satisfies the fwschema.Block interface.
-func (b BlockWithListPlanModifiers) GetMaxItems() int64 {
-	return b.MaxItems
-}
-
-// GetMinItems satisfies the fwschema.Block interface.
-func (b BlockWithListPlanModifiers) GetMinItems() int64 {
-	return b.MinItems
 }
 
 // GetNestedObject satisfies the fwschema.Block interface.

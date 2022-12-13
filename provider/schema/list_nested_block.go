@@ -158,22 +158,6 @@ func (b ListNestedBlock) GetMarkdownDescription() string {
 	return b.MarkdownDescription
 }
 
-// GetMaxItems always returns 0.
-//
-// Deprecated: This method will be removed in the future. Use validators
-// instead.
-func (b ListNestedBlock) GetMaxItems() int64 {
-	return 0
-}
-
-// GetMinItems always returns 0.
-//
-// Deprecated: This method will be removed in the future. Use validators
-// instead.
-func (b ListNestedBlock) GetMinItems() int64 {
-	return 0
-}
-
 // GetNestedObject returns the NestedObject field value.
 func (b ListNestedBlock) GetNestedObject() fwschema.NestedBlockObject {
 	return b.NestedObject

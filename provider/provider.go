@@ -15,6 +15,14 @@ import (
 //     via ProviderWithConfigValidators or ProviderWithValidateConfig.
 //   - Meta Schema: ProviderWithMetaSchema
 type Provider interface {
+	// Metadata should return the metadata for the provider, such as
+	// a type name and version data.
+	//
+	// Implementing the MetadataResponse.TypeName will populate the
+	// datasource.MetadataRequest.ProviderTypeName and
+	// resource.MetadataRequest.ProviderTypeName fields automatically.
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
+
 	// Schema should return the schema for this provider.
 	Schema(context.Context, SchemaRequest, *SchemaResponse)
 
@@ -55,21 +63,6 @@ type ProviderWithConfigValidators interface {
 
 	// ConfigValidators returns a list of functions which will all be performed during validation.
 	ConfigValidators(context.Context) []ConfigValidator
-}
-
-// ProviderWithMetadata is an interface type that extends Provider to
-// return its type name, such as examplecloud, and other
-// metadata, such as version.
-//
-// Implementing this method will populate the
-// [datasource.MetadataRequest.ProviderTypeName] and
-// [resource.MetadataRequest.ProviderTypeName] fields automatically.
-type ProviderWithMetadata interface {
-	Provider
-
-	// Metadata should return the metadata for the provider, such as
-	// a type name and version data.
-	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 }
 
 // ProviderWithMetaSchema is a provider with a provider meta schema, which

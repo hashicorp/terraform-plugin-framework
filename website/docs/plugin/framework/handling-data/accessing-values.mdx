@@ -1,0 +1,116 @@
+---
+page_title: 'Plugin Development - Framework: Access State, Config, and Plan'
+description: |-
+  How to read values from state, config, and plan in the Terraform plugin
+  framework.
+---
+
+# Accessing State, Config, and Plan
+
+-> **Note:** The Plugin Framework is in beta.
+
+There are various points at which the provider needs access to the data from
+the practitioner's configuration, Terraform's state, or generated plan.
+The same patterns are used for accessing this data, regardless of
+its source.
+
+The data is usually stored in a request object:
+
+```go
+func (r ThingResource) Create(ctx context.Context,
+	req resource.CreateRequest, resp *resource.CreateResponse)
+```
+
+In this example, `req` holds the configuration and plan, and there is no state
+value because the resource does not yet exist in state.
+
+## Get the Entire Configuration, Plan, or State
+
+One way to interact with configuration, plan, and state values is to convert
+the entire configuration, plan, or state into a Go type, then treat them as
+regular Go values. This has the benefit of letting the compiler check all your
+code that accesses values, but requires defining a type to contain the values.
+
+Use the `Get` method to retrieve the first level of configuration, plan, and state data.
+
+```go
+type ThingResourceModel struct {
+	Address    types.Object `tfsdk:"address"`
+	Age        types.Int64  `tfsdk:"age"`
+	Name       types.String `tfsdk:"name"`
+	Pets       types.List   `tfsdk:"pets"`
+	Registered types.Bool   `tfsdk:"registered"`
+	Tags       types.Map    `tfsdk:"tags"`
+}
+
+func (r ThingResource) Create(ctx context.Context,
+	req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan ThingResourceModel
+
+	diags := req.Plan.Get(ctx, &plan)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// values can now be accessed like plan.Name.ValueString()
+	// check if things are null with plan.Name.IsNull()
+	// check if things are unknown with plan.Name.IsUnknown()
+}
+```
+
+The configuration, plan, and state data is represented as an object, and
+accessed like an object. Refer to the [conversion rules](#conversion-rules) for an
+explanation on how objects can be converted into Go types.
+
+To descend into deeper nested data structures, the `types.List`, `types.Map`, and `types.Set` types each have an `ElementsAs()` method. The `types.Object` type has an `As()` method.
+
+## Get a Single Attribute or Block Value
+
+Use the `GetAttribute` method to retrieve a top level attribute or block value from the configuration, plan, and state.
+
+```go
+func (r ThingResource) Read(ctx context.Context,
+	req resource.ReadRequest, resp *resource.ReadResponse) {
+	var name types.String
+
+	diags := req.State.GetAttribute(ctx, path.Root("name"), &name)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ...
+}
+```
+
+## When Can a Value Be Unknown or Null?
+
+A lot of conversion rules say an error will be returned if a value is unknown
+or null. It is safe to assume:
+
+* Required attributes will never be null or unknown in Create, Read, Update, or
+  Delete methods.
+* Optional attributes that are not computed will never be unknown in Create,
+  Read, Update, or Delete methods.
+* Computed attributes, whether optional or not, will never be null in the plan
+  for Create, Read, Update, or Delete methods.
+* Computed attributes that are read-only (`Optional` is not `true`) will always
+  be unknown in the plan for Create, Read, Update, or Delete methods. They will
+  always be null in the configuration for Create, Read, Update, and Delete
+  methods.
+* Required attributes will never be null in a provider's Configure method. They
+  may be unknown.
+* The state never contains unknown values.
+* The configuration for Create, Read, Update, and Delete methods never contains
+  unknown values.
+
+In any other circumstances, the provider is responsible for handling the
+possibility that an unknown or null value may be presented to it.
+
+Refer to the [conversion rules](/plugin/framework/handling-data/conversion-rules#converting-from-framework-types-to-go-types)
+for more information about supported Go types.

@@ -78,46 +78,26 @@ on `resource.CreateResponse`.
 
 ## Example
 
-The following examples show how to migrate portions of the
-[random](https://github.com/hashicorp/terraform-provider-random) provider.
-
-For a complete example, clone the
-`terraform-provider-random` repository and compare the `resource_password.go` file in
-[v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
-with [v3.4.1](https://github.com/hashicorp/terraform-provider-random/blob/v3.4.1/internal/provider/resource_password.go).
-
 ### SDKv2
 
-The following example from the `resource_password.go` file shows implementations of CRUD functions on the
-`random_password` resource with SDKv2. The `UpdateContext` function is not implemented because the provider does not
-support updating this resource.
+The following example from shows implementations of CRUD functions on the with SDKv2.
+The `UpdateContext` function is not implemented because the provider does not support updating this resource.
 
 ```go
-func resourcePassword() *schema.Resource {
+func resourceExample() *schema.Resource {
     return &schema.Resource{
-        CreateContext: createPassword,
+        CreateContext: create,
         ReadContext:   readNil,
         DeleteContext: RemoveResourceFromState,
         /* ... */
 ```
 
-The following example shows the implementation of the `createPassword()` function with SDKv2. The implementations of
+The following example shows the implementation of the `create()` function with SDKv2. The implementations of
 the `readNil()` and `RemoveResourceFromState()` functions are not shown for brevity.
 
 ```go
-func createPassword(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-    diags := createStringFunc(true)(ctx, d, meta)
-    if diags.HasError() {
-        return diags
-    }
-
-    hash, err := generateHash(d.Get("result").(string))
-    if err != nil {
-        diags = append(diags, diag.Errorf("err: %s", err)...)
-        return diags
-    }
-
-    if err := d.Set("bcrypt_hash", hash); err != nil {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+    if err := d.Set("example_attribute", "value"); err != nil {
         diags = append(diags, diag.Errorf("err: %s", err)...)
         return diags
     }
@@ -129,11 +109,11 @@ func createPassword(ctx context.Context, d *schema.ResourceData, meta interface{
 ### Framework
 The following shows the same section of provider code after the migration.
 
-This code implements the `Create` function for the `random_password` resource with the Framework.
+This code implements the `Create` function for the `example_resource` resource with the Framework.
 
 ```go
-func (r *passwordResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-    var plan passwordModelV2
+func (r *exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+    var plan exampleModel
 
     diags := req.Plan.Get(ctx, &plan)
     resp.Diagnostics.Append(diags...)
@@ -141,33 +121,7 @@ func (r *passwordResource) Create(ctx context.Context, req resource.CreateReques
         return
     }
 
-    params := random.StringParams{
-        Length:          plan.Length.ValueInt64(),
-        Upper:           plan.Upper.ValueBool(),
-        MinUpper:        plan.MinUpper.ValueInt64(),
-        Lower:           plan.Lower.ValueBool(),
-        MinLower:        plan.MinLower.ValueInt64(),
-        Numeric:         plan.Numeric.ValueBool(),
-        MinNumeric:      plan.MinNumeric.ValueInt64(),
-        Special:         plan.Special.ValueBool(),
-        MinSpecial:      plan.MinSpecial.ValueInt64(),
-        OverrideSpecial: plan.OverrideSpecial.ValueString(),
-    }
-
-    result, err := random.CreateString(params)
-    if err != nil {
-        resp.Diagnostics.Append(diagnostics.RandomReadError(err.Error())...)
-        return
-    }
-
-    hash, err := generateHash(string(result))
-    if err != nil {
-        resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
-    }
-
-    plan.BcryptHash = types.StringValue(hash)
-    plan.ID = types.StringValue("none")
-    plan.Result = types.StringValue(string(result))
+    plan.ExampleAttribute = types.StringValue("value")
 
     diags = resp.State.Set(ctx, plan)
     resp.Diagnostics.Append(diags...)

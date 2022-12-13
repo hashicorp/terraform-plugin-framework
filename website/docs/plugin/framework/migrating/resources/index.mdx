@@ -145,48 +145,34 @@ CRUD operations.
 
 ## Example
 
-The following examples show how to migrate portions of the
-[tls](https://github.com/hashicorp/terraform-provider-tls) provider.
-
-For a complete example,
-clone the `terraform-provider-tls` repository and compare the `resource_private_key.go` file in
-[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/resource_private_key.go) with the file
-[after the migration](https://github.com/hashicorp/terraform-provider-tls/blob/4dafb105818e45a88532f917e7b170ee2a9bb092/internal/provider/resource_private_key.go).
-
 ### SDKv2
 
 In SDKv2, the `ResourcesMap` field on the `schema.Provider` struct holds a `map[string]*schemaResource`. A typical
 pattern is to implement a function that returns `schema.Resource`.
 
-The following example from the `provider.go` file defines a `tls_private_key` resource within the provider schema.
-
 ```go
 func New() (*schema.Provider, error) {
     return &schema.Provider {
         ResourcesMap: map[string]*schema.Resource {
-            "tls_private_key": resourcePrivateKey(),
+            "example_resource": exampleResource(),
             /* ... */
 ```
 
-The following example from the `resource_private_key.go` file defines the resource schema.
+This code defines the `example_resource` resource by mapping the resource name to the `exampleResource` struct.
 
 ```go
-func resourcePrivateKey() *schema.Resource {
+func exampleResource() *schema.Resource {
     return &schema.Resource{
-        CreateContext: createResourcePrivateKey,
-        DeleteContext: deleteResourcePrivateKey,
-        ReadContext:   readResourcePrivateKey,
-
-        Description: "Creates a PEM /* ... */",
+        CreateContext: createResource,
+        DeleteContext: deleteResource,
+        ReadContext:   readResource,
 
         Schema: map[string]*schema.Schema{
-            "algorithm": {
+            "attribute": {
                 Type:             schema.TypeString,
                 Required:         true,
                 ForceNew:         true,
-                ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice(SupportedAlgorithmsStr(), false)),
-                Description: "Name of the algorithm to use when generating the private key. " +
-                    "Currently-supported values are `RSA`, `ECDSA` and `ED25519`.",
+                ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{'a', 'b'}, false)),
             },
             /* ... */
 ```
@@ -195,41 +181,36 @@ func resourcePrivateKey() *schema.Resource {
 
 The following shows the same section of provider code after the migration.
 
-This code defines the `tls_private_key` resource by mapping the resource name to the `privateKeyResourceType` struct.
-
 ```go
-func (p *TlsProvider) Resources(_ context.Context) []func() resource.Resource {
+func (p *exampleProvider) Resources(_ context.Context) []func() resource.Resource {
     return []func() resource.Resource{
         func() resource.Resource {
-            return &privateKeyResource{}
+            return &exampleResource{}
         },
         /* ... */
     }
 }
 ```
 
-This code defines the `Schema` and `Metadata` methods for the `privateKeyResource`.
+This code defines the `Schema` and `Metadata` methods for the `Resource`.
 
 ```go
-func (r *privateKeyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-    resp.TypeName = "tls_private_key"
+func (r *exampleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+    resp.TypeName = "example_resource"
 }
 
-func (r *privateKeyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *exampleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
             // Required attributes
-            "algorithm": schema.StringAttribute{
+            "attribute": schema.StringAttribute{
                 Required: true,
                 PlanModifiers: []planmodifier.String{
                     stringplanmodifier.RequiresReplace(),
                 },
                 Validators: []validator.String{
-                    stringvalidator.OneOf(supportedAlgorithmsAttrValue()...),
+                    stringvalidator.OneOf([]string{'a', 'b'}...),
                 },
-                Description: "Name of the algorithm to use when generating the private key. " +
-                    fmt.Sprintf("Currently-supported values are: `%s`. ", strings.Join(supportedAlgorithmsStr(), "`, `")),
-            },
             /* ... */
         },
     }

@@ -1,0 +1,88 @@
+---
+page_title: 'Plugin Development - Framework: Writing State'
+description: >-
+  How to write and update the Terraform statefile using the provider development
+  framework.
+---
+
+# Writing State
+
+-> **Note:** The Plugin Framework is in beta.
+
+One of the primary jobs of a Terraform provider is to manage the provider's
+resources and data sources in the [Terraform state](/language/state). Writing values to state
+is something that provider developers will do frequently.
+
+The state that a provider developer wants to update is usually stored in a
+response object:
+
+```go
+func (r ThingResource) Create(ctx context.Context,
+	req resource.CreateRequest, resp *resource.CreateResponse)
+```
+
+In this example, `resp` holds the state that the provider developer should
+update.
+
+## Replace the Entire State
+
+One way to set the state is to replace all the state values for a resource or
+data source all at once. You need to define a type to contain the values. The benefit is that this allows the compiler to check all code that sets values on state, and only the final call to persist state can return an error.
+
+Use the `Set` method to store the entire state data.
+
+```go
+type ThingResourceModel struct {
+	Address    types.Object `tfsdk:"address"`
+	Age        types.Int64  `tfsdk:"age"`
+	Name       types.String `tfsdk:"name"`
+	Pets       types.List   `tfsdk:"pets"`
+	Registered types.Bool   `tfsdk:"registered"`
+	Tags       types.Map    `tfsdk:"tags"`
+}
+
+func (r ThingResource) Create(ctx context.Context,
+	req resource.CreateRequest, resp *resource.CreateResponse) {
+	var newState ThingResourceModel
+
+	// ...
+	// update newState by modifying each property as usual for Go values
+	newState.Name = types.StringValue("J. Doe")
+
+	// persist the values to state
+	diags := resp.State.Set(ctx, &newState)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+```
+
+The state information is represented as an object, and gets persisted like an
+object. Refer to the [conversion rules](#conversion-rules) for an explanation on how
+objects get persisted and what Go types are valid for persisting as an object.
+
+## Set a Single Attribute or Block Value
+
+Use the `SetAttribute` method to set an individual attribute or block value.
+
+-> The value must not be an untyped `nil`. Use a typed `nil` or `types` package null value function instead. For example with a `types.StringType` attribute, use `(*string)(nil)` or `types.StringNull()`.
+
+```go
+func (r ThingResource) Read(ctx context.Context,
+	req resource.ReadRequest, resp *resource.ReadResponse) {
+	// ...
+	diags := resp.State.SetAttribute(ctx, path.Root("age"), 7)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+```
+
+Refer to the [conversion rules](/plugin/framework/handling-data/conversion-rules#converting-from-go-types-to-framework-types)
+for more information about supported Go types.

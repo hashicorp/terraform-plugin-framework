@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -54,14 +54,14 @@ func (u UnderlyingAttributes) Equal(o UnderlyingAttributes) bool {
 }
 
 // Type returns the framework type of the underlying attributes.
-func (u UnderlyingAttributes) Type() types.ObjectTypable {
+func (u UnderlyingAttributes) Type() basetypes.ObjectTypable {
 	attrTypes := make(map[string]attr.Type, len(u))
 
 	for name, attr := range u {
 		attrTypes[name] = attr.GetType()
 	}
 
-	return types.ObjectType{
+	return basetypes.ObjectType{
 		AttrTypes: attrTypes,
 	}
 }

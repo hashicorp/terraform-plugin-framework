@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestServerImportResourceState(t *testing.T) {
@@ -41,19 +41,16 @@ func TestServerImportResourceState(t *testing.T) {
 		"required": tftypes.NewValue(tftypes.String, nil),
 	})
 
-	testSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
-			"optional": {
+			"optional": schema.StringAttribute{
 				Optional: true,
-				Type:     types.StringType,
 			},
-			"required": {
+			"required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}

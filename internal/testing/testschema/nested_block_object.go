@@ -2,7 +2,7 @@ package testschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -40,6 +40,6 @@ func (o NestedBlockObject) GetBlocks() map[string]fwschema.Block {
 }
 
 // Type returns the framework type of the NestedBlockObject.
-func (o NestedBlockObject) Type() types.ObjectTypable {
+func (o NestedBlockObject) Type() basetypes.ObjectTypable {
 	return fwschema.NestedBlockObjectType(o)
 }

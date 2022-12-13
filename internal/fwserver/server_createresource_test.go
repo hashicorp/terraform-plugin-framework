@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -27,15 +29,13 @@ func TestServerCreateResource(t *testing.T) {
 		},
 	}
 
-	testSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_computed": {
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
-			"test_required": {
+			"test_required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
@@ -60,11 +60,10 @@ func TestServerCreateResource(t *testing.T) {
 		"test_provider_meta_attribute": tftypes.NewValue(tftypes.String, "test-provider-meta-value"),
 	})
 
-	testProviderMetaSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_provider_meta_attribute": {
+	testProviderMetaSchema := metaschema.Schema{
+		Attributes: map[string]metaschema.Attribute{
+			"test_provider_meta_attribute": metaschema.StringAttribute{
 				Optional: true,
-				Type:     types.StringType,
 			},
 		},
 	}

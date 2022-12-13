@@ -7,10 +7,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -34,13 +35,13 @@ func TestDataValueAtPath(t *testing.T) {
 						"other": tftypes.Bool,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -59,9 +60,9 @@ func TestDataValueAtPath(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "value"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -94,15 +95,15 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -130,15 +131,15 @@ func TestDataValueAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -171,18 +172,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
 								},
-							}),
-							Required: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Required:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -223,23 +227,29 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-										"value": {
-											Type:     types.StringType,
-											Optional: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.NestedAttribute{
+										NestedObject: testschema.NestedAttributeObject{
+											Attributes: map[string]fwschema.Attribute{
+												"value": testschema.Attribute{
+													Type:     types.StringType,
+													Optional: true,
+												},
+											},
 										},
-									}),
-									Optional: true,
+										NestingMode: fwschema.NestingModeSingle,
+										Optional:    true,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -282,18 +292,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
 								},
-							}),
-							Required: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Required:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -340,31 +353,35 @@ func TestDataValueAtPath(t *testing.T) {
 						},
 					}, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"other_attr": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
-					Blocks: map[string]tfsdk.Block{
-						"other_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.BoolType,
-									Optional: true,
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
-						"test": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -417,31 +434,35 @@ func TestDataValueAtPath(t *testing.T) {
 						}),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"other_attr": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
-					Blocks: map[string]tfsdk.Block{
-						"other_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.BoolType,
-									Optional: true,
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
-						"test": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -464,15 +485,15 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -500,15 +521,15 @@ func TestDataValueAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -535,15 +556,15 @@ func TestDataValueAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -576,18 +597,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
 								},
-							}),
-							Required: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Required:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -628,18 +652,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
 								},
-							}),
-							Required: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Required:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -670,9 +697,9 @@ func TestDataValueAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"sub_test": types.StringType,
@@ -680,7 +707,7 @@ func TestDataValueAtPath(t *testing.T) {
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -705,15 +732,15 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.SetType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -741,15 +768,15 @@ func TestDataValueAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.SetType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -782,18 +809,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
 								},
-							}),
-							Required: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Required:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -841,18 +871,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
 								},
-							}),
-							Required: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Required:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -906,31 +939,35 @@ func TestDataValueAtPath(t *testing.T) {
 						},
 					}, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"other_attr": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
-					Blocks: map[string]tfsdk.Block{
-						"other_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.BoolType,
-									Optional: true,
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
-						"test": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -990,31 +1027,35 @@ func TestDataValueAtPath(t *testing.T) {
 						}),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"other_attr": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
-					Blocks: map[string]tfsdk.Block{
-						"other_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.BoolType,
-									Optional: true,
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
-						"test": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -1058,31 +1099,35 @@ func TestDataValueAtPath(t *testing.T) {
 						},
 					}, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"other_attr": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
-					Blocks: map[string]tfsdk.Block{
-						"other_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.BoolType,
-									Optional: true,
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
-						"test": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.Float64Type,
-									Optional: true,
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.Float64Type,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -1119,31 +1164,35 @@ func TestDataValueAtPath(t *testing.T) {
 						},
 					}, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"other_attr": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
-					Blocks: map[string]tfsdk.Block{
-						"other_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.BoolType,
-									Optional: true,
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
-						"test": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.Int64Type,
-									Optional: true,
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.Int64Type,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -1188,35 +1237,39 @@ func TestDataValueAtPath(t *testing.T) {
 						},
 					}, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"other_attr": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
-					Blocks: map[string]tfsdk.Block{
-						"other_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type: types.SetType{
-										ElemType: types.BoolType,
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type: types.SetType{
+											ElemType: types.BoolType,
+										},
+										Optional: true,
 									},
-									Optional: true,
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
-						"test": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type: types.SetType{
-										ElemType: types.StringType,
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type: types.SetType{
+											ElemType: types.StringType,
+										},
+										Optional: true,
 									},
-									Optional: true,
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -1253,31 +1306,35 @@ func TestDataValueAtPath(t *testing.T) {
 						},
 					}, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"other_attr": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
-					Blocks: map[string]tfsdk.Block{
-						"other_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.BoolType,
-									Optional: true,
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
-						"test": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Optional: true,
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -1318,31 +1375,35 @@ func TestDataValueAtPath(t *testing.T) {
 						"sub_test": tftypes.NewValue(tftypes.String, "value"),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"other_attr": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
 					},
-					Blocks: map[string]tfsdk.Block{
-						"other_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.BoolType,
-									Optional: true,
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
-						"test": {
-							Attributes: map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Optional: true,
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -1369,18 +1430,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.Float64Type,
-									Optional: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.Float64Type,
+										Optional: true,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -1409,18 +1473,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.Int64Type,
-									Optional: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.Int64Type,
+										Optional: true,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -1453,20 +1520,23 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type: types.SetType{
-										ElemType: types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type: types.SetType{
+											ElemType: types.StringType,
+										},
+										Optional: true,
 									},
-									Optional: true,
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -1495,18 +1565,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
 								},
-							}),
-							Required: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Required:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -1537,18 +1610,21 @@ func TestDataValueAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"sub_test": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
 								},
-							}),
-							Required: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Required:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -1569,13 +1645,13 @@ func TestDataValueAtPath(t *testing.T) {
 					"test":  tftypes.NewValue(tftypes.String, nil),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1596,13 +1672,13 @@ func TestDataValueAtPath(t *testing.T) {
 					"test":  tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -1623,13 +1699,13 @@ func TestDataValueAtPath(t *testing.T) {
 					"test":  tftypes.NewValue(tftypes.String, "value"),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -1650,13 +1726,13 @@ func TestDataValueAtPath(t *testing.T) {
 					"test":  tftypes.NewValue(tftypes.String, "value"),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateError{},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},
@@ -1678,13 +1754,13 @@ func TestDataValueAtPath(t *testing.T) {
 					"test":  tftypes.NewValue(tftypes.String, "value"),
 					"other": tftypes.NewValue(tftypes.Bool, nil),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateWarning{},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.BoolType,
 							Optional: true,
 						},

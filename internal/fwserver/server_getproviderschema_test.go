@@ -5,12 +5,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -102,6 +104,63 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
+				},
+			},
+		},
+		"datasourceschemas-invalid-attribute-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+						return []func() datasource.DataSource{
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+										resp.Schema = datasourceschema.Schema{
+											Attributes: map[string]datasourceschema.Attribute{
+												"$": datasourceschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source1"
+									},
+								}
+							},
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+										resp.Schema = datasourceschema.Schema{
+											Attributes: map[string]datasourceschema.Attribute{
+												"test2": datasourceschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				Provider:        providerschema.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("$"),
+						"Invalid Schema Field Name",
+						`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+					),
 				},
 			},
 		},
@@ -275,6 +334,34 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 			},
 		},
+		"provider-invalid-attribute-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+						resp.Schema = providerschema.Schema{
+							Attributes: map[string]providerschema.Attribute{
+								"$": providerschema.StringAttribute{
+									Required: true,
+								},
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("$"),
+						"Invalid Schema Field Name",
+						`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+					),
+				},
+			},
+		},
 		"providermeta": {
 			server: &fwserver.Server{
 				Provider: &testprovider.ProviderWithMetaSchema{
@@ -304,6 +391,36 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
+				},
+			},
+		},
+		"providermeta-invalid-attribute-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithMetaSchema{
+					Provider: &testprovider.Provider{},
+					MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+						resp.Schema = metaschema.Schema{
+							Attributes: map[string]metaschema.Attribute{
+								"$": metaschema.StringAttribute{
+									Required: true,
+								},
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				Provider: providerschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("$"),
+						"Invalid Schema Field Name",
+						`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+					),
 				},
 			},
 		},
@@ -370,6 +487,62 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					PlanDestroy: true,
+				},
+			},
+		},
+		"resourceschemas-invalid-attribute-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+										resp.Schema = resourceschema.Schema{
+											Attributes: map[string]resourceschema.Attribute{
+												"$": resourceschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource1"
+									},
+								}
+							},
+							func() resource.Resource {
+								return &testprovider.Resource{
+									SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+										resp.Schema = resourceschema.Schema{
+											Attributes: map[string]resourceschema.Attribute{
+												"test2": resourceschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				Provider: providerschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					PlanDestroy: true,
+				},
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("$"),
+						"Invalid Schema Field Name",
+						`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+					),
 				},
 			},
 		},

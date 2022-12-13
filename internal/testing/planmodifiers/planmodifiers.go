@@ -3,130 +3,25 @@ package planmodifiers
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
-
-type TestWarningDiagModifier struct{}
-
-func (t TestWarningDiagModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	resp.Diagnostics.AddWarning(
-		"Warning diag",
-		"This is a warning",
-	)
-}
-
-func (t TestWarningDiagModifier) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t TestWarningDiagModifier) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-type TestErrorDiagModifier struct{}
-
-func (t TestErrorDiagModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	resp.Diagnostics.AddError(
-		"Error diag",
-		"This is an error",
-	)
-}
-
-func (t TestErrorDiagModifier) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t TestErrorDiagModifier) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-type TestAttrPlanValueModifierOne struct{}
-
-func (t TestAttrPlanValueModifierOne) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	attrVal, ok := req.AttributePlan.(types.String)
-	if !ok {
-		return
-	}
-
-	if attrVal.ValueString() == "TESTATTRONE" {
-		resp.AttributePlan = types.StringValue("TESTATTRTWO")
-	}
-}
-
-func (t TestAttrPlanValueModifierOne) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t TestAttrPlanValueModifierOne) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-type TestAttrPlanValueModifierTwo struct{}
-
-func (t TestAttrPlanValueModifierTwo) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	attrVal, ok := req.AttributePlan.(types.String)
-	if !ok {
-		return
-	}
-
-	if attrVal.ValueString() == "TESTATTRTWO" {
-		resp.AttributePlan = types.StringValue("MODIFIED_TWO")
-	}
-}
-
-func (t TestAttrPlanValueModifierTwo) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t TestAttrPlanValueModifierTwo) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-type TestAttrDefaultValueModifier struct{}
-
-func (t TestAttrDefaultValueModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	if req.AttributeState == nil && req.AttributeConfig == nil {
-		return
-	}
-
-	configVal := req.AttributeConfig.(types.String)
-
-	if configVal.IsNull() {
-		resp.AttributePlan = types.StringValue("DEFAULTVALUE")
-	}
-}
-
-func (t TestAttrDefaultValueModifier) Description(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-func (t TestAttrDefaultValueModifier) MarkdownDescription(ctx context.Context) string {
-	return "This plan modifier is for use during testing only"
-}
-
-// testRequiresReplaceModifier is an AttributePlanModifier that sets RequiresReplace
-// on the attribute.
-type TestRequiresReplaceFalseModifier struct{}
-
-// Modify sets RequiresReplace on the response to true.
-func (m TestRequiresReplaceFalseModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	resp.RequiresReplace = false
-}
-
-// Description returns a human-readable description of the plan modifier.
-func (m TestRequiresReplaceFalseModifier) Description(ctx context.Context) string {
-	return "Always unsets requires replace."
-}
-
-// MarkdownDescription returns a markdown description of the plan modifier.
-func (m TestRequiresReplaceFalseModifier) MarkdownDescription(ctx context.Context) string {
-	return "Always unsets requires replace."
-}
 
 type TestAttrPlanPrivateModifierGet struct{}
 
-func (t TestAttrPlanPrivateModifierGet) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (t TestAttrPlanPrivateModifierGet) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+	expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+
+	key := "providerKeyOne"
+	got, diags := req.Private.GetKey(ctx, key)
+
+	resp.Diagnostics.Append(diags...)
+
+	if string(got) != expected {
+		resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+	}
+}
+
+func (t TestAttrPlanPrivateModifierGet) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
 
 	key := "providerKeyOne"
@@ -149,7 +44,31 @@ func (t TestAttrPlanPrivateModifierGet) MarkdownDescription(ctx context.Context)
 
 type TestAttrPlanPrivateModifierSet struct{}
 
-func (t TestAttrPlanPrivateModifierSet) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (t TestAttrPlanPrivateModifierSet) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t TestAttrPlanPrivateModifierSet) PlanModifyMap(ctx context.Context, req planmodifier.MapRequest, resp *planmodifier.MapResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t TestAttrPlanPrivateModifierSet) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t TestAttrPlanPrivateModifierSet) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t TestAttrPlanPrivateModifierSet) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
 	resp.Diagnostics.Append(diags...)

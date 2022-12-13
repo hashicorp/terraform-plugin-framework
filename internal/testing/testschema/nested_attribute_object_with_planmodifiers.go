@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -74,7 +75,7 @@ func (o NestedAttributeObjectWithPlanModifiers) ObjectPlanModifiers() []planmodi
 }
 
 // Type returns the framework type of the NestedAttributeObjectWithPlanModifiers.
-func (o NestedAttributeObjectWithPlanModifiers) Type() types.ObjectTypable {
+func (o NestedAttributeObjectWithPlanModifiers) Type() basetypes.ObjectTypable {
 	attrTypes := make(map[string]attr.Type, len(o.Attributes))
 
 	for name, attribute := range o.Attributes {

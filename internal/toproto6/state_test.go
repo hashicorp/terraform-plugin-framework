@@ -6,6 +6,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -34,9 +36,9 @@ func TestState(t *testing.T) {
 
 	testState := &tfsdk.State{
 		Raw: testProto6Value,
-		Schema: tfsdk.Schema{
-			Attributes: map[string]tfsdk.Attribute{
-				"test_attribute": {
+		Schema: testschema.Schema{
+			Attributes: map[string]fwschema.Attribute{
+				"test_attribute": testschema.Attribute{
 					Required: true,
 					Type:     types.StringType,
 				},
@@ -46,9 +48,9 @@ func TestState(t *testing.T) {
 
 	testStateInvalid := &tfsdk.State{
 		Raw: testProto6Value,
-		Schema: tfsdk.Schema{
-			Attributes: map[string]tfsdk.Attribute{
-				"test_attribute": {
+		Schema: testschema.Schema{
+			Attributes: map[string]fwschema.Attribute{
+				"test_attribute": testschema.Attribute{
 					Required: true,
 					Type:     types.BoolType,
 				},

@@ -10,19 +10,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 func TestUpgradeResourceStateRequest(t *testing.T) {
 	t.Parallel()
 
-	testFwSchema := &tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_attribute": {
+	testFwSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_attribute": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}

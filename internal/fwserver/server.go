@@ -230,42 +230,26 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Sch
 	for dataSourceTypeName, dataSourceFunc := range dataSourceFuncs {
 		dataSource := dataSourceFunc()
 
-		switch dataSourceIface := dataSource.(type) {
-		case datasource.DataSourceWithSchema:
-			schemaReq := datasource.SchemaRequest{}
-			schemaResp := datasource.SchemaResponse{}
+		schemaReq := datasource.SchemaRequest{}
+		schemaResp := datasource.SchemaResponse{}
 
-			logging.FrameworkDebug(ctx, "Calling provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
-			dataSourceIface.Schema(ctx, schemaReq, &schemaResp)
-			logging.FrameworkDebug(ctx, "Called provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
+		logging.FrameworkDebug(ctx, "Calling provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
+		dataSource.Schema(ctx, schemaReq, &schemaResp)
+		logging.FrameworkDebug(ctx, "Called provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
 
-			s.dataSourceSchemasDiags.Append(schemaResp.Diagnostics...)
+		s.dataSourceSchemasDiags.Append(schemaResp.Diagnostics...)
 
-			if s.dataSourceSchemasDiags.HasError() {
-				return s.dataSourceSchemas, s.dataSourceSchemasDiags
-			}
-
-			s.dataSourceSchemas[dataSourceTypeName] = schemaResp.Schema
-		case datasource.DataSourceWithGetSchema:
-			logging.FrameworkDebug(ctx, "Calling provider defined DataSource GetSchema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
-			schema, diags := dataSourceIface.GetSchema(ctx) //nolint:staticcheck // Required internal usage until removal
-			logging.FrameworkDebug(ctx, "Called provider defined DataSource GetSchema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
-
-			s.dataSourceSchemasDiags.Append(diags...)
-
-			if s.dataSourceSchemasDiags.HasError() {
-				return s.dataSourceSchemas, s.dataSourceSchemasDiags
-			}
-
-			s.dataSourceSchemas[dataSourceTypeName] = schema
-		default:
-			s.dataSourceSchemasDiags.AddError(
-				"Data Source Missing Schema",
-				"While attempting to load provider data source schemas, a data source was missing a Schema method. "+
-					"This is always an issue in the provider and should be reported to the provider developers.\n\n"+
-					"Data Source Type Name: "+dataSourceTypeName,
-			)
+		if s.dataSourceSchemasDiags.HasError() {
+			return s.dataSourceSchemas, s.dataSourceSchemasDiags
 		}
+
+		s.dataSourceSchemasDiags.Append(schemaResp.Schema.Validate()...)
+
+		if s.dataSourceSchemasDiags.HasError() {
+			return s.dataSourceSchemas, s.dataSourceSchemasDiags
+		}
+
+		s.dataSourceSchemas[dataSourceTypeName] = schemaResp.Schema
 	}
 
 	return s.dataSourceSchemas, s.dataSourceSchemasDiags
@@ -282,31 +266,17 @@ func (s *Server) ProviderSchema(ctx context.Context) (fwschema.Schema, diag.Diag
 		return s.providerSchema, s.providerSchemaDiags
 	}
 
-	switch providerIface := s.Provider.(type) {
-	case provider.ProviderWithSchema:
-		schemaReq := provider.SchemaRequest{}
-		schemaResp := provider.SchemaResponse{}
+	schemaReq := provider.SchemaRequest{}
+	schemaResp := provider.SchemaResponse{}
 
-		logging.FrameworkDebug(ctx, "Calling provider defined Provider Schema")
-		providerIface.Schema(ctx, schemaReq, &schemaResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Provider Schema")
+	logging.FrameworkDebug(ctx, "Calling provider defined Provider Schema")
+	s.Provider.Schema(ctx, schemaReq, &schemaResp)
+	logging.FrameworkDebug(ctx, "Called provider defined Provider Schema")
 
-		s.providerSchema = schemaResp.Schema
-		s.providerSchemaDiags = schemaResp.Diagnostics
-	case provider.ProviderWithGetSchema:
-		logging.FrameworkDebug(ctx, "Calling provider defined Provider GetSchema")
-		schema, diags := providerIface.GetSchema(ctx) //nolint:staticcheck // Required internal usage until removal
-		logging.FrameworkDebug(ctx, "Called provider defined Provider GetSchema")
+	s.providerSchema = schemaResp.Schema
+	s.providerSchemaDiags = schemaResp.Diagnostics
 
-		s.providerSchema = schema
-		s.providerSchemaDiags = diags
-	default:
-		s.providerSchemaDiags.AddError(
-			"Provier Missing Schema",
-			"While attempting to load provider schemas, the provider itself was missing a Schema method. "+
-				"This is always an issue in the provider and should be reported to the provider developers.",
-		)
-	}
+	s.providerSchemaDiags.Append(schemaResp.Schema.Validate()...)
 
 	return s.providerSchema, s.providerSchemaDiags
 }
@@ -339,6 +309,8 @@ func (s *Server) ProviderMetaSchema(ctx context.Context) (fwschema.Schema, diag.
 
 	s.providerMetaSchema = resp.Schema
 	s.providerMetaSchemaDiags = resp.Diagnostics
+
+	s.providerMetaSchemaDiags.Append(resp.Schema.Validate()...)
 
 	return s.providerMetaSchema, s.providerMetaSchemaDiags
 }
@@ -455,42 +427,26 @@ func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schem
 	for resourceTypeName, resourceFunc := range resourceFuncs {
 		res := resourceFunc()
 
-		switch resourceIface := res.(type) {
-		case resource.ResourceWithSchema:
-			schemaReq := resource.SchemaRequest{}
-			schemaResp := resource.SchemaResponse{}
+		schemaReq := resource.SchemaRequest{}
+		schemaResp := resource.SchemaResponse{}
 
-			logging.FrameworkDebug(ctx, "Calling provider defined Resource Schema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
-			resourceIface.Schema(ctx, schemaReq, &schemaResp)
-			logging.FrameworkDebug(ctx, "Called provider defined Resource Schema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource Schema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+		res.Schema(ctx, schemaReq, &schemaResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource Schema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
 
-			s.resourceSchemasDiags.Append(schemaResp.Diagnostics...)
+		s.resourceSchemasDiags.Append(schemaResp.Diagnostics...)
 
-			if s.resourceSchemasDiags.HasError() {
-				return s.resourceSchemas, s.resourceSchemasDiags
-			}
-
-			s.resourceSchemas[resourceTypeName] = schemaResp.Schema
-		case resource.ResourceWithGetSchema:
-			logging.FrameworkDebug(ctx, "Calling provider defined Resource GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
-			schema, diags := resourceIface.GetSchema(ctx) //nolint:staticcheck // Required internal usage until removal
-			logging.FrameworkDebug(ctx, "Called provider defined Resource GetSchema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
-
-			s.resourceSchemasDiags.Append(diags...)
-
-			if s.resourceSchemasDiags.HasError() {
-				return s.resourceSchemas, s.resourceSchemasDiags
-			}
-
-			s.resourceSchemas[resourceTypeName] = schema
-		default:
-			s.resourceSchemasDiags.AddError(
-				"Resource Missing Schema",
-				"While attempting to load provider resource schemas, a resource was missing a Schema method. "+
-					"This is always an issue in the provider and should be reported to the provider developers.\n\n"+
-					"Resource Type Name: "+resourceTypeName,
-			)
+		if s.resourceSchemasDiags.HasError() {
+			return s.resourceSchemas, s.resourceSchemasDiags
 		}
+
+		s.resourceSchemasDiags.Append(schemaResp.Schema.Validate()...)
+
+		if s.resourceSchemasDiags.HasError() {
+			return s.resourceSchemas, s.resourceSchemasDiags
+		}
+
+		s.resourceSchemas[resourceTypeName] = schemaResp.Schema
 	}
 
 	return s.resourceSchemas, s.resourceSchemasDiags

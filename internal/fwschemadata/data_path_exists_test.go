@@ -7,9 +7,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -44,9 +45,9 @@ func TestDataPathExists(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -65,9 +66,9 @@ func TestDataPathExists(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -86,9 +87,9 @@ func TestDataPathExists(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -117,9 +118,9 @@ func TestDataPathExists(t *testing.T) {
 						"nested": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"nested": types.StringType,
@@ -152,9 +153,9 @@ func TestDataPathExists(t *testing.T) {
 						"nested": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"nested": types.StringType,
@@ -177,9 +178,9 @@ func TestDataPathExists(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -204,9 +205,9 @@ func TestDataPathExists(t *testing.T) {
 						tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
@@ -233,9 +234,9 @@ func TestDataPathExists(t *testing.T) {
 						tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
@@ -256,9 +257,9 @@ func TestDataPathExists(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -283,9 +284,9 @@ func TestDataPathExists(t *testing.T) {
 						"key": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
@@ -312,9 +313,9 @@ func TestDataPathExists(t *testing.T) {
 						"key": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
@@ -335,9 +336,9 @@ func TestDataPathExists(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -362,9 +363,9 @@ func TestDataPathExists(t *testing.T) {
 						tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.SetType{
 								ElemType: types.StringType,
 							},
@@ -391,9 +392,9 @@ func TestDataPathExists(t *testing.T) {
 						tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.SetType{
 								ElemType: types.StringType,
 							},
@@ -414,9 +415,9 @@ func TestDataPathExists(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},

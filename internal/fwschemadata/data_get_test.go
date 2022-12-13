@@ -11,11 +11,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	intreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -30,9 +31,9 @@ func TestDataGet(t *testing.T) {
 	}{
 		"invalid-target": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     testtypes.StringType{},
 						},
@@ -77,9 +78,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"invalid-type": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -117,9 +118,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"AttrTypeWithValidateError": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateError{},
 							Required: true,
 						},
@@ -153,9 +154,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"AttrTypeWithValidateWarning": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateWarning{},
 							Required: true,
 						},
@@ -189,13 +190,13 @@ func TestDataGet(t *testing.T) {
 		},
 		"multiple-attributes": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"one": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"one": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
-						"two": {
+						"two": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -228,9 +229,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"BoolType-types.Bool-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -258,9 +259,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"BoolType-types.Bool-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -288,9 +289,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"BoolType-types.Bool-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -318,9 +319,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"BoolType-*bool-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -348,9 +349,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"BoolType-*bool-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -381,15 +382,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: bool\nTarget Type: *bool\nSuggested Type: types.Bool",
+						"Path: bool\nTarget Type: *bool\nSuggested Type: basetypes.BoolValue",
 				),
 			},
 		},
 		"BoolType-*bool-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -417,9 +418,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"BoolType-bool-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -450,15 +451,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
-						"Path: bool\nTarget Type: bool\nSuggested `types` Type: types.Bool\nSuggested Pointer Type: *bool",
+						"Path: bool\nTarget Type: bool\nSuggested `types` Type: basetypes.BoolValue\nSuggested Pointer Type: *bool",
 				),
 			},
 		},
 		"BoolType-bool-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -489,15 +490,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: bool\nTarget Type: bool\nSuggested Type: types.Bool",
+						"Path: bool\nTarget Type: bool\nSuggested Type: basetypes.BoolValue",
 				),
 			},
 		},
 		"BoolType-bool-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"bool": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool": testschema.Attribute{
 							Optional: true,
 							Type:     types.BoolType,
 						},
@@ -525,9 +526,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Float64Type-types.Float64-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"float64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Float64Type,
 						},
@@ -555,9 +556,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Float64Type-types.Float64-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"float64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Float64Type,
 						},
@@ -585,9 +586,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Float64Type-types.Float64-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"float64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Float64Type,
 						},
@@ -615,9 +616,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Float64Type-*float64-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"float64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Float64Type,
 						},
@@ -645,9 +646,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Float64Type-*float64-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"float64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Float64Type,
 						},
@@ -678,15 +679,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: float64\nTarget Type: *float64\nSuggested Type: types.Float64",
+						"Path: float64\nTarget Type: *float64\nSuggested Type: basetypes.Float64Value",
 				),
 			},
 		},
 		"Float64Type-*float64-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"float64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Float64Type,
 						},
@@ -714,9 +715,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Float64Type-float64-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"float64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Float64Type,
 						},
@@ -747,15 +748,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
-						"Path: float64\nTarget Type: float64\nSuggested `types` Type: types.Float64\nSuggested Pointer Type: *float64",
+						"Path: float64\nTarget Type: float64\nSuggested `types` Type: basetypes.Float64Value\nSuggested Pointer Type: *float64",
 				),
 			},
 		},
 		"Float64Type-float64-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"float64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Float64Type,
 						},
@@ -786,15 +787,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: float64\nTarget Type: float64\nSuggested Type: types.Float64",
+						"Path: float64\nTarget Type: float64\nSuggested Type: basetypes.Float64Value",
 				),
 			},
 		},
 		"Float64Type-float64-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"float64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Float64Type,
 						},
@@ -822,9 +823,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Int64Type-types.Int64-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"int64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Int64Type,
 						},
@@ -852,9 +853,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Int64Type-types.Int64-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"int64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Int64Type,
 						},
@@ -882,9 +883,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Int64Type-types.Int64-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"int64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Int64Type,
 						},
@@ -912,9 +913,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Int64Type-*int64-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"int64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Int64Type,
 						},
@@ -942,9 +943,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Int64Type-*int64-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"int64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Int64Type,
 						},
@@ -975,15 +976,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: int64\nTarget Type: *int64\nSuggested Type: types.Int64",
+						"Path: int64\nTarget Type: *int64\nSuggested Type: basetypes.Int64Value",
 				),
 			},
 		},
 		"Int64Type-*int64-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"int64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Int64Type,
 						},
@@ -1011,9 +1012,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"Int64Type-int64-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"int64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Int64Type,
 						},
@@ -1044,15 +1045,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
-						"Path: int64\nTarget Type: int64\nSuggested `types` Type: types.Int64\nSuggested Pointer Type: *int64",
+						"Path: int64\nTarget Type: int64\nSuggested `types` Type: basetypes.Int64Value\nSuggested Pointer Type: *int64",
 				),
 			},
 		},
 		"Int64Type-int64-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"int64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Int64Type,
 						},
@@ -1083,15 +1084,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: int64\nTarget Type: int64\nSuggested Type: types.Int64",
+						"Path: int64\nTarget Type: int64\nSuggested Type: basetypes.Int64Value",
 				),
 			},
 		},
 		"Int64Type-int64-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"int64": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64": testschema.Attribute{
 							Optional: true,
 							Type:     types.Int64Type,
 						},
@@ -1119,16 +1120,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListBlock-types.List-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"list": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -1175,16 +1178,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListBlock-types.List-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"list": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -1231,16 +1236,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListBlock-types.List-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"list": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -1326,16 +1333,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListBlock-[]types.Object-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"list": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -1376,16 +1385,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListBlock-[]types.Object-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"list": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -1429,22 +1440,24 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: list\nTarget Type: []types.Object\nSuggested Type: types.List",
+						"Path: list\nTarget Type: []basetypes.ObjectValue\nSuggested Type: basetypes.ListValue",
 				),
 			},
 		},
 		"ListBlock-[]types.Object-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"list": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -1523,16 +1536,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListBlock-[]struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"list": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -1577,16 +1592,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListBlock-[]struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"list": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -1634,22 +1651,24 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: list\nTarget Type: []struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.List",
+						"Path: list\nTarget Type: []struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.ListValue",
 				),
 			},
 		},
 		"ListBlock-[]struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"list": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
+							NestingMode: fwschema.BlockNestingModeList,
 						},
 					},
 				},
@@ -1720,16 +1739,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListNestedAttributes-types.List-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
 					},
 				},
@@ -1776,16 +1798,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListNestedAttributes-types.List-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
 					},
 				},
@@ -1832,16 +1857,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListNestedAttributes-types.List-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
 					},
 				},
@@ -1927,16 +1955,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListNestedAttributes-[]types.Object-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
 					},
 				},
@@ -1977,16 +2008,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListNestedAttributes-[]types.Object-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
 					},
 				},
@@ -2030,22 +2064,25 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: list\nTarget Type: []types.Object\nSuggested Type: types.List",
+						"Path: list\nTarget Type: []basetypes.ObjectValue\nSuggested Type: basetypes.ListValue",
 				),
 			},
 		},
 		"ListNestedAttributes-[]types.Object-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
 					},
 				},
@@ -2124,16 +2161,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListNestedAttributes-[]struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
 					},
 				},
@@ -2178,16 +2218,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListNestedAttributes-[]struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
 					},
 				},
@@ -2235,22 +2278,25 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: list\nTarget Type: []struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.List",
+						"Path: list\nTarget Type: []struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.ListValue",
 				),
 			},
 		},
 		"ListNestedAttributes-[]struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
 						},
 					},
 				},
@@ -2321,9 +2367,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListType-types.List-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
 							Optional: true,
 							Type: types.ListType{
 								ElemType: types.StringType,
@@ -2360,9 +2406,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListType-types.List-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
 							Optional: true,
 							Type: types.ListType{
 								ElemType: types.StringType,
@@ -2399,9 +2445,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListType-types.List-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
 							Optional: true,
 							Type: types.ListType{
 								ElemType: types.StringType,
@@ -2447,9 +2493,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListType-[]types.String-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
 							Optional: true,
 							Type: types.ListType{
 								ElemType: types.StringType,
@@ -2486,9 +2532,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListType-[]types.String-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
 							Optional: true,
 							Type: types.ListType{
 								ElemType: types.StringType,
@@ -2528,15 +2574,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: list\nTarget Type: []types.String\nSuggested Type: types.List",
+						"Path: list\nTarget Type: []basetypes.StringValue\nSuggested Type: basetypes.ListValue",
 				),
 			},
 		},
 		"ListType-[]types.String-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
 							Optional: true,
 							Type: types.ListType{
 								ElemType: types.StringType,
@@ -2579,9 +2625,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListType-[]string-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
 							Optional: true,
 							Type: types.ListType{
 								ElemType: types.StringType,
@@ -2618,9 +2664,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ListType-[]string-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
 							Optional: true,
 							Type: types.ListType{
 								ElemType: types.StringType,
@@ -2660,15 +2706,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: list\nTarget Type: []string\nSuggested Type: types.List",
+						"Path: list\nTarget Type: []string\nSuggested Type: basetypes.ListValue",
 				),
 			},
 		},
 		"ListType-[]string-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"list": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
 							Optional: true,
 							Type: types.ListType{
 								ElemType: types.StringType,
@@ -2711,16 +2757,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapNestedAttributes-types.Map-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Optional:    true,
 						},
 					},
 				},
@@ -2767,16 +2816,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapNestedAttributes-types.Map-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Optional:    true,
 						},
 					},
 				},
@@ -2823,16 +2875,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapNestedAttributes-types.Map-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Optional:    true,
 						},
 					},
 				},
@@ -2918,16 +2973,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapNestedAttributes-map[string]types.Object-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Optional:    true,
 						},
 					},
 				},
@@ -2968,16 +3026,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapNestedAttributes-map[string]types.Object-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Optional:    true,
 						},
 					},
 				},
@@ -3021,22 +3082,25 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: map\nTarget Type: map[string]types.Object\nSuggested Type: types.Map",
+						"Path: map\nTarget Type: map[string]basetypes.ObjectValue\nSuggested Type: basetypes.MapValue",
 				),
 			},
 		},
 		"MapNestedAttributes-map[string]types.Object-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Optional:    true,
 						},
 					},
 				},
@@ -3115,16 +3179,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapNestedAttributes-map[string]struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Optional:    true,
 						},
 					},
 				},
@@ -3169,16 +3236,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapNestedAttributes-map[string]struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Optional:    true,
 						},
 					},
 				},
@@ -3226,22 +3296,25 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: map\nTarget Type: map[string]struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.Map",
+						"Path: map\nTarget Type: map[string]struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.MapValue",
 				),
 			},
 		},
 		"MapNestedAttributes-map[string]struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeMap,
+							Optional:    true,
 						},
 					},
 				},
@@ -3312,9 +3385,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapType-types.Map-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
 							Optional: true,
 							Type: types.MapType{
 								ElemType: types.StringType,
@@ -3351,9 +3424,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapType-types.Map-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
 							Optional: true,
 							Type: types.MapType{
 								ElemType: types.StringType,
@@ -3390,9 +3463,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapType-types.Map-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
 							Optional: true,
 							Type: types.MapType{
 								ElemType: types.StringType,
@@ -3438,9 +3511,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapType-map[string]types.String-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
 							Optional: true,
 							Type: types.MapType{
 								ElemType: types.StringType,
@@ -3477,9 +3550,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapType-map[string]types.String-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
 							Optional: true,
 							Type: types.MapType{
 								ElemType: types.StringType,
@@ -3519,15 +3592,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: map\nTarget Type: map[string]types.String\nSuggested Type: types.Map",
+						"Path: map\nTarget Type: map[string]basetypes.StringValue\nSuggested Type: basetypes.MapValue",
 				),
 			},
 		},
 		"MapType-map[string]types.String-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
 							Optional: true,
 							Type: types.MapType{
 								ElemType: types.StringType,
@@ -3570,9 +3643,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapType-map[string]string-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
 							Optional: true,
 							Type: types.MapType{
 								ElemType: types.StringType,
@@ -3609,9 +3682,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"MapType-map[string]string-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
 							Optional: true,
 							Type: types.MapType{
 								ElemType: types.StringType,
@@ -3651,15 +3724,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: map\nTarget Type: map[string]string\nSuggested Type: types.Map",
+						"Path: map\nTarget Type: map[string]string\nSuggested Type: basetypes.MapValue",
 				),
 			},
 		},
 		"MapType-map[string]string-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"map": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
 							Optional: true,
 							Type: types.MapType{
 								ElemType: types.StringType,
@@ -3702,9 +3775,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ObjectType-types.Object-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
 							Optional: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
@@ -3751,9 +3824,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ObjectType-types.Object-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
 							Optional: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
@@ -3800,9 +3873,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ObjectType-types.Object-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
 							Optional: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
@@ -3854,9 +3927,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ObjectType-*struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
 							Optional: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
@@ -3903,9 +3976,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ObjectType-*struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
 							Optional: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
@@ -3955,15 +4028,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: object\nTarget Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.Object",
+						"Path: object\nTarget Type: *struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.ObjectValue",
 				),
 			},
 		},
 		"ObjectType-*struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
 							Optional: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
@@ -4016,9 +4089,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"ObjectType-struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
 							Optional: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
@@ -4072,15 +4145,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
-						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested `types` Type: types.Object\nSuggested Pointer Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }",
+						"Path: object\nTarget Type: struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested `types` Type: basetypes.ObjectValue\nSuggested Pointer Type: *struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }",
 				),
 			},
 		},
 		"ObjectType-struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
 							Optional: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
@@ -4134,15 +4207,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.Object",
+						"Path: object\nTarget Type: struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.ObjectValue",
 				),
 			},
 		},
 		"ObjectType-struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
 							Optional: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
@@ -4195,16 +4268,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetBlock-types.Set-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"set": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"set": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -4251,16 +4326,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetBlock-types.Set-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"set": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"set": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -4307,16 +4384,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetBlock-types.Set-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"set": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"set": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -4402,16 +4481,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetBlock-[]types.Object-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"set": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"set": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -4452,16 +4533,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetBlock-[]types.Object-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"set": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"set": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -4505,22 +4588,24 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: set\nTarget Type: []types.Object\nSuggested Type: types.Set",
+						"Path: set\nTarget Type: []basetypes.ObjectValue\nSuggested Type: basetypes.SetValue",
 				),
 			},
 		},
 		"SetBlock-[]types.Object-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"set": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"set": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -4599,16 +4684,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetBlock-[]struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"set": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"set": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -4653,16 +4740,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetBlock-[]struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"set": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"set": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -4710,22 +4799,24 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: set\nTarget Type: []struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.Set",
+						"Path: set\nTarget Type: []struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.SetValue",
 				),
 			},
 		},
 		"SetBlock-[]struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"set": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"set": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
+							NestingMode: fwschema.BlockNestingModeSet,
 						},
 					},
 				},
@@ -4796,16 +4887,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetNestedAttributes-types.Set-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
 						},
 					},
 				},
@@ -4852,16 +4946,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetNestedAttributes-types.Set-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
 						},
 					},
 				},
@@ -4908,16 +5005,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetNestedAttributes-types.Set-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
 						},
 					},
 				},
@@ -5003,16 +5103,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetNestedAttributes-[]types.Object-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
 						},
 					},
 				},
@@ -5053,16 +5156,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetNestedAttributes-[]types.Object-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
 						},
 					},
 				},
@@ -5106,22 +5212,25 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: set\nTarget Type: []types.Object\nSuggested Type: types.Set",
+						"Path: set\nTarget Type: []basetypes.ObjectValue\nSuggested Type: basetypes.SetValue",
 				),
 			},
 		},
 		"SetNestedAttributes-[]types.Object-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
 						},
 					},
 				},
@@ -5200,16 +5309,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetNestedAttributes-[]struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
 						},
 					},
 				},
@@ -5254,16 +5366,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetNestedAttributes-[]struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
 						},
 					},
 				},
@@ -5311,22 +5426,25 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: set\nTarget Type: []struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.Set",
+						"Path: set\nTarget Type: []struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.SetValue",
 				),
 			},
 		},
 		"SetNestedAttributes-[]struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
 						},
 					},
 				},
@@ -5397,9 +5515,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetType-types.Set-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
 							Optional: true,
 							Type: types.SetType{
 								ElemType: types.StringType,
@@ -5436,9 +5554,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetType-types.Set-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
 							Optional: true,
 							Type: types.SetType{
 								ElemType: types.StringType,
@@ -5475,9 +5593,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetType-types.Set-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
 							Optional: true,
 							Type: types.SetType{
 								ElemType: types.StringType,
@@ -5523,9 +5641,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetType-[]types.String-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
 							Optional: true,
 							Type: types.SetType{
 								ElemType: types.StringType,
@@ -5562,9 +5680,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetType-[]types.String-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
 							Optional: true,
 							Type: types.SetType{
 								ElemType: types.StringType,
@@ -5604,15 +5722,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: set\nTarget Type: []types.String\nSuggested Type: types.Set",
+						"Path: set\nTarget Type: []basetypes.StringValue\nSuggested Type: basetypes.SetValue",
 				),
 			},
 		},
 		"SetType-[]types.String-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
 							Optional: true,
 							Type: types.SetType{
 								ElemType: types.StringType,
@@ -5655,9 +5773,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetType-[]string-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
 							Optional: true,
 							Type: types.SetType{
 								ElemType: types.StringType,
@@ -5694,9 +5812,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"SetType-[]string-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
 							Optional: true,
 							Type: types.SetType{
 								ElemType: types.StringType,
@@ -5736,15 +5854,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: set\nTarget Type: []string\nSuggested Type: types.Set",
+						"Path: set\nTarget Type: []string\nSuggested Type: basetypes.SetValue",
 				),
 			},
 		},
 		"SetType-[]string-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"set": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
 							Optional: true,
 							Type: types.SetType{
 								ElemType: types.StringType,
@@ -5787,16 +5905,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleBlock-types.Object-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"object": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"object": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -5837,16 +5957,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleBlock-types.Object-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"object": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"object": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -5887,16 +6009,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleBlock-types.Object-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"object": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"object": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -5942,16 +6066,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleBlock-*struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"object": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"object": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -5992,16 +6118,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleBlock-*struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"object": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"object": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -6045,22 +6173,24 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: object\nTarget Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.Object",
+						"Path: object\nTarget Type: *struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.ObjectValue",
 				),
 			},
 		},
 		"SingleBlock-*struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"object": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"object": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -6107,16 +6237,18 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleBlock-struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"object": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"object": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -6164,22 +6296,24 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
-						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested `types` Type: types.Object\nSuggested Pointer Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }",
+						"Path: object\nTarget Type: struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested `types` Type: basetypes.ObjectValue\nSuggested Pointer Type: *struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }",
 				),
 			},
 		},
 		"SingleBlock-struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"object": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"object": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -6227,22 +6361,24 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.Object",
+						"Path: object\nTarget Type: struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.ObjectValue",
 				),
 			},
 		},
 		"SingleBlock-struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"object": {
-							Attributes: map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"object": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
+							NestingMode: fwschema.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -6289,16 +6425,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleNestedAttributes-types.Object-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
 					},
 				},
@@ -6339,16 +6478,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleNestedAttributes-types.Object-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
 					},
 				},
@@ -6389,16 +6531,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleNestedAttributes-types.Object-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
 					},
 				},
@@ -6444,16 +6589,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleNestedAttributes-*struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
 					},
 				},
@@ -6494,16 +6642,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleNestedAttributes-*struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
 					},
 				},
@@ -6547,22 +6698,25 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: object\nTarget Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.Object",
+						"Path: object\nTarget Type: *struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.ObjectValue",
 				),
 			},
 		},
 		"SingleNestedAttributes-*struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
 					},
 				},
@@ -6609,16 +6763,19 @@ func TestDataGet(t *testing.T) {
 		},
 		"SingleNestedAttributes-struct-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
 					},
 				},
@@ -6666,22 +6823,25 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
-						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested `types` Type: types.Object\nSuggested Pointer Type: *struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }",
+						"Path: object\nTarget Type: struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested `types` Type: basetypes.ObjectValue\nSuggested Pointer Type: *struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }",
 				),
 			},
 		},
 		"SingleNestedAttributes-struct-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
 					},
 				},
@@ -6729,22 +6889,25 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: object\nTarget Type: struct { NestedString types.String \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: types.Object",
+						"Path: object\nTarget Type: struct { NestedString basetypes.StringValue \"tfsdk:\\\"nested_string\\\"\" }\nSuggested Type: basetypes.ObjectValue",
 				),
 			},
 		},
 		"SingleNestedAttributes-struct-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"object": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"nested_string": {
-									Optional: true,
-									Type:     types.StringType,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_string": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
 								},
-							}),
-							Optional: true,
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
 						},
 					},
 				},
@@ -6791,9 +6954,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"StringType-types.string-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -6821,9 +6984,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"StringType-types.string-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -6851,9 +7014,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"StringType-types.string-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -6881,9 +7044,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"StringType-*string-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -6911,9 +7074,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"StringType-*string-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -6944,15 +7107,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: string\nTarget Type: *string\nSuggested Type: types.String",
+						"Path: string\nTarget Type: *string\nSuggested Type: basetypes.StringValue",
 				),
 			},
 		},
 		"StringType-*string-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -6980,9 +7143,9 @@ func TestDataGet(t *testing.T) {
 		},
 		"StringType-string-null": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -7013,15 +7176,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
-						"Path: string\nTarget Type: string\nSuggested `types` Type: types.String\nSuggested Pointer Type: *string",
+						"Path: string\nTarget Type: string\nSuggested `types` Type: basetypes.StringValue\nSuggested Pointer Type: *string",
 				),
 			},
 		},
 		"StringType-string-unknown": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},
@@ -7052,15 +7215,15 @@ func TestDataGet(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
-						"Path: string\nTarget Type: string\nSuggested Type: types.String",
+						"Path: string\nTarget Type: string\nSuggested Type: basetypes.StringValue",
 				),
 			},
 		},
 		"StringType-string-value": {
 			data: fwschemadata.Data{
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"string": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
 							Optional: true,
 							Type:     types.StringType,
 						},

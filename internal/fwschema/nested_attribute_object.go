@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -21,7 +22,7 @@ type NestedAttributeObject interface {
 	GetAttributes() UnderlyingAttributes
 
 	// Type should return the framework type of the object.
-	Type() types.ObjectTypable
+	Type() basetypes.ObjectTypable
 }
 
 // NestedAttributeObjectApplyTerraform5AttributePathStep is a helper function
@@ -76,7 +77,7 @@ func NestedAttributeObjectEqual(a, b NestedAttributeObject) bool {
 // using the GetAttributes and GetBlocks methods. NestedAttributeObject
 // implementations should still include custom type functionality in addition
 // to using this helper.
-func NestedAttributeObjectType(o NestedAttributeObject) types.ObjectTypable {
+func NestedAttributeObjectType(o NestedAttributeObject) basetypes.ObjectTypable {
 	attrTypes := make(map[string]attr.Type, len(o.GetAttributes()))
 
 	for name, attribute := range o.GetAttributes() {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -57,9 +58,9 @@ type ListNestedBlock struct {
 
 	// CustomType enables the use of a custom attribute type in place of the
 	// default types.ListType of types.ObjectType. When retrieving data, the
-	// types.ListValuable associated with this custom type must be used in
+	// basetypes.ListValuable associated with this custom type must be used in
 	// place of types.List.
-	CustomType types.ListTypable
+	CustomType basetypes.ListTypable
 
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this attribute is,
@@ -174,22 +175,6 @@ func (b ListNestedBlock) GetDescription() string {
 // GetMarkdownDescription returns the MarkdownDescription field value.
 func (b ListNestedBlock) GetMarkdownDescription() string {
 	return b.MarkdownDescription
-}
-
-// GetMaxItems always returns 0.
-//
-// Deprecated: This method will be removed in the future. Use validators
-// instead.
-func (b ListNestedBlock) GetMaxItems() int64 {
-	return 0
-}
-
-// GetMinItems always returns 0.
-//
-// Deprecated: This method will be removed in the future. Use validators
-// instead.
-func (b ListNestedBlock) GetMinItems() int64 {
-	return 0
 }
 
 // GetNestedObject returns the NestedObject field value.

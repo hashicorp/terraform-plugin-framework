@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -31,9 +31,9 @@ type NestedAttributeObject struct {
 	Attributes map[string]Attribute
 
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.ObjectType. When retrieving data, the types.ObjectValuable
+	// default basetypes.ObjectType. When retrieving data, the basetypes.ObjectValuable
 	// associated with this custom type must be used in place of types.Object.
-	CustomType types.ObjectTypable
+	CustomType basetypes.ObjectTypable
 
 	// Validators define value validation functionality for the attribute. All
 	// elements of the slice of AttributeValidator are run, regardless of any
@@ -96,7 +96,7 @@ func (o NestedAttributeObject) ObjectValidators() []validator.Object {
 }
 
 // Type returns the framework type of the NestedAttributeObject.
-func (o NestedAttributeObject) Type() types.ObjectTypable {
+func (o NestedAttributeObject) Type() basetypes.ObjectTypable {
 	if o.CustomType != nil {
 		return o.CustomType
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -58,9 +59,9 @@ type SingleNestedBlock struct {
 	Blocks map[string]Block
 
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.ObjectType. When retrieving data, the types.ObjectValuable
+	// default basetypes.ObjectType. When retrieving data, the basetypes.ObjectValuable
 	// associated with this custom type must be used in place of types.Object.
-	CustomType types.ObjectTypable
+	CustomType basetypes.ObjectTypable
 
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this attribute is,
@@ -183,20 +184,6 @@ func (b SingleNestedBlock) GetDescription() string {
 // GetMarkdownDescription returns the MarkdownDescription field value.
 func (b SingleNestedBlock) GetMarkdownDescription() string {
 	return b.MarkdownDescription
-}
-
-// GetMaxItems always returns 0.
-//
-// Deprecated: This method will be removed in the future.
-func (b SingleNestedBlock) GetMaxItems() int64 {
-	return 0
-}
-
-// GetMinItems always returns 0.
-//
-// Deprecated: This method will be removed in the future.
-func (b SingleNestedBlock) GetMinItems() int64 {
-	return 0
 }
 
 // GetNestedObject returns a generated NestedBlockObject from the

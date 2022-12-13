@@ -8,12 +8,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ types.NumberTypable  = NumberType{}
-	_ types.NumberValuable = Number{}
+	_ basetypes.NumberTypable  = NumberType{}
+	_ basetypes.NumberValuable = Number{}
 )
 
 // NumberType is a reimplementation of types.NumberType that can be used as a base
@@ -40,7 +41,7 @@ func (t NumberType) TerraformType(_ context.Context) tftypes.Type {
 	return tftypes.Number
 }
 
-func (t NumberType) ValueFromNumber(ctx context.Context, in types.Number) (types.NumberValuable, diag.Diagnostics) {
+func (t NumberType) ValueFromNumber(ctx context.Context, in basetypes.NumberValue) (basetypes.NumberValuable, diag.Diagnostics) {
 	if in.IsNull() {
 		return Number{
 			Number:    types.NumberNull(),

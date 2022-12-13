@@ -8,10 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -24,8 +28,6 @@ func TestSchemaModifyPlan(t *testing.T) {
 	})
 
 	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
-
-	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testCases := map[string]struct {
 		req          ModifySchemaPlanRequest
@@ -41,9 +43,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.ListType{ElemType: types.StringType},
 								Required: true,
 							},
@@ -58,9 +60,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -75,9 +77,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -90,8 +92,8 @@ func TestSchemaModifyPlan(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"List Type Validation Error",
-						"An unexpected error was encountered trying to convert an attribute value from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"expected List value, received tftypes.Value with value: tftypes.String<\"testvalue\">",
 					),
 				},
 				Plan: tfsdk.Plan{
@@ -102,95 +104,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-			},
-		},
-		"config-error-previous-error": {
-			req: ModifySchemaPlanRequest{
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Required: true,
-							},
-						},
-					},
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-				State: tfsdk.State{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-			},
-			expectedResp: ModifySchemaPlanResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("test"),
-						"List Type Validation Error",
-						"An unexpected error was encountered trying to convert an attribute value from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
-					),
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -209,9 +125,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -226,9 +142,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.ListType{ElemType: types.StringType},
 								Required: true,
 							},
@@ -243,9 +159,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -257,9 +173,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
-						"Plan Read Error",
-						"An unexpected error was encountered trying to convert an attribute value from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"List Type Validation Error",
+						"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"expected List value, received tftypes.Value with value: tftypes.String<\"testvalue\">",
 					),
 				},
 				Plan: tfsdk.Plan{
@@ -270,95 +186,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Required: true,
-							},
-						},
-					},
-				},
-			},
-		},
-		"plan-error-previous-error": {
-			req: ModifySchemaPlanRequest{
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Required: true,
-							},
-						},
-					},
-				},
-				State: tfsdk.State{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-			},
-			expectedResp: ModifySchemaPlanResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("test"),
-						"Plan Read Error",
-						"An unexpected error was encountered trying to convert an attribute value from the plan. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
-					),
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.ListType{ElemType: types.StringType},
 								Required: true,
 							},
@@ -377,9 +207,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -394,9 +224,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -411,9 +241,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.ListType{ElemType: types.StringType},
 								Required: true,
 							},
@@ -425,9 +255,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
-						"State Read Error",
-						"An unexpected error was encountered trying to convert an attribute value from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
+						"List Type Validation Error",
+						"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"expected List value, received tftypes.Value with value: tftypes.String<\"testvalue\">",
 					),
 				},
 				Plan: tfsdk.Plan{
@@ -438,95 +268,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-			},
-		},
-		"state-error-previous-error": {
-			req: ModifySchemaPlanRequest{
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-				State: tfsdk.State{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Required: true,
-							},
-						},
-					},
-				},
-			},
-			expectedResp: ModifySchemaPlanResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("test"),
-						"State Read Error",
-						"An unexpected error was encountered trying to convert an attribute value from the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType types.primitive, can only use tftypes.String values",
-					),
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -545,9 +289,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -562,9 +306,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -579,9 +323,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -598,9 +342,9 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -619,14 +363,25 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestAttrPlanValueModifierOne{},
-									planmodifiers.TestAttrPlanValueModifierTwo{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRONE" {
+												resp.PlanValue = types.StringValue("TESTATTRTWO")
+											}
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRTWO" {
+												resp.PlanValue = types.StringValue("MODIFIED_TWO")
+											}
+										},
+									},
 								},
 							},
 						},
@@ -640,14 +395,25 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestAttrPlanValueModifierOne{},
-									planmodifiers.TestAttrPlanValueModifierTwo{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRONE" {
+												resp.PlanValue = types.StringValue("TESTATTRTWO")
+											}
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRTWO" {
+												resp.PlanValue = types.StringValue("MODIFIED_TWO")
+											}
+										},
+									},
 								},
 							},
 						},
@@ -661,14 +427,25 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestAttrPlanValueModifierOne{},
-									planmodifiers.TestAttrPlanValueModifierTwo{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRONE" {
+												resp.PlanValue = types.StringValue("TESTATTRTWO")
+											}
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRTWO" {
+												resp.PlanValue = types.StringValue("MODIFIED_TWO")
+											}
+										},
+									},
 								},
 							},
 						},
@@ -684,20 +461,30 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "MODIFIED_TWO"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestAttrPlanValueModifierOne{},
-									planmodifiers.TestAttrPlanValueModifierTwo{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRONE" {
+												resp.PlanValue = types.StringValue("TESTATTRTWO")
+											}
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRTWO" {
+												resp.PlanValue = types.StringValue("MODIFIED_TWO")
+											}
+										},
+									},
 								},
 							},
 						},
 					},
 				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"attribute-request-private": {
@@ -710,12 +497,11 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.String{
 									planmodifiers.TestAttrPlanPrivateModifierGet{},
 								},
 							},
@@ -730,12 +516,11 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.String{
 									planmodifiers.TestAttrPlanPrivateModifierGet{},
 								},
 							},
@@ -750,12 +535,11 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.String{
 									planmodifiers.TestAttrPlanPrivateModifierGet{},
 								},
 							},
@@ -773,12 +557,11 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.String{
 									planmodifiers.TestAttrPlanPrivateModifierGet{},
 								},
 							},
@@ -798,12 +581,11 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.String{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -818,12 +600,11 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.String{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -838,18 +619,18 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.String{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
 						},
 					},
 				},
+				Private: privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifySchemaPlanResponse{
 				Plan: tfsdk.Plan{
@@ -860,12 +641,11 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.String{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -914,20 +694,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithListPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.List{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -971,20 +752,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithListPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.List{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1028,26 +810,28 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithListPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.List{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
 						},
 					},
 				},
+				Private: privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifySchemaPlanResponse{
 				Plan: tfsdk.Plan{
@@ -1087,20 +871,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithListPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.List{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1149,20 +934,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithSetPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.Set{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1206,20 +992,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithSetPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.Set{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1263,26 +1050,28 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithSetPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.Set{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
 						},
 					},
 				},
+				Private: privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifySchemaPlanResponse{
 				Plan: tfsdk.Plan{
@@ -1322,20 +1111,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithSetPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.Set{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1400,23 +1190,25 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_computed": {
-										Type:     types.StringType,
-										Computed: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											resource.UseStateForUnknown(),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_computed": testschema.AttributeWithStringPlanModifiers{
+											Computed: true,
+											PlanModifiers: []planmodifier.String{
+												stringplanmodifier.UseStateForUnknown(),
+											},
+										},
+										"nested_required": testschema.Attribute{
+											Type:     types.StringType,
+											Computed: true,
 										},
 									},
-									"nested_required": {
-										Type:     types.StringType,
-										Required: true,
-									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeSet,
+								Required:    true,
 							},
 						},
 					},
@@ -1474,23 +1266,25 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_computed": {
-										Type:     types.StringType,
-										Computed: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											resource.UseStateForUnknown(),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_computed": testschema.AttributeWithStringPlanModifiers{
+											Computed: true,
+											PlanModifiers: []planmodifier.String{
+												stringplanmodifier.UseStateForUnknown(),
+											},
+										},
+										"nested_required": testschema.Attribute{
+											Type:     types.StringType,
+											Computed: true,
 										},
 									},
-									"nested_required": {
-										Type:     types.StringType,
-										Required: true,
-									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeSet,
+								Required:    true,
 							},
 						},
 					},
@@ -1548,23 +1342,25 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_computed": {
-										Type:     types.StringType,
-										Computed: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											resource.UseStateForUnknown(),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_computed": testschema.AttributeWithStringPlanModifiers{
+											Computed: true,
+											PlanModifiers: []planmodifier.String{
+												stringplanmodifier.UseStateForUnknown(),
+											},
+										},
+										"nested_required": testschema.Attribute{
+											Type:     types.StringType,
+											Computed: true,
 										},
 									},
-									"nested_required": {
-										Type:     types.StringType,
-										Required: true,
-									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeSet,
+								Required:    true,
 							},
 						},
 					},
@@ -1624,28 +1420,29 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_computed": {
-										Type:     types.StringType,
-										Computed: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											resource.UseStateForUnknown(),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_computed": testschema.AttributeWithStringPlanModifiers{
+											Computed: true,
+											PlanModifiers: []planmodifier.String{
+												stringplanmodifier.UseStateForUnknown(),
+											},
+										},
+										"nested_required": testschema.Attribute{
+											Type:     types.StringType,
+											Computed: true,
 										},
 									},
-									"nested_required": {
-										Type:     types.StringType,
-										Required: true,
-									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeSet,
+								Required:    true,
 							},
 						},
 					},
 				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"attribute-map-nested-private": {
@@ -1687,20 +1484,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithMapPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.Map{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1744,20 +1542,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithMapPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.Map{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1801,26 +1600,28 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithMapPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.Map{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
 						},
 					},
 				},
+				Private: privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifySchemaPlanResponse{
 				Plan: tfsdk.Plan{
@@ -1860,20 +1661,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithMapPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: tfsdk.AttributePlanModifiers{
+								PlanModifiers: []planmodifier.Map{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1908,20 +1710,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-									"testing": {
-										Type:     types.StringType,
-										Optional: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithObjectPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"testing": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.Object{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1951,20 +1754,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-									"testing": {
-										Type:     types.StringType,
-										Optional: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithObjectPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"testing": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.Object{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -1994,26 +1798,28 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-									"testing": {
-										Type:     types.StringType,
-										Optional: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithObjectPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"testing": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.Object{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
 						},
 					},
 				},
+				Private: privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifySchemaPlanResponse{
 				Plan: tfsdk.Plan{
@@ -2039,20 +1845,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-									"testing": {
-										Type:     types.StringType,
-										Optional: true,
-										PlanModifiers: tfsdk.AttributePlanModifiers{
-											planmodifiers.TestAttrPlanPrivateModifierGet{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttributeWithObjectPlanModifiers{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"testing": testschema.AttributeWithStringPlanModifiers{
+											Required: true,
+											PlanModifiers: []planmodifier.String{
+												planmodifiers.TestAttrPlanPrivateModifierGet{},
+											},
 										},
 									},
-								}),
+								},
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
+								PlanModifiers: []planmodifier.Object{
 									planmodifiers.TestAttrPlanPrivateModifierSet{},
 								},
 							},
@@ -2060,103 +1867,6 @@ func TestSchemaModifyPlan(t *testing.T) {
 					},
 				},
 				Private: testProviderData,
-			},
-		},
-		"attribute-plan-previous-error": {
-			req: ModifySchemaPlanRequest{
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestAttrPlanValueModifierOne{},
-									planmodifiers.TestAttrPlanValueModifierTwo{},
-								},
-							},
-						},
-					},
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestAttrPlanValueModifierOne{},
-									planmodifiers.TestAttrPlanValueModifierTwo{},
-								},
-							},
-						},
-					},
-				},
-				State: tfsdk.State{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestAttrPlanValueModifierOne{},
-									planmodifiers.TestAttrPlanValueModifierTwo{},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedResp: ModifySchemaPlanResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "MODIFIED_TWO"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestAttrPlanValueModifierOne{},
-									planmodifiers.TestAttrPlanValueModifierTwo{},
-								},
-							},
-						},
-					},
-				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"requires-replacement": {
@@ -2169,13 +1879,12 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
 								},
 							},
 						},
@@ -2189,13 +1898,12 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
 								},
 							},
 						},
@@ -2209,13 +1917,12 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
 								},
 							},
 						},
@@ -2231,11 +1938,13 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+								},
 							},
 						},
 					},
@@ -2243,100 +1952,6 @@ func TestSchemaModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test"),
 				},
-				Private: testEmptyProviderData,
-			},
-		},
-		"requires-replacement-previous-error": {
-			req: ModifySchemaPlanRequest{
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-								},
-							},
-						},
-					},
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-								},
-							},
-						},
-					},
-				},
-				State: tfsdk.State{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedResp: ModifySchemaPlanResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-				RequiresReplace: path.Paths{
-					path.Root("test"),
-				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"requires-replacement-passthrough": {
@@ -2349,14 +1964,19 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestAttrPlanValueModifierOne{},
-									resource.RequiresReplace(),
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRONE" {
+												resp.PlanValue = types.StringValue("TESTATTRTWO")
+											}
+										},
+									},
+									stringplanmodifier.RequiresReplace(),
 								},
 							},
 						},
@@ -2370,14 +1990,19 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-									planmodifiers.TestAttrPlanValueModifierOne{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRONE" {
+												resp.PlanValue = types.StringValue("TESTATTRTWO")
+											}
+										},
+									},
+									stringplanmodifier.RequiresReplace(),
 								},
 							},
 						},
@@ -2391,14 +2016,19 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-									planmodifiers.TestAttrPlanValueModifierOne{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRONE" {
+												resp.PlanValue = types.StringValue("TESTATTRTWO")
+											}
+										},
+									},
+									stringplanmodifier.RequiresReplace(),
 								},
 							},
 						},
@@ -2414,11 +2044,20 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRTWO"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											if req.PlanValue.ValueString() == "TESTATTRONE" {
+												resp.PlanValue = types.StringValue("TESTATTRTWO")
+											}
+										},
+									},
+								},
 							},
 						},
 					},
@@ -2426,7 +2065,6 @@ func TestSchemaModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test"),
 				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"requires-replacement-unset": {
@@ -2439,14 +2077,17 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-									planmodifiers.TestRequiresReplaceFalseModifier{},
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.RequiresReplace = false
+										},
+									},
 								},
 							},
 						},
@@ -2460,14 +2101,17 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-									planmodifiers.TestRequiresReplaceFalseModifier{},
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.RequiresReplace = false
+										},
+									},
 								},
 							},
 						},
@@ -2481,14 +2125,17 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-									planmodifiers.TestRequiresReplaceFalseModifier{},
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.RequiresReplace = false
+										},
+									},
 								},
 							},
 						},
@@ -2504,16 +2151,22 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.RequiresReplace = false
+										},
+									},
+								},
 							},
 						},
 					},
 				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"warnings": {
@@ -2526,14 +2179,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestWarningDiagModifier{},
-									planmodifiers.TestWarningDiagModifier{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+										},
+									},
 								},
 							},
 						},
@@ -2547,14 +2207,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestWarningDiagModifier{},
-									planmodifiers.TestWarningDiagModifier{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+										},
+									},
 								},
 							},
 						},
@@ -2568,14 +2235,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestWarningDiagModifier{},
-									planmodifiers.TestWarningDiagModifier{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+										},
+									},
 								},
 							},
 						},
@@ -2600,124 +2274,26 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestWarningDiagModifier{},
-									planmodifiers.TestWarningDiagModifier{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+										},
+									},
 								},
 							},
 						},
 					},
 				},
-				Private: testEmptyProviderData,
-			},
-		},
-		"warnings-previous-error": {
-			req: ModifySchemaPlanRequest{
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestWarningDiagModifier{},
-									planmodifiers.TestWarningDiagModifier{},
-								},
-							},
-						},
-					},
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestWarningDiagModifier{},
-									planmodifiers.TestWarningDiagModifier{},
-								},
-							},
-						},
-					},
-				},
-				State: tfsdk.State{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestWarningDiagModifier{},
-									planmodifiers.TestWarningDiagModifier{},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedResp: ModifySchemaPlanResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					// Diagnostics.Append() deduplicates, so the warning will only
-					// be here once unless the test implementation is changed to
-					// different modifiers or the modifier itself is changed.
-					diag.NewWarningDiagnostic(
-						"Warning diag",
-						"This is a warning",
-					),
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestWarningDiagModifier{},
-									planmodifiers.TestWarningDiagModifier{},
-								},
-							},
-						},
-					},
-				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"error": {
@@ -2730,14 +2306,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestErrorDiagModifier{},
-									planmodifiers.TestErrorDiagModifier{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddError("Error diag", "This is an error")
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddError("Error diag", "This is an error")
+										},
+									},
 								},
 							},
 						},
@@ -2751,14 +2334,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestErrorDiagModifier{},
-									planmodifiers.TestErrorDiagModifier{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddError("Error diag", "This is an error")
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddError("Error diag", "This is an error")
+										},
+									},
 								},
 							},
 						},
@@ -2772,14 +2362,21 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestErrorDiagModifier{},
-									planmodifiers.TestErrorDiagModifier{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddError("Error diag", "This is an error")
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddError("Error diag", "This is an error")
+										},
+									},
 								},
 							},
 						},
@@ -2801,130 +2398,32 @@ func TestSchemaModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestErrorDiagModifier{},
-									planmodifiers.TestErrorDiagModifier{},
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddError("Error diag", "This is an error")
+										},
+									},
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											resp.Diagnostics.AddError("Error diag", "This is an error")
+										},
+									},
 								},
 							},
 						},
 					},
 				},
-				Private: testEmptyProviderData,
-			},
-		},
-		"error-previous-error": {
-			req: ModifySchemaPlanRequest{
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestErrorDiagModifier{},
-									planmodifiers.TestErrorDiagModifier{},
-								},
-							},
-						},
-					},
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestErrorDiagModifier{},
-									planmodifiers.TestErrorDiagModifier{},
-								},
-							},
-						},
-					},
-				},
-				State: tfsdk.State{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestErrorDiagModifier{},
-									planmodifiers.TestErrorDiagModifier{},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedResp: ModifySchemaPlanResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Previous error diag",
-						"This was a previous error",
-					),
-					diag.NewErrorDiagnostic(
-						"Error diag",
-						"This is an error",
-					),
-				},
-				Plan: tfsdk.Plan{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "TESTDIAG"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
-								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									planmodifiers.TestErrorDiagModifier{},
-									planmodifiers.TestErrorDiagModifier{},
-								},
-							},
-						},
-					},
-				},
-				Private: testEmptyProviderData,
 			},
 		},
 	}
 
 	for name, tc := range testCases {
 		name, tc := name, tc
-		if name != "attribute-set-nested-usestateforunknown" {
-			continue
-		}
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

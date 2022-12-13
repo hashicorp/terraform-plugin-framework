@@ -29,73 +29,6 @@ func TestAttributeValidate(t *testing.T) {
 		req  tfsdk.ValidateAttributeRequest
 		resp tfsdk.ValidateAttributeResponse
 	}{
-		"no-attributes-or-type": {
-			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.Root("test"),
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Required: true,
-							},
-						},
-					},
-				},
-			},
-			resp: tfsdk.ValidateAttributeResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("test"),
-						"Invalid Attribute Definition",
-						"Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
-					),
-				},
-			},
-		},
-		"both-attributes-and-type": {
-			req: tfsdk.ValidateAttributeRequest{
-				AttributePath: path.Root("test"),
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"test": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"test": tftypes.NewValue(tftypes.String, "testvalue"),
-					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-									"testing": {
-										Type:     types.StringType,
-										Optional: true,
-									},
-								}),
-								Type:     types.StringType,
-								Required: true,
-							},
-						},
-					},
-				},
-			},
-			resp: tfsdk.ValidateAttributeResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("test"),
-						"Invalid Attribute Definition",
-						"Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
-					),
-				},
-			},
-		},
 		"missing-required-optional-and-computed": {
 			req: tfsdk.ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -107,9 +40,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type: types.StringType,
 							},
 						},
@@ -137,9 +70,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.ListType{ElemType: types.StringType},
 								Required: true,
 							},
@@ -169,9 +102,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, nil),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Computed: true,
 								Type:     types.StringType,
 							},
@@ -192,9 +125,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Computed: true,
 								Type:     types.StringType,
 							},
@@ -224,9 +157,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Computed: true,
 								Type:     types.StringType,
 							},
@@ -256,9 +189,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, nil),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Computed: true,
 								Optional: true,
 								Type:     types.StringType,
@@ -280,9 +213,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Computed: true,
 								Optional: true,
 								Type:     types.StringType,
@@ -304,9 +237,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Computed: true,
 								Optional: true,
 								Type:     types.StringType,
@@ -328,9 +261,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, nil),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Required: true,
 								Type:     types.StringType,
 							},
@@ -360,9 +293,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Required: true,
 								Type:     types.StringType,
 							},
@@ -383,9 +316,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Required: true,
 								Type:     types.StringType,
 							},
@@ -406,9 +339,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -429,9 +362,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:               types.StringType,
 								Optional:           true,
 								DeprecationMessage: "Use something else instead.",
@@ -461,9 +394,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, nil),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:               types.StringType,
 								Optional:           true,
 								DeprecationMessage: "Use something else instead.",
@@ -485,9 +418,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:               types.StringType,
 								Optional:           true,
 								DeprecationMessage: "Use something else instead.",
@@ -509,14 +442,21 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringValidators{
 								Required: true,
-								Validators: []tfsdk.AttributeValidator{
-									testWarningAttributeValidator{},
-									testWarningAttributeValidator{},
+								Validators: []validator.String{
+									testvalidator.String{
+										ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+											resp.Diagnostics.Append(testWarningDiagnostic1)
+										},
+									},
+									testvalidator.String{
+										ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+											resp.Diagnostics.Append(testWarningDiagnostic2)
+										},
+									},
 								},
 							},
 						},
@@ -541,14 +481,21 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringValidators{
 								Required: true,
-								Validators: []tfsdk.AttributeValidator{
-									testErrorAttributeValidator{},
-									testErrorAttributeValidator{},
+								Validators: []validator.String{
+									testvalidator.String{
+										ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+											resp.Diagnostics.Append(testErrorDiagnostic1)
+										},
+									},
+									testvalidator.String{
+										ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+											resp.Diagnostics.Append(testErrorDiagnostic2)
+										},
+									},
 								},
 							},
 						},
@@ -573,9 +520,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     testtypes.StringTypeWithValidateError{},
 								Required: true,
 							},
@@ -600,9 +547,9 @@ func TestAttributeValidate(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
 								Type:     testtypes.StringTypeWithValidateWarning{},
 								Required: true,
 							},
@@ -656,16 +603,19 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.Attribute{
+											Type:     types.StringType,
+											Required: true,
+										},
 									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeList,
+								Required:    true,
 							},
 						},
 					},
@@ -713,16 +663,26 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: testtypes.ListNestedAttributesCustomType{
-									NestedAttributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-										"nested_attr": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.Attribute{
 											Type:     types.StringType,
 											Required: true,
 										},
-									}),
+									},
+								},
+								NestingMode: fwschema.NestingModeList,
+								Type: testtypes.ListNestedAttributesCustomTypeType{
+									ListType: types.ListType{
+										ElemType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
 								},
 								Required: true,
 							},
@@ -772,19 +732,25 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										Validators: []tfsdk.AttributeValidator{
-											testErrorAttributeValidator{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
+											Required: true,
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														resp.Diagnostics.Append(testErrorDiagnostic1)
+													},
+												},
+											},
 										},
 									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeList,
+								Required:    true,
 							},
 						},
 					},
@@ -836,19 +802,32 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: testtypes.ListNestedAttributesCustomType{
-									NestedAttributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-										"nested_attr": {
-											Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
 											Required: true,
-											Validators: []tfsdk.AttributeValidator{
-												testErrorAttributeValidator{},
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														resp.Diagnostics.Append(testErrorDiagnostic1)
+													},
+												},
 											},
 										},
-									}),
+									},
+								},
+								NestingMode: fwschema.NestingModeList,
+								Type: testtypes.ListNestedAttributesCustomTypeType{
+									ListType: types.ListType{
+										ElemType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
 								},
 								Required: true,
 							},
@@ -902,16 +881,19 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.Attribute{
+											Type:     types.StringType,
+											Required: true,
+										},
 									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeMap,
+								Required:    true,
 							},
 						},
 					},
@@ -959,16 +941,26 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: testtypes.MapNestedAttributesCustomType{
-									NestedAttributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-										"nested_attr": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.Attribute{
 											Type:     types.StringType,
 											Required: true,
 										},
-									}),
+									},
+								},
+								NestingMode: fwschema.NestingModeMap,
+								Type: testtypes.MapNestedAttributesCustomTypeType{
+									MapType: types.MapType{
+										ElemType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
 								},
 								Required: true,
 							},
@@ -1018,19 +1010,25 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										Validators: []tfsdk.AttributeValidator{
-											testErrorAttributeValidator{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
+											Required: true,
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														resp.Diagnostics.Append(testErrorDiagnostic1)
+													},
+												},
+											},
 										},
 									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeMap,
+								Required:    true,
 							},
 						},
 					},
@@ -1082,19 +1080,32 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: testtypes.MapNestedAttributesCustomType{
-									NestedAttributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-										"nested_attr": {
-											Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
 											Required: true,
-											Validators: []tfsdk.AttributeValidator{
-												testErrorAttributeValidator{},
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														resp.Diagnostics.Append(testErrorDiagnostic1)
+													},
+												},
 											},
 										},
-									}),
+									},
+								},
+								NestingMode: fwschema.NestingModeMap,
+								Type: testtypes.MapNestedAttributesCustomTypeType{
+									MapType: types.MapType{
+										ElemType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
 								},
 								Required: true,
 							},
@@ -1148,16 +1159,19 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.Attribute{
+											Type:     types.StringType,
+											Required: true,
+										},
 									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeSet,
+								Required:    true,
 							},
 						},
 					},
@@ -1205,16 +1219,26 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: testtypes.SetNestedAttributesCustomType{
-									NestedAttributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-										"nested_attr": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.Attribute{
 											Type:     types.StringType,
 											Required: true,
 										},
-									}),
+									},
+								},
+								NestingMode: fwschema.NestingModeSet,
+								Type: testtypes.SetNestedAttributesCustomTypeType{
+									SetType: types.SetType{
+										ElemType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
 								},
 								Required: true,
 							},
@@ -1264,19 +1288,25 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										Validators: []tfsdk.AttributeValidator{
-											testErrorAttributeValidator{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
+											Required: true,
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														resp.Diagnostics.Append(testErrorDiagnostic1)
+													},
+												},
+											},
 										},
 									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeSet,
+								Required:    true,
 							},
 						},
 					},
@@ -1328,19 +1358,32 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: testtypes.SetNestedAttributesCustomType{
-									NestedAttributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-										"nested_attr": {
-											Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
 											Required: true,
-											Validators: []tfsdk.AttributeValidator{
-												testErrorAttributeValidator{},
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														resp.Diagnostics.Append(testErrorDiagnostic1)
+													},
+												},
 											},
 										},
-									}),
+									},
+								},
+								NestingMode: fwschema.NestingModeSet,
+								Type: testtypes.SetNestedAttributesCustomTypeType{
+									SetType: types.SetType{
+										ElemType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
 								},
 								Required: true,
 							},
@@ -1381,16 +1424,19 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.Attribute{
+											Type:     types.StringType,
+											Required: true,
+										},
 									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeSingle,
+								Required:    true,
 							},
 						},
 					},
@@ -1425,18 +1471,26 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: testtypes.SingleNestedAttributesCustomType{
-									NestedAttributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-										"nested_attr": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.Attribute{
 											Type:     types.StringType,
 											Required: true,
 										},
-									}),
+									},
 								},
-								Required: true,
+								NestingMode: fwschema.NestingModeSingle,
+								Required:    true,
+								Type: testtypes.SingleNestedAttributesCustomTypeType{
+									ObjectType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_attr": types.StringType,
+										},
+									},
+								},
 							},
 						},
 					},
@@ -1470,19 +1524,25 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-									"nested_attr": {
-										Type:     types.StringType,
-										Required: true,
-										Validators: []tfsdk.AttributeValidator{
-											testErrorAttributeValidator{},
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
+											Required: true,
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														resp.Diagnostics.Append(testErrorDiagnostic1)
+													},
+												},
+											},
 										},
 									},
-								}),
-								Required: true,
+								},
+								NestingMode: fwschema.NestingModeSingle,
+								Required:    true,
 							},
 						},
 					},
@@ -1520,21 +1580,32 @@ func TestAttributeValidate(t *testing.T) {
 							),
 						},
 					),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Attributes: testtypes.SingleNestedAttributesCustomType{
-									NestedAttributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-										"nested_attr": {
-											Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.NestedAttribute{
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
 											Required: true,
-											Validators: []tfsdk.AttributeValidator{
-												testErrorAttributeValidator{},
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														resp.Diagnostics.Append(testErrorDiagnostic1)
+													},
+												},
 											},
 										},
-									}),
+									},
 								},
-								Required: true,
+								NestingMode: fwschema.NestingModeSingle,
+								Required:    true,
+								Type: testtypes.SingleNestedAttributesCustomTypeType{
+									ObjectType: types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_attr": types.StringType,
+										},
+									},
+								},
 							},
 						},
 					},
@@ -3787,43 +3858,3 @@ var (
 		"This is a warning.",
 	)
 )
-
-type testErrorAttributeValidator struct {
-	tfsdk.AttributeValidator
-}
-
-func (v testErrorAttributeValidator) Description(ctx context.Context) string {
-	return "validation that always returns an error"
-}
-
-func (v testErrorAttributeValidator) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
-}
-
-func (v testErrorAttributeValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	if len(resp.Diagnostics) == 0 {
-		resp.Diagnostics.Append(testErrorDiagnostic1)
-	} else {
-		resp.Diagnostics.Append(testErrorDiagnostic2)
-	}
-}
-
-type testWarningAttributeValidator struct {
-	tfsdk.AttributeValidator
-}
-
-func (v testWarningAttributeValidator) Description(ctx context.Context) string {
-	return "validation that always returns a warning"
-}
-
-func (v testWarningAttributeValidator) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
-}
-
-func (v testWarningAttributeValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	if len(resp.Diagnostics) == 0 {
-		resp.Diagnostics.Append(testWarningDiagnostic1)
-	} else {
-		resp.Diagnostics.Append(testWarningDiagnostic2)
-	}
-}

@@ -6,10 +6,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
+	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -33,19 +36,17 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-multiple-data-sources": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source_1": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source_1": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
 								Computed: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
-					"test_data_source_2": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source_2": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
 								Computed: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -82,11 +83,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-computed": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
 								Computed: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -112,12 +112,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-deprecated": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
 								DeprecationMessage: "deprecated",
 								Optional:           true,
-								Type:               types.BoolType,
 							},
 						},
 					},
@@ -144,11 +143,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-optional": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
 								Optional: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -174,12 +172,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-optional-computed": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
 								Computed: true,
 								Optional: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -206,11 +203,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-required": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
 								Required: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -236,12 +232,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-sensitive": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
 								Computed:  true,
 								Sensitive: true,
-								Type:      types.BoolType,
 							},
 						},
 					},
@@ -268,11 +263,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-bool": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
 								Required: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -298,11 +292,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-float64": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.Float64Attribute{
 								Required: true,
-								Type:     types.Float64Type,
 							},
 						},
 					},
@@ -328,11 +321,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-int64": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.Int64Attribute{
 								Required: true,
-								Type:     types.Int64Type,
 							},
 						},
 					},
@@ -358,14 +350,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-list-list-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.ListAttribute{
 								Required: true,
-								Type: types.ListType{
-									ElemType: types.ListType{
-										ElemType: types.StringType,
-									},
+								ElementType: types.ListType{
+									ElemType: types.StringType,
 								},
 							},
 						},
@@ -396,15 +386,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-list-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-									"test_nested_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.ListNestedAttribute{
+								NestedObject: datasourceschema.NestedAttributeObject{
+									Attributes: map[string]datasourceschema.Attribute{
+										"test_nested_attribute": datasourceschema.StringAttribute{
+											Required: true,
+										},
 									},
-								}),
+								},
 								Required: true,
 							},
 						},
@@ -440,15 +431,13 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-list-object": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.ListAttribute{
 								Required: true,
-								Type: types.ListType{
-									ElemType: types.ObjectType{
-										AttrTypes: map[string]attr.Type{
-											"test_object_attribute": types.StringType,
-										},
+								ElementType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"test_object_attribute": types.StringType,
 									},
 								},
 							},
@@ -482,13 +471,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-list-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Required: true,
-								Type: types.ListType{
-									ElemType: types.StringType,
-								},
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.ListAttribute{
+								Required:    true,
+								ElementType: types.StringType,
 							},
 						},
 					},
@@ -516,15 +503,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-map-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-									"test_nested_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.MapNestedAttribute{
+								NestedObject: datasourceschema.NestedAttributeObject{
+									Attributes: map[string]datasourceschema.Attribute{
+										"test_nested_attribute": datasourceschema.StringAttribute{
+											Required: true,
+										},
 									},
-								}),
+								},
 								Required: true,
 							},
 						},
@@ -560,13 +548,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-map-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Required: true,
-								Type: types.MapType{
-									ElemType: types.StringType,
-								},
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.MapAttribute{
+								Required:    true,
+								ElementType: types.StringType,
 							},
 						},
 					},
@@ -594,11 +580,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-number": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.NumberAttribute{
 								Required: true,
-								Type:     types.NumberType,
 							},
 						},
 					},
@@ -624,14 +609,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-object": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.ObjectAttribute{
 								Required: true,
-								Type: types.ObjectType{
-									AttrTypes: map[string]attr.Type{
-										"test_object_attribute": types.StringType,
-									},
+								AttributeTypes: map[string]attr.Type{
+									"test_object_attribute": types.StringType,
 								},
 							},
 						},
@@ -662,15 +645,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-set-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"test_nested_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.SetNestedAttribute{
+								NestedObject: datasourceschema.NestedAttributeObject{
+									Attributes: map[string]datasourceschema.Attribute{
+										"test_nested_attribute": datasourceschema.StringAttribute{
+											Required: true,
+										},
 									},
-								}),
+								},
 								Required: true,
 							},
 						},
@@ -706,15 +690,13 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-set-object": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.SetAttribute{
 								Required: true,
-								Type: types.SetType{
-									ElemType: types.ObjectType{
-										AttrTypes: map[string]attr.Type{
-											"test_object_attribute": types.StringType,
-										},
+								ElementType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"test_object_attribute": types.StringType,
 									},
 								},
 							},
@@ -748,14 +730,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-set-set-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.SetAttribute{
 								Required: true,
-								Type: types.SetType{
-									ElemType: types.SetType{
-										ElemType: types.StringType,
-									},
+								ElementType: types.SetType{
+									ElemType: types.StringType,
 								},
 							},
 						},
@@ -786,13 +766,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-set-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Required: true,
-								Type: types.SetType{
-									ElemType: types.StringType,
-								},
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.SetAttribute{
+								Required:    true,
+								ElementType: types.StringType,
 							},
 						},
 					},
@@ -820,15 +798,14 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-single-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-									"test_nested_attribute": {
-										Type:     types.StringType,
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.SingleNestedAttribute{
+								Attributes: map[string]datasourceschema.Attribute{
+									"test_nested_attribute": datasourceschema.StringAttribute{
 										Required: true,
 									},
-								}),
+								},
 								Required: true,
 							},
 						},
@@ -864,11 +841,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-attribute-type-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.StringAttribute{
 								Required: true,
-								Type:     types.StringType,
 							},
 						},
 					},
@@ -894,16 +870,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-block-list": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Blocks: map[string]tfsdk.Block{
-							"test_block": {
-								Attributes: map[string]tfsdk.Attribute{
-									"test_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_data_source": datasourceschema.Schema{
+						Blocks: map[string]datasourceschema.Block{
+							"test_block": datasourceschema.ListNestedBlock{
+								NestedObject: datasourceschema.NestedBlockObject{
+									Attributes: map[string]datasourceschema.Attribute{
+										"test_attribute": datasourceschema.StringAttribute{
+											Required: true,
+										},
 									},
 								},
-								NestingMode: tfsdk.BlockNestingModeList,
 							},
 						},
 					},
@@ -937,16 +913,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-block-set": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Blocks: map[string]tfsdk.Block{
-							"test_block": {
-								Attributes: map[string]tfsdk.Attribute{
-									"test_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_data_source": datasourceschema.Schema{
+						Blocks: map[string]datasourceschema.Block{
+							"test_block": datasourceschema.SetNestedBlock{
+								NestedObject: datasourceschema.NestedBlockObject{
+									Attributes: map[string]datasourceschema.Attribute{
+										"test_attribute": datasourceschema.StringAttribute{
+											Required: true,
+										},
 									},
 								},
-								NestingMode: tfsdk.BlockNestingModeSet,
 							},
 						},
 					},
@@ -980,16 +956,14 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"data-source-block-single": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Blocks: map[string]tfsdk.Block{
-							"test_block": {
-								Attributes: map[string]tfsdk.Attribute{
-									"test_attribute": {
-										Type:     types.StringType,
+					"test_data_source": datasourceschema.Schema{
+						Blocks: map[string]datasourceschema.Block{
+							"test_block": datasourceschema.SingleNestedBlock{
+								Attributes: map[string]datasourceschema.Attribute{
+									"test_attribute": datasourceschema.StringAttribute{
 										Required: true,
 									},
 								},
-								NestingMode: tfsdk.BlockNestingModeSingle,
 							},
 						},
 					},
@@ -1020,59 +994,13 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
-		"data-source-version": {
-			input: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]fwschema.Schema{
-					"test_data_source": &tfsdk.Schema{
-						Version: 123,
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{
-					"test_data_source": {
-						Block:   &tfprotov6.SchemaBlock{},
-						Version: 123,
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
-		"provider-attribute-computed": {
-			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Computed: true,
-							Type:     types.BoolType,
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				Provider: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Computed: true,
-								Name:     "test_attribute",
-								Type:     tftypes.Bool,
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
 		"provider-attribute-deprecated": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.BoolAttribute{
 							DeprecationMessage: "deprecated",
 							Optional:           true,
-							Type:               types.BoolType,
 						},
 					},
 				},
@@ -1096,11 +1024,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-optional": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.BoolAttribute{
 							Optional: true,
-							Type:     types.BoolType,
 						},
 					},
 				},
@@ -1111,35 +1038,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
 							{
-								Name:     "test_attribute",
-								Optional: true,
-								Type:     tftypes.Bool,
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
-		"provider-attribute-optional-computed": {
-			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Computed: true,
-							Optional: true,
-							Type:     types.BoolType,
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				Provider: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Computed: true,
 								Name:     "test_attribute",
 								Optional: true,
 								Type:     tftypes.Bool,
@@ -1152,11 +1050,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-required": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.BoolAttribute{
 							Required: true,
-							Type:     types.BoolType,
 						},
 					},
 				},
@@ -1179,12 +1076,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-sensitive": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Computed:  true,
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.BoolAttribute{
+							Optional:  true,
 							Sensitive: true,
-							Type:      types.BoolType,
 						},
 					},
 				},
@@ -1195,8 +1091,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
 							{
-								Computed:  true,
 								Name:      "test_attribute",
+								Optional:  true,
 								Sensitive: true,
 								Type:      tftypes.Bool,
 							},
@@ -1208,11 +1104,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-bool": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.BoolAttribute{
 							Required: true,
-							Type:     types.BoolType,
 						},
 					},
 				},
@@ -1235,11 +1130,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-float64": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.Float64Attribute{
 							Required: true,
-							Type:     types.Float64Type,
 						},
 					},
 				},
@@ -1262,11 +1156,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-int64": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.Int64Attribute{
 							Required: true,
-							Type:     types.Int64Type,
 						},
 					},
 				},
@@ -1289,14 +1182,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-list-list-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.ListAttribute{
 							Required: true,
-							Type: types.ListType{
-								ElemType: types.ListType{
-									ElemType: types.StringType,
-								},
+							ElementType: types.ListType{
+								ElemType: types.StringType,
 							},
 						},
 					},
@@ -1324,15 +1215,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-list-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"test_nested_attribute": {
-									Type:     types.StringType,
-									Required: true,
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.ListNestedAttribute{
+							NestedObject: providerschema.NestedAttributeObject{
+								Attributes: map[string]providerschema.Attribute{
+									"test_nested_attribute": providerschema.StringAttribute{
+										Required: true,
+									},
 								},
-							}),
+							},
 							Required: true,
 						},
 					},
@@ -1365,15 +1257,13 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-list-object": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.ListAttribute{
 							Required: true,
-							Type: types.ListType{
-								ElemType: types.ObjectType{
-									AttrTypes: map[string]attr.Type{
-										"test_object_attribute": types.StringType,
-									},
+							ElementType: types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"test_object_attribute": types.StringType,
 								},
 							},
 						},
@@ -1404,13 +1294,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-list-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Required: true,
-							Type: types.ListType{
-								ElemType: types.StringType,
-							},
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.ListAttribute{
+							Required:    true,
+							ElementType: types.StringType,
 						},
 					},
 				},
@@ -1435,15 +1323,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-map-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"test_nested_attribute": {
-									Type:     types.StringType,
-									Required: true,
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.MapNestedAttribute{
+							NestedObject: providerschema.NestedAttributeObject{
+								Attributes: map[string]providerschema.Attribute{
+									"test_nested_attribute": providerschema.StringAttribute{
+										Required: true,
+									},
 								},
-							}),
+							},
 							Required: true,
 						},
 					},
@@ -1476,13 +1365,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-map-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Required: true,
-							Type: types.MapType{
-								ElemType: types.StringType,
-							},
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.MapAttribute{
+							Required:    true,
+							ElementType: types.StringType,
 						},
 					},
 				},
@@ -1507,11 +1394,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-number": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.NumberAttribute{
 							Required: true,
-							Type:     types.NumberType,
 						},
 					},
 				},
@@ -1534,14 +1420,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-object": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.ObjectAttribute{
 							Required: true,
-							Type: types.ObjectType{
-								AttrTypes: map[string]attr.Type{
-									"test_object_attribute": types.StringType,
-								},
+							AttributeTypes: map[string]attr.Type{
+								"test_object_attribute": types.StringType,
 							},
 						},
 					},
@@ -1569,15 +1453,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-set-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"test_nested_attribute": {
-									Type:     types.StringType,
-									Required: true,
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.SetNestedAttribute{
+							NestedObject: providerschema.NestedAttributeObject{
+								Attributes: map[string]providerschema.Attribute{
+									"test_nested_attribute": providerschema.StringAttribute{
+										Required: true,
+									},
 								},
-							}),
+							},
 							Required: true,
 						},
 					},
@@ -1610,15 +1495,13 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-set-object": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.SetAttribute{
 							Required: true,
-							Type: types.SetType{
-								ElemType: types.ObjectType{
-									AttrTypes: map[string]attr.Type{
-										"test_object_attribute": types.StringType,
-									},
+							ElementType: types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"test_object_attribute": types.StringType,
 								},
 							},
 						},
@@ -1649,14 +1532,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-set-set-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.SetAttribute{
 							Required: true,
-							Type: types.SetType{
-								ElemType: types.SetType{
-									ElemType: types.StringType,
-								},
+							ElementType: types.SetType{
+								ElemType: types.StringType,
 							},
 						},
 					},
@@ -1684,13 +1565,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-set-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Required: true,
-							Type: types.SetType{
-								ElemType: types.StringType,
-							},
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.SetAttribute{
+							Required:    true,
+							ElementType: types.StringType,
 						},
 					},
 				},
@@ -1715,15 +1594,14 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-single-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"test_nested_attribute": {
-									Type:     types.StringType,
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.SingleNestedAttribute{
+							Attributes: map[string]providerschema.Attribute{
+								"test_nested_attribute": providerschema.StringAttribute{
 									Required: true,
 								},
-							}),
+							},
 							Required: true,
 						},
 					},
@@ -1756,11 +1634,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-attribute-type-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.StringAttribute{
 							Required: true,
-							Type:     types.StringType,
 						},
 					},
 				},
@@ -1783,16 +1660,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-block-list": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"test_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"test_attribute": {
-									Type:     types.StringType,
-									Required: true,
+				Provider: providerschema.Schema{
+					Blocks: map[string]providerschema.Block{
+						"test_block": providerschema.ListNestedBlock{
+							NestedObject: providerschema.NestedBlockObject{
+								Attributes: map[string]providerschema.Attribute{
+									"test_attribute": providerschema.StringAttribute{
+										Required: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeList,
 						},
 					},
 				},
@@ -1823,16 +1700,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-block-set": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"test_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"test_attribute": {
-									Type:     types.StringType,
-									Required: true,
+				Provider: providerschema.Schema{
+					Blocks: map[string]providerschema.Block{
+						"test_block": providerschema.SetNestedBlock{
+							NestedObject: providerschema.NestedBlockObject{
+								Attributes: map[string]providerschema.Attribute{
+									"test_attribute": providerschema.StringAttribute{
+										Required: true,
+									},
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSet,
 						},
 					},
 				},
@@ -1863,16 +1740,14 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-block-single": {
 			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"test_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"test_attribute": {
-									Type:     types.StringType,
+				Provider: providerschema.Schema{
+					Blocks: map[string]providerschema.Block{
+						"test_block": providerschema.SingleNestedBlock{
+							Attributes: map[string]providerschema.Attribute{
+								"test_attribute": providerschema.StringAttribute{
 									Required: true,
 								},
 							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
 						},
 					},
 				},
@@ -1901,84 +1776,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
-		"provider-version": {
-			input: &fwserver.GetProviderSchemaResponse{
-				Provider: &tfsdk.Schema{
-					Version: 123,
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				Provider: &tfprotov6.Schema{
-					Block:   &tfprotov6.SchemaBlock{},
-					Version: 123,
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
-		"provider-meta-attribute-computed": {
-			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Computed: true,
-							Type:     types.BoolType,
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				ProviderMeta: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Computed: true,
-								Name:     "test_attribute",
-								Type:     tftypes.Bool,
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
-		"provider-meta-attribute-deprecated": {
-			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							DeprecationMessage: "deprecated",
-							Optional:           true,
-							Type:               types.BoolType,
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				ProviderMeta: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Deprecated: true,
-								Name:       "test_attribute",
-								Optional:   true,
-								Type:       tftypes.Bool,
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
 		"provider-meta-attribute-optional": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.BoolAttribute{
 							Optional: true,
-							Type:     types.BoolType,
 						},
 					},
 				},
@@ -1989,35 +1792,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
 							{
-								Name:     "test_attribute",
-								Optional: true,
-								Type:     tftypes.Bool,
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
-		"provider-meta-attribute-optional-computed": {
-			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Computed: true,
-							Optional: true,
-							Type:     types.BoolType,
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				ProviderMeta: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Computed: true,
 								Name:     "test_attribute",
 								Optional: true,
 								Type:     tftypes.Bool,
@@ -2030,11 +1804,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-required": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.BoolAttribute{
 							Required: true,
-							Type:     types.BoolType,
 						},
 					},
 				},
@@ -2055,42 +1828,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
-		"provider-meta-attribute-sensitive": {
-			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Computed:  true,
-							Sensitive: true,
-							Type:      types.BoolType,
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				ProviderMeta: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Computed:  true,
-								Name:      "test_attribute",
-								Sensitive: true,
-								Type:      tftypes.Bool,
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
 		"provider-meta-attribute-type-bool": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.BoolAttribute{
 							Required: true,
-							Type:     types.BoolType,
 						},
 					},
 				},
@@ -2113,11 +1856,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-float64": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.Float64Attribute{
 							Required: true,
-							Type:     types.Float64Type,
 						},
 					},
 				},
@@ -2140,11 +1882,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-int64": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.Int64Attribute{
 							Required: true,
-							Type:     types.Int64Type,
 						},
 					},
 				},
@@ -2167,14 +1908,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-list-list-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.ListAttribute{
 							Required: true,
-							Type: types.ListType{
-								ElemType: types.ListType{
-									ElemType: types.StringType,
-								},
+							ElementType: types.ListType{
+								ElemType: types.StringType,
 							},
 						},
 					},
@@ -2202,15 +1941,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-list-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"test_nested_attribute": {
-									Type:     types.StringType,
-									Required: true,
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.ListNestedAttribute{
+							NestedObject: metaschema.NestedAttributeObject{
+								Attributes: map[string]metaschema.Attribute{
+									"test_nested_attribute": metaschema.StringAttribute{
+										Required: true,
+									},
 								},
-							}),
+							},
 							Required: true,
 						},
 					},
@@ -2243,15 +1983,13 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-list-object": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.ListAttribute{
 							Required: true,
-							Type: types.ListType{
-								ElemType: types.ObjectType{
-									AttrTypes: map[string]attr.Type{
-										"test_nested_attribute": types.StringType,
-									},
+							ElementType: types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"test_nested_attribute": types.StringType,
 								},
 							},
 						},
@@ -2282,13 +2020,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-list-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Required: true,
-							Type: types.ListType{
-								ElemType: types.StringType,
-							},
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.ListAttribute{
+							Required:    true,
+							ElementType: types.StringType,
 						},
 					},
 				},
@@ -2313,15 +2049,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-map-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"test_nested_attribute": {
-									Type:     types.StringType,
-									Required: true,
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.MapNestedAttribute{
+							NestedObject: metaschema.NestedAttributeObject{
+								Attributes: map[string]metaschema.Attribute{
+									"test_nested_attribute": metaschema.StringAttribute{
+										Required: true,
+									},
 								},
-							}),
+							},
 							Required: true,
 						},
 					},
@@ -2354,13 +2091,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-map-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Required: true,
-							Type: types.MapType{
-								ElemType: types.StringType,
-							},
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.MapAttribute{
+							Required:    true,
+							ElementType: types.StringType,
 						},
 					},
 				},
@@ -2385,11 +2120,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-number": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.NumberAttribute{
 							Required: true,
-							Type:     types.NumberType,
 						},
 					},
 				},
@@ -2412,14 +2146,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-object": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.ObjectAttribute{
 							Required: true,
-							Type: types.ObjectType{
-								AttrTypes: map[string]attr.Type{
-									"test_object_attribute": types.StringType,
-								},
+							AttributeTypes: map[string]attr.Type{
+								"test_object_attribute": types.StringType,
 							},
 						},
 					},
@@ -2447,15 +2179,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-set-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"test_nested_attribute": {
-									Type:     types.StringType,
-									Required: true,
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.SetNestedAttribute{
+							NestedObject: metaschema.NestedAttributeObject{
+								Attributes: map[string]metaschema.Attribute{
+									"test_nested_attribute": metaschema.StringAttribute{
+										Required: true,
+									},
 								},
-							}),
+							},
 							Required: true,
 						},
 					},
@@ -2488,15 +2221,13 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-set-object": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.SetAttribute{
 							Required: true,
-							Type: types.SetType{
-								ElemType: types.ObjectType{
-									AttrTypes: map[string]attr.Type{
-										"test_object_attribute": types.StringType,
-									},
+							ElementType: types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"test_object_attribute": types.StringType,
 								},
 							},
 						},
@@ -2527,14 +2258,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-set-set-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.SetAttribute{
 							Required: true,
-							Type: types.SetType{
-								ElemType: types.SetType{
-									ElemType: types.StringType,
-								},
+							ElementType: types.SetType{
+								ElemType: types.StringType,
 							},
 						},
 					},
@@ -2562,13 +2291,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-set-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Required: true,
-							Type: types.SetType{
-								ElemType: types.StringType,
-							},
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.SetAttribute{
+							Required:    true,
+							ElementType: types.StringType,
 						},
 					},
 				},
@@ -2593,15 +2320,14 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-single-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
-							Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-								"test_nested_attribute": {
-									Type:     types.StringType,
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.SingleNestedAttribute{
+							Attributes: map[string]metaschema.Attribute{
+								"test_nested_attribute": metaschema.StringAttribute{
 									Required: true,
 								},
-							}),
+							},
 							Required: true,
 						},
 					},
@@ -2634,11 +2360,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"provider-meta-attribute-type-string": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test_attribute": {
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.StringAttribute{
 							Required: true,
-							Type:     types.StringType,
 						},
 					},
 				},
@@ -2659,157 +2384,20 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
-		"provider-meta-block-list": {
-			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"test_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"test_attribute": {
-									Type:     types.StringType,
-									Required: true,
-								},
-							},
-							NestingMode: tfsdk.BlockNestingModeList,
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				ProviderMeta: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						BlockTypes: []*tfprotov6.SchemaNestedBlock{
-							{
-								Block: &tfprotov6.SchemaBlock{
-									Attributes: []*tfprotov6.SchemaAttribute{
-										{
-											Name:     "test_attribute",
-											Type:     tftypes.String,
-											Required: true,
-										},
-									},
-								},
-								Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
-								TypeName: "test_block",
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
-		"provider-meta-block-set": {
-			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"test_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"test_attribute": {
-									Type:     types.StringType,
-									Required: true,
-								},
-							},
-							NestingMode: tfsdk.BlockNestingModeSet,
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				ProviderMeta: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						BlockTypes: []*tfprotov6.SchemaNestedBlock{
-							{
-								Block: &tfprotov6.SchemaBlock{
-									Attributes: []*tfprotov6.SchemaAttribute{
-										{
-											Name:     "test_attribute",
-											Type:     tftypes.String,
-											Required: true,
-										},
-									},
-								},
-								Nesting:  tfprotov6.SchemaNestedBlockNestingModeSet,
-								TypeName: "test_block",
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
-		"provider-meta-block-single": {
-			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Blocks: map[string]tfsdk.Block{
-						"test_block": {
-							Attributes: map[string]tfsdk.Attribute{
-								"test_attribute": {
-									Type:     types.StringType,
-									Required: true,
-								},
-							},
-							NestingMode: tfsdk.BlockNestingModeSingle,
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				ProviderMeta: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						BlockTypes: []*tfprotov6.SchemaNestedBlock{
-							{
-								Block: &tfprotov6.SchemaBlock{
-									Attributes: []*tfprotov6.SchemaAttribute{
-										{
-											Name:     "test_attribute",
-											Type:     tftypes.String,
-											Required: true,
-										},
-									},
-								},
-								Nesting:  tfprotov6.SchemaNestedBlockNestingModeSingle,
-								TypeName: "test_block",
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
-		"provider-meta-version": {
-			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: &tfsdk.Schema{
-					Version: 123,
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				ProviderMeta: &tfprotov6.Schema{
-					Block:   &tfprotov6.SchemaBlock{},
-					Version: 123,
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
 		"resource-multiple-resources": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource_1": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource_1": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
 								Computed: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
-					"test_resource_2": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource_2": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
 								Computed: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -2846,11 +2434,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-computed": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
 								Computed: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -2876,12 +2463,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-deprecated": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
 								DeprecationMessage: "deprecated",
 								Optional:           true,
-								Type:               types.BoolType,
 							},
 						},
 					},
@@ -2908,11 +2494,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-optional": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
 								Optional: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -2938,12 +2523,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-optional-computed": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
 								Computed: true,
 								Optional: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -2970,11 +2554,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-required": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
 								Required: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -3000,12 +2583,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-sensitive": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
 								Computed:  true,
 								Sensitive: true,
-								Type:      types.BoolType,
 							},
 						},
 					},
@@ -3032,11 +2614,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-bool": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
 								Required: true,
-								Type:     types.BoolType,
 							},
 						},
 					},
@@ -3062,11 +2643,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-float64": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.Float64Attribute{
 								Required: true,
-								Type:     types.Float64Type,
 							},
 						},
 					},
@@ -3092,11 +2672,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-int64": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.Int64Attribute{
 								Required: true,
-								Type:     types.Int64Type,
 							},
 						},
 					},
@@ -3122,14 +2701,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-list-list-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.ListAttribute{
 								Required: true,
-								Type: types.ListType{
-									ElemType: types.ListType{
-										ElemType: types.StringType,
-									},
+								ElementType: types.ListType{
+									ElemType: types.StringType,
 								},
 							},
 						},
@@ -3160,15 +2737,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-list-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-									"test_nested_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.ListNestedAttribute{
+								NestedObject: resourceschema.NestedAttributeObject{
+									Attributes: map[string]resourceschema.Attribute{
+										"test_nested_attribute": resourceschema.StringAttribute{
+											Required: true,
+										},
 									},
-								}),
+								},
 								Required: true,
 							},
 						},
@@ -3204,15 +2782,13 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-list-object": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.ListAttribute{
 								Required: true,
-								Type: types.ListType{
-									ElemType: types.ObjectType{
-										AttrTypes: map[string]attr.Type{
-											"test_object_attribute": types.StringType,
-										},
+								ElementType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"test_object_attribute": types.StringType,
 									},
 								},
 							},
@@ -3246,13 +2822,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-list-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Required: true,
-								Type: types.ListType{
-									ElemType: types.StringType,
-								},
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.ListAttribute{
+								Required:    true,
+								ElementType: types.StringType,
 							},
 						},
 					},
@@ -3280,15 +2854,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-map-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-									"test_nested_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.MapNestedAttribute{
+								NestedObject: resourceschema.NestedAttributeObject{
+									Attributes: map[string]resourceschema.Attribute{
+										"test_nested_attribute": resourceschema.StringAttribute{
+											Required: true,
+										},
 									},
-								}),
+								},
 								Required: true,
 							},
 						},
@@ -3324,13 +2899,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-map-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Required: true,
-								Type: types.MapType{
-									ElemType: types.StringType,
-								},
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.MapAttribute{
+								Required:    true,
+								ElementType: types.StringType,
 							},
 						},
 					},
@@ -3358,11 +2931,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-number": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.NumberAttribute{
 								Required: true,
-								Type:     types.NumberType,
 							},
 						},
 					},
@@ -3388,14 +2960,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-object": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.ObjectAttribute{
 								Required: true,
-								Type: types.ObjectType{
-									AttrTypes: map[string]attr.Type{
-										"test_object_attribute": types.StringType,
-									},
+								AttributeTypes: map[string]attr.Type{
+									"test_object_attribute": types.StringType,
 								},
 							},
 						},
@@ -3426,15 +2996,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-set-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-									"test_nested_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.SetNestedAttribute{
+								NestedObject: resourceschema.NestedAttributeObject{
+									Attributes: map[string]resourceschema.Attribute{
+										"test_nested_attribute": resourceschema.StringAttribute{
+											Required: true,
+										},
 									},
-								}),
+								},
 								Required: true,
 							},
 						},
@@ -3470,15 +3041,13 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-set-object": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.SetAttribute{
 								Required: true,
-								Type: types.SetType{
-									ElemType: types.ObjectType{
-										AttrTypes: map[string]attr.Type{
-											"test_object_attribute": types.StringType,
-										},
+								ElementType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"test_object_attribute": types.StringType,
 									},
 								},
 							},
@@ -3512,14 +3081,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-set-set-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.SetAttribute{
 								Required: true,
-								Type: types.SetType{
-									ElemType: types.SetType{
-										ElemType: types.StringType,
-									},
+								ElementType: types.SetType{
+									ElemType: types.StringType,
 								},
 							},
 						},
@@ -3550,13 +3117,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-set-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Required: true,
-								Type: types.SetType{
-									ElemType: types.StringType,
-								},
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.SetAttribute{
+								Required:    true,
+								ElementType: types.StringType,
 							},
 						},
 					},
@@ -3584,15 +3149,14 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-single-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
-								Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-									"test_nested_attribute": {
-										Type:     types.StringType,
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.SingleNestedAttribute{
+								Attributes: map[string]resourceschema.Attribute{
+									"test_nested_attribute": resourceschema.StringAttribute{
 										Required: true,
 									},
-								}),
+								},
 								Required: true,
 							},
 						},
@@ -3628,11 +3192,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-attribute-type-string": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test_attribute": {
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.StringAttribute{
 								Required: true,
-								Type:     types.StringType,
 							},
 						},
 					},
@@ -3658,16 +3221,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-block-list": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Blocks: map[string]tfsdk.Block{
-							"test_block": {
-								Attributes: map[string]tfsdk.Attribute{
-									"test_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_resource": resourceschema.Schema{
+						Blocks: map[string]resourceschema.Block{
+							"test_block": resourceschema.ListNestedBlock{
+								NestedObject: resourceschema.NestedBlockObject{
+									Attributes: map[string]resourceschema.Attribute{
+										"test_attribute": resourceschema.StringAttribute{
+											Required: true,
+										},
 									},
 								},
-								NestingMode: tfsdk.BlockNestingModeList,
 							},
 						},
 					},
@@ -3701,16 +3264,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-block-set": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Blocks: map[string]tfsdk.Block{
-							"test_block": {
-								Attributes: map[string]tfsdk.Attribute{
-									"test_attribute": {
-										Type:     types.StringType,
-										Required: true,
+					"test_resource": resourceschema.Schema{
+						Blocks: map[string]resourceschema.Block{
+							"test_block": resourceschema.SetNestedBlock{
+								NestedObject: resourceschema.NestedBlockObject{
+									Attributes: map[string]resourceschema.Attribute{
+										"test_attribute": resourceschema.StringAttribute{
+											Required: true,
+										},
 									},
 								},
-								NestingMode: tfsdk.BlockNestingModeSet,
 							},
 						},
 					},
@@ -3744,16 +3307,14 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-block-single": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
-						Blocks: map[string]tfsdk.Block{
-							"test_block": {
-								Attributes: map[string]tfsdk.Attribute{
-									"test_attribute": {
-										Type:     types.StringType,
+					"test_resource": resourceschema.Schema{
+						Blocks: map[string]resourceschema.Block{
+							"test_block": resourceschema.SingleNestedBlock{
+								Attributes: map[string]resourceschema.Attribute{
+									"test_attribute": resourceschema.StringAttribute{
 										Required: true,
 									},
 								},
-								NestingMode: tfsdk.BlockNestingModeSingle,
 							},
 						},
 					},
@@ -3787,7 +3348,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"resource-version": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ResourceSchemas: map[string]fwschema.Schema{
-					"test_resource": &tfsdk.Schema{
+					"test_resource": resourceschema.Schema{
 						Version: 123,
 					},
 				},

@@ -18,10 +18,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
-	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -35,15 +35,13 @@ func TestAttributeModifyPlan(t *testing.T) {
 
 	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
-	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
-
 	testCases := map[string]struct {
 		attribute    fwschema.Attribute
 		req          tfsdk.ModifyAttributePlanRequest
 		expectedResp ModifyAttributePlanResponse
 	}{
 		"no-plan-modifiers": {
-			attribute: tfsdk.Attribute{
+			attribute: testschema.Attribute{
 				Type:     types.StringType,
 				Required: true,
 			},
@@ -58,12 +56,23 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-plan": {
-			attribute: tfsdk.Attribute{
-				Type:     types.StringType,
+			attribute: testschema.AttributeWithStringPlanModifiers{
 				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifiers.TestAttrPlanValueModifierOne{},
-					planmodifiers.TestAttrPlanValueModifierTwo{},
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							if req.PlanValue.ValueString() == "TESTATTRONE" {
+								resp.PlanValue = types.StringValue("TESTATTRTWO")
+							}
+						},
+					},
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							if req.PlanValue.ValueString() == "TESTATTRTWO" {
+								resp.PlanValue = types.StringValue("MODIFIED_TWO")
+							}
+						},
+					},
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
@@ -74,14 +83,12 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.StringValue("MODIFIED_TWO"),
-				Private:       testEmptyProviderData,
 			},
 		},
 		"attribute-request-private": {
-			attribute: tfsdk.Attribute{
-				Type:     types.StringType,
+			attribute: testschema.AttributeWithStringPlanModifiers{
 				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
+				PlanModifiers: []planmodifier.String{
 					planmodifiers.TestAttrPlanPrivateModifierGet{},
 				},
 			},
@@ -98,10 +105,9 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-response-private": {
-			attribute: tfsdk.Attribute{
-				Type:     types.StringType,
+			attribute: testschema.AttributeWithStringPlanModifiers{
 				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
+				PlanModifiers: []planmodifier.String{
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
@@ -110,6 +116,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 				AttributePath:   path.Root("test"),
 				AttributePlan:   types.StringValue("TESTATTRONE"),
 				AttributeState:  types.StringValue("TESTATTRONE"),
+				Private:         privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.StringValue("TESTATTRONE"),
@@ -117,18 +124,19 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-list-nested-private": {
-			attribute: tfsdk.Attribute{
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"nested_attr": {
-						Type:     types.StringType,
-						Required: true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							planmodifiers.TestAttrPlanPrivateModifierGet{},
+			attribute: testschema.NestedAttributeWithListPlanModifiers{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_attr": testschema.AttributeWithStringPlanModifiers{
+							Required: true,
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.TestAttrPlanPrivateModifierGet{},
+							},
 						},
 					},
-				}),
+				},
 				Required: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.List{
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
@@ -185,6 +193,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						),
 					},
 				),
+				Private: privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.ListValueMust(
@@ -207,116 +216,20 @@ func TestAttributeModifyPlan(t *testing.T) {
 				Private: testProviderData,
 			},
 		},
-		"attribute-list-nested-custom": {
-			attribute: tfsdk.Attribute{
-				Attributes: testtypes.ListNestedAttributesCustomType{
-					NestedAttributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-						"nested_attr": {
-							Type:     types.StringType,
-							Required: true,
-							PlanModifiers: tfsdk.AttributePlanModifiers{
-								planmodifiers.TestAttrPlanValueModifierOne{},
-								planmodifiers.TestAttrPlanValueModifierTwo{},
-							},
-						},
-					}),
-				},
-				Required: true,
-			},
-			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: testtypes.ListNestedAttributesCustomValue{
-					List: types.ListValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_attr": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_attr": types.StringValue("TESTATTRONE"),
-								},
-							),
-						},
-					),
-				},
-				AttributePath: path.Root("test"),
-				AttributePlan: testtypes.ListNestedAttributesCustomValue{
-					List: types.ListValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_attr": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_attr": types.StringValue("TESTATTRONE"),
-								},
-							),
-						},
-					),
-				},
-				AttributeState: testtypes.ListNestedAttributesCustomValue{
-					List: types.ListValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_attr": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_attr": types.StringValue("TESTATTRONE"),
-								},
-							),
-						},
-					),
-				},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.ListValueMust(
-					types.ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"nested_attr": types.StringType,
-						},
-					},
-					[]attr.Value{
-						types.ObjectValueMust(
-							map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-							map[string]attr.Value{
-								"nested_attr": types.StringValue("MODIFIED_TWO"),
-							},
-						),
-					},
-				),
-				Private: testEmptyProviderData,
-			},
-		},
 		"attribute-set-nested-private": {
-			attribute: tfsdk.Attribute{
-				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-					"nested_attr": {
-						Type:     types.StringType,
-						Required: true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							planmodifiers.TestAttrPlanPrivateModifierGet{},
+			attribute: testschema.NestedAttributeWithSetPlanModifiers{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_attr": testschema.AttributeWithStringPlanModifiers{
+							Required: true,
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.TestAttrPlanPrivateModifierGet{},
+							},
 						},
 					},
-				}),
+				},
 				Required: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.Set{
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
@@ -373,6 +286,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						),
 					},
 				),
+				Private: privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.SetValueMust(
@@ -395,119 +309,24 @@ func TestAttributeModifyPlan(t *testing.T) {
 				Private: testProviderData,
 			},
 		},
-		"attribute-custom-set-nested": {
-			attribute: tfsdk.Attribute{
-				Attributes: testtypes.SetNestedAttributesCustomType{
-					NestedAttributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-						"nested_attr": {
+		"attribute-set-nested-usestateforunknown": {
+			attribute: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_computed": testschema.AttributeWithStringPlanModifiers{
+							Computed: true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"nested_required": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
-							PlanModifiers: tfsdk.AttributePlanModifiers{
-								planmodifiers.TestAttrPlanValueModifierOne{},
-								planmodifiers.TestAttrPlanValueModifierTwo{},
-							},
-						},
-					}),
-				},
-				Required: true,
-			},
-			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: testtypes.SetNestedAttributesCustomValue{
-					Set: types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_attr": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_attr": types.StringValue("TESTATTRONE"),
-								},
-							),
-						},
-					),
-				},
-				AttributePath: path.Root("test"),
-				AttributePlan: testtypes.SetNestedAttributesCustomValue{
-					Set: types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_attr": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_attr": types.StringValue("TESTATTRONE"),
-								},
-							),
-						},
-					),
-				},
-				AttributeState: testtypes.SetNestedAttributesCustomValue{
-					Set: types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_attr": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_attr": types.StringValue("TESTATTRONE"),
-								},
-							),
-						},
-					),
-				},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.SetValueMust(
-					types.ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"nested_attr": types.StringType,
 						},
 					},
-					[]attr.Value{
-						types.ObjectValueMust(
-							map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-							map[string]attr.Value{
-								"nested_attr": types.StringValue("MODIFIED_TWO"),
-							},
-						),
-					},
-				),
-				Private: testEmptyProviderData,
-			},
-		},
-		"attribute-set-nested-usestateforunknown": {
-			attribute: tfsdk.Attribute{
-				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-					"nested_computed": {
-						Type:     types.StringType,
-						Computed: true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							resource.UseStateForUnknown(),
-						},
-					},
-					"nested_required": {
-						Type:     types.StringType,
-						Required: true,
-					},
-				}),
-				Required: true,
+				},
+				NestingMode: fwschema.NestingModeSet,
+				Required:    true,
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
 				AttributeConfig: types.SetValueMust(
@@ -633,22 +452,22 @@ func TestAttributeModifyPlan(t *testing.T) {
 						),
 					},
 				),
-				Private: testEmptyProviderData,
 			},
 		},
 		"attribute-map-nested-private": {
-			attribute: tfsdk.Attribute{
-				Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-					"nested_attr": {
-						Type:     types.StringType,
-						Required: true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							planmodifiers.TestAttrPlanPrivateModifierGet{},
+			attribute: testschema.NestedAttributeWithMapPlanModifiers{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_attr": testschema.AttributeWithStringPlanModifiers{
+							Required: true,
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.TestAttrPlanPrivateModifierGet{},
+							},
 						},
 					},
-				}),
+				},
 				Required: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.Map{
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
@@ -705,6 +524,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						),
 					},
 				),
+				Private: privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.MapValueMust(
@@ -727,116 +547,20 @@ func TestAttributeModifyPlan(t *testing.T) {
 				Private: testProviderData,
 			},
 		},
-		"attribute-custom-map-nested": {
-			attribute: tfsdk.Attribute{
-				Attributes: testtypes.MapNestedAttributesCustomType{
-					NestedAttributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-						"nested_attr": {
-							Type:     types.StringType,
-							Required: true,
-							PlanModifiers: tfsdk.AttributePlanModifiers{
-								planmodifiers.TestAttrPlanValueModifierOne{},
-								planmodifiers.TestAttrPlanValueModifierTwo{},
-							},
-						},
-					}),
-				},
-				Required: true,
-			},
-			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: testtypes.MapNestedAttributesCustomValue{
-					Map: types.MapValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-						map[string]attr.Value{
-							"testkey": types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_attr": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_attr": types.StringValue("TESTATTRONE"),
-								},
-							),
-						},
-					),
-				},
-				AttributePath: path.Root("test"),
-				AttributePlan: testtypes.MapNestedAttributesCustomValue{
-					Map: types.MapValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-						map[string]attr.Value{
-							"testkey": types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_attr": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_attr": types.StringValue("TESTATTRONE"),
-								},
-							),
-						},
-					),
-				},
-				AttributeState: testtypes.MapNestedAttributesCustomValue{
-					Map: types.MapValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-						map[string]attr.Value{
-							"testkey": types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_attr": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_attr": types.StringValue("TESTATTRONE"),
-								},
-							),
-						},
-					),
-				},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.MapValueMust(
-					types.ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"nested_attr": types.StringType,
-						},
-					},
-					map[string]attr.Value{
-						"testkey": types.ObjectValueMust(
-							map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-							map[string]attr.Value{
-								"nested_attr": types.StringValue("MODIFIED_TWO"),
-							},
-						),
-					},
-				),
-				Private: testEmptyProviderData,
-			},
-		},
 		"attribute-single-nested-private": {
-			attribute: tfsdk.Attribute{
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					"testing": {
-						Type:     types.StringType,
-						Optional: true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							planmodifiers.TestAttrPlanPrivateModifierGet{},
+			attribute: testschema.NestedAttributeWithObjectPlanModifiers{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"testing": testschema.AttributeWithStringPlanModifiers{
+							Required: true,
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.TestAttrPlanPrivateModifierGet{},
+							},
 						},
 					},
-				}),
+				},
 				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
+				PlanModifiers: []planmodifier.Object{
 					planmodifiers.TestAttrPlanPrivateModifierSet{},
 				},
 			},
@@ -866,6 +590,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"testing": types.StringValue("testvalue"),
 					},
 				),
+				Private: privatestate.EmptyProviderData(context.Background()),
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.ObjectValueMust(
@@ -879,73 +604,11 @@ func TestAttributeModifyPlan(t *testing.T) {
 				Private: testProviderData,
 			},
 		},
-		"attribute-custom-single-nested": {
-			attribute: tfsdk.Attribute{
-				Attributes: testtypes.SingleNestedAttributesCustomType{
-					NestedAttributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-						"testing": {
-							Type:     types.StringType,
-							Optional: true,
-							PlanModifiers: tfsdk.AttributePlanModifiers{
-								planmodifiers.TestAttrPlanValueModifierOne{},
-								planmodifiers.TestAttrPlanValueModifierTwo{},
-							},
-						},
-					}),
-				},
-				Required: true,
-			},
-			req: tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: testtypes.SingleNestedAttributesCustomValue{
-					Object: types.ObjectValueMust(
-						map[string]attr.Type{
-							"testing": types.StringType,
-						},
-						map[string]attr.Value{
-							"testing": types.StringValue("TESTATTRONE"),
-						},
-					),
-				},
-				AttributePath: path.Root("test"),
-				AttributePlan: testtypes.SingleNestedAttributesCustomValue{
-					Object: types.ObjectValueMust(
-						map[string]attr.Type{
-							"testing": types.StringType,
-						},
-						map[string]attr.Value{
-							"testing": types.StringValue("TESTATTRONE"),
-						},
-					),
-				},
-				AttributeState: testtypes.SingleNestedAttributesCustomValue{
-					Object: types.ObjectValueMust(
-						map[string]attr.Type{
-							"testing": types.StringType,
-						},
-						map[string]attr.Value{
-							"testing": types.StringValue("TESTATTRONE"),
-						},
-					),
-				},
-			},
-			expectedResp: ModifyAttributePlanResponse{
-				AttributePlan: types.ObjectValueMust(
-					map[string]attr.Type{
-						"testing": types.StringType,
-					},
-					map[string]attr.Value{
-						"testing": types.StringValue("MODIFIED_TWO"),
-					},
-				),
-				Private: testEmptyProviderData,
-			},
-		},
 		"requires-replacement": {
-			attribute: tfsdk.Attribute{
-				Type:     types.StringType,
+			attribute: testschema.AttributeWithStringPlanModifiers{
 				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
@@ -963,13 +626,12 @@ func TestAttributeModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "newtestvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: schema.Schema{
+						Attributes: map[string]schema.Attribute{
+							"test": schema.StringAttribute{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
 								},
 							},
 						},
@@ -983,13 +645,12 @@ func TestAttributeModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "testvalue"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: schema.Schema{
+						Attributes: map[string]schema.Attribute{
+							"test": schema.StringAttribute{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
 								},
 							},
 						},
@@ -1001,16 +662,20 @@ func TestAttributeModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test"),
 				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"requires-replacement-passthrough": {
-			attribute: tfsdk.Attribute{
-				Type:     types.StringType,
+			attribute: testschema.AttributeWithStringPlanModifiers{
 				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifiers.TestAttrPlanValueModifierOne{},
-					resource.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							if req.PlanValue.ValueString() == "TESTATTRONE" {
+								resp.PlanValue = types.StringValue("TESTATTRTWO")
+							}
+						},
+					},
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
@@ -1028,14 +693,17 @@ func TestAttributeModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: schema.Schema{
+						Attributes: map[string]schema.Attribute{
+							"test": schema.StringAttribute{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-									planmodifiers.TestAttrPlanValueModifierOne{},
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, sr1 planmodifier.StringRequest, sr2 *planmodifier.StringResponse) {
+											// Do nothing; RequiresReplace should still be in effect
+										},
+									},
 								},
 							},
 						},
@@ -1049,14 +717,17 @@ func TestAttributeModifyPlan(t *testing.T) {
 					}, map[string]tftypes.Value{
 						"test": tftypes.NewValue(tftypes.String, "TESTATTRONE"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"test": {
-								Type:     types.StringType,
+					Schema: schema.Schema{
+						Attributes: map[string]schema.Attribute{
+							"test": schema.StringAttribute{
 								Required: true,
-								PlanModifiers: []tfsdk.AttributePlanModifier{
-									resource.RequiresReplace(),
-									planmodifiers.TestAttrPlanValueModifierOne{},
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, sr1 planmodifier.StringRequest, sr2 *planmodifier.StringResponse) {
+											// Do nothing; RequiresReplace should still be in effect
+										},
+									},
 								},
 							},
 						},
@@ -1068,16 +739,18 @@ func TestAttributeModifyPlan(t *testing.T) {
 				RequiresReplace: path.Paths{
 					path.Root("test"),
 				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"requires-replacement-unset": {
-			attribute: tfsdk.Attribute{
-				Type:     types.StringType,
+			attribute: testschema.AttributeWithStringPlanModifiers{
 				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
-					planmodifiers.TestRequiresReplaceFalseModifier{},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							resp.RequiresReplace = false
+						},
+					},
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
@@ -1088,16 +761,22 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 			expectedResp: ModifyAttributePlanResponse{
 				AttributePlan: types.StringValue("testvalue"),
-				Private:       testEmptyProviderData,
 			},
 		},
 		"warnings": {
-			attribute: tfsdk.Attribute{
-				Type:     types.StringType,
+			attribute: testschema.AttributeWithStringPlanModifiers{
 				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifiers.TestWarningDiagModifier{},
-					planmodifiers.TestWarningDiagModifier{},
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+						},
+					},
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							resp.Diagnostics.AddWarning("Warning diag", "This is a warning")
+						},
+					},
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
@@ -1117,16 +796,22 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"This is a warning",
 					),
 				},
-				Private: testEmptyProviderData,
 			},
 		},
 		"error": {
-			attribute: tfsdk.Attribute{
-				Type:     types.StringType,
+			attribute: testschema.AttributeWithStringPlanModifiers{
 				Required: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifiers.TestErrorDiagModifier{},
-					planmodifiers.TestErrorDiagModifier{},
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							resp.Diagnostics.AddError("Error diag", "This is an error")
+						},
+					},
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							resp.Diagnostics.AddError("Error diag", "This is an error")
+						},
+					},
 				},
 			},
 			req: tfsdk.ModifyAttributePlanRequest{
@@ -1143,7 +828,6 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"This is an error",
 					),
 				},
-				Private: testEmptyProviderData,
 			},
 		},
 	}

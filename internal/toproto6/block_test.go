@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,11 +28,13 @@ func TestBlock(t *testing.T) {
 	tests := map[string]testCase{
 		"nestingmode-invalid": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -40,11 +43,13 @@ func TestBlock(t *testing.T) {
 		},
 		"nestingmode-list-attributes": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 				NestingMode: tfsdk.BlockNestingModeList,
@@ -66,22 +71,26 @@ func TestBlock(t *testing.T) {
 		},
 		"nestingmode-list-attributes-and-blocks": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_attr": {
-						Type:     types.StringType,
-						Optional: true,
-					},
-				},
-				Blocks: map[string]tfsdk.Block{
-					"sub_block": {
-						Attributes: map[string]tfsdk.Attribute{
-							"sub_block_attr": {
-								Type:     types.StringType,
-								Optional: true,
-							},
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_attr": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
 						},
-						NestingMode: tfsdk.BlockNestingModeList,
+					},
+					Blocks: map[string]fwschema.Block{
+						"sub_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_block_attr": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeList,
+						},
 					},
 				},
 				NestingMode: tfsdk.BlockNestingModeList,
@@ -118,16 +127,20 @@ func TestBlock(t *testing.T) {
 		},
 		"nestingmode-list-blocks": {
 			name: "test",
-			block: tfsdk.Block{
-				Blocks: map[string]tfsdk.Block{
-					"sub_block": {
-						Attributes: map[string]tfsdk.Attribute{
-							"sub_block_attr": {
-								Type:     types.StringType,
-								Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Blocks: map[string]fwschema.Block{
+						"sub_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_block_attr": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
 							},
+							NestingMode: tfsdk.BlockNestingModeList,
 						},
-						NestingMode: tfsdk.BlockNestingModeList,
 					},
 				},
 				NestingMode: tfsdk.BlockNestingModeList,
@@ -157,11 +170,13 @@ func TestBlock(t *testing.T) {
 		},
 		"nestingmode-set-attributes": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 				NestingMode: tfsdk.BlockNestingModeSet,
@@ -183,22 +198,26 @@ func TestBlock(t *testing.T) {
 		},
 		"nestingmode-set-attributes-and-blocks": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_attr": {
-						Type:     types.StringType,
-						Optional: true,
-					},
-				},
-				Blocks: map[string]tfsdk.Block{
-					"sub_block": {
-						Attributes: map[string]tfsdk.Attribute{
-							"sub_block_attr": {
-								Type:     types.StringType,
-								Optional: true,
-							},
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_attr": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
 						},
-						NestingMode: tfsdk.BlockNestingModeSet,
+					},
+					Blocks: map[string]fwschema.Block{
+						"sub_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_block_attr": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSet,
+						},
 					},
 				},
 				NestingMode: tfsdk.BlockNestingModeSet,
@@ -235,16 +254,20 @@ func TestBlock(t *testing.T) {
 		},
 		"nestingmode-set-blocks": {
 			name: "test",
-			block: tfsdk.Block{
-				Blocks: map[string]tfsdk.Block{
-					"sub_block": {
-						Attributes: map[string]tfsdk.Attribute{
-							"sub_block_attr": {
-								Type:     types.StringType,
-								Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Blocks: map[string]fwschema.Block{
+						"sub_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_block_attr": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
 							},
+							NestingMode: tfsdk.BlockNestingModeSet,
 						},
-						NestingMode: tfsdk.BlockNestingModeSet,
 					},
 				},
 				NestingMode: tfsdk.BlockNestingModeSet,
@@ -274,11 +297,13 @@ func TestBlock(t *testing.T) {
 		},
 		"nestingmode-single-attributes": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 				NestingMode: tfsdk.BlockNestingModeSingle,
@@ -300,22 +325,26 @@ func TestBlock(t *testing.T) {
 		},
 		"nestingmode-single-attributes-and-blocks": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_attr": {
-						Type:     types.StringType,
-						Optional: true,
-					},
-				},
-				Blocks: map[string]tfsdk.Block{
-					"sub_block": {
-						Attributes: map[string]tfsdk.Attribute{
-							"sub_block_attr": {
-								Type:     types.StringType,
-								Optional: true,
-							},
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_attr": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
 						},
-						NestingMode: tfsdk.BlockNestingModeSingle,
+					},
+					Blocks: map[string]fwschema.Block{
+						"sub_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_block_attr": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
+							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
+						},
 					},
 				},
 				NestingMode: tfsdk.BlockNestingModeSingle,
@@ -352,16 +381,20 @@ func TestBlock(t *testing.T) {
 		},
 		"nestingmode-single-blocks": {
 			name: "test",
-			block: tfsdk.Block{
-				Blocks: map[string]tfsdk.Block{
-					"sub_block": {
-						Attributes: map[string]tfsdk.Attribute{
-							"sub_block_attr": {
-								Type:     types.StringType,
-								Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Blocks: map[string]fwschema.Block{
+						"sub_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_block_attr": testschema.Attribute{
+										Type:     types.StringType,
+										Optional: true,
+									},
+								},
 							},
+							NestingMode: tfsdk.BlockNestingModeSingle,
 						},
-						NestingMode: tfsdk.BlockNestingModeSingle,
 					},
 				},
 				NestingMode: tfsdk.BlockNestingModeSingle,
@@ -391,11 +424,13 @@ func TestBlock(t *testing.T) {
 		},
 		"deprecationmessage": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 				DeprecationMessage: "deprecated, use something else instead",
@@ -419,11 +454,13 @@ func TestBlock(t *testing.T) {
 		},
 		"description": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 				Description: "test description",
@@ -448,11 +485,13 @@ func TestBlock(t *testing.T) {
 		},
 		"description-and-markdowndescription": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 				Description:         "test plain description",
@@ -478,11 +517,13 @@ func TestBlock(t *testing.T) {
 		},
 		"markdowndescription": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 				MarkdownDescription: "test description",
@@ -507,11 +548,13 @@ func TestBlock(t *testing.T) {
 		},
 		"maxitems": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 				MaxItems:    10,
@@ -535,11 +578,13 @@ func TestBlock(t *testing.T) {
 		},
 		"minitems": {
 			name: "test",
-			block: tfsdk.Block{
-				Attributes: map[string]tfsdk.Attribute{
-					"sub_test": {
-						Type:     types.StringType,
-						Optional: true,
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
 					},
 				},
 				MinItems:    10,

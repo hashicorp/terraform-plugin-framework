@@ -3,6 +3,7 @@ package planmodifiers
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -43,14 +44,9 @@ func (t TestErrorDiagModifier) MarkdownDescription(ctx context.Context) string {
 
 type TestAttrPlanValueModifierOne struct{}
 
-func (t TestAttrPlanValueModifierOne) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	attrVal, ok := req.AttributePlan.(types.String)
-	if !ok {
-		return
-	}
-
-	if attrVal.ValueString() == "TESTATTRONE" {
-		resp.AttributePlan = types.StringValue("TESTATTRTWO")
+func (t TestAttrPlanValueModifierOne) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.PlanValue.ValueString() == "TESTATTRONE" {
+		resp.PlanValue = types.StringValue("TESTATTRTWO")
 	}
 }
 
@@ -126,7 +122,20 @@ func (m TestRequiresReplaceFalseModifier) MarkdownDescription(ctx context.Contex
 
 type TestAttrPlanPrivateModifierGet struct{}
 
-func (t TestAttrPlanPrivateModifierGet) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (t TestAttrPlanPrivateModifierGet) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+	expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
+
+	key := "providerKeyOne"
+	got, diags := req.Private.GetKey(ctx, key)
+
+	resp.Diagnostics.Append(diags...)
+
+	if string(got) != expected {
+		resp.Diagnostics.AddError("unexpected req.Private.Provider value: %s", string(got))
+	}
+}
+
+func (t TestAttrPlanPrivateModifierGet) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
 
 	key := "providerKeyOne"
@@ -149,7 +158,31 @@ func (t TestAttrPlanPrivateModifierGet) MarkdownDescription(ctx context.Context)
 
 type TestAttrPlanPrivateModifierSet struct{}
 
-func (t TestAttrPlanPrivateModifierSet) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (t TestAttrPlanPrivateModifierSet) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t TestAttrPlanPrivateModifierSet) PlanModifyMap(ctx context.Context, req planmodifier.MapRequest, resp *planmodifier.MapResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t TestAttrPlanPrivateModifierSet) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t TestAttrPlanPrivateModifierSet) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t TestAttrPlanPrivateModifierSet) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
 	resp.Diagnostics.Append(diags...)

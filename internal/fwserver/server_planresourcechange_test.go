@@ -13,9 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -23,131 +27,116 @@ import (
 func TestMarkComputedNilsAsUnknown(t *testing.T) {
 	t.Parallel()
 
-	s := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
 			// values should be left alone
-			"string-value": {
-				Type:     types.StringType,
+			"string-value": schema.StringAttribute{
 				Required: true,
 			},
 			// nil, uncomputed values should be left alone
-			"string-nil": {
-				Type:     types.StringType,
+			"string-nil": schema.StringAttribute{
 				Optional: true,
 			},
 			// nil computed values should be turned into unknown
-			"string-nil-computed": {
-				Type:     types.StringType,
+			"string-nil-computed": schema.StringAttribute{
 				Computed: true,
 			},
 			// nil computed values should be turned into unknown
-			"string-nil-optional-computed": {
-				Type:     types.StringType,
+			"string-nil-optional-computed": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 			},
 			// non-nil computed values should be left alone
-			"string-value-optional-computed": {
-				Type:     types.StringType,
+			"string-value-optional-computed": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 			},
 			// nil objects should be unknown
-			"object-nil-optional-computed": {
-				Type: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"string-nil": types.StringType,
-						"string-set": types.StringType,
-					},
+			"object-nil-optional-computed": schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					"string-nil": types.StringType,
+					"string-set": types.StringType,
 				},
 				Optional: true,
 				Computed: true,
 			},
 			// non-nil objects should be left alone
-			"object-value-optional-computed": {
-				Type: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						// nil attributes of objects
-						// should be let alone, as they
-						// don't have a schema of their
-						// own
-						"string-nil": types.StringType,
-						"string-set": types.StringType,
-					},
+			"object-value-optional-computed": schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					// nil attributes of objects
+					// should be let alone, as they
+					// don't have a schema of their
+					// own
+					"string-nil": types.StringType,
+					"string-set": types.StringType,
 				},
 				Optional: true,
 				Computed: true,
 			},
 			// nil nested attributes should be unknown
-			"nested-nil-optional-computed": {
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					"string-nil": {
-						Type:     types.StringType,
+			"nested-nil-optional-computed": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"string-nil": schema.StringAttribute{
 						Optional: true,
 						Computed: true,
 					},
-					"string-set": {
-						Type:     types.StringType,
+					"string-set": schema.StringAttribute{
 						Optional: true,
 						Computed: true,
 					},
-				}),
+				},
 				Optional: true,
 				Computed: true,
 			},
 			// non-nil nested attributes should be left alone on the top level
-			"nested-value-optional-computed": {
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+			"nested-value-optional-computed": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
 					// nested computed attributes should be unknown
-					"string-nil": {
-						Type:     types.StringType,
+					"string-nil": schema.StringAttribute{
 						Optional: true,
 						Computed: true,
 					},
 					// nested non-nil computed attributes should be left alone
-					"string-set": {
-						Type:     types.StringType,
+					"string-set": schema.StringAttribute{
 						Optional: true,
 						Computed: true,
 					},
-				}),
+				},
 				Optional: true,
 				Computed: true,
 			},
 		},
-		Blocks: map[string]tfsdk.Block{
+		Blocks: map[string]schema.Block{
 			// nil blocks should remain nil
-			"block-nil-optional-computed": {
-				Attributes: map[string]tfsdk.Attribute{
-					"string-nil": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
-					},
-					"string-set": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
+			"block-nil-optional-computed": schema.SetNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"string-nil": schema.StringAttribute{
+							Optional: true,
+							Computed: true,
+						},
+						"string-set": schema.StringAttribute{
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeSet,
 			},
-			"block-value-optional-computed": {
-				Attributes: map[string]tfsdk.Attribute{
-					// nested computed attributes should be unknown
-					"string-nil": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
-					},
-					// nested non-nil computed attributes should be left alone
-					"string-set": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
+			"block-value-optional-computed": schema.SetNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						// nested computed attributes should be unknown
+						"string-nil": schema.StringAttribute{
+							Optional: true,
+							Computed: true,
+						},
+						// nested non-nil computed attributes should be left alone
+						"string-set": schema.StringAttribute{
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeSet,
 			},
 		},
 	}
@@ -379,39 +368,33 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
-	testSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_computed": {
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
-			"test_required": {
+			"test_required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
 
-	testSchemaBlock := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_required": {
+	testSchemaBlock := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
-		Blocks: map[string]tfsdk.Block{
-			"test_optional_block": {
-				Attributes: map[string]tfsdk.Attribute{
-					"test_optional_one": {
-						Type:     types.StringType,
+		Blocks: map[string]schema.Block{
+			"test_optional_block": schema.SingleNestedBlock{
+				Attributes: map[string]schema.Attribute{
+					"test_optional_one": schema.StringAttribute{
 						Optional: true,
 					},
-					"test_optional_two": {
-						Type:     types.StringType,
+					"test_optional_two": schema.StringAttribute{
 						Optional: true,
 					},
 				},
-				NestingMode: tfsdk.BlockNestingModeSingle,
 			},
 		},
 	}
@@ -436,38 +419,34 @@ func TestServerPlanResourceChange(t *testing.T) {
 		TestOptionalBlock types.Object `tfsdk:"test_optional_block"`
 	}
 
-	testSchemaAttributePlanModifierAttributePlan := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_computed": {
+	testSchemaAttributePlanModifierAttributePlan := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					&testprovider.AttributePlanModifier{
-						ModifyMethod: func(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-							resp.AttributePlan = types.StringValue("test-attributeplanmodifier-value")
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							resp.PlanValue = types.StringValue("test-attributeplanmodifier-value")
 						},
 					},
 				},
 			},
-			"test_other_computed": {
+			"test_other_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
-			"test_required": {
+			"test_required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
 
-	testSchemaAttributePlanModifierPrivatePlanRequest := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_computed": {
+	testSchemaAttributePlanModifierPrivatePlanRequest := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					&testprovider.AttributePlanModifier{
-						ModifyMethod: func(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 							expected := `{"pKeyOne": {"k0": "zero", "k1": 1}}`
 
 							key := "providerKeyOne"
@@ -485,14 +464,13 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
-	testSchemaAttributePlanModifierPrivatePlanResponse := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_computed": {
+	testSchemaAttributePlanModifierPrivatePlanResponse := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					&testprovider.AttributePlanModifier{
-						ModifyMethod: func(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 							diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
 
 							resp.Diagnostics.Append(diags...)
@@ -503,19 +481,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
-	testSchemaAttributePlanModifierDiagnosticsError := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_computed": {
+	testSchemaAttributePlanModifierDiagnosticsError := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
-			"test_required": {
+			"test_required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					&testprovider.AttributePlanModifier{
-						ModifyMethod: func(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-							resp.Diagnostics.AddAttributeError(req.AttributePath, "error summary", "error detail")
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							resp.Diagnostics.AddAttributeError(req.Path, "error summary", "error detail")
 						},
 					},
 				},
@@ -523,18 +499,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
-	testSchemaAttributePlanModifierRequiresReplace := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_computed": {
+	testSchemaAttributePlanModifierRequiresReplace := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
 				Computed: true,
-				Type:     types.StringType,
 			},
-			"test_required": {
+			"test_required": schema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					&testprovider.AttributePlanModifier{
-						ModifyMethod: func(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 							resp.RequiresReplace = true
 						},
 					},
@@ -553,11 +527,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 		"test_provider_meta_attribute": tftypes.NewValue(tftypes.String, "test-provider-meta-value"),
 	})
 
-	testProviderMetaSchema := tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_provider_meta_attribute": {
+	testProviderMetaSchema := metaschema.Schema{
+		Attributes: map[string]metaschema.Attribute{
+			"test_provider_meta_attribute": metaschema.StringAttribute{
 				Optional: true,
-				Type:     types.StringType,
 			},
 		},
 	}

@@ -6,7 +6,11 @@ description: >-
 
 # Blocks
 
-A block is a container for other content:
+The Terraform language uses a block as a container for other attributes and blocks. Terraform implements many top level blocks, such as `provider` and `resource`, while providers can implement nested blocks in their schema to enable practitioners to configure data.
+
+-> Use [nested attributes](/plugin/framework/handling-data/terraform-concepts#nested-attributes) for new schema implementations. Block support is mainly for migrating prior SDK-based providers.
+
+In this example, the Terraform-defined `resource` block contains a provider-defined `ami` attribute and `network_interface` block.
 
 ```hcl
 resource "aws_instance" "example" {
@@ -18,14 +22,12 @@ resource "aws_instance" "example" {
 }
 ```
 
-A block has a type (resource in this example). Each block type defines how many labels must follow the type keyword. The resource block type expects two labels, which are aws_instance and example in the example above. A particular block type may have any number of required labels, or it may require none as with the nested network_interface block type.
+The configuration syntax for a provider-defined block is a type (block name) and the body is delimited by the `{` and `}` characters. Each block has an associated nesting mode, which declares whether a block is repeatable. The available nesting modes are:
 
-After the block type keyword and any labels, the block body is delimited by the { and } characters. Within the block body, further arguments and blocks may be nested, creating a hierarchy of blocks and their associated arguments.
+- List: Ordered collection of objects
+- Set: Unordered collection of objects
+- Single: One object
 
-The Terraform language uses a limited number of top-level block types, which are blocks that can appear outside of any other block in a configuration file. Most of Terraform's features (including resources, input variables, output values, data sources, etc.) are implemented as top-level blocks.
+For list and set blocks, configurations can implement [`dynamic` block expressions](/language/expressions/dynamic-blocks) to reduce hardcoded block values.
 
-## List, Set and Single Nested Blocks
-
-Wherever possible, the usage of [nested attributes](/plugin/framework/handling-data/terraform-concepts#nested-attributes) is preferred.
-
-The three options for [nested blocks](/plugin/framework/handling-data/terraform-concepts#nested-blocks) are `ListNestedBlock`, `SetNestedBlock` and `SingleNestedBlock`.
+Refer to [nested blocks](/plugin/framework/handling-data/terraform-concepts#nested-blocks) for implementation examples in framework code.

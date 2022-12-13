@@ -515,6 +515,16 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 
 	expectedEntries := []map[string]interface{}{
 		{
+			"@level":   "debug",
+			"@message": "Calling provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "debug",
+			"@message": "Called provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
 			"@level":   "trace",
 			"@message": "Checking ProviderSchema lock",
 			"@module":  "sdk.framework",

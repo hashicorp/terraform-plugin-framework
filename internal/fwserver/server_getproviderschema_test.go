@@ -258,31 +258,29 @@ func TestServerGetProviderSchema(t *testing.T) {
 		},
 		"datasourceschemas-provider-type-name": {
 			server: &fwserver.Server{
-				Provider: &testprovider.ProviderWithMetadata{
+				Provider: &testprovider.Provider{
 					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 						resp.TypeName = "testprovidertype"
 					},
-					Provider: &testprovider.Provider{
-						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
-							return []func() datasource.DataSource{
-								func() datasource.DataSource {
-									return &testprovider.DataSource{
-										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = datasourceschema.Schema{
-												Attributes: map[string]datasourceschema.Attribute{
-													"test": datasourceschema.StringAttribute{
-														Required: true,
-													},
+					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+						return []func() datasource.DataSource{
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+										resp.Schema = datasourceschema.Schema{
+											Attributes: map[string]datasourceschema.Attribute{
+												"test": datasourceschema.StringAttribute{
+													Required: true,
 												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-											resp.TypeName = req.ProviderTypeName + "_data_source"
-										},
-									}
-								},
-							}
-						},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_data_source"
+									},
+								}
+							},
+						}
 					},
 				},
 			},
@@ -640,31 +638,29 @@ func TestServerGetProviderSchema(t *testing.T) {
 		},
 		"resourceschemas-provider-type-name": {
 			server: &fwserver.Server{
-				Provider: &testprovider.ProviderWithMetadata{
+				Provider: &testprovider.Provider{
 					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 						resp.TypeName = "testprovidertype"
 					},
-					Provider: &testprovider.Provider{
-						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
-							return []func() resource.Resource{
-								func() resource.Resource {
-									return &testprovider.Resource{
-										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-											resp.Schema = resourceschema.Schema{
-												Attributes: map[string]resourceschema.Attribute{
-													"test": resourceschema.StringAttribute{
-														Required: true,
-													},
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+										resp.Schema = resourceschema.Schema{
+											Attributes: map[string]resourceschema.Attribute{
+												"test": resourceschema.StringAttribute{
+													Required: true,
 												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = req.ProviderTypeName + "_resource"
-										},
-									}
-								},
-							}
-						},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_resource"
+									},
+								}
+							},
+						}
 					},
 				},
 			},

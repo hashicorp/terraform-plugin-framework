@@ -79,7 +79,7 @@ func (d *ThingDataSource) Metadata(ctx context.Context, req datasource.MetadataR
 }
 ```
 
-To simplify data source implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.ProviderWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithMetadata.Metadata) can set the provider name so it is available in the [`datasource.MetadataRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#MetadataRequest.ProviderTypeName).
+To simplify data source implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.Provider` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Metadata) can set the provider name so it is available in the [`datasource.MetadataRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#MetadataRequest.ProviderTypeName).
 
 In this example, the provider defines the `examplecloud` name for itself, and the data source is named `examplecloud_thing`:
 

@@ -30,4 +30,180 @@ The configuration syntax for a provider-defined block is a type (block name) and
 
 For list and set blocks, configurations can implement [`dynamic` block expressions](/language/expressions/dynamic-blocks) to reduce hardcoded block values.
 
-Refer to [nested blocks](/plugin/framework/handling-data/terraform-concepts#nested-blocks) for implementation examples in framework code.
+## Terraform Configuration
+
+Within Terraform configuration, nested blocks are represented using the following syntax:
+
+```hcl
+resource "example_resource" "example" {
+  list_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["list-element", "list-element"]
+    list_nested_nested_block {
+      bool_attribute = true
+    }
+    list_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+  list_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["list-element", "list-element"]
+    list_nested_nested_block {
+      bool_attribute = true
+    }
+    list_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+
+  set_nested_block {
+    map_attribute    = { "map-key-1" : "map-value-1" }
+    number_attribute = 1.79769313486231570814527423731704356798070e+1000
+    object_attribute = {
+      bool_attribute    = true
+      float64_attribute = 1234.5
+      int64_attribute   = 9223372036854775807
+      list_attribute    = ["obj-list-element", "obj-list-element"]
+      map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+      number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+      set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+      string_attribute  = "obj-string"
+    }
+    set_attribute = ["set-element-1", "set-element-2"]
+    set_nested_nested_block {
+      bool_attribute = true
+    }
+    set_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+  set_nested_block {
+    map_attribute    = { "map-key-1" : "map-value-1" }
+    number_attribute = 1.79769313486231570814527423731704356798070e+1000
+    object_attribute = {
+      bool_attribute    = false
+      float64_attribute = 1234.5
+      int64_attribute   = 9223372036854775807
+      list_attribute    = ["obj-list-element", "obj-list-element"]
+      map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+      number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+      set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+      string_attribute  = "obj-string"
+    }
+    set_attribute = ["set-element-1", "set-element-2"]
+    set_nested_nested_block {
+      bool_attribute = true
+    }
+    set_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+
+  single_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+  }
+}
+```
+
+## Schema
+
+Within the schema, nested blocks are defined as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Blocks: map[string]schema.Block{
+            "list_nested_block": schema.ListNestedBlock{
+                NestedObject: schema.NestedBlockObject{
+                    Attributes: map[string]schema.Attribute{
+                        "bool_attribute": schema.BoolAttribute{
+                            Optional: true,
+                        },
+                        "float64_attribute": schema.Float64Attribute{
+                            Optional: true,
+                        },
+
+                        "int64_attribute": schema.Int64Attribute{
+                            Optional: true,
+                        },
+                        "list_attribute": schema.ListAttribute{
+                            Optional:    true,
+                            ElementType: types.StringType,
+                        },
+                    },
+                    Blocks: map[string]schema.Block{
+                        "list_nested_nested_block": schema.ListNestedBlock{
+                            NestedObject: schema.NestedBlockObject{
+                                Attributes: map[string]schema.Attribute{
+                                    "bool_attribute": schema.BoolAttribute{
+                                        Optional: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+
+            "set_nested_block": schema.SetNestedBlock{
+                NestedObject: schema.NestedBlockObject{
+                    Attributes: map[string]schema.Attribute{
+                        "map_attribute": schema.MapAttribute{
+                            Optional:    true,
+                            ElementType: types.StringType,
+                        },
+                        "number_attribute": schema.NumberAttribute{
+                            Optional: true,
+                        },
+                        "object_attribute": schema.ObjectAttribute{
+                            Optional: true,
+                            AttributeTypes: map[string]attr.Type{
+                                "bool_attribute":    types.BoolType,
+                                "float64_attribute": types.Float64Type,
+                                "int64_attribute":   types.Int64Type,
+                                "list_attribute":    types.ListType{ElemType: types.StringType},
+                                "map_attribute":     types.MapType{ElemType: types.StringType},
+                                "number_attribute":  types.NumberType,
+                                "set_attribute":     types.ListType{ElemType: types.StringType},
+                                "string_attribute":  types.StringType,
+                            },
+                        },
+                        "set_attribute": schema.SetAttribute{
+                            Optional:    true,
+                            ElementType: types.StringType,
+                        },
+                    },
+                    Blocks: map[string]schema.Block{
+                        "set_nested_nested_block": schema.SetNestedBlock{
+                            NestedObject: schema.NestedBlockObject{
+                                Attributes: map[string]schema.Attribute{
+                                    "bool_attribute": schema.BoolAttribute{
+                                        Optional: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+
+            "single_nested_block": schema.SingleNestedBlock{
+                Attributes: map[string]schema.Attribute{
+                    "bool_attribute": schema.BoolAttribute{
+                        Optional: true,
+                    },
+                    "float64_attribute": schema.Float64Attribute{
+                        Optional: true,
+                    },
+                },
+            },
+        },
+    }
+}
+```

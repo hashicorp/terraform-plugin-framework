@@ -16,8 +16,6 @@ type BlockWithObjectValidators struct {
 	DeprecationMessage  string
 	Description         string
 	MarkdownDescription string
-	MaxItems            int64
-	MinItems            int64
 	Validators          []validator.Object
 }
 
@@ -50,16 +48,6 @@ func (b BlockWithObjectValidators) GetDescription() string {
 // GetMarkdownDescription satisfies the fwschema.Block interface.
 func (b BlockWithObjectValidators) GetMarkdownDescription() string {
 	return b.MarkdownDescription
-}
-
-// GetMaxItems satisfies the fwschema.Block interface.
-func (b BlockWithObjectValidators) GetMaxItems() int64 {
-	return b.MaxItems
-}
-
-// GetMinItems satisfies the fwschema.Block interface.
-func (b BlockWithObjectValidators) GetMinItems() int64 {
-	return b.MinItems
 }
 
 // GetNestedObject satisfies the fwschema.Block interface.

@@ -6,6 +6,10 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -30,13 +34,13 @@ func TestSchemaValidate(t *testing.T) {
 						"attr1": tftypes.NewValue(tftypes.String, "attr1value"),
 						"attr2": tftypes.NewValue(tftypes.String, "attr2value"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"attr1": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"attr1": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
-							"attr2": {
+							"attr2": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -58,13 +62,13 @@ func TestSchemaValidate(t *testing.T) {
 						"attr1": tftypes.NewValue(tftypes.String, "attr1value"),
 						"attr2": tftypes.NewValue(tftypes.String, "attr2value"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"attr1": {
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"attr1": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
-							"attr2": {
+							"attr2": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
 							},
@@ -94,21 +98,22 @@ func TestSchemaValidate(t *testing.T) {
 						"attr1": tftypes.NewValue(tftypes.String, "attr1value"),
 						"attr2": tftypes.NewValue(tftypes.String, "attr2value"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"attr1": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"attr1": testschema.AttributeWithStringValidators{
 								Required: true,
-								Validators: []tfsdk.AttributeValidator{
-									testWarningAttributeValidator{},
+								Validators: []validator.String{
+									testvalidator.String{
+										ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+											resp.Diagnostics.Append(testWarningDiagnostic1)
+											resp.Diagnostics.Append(testWarningDiagnostic2)
+										},
+									},
 								},
 							},
-							"attr2": {
-								Type:     types.StringType,
+							"attr2": testschema.Attribute{
 								Required: true,
-								Validators: []tfsdk.AttributeValidator{
-									testWarningAttributeValidator{},
-								},
+								Type:     types.StringType,
 							},
 						},
 					},
@@ -133,21 +138,22 @@ func TestSchemaValidate(t *testing.T) {
 						"attr1": tftypes.NewValue(tftypes.String, "attr1value"),
 						"attr2": tftypes.NewValue(tftypes.String, "attr2value"),
 					}),
-					Schema: tfsdk.Schema{
-						Attributes: map[string]tfsdk.Attribute{
-							"attr1": {
-								Type:     types.StringType,
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"attr1": testschema.AttributeWithStringValidators{
 								Required: true,
-								Validators: []tfsdk.AttributeValidator{
-									testErrorAttributeValidator{},
+								Validators: []validator.String{
+									testvalidator.String{
+										ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+											resp.Diagnostics.Append(testErrorDiagnostic1)
+											resp.Diagnostics.Append(testErrorDiagnostic2)
+										},
+									},
 								},
 							},
-							"attr2": {
-								Type:     types.StringType,
+							"attr2": testschema.Attribute{
 								Required: true,
-								Validators: []tfsdk.AttributeValidator{
-									testErrorAttributeValidator{},
-								},
+								Type:     types.StringType,
 							},
 						},
 					},

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -55,9 +56,9 @@ type SetNestedBlock struct {
 
 	// CustomType enables the use of a custom attribute type in place of the
 	// default types.SetType of types.ObjectType. When retrieving data, the
-	// types.SetValuable associated with this custom type must be used in
+	// basetypes.SetValuable associated with this custom type must be used in
 	// place of types.Set.
-	CustomType types.SetTypable
+	CustomType basetypes.SetTypable
 
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this attribute is,
@@ -155,22 +156,6 @@ func (b SetNestedBlock) GetDescription() string {
 // GetMarkdownDescription returns the MarkdownDescription field value.
 func (b SetNestedBlock) GetMarkdownDescription() string {
 	return b.MarkdownDescription
-}
-
-// GetMaxItems always returns 0.
-//
-// Deprecated: This method will be removed in the future. Use validators
-// instead.
-func (b SetNestedBlock) GetMaxItems() int64 {
-	return 0
-}
-
-// GetMinItems always returns 0.
-//
-// Deprecated: This method will be removed in the future. Use validators
-// instead.
-func (b SetNestedBlock) GetMinItems() int64 {
-	return 0
 }
 
 // GetNestedObject returns the NestedObject field value.

@@ -7,10 +7,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -62,23 +63,26 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -171,23 +175,26 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -269,23 +276,26 @@ func TestDataSetAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -359,23 +369,26 @@ func TestDataSetAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -439,15 +452,15 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -488,15 +501,15 @@ func TestDataSetAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -556,23 +569,26 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -664,23 +680,26 @@ func TestDataSetAtPath(t *testing.T) {
 					}, nil),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -749,13 +768,13 @@ func TestDataSetAtPath(t *testing.T) {
 					"test":  tftypes.NewValue(tftypes.Bool, true),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.BoolType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -791,15 +810,15 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"tags": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"tags": testschema.Attribute{
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -867,23 +886,26 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -959,15 +981,15 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1012,15 +1034,15 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1057,13 +1079,13 @@ func TestDataSetAtPath(t *testing.T) {
 					"test":  tftypes.NewValue(tftypes.Number, 1),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.NumberType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1106,9 +1128,9 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"scratch_disk": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"scratch_disk": testschema.Attribute{
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"interface": types.StringType,
@@ -1117,7 +1139,7 @@ func TestDataSetAtPath(t *testing.T) {
 							},
 							Optional: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1176,9 +1198,9 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"scratch_disk": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"scratch_disk": testschema.Attribute{
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"interface": types.StringType,
@@ -1186,7 +1208,7 @@ func TestDataSetAtPath(t *testing.T) {
 							},
 							Optional: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1232,15 +1254,15 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"tags": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"tags": testschema.Attribute{
 							Type: types.SetType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1308,23 +1330,26 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1410,15 +1435,15 @@ func TestDataSetAtPath(t *testing.T) {
 					}),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"tags": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"tags": testschema.Attribute{
 							Type: types.SetType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1456,13 +1481,13 @@ func TestDataSetAtPath(t *testing.T) {
 					"test":  tftypes.NewValue(tftypes.String, "originalvalue"),
 					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1488,9 +1513,9 @@ func TestDataSetAtPath(t *testing.T) {
 						"test": tftypes.Bool,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.BoolType,
 							Required: true,
 						},
@@ -1520,13 +1545,13 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.BoolType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1555,15 +1580,15 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"tags": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"tags": testschema.Attribute{
 							Type: types.ListType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1597,9 +1622,9 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: testtypes.ListTypeWithValidateWarning{
 								ListType: types.ListType{
 									ElemType: types.StringType,
@@ -1608,7 +1633,7 @@ func TestDataSetAtPath(t *testing.T) {
 							Optional: true,
 							Computed: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1651,23 +1676,26 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1731,23 +1759,26 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1789,23 +1820,26 @@ func TestDataSetAtPath(t *testing.T) {
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     testtypes.StringTypeWithValidateWarning{},
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     testtypes.StringTypeWithValidateWarning{},
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1867,15 +1901,15 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1912,9 +1946,9 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: testtypes.MapTypeWithValidateWarning{
 								MapType: types.MapType{
 									ElemType: types.StringType,
@@ -1922,7 +1956,7 @@ func TestDataSetAtPath(t *testing.T) {
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -1960,15 +1994,15 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -2003,15 +2037,15 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: testtypes.StringTypeWithValidateWarning{},
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -2047,13 +2081,13 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.NumberType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -2084,9 +2118,9 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"scratch_disk": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"scratch_disk": testschema.Attribute{
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"interface": types.StringType,
@@ -2094,7 +2128,7 @@ func TestDataSetAtPath(t *testing.T) {
 							},
 							Optional: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -2135,15 +2169,15 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"tags": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"tags": testschema.Attribute{
 							Type: types.SetType{
 								ElemType: types.StringType,
 							},
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -2182,23 +2216,26 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     types.StringType,
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     types.StringType,
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -2266,9 +2303,9 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type: testtypes.SetTypeWithValidateWarning{
 								SetType: types.SetType{
 									ElemType: types.StringType,
@@ -2277,7 +2314,7 @@ func TestDataSetAtPath(t *testing.T) {
 							Optional: true,
 							Computed: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -2320,23 +2357,26 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"disks": {
-							Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-								"id": {
-									Type:     testtypes.StringTypeWithValidateWarning{},
-									Required: true,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     testtypes.StringTypeWithValidateWarning{},
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
 								},
-								"delete_with_instance": {
-									Type:     types.BoolType,
-									Optional: true,
-								},
-							}),
-							Optional: true,
-							Computed: true,
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
+							Computed:    true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -2414,13 +2454,13 @@ func TestDataSetAtPath(t *testing.T) {
 						"other": tftypes.String,
 					},
 				}, nil),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"test": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
-						"other": {
+						"other": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -2448,9 +2488,9 @@ func TestDataSetAtPath(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "originalname"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateError{},
 							Required: true,
 						},
@@ -2477,9 +2517,9 @@ func TestDataSetAtPath(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "originalname"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateWarning{},
 							Required: true,
 						},

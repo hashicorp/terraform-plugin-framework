@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -32,9 +33,9 @@ var (
 //	.example_attribute
 type Float64Attribute struct {
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.Float64Type. When retrieving data, the types.Float64Valuable
+	// default basetypes.Float64Type. When retrieving data, the basetypes.Float64Valuable
 	// associated with this custom type must be used in place of types.Float64.
-	CustomType types.Float64Typable
+	CustomType basetypes.Float64Typable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,

@@ -7,13 +7,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
@@ -1000,6 +1001,395 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSchemaValidate(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		schema        schema.Schema
+		expectedDiags diag.Diagnostics
+	}{
+		"empty-schema": {
+			schema: schema.Schema{},
+		},
+		"attribute-using-reserved-field-name": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"depends_on": schema.StringAttribute{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("depends_on"),
+					"Schema Using Reserved Field Name",
+					`"depends_on" is a reserved field name`,
+				),
+			},
+		},
+		"block-using-reserved-field-name": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"connection": schema.ListNestedBlock{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("connection"),
+					"Schema Using Reserved Field Name",
+					`"connection" is a reserved field name`,
+				),
+			},
+		},
+		"single-nested-attribute-using-nested-reserved-field-name": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"single_nested_attribute": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"depends_on": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+		},
+		"single-nested-block-using-nested-reserved-field-name": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"single_nested_block": schema.SingleNestedBlock{
+						Attributes: map[string]schema.Attribute{
+							"connection": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+		},
+		"list-nested-attribute-using-nested-reserved-field-name": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"list_nested_attribute": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"depends_on": schema.Int64Attribute{},
+							},
+						},
+					},
+				},
+			},
+		},
+		"list-nested-block-using-nested-reserved-field-name": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"list_nested_block": schema.ListNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"connection": schema.BoolAttribute{},
+							},
+						},
+					},
+				},
+			},
+		},
+		"attribute-and-blocks-using-reserved-field-names": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"depends_on": schema.StringAttribute{},
+				},
+				Blocks: map[string]schema.Block{
+					"connection": schema.ListNestedBlock{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("depends_on"),
+					"Schema Using Reserved Field Name",
+					`"depends_on" is a reserved field name`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("connection"),
+					"Schema Using Reserved Field Name",
+					`"connection" is a reserved field name`,
+				),
+			},
+		},
+		"attribute-using-invalid-field-name": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"^": schema.StringAttribute{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"block-using-invalid-field-name": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"^": schema.ListNestedBlock{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"single-nested-attribute-using-nested-invalid-field-name": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"single_nested_attribute": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"^": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("single_nested_attribute").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"single-nested-block-using-nested-invalid-field-name": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"single_nested_block": schema.SingleNestedBlock{
+						Attributes: map[string]schema.Attribute{
+							"^": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("single_nested_block").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"single-nested-attribute-using-invalid-field-names": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"$": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"^": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$"),
+					"Invalid Schema Field Name",
+					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"single-nested-block-using-invalid-field-names": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"$": schema.SingleNestedBlock{
+						Attributes: map[string]schema.Attribute{
+							"^": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$"),
+					"Invalid Schema Field Name",
+					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"single-nested-block-with-nested-block-using-invalid-field-names": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"$": schema.SingleNestedBlock{
+						Blocks: map[string]schema.Block{
+							"^": schema.SingleNestedBlock{
+								Attributes: map[string]schema.Attribute{
+									"!": schema.BoolAttribute{},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$"),
+					"Invalid Schema Field Name",
+					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^").AtName("!"),
+					"Invalid Schema Field Name",
+					`Field name "!" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"list-nested-attribute-using-nested-invalid-field-name": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"list_nested_attribute": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"^": schema.Int64Attribute{},
+							},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("list_nested_attribute").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"list-nested-block-using-nested-invalid-field-name": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"list_nested_block": schema.ListNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"^": schema.Int64Attribute{},
+							},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("list_nested_block").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"list-nested-attribute-using-invalid-field-names": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"$": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"^": schema.Int64Attribute{},
+							},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$"),
+					"Invalid Schema Field Name",
+					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"list-nested-block-using-invalid-field-names": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"$": schema.ListNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"^": schema.Int64Attribute{},
+							},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$"),
+					"Invalid Schema Field Name",
+					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+		"list-nested-block-with-nested-block-using-invalid-field-names": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"$": schema.ListNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Blocks: map[string]schema.Block{
+								"^": schema.SingleNestedBlock{
+									Attributes: map[string]schema.Attribute{
+										"!": schema.BoolAttribute{},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$"),
+					"Invalid Schema Field Name",
+					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^"),
+					"Invalid Schema Field Name",
+					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("$").AtName("^").AtName("!"),
+					"Invalid Schema Field Name",
+					`Field name "!" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			diags := testCase.schema.Validate()
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 		})
 	}

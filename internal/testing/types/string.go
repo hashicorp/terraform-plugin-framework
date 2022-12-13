@@ -7,12 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ types.StringTypable  = StringType{}
-	_ types.StringValuable = String{}
+	_ basetypes.StringTypable  = StringType{}
+	_ basetypes.StringValuable = String{}
 )
 
 // StringType is a reimplementation of types.StringType that can be used as a base
@@ -39,7 +40,7 @@ func (t StringType) TerraformType(_ context.Context) tftypes.Type {
 	return tftypes.String
 }
 
-func (t StringType) ValueFromString(ctx context.Context, in types.String) (types.StringValuable, diag.Diagnostics) {
+func (t StringType) ValueFromString(ctx context.Context, in basetypes.StringValue) (basetypes.StringValuable, diag.Diagnostics) {
 	if in.IsNull() {
 		return String{
 			InternalString: types.StringNull(),

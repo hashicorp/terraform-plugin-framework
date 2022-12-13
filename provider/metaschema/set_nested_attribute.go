@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -43,9 +44,9 @@ type SetNestedAttribute struct {
 
 	// CustomType enables the use of a custom attribute type in place of the
 	// default types.SetType of types.ObjectType. When retrieving data, the
-	// types.SetValuable associated with this custom type must be used in
+	// basetypes.SetValuable associated with this custom type must be used in
 	// place of types.Set.
-	CustomType types.SetTypable
+	CustomType basetypes.SetTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,

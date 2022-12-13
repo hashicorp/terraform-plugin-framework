@@ -6,8 +6,6 @@ description: >-
 
 # Blocks with Computed Fields
 
--> **Note:** The Plugin Framework is in beta.
-
 Some providers, resources, and data sources include repeatable nested blocks in their attributes. Some blocks contain
 fields  with `Computed: true`, which means that the provider code can define the value or that it could come from the
 output of terraform apply (e.g., the ID of an EC2 instance).
@@ -73,28 +71,18 @@ map[string]schema.Attribute{
 
 ## Example
 
-The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
-provider.
-
-For a complete example, clone the
-`terraform-provider-tls` repository and compare the `data_source_certificate.go` file in
-[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/data_source_certificate.go)
-with
-[v4.0.1](https://github.com/hashicorp/terraform-provider-tls/blob/v4.0.1/internal/provider/data_source_certificate.go).
-
 ### SDKv2
 
-The following example from the `data_source_certificate.go` file shows the implementation of the `certificates` nested
-block on the `certificate` data source's schema.
+The following example shows the implementation of the `example_nested_block` with SDKv2.
 
 ```go
 Schema: map[string]*schema.Schema{
-"certificates": {
+"example_nested_block": {
         Type:     schema.TypeList,
         Computed: true,
         Elem: &schema.Resource{
             Schema: map[string]*schema.Schema{
-                "signature_algorithm": {
+                "example_block_attribute": {
                     Type:        schema.TypeString,
                     Computed:    true,
                     /* ... */
@@ -105,15 +93,15 @@ Schema: map[string]*schema.Schema{
 
 The following shows the same section of provider code after the migration.
 
-This code defines the `certificates` block as an attribute on the `certificate` data source's schema, where the
+This code defines the `example_nested_block` block as an attribute on the schema, where the
 `types.ObjectType` is being used to define the nested block.
 
 ```go
 map[string]schema.Attribute{
-    "certificates": schema.ListAttribute{
+    "example_nested_block": schema.ListAttribute{
         ElementType: types.ObjectType{
             AttrTypes: map[string]attr.Type{
-                "signature_algorithm":  types.StringType,
+                "example_block_attribute":  types.StringType,
             },
         },
         Computed:            true,

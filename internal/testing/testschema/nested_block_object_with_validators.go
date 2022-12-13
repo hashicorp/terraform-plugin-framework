@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -48,6 +48,6 @@ func (o NestedBlockObjectWithValidators) ObjectValidators() []validator.Object {
 }
 
 // Type returns the framework type of the NestedBlockObjectWithValidators.
-func (o NestedBlockObjectWithValidators) Type() types.ObjectTypable {
+func (o NestedBlockObjectWithValidators) Type() basetypes.ObjectTypable {
 	return fwschema.NestedBlockObjectType(o)
 }

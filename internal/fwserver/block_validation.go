@@ -3,17 +3,13 @@ package fwserver
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // BlockValidate performs all Block validation.
@@ -22,7 +18,7 @@ import (
 // The extra Block parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func BlockValidate(ctx context.Context, b fwschema.Block, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	configData := &fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionConfiguration,
 		Schema:         req.Config.Schema,
@@ -39,25 +35,6 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 	req.AttributeConfig = attributeConfig
 
 	switch blockWithValidators := b.(type) {
-	// Legacy tfsdk.AttributeValidator handling
-	case fwxschema.BlockWithValidators:
-		for _, validator := range blockWithValidators.GetValidators() {
-			logging.FrameworkDebug(
-				ctx,
-				"Calling provider defined AttributeValidator",
-				map[string]interface{}{
-					logging.KeyDescription: validator.Description(ctx),
-				},
-			)
-			validator.Validate(ctx, req, resp)
-			logging.FrameworkDebug(
-				ctx,
-				"Called provider defined AttributeValidator",
-				map[string]interface{}{
-					logging.KeyDescription: validator.Description(ctx),
-				},
-			)
-		}
 	case fwxschema.BlockWithListValidators:
 		BlockValidateList(ctx, blockWithValidators, req, resp)
 	case fwxschema.BlockWithObjectValidators:
@@ -71,14 +48,14 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 	nm := b.GetNestingMode()
 	switch nm {
 	case fwschema.BlockNestingModeList:
-		listVal, ok := req.AttributeConfig.(types.ListValuable)
+		listVal, ok := req.AttributeConfig.(basetypes.ListValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error Invalid Value Type",
-				"A type that implements types.ListValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.ListValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -92,50 +69,27 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		}
 
 		for idx, value := range l.Elements() {
-			nestedBlockObjectReq := tfsdk.ValidateAttributeRequest{
+			nestedBlockObjectReq := ValidateAttributeRequest{
 				AttributeConfig:         value,
 				AttributePath:           req.AttributePath.AtListIndex(idx),
 				AttributePathExpression: req.AttributePathExpression.AtListIndex(idx),
 				Config:                  req.Config,
 			}
-			nestedBlockObjectResp := &tfsdk.ValidateAttributeResponse{}
+			nestedBlockObjectResp := &ValidateAttributeResponse{}
 
 			NestedBlockObjectValidate(ctx, nestedBlockObject, nestedBlockObjectReq, nestedBlockObjectResp)
 
 			resp.Diagnostics.Append(nestedBlockObjectResp.Diagnostics...)
 		}
-
-		// Terraform 0.12 through 0.15.1 do not implement block MaxItems
-		// validation.
-		//
-		// Terraform 0.15.2 and later implements MaxItems validation during
-		// configuration decoding, so if this framework drops Terraform support
-		// for earlier versions, this validation can be removed.
-		if b.GetMaxItems() > 0 && int64(len(l.Elements())) > b.GetMaxItems() {
-			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.GetMaxItems(), len(l.Elements())))
-		}
-
-		// Terraform 0.12 through 0.15.1 implement conservative block MinItems
-		// validation, where the MinItems can be reset to 1 in certain
-		// situations. This validation must ensure the list itself is not
-		// unknown, which could erroneously trigger the error since the list
-		// would have 0 elements.
-		//
-		// Terraform 0.15.2 and later implements proper MinItems validation
-		// during configuration decoding, so if this framework drops Terraform
-		// support for earlier versions, this validation can be removed.
-		if b.GetMinItems() > 0 && int64(len(l.Elements())) < b.GetMinItems() && !l.IsUnknown() {
-			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(l.Elements())))
-		}
 	case fwschema.BlockNestingModeSet:
-		setVal, ok := req.AttributeConfig.(types.SetValuable)
+		setVal, ok := req.AttributeConfig.(basetypes.SetValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error Invalid Value Type",
-				"A type that implements types.SetValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.SetValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -149,50 +103,27 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 		}
 
 		for _, value := range s.Elements() {
-			nestedBlockObjectReq := tfsdk.ValidateAttributeRequest{
+			nestedBlockObjectReq := ValidateAttributeRequest{
 				AttributeConfig:         value,
 				AttributePath:           req.AttributePath.AtSetValue(value),
 				AttributePathExpression: req.AttributePathExpression.AtSetValue(value),
 				Config:                  req.Config,
 			}
-			nestedBlockObjectResp := &tfsdk.ValidateAttributeResponse{}
+			nestedBlockObjectResp := &ValidateAttributeResponse{}
 
 			NestedBlockObjectValidate(ctx, nestedBlockObject, nestedBlockObjectReq, nestedBlockObjectResp)
 
 			resp.Diagnostics.Append(nestedBlockObjectResp.Diagnostics...)
 		}
-
-		// Terraform 0.12 through 0.15.1 do not implement block MaxItems
-		// validation.
-		//
-		// Terraform 0.15.2 and later implements MaxItems validation during
-		// configuration decoding, so if this framework drops Terraform support
-		// for earlier versions, this validation can be removed.
-		if b.GetMaxItems() > 0 && int64(len(s.Elements())) > b.GetMaxItems() {
-			resp.Diagnostics.Append(blockMaxItemsDiagnostic(req.AttributePath, b.GetMaxItems(), len(s.Elements())))
-		}
-
-		// Terraform 0.12 through 0.15.1 implement conservative block MinItems
-		// validation, where the MinItems can be reset to 1 in certain
-		// situations. This validation must ensure the set itself is not
-		// unknown, which could erroneously trigger the error since the set
-		// would have 0 elements.
-		//
-		// Terraform 0.15.2 and later implements proper MinItems validation
-		// during configuration decoding, so if this framework drops Terraform
-		// support for earlier versions, this validation can be removed.
-		if b.GetMinItems() > 0 && int64(len(s.Elements())) < b.GetMinItems() && !s.IsUnknown() {
-			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), len(s.Elements())))
-		}
 	case fwschema.BlockNestingModeSingle:
-		objectVal, ok := req.AttributeConfig.(types.ObjectValuable)
+		objectVal, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown block value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Block Validation Error Invalid Value Type",
-				"A type that implements types.ObjectValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.ObjectValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -205,21 +136,17 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 			return
 		}
 
-		nestedBlockObjectReq := tfsdk.ValidateAttributeRequest{
+		nestedBlockObjectReq := ValidateAttributeRequest{
 			AttributeConfig:         o,
 			AttributePath:           req.AttributePath,
 			AttributePathExpression: req.AttributePathExpression,
 			Config:                  req.Config,
 		}
-		nestedBlockObjectResp := &tfsdk.ValidateAttributeResponse{}
+		nestedBlockObjectResp := &ValidateAttributeResponse{}
 
 		NestedBlockObjectValidate(ctx, nestedBlockObject, nestedBlockObjectReq, nestedBlockObjectResp)
 
 		resp.Diagnostics.Append(nestedBlockObjectResp.Diagnostics...)
-
-		if b.GetMinItems() == 1 && o.IsNull() {
-			resp.Diagnostics.Append(blockMinItemsDiagnostic(req.AttributePath, b.GetMinItems(), 0))
-		}
 	default:
 		err := fmt.Errorf("unknown block validation nesting mode (%T: %v) at path: %s", nm, nm, req.AttributePath)
 		resp.Diagnostics.AddAttributeError(
@@ -242,19 +169,19 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req tfsdk.ValidateAttr
 }
 
 // BlockValidateList performs all types.List validation.
-func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.ListValuable until custom types cannot re-implement
+func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.ListValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ListValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ListValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid List Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform List attribute validation. "+
-				"The value type must implement the types.ListValuable interface. "+
+				"The value type must implement the basetypes.ListValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -307,19 +234,19 @@ func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidat
 }
 
 // BlockValidateObject performs all types.Object validation.
-func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.ObjectValuable until custom types cannot re-implement
+func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.ObjectValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ObjectValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Object Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Object attribute validation. "+
-				"The value type must implement the types.ObjectValuable interface. "+
+				"The value type must implement the basetypes.ObjectValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -372,19 +299,19 @@ func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectVal
 }
 
 // BlockValidateSet performs all types.Set validation.
-func BlockValidateSet(ctx context.Context, block fwxschema.BlockWithSetValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.SetValuable until custom types cannot re-implement
+func BlockValidateSet(ctx context.Context, block fwxschema.BlockWithSetValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.SetValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.SetValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.SetValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Set Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Set attribute validation. "+
-				"The value type must implement the types.SetValuable interface. "+
+				"The value type must implement the basetypes.SetValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -436,11 +363,11 @@ func BlockValidateSet(ctx context.Context, block fwxschema.BlockWithSetValidator
 	}
 }
 
-func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	objectWithValidators, ok := o.(fwxschema.NestedBlockObjectWithValidators)
 
 	if ok {
-		objectVal, ok := req.AttributeConfig.(types.ObjectValuable)
+		objectVal, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 		if !ok {
 			resp.Diagnostics.AddAttributeError(
@@ -499,12 +426,12 @@ func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject
 	}
 
 	for nestedName, nestedAttr := range o.GetAttributes() {
-		nestedAttrReq := tfsdk.ValidateAttributeRequest{
+		nestedAttrReq := ValidateAttributeRequest{
 			AttributePath:           req.AttributePath.AtName(nestedName),
 			AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
 			Config:                  req.Config,
 		}
-		nestedAttrResp := &tfsdk.ValidateAttributeResponse{}
+		nestedAttrResp := &ValidateAttributeResponse{}
 
 		AttributeValidate(ctx, nestedAttr, nestedAttrReq, nestedAttrResp)
 
@@ -512,65 +439,15 @@ func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject
 	}
 
 	for nestedName, nestedBlock := range o.GetBlocks() {
-		nestedBlockReq := tfsdk.ValidateAttributeRequest{
+		nestedBlockReq := ValidateAttributeRequest{
 			AttributePath:           req.AttributePath.AtName(nestedName),
 			AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
 			Config:                  req.Config,
 		}
-		nestedBlockResp := &tfsdk.ValidateAttributeResponse{}
+		nestedBlockResp := &ValidateAttributeResponse{}
 
 		BlockValidate(ctx, nestedBlock, nestedBlockReq, nestedBlockResp)
 
 		resp.Diagnostics.Append(nestedBlockResp.Diagnostics...)
 	}
-}
-
-func blockMaxItemsDiagnostic(attrPath path.Path, maxItems int64, elements int) diag.Diagnostic {
-	var details strings.Builder
-
-	details.WriteString("The configuration should declare a maximum of ")
-
-	if maxItems == 1 {
-		details.WriteString("1 block")
-	} else {
-		details.WriteString(fmt.Sprintf("%d blocks", maxItems))
-	}
-
-	// Elements will always be greater than 1, so do not need to handle the
-	// singular case.
-	details.WriteString(fmt.Sprintf(", however %d blocks were configured.", elements))
-
-	return diag.NewAttributeErrorDiagnostic(
-		attrPath,
-		"Extra Block Configuration",
-		details.String(),
-	)
-}
-
-func blockMinItemsDiagnostic(attrPath path.Path, minItems int64, elements int) diag.Diagnostic {
-	var details strings.Builder
-
-	details.WriteString("The configuration should declare a minimum of ")
-
-	if minItems == 1 {
-		details.WriteString("1 block")
-	} else {
-		details.WriteString(fmt.Sprintf("%d blocks", minItems))
-	}
-
-	details.WriteString(", however ")
-
-	if elements == 1 {
-		details.WriteString("1 block was")
-	} else {
-		details.WriteString(fmt.Sprintf("%d blocks were", elements))
-	}
-
-	details.WriteString(" configured.")
-
-	return diag.NewAttributeErrorDiagnostic(
-		attrPath,
-		"Missing Block Configuration",
-		details.String(),
-	)
 }

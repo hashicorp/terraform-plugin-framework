@@ -8,8 +8,6 @@ description: >-
 
 # Providers
 
--> **Note:** The Plugin Framework is in beta.
-
 Providers are Terraform plugins that define [resources](/plugin/framework/resources) and [data sources](/plugin/framework/data-sources) for practitioners to use. Providers are wrapped by a [provider server](/plugin/framework/provider-servers) for interacting with Terraform.
 
 This page describes the basic implementation details required for defining a provider. Further documentation is available for deeper provider concepts:
@@ -35,7 +33,12 @@ type ExampleCloudProvider struct{
 	Version string
 }
 
-// GetSchema satisfies the provider.Provider interface for exampleProvider.
+// Metadata satisfies the provider.Provider interface for ExampleCloudProvider
+func (p *ExampleCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = // provider specific implementation
+}
+
+// Schema satisfies the provider.Provider interface for ExampleCloudProvider.
 func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -76,7 +79,19 @@ func New(version string) func() provider.Provider {
 }
 ```
 
-### GetSchema Method
+### Metadata Method
+
+The [`provider.Provider` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Metadata) defines information about the provider itself, such as its type name and version. This information is used to simplify creating data sources and resources.
+
+In this example, the provider type name is set to `examplecloud`:
+
+```go
+func (p *ExampleCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "examplecloud"
+}
+```
+
+### Schema Method
 
 The [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema) defines a [schema](/plugin/framework/schemas) describing what data is available in the provider's configuration. This configuration block is used to offer practitioners the opportunity to supply values to the provider and configure its behavior, rather than needing to include those values in every resource and data source. It is usually used to gather credentials, endpoints, and the other data used to authenticate with the API, but it is not limited to those uses.
 

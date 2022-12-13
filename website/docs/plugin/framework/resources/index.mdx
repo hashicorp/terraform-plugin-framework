@@ -7,8 +7,6 @@ description: >-
 
 # Resources
 
--> **Note:** The Plugin Framework is in beta.
-
 [Resources](/language/resources) are an abstraction that allow Terraform to manage infrastructure objects, such as a compute instance, an access policy, or disk. Terraform assumes that every resource:
 
 - operates as a pure key/value store, with values getting returned exactly as they were written.
@@ -49,7 +47,7 @@ func (r *ThingResource) Metadata(ctx context.Context, req resource.MetadataReque
 }
 ```
 
-To simplify resource implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.ProviderWithMetadata` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithMetadata.Metadata) can set the provider name so it is available in the [`resource.MetadataRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MetadataRequest.ProviderTypeName).
+To simplify resource implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.Provider` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Metadata) can set the provider name so it is available in the [`resource.MetadataRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MetadataRequest.ProviderTypeName).
 
 In this example, the provider defines the `examplecloud` name for itself, and the data source is named `examplecloud_thing`:
 
@@ -65,9 +63,9 @@ func (d *ThingDataSource) Metadata(ctx context.Context, req resource.MetadataReq
 }
 ```
 
-### GetSchema Method
+### Schema Method
 
-The [`resource.Resource` interface `GetSchema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.GetSchema) defines a [schema](/plugin/framework/schemas) describing what data is available in the resource's configuration, plan, and state.
+The [`resource.Resource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Schema) defines a [schema](/plugin/framework/schemas) describing what data is available in the resource's configuration, plan, and state.
 
 ## Add Resource to Provider
 

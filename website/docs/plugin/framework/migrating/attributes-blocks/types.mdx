@@ -6,8 +6,6 @@ description: >-
 
 # Attribute Types
 
--> **Note:** The Plugin Framework is in beta.
-
 An attribute either contains a primitive type, such as an integer or a string, or contains other attributes. Attributes
 that contain other attributes are referred to as nested attributes. Refer to
 [Schemas - Attributes](/plugin/framework/schemas#type) in the Framework documentation for details.
@@ -106,27 +104,18 @@ Remember the following differences between SDKv2 and the Framework when completi
 
 - In the Framework, the `schema.Attribute` implementation determines the required details.
 
-## Example
-
-The following examples show how to migrate portions of the
-[http](https://github.com/hashicorp/terraform-provider-http) provider.
-
-For a complete example, clone the
-`terraform-provider-http` repository and compare the `data_source.go` file in
-[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
-and the `data_source_http.go` file
-[after the migration](https://github.com/hashicorp/terraform-provider-http/blob/8527d5b4546b54cdef246a13befc5745dbbbf740/internal/provider/data_source_http.go).
+## Examples
 
 ### SDKv2
 
-The following example from the `data_source.go` file shows the implementation of the type field of the `url` attribute
-for the `http` data source with SDKv2.
+The following example shows the implementation of the type field of the `example_string_attribute` attribute
+for the `exampleDataSource` data source with SDKv2.
 
 ```go
-func dataSource() *schema.Resource {
+func exampleDataSource() *schema.Resource {
     return &schema.Resource{
         Schema: map[string]*schema.Schema{
-            "url": {
+            "example_string_attribute": {
                 Type:        schema.TypeString,
                 /* ... */
             },
@@ -135,38 +124,29 @@ func dataSource() *schema.Resource {
 
 ### Framework
 
-The following example from the `data_source_http.go` file shows how the type of the `url` attribute for the `http` data
+The following example shows how the type of the `example_string_attribute` attribute for the `exampleDataSource` data
 source is defined with the Framework after the migration.
 
 ```go
-func (d *httpDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *exampleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
-            "url": schema.StringAttribute{
+            "example_string_attribute": schema.StringAttribute{
                 /* ... */
             },
             /* ... */
 ```
 
-The following examples show how to migrate portions of the
-[tls](https://github.com/hashicorp/terraform-provider-tls) provider.
-
-For a complete example, clone the
-`terraform-provider-tls` repository and compare the `common_cert.go` file in
-[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/common_cert.go)
-and the `resource_cert_request.go` file
-[after the migration](https://github.com/hashicorp/terraform-provider-tls/blob/4dafb105818e45a88532f917e7b170ee2a9bb092/internal/provider/resource_cert_request.go).
-
 ### SDKv2
 
-The following example from the `common_cert.go` file shows the implementation of the type field of the `dns_names`
+The following example shows the implementation of the type field of the `example_list_attribute`
 attribute with SDKv2.
 
 ```go
-func resourceCertRequest() *schema.Resource {
+func exampleResource() *schema.Resource {
     return &schema.Resource{
         Schema: map[string]*schema.Schema{
-            "dns_names": {
+            "example_list_attribute": {
                 Type:    schema.TypeList,
                 Elem:    &schema.Schema{
 			        Type: schema.TypeString,
@@ -178,16 +158,19 @@ func resourceCertRequest() *schema.Resource {
 
 ### Framework
 
-The following example from the `data_source_http.go` file shows how the type of the `url` attribute for the `http` data
-source is defined with the Framework after the migration.
+The following example shows how the type of the `example_list_attribute` attribute for the `exampleResource` resource
+is defined with the Framework after the migration.
 
 ```go
-func (r *certRequestResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
-            "dns_names": schema.ListAttribute{
+            "example_list_attribute": schema.ListAttribute{
                 ElementType: types.StringType,
                 /* ... */
             },
             /* ... */
 ```
+
+Refer to [Core Configuration Concepts - Attributes](/plugin/framework/getting-started/core-configuration-concepts#attributes)
+for further examples of different types of schema attributes in the Framework.

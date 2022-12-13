@@ -29,25 +29,25 @@ func TestStringAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 			attribute:     schema.StringAttribute{},
 			step:          tftypes.AttributeName("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to types.StringType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to basetypes.StringType"),
 		},
 		"ElementKeyInt": {
 			attribute:     schema.StringAttribute{},
 			step:          tftypes.ElementKeyInt(1),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to types.StringType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.StringType"),
 		},
 		"ElementKeyString": {
 			attribute:     schema.StringAttribute{},
 			step:          tftypes.ElementKeyString("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to types.StringType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to basetypes.StringType"),
 		},
 		"ElementKeyValue": {
 			attribute:     schema.StringAttribute{},
 			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to types.StringType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to basetypes.StringType"),
 		},
 	}
 

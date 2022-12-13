@@ -1,0 +1,229 @@
+---
+page_title: 'Plugin Development - Framework: Schemas'
+description: >-
+  How to define a schema using the provider development framework. Schemas
+  specify the constraints of Terraform configuration blocks.
+---
+
+# Schemas
+
+Schemas specify the constraints of Terraform configuration blocks. They define what fields a provider,
+resource, or data source configuration block has, and give Terraform metadata
+about those fields. You can think of the schema as the "type information" or
+the "shape" of a resource, data source, or provider.
+
+Each concept has its own `schema` package and `Schema` type, which defines functionality available to that concept:
+
+- [Providers](/plugin/framework/providers): [`provider/schema.Schema`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#Schema)
+- [Resources](/plugin/framework/resources): [`resource/schema.Schema`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#Schema)
+- [Data Sources](/plugin/framework/data-sources): [`datasource/schema.Schema`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#Schema)
+
+## Version
+
+-> Version is only valid for resources.
+
+Every schema has a version, which is an integer that allows you to track changes to your schemas. It is generally only used when
+[upgrading resource state](/plugin/framework/resources/state-upgrade), to help massage resources created with earlier
+schemas into the shape defined by the current schema. It will never be used for
+provider or data source schemas and can be omitted.
+
+## DeprecationMessage
+
+Not every resource, data source, or provider will be supported forever.
+Sometimes designs change or APIs are deprecated. Schemas that have their
+`DeprecationMessage` property set will display that message as a warning when
+that provider, data source, or resource is used. A good message will tell
+practitioners that the provider, resource, or data source is deprecated, and
+will indicate a migration strategy.
+
+## Description
+
+Various tooling like
+[terraform-plugin-docs](https://github.com/hashicorp/terraform-plugin-docs) and
+the [language server](https://github.com/hashicorp/terraform-ls) can use
+metadata in the schema to generate documentation or offer a better editor
+experience for practitioners. Use the `Description` property to add a description of a resource, data source, or provider that these tools can leverage.
+
+## MarkdownDescription
+
+Similar to the `Description` property, the `MarkdownDescription` is used to
+provide a markdown-formatted version of the description to tooling like
+[terraform-plugin-docs](https://github.com/hashicorp/terraform-plugin-docs). It
+is a best practice to only alter the formatting, not the content, between the
+`Description` and `MarkdownDescription`.
+
+At the moment, if the `MarkdownDescription` property is set it will always be
+used instead of the `Description` property. It is possible that a different strategy may be employed in the future to surface descriptions to other tooling in a different format, so we recommend specifying both fields.
+
+## Attributes
+
+Attributes are the main point of a schema. They are used to describe the fields
+of a provider, resource, or data source. Attributes are defined as a map of
+string names to definitions.
+
+The name should only contain lowercase
+letters, numbers, and underscores. Practitioners will enter these strings in
+the configuration block of the provider, resource, or data source to set a
+value for that field.
+
+The value is the implementation details for the attribute.
+
+### Nested Attributes
+
+-> Only supported when using protocol version 6.
+
+[Nested attributes](/plugin/framework/handling-data/terraform-concepts#nested-attributes) enable provider developers to define objects of attributes which fully support attribute behaviors and practitioners to configure these directly using [expressions](/language/expressions).
+
+#### SingleNestedAttribute
+
+With single nested attributes, the attribute behaves like an object. The practitioner can only specify one definition of the nested attributes.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = {
+    hello = "world"
+    demo = true
+  }
+}
+```
+
+#### ListNestedAttribute
+
+With list nested attributes, the attribute behaves like a list of objects. The practitioner can
+specify any number of groups of these attributes.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = [
+    {
+      hello = "world"
+      demo = true
+    },
+    {
+      hello = "moon"
+      demo = false
+    },
+  ]
+}
+```
+
+#### MapNestedAttribute
+
+With map nested attributes, the attribute behaves like a map of objects. The practitioner can
+specify any number of groups of these attributes, with string keys associated
+with each group.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = {
+    "red" = {
+      hello = "world"
+      demo = true
+    },
+    "blue" = {
+      hello = "moon"
+      demo = false
+    },
+  }
+}
+```
+
+#### SetNestedAttribute
+
+With set nested attributes, the attributes behave like a set of objects. The practitioner can
+specify any number of groups of these attributes.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = [
+    {
+      hello = "world"
+      demo = true
+    },
+    {
+      hello = "moon"
+      demo = false
+    },
+  ]
+}
+```
+
+### Required
+
+Setting the `Required` property to `true` indicates that the attribute is
+required. Practitioners will be automatically given a validation error if they
+omit the attribute in their configuration.
+
+Attributes that set `Required` to `true` cannot set `Optional` or `Computed` to
+`true`.
+
+### Optional
+
+Setting the `Optional` property to `true` indicates that the attribute is
+optional. Practitioners are free to specify that attribute or omit it, and
+Terraform will not automatically generate a validation error based on the
+presence or absence of that attribute.
+
+Attributes that set `Optional` to `true` cannot set `Required` to `true`, but
+may set `Computed` to `true`, in which case the behavior of `Computed` applies,
+too.
+
+### Computed
+
+Setting the `Computed` property to `true` indicates that the attribute can be
+set by the provider. Any attribute that does not have `Computed` set to `true`
+cannot be influenced by the provider; it can only be changed via the config or
+via state refreshing.
+
+If `Computed` is set to `true` and `Optional` is not set to `true`, the
+attribute will be considered read-only and Terraform will automatically
+generate a validation error if the practitioner attempts to enter a
+configuration value for that attribute.
+
+If `Computed` is set to `true` and `Optional` is set to `true`, Terraform will
+not do any validation on the presence or absence of the value.
+
+If `Computed` is set to `true`, `Required` must not be set to `true`.
+
+Because providers don't set provider configuration values in state, provider
+schemas should never set `Computed` to `true`.
+
+### Sensitive
+
+Setting the `Sensitive` property to `true` indicates to Terraform that the
+value should always be considered
+[sensitive](/language/state/sensitive-data). This does not at this
+time add any encryption or otherwise hide the value from Terraform; see [the
+documentation for SDKv2](/plugin/sdkv2/best-practices/sensitive-state) for
+more information on sensitive state and Terraform. It does, however, hide the
+value in Terraform's outputs and in Terraform Cloud.
+
+### Description
+
+Much like [resources, data sources, and providers can have a
+description](#description), so too can individual attributes.
+
+### MarkdownDescription
+
+Much like [resources, data sources, and providers can have a markdown-formatted
+description](#markdowndescription), so too can individual attributes.
+
+### DeprecationMessage
+
+Individual attributes can be deprecated similar to resources, data sources, and providers. When the `DeprecationMessage` value is a non-empty string, the framework will automatically raise a warning diagnostic to practitioners if a configuration value (known or unknown) or reference is detected for the attribute during Terraform's validation phase:
+
+```text
+Warning: Attribute Deprecated
+
+{Configuration file/line information}
+
+{DeprecationMessage field value}
+```
+
+Use a practitioner actionable recommendation in `DeprecationMessage`, such as `"Configure other_attribute instead. This attribute will be removed in the next major version of the provider."` or `"Remove this attribute's configuration as it no longer is used and the attribute will be removed in the next major version of the provider."`.
+
+~> **NOTE**: In Terraform 1.2.6 and earlier, a deprecation warning diagnostic is only raised for configurable (`Required` or `Optional`) attributes when a configuration value is detected. A warning diagnostic is not raised for read-only (`Computed` only) attributes when referenced.
+
+### Validators
+
+Each attribute can implement [value validation](/plugin/framework/validation), either by specifying the [`Attribute` type `Validators` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute.Validators) and/or by declaring a custom type in the `Type` field that [implements its own validators](/plugin/framework/validation#type-validation). Common use case validators can be found in the [terraform-plugin-framework-validators Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators).

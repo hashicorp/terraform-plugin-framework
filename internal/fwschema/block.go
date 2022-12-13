@@ -13,6 +13,13 @@ import (
 // Refer to the internal/fwschema/fwxschema package for optional interfaces
 // that define framework-specific functionality, such a plan modification and
 // validation.
+//
+// Note that MaxItems and MinItems support, while defined in the Terraform
+// protocol, is intentially not present. Terraform can only perform limited
+// static analysis of blocks and errors generated occur before the provider
+// is called for configuration validation, which means that practitioners do
+// not get all configuration errors at the same time. Provider developers can
+// implement validators to achieve the same validation functionality.
 type Block interface {
 	// Implementations should include the tftypes.AttributePathStepper
 	// interface methods for proper path and data handling.
@@ -36,16 +43,6 @@ type Block interface {
 	// MarkdownDescription to prevent a conflict with the tfsdk.Attribute field
 	// name.
 	GetMarkdownDescription() string
-
-	// GetMaxItems should return the max items of a block. This is named
-	// differently than MaxItems to prevent a conflict with the tfsdk.Block
-	// field name.
-	GetMaxItems() int64
-
-	// GetMinItems should return the min items of a block. This is named
-	// differently than MinItems to prevent a conflict with the tfsdk.Block
-	// field name.
-	GetMinItems() int64
 
 	// GetNestedObject should return the object underneath the block.
 	// For single nesting mode, the NestedBlockObject can be generated from
@@ -78,14 +75,6 @@ func BlocksEqual(a, b Block) bool {
 	}
 
 	if a.GetMarkdownDescription() != b.GetMarkdownDescription() {
-		return false
-	}
-
-	if a.GetMaxItems() != b.GetMaxItems() {
-		return false
-	}
-
-	if a.GetMinItems() != b.GetMinItems() {
 		return false
 	}
 

@@ -7,8 +7,6 @@ description: >-
 
 # State Upgraders
 
--> **Note:** The Plugin Framework is in beta.
-
 When you update a resource's implementation in your provider, some changes may not be compatible with old versions. You
 can create state upgraders to automatically migrate resources provisioned with old schema configurations. Refer to
 [State Upgrade](/plugin/framework/resources/state-upgrade) in the Framework documentation for details.
@@ -66,60 +64,42 @@ a single step. For example, version 0 => version 2, version 1 => version 2.
 
 ## Example
 
-The following examples show how to migrate portions of the
-[random](https://github.com/hashicorp/terraform-provider-random) provider.
-
-For a complete example, clone the
-`terraform-provider-random` repository and compare the `resource_password.go` file in
-[v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
-with [v3.4.1](https://github.com/hashicorp/terraform-provider-random/blob/v3.4.1/internal/provider/resource_password.go).
-
 ### SDKv2
 
 In SDKv2 the `schema.Resource` struct has a `StateUpgraders` field that holds `[]schema.StateUpgrader` struct(s).
 
-The following example from the `resource_password.go` file shows the state upgrade functions for the `random_password`
+The following example from the shows the state upgrade functions for the `example_resource`
 resource with SDKv2.
 
 ```go
-func resourcePassword() *schema.Resource {
+func exampleResource() *schema.Resource {
     return &schema.Resource{
-        Schema:        passwordSchemaV2(),
+        Schema:        exampleSchemaV2(),
         SchemaVersion: 2,
         StateUpgraders: []schema.StateUpgrader{
             {
                 Version: 0,
-                Type:    resourcePasswordV0().CoreConfigSchema().ImpliedType(),
-                Upgrade: resourcePasswordStateUpgradeV0,
+                Type:    exampleResourceV0().CoreConfigSchema().ImpliedType(),
+                Upgrade: exampleResourceStateUpgradeV0,
             },
             {
                 Version: 1,
-                Type:    resourcePasswordV1().CoreConfigSchema().ImpliedType(),
-                Upgrade: resourcePasswordStringStateUpgradeV1,
+                Type:    exampleResourceV1().CoreConfigSchema().ImpliedType(),
+                Upgrade: exampleResourceStateUpgradeV1,
             },
         },
         /* ... */
 ```
 
-The following example shows the implementation of the `resourcePasswordStateUpgradeV0` function with SDKv2.
+The following example shows the implementation of the `exampleResourceStateUpgradeV0` function with SDKv2.
 
 ```go
-func resourcePasswordStateUpgradeV0(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func exampleResourceStateUpgradeV0(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
     if rawState == nil {
-        return nil, fmt.Errorf("resource password state upgrade failed, state is nil")
+        return nil, fmt.Errorf("example resource state upgrade failed, state is nil")
     }
 
-    result, ok := rawState["result"].(string)
-    if !ok {
-        return nil, fmt.Errorf("resource password state upgrade failed, result is not a string: %T", rawState["result"])
-    }
-
-    hash, err := generateHash(result)
-    if err != nil {
-        return nil, fmt.Errorf("resource password state upgrade failed, generate hash error: %w", err)
-    }
-
-    rawState["bcrypt_hash"] = hash
+    rawState["example_attribute"] = "value"
 
     return rawState, nil
 }
@@ -129,80 +109,49 @@ func resourcePasswordStateUpgradeV0(_ context.Context, rawState map[string]inter
 
 The following shows the same section of provider code after the migration.
 
-This code implements the `ResourceWithUpgradeState` interface on the `passwordResource` type by defining an
+This code implements the `ResourceWithUpgradeState` interface on the `exampleResource` type by defining an
 `UpgradeState` function. The `UpgradeState` function returns a map from each state version (int64) to a
 `ResourceStateUpgrader` struct.
 
 ```go
-func (r *passwordResource) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
-    schemaV0 := passwordSchemaV0()
-    schemaV1 := passwordSchemaV1()
+func (r *exampleResource) UpgradeState(context.Context) map[int64]resource.StateUpgrader {
+    schemaV0 := exampleSchemaV0()
+    schemaV1 := exampleSchemaV1()
 
     return map[int64]resource.StateUpgrader{
         0: {
             PriorSchema:   &schemaV0,
-            StateUpgrader: upgradePasswordStateV0toV2,
+            StateUpgrader: upgradeExampleResourceStateV0toV2,
         },
         1: {
             PriorSchema:   &schemaV1,
-            StateUpgrader: upgradePasswordStateV1toV2,
+            StateUpgrader: upgradeExampleResourceStateV1toV2,
         },
     }
 }
 ```
 
-This code implements the `upgradePasswordStateV0toV2` state upgrade function.
+This code implements the `upgradeExampleResourceStateV0toV2` state upgrade function.
 
 ```go
-func upgradePasswordStateV0toV2(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+func upgradeExampleResourceStateV0toV2(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
 	type modelV0 struct {
-		ID              types.String `tfsdk:"id"`
-		Keepers         types.Map    `tfsdk:"keepers"`
-		Length          types.Int64  `tfsdk:"length"`
-		Special         types.Bool   `tfsdk:"special"`
-		Upper           types.Bool   `tfsdk:"upper"`
-		Lower           types.Bool   `tfsdk:"lower"`
-		Number          types.Bool   `tfsdk:"number"`
-		MinNumeric      types.Int64  `tfsdk:"min_numeric"`
-		MinUpper        types.Int64  `tfsdk:"min_upper"`
-		MinLower        types.Int64  `tfsdk:"min_lower"`
-		MinSpecial      types.Int64  `tfsdk:"min_special"`
-		OverrideSpecial types.String `tfsdk:"override_special"`
-		Result          types.String `tfsdk:"result"`
+		ID    types.String `tfsdk:"id"`
 	}
 
-	var passwordDataV0 modelV0
+	var exampleDataV0 modelV0
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &passwordDataV0)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &exampleDataV0)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	passwordDataV2 := passwordModelV2{
-		Keepers:         passwordDataV0.Keepers,
-		Length:          passwordDataV0.Length,
-		Special:         passwordDataV0.Special,
-		Upper:           passwordDataV0.Upper,
-		Lower:           passwordDataV0.Lower,
-		Number:          passwordDataV0.Number,
-		Numeric:         passwordDataV0.Number,
-		MinNumeric:      passwordDataV0.MinNumeric,
-		MinUpper:        passwordDataV0.MinUpper,
-		MinLower:        passwordDataV0.MinLower,
-		MinSpecial:      passwordDataV0.MinSpecial,
-		OverrideSpecial: passwordDataV0.OverrideSpecial,
-		Result:          passwordDataV0.Result,
-		ID:              passwordDataV0.ID,
+	exampleDataV2 := exampleModelV2{
+		ID:    exampleDataV0.ID,
 	}
 
-	hash, err := generateHash(passwordDataV2.Result.ValueString())
-	if err != nil {
-		resp.Diagnostics.Append(diagnostics.HashGenerationError(err.Error())...)
-		return
-	}
+	exampleDataV2.ExampleAttribute = types.StringValue("value")
 
-	passwordDataV2.BcryptHash = types.StringValue(hash)
-
-	diags := resp.State.Set(ctx, passwordDataV2)
+	diags := resp.State.Set(ctx, exampleDataV2)
 	resp.Diagnostics.Append(diags...)
 ```

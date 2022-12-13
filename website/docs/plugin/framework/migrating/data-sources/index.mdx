@@ -6,8 +6,6 @@ description: >-
 
 # Data Sources
 
--> **Note:** The Plugin Framework is in beta.
-
 Data sources let Terraform reference external data. Unlike resources, Terraform does not create, update, or delete
 data sources, and makes no attempt to modify the underlying API. Data Sources are a read-only resource type, so they
 only implement a subset of the operations that resources do. Refer to [Data Sources](/plugin/framework/data-sources)
@@ -100,39 +98,29 @@ Remember the following details when completing the migration from SDKv2 to the F
 
 ## Example
 
-The following examples show how to migrate portions of the [http](https://github.com/hashicorp/terraform-provider-http)
-provider.
-
-For a complete example, clone the
-`terraform-provider-http` repository and compare the `data_source.go` file in
-[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
-and the `data_source_http.go` file
-[after the migration](https://github.com/hashicorp/terraform-provider-http/blob/8527d5b4546b54cdef246a13befc5745dbbbf740/internal/provider/data_source_http.go).
-
 ### SDKv2
 
-The following example from the `provider.go` file shows an implementation of the `DataSourcesMap` field on the provider
+The following example shows an implementation of the `DataSourcesMap` field on the provider
 schema with SDKv2.
 
 ```go
 func New() (*schema.Provider, error) {
     return &schema.Provider {
         DataSourcesMap: map[string]*schema.Resource {
-            "http": dataSource(),
+            "example_datasource": exampleDataSource(),
             /* ... */
 ```
 
-The following example from the `data_source.go` file shows how the `ReadContext` function and `Schema` are defined for
-the `http` data source with SDKv2.
+The following example shows how the `ReadContext` function and `Schema` are defined for
+the `exampleResource` data source with SDKv2.
 
 ```go
-func dataSource() *schema.Resource {
+func exampleDataSource() *schema.Resource {
     return &schema.Resource{
         ReadContext: dataSourceRead,
 
         Schema: map[string]*schema.Schema{
-            "url": {
-                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+            "example_attribute": {
                 Type:        schema.TypeString,
                 Required:    true,
             },
@@ -144,40 +132,36 @@ func dataSource() *schema.Resource {
 
 ### Framework
 
-The following example from the `provider.go` file shows how the `http` data source is defined with the Framework after
+The following example shows how the `exampleDataSource` data source is defined with the Framework after
 the migration.
 
 ```go
 func (p *provider) DataSources(context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource{
         func() datasource.DataSource {
-            return &httpDataSource{}
+            return &exampleDataSource{}
         },
     }
 }
 ```
 
-This code from the `data_source_http.go` file defines the methods for the `http` data source with the
+This code defines the methods for the `exampleDataSource` data source with the
 Framework.
 
 ```go
-func (d *httpDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-    // This is unconventional in that the data source name matches the provider name.
-    // Typically these should have the provider name, an underscore, then the type name.
-    // e.g. http_request
-    resp.TypeName = "http"
+func (d *exampleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+    resp.TypeName = "example_datasource"
 }
 
-func (d *httpDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *exampleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
-            "url": schema.StringAttribute{
-                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+            "example_attribute": schema.StringAttribute{
                 Required:    true,
             },
             /* ... */
 
-func (d *httpDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
     /* ... */
 }
 ```

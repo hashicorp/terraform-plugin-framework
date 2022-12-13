@@ -2,7 +2,7 @@ package metaschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -25,9 +25,9 @@ type NestedAttributeObject struct {
 	Attributes map[string]Attribute
 
 	// CustomType enables the use of a custom attribute type in place of the
-	// default types.ObjectType. When retrieving data, the types.ObjectValuable
+	// default basetypes.ObjectType. When retrieving data, the basetypes.ObjectValuable
 	// associated with this custom type must be used in place of types.Object.
-	CustomType types.ObjectTypable
+	CustomType basetypes.ObjectTypable
 }
 
 // ApplyTerraform5AttributePathStep performs an AttributeName step on the
@@ -51,7 +51,7 @@ func (o NestedAttributeObject) GetAttributes() fwschema.UnderlyingAttributes {
 }
 
 // Type returns the framework type of the NestedAttributeObject.
-func (o NestedAttributeObject) Type() types.ObjectTypable {
+func (o NestedAttributeObject) Type() basetypes.ObjectTypable {
 	if o.CustomType != nil {
 		return o.CustomType
 	}

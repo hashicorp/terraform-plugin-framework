@@ -6,10 +6,8 @@ description: >-
 
 # Attribute Fields
 
--> **Note:** The Plugin Framework is in beta.
-
 A subset of attribute fields, such as required, optional, computed, or sensitive, define attribute behavior as boolean flags. Refer to
-[Schemas - Attributes](/plugin/framework/schemas#required) in the Framework documentation for details.
+[Schemas - Attributes](/plugin/framework/handling-data/schemas#required) in the Framework documentation for details.
 
 This page explains how to migrate the required, optional, computed, and sensitive attribute fields from SDKv2 to the
 Framework.
@@ -50,25 +48,16 @@ func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 
 ## Example
 
-The following examples show how to migrate portions of the [http](https://github.com/hashicorp/terraform-provider-http)
-provider.
-
-For a complete example, clone the
-`terraform-provider-http` repository and compare the `data_source.go` file in
-[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
-and the `data_source_http.go` file
-[after the migration](https://github.com/hashicorp/terraform-provider-http/blob/8527d5b4546b54cdef246a13befc5745dbbbf740/internal/provider/data_source_http.go).
-
 ### SDKv2
 
-The following example from the `data_source.go` file shows how the `url` attribute on the `http` data source is set to
+The following example shows how the `example_attribute` attribute on the `exampleDataSource` data source is set to
 be required with SDKv2.
 
 ```go
-func dataSource() *schema.Resource {
+func exampleDataSource() *schema.Resource {
     return &schema.Resource{
         Schema: map[string]*schema.Schema{
-            "url": {
+            "example_attribute": {
                 Required:   true,
                 /* ... */
             },
@@ -77,14 +66,14 @@ func dataSource() *schema.Resource {
 
 ### Framework
 
-The following example from the `data_source_http.go` file shows how the `url` attribute on the `http` data source is set
+The following example shows how the `example_attribute` attribute on the `exampleDataSource` data source is set
 to be required with the Framework.
 
 ```go
-func (d *httpDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *exampleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
-            "url": schema.StringAttribute{
+            "example_attribute": schema.StringAttribute{
                 Required:   true,
                 /* ... */
             },

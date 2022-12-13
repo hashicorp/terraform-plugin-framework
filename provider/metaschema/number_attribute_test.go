@@ -28,25 +28,25 @@ func TestNumberAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 			attribute:     metaschema.NumberAttribute{},
 			step:          tftypes.AttributeName("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to types.NumberType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to basetypes.NumberType"),
 		},
 		"ElementKeyInt": {
 			attribute:     metaschema.NumberAttribute{},
 			step:          tftypes.ElementKeyInt(1),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to types.NumberType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.NumberType"),
 		},
 		"ElementKeyString": {
 			attribute:     metaschema.NumberAttribute{},
 			step:          tftypes.ElementKeyString("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to types.NumberType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to basetypes.NumberType"),
 		},
 		"ElementKeyValue": {
 			attribute:     metaschema.NumberAttribute{},
 			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to types.NumberType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to basetypes.NumberType"),
 		},
 	}
 

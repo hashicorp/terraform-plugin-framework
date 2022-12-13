@@ -7,8 +7,6 @@ description: >-
 
 # Default Values
 
--> **Note:** The Plugin Framework is in beta.
-
 Default values set a value for an attribute when the Terraform configuration does not provide one. In SDKv2, default
 values are set via fields on an attribute's schema. In the Framework, you set default values via plan modification.
 Refer to
@@ -61,24 +59,16 @@ In the Framework, you must implement an attribute plan modifier to set default v
 
 ## Example
 
-The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
-provider.
-
-For a complete example, clone the
-`terraform-provider-tls` repository and compare the `resource_private_key.go` file in
-[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/resource_private_key.go) with the file
-[after the migration](https://github.com/hashicorp/terraform-provider-tls/blob/4dafb105818e45a88532f917e7b170ee2a9bb092/internal/provider/resource_private_key.go).
-
 ### SDKv2
 
-The following example from the `resource_private_key.go` file shows the implementation of the `Default` field for the
-`rsa_bits` attribute on the `tls_private_key` resource with SDKv2.
+The following example shows the implementation of the `Default` field for the
+`example_attribute` attribute on the `exampleResource` resource with SDKv2.
 
 ```go
-func resourcePrivateKey() *schema.Resource {
+func exampleResource() *schema.Resource {
     return &schema.Resource{
         Schema: map[string]*schema.Schema{
-            "rsa_bits": {
+            "example_attribute": {
                 Default:     2048,
                 /* ... */
             },
@@ -89,13 +79,13 @@ func resourcePrivateKey() *schema.Resource {
 
 The following shows the same section of code after the migration.
 
-This code implements the `PlanModifiers` field for the `rsa_bits` attribute with the Framework.
+This code implements the `PlanModifiers` field for the `example_attribute` attribute with the Framework.
 
 ```go
-func (r *privateKeyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
-            "rsa_bits": schema.Int64Attribute{
+            "example_attribute": schema.Int64Attribute{
                 PlanModifiers: []planmodifier.Int64{
                     attribute_plan_modifier.Int64DefaultValue(types.Int64Value(2048)),
                     /* ... */
@@ -108,8 +98,8 @@ func (r *privateKeyResource) Schema(ctx context.Context, req resource.SchemaRequ
 }
 ```
 
-The following example from the `attribute_plan_modifiers.go` file implements the `DefaultValue` attribute plan modifier
-that the `rsa_bits` attribute uses.
+The following example implements the `Int64DefaultValue` attribute plan modifier
+that the `example_attribute` attribute uses.
 
 ```go
 func Int64DefaultValue(v types.Int64) planmodifier.Int64 {

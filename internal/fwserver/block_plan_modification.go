@@ -8,10 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // BlockModifyPlan performs all Block plan modification.
@@ -20,43 +19,12 @@ import (
 // The extra Block parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	privateProviderData := privatestate.EmptyProviderData(ctx)
-
+func BlockModifyPlan(ctx context.Context, b fwschema.Block, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
 	if req.Private != nil {
 		resp.Private = req.Private
-		privateProviderData = req.Private
 	}
 
 	switch blockWithPlanModifiers := b.(type) {
-	// Legacy tfsdk.BlockPlanModifier handling
-	case fwxschema.BlockWithPlanModifiers:
-		var requiresReplace bool
-
-		for _, planModifier := range blockWithPlanModifiers.GetPlanModifiers() {
-			modifyResp := &tfsdk.ModifyAttributePlanResponse{
-				AttributePlan:   req.AttributePlan,
-				RequiresReplace: requiresReplace,
-				Private:         privateProviderData,
-			}
-
-			planModifier.Modify(ctx, req, modifyResp)
-
-			req.AttributePlan = modifyResp.AttributePlan
-			resp.Diagnostics.Append(modifyResp.Diagnostics...)
-			requiresReplace = modifyResp.RequiresReplace
-			resp.AttributePlan = modifyResp.AttributePlan
-			resp.Private = modifyResp.Private
-
-			// Only on new errors.
-			if modifyResp.Diagnostics.HasError() {
-				return
-			}
-		}
-
-		if requiresReplace {
-			resp.RequiresReplace = append(resp.RequiresReplace, req.AttributePath)
-		}
 	case fwxschema.BlockWithListPlanModifiers:
 		BlockPlanModifyList(ctx, blockWithPlanModifiers, req, resp)
 	case fwxschema.BlockWithObjectPlanModifiers:
@@ -308,19 +276,19 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req tfsdk.ModifyAttr
 }
 
 // BlockPlanModifyList performs all types.List plan modification.
-func BlockPlanModifyList(ctx context.Context, block fwxschema.BlockWithListPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.ListValuable until custom types cannot re-implement
+func BlockPlanModifyList(ctx context.Context, block fwxschema.BlockWithListPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	// Use basetypes.ListValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ListValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ListValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid List Block Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform List block plan modification. "+
-				"The value type must implement the types.ListValuable interface. "+
+				"The value type must implement the basetypes.ListValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -338,14 +306,14 @@ func BlockPlanModifyList(ctx context.Context, block fwxschema.BlockWithListPlanM
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.ListValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.ListValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid List Block Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform List block plan modification. "+
-				"The value type must implement the types.ListValuable interface. "+
+				"The value type must implement the basetypes.ListValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -363,14 +331,14 @@ func BlockPlanModifyList(ctx context.Context, block fwxschema.BlockWithListPlanM
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.ListValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.ListValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid List Block Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform List block plan modification. "+
-				"The value type must implement the types.ListValuable interface. "+
+				"The value type must implement the basetypes.ListValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -443,19 +411,19 @@ func BlockPlanModifyList(ctx context.Context, block fwxschema.BlockWithListPlanM
 }
 
 // BlockPlanModifyObject performs all types.Object plan modification.
-func BlockPlanModifyObject(ctx context.Context, block fwxschema.BlockWithObjectPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.ObjectValuable until custom types cannot re-implement
+func BlockPlanModifyObject(ctx context.Context, block fwxschema.BlockWithObjectPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	// Use basetypes.ObjectValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ObjectValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Object Block Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Object block plan modification. "+
-				"The value type must implement the types.ObjectValuable interface. "+
+				"The value type must implement the basetypes.ObjectValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -473,14 +441,14 @@ func BlockPlanModifyObject(ctx context.Context, block fwxschema.BlockWithObjectP
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.ObjectValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.ObjectValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Object Block Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Object block plan modification. "+
-				"The value type must implement the types.ObjectValuable interface. "+
+				"The value type must implement the basetypes.ObjectValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -498,14 +466,14 @@ func BlockPlanModifyObject(ctx context.Context, block fwxschema.BlockWithObjectP
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.ObjectValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.ObjectValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Object Block Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Object block plan modification. "+
-				"The value type must implement the types.ObjectValuable interface. "+
+				"The value type must implement the basetypes.ObjectValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -578,19 +546,19 @@ func BlockPlanModifyObject(ctx context.Context, block fwxschema.BlockWithObjectP
 }
 
 // BlockPlanModifySet performs all types.Set plan modification.
-func BlockPlanModifySet(ctx context.Context, block fwxschema.BlockWithSetPlanModifiers, req tfsdk.ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
-	// Use types.SetValuable until custom types cannot re-implement
+func BlockPlanModifySet(ctx context.Context, block fwxschema.BlockWithSetPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	// Use basetypes.SetValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.SetValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.SetValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Set Block Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Set block plan modification. "+
-				"The value type must implement the types.SetValuable interface. "+
+				"The value type must implement the basetypes.SetValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -608,14 +576,14 @@ func BlockPlanModifySet(ctx context.Context, block fwxschema.BlockWithSetPlanMod
 		return
 	}
 
-	planValuable, ok := req.AttributePlan.(types.SetValuable)
+	planValuable, ok := req.AttributePlan.(basetypes.SetValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Set Block Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Set block plan modification. "+
-				"The value type must implement the types.SetValuable interface. "+
+				"The value type must implement the basetypes.SetValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
 		)
@@ -633,14 +601,14 @@ func BlockPlanModifySet(ctx context.Context, block fwxschema.BlockWithSetPlanMod
 		return
 	}
 
-	stateValuable, ok := req.AttributeState.(types.SetValuable)
+	stateValuable, ok := req.AttributeState.(basetypes.SetValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Set Block Plan Modifier Value Type",
 			"An unexpected value type was encountered while attempting to perform Set block plan modification. "+
-				"The value type must implement the types.SetValuable interface. "+
+				"The value type must implement the basetypes.SetValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
 		)
@@ -783,7 +751,7 @@ func NestedBlockObjectPlanModify(ctx context.Context, o fwschema.NestedBlockObje
 			return
 		}
 
-		nestedAttrReq := tfsdk.ModifyAttributePlanRequest{
+		nestedAttrReq := ModifyAttributePlanRequest{
 			AttributeConfig:         nestedAttrConfig,
 			AttributePath:           req.Path.AtName(nestedName),
 			AttributePathExpression: req.PathExpression.AtName(nestedName),
@@ -833,7 +801,7 @@ func NestedBlockObjectPlanModify(ctx context.Context, o fwschema.NestedBlockObje
 			return
 		}
 
-		nestedBlockReq := tfsdk.ModifyAttributePlanRequest{
+		nestedBlockReq := ModifyAttributePlanRequest{
 			AttributeConfig:         nestedBlockConfig,
 			AttributePath:           req.Path.AtName(nestedName),
 			AttributePathExpression: req.PathExpression.AtName(nestedName),

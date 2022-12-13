@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -66,7 +67,7 @@ func (o NestedAttributeObject) GetAttributes() fwschema.UnderlyingAttributes {
 }
 
 // Type returns the framework type of the NestedAttributeObject.
-func (o NestedAttributeObject) Type() types.ObjectTypable {
+func (o NestedAttributeObject) Type() basetypes.ObjectTypable {
 	attrTypes := make(map[string]attr.Type, len(o.Attributes))
 
 	for name, attribute := range o.Attributes {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -74,7 +75,7 @@ func (o NestedAttributeObjectWithValidators) ObjectValidators() []validator.Obje
 }
 
 // Type returns the framework type of the NestedAttributeObjectWithValidators.
-func (o NestedAttributeObjectWithValidators) Type() types.ObjectTypable {
+func (o NestedAttributeObjectWithValidators) Type() basetypes.ObjectTypable {
 	attrTypes := make(map[string]attr.Type, len(o.Attributes))
 
 	for name, attribute := range o.Attributes {

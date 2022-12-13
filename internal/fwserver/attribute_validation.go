@@ -4,14 +4,44 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
+
+// ValidateAttributeRequest repesents a request for attribute validation.
+type ValidateAttributeRequest struct {
+	// AttributePath contains the path of the attribute. Use this path for any
+	// response diagnostics.
+	AttributePath path.Path
+
+	// AttributePathExpression contains the expression matching the exact path
+	// of the attribute.
+	AttributePathExpression path.Expression
+
+	// AttributeConfig contains the value of the attribute in the configuration.
+	AttributeConfig attr.Value
+
+	// Config contains the entire configuration of the data source, provider, or resource.
+	Config tfsdk.Config
+}
+
+// ValidateAttributeResponse represents a response to a
+// ValidateAttributeRequest. An instance of this response struct is
+// automatically passed through to each AttributeValidator.
+type ValidateAttributeResponse struct {
+	// Diagnostics report errors or warnings related to validating the data
+	// source configuration. An empty slice indicates success, with no warnings
+	// or errors generated.
+	Diagnostics diag.Diagnostics
+}
 
 // AttributeValidate performs all Attribute validation.
 //
@@ -19,30 +49,8 @@ import (
 // The extra Attribute parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	ctx = logging.FrameworkWithAttributePath(ctx, req.AttributePath.String())
-
-	tfsdkAttribute, ok := a.(tfsdk.Attribute)
-
-	if ok && tfsdkAttribute.GetType() == nil {
-		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
-			"Invalid Attribute Definition",
-			"Attribute must define either Attributes or Type. This is always a problem with the provider and should be reported to the provider developer.",
-		)
-
-		return
-	}
-
-	if ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown && tfsdkAttribute.Attributes != nil {
-		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
-			"Invalid Attribute Definition",
-			"Attribute cannot define both Attributes and Type. This is always a problem with the provider and should be reported to the provider developer.",
-		)
-
-		return
-	}
 
 	if !a.IsRequired() && !a.IsOptional() && !a.IsComputed() {
 		resp.Diagnostics.AddAttributeError(
@@ -98,25 +106,6 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.Vali
 	req.AttributeConfig = attributeConfig
 
 	switch attributeWithValidators := a.(type) {
-	// Legacy tfsdk.AttributeValidator handling
-	case fwxschema.AttributeWithValidators:
-		for _, validator := range attributeWithValidators.GetValidators() {
-			logging.FrameworkDebug(
-				ctx,
-				"Calling provider defined AttributeValidator",
-				map[string]interface{}{
-					logging.KeyDescription: validator.Description(ctx),
-				},
-			)
-			validator.Validate(ctx, req, resp)
-			logging.FrameworkDebug(
-				ctx,
-				"Called provider defined AttributeValidator",
-				map[string]interface{}{
-					logging.KeyDescription: validator.Description(ctx),
-				},
-			)
-		}
 	case fwxschema.AttributeWithBoolValidators:
 		AttributeValidateBool(ctx, attributeWithValidators, req, resp)
 	case fwxschema.AttributeWithFloat64Validators:
@@ -150,19 +139,19 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req tfsdk.Vali
 }
 
 // AttributeValidateBool performs all types.Bool validation.
-func AttributeValidateBool(ctx context.Context, attribute fwxschema.AttributeWithBoolValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.BoolValuable until custom types cannot re-implement
+func AttributeValidateBool(ctx context.Context, attribute fwxschema.AttributeWithBoolValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.BoolValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.BoolValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.BoolValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Bool Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Bool attribute validation. "+
-				"The value type must implement the types.BoolValuable interface. "+
+				"The value type must implement the basetypes.BoolValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -215,19 +204,19 @@ func AttributeValidateBool(ctx context.Context, attribute fwxschema.AttributeWit
 }
 
 // AttributeValidateFloat64 performs all types.Float64 validation.
-func AttributeValidateFloat64(ctx context.Context, attribute fwxschema.AttributeWithFloat64Validators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.Float64Valuable until custom types cannot re-implement
+func AttributeValidateFloat64(ctx context.Context, attribute fwxschema.AttributeWithFloat64Validators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.Float64Valuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.Float64Valuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.Float64Valuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Float64 Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Float64 attribute validation. "+
-				"The value type must implement the types.Float64Valuable interface. "+
+				"The value type must implement the basetypes.Float64Valuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -280,19 +269,19 @@ func AttributeValidateFloat64(ctx context.Context, attribute fwxschema.Attribute
 }
 
 // AttributeValidateInt64 performs all types.Int64 validation.
-func AttributeValidateInt64(ctx context.Context, attribute fwxschema.AttributeWithInt64Validators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.Int64Valuable until custom types cannot re-implement
+func AttributeValidateInt64(ctx context.Context, attribute fwxschema.AttributeWithInt64Validators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.Int64Valuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.Int64Valuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.Int64Valuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Int64 Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Int64 attribute validation. "+
-				"The value type must implement the types.Int64Valuable interface. "+
+				"The value type must implement the basetypes.Int64Valuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -345,19 +334,19 @@ func AttributeValidateInt64(ctx context.Context, attribute fwxschema.AttributeWi
 }
 
 // AttributeValidateList performs all types.List validation.
-func AttributeValidateList(ctx context.Context, attribute fwxschema.AttributeWithListValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.ListValuable until custom types cannot re-implement
+func AttributeValidateList(ctx context.Context, attribute fwxschema.AttributeWithListValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.ListValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ListValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ListValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid List Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform List attribute validation. "+
-				"The value type must implement the types.ListValuable interface. "+
+				"The value type must implement the basetypes.ListValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -410,19 +399,19 @@ func AttributeValidateList(ctx context.Context, attribute fwxschema.AttributeWit
 }
 
 // AttributeValidateMap performs all types.Map validation.
-func AttributeValidateMap(ctx context.Context, attribute fwxschema.AttributeWithMapValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.MapValuable until custom types cannot re-implement
+func AttributeValidateMap(ctx context.Context, attribute fwxschema.AttributeWithMapValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.MapValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.MapValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.MapValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Map Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Map attribute validation. "+
-				"The value type must implement the types.MapValuable interface. "+
+				"The value type must implement the basetypes.MapValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -475,19 +464,19 @@ func AttributeValidateMap(ctx context.Context, attribute fwxschema.AttributeWith
 }
 
 // AttributeValidateNumber performs all types.Number validation.
-func AttributeValidateNumber(ctx context.Context, attribute fwxschema.AttributeWithNumberValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.NumberValuable until custom types cannot re-implement
+func AttributeValidateNumber(ctx context.Context, attribute fwxschema.AttributeWithNumberValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.NumberValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.NumberValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.NumberValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Number Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Number attribute validation. "+
-				"The value type must implement the types.NumberValuable interface. "+
+				"The value type must implement the basetypes.NumberValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -540,19 +529,19 @@ func AttributeValidateNumber(ctx context.Context, attribute fwxschema.AttributeW
 }
 
 // AttributeValidateObject performs all types.Object validation.
-func AttributeValidateObject(ctx context.Context, attribute fwxschema.AttributeWithObjectValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.ObjectValuable until custom types cannot re-implement
+func AttributeValidateObject(ctx context.Context, attribute fwxschema.AttributeWithObjectValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.ObjectValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.ObjectValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Object Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Object attribute validation. "+
-				"The value type must implement the types.ObjectValuable interface. "+
+				"The value type must implement the basetypes.ObjectValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -605,19 +594,19 @@ func AttributeValidateObject(ctx context.Context, attribute fwxschema.AttributeW
 }
 
 // AttributeValidateSet performs all types.Set validation.
-func AttributeValidateSet(ctx context.Context, attribute fwxschema.AttributeWithSetValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.SetValuable until custom types cannot re-implement
+func AttributeValidateSet(ctx context.Context, attribute fwxschema.AttributeWithSetValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.SetValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.SetValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.SetValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Set Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform Set attribute validation. "+
-				"The value type must implement the types.SetValuable interface. "+
+				"The value type must implement the basetypes.SetValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -670,19 +659,19 @@ func AttributeValidateSet(ctx context.Context, attribute fwxschema.AttributeWith
 }
 
 // AttributeValidateString performs all types.String validation.
-func AttributeValidateString(ctx context.Context, attribute fwxschema.AttributeWithStringValidators, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// Use types.StringValuable until custom types cannot re-implement
+func AttributeValidateString(ctx context.Context, attribute fwxschema.AttributeWithStringValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.StringValuable until custom types cannot re-implement
 	// ValueFromTerraform. Until then, custom types are not technically
 	// required to implement this interface. This opts to enforce the
 	// requirement before compatibility promises would interfere.
-	configValuable, ok := req.AttributeConfig.(types.StringValuable)
+	configValuable, ok := req.AttributeConfig.(basetypes.StringValuable)
 
 	if !ok {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid String Attribute Validator Value Type",
 			"An unexpected value type was encountered while attempting to perform String attribute validation. "+
-				"The value type must implement the types.StringValuable interface. "+
+				"The value type must implement the basetypes.StringValuable interface. "+
 				"Please report this to the provider developers.\n\n"+
 				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
 		)
@@ -740,16 +729,10 @@ func AttributeValidateString(ctx context.Context, attribute fwxschema.AttributeW
 // The extra Attribute parameter is a carry-over of creating the proto6server
 // package from the tfsdk package and not wanting to export the method.
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/365
-func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	nestedAttribute, ok := a.(fwschema.NestedAttribute)
 
 	if !ok {
-		return
-	}
-
-	tfsdkAttribute, ok := a.(tfsdk.Attribute) //nolint:staticcheck // Handle tfsdk.Attribute until its removed.
-
-	if ok && tfsdkAttribute.GetNestingMode() == fwschema.NestingModeUnknown {
 		return
 	}
 
@@ -758,14 +741,14 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 	nm := nestedAttribute.GetNestingMode()
 	switch nm {
 	case fwschema.NestingModeList:
-		listVal, ok := req.AttributeConfig.(types.ListValuable)
+		listVal, ok := req.AttributeConfig.(basetypes.ListValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Attribute Validation Error Invalid Value Type",
-				"A type that implements types.ListValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.ListValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -779,27 +762,27 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 		}
 
 		for idx, value := range l.Elements() {
-			nestedAttributeObjectReq := tfsdk.ValidateAttributeRequest{
+			nestedAttributeObjectReq := ValidateAttributeRequest{
 				AttributeConfig:         value,
 				AttributePath:           req.AttributePath.AtListIndex(idx),
 				AttributePathExpression: req.AttributePathExpression.AtListIndex(idx),
 				Config:                  req.Config,
 			}
-			nestedAttributeObjectResp := &tfsdk.ValidateAttributeResponse{}
+			nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
 			NestedAttributeObjectValidate(ctx, nestedAttributeObject, nestedAttributeObjectReq, nestedAttributeObjectResp)
 
 			resp.Diagnostics.Append(nestedAttributeObjectResp.Diagnostics...)
 		}
 	case fwschema.NestingModeSet:
-		setVal, ok := req.AttributeConfig.(types.SetValuable)
+		setVal, ok := req.AttributeConfig.(basetypes.SetValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Attribute Validation Error Invalid Value Type",
-				"A type that implements types.SetValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.SetValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -813,27 +796,27 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 		}
 
 		for _, value := range s.Elements() {
-			nestedAttributeObjectReq := tfsdk.ValidateAttributeRequest{
+			nestedAttributeObjectReq := ValidateAttributeRequest{
 				AttributeConfig:         value,
 				AttributePath:           req.AttributePath.AtSetValue(value),
 				AttributePathExpression: req.AttributePathExpression.AtSetValue(value),
 				Config:                  req.Config,
 			}
-			nestedAttributeObjectResp := &tfsdk.ValidateAttributeResponse{}
+			nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
 			NestedAttributeObjectValidate(ctx, nestedAttributeObject, nestedAttributeObjectReq, nestedAttributeObjectResp)
 
 			resp.Diagnostics.Append(nestedAttributeObjectResp.Diagnostics...)
 		}
 	case fwschema.NestingModeMap:
-		mapVal, ok := req.AttributeConfig.(types.MapValuable)
+		mapVal, ok := req.AttributeConfig.(basetypes.MapValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Attribute Validation Error Invalid Value Type",
-				"A type that implements types.MapValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.MapValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -847,27 +830,27 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 		}
 
 		for key, value := range m.Elements() {
-			nestedAttributeObjectReq := tfsdk.ValidateAttributeRequest{
+			nestedAttributeObjectReq := ValidateAttributeRequest{
 				AttributeConfig:         value,
 				AttributePath:           req.AttributePath.AtMapKey(key),
 				AttributePathExpression: req.AttributePathExpression.AtMapKey(key),
 				Config:                  req.Config,
 			}
-			nestedAttributeObjectResp := &tfsdk.ValidateAttributeResponse{}
+			nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
 			NestedAttributeObjectValidate(ctx, nestedAttributeObject, nestedAttributeObjectReq, nestedAttributeObjectResp)
 
 			resp.Diagnostics.Append(nestedAttributeObjectResp.Diagnostics...)
 		}
 	case fwschema.NestingModeSingle:
-		objectVal, ok := req.AttributeConfig.(types.ObjectValuable)
+		objectVal, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 		if !ok {
 			err := fmt.Errorf("unknown attribute value type (%T) for nesting mode (%T) at path: %s", req.AttributeConfig, nm, req.AttributePath)
 			resp.Diagnostics.AddAttributeError(
 				req.AttributePath,
 				"Attribute Validation Error Invalid Value Type",
-				"A type that implements types.ObjectValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
+				"A type that implements basetypes.ObjectValuable is expected here. Report this to the provider developer:\n\n"+err.Error(),
 			)
 
 			return
@@ -884,13 +867,13 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			return
 		}
 
-		nestedAttributeObjectReq := tfsdk.ValidateAttributeRequest{
+		nestedAttributeObjectReq := ValidateAttributeRequest{
 			AttributeConfig:         o,
 			AttributePath:           req.AttributePath,
 			AttributePathExpression: req.AttributePathExpression,
 			Config:                  req.Config,
 		}
-		nestedAttributeObjectResp := &tfsdk.ValidateAttributeResponse{}
+		nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
 		NestedAttributeObjectValidate(ctx, nestedAttributeObject, nestedAttributeObjectReq, nestedAttributeObjectResp)
 
@@ -907,11 +890,11 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 	}
 }
 
-func NestedAttributeObjectValidate(ctx context.Context, o fwschema.NestedAttributeObject, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+func NestedAttributeObjectValidate(ctx context.Context, o fwschema.NestedAttributeObject, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
 	objectWithValidators, ok := o.(fwxschema.NestedAttributeObjectWithValidators)
 
 	if ok {
-		objectVal, ok := req.AttributeConfig.(types.ObjectValuable)
+		objectVal, ok := req.AttributeConfig.(basetypes.ObjectValuable)
 
 		if !ok {
 			resp.Diagnostics.AddAttributeError(
@@ -970,12 +953,12 @@ func NestedAttributeObjectValidate(ctx context.Context, o fwschema.NestedAttribu
 	}
 
 	for nestedName, nestedAttr := range o.GetAttributes() {
-		nestedAttrReq := tfsdk.ValidateAttributeRequest{
+		nestedAttrReq := ValidateAttributeRequest{
 			AttributePath:           req.AttributePath.AtName(nestedName),
 			AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
 			Config:                  req.Config,
 		}
-		nestedAttrResp := &tfsdk.ValidateAttributeResponse{}
+		nestedAttrResp := &ValidateAttributeResponse{}
 
 		AttributeValidate(ctx, nestedAttr, nestedAttrReq, nestedAttrResp)
 

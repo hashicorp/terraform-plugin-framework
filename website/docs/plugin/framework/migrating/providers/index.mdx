@@ -6,8 +6,6 @@ description: >-
 
 # Provider
 
--> **Note:** The Plugin Framework is in beta.
-
 Providers are Terraform plugins that define resources and data sources for practitioners to use. You serve your
 providers with a provider server so they can interact with Terraform.
 
@@ -203,14 +201,6 @@ creates data source types that you define, which satisfy the `datasource.DataSou
 
 ### Example
 
-The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
-provider.
-
-For a complete example, clone the
-`terraform-provider-tls` repository and compare `provider.go` in
-[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/provider.go)
-with the file [after the migration](https://github.com/hashicorp/terraform-provider-tls/blob/4dafb105818e45a88532f917e7b170ee2a9bb092/internal/provider/provider.go).
-
 #### SDKv2
 
 The following example shows how to set up a provider schema, configuration, resources, and data sources using SDKv2.
@@ -219,17 +209,17 @@ The following example shows how to set up a provider schema, configuration, reso
 func New() (*schema.Provider, error) {
     return &schema.Provider{
         Schema: map[string]*schema.Schema{
-            "proxy": {
+            "attribute": {
                 /* ... */
             },
         },
         ConfigureContextFunc: configureProvider,
         ResourcesMap: map[string]*schema.Resource{
-            "tls_private_key": resourcePrivateKey(),
+            "exampleResource": exampleResource(),
             /* ... */
         },
         DataSourcesMap: map[string]*schema.Resource{
-            "tls_public_key": dataSourcePublicKey(),
+            "exampleDataSource": exampleDataSource(),
             /* ... */
         },
     }, nil
@@ -241,41 +231,41 @@ func New() (*schema.Provider, error) {
 The following shows the same section of provider code after the migration.
 
 ```go
-var _ provider.Provider = (*TlsProvider)(nil)
+var _ provider.Provider = (*exampleProvider)(nil)
 
 func New() provider.Provider {
-    return &TlsProvider{}
+    return &exampleProvider{}
 }
 
-func (p *TlsProvider) Resources(_ context.Context) []func() resource.Resource {
+func (p *exampleProvider) Resources(_ context.Context) []func() resource.Resource {
     return []func() resource.Resource{
         func() resource.Resource {
-            return &privateKeyResource{}
+            return &exampleResource{}
         },
         /* ... */
     }
 }
 
-func (p *TlsProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+func (p *exampleProvider) DataSources(_ context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource{
         func() datasource.DataSource {
-            return &publicKeyDataSource{},
+            return &exampleDataSource{},
         },
         /* ... */
     }
 }
 
-func (p *TlsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *exampleProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
-            "proxy": schema.SingleNestedBlock{
+            "attribute": schema.SingleNestedBlock{
                 /* ... */
             },
         },
     }
 }
 
-func (p *TlsProvider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
+func (p *exampleProvider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
     /* ... */
 }
 ```
@@ -332,38 +322,28 @@ Framework `schema.Schema` is a struct that includes attributes and blocks.
 
 ### Example
 
-The following examples show how to migrate portions of the [tls](https://github.com/hashicorp/terraform-provider-tls)
-provider.
-
-For a complete example, clone the
-`terraform-provider-tls` repository and compare `provider.go` in
-[v3.4.0](https://github.com/hashicorp/terraform-provider-tls/blob/v3.4.0/internal/provider/provider.go)
-with the file [after the migration](https://github.com/hashicorp/terraform-provider-tls/blob/4dafb105818e45a88532f917e7b170ee2a9bb092/internal/provider/provider.go).
-
-This example also shows how to use a nested block and a nested attribute for the SDKv2 and Framework examples,
+This example shows how to use a nested block and a nested attribute for the SDKv2 and Framework examples,
 respectively. Refer to the
 [Blocks with Computed Fields](/plugin/framework/migrating/attributes-blocks/blocks-computed) page in this guide for more
 details.
 
 #### SDKv2
 
-The following example from the `provider.go` file shows the configuration of the `url` attribute for the  provider's`proxy` configuration block.
+The following example shows the configuration of the `example_attribute` attribute for the  provider's `example_block` configuration block.
 
 ```go
 Schema: map[string]*schema.Schema{
-    "proxy": {
+    "example_block": {
         Type:     schema.TypeList,
         Optional: true,
         MaxItems: 1,
         Elem: &schema.Resource{
             Schema: map[string]*schema.Schema{
-                "url": {
+                "example_attribute": {
                     Type:             schema.TypeString,
                     Optional:         true,
                     ValidateDiagFunc: validation.ToDiagFunc(validation.IsURLWithScheme(SupportedProxySchemesStr())),
-                    ConflictsWith:    []string{"proxy.0.from_env"},
-                    Description: "URL used to connect to the Proxy. " +
-                        fmt.Sprintf("Accepted schemes are: `%s`. ", strings.Join(SupportedProxySchemesStr(), "`, `")),
+                    ConflictsWith:    []string{"example_block.0.another_attribute"},
                 },
                 /* ... */
 ```
@@ -372,22 +352,19 @@ Schema: map[string]*schema.Schema{
 
 The following shows the same section of provider code after the migration.
 
-This code implements the `url` attribute for the `proxy` block with the Framework.
+This code implements the `example_attribute` attribute for the `example_Block` block with the Framework.
 
 ```go
-func (p *TlsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *exampleProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
-            "proxy": schema.SingleNestedBlock{
+            "example_block": schema.SingleNestedBlock{
                 Optional: true,
                 Attributes: map[string]schema.Attribute{
-                    "url": schema.StringAttribute{
+                    "example_attribute": schema.StringAttribute{
                         Optional: true,
                         Validators: []validator.String{
                             attribute_validator.UrlWithScheme(supportedProxySchemesStr()...),
-                            stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("from_env")),
+                            stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("another_attribute")),
                         },
-                        MarkdownDescription: "URL used to connect to the Proxy. " +
-                            fmt.Sprintf("Accepted schemes are: `%s`. ", strings.Join(supportedProxySchemesStr(), "`, `")),
-                    },
 ```

@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestImportResourceStateResponse(t *testing.T) {
@@ -49,11 +49,10 @@ func TestImportResourceStateResponse(t *testing.T) {
 
 	testState := tfsdk.State{
 		Raw: testProto5Value,
-		Schema: tfsdk.Schema{
-			Attributes: map[string]tfsdk.Attribute{
-				"test_attribute": {
+		Schema: schema.Schema{
+			Attributes: map[string]schema.Attribute{
+				"test_attribute": schema.StringAttribute{
 					Required: true,
-					Type:     types.StringType,
 				},
 			},
 		},
@@ -61,11 +60,10 @@ func TestImportResourceStateResponse(t *testing.T) {
 
 	testStateInvalid := tfsdk.State{
 		Raw: testProto5Value,
-		Schema: tfsdk.Schema{
-			Attributes: map[string]tfsdk.Attribute{
-				"test_attribute": {
+		Schema: schema.Schema{
+			Attributes: map[string]schema.Attribute{
+				"test_attribute": schema.BoolAttribute{
 					Required: true,
-					Type:     types.BoolType,
 				},
 			},
 		},
@@ -73,8 +71,8 @@ func TestImportResourceStateResponse(t *testing.T) {
 
 	testEmptyState := tfsdk.State{
 		Raw: testProto5Value,
-		Schema: tfsdk.Schema{
-			Attributes: map[string]tfsdk.Attribute{},
+		Schema: schema.Schema{
+			Attributes: map[string]schema.Attribute{},
 		},
 	}
 

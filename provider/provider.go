@@ -4,14 +4,10 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // Provider is the core interface that all Terraform providers must implement.
-// Providers must also implement the Schema method or the deprecated GetSchema
-// method. The Schema method will be required in a future version.
 //
 // Providers can optionally implement these additional concepts:
 //
@@ -19,6 +15,17 @@ import (
 //     via ProviderWithConfigValidators or ProviderWithValidateConfig.
 //   - Meta Schema: ProviderWithMetaSchema
 type Provider interface {
+	// Metadata should return the metadata for the provider, such as
+	// a type name and version data.
+	//
+	// Implementing the MetadataResponse.TypeName will populate the
+	// datasource.MetadataRequest.ProviderTypeName and
+	// resource.MetadataRequest.ProviderTypeName fields automatically.
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
+
+	// Schema should return the schema for this provider.
+	Schema(context.Context, SchemaRequest, *SchemaResponse)
+
 	// Configure is called at the beginning of the provider lifecycle, when
 	// Terraform sends to the provider the values the user specified in the
 	// provider configuration block. These are supplied in the
@@ -58,33 +65,6 @@ type ProviderWithConfigValidators interface {
 	ConfigValidators(context.Context) []ConfigValidator
 }
 
-// ProviderWithGetSchema is a temporary interface type that extends
-// Provider to include the deprecated GetSchema method.
-type ProviderWithGetSchema interface {
-	Provider
-
-	// GetSchema should return the schema for this provider's configuration.
-	// If there should be no configuration, return an empty schema.
-	//
-	// Deprecated: Use Schema method instead.
-	GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics)
-}
-
-// ProviderWithMetadata is an interface type that extends Provider to
-// return its type name, such as examplecloud, and other
-// metadata, such as version.
-//
-// Implementing this method will populate the
-// [datasource.MetadataRequest.ProviderTypeName] and
-// [resource.MetadataRequest.ProviderTypeName] fields automatically.
-type ProviderWithMetadata interface {
-	Provider
-
-	// Metadata should return the metadata for the provider, such as
-	// a type name and version data.
-	Metadata(context.Context, MetadataRequest, *MetadataResponse)
-}
-
 // ProviderWithMetaSchema is a provider with a provider meta schema, which
 // is configured by practitioners via the provider_meta configuration block
 // and the configuration data is included with certain data source and resource
@@ -104,15 +84,6 @@ type ProviderWithMetaSchema interface {
 	// break without warning. It is not protected by version compatibility
 	// guarantees.
 	MetaSchema(context.Context, MetaSchemaRequest, *MetaSchemaResponse)
-}
-
-// ProviderWithSchema is a temporary interface type that extends
-// Provider to include the new Schema method.
-type ProviderWithSchema interface {
-	Provider
-
-	// Schema should return the schema for this provider.
-	Schema(context.Context, SchemaRequest, *SchemaResponse)
 }
 
 // ProviderWithValidateConfig is an interface type that extends Provider to include imperative validation.

@@ -6,8 +6,6 @@ description: >-
 
 # Testing
 
--> **Note:** The Plugin Framework is in beta.
-
 During migration, you should [write tests](#testing-migration) to verify that the behaviour of your provider has not
 been altered by the migration itself. You will also need to [update](#provider-factories) your tests too.
 
@@ -28,45 +26,39 @@ the Framework.
 
 ### Example
 
-The following example is taken from
-[v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http_test.go)
-of the http provider.
-
 This example shows how you can use external providers to generate a state file with a previous version of the provider
 and then verify that there are no planned changes after migrating to the Framework.
 
-- The first `TestStep` uses `ExternalProviders` to cause `terraform apply` to execute with `v2.2.0` of the http
+- The first `TestStep` uses `ExternalProviders` to cause `terraform apply` to execute with a previous version of the
 provider, which is built on SDKv2.
-- The second `TestStep` uses `ProtoV5ProviderFactories` so that the test uses the provider code contained within your
-repository. The second step also uses `PlanOnly` to verify that a no-op plan is generated.
+- The second `TestStep` uses `ProtoV5ProviderFactories` so that the test uses the provider code contained within the
+http provider repository. The second step also uses `PlanOnly` to verify that a no-op plan is generated.
 
 ```go
-func TestDataSource_UpgradeFromVersion2_2_0(t *testing.T) {
+func TestDataSource_UpgradeFromVersion(t *testing.T) {
     /* ... */
     resource.Test(t, resource.TestCase{
         Steps: []resource.TestStep{
             {
                 ExternalProviders: map[string]resource.ExternalProvider{
-                    "http": {
-                        VersionConstraint: "2.2.0",
-                        Source:            "hashicorp/http",
+                    "<provider>": {
+                        VersionConstraint: "<sdk_version>",
+                        Source:            "hashicorp/<provider>",
                     },
                 },
-                Config: fmt.Sprintf(`
-                    data "http" "http_test" {
-                       url = "%s/200"
-                    }`, testHttpMock.server.URL),
+                Config: `data "provider_datasource" "example" {
+                            /* ... */
+                        }`,
                 Check: resource.ComposeTestCheckFunc(
-                    resource.TestCheckResourceAttr("data.http.http_test", "response_body", "1.0.0"),
+                    resource.TestCheckResourceAttr("data.provider_datasource.example", "<attribute>", "<value>"),
                     /* ... */
                 ),
             },
             {
                 ProtoV5ProviderFactories: protoV5ProviderFactories(),
-                Config: fmt.Sprintf(`
-                    data "http" "http_test" {
-                        url = "%s/200"
-                    }`, testHttpMock.server.URL),
+                Config: `data "provider_datasource" "example" {
+                            /* ... */
+                        }`,
                 PlanOnly: true,
             },
         },
@@ -109,21 +101,12 @@ resource.UnitTest(t, resource.TestCase{
 
 ### Example
 
-The following examples show how to migrate portions of the [http](https://github.com/hashicorp/terraform-provider-http)
-provider.
-
-To review a complete example, clone the
-`terraform-provider-http` repository and compare the `data_source_test.go` file in
-[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source_test.go) with the `data_source_http_test.go` file in
-[v3.0.1](https://github.com/hashicorp/terraform-provider-http/blob/v3.0.1/internal/provider/data_source_http_test.go).
-
 #### SDKv2
 
-The following code sample is from the `data_source_http_test.go` file and shows how to define provider factories within
-a test case when using SDKv2.
+The following code sample shows how to define provider factories within a test case when using SDKv2.
 
 ```go
-func TestDataSource_http200(t *testing.T) {
+func TestDataSource_Exmple(t *testing.T) {
     /* ... */
     resource.UnitTest(t, resource.TestCase{
         ProviderFactories: testProviders(),
@@ -132,24 +115,22 @@ func TestDataSource_http200(t *testing.T) {
 }
 ```
 
-The following code sample is from the `provider_test.go` file and shows how to generate provider factories when using
-SDKv2.
+The following  shows how to generate provider factories when using SDKv2.
 
 ```go
 func testProviders() map[string]func() (*schema.Provider, error) {
     return map[string]func() (*schema.Provider, error){
-        "http": func() (*schema.Provider, error) { return New(), nil },
+        "example": func() (*schema.Provider, error) { return New(), nil },
     }
 }
 ```
 
 #### Framework
 
-The following code sample is from the `data_source_http_test.go` file and shows how to define provider factories within
-a test case when using the Framework.
+The following shows how to define provider factories within a test case when using the Framework.
 
 ```go
-func TestDataSource_200(t *testing.T) {
+func TestDataSource_Example(t *testing.T) {
     /* ... */
 
     resource.UnitTest(t, resource.TestCase{
@@ -159,14 +140,14 @@ func TestDataSource_200(t *testing.T) {
 }
 ```
 
-The following code sample is from the `provider_test.go` file and shows how to generate provider factories when using
+The following shows how to generate provider factories when using
 the Framework. The call to `New` returns an instance of the provider. Refer to
 [Provider Definition](/plugin/framework/migrating/providers#provider-definition) in this guide for details.
 
 ```go
 func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {
     return map[string]func() (tfprotov5.ProviderServer, error){
-        "http": providerserver.NewProtocol5WithError(New()),
+        "example": providerserver.NewProtocol5WithError(New()),
     }
 }
 ```

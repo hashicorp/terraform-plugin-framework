@@ -1,3 +1,35 @@
+# 1.0.0 (December 13, 2022)
+
+NOTES:
+
+* The Terraform Plugin Framework is now generally available with semantic versioning compatibility promises. ([#578](https://github.com/hashicorp/terraform-plugin-framework/issues/578))
+* types: Framework type implementations have been moved into the underlying `basetypes` package. Value creation functions and type aliases have been created in the `types` package that should prevent any breaking changes. ([#567](https://github.com/hashicorp/terraform-plugin-framework/issues/567))
+
+BREAKING CHANGES:
+
+* provider: The `Provider` interface now requires the `Metadata` method. It can be left empty or set the `MetadataResponse` type `TypeName` field to populate `datasource.MetadataRequest` and `resource.MetadataRequest` type `ProviderTypeName` fields. ([#580](https://github.com/hashicorp/terraform-plugin-framework/issues/580))
+* resource: The `RequiresReplace()` plan modifier has been removed. Use a type-specific plan modifier instead, such as `resource/schema/stringplanmodifier.RequiresReplace()` or `resource/schema/stringplanmodifier.RequiresReplaceIfConfigured()` ([#576](https://github.com/hashicorp/terraform-plugin-framework/issues/576))
+* resource: The `RequiresReplaceIf()` plan modifier has been removed. Use a type-specific plan modifier instead, such as `resource/schema/stringplanmodifier.RequiresReplaceIf()` ([#576](https://github.com/hashicorp/terraform-plugin-framework/issues/576))
+* resource: The `Resource` type `GetSchema` method has been removed. Use the `Schema` method instead. ([#576](https://github.com/hashicorp/terraform-plugin-framework/issues/576))
+* resource: The `StateUpgrader` type `PriorSchema` field type has been migrated from `tfsdk.Schema` to `resource/schema.Schema`, similar to other resource schema handling ([#573](https://github.com/hashicorp/terraform-plugin-framework/issues/573))
+* resource: The `UseStateForUnknown()` plan modifier has been removed. Use a type-specific plan modifier instead, such as `resource/schema/stringplanmodifier.UseStateForUnknown()` ([#576](https://github.com/hashicorp/terraform-plugin-framework/issues/576))
+* tfsdk: The `AttributePlanModifier` interface has been removed. Use the type-specific plan modifier interfaces in the `resource/schema/planmodifier` package instead. ([#576](https://github.com/hashicorp/terraform-plugin-framework/issues/576))
+* tfsdk: The `AttributeValidator` interface has been removed. Use the type-specific validator interfaces in the `schema/validator` package instead. ([#576](https://github.com/hashicorp/terraform-plugin-framework/issues/576))
+* tfsdk: The `Attribute`, `Block`, and `Schema` types have been removed. Use the similarly named types in the `datasource/schema`, `provider/schema`, and `resource/schema` packages instead. ([#576](https://github.com/hashicorp/terraform-plugin-framework/issues/576))
+* tfsdk: The `ListNestedAttributes`, `MapNestedAttributes`, `SetNestedAttributes`, and `SingleNestedAttributes` functions have been removed. Use the similarly named types in the `datasource/schema`, `provider/schema`, and `resource/schema` packages instead. ([#576](https://github.com/hashicorp/terraform-plugin-framework/issues/576))
+* types: The type-specific `Typable` and `Valuable` interfaces have been moved into the underlying `basetypes` package. ([#567](https://github.com/hashicorp/terraform-plugin-framework/issues/567))
+
+FEATURES:
+
+* types/basetypes: New package which contains embeddable types for custom types ([#567](https://github.com/hashicorp/terraform-plugin-framework/issues/567))
+
+BUG FIXES:
+
+* datasource: Add `Validate` function to `Schema` to prevent usage of reserved and invalid names for attributes and blocks ([#548](https://github.com/hashicorp/terraform-plugin-framework/issues/548))
+* provider: Add `Validate` function to `MetaSchema` to prevent usage of reserved and invalid names for attributes and blocks ([#548](https://github.com/hashicorp/terraform-plugin-framework/issues/548))
+* provider: Add `Validate` function to `Schema` to prevent usage of reserved and invalid names for attributes and blocks ([#548](https://github.com/hashicorp/terraform-plugin-framework/issues/548))
+* resource: Add `Validate` function to `Schema` to prevent usage of reserved and invalid names for attributes and blocks ([#548](https://github.com/hashicorp/terraform-plugin-framework/issues/548))
+
 # 0.17.0 (November 30, 2022)
 
 NOTES:

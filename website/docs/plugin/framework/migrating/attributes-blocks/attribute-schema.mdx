@@ -6,10 +6,8 @@ description: >-
 
 # Attribute Schema
 
--> **Note:** The Plugin Framework is in beta.
-
 Attributes define how users can configure values for your Terraform provider, resources, and data sources. Refer to
-[Schemas - Attributes](/plugin/framework/schemas#attributes) in the Framework documentation for details.
+[Schemas - Attributes](/plugin/framework/handling-data/schemas#attributes) in the Framework documentation for details.
 
 This page explains how to migrate an attribute from SDKv2 to the plugin Framework.
 
@@ -62,47 +60,34 @@ pages in the Attributes & Blocks section of this migration guide for more detail
 
 ## Example
 
-The following examples show how to migrate portions of the
-[http](https://github.com/hashicorp/terraform-provider-http) provider.
-
-For a complete example, clone the
-`terraform-provider-http` repository and compare the `data_source.go` file in
-[v2.2.0](https://github.com/hashicorp/terraform-provider-http/blob/v2.2.0/internal/provider/data_source.go)
-with the `data_source_http.go` file
-[after the migration](https://github.com/hashicorp/terraform-provider-http/blob/8527d5b4546b54cdef246a13befc5745dbbbf740/internal/provider/data_source_http.go).
-
-
 ### SDKv2
 
-The following example from the `data_source.go` file shows the implementation of the `url` attribute for the `http`
+The following example shows the implementation of the `example_attribute` attribute for the `exampleDataSource`
 data source.
 
 ```go
-func dataSource() *schema.Resource {
+func exampleDataSource() *schema.Resource {
     return &schema.Resource{
         /* ... */
         Schema: map[string]*schema.Schema{
-            "url": {
-                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+            "example_attribute": {
                 Type:        schema.TypeString,
                 Required:    true,
             },
 ```
 
-
 ### Framework
 
 The following shows the same section of provider code after the migration.
 
-This code implements the `url` attribute for the `http` data source with the Framework.
+This code implements the `example_attribute` attribute for the `exampleDataSource` data source with the Framework.
 
 ```go
-func (d *httpDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *exampleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
     return schema.Schema{
         /* ... */
         Attributes: map[string]schema.Attribute{
-            "url": schema.StringAttribute{
-                Description: "The URL for the request. Supported schemes are `http` and `https`.",
+            "example_attribute": schema.StringAttribute{
                 Required:    true,
             },
             /* ... */

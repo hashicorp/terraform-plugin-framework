@@ -7,24 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var (
-	_ types.SetTypable  = SetNestedAttributesCustomTypeType{}
-	_ types.SetValuable = &SetNestedAttributesCustomValue{}
+	_ basetypes.SetTypable  = SetNestedAttributesCustomTypeType{}
+	_ basetypes.SetValuable = &SetNestedAttributesCustomValue{}
 )
-
-type SetNestedAttributesCustomType struct {
-	fwschema.NestedAttributes
-}
-
-func (t SetNestedAttributesCustomType) Type() attr.Type {
-	return SetNestedAttributesCustomTypeType{
-		t.NestedAttributes.Type().(types.SetType),
-	}
-}
 
 type SetNestedAttributesCustomTypeType struct {
 	types.SetType

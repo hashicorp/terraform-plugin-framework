@@ -7,8 +7,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -28,7 +28,7 @@ func TestSchemaAttribute(t *testing.T) {
 	tests := map[string]testCase{
 		"deprecated": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:               types.StringType,
 				Optional:           true,
 				DeprecationMessage: "deprecated, use new_string instead",
@@ -43,7 +43,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"description-plain": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:        types.StringType,
 				Optional:    true,
 				Description: "A string attribute",
@@ -59,7 +59,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"description-markdown": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:                types.StringType,
 				Optional:            true,
 				MarkdownDescription: "A string attribute",
@@ -75,7 +75,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"description-both": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:                types.StringType,
 				Optional:            true,
 				Description:         "A string attribute",
@@ -92,7 +92,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"attr-string": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.StringType,
 				Optional: true,
 			},
@@ -105,7 +105,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"attr-bool": {
 			name: "bool",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.BoolType,
 				Optional: true,
 			},
@@ -118,7 +118,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"attr-number": {
 			name: "number",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.NumberType,
 				Optional: true,
 			},
@@ -131,7 +131,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"attr-list": {
 			name: "list",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.ListType{ElemType: types.NumberType},
 				Optional: true,
 			},
@@ -144,7 +144,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"attr-map": {
 			name: "map",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.MapType{ElemType: types.StringType},
 				Optional: true,
 			},
@@ -157,7 +157,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"attr-object": {
 			name: "object",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type: types.ObjectType{AttrTypes: map[string]attr.Type{
 					"foo": types.StringType,
 					"bar": types.NumberType,
@@ -178,7 +178,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"attr-set": {
 			name: "set",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.SetType{ElemType: types.NumberType},
 				Optional: true,
 			},
@@ -192,7 +192,7 @@ func TestSchemaAttribute(t *testing.T) {
 		// TODO: add tuple attribute when we support it
 		"required": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.StringType,
 				Required: true,
 			},
@@ -205,7 +205,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"optional": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.StringType,
 				Optional: true,
 			},
@@ -218,7 +218,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"computed": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.StringType,
 				Computed: true,
 			},
@@ -231,7 +231,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"optional-computed": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:     types.StringType,
 				Computed: true,
 				Optional: true,
@@ -246,7 +246,7 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"sensitive": {
 			name: "string",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type:      types.StringType,
 				Optional:  true,
 				Sensitive: true,
@@ -261,96 +261,103 @@ func TestSchemaAttribute(t *testing.T) {
 		},
 		"nested-attr-single": {
 			name: "single_nested",
-			attr: tfsdk.Attribute{
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					"string": {
-						Type:     types.StringType,
-						Optional: true,
+			attr: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
+						"computed": testschema.Attribute{
+							Type:      types.NumberType,
+							Computed:  true,
+							Sensitive: true,
+						},
 					},
-					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
-					},
-				}),
-				Optional: true,
+				},
+				NestingMode: fwschema.NestingModeSingle,
+				Optional:    true,
 			},
 			path:        tftypes.NewAttributePath(),
 			expectedErr: "protocol version 5 cannot have Attributes set",
 		},
 		"nested-attr-list": {
 			name: "list_nested",
-			attr: tfsdk.Attribute{
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"string": {
-						Type:     types.StringType,
-						Optional: true,
+			attr: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
+						"computed": testschema.Attribute{
+							Type:      types.NumberType,
+							Computed:  true,
+							Sensitive: true,
+						},
 					},
-					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
+				},
+				NestingMode: fwschema.NestingModeList,
+				Optional:    true,
+			},
+			path:        tftypes.NewAttributePath(),
+			expectedErr: "protocol version 5 cannot have Attributes set",
+		},
+		"nested-attr-map": {
+			name: "map_nested",
+			attr: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
+						"computed": testschema.Attribute{
+							Type:      types.NumberType,
+							Computed:  true,
+							Sensitive: true,
+						},
 					},
-				}),
-				Optional: true,
+				},
+				NestingMode: fwschema.NestingModeMap,
+				Optional:    true,
 			},
 			path:        tftypes.NewAttributePath(),
 			expectedErr: "protocol version 5 cannot have Attributes set",
 		},
 		"nested-attr-set": {
 			name: "set_nested",
-			attr: tfsdk.Attribute{
-				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-					"string": {
-						Type:     types.StringType,
-						Optional: true,
+			attr: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
+						"computed": testschema.Attribute{
+							Type:      types.NumberType,
+							Computed:  true,
+							Sensitive: true,
+						},
 					},
-					"computed": {
-						Type:      types.NumberType,
-						Computed:  true,
-						Sensitive: true,
-					},
-				}),
-				Optional: true,
-			},
-			path:        tftypes.NewAttributePath(),
-			expectedErr: "protocol version 5 cannot have Attributes set",
-		},
-		"attr-and-nested-attr-set": {
-			name: "whoops",
-			attr: tfsdk.Attribute{
-				Type: types.StringType,
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					"testing": {
-						Type:     types.StringType,
-						Optional: true,
-					},
-				}),
-				Optional: true,
+				},
+				NestingMode: fwschema.NestingModeSet,
+				Optional:    true,
 			},
 			path:        tftypes.NewAttributePath(),
 			expectedErr: "protocol version 5 cannot have Attributes set",
 		},
 		"attr-and-nested-attr-unset": {
 			name: "whoops",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Optional: true,
 			},
 			path:        tftypes.NewAttributePath(),
 			expectedErr: "must have Type set",
 		},
-		"attr-and-nested-attr-empty": {
-			name: "whoops",
-			attr: tfsdk.Attribute{
-				Optional:   true,
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{}),
-			},
-			path:        tftypes.NewAttributePath(),
-			expectedErr: "protocol version 5 cannot have Attributes set",
-		},
 		"missing-required-optional-and-computed": {
 			name: "whoops",
-			attr: tfsdk.Attribute{
+			attr: testschema.Attribute{
 				Type: types.StringType,
 			},
 			path:        tftypes.NewAttributePath(),

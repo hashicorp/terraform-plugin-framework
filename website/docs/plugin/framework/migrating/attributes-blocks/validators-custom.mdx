@@ -6,8 +6,6 @@ description: >-
 
 # Custom Validators
 
--> **Note:** The Plugin Framework is in beta.
-
 You can write custom validations that give users feedback about required syntax, types, and acceptable values in your
 provider. The Framework has a collection of
 [predefined validators](https://github.com/hashicorp/terraform-plugin-framework-validators). Refer to
@@ -63,24 +61,16 @@ your requirements.
 
 ## Example
 
-The following examples show how to migrate portions of the
-[random](https://github.com/hashicorp/terraform-provider-random) provider.
-
-For a complete example, clone the
-`terraform-provider-random` repository and compare the `resource_password.go` file in
-[v3.3.2](https://github.com/hashicorp/terraform-provider-random/blob/v3.3.2/internal/provider/resource_password.go)
-with the file [after the migration](https://github.com/hashicorp/terraform-provider-random/blob/04292d3e31f71ff16b82512082baed037bb1069c/internal/provider/resource_password.go).
-
 ### SDKv2
 
-The following example from the `resource_password.go` file shows the implementation of the `ValidateDiagFunc` field for
-the `random_password`'s `length` attribute to validate that it's value is at least 1 (greater than zero).
+The following example shows the implementation of the `ValidateDiagFunc` field for
+the `exampleResource`'s `example_attribute` attribute to validate that it's value is at least 1 (greater than zero).
 
 ```go
-func resourcePassword() *schema.Resource {
+func exampleResource() *schema.Resource {
     return &schema.Resource{
         Schema: map[string]*schema.Schema{
-            "length": {
+            "example_attribute": {
                 ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(1)),
             },
         },
@@ -92,14 +82,14 @@ func resourcePassword() *schema.Resource {
 
 The following shows the same section of provider code after the migration.
 
-This code validates that the `random_password`'s `length` attribute is greater than zero by using a custom `AtLeast`
+This code validates that the `exampleResource`'s `example_attribute` attribute is greater than zero by using a custom `AtLeast`
 validator.
 
 ```go
-func (r *passwordResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
-            "length": schema.Int64Attribute{
+            "example_attribute": schema.Int64Attribute{
                 Required: true,
                 Validators: []validator.Int64{
                     int64validator.AtLeast(1),
@@ -110,9 +100,7 @@ func (r *passwordResource) Schema(ctx context.Context, req resource.SchemaReques
 }
 ```
 
-This example code is taken from
-[terraform-plugin-framework-validators](https://github.com/hashicorp/terraform-plugin-framework-validators/blob/v0.4.0/int64validator/at_least.go)
-to illustrate how you can implement your own validators.
+This example code illustrates how you can implement your own validators.
 
 ```go
 var _ validator.Int64 = atLeastValidator{}

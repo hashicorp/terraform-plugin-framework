@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -33,20 +33,18 @@ func TestProviderMeta(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
 	}
 
-	testFwSchema := &tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_attribute": {
+	testFwSchema := metaschema.Schema{
+		Attributes: map[string]metaschema.Attribute{
+			"test_attribute": metaschema.StringAttribute{
 				Required: true,
-				Type:     types.StringType,
 			},
 		},
 	}
 
-	testFwSchemaInvalid := &tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"test_attribute": {
+	testFwSchemaInvalid := metaschema.Schema{
+		Attributes: map[string]metaschema.Attribute{
+			"test_attribute": metaschema.BoolAttribute{
 				Required: true,
-				Type:     types.BoolType,
 			},
 		},
 	}

@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -35,11 +35,10 @@ func TestReadDataSourceResponse(t *testing.T) {
 
 	testState := &tfsdk.State{
 		Raw: testProto5Value,
-		Schema: tfsdk.Schema{
-			Attributes: map[string]tfsdk.Attribute{
-				"test_attribute": {
+		Schema: schema.Schema{
+			Attributes: map[string]schema.Attribute{
+				"test_attribute": schema.StringAttribute{
 					Required: true,
-					Type:     types.StringType,
 				},
 			},
 		},
@@ -47,11 +46,10 @@ func TestReadDataSourceResponse(t *testing.T) {
 
 	testStateInvalid := &tfsdk.State{
 		Raw: testProto5Value,
-		Schema: tfsdk.Schema{
-			Attributes: map[string]tfsdk.Attribute{
-				"test_attribute": {
+		Schema: schema.Schema{
+			Attributes: map[string]schema.Attribute{
+				"test_attribute": schema.BoolAttribute{
 					Required: true,
-					Type:     types.BoolType,
 				},
 			},
 		},

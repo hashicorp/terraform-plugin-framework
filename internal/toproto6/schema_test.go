@@ -7,8 +7,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -29,25 +29,25 @@ func TestSchema(t *testing.T) {
 			expected: nil,
 		},
 		"empty-val": {
-			input: &tfsdk.Schema{},
+			input: testschema.Schema{},
 			expected: &tfprotov6.Schema{
 				Block:   &tfprotov6.SchemaBlock{},
 				Version: 0,
 			},
 		},
 		"basic-attrs": {
-			input: &tfsdk.Schema{
+			input: testschema.Schema{
 				Version: 1,
-				Attributes: map[string]tfsdk.Attribute{
-					"string": {
+				Attributes: map[string]fwschema.Attribute{
+					"string": testschema.Attribute{
 						Type:     types.StringType,
 						Required: true,
 					},
-					"number": {
+					"number": testschema.Attribute{
 						Type:     types.NumberType,
 						Optional: true,
 					},
-					"bool": {
+					"bool": testschema.Attribute{
 						Type:     types.BoolType,
 						Computed: true,
 					},
@@ -77,14 +77,14 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"complex-attrs": {
-			input: &tfsdk.Schema{
+			input: testschema.Schema{
 				Version: 2,
-				Attributes: map[string]tfsdk.Attribute{
-					"list": {
+				Attributes: map[string]fwschema.Attribute{
+					"list": testschema.Attribute{
 						Type:     types.ListType{ElemType: types.StringType},
 						Required: true,
 					},
-					"object": {
+					"object": testschema.Attribute{
 						Type: types.ObjectType{AttrTypes: map[string]attr.Type{
 							"string": types.StringType,
 							"number": types.NumberType,
@@ -92,11 +92,11 @@ func TestSchema(t *testing.T) {
 						}},
 						Optional: true,
 					},
-					"map": {
+					"map": testschema.Attribute{
 						Type:     types.MapType{ElemType: types.NumberType},
 						Computed: true,
 					},
-					"set": {
+					"set": testschema.Attribute{
 						Type:     types.SetType{ElemType: types.StringType},
 						Required: true,
 					},
@@ -136,97 +136,109 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"nested-attrs": {
-			input: &tfsdk.Schema{
+			input: testschema.Schema{
 				Version: 3,
-				Attributes: map[string]tfsdk.Attribute{
-					"single": {
-						Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-							"string": {
-								Type:     types.StringType,
-								Required: true,
+				Attributes: map[string]fwschema.Attribute{
+					"single": testschema.NestedAttribute{
+						NestedObject: testschema.NestedAttributeObject{
+							Attributes: map[string]fwschema.Attribute{
+								"string": testschema.Attribute{
+									Type:     types.StringType,
+									Required: true,
+								},
+								"number": testschema.Attribute{
+									Type:     types.NumberType,
+									Optional: true,
+								},
+								"bool": testschema.Attribute{
+									Type:     types.BoolType,
+									Computed: true,
+								},
+								"list": testschema.Attribute{
+									Type:     types.ListType{ElemType: types.StringType},
+									Computed: true,
+									Optional: true,
+								},
 							},
-							"number": {
-								Type:     types.NumberType,
-								Optional: true,
-							},
-							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
-							},
-							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
-							},
-						}),
-						Required: true,
+						},
+						NestingMode: fwschema.NestingModeSingle,
+						Required:    true,
 					},
-					"list": {
-						Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-							"string": {
-								Type:     types.StringType,
-								Required: true,
+					"list": testschema.NestedAttribute{
+						NestedObject: testschema.NestedAttributeObject{
+							Attributes: map[string]fwschema.Attribute{
+								"string": testschema.Attribute{
+									Type:     types.StringType,
+									Required: true,
+								},
+								"number": testschema.Attribute{
+									Type:     types.NumberType,
+									Optional: true,
+								},
+								"bool": testschema.Attribute{
+									Type:     types.BoolType,
+									Computed: true,
+								},
+								"list": testschema.Attribute{
+									Type:     types.ListType{ElemType: types.StringType},
+									Computed: true,
+									Optional: true,
+								},
 							},
-							"number": {
-								Type:     types.NumberType,
-								Optional: true,
-							},
-							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
-							},
-							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
-							},
-						}),
-						Optional: true,
+						},
+						NestingMode: fwschema.NestingModeList,
+						Optional:    true,
 					},
-					"set": {
-						Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-							"string": {
-								Type:     types.StringType,
-								Required: true,
+					"set": testschema.NestedAttribute{
+						NestedObject: testschema.NestedAttributeObject{
+							Attributes: map[string]fwschema.Attribute{
+								"string": testschema.Attribute{
+									Type:     types.StringType,
+									Required: true,
+								},
+								"number": testschema.Attribute{
+									Type:     types.NumberType,
+									Optional: true,
+								},
+								"bool": testschema.Attribute{
+									Type:     types.BoolType,
+									Computed: true,
+								},
+								"list": testschema.Attribute{
+									Type:     types.ListType{ElemType: types.StringType},
+									Computed: true,
+									Optional: true,
+								},
 							},
-							"number": {
-								Type:     types.NumberType,
-								Optional: true,
-							},
-							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
-							},
-							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
-							},
-						}),
-						Computed: true,
+						},
+						NestingMode: fwschema.NestingModeSet,
+						Computed:    true,
 					},
-					"map": {
-						Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-							"string": {
-								Type:     types.StringType,
-								Required: true,
+					"map": testschema.NestedAttribute{
+						NestedObject: testschema.NestedAttributeObject{
+							Attributes: map[string]fwschema.Attribute{
+								"string": testschema.Attribute{
+									Type:     types.StringType,
+									Required: true,
+								},
+								"number": testschema.Attribute{
+									Type:     types.NumberType,
+									Optional: true,
+								},
+								"bool": testschema.Attribute{
+									Type:     types.BoolType,
+									Computed: true,
+								},
+								"list": testschema.Attribute{
+									Type:     types.ListType{ElemType: types.StringType},
+									Computed: true,
+									Optional: true,
+								},
 							},
-							"number": {
-								Type:     types.NumberType,
-								Optional: true,
-							},
-							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
-							},
-							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
-							},
-						}),
-						Optional: true,
-						Computed: true,
+						},
+						NestingMode: fwschema.NestingModeMap,
+						Optional:    true,
+						Computed:    true,
 					},
 				},
 			},
@@ -360,74 +372,80 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"nested-blocks": {
-			input: &tfsdk.Schema{
+			input: testschema.Schema{
 				Version: 3,
-				Blocks: map[string]tfsdk.Block{
-					"list": {
-						Attributes: map[string]tfsdk.Attribute{
-							"string": {
-								Type:     types.StringType,
-								Required: true,
-							},
-							"number": {
-								Type:     types.NumberType,
-								Optional: true,
-							},
-							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
-							},
-							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
+				Blocks: map[string]fwschema.Block{
+					"list": testschema.Block{
+						NestedObject: testschema.NestedBlockObject{
+							Attributes: map[string]fwschema.Attribute{
+								"string": testschema.Attribute{
+									Type:     types.StringType,
+									Required: true,
+								},
+								"number": testschema.Attribute{
+									Type:     types.NumberType,
+									Optional: true,
+								},
+								"bool": testschema.Attribute{
+									Type:     types.BoolType,
+									Computed: true,
+								},
+								"list": testschema.Attribute{
+									Type:     types.ListType{ElemType: types.StringType},
+									Computed: true,
+									Optional: true,
+								},
 							},
 						},
-						NestingMode: tfsdk.BlockNestingModeList,
+						NestingMode: fwschema.BlockNestingModeList,
 					},
-					"set": {
-						Attributes: map[string]tfsdk.Attribute{
-							"string": {
-								Type:     types.StringType,
-								Required: true,
-							},
-							"number": {
-								Type:     types.NumberType,
-								Optional: true,
-							},
-							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
-							},
-							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
+					"set": testschema.Block{
+						NestedObject: testschema.NestedBlockObject{
+							Attributes: map[string]fwschema.Attribute{
+								"string": testschema.Attribute{
+									Type:     types.StringType,
+									Required: true,
+								},
+								"number": testschema.Attribute{
+									Type:     types.NumberType,
+									Optional: true,
+								},
+								"bool": testschema.Attribute{
+									Type:     types.BoolType,
+									Computed: true,
+								},
+								"list": testschema.Attribute{
+									Type:     types.ListType{ElemType: types.StringType},
+									Computed: true,
+									Optional: true,
+								},
 							},
 						},
-						NestingMode: tfsdk.BlockNestingModeSet,
+						NestingMode: fwschema.BlockNestingModeSet,
 					},
-					"single": {
-						Attributes: map[string]tfsdk.Attribute{
-							"string": {
-								Type:     types.StringType,
-								Required: true,
-							},
-							"number": {
-								Type:     types.NumberType,
-								Optional: true,
-							},
-							"bool": {
-								Type:     types.BoolType,
-								Computed: true,
-							},
-							"list": {
-								Type:     types.ListType{ElemType: types.StringType},
-								Computed: true,
-								Optional: true,
+					"single": testschema.Block{
+						NestedObject: testschema.NestedBlockObject{
+							Attributes: map[string]fwschema.Attribute{
+								"string": testschema.Attribute{
+									Type:     types.StringType,
+									Required: true,
+								},
+								"number": testschema.Attribute{
+									Type:     types.NumberType,
+									Optional: true,
+								},
+								"bool": testschema.Attribute{
+									Type:     types.BoolType,
+									Computed: true,
+								},
+								"list": testschema.Attribute{
+									Type:     types.ListType{ElemType: types.StringType},
+									Computed: true,
+									Optional: true,
+								},
 							},
 						},
-						NestingMode: tfsdk.BlockNestingModeSingle,
+						NestingMode: fwschema.BlockNestingModeSingle,
 					},
 				},
 			},
@@ -527,10 +545,10 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"markdown-description": {
-			input: &tfsdk.Schema{
+			input: testschema.Schema{
 				Version: 1,
-				Attributes: map[string]tfsdk.Attribute{
-					"string": {
+				Attributes: map[string]fwschema.Attribute{
+					"string": testschema.Attribute{
 						Type:     types.StringType,
 						Required: true,
 					},
@@ -553,10 +571,10 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"plaintext-description": {
-			input: &tfsdk.Schema{
+			input: testschema.Schema{
 				Version: 1,
-				Attributes: map[string]tfsdk.Attribute{
-					"string": {
+				Attributes: map[string]fwschema.Attribute{
+					"string": testschema.Attribute{
 						Type:     types.StringType,
 						Required: true,
 					},
@@ -579,10 +597,10 @@ func TestSchema(t *testing.T) {
 			},
 		},
 		"deprecated": {
-			input: &tfsdk.Schema{
+			input: testschema.Schema{
 				Version: 1,
-				Attributes: map[string]tfsdk.Attribute{
-					"string": {
+				Attributes: map[string]fwschema.Attribute{
+					"string": testschema.Attribute{
 						Type:     types.StringType,
 						Required: true,
 					},

@@ -6,10 +6,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -34,9 +35,9 @@ func TestDataSet(t *testing.T) {
 				}, map[string]tftypes.Value{
 					"name": tftypes.NewValue(tftypes.String, "oldvalue"),
 				}),
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -59,9 +60,9 @@ func TestDataSet(t *testing.T) {
 		"overwrite": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.Value{},
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -84,17 +85,17 @@ func TestDataSet(t *testing.T) {
 		"multiple-attributes": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.Value{},
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"one": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"one": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
-						"two": {
+						"two": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
-						"three": {
+						"three": testschema.Attribute{
 							Type:     types.StringType,
 							Required: true,
 						},
@@ -125,9 +126,9 @@ func TestDataSet(t *testing.T) {
 		"AttrTypeWithValidateError": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.Value{},
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateError{},
 							Required: true,
 						},
@@ -145,9 +146,9 @@ func TestDataSet(t *testing.T) {
 		"AttrTypeWithValidateWarning": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.Value{},
-				Schema: tfsdk.Schema{
-					Attributes: map[string]tfsdk.Attribute{
-						"name": {
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
 							Type:     testtypes.StringTypeWithValidateWarning{},
 							Required: true,
 						},

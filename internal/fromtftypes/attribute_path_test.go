@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -34,9 +34,9 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test"),
-			schema: tfsdk.Schema{
-				Attributes: map[string]tfsdk.Attribute{
-					"test": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
 						Type: types.StringType,
 					},
 				},
@@ -45,9 +45,9 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName-nonexistent-attribute": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test"),
-			schema: tfsdk.Schema{
-				Attributes: map[string]tfsdk.Attribute{
-					"not-test": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"not-test": testschema.Attribute{
 						Type: testtypes.StringType{},
 					},
 				},
@@ -66,9 +66,9 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName-ElementKeyInt": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyInt(1),
-			schema: tfsdk.Schema{
-				Attributes: map[string]tfsdk.Attribute{
-					"test": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
 						Type: types.ListType{
 							ElemType: types.StringType,
 						},
@@ -79,9 +79,9 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName-ElementKeyValue": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "test-value")),
-			schema: tfsdk.Schema{
-				Attributes: map[string]tfsdk.Attribute{
-					"test": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
 						Type: types.SetType{
 							ElemType: types.StringType,
 						},
@@ -92,9 +92,9 @@ func TestAttributePath(t *testing.T) {
 		},
 		"AttributeName-ElementKeyValue-value-conversion-error": {
 			tfType: tftypes.NewAttributePath().WithAttributeName("test").WithElementKeyValue(tftypes.NewValue(tftypes.String, "test-value")),
-			schema: tfsdk.Schema{
-				Attributes: map[string]tfsdk.Attribute{
-					"test": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
 						Type: types.SetType{
 							ElemType: testtypes.InvalidType{},
 						},
@@ -115,9 +115,9 @@ func TestAttributePath(t *testing.T) {
 		},
 		"ElementKeyInt": {
 			tfType: tftypes.NewAttributePath().WithElementKeyInt(1),
-			schema: tfsdk.Schema{
-				Attributes: map[string]tfsdk.Attribute{
-					"test": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
 						Type: testtypes.StringType{},
 					},
 				},
@@ -136,9 +136,9 @@ func TestAttributePath(t *testing.T) {
 		},
 		"ElementKeyString": {
 			tfType: tftypes.NewAttributePath().WithElementKeyString("test"),
-			schema: tfsdk.Schema{
-				Attributes: map[string]tfsdk.Attribute{
-					"test": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
 						Type: testtypes.StringType{},
 					},
 				},
@@ -157,9 +157,9 @@ func TestAttributePath(t *testing.T) {
 		},
 		"ElementKeyValue": {
 			tfType: tftypes.NewAttributePath().WithElementKeyValue(tftypes.NewValue(tftypes.String, "test-value")),
-			schema: tfsdk.Schema{
-				Attributes: map[string]tfsdk.Attribute{
-					"test": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
 						Type: testtypes.StringType{},
 					},
 				},

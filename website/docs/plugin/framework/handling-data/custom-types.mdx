@@ -1,0 +1,233 @@
+---
+page_title: 'Plugin Development - Framework: Handling Data - Custom Types'
+description: >-
+  Custom Types.
+---
+
+# Custom Types
+
+You can use custom types for both attributes and blocks.
+
+## Custom Type and Value
+
+A minimal implementation of a custom type for `ListType` and `List` that leverages embedding looks as follows:
+
+```go
+type CustomListType struct {
+    types.ListType
+}
+
+func (c CustomListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+    val, err := c.ListType.ValueFromTerraform(ctx, in)
+
+    return CustomListValue{
+        // unchecked type assertion
+        val.(types.List),
+    }, err
+}
+
+type CustomListValue struct {
+    types.List
+}
+
+func (c CustomListValue) DoSomething(ctx context.Context) {
+    tflog.Info(ctx, "called DoSomething on CustomListValue")
+}
+```
+
+## Terraform Configuration
+
+Using the custom type does not require any changes to the Terraform configuration.
+
+```hcl
+resource "example_resource" "example" {
+  list_attribute = ["list-element", "list-element"]
+
+  list_nested_attribute = [
+    {
+      int64_attribute = 9223372036854775807
+      list_attribute  = ["list-element", "list-element"]
+    },
+    {
+      int64_attribute = 9223372036854775807
+      list_attribute  = ["list-element", "list-element"]
+    }
+  ]
+
+  list_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["list-element", "list-element"]
+    list_nested_nested_block {
+      bool_attribute = true
+    }
+    list_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+  list_nested_block {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["list-element", "list-element"]
+    list_nested_nested_block {
+      bool_attribute = true
+    }
+    list_nested_nested_block {
+      bool_attribute = false
+    }
+  }
+}
+```
+
+## Schema
+
+Use the custom type in the schema as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "list_attribute": schema.ListAttribute{
+                Optional:    true,
+                ElementType: types.StringType,
+                CustomType: CustomListType{
+                    types.ListType{
+                        ElemType: types.StringType,
+                    },
+                },
+            },
+
+            "list_nested_attribute": schema.ListNestedAttribute{
+                Optional: true,
+                CustomType: CustomListType{
+                    types.ListType{
+                        ElemType: types.ObjectType{
+                            AttrTypes: map[string]attr.Type{
+                                "int64_attribute": types.Int64Type,
+                                "list_attribute": types.ListType{
+                                    ElemType: types.StringType,
+                                },
+                            },
+                        },
+                    },
+                },
+                NestedObject: schema.NestedAttributeObject{
+                    Attributes: map[string]schema.Attribute{
+                        "int64_attribute": schema.Int64Attribute{
+                            Optional: true,
+                        },
+                        "list_attribute": schema.ListAttribute{
+                            Optional:    true,
+                            ElementType: types.StringType,
+                        },
+                    },
+                },
+            },
+        },
+
+        Blocks: map[string]schema.Block{
+            "list_nested_block": schema.ListNestedBlock{
+                CustomType: CustomListType{
+                    types.ListType{
+                        ElemType: types.ObjectType{
+                            AttrTypes: map[string]attr.Type{
+                                "bool_attribute":    types.BoolType,
+                                "float64_attribute": types.Float64Type,
+                                "int64_attribute":   types.Int64Type,
+                                "list_attribute": types.ListType{
+                                    ElemType: types.StringType,
+                                },
+                                "list_nested_nested_block": types.ListType{
+                                    ElemType: types.ObjectType{
+                                        AttrTypes: map[string]attr.Type{
+                                            "bool_attribute": types.BoolType,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                NestedObject: schema.NestedBlockObject{
+                    Attributes: map[string]schema.Attribute{
+                        "bool_attribute": schema.BoolAttribute{
+                            Optional: true,
+                        },
+                        "float64_attribute": schema.Float64Attribute{
+                            Optional: true,
+                        },
+
+                        "int64_attribute": schema.Int64Attribute{
+                            Optional: true,
+                        },
+                        "list_attribute": schema.ListAttribute{
+                            Optional:    true,
+                            ElementType: types.StringType,
+                        },
+                    },
+                    Blocks: map[string]schema.Block{
+                        "list_nested_nested_block": schema.ListNestedBlock{
+                            NestedObject: schema.NestedBlockObject{
+                                Attributes: map[string]schema.Attribute{
+                                    "bool_attribute": schema.BoolAttribute{
+                                        Optional: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    }
+}
+```
+
+## Model
+
+The custom type value is then used within the model.
+
+Where previously the model would have looked as follows:
+
+```go
+type exampleResourceData struct {
+    ListAttribute         types.List `tfsdk:"list_attribute"`
+    ListNestedAttribute   types.List `tfsdk:"list_nested_attribute"`
+    ListNestedBlock       types.List `tfsdk:"list_nested_block"`
+}
+```
+
+The custom type value is used by updating the model to:
+
+```go
+type exampleResourceData struct {
+    ListAttribute         CustomListValue `tfsdk:"list_attribute"`
+    ListNestedAttribute   CustomListValue `tfsdk:"list_nested_attribute"`
+    ListNestedBlock       CustomListValue `tfsdk:"list_nested_block"`
+}
+```
+
+## Create
+
+The functions on `CustomListValue` are then available.
+
+```go
+func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+    var data exampleResourceData
+
+    diags := req.Config.Get(ctx, &data)
+    resp.Diagnostics.Append(diags...)
+
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    data.ListAttribute.DoSomething(ctx)
+    data.ListNestedAttribute.DoSomething(ctx)
+    data.ListNestedBlock.DoSomething(ctx)
+
+    /*...*/
+}
+```

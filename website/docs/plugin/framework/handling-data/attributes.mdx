@@ -455,6 +455,308 @@ attribute value in a way that Terraform will understand. `attr.Value` has the
 following methods.
 
 | Method             | Description                                                                                                                                                                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `ToTerraformValue` | Returns a Go type that is valid input for [`tftypes.NewValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#NewValue) for the `tftypes.Type` specified by the `attr.Type` that creates the `attr.Value`. |
 | `Equal`            | Returns true if the passed attribute value should be considered to the attribute value the method is being called on. The passed attribute value is not guaranteed to be of the same Go type.                                   |
+
+## Terraform Configuration and Schema
+
+### Simple Attributes
+
+Simple attributes include attributes for boolean, float64, int64, number and string.
+
+#### Terraform Configuration
+
+Use the following syntax in Terraform configuration for simple attributes:
+
+```hcl
+resource "example_resource" "example" {
+  bool_attribute = true
+
+  float64_attribute = 1234.5
+
+  int64_attribute = 9223372036854775807
+
+  number_attribute = 1.79769313486231570814527423731704356798070e+1000
+
+  string_attribute = "string"
+```
+
+#### Schema
+
+Define simple attributes in the schema as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "bool_attribute": schema.BoolAttribute{
+                Optional: true,
+            },
+
+            "float64_attribute": schema.Float64Attribute{
+                Optional: true,
+            },
+
+            "int64_attribute": schema.Int64Attribute{
+                Optional: true,
+            },
+
+            "number_attribute": schema.NumberAttribute{
+                Optional: true,
+            },
+
+            "string_attribute": schema.StringAttribute{
+                Optional: true,
+            },
+        },
+    }
+}
+```
+
+### Collection Attributes
+
+Collection attributes include attributes for lists, maps and sets.
+
+#### Terraform Configuration
+
+Use the following syntax in Terraform configuration for collection attributes:
+
+```hcl
+resource "example_resource" "example" {
+  list_attribute = ["list-element", "list-element"]
+
+  map_attribute = { "map-key-1" : "map-value-1" }
+
+  set_attribute = ["set-element-1", "set-element-2"]
+}
+```
+
+#### Schema
+
+Define collection attributes in the schema as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "list_attribute": schema.ListAttribute{
+                Optional:    true,
+                ElementType: types.StringType,
+            },
+
+            "map_attribute": schema.MapAttribute{
+                Optional:    true,
+                ElementType: types.StringType,
+            },
+
+            "set_attribute": schema.SetAttribute{
+                Optional:    true,
+                ElementType: types.StringType,
+            },
+        },
+    }
+}
+```
+
+### Object Attribute
+
+Use an object attribute when the attribute is an atomic unit and all fields defined within it need to be specified.
+
+Nested attributes (i.e., ListNestedAttribute, MapNestedAttribute, SetNestedAttribute and SingleNestedAttribute) should be used when any of the inner fields should have their own flags or metadata (e.g., Required, Optional, Sensitive etc).
+
+#### Terraform Configuration
+
+Use the following syntax in Terraform configuration for object attributes:
+
+```hcl
+resource "example_resource" "example" {
+  object_attribute = {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+    int64_attribute   = 9223372036854775807
+    list_attribute    = ["obj-list-element", "obj-list-element"]
+    map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+    number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+    set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+    string_attribute  = "obj-string"
+  }
+}
+```
+
+#### Schema
+
+Define object attributes in the schema as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "object_attribute": schema.ObjectAttribute{
+                Optional: true,
+                AttributeTypes: map[string]attr.Type{
+                    "bool_attribute":    types.BoolType,
+                    "float64_attribute": types.Float64Type,
+                    "int64_attribute":   types.Int64Type,
+                    "list_attribute":    types.ListType{ElemType: types.StringType},
+                    "map_attribute":     types.MapType{ElemType: types.StringType},
+                    "number_attribute":  types.NumberType,
+                    "set_attribute":     types.ListType{ElemType: types.StringType},
+                    "string_attribute":  types.StringType,
+                },
+            },
+        },
+    }
+}
+```
+
+### Nested Attributes
+
+#### Terraform Configuration
+
+Use the following syntax in Terraform configuration for nested attributes:
+
+```hcl
+resource "example_resource" "example" {
+  list_nested_attribute = [
+    {
+      int64_attribute = 9223372036854775807
+      list_attribute  = ["list-element", "list-element"]
+    },
+    {
+      int64_attribute = 9223372036854775807
+      list_attribute  = ["list-element", "list-element"]
+    }
+  ]
+
+  map_nested_attribute = {
+    "one" = {
+      map_attribute    = { "map-key-1" : "map-value-1" }
+      number_attribute = 1.79769313486231570814527423731704356798070e+1000
+    },
+    "two" = {
+      map_attribute    = { "map-key-1" : "map-value-1" }
+      number_attribute = 1.79769313486231570814527423731704356798070e+1000
+    }
+  }
+
+  set_nested_attribute = [
+    {
+      object_attribute = {
+        bool_attribute    = true
+        float64_attribute = 1234.5
+        int64_attribute   = 9223372036854775807
+        list_attribute    = ["obj-list-element", "obj-list-element"]
+        map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+        number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+        set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+        string_attribute  = "obj-string"
+      }
+      set_attribute    = ["set-element-1", "set-element-2"]
+      string_attribute = "string"
+    },
+    {
+      object_attribute = {
+        bool_attribute    = false
+        float64_attribute = 1234.5
+        int64_attribute   = 9223372036854775807
+        list_attribute    = ["obj-list-element", "obj-list-element"]
+        map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
+        number_attribute  = 1.79769313486231570814527423731704356798070e+1000
+        set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
+        string_attribute  = "obj-string"
+      }
+      set_attribute    = ["set-element-1", "set-element-2"]
+      string_attribute = "string"
+    }
+  ]
+
+  single_nested_attribute = {
+    bool_attribute    = true
+    float64_attribute = 1234.5
+  }
+}
+```
+
+#### Schema
+
+Define nested attributes in the schema as follows:
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "list_nested_attribute": schema.ListNestedAttribute{
+                Optional: true,
+                NestedObject: schema.NestedAttributeObject{
+                    Attributes: map[string]schema.Attribute{
+                        "int64_attribute": schema.Int64Attribute{
+                            Optional: true,
+                        },
+                        "list_attribute": schema.ListAttribute{
+                            Optional:    true,
+                            ElementType: types.StringType,
+                        },
+                    },
+                },
+            },
+
+            "map_nested_attribute": schema.MapNestedAttribute{
+                Optional: true,
+                NestedObject: schema.NestedAttributeObject{
+                    Attributes: map[string]schema.Attribute{
+                        "map_attribute": schema.MapAttribute{
+                            Optional:    true,
+                            ElementType: types.StringType,
+                        },
+                        "number_attribute": schema.NumberAttribute{
+                            Optional: true,
+                        },
+                    },
+                },
+            },
+
+            "set_nested_attribute": schema.SetNestedAttribute{
+                Optional: true,
+                NestedObject: schema.NestedAttributeObject{
+                    Attributes: map[string]schema.Attribute{
+                        "object_attribute": schema.ObjectAttribute{
+                            Optional: true,
+                            AttributeTypes: map[string]attr.Type{
+                                "bool_attribute":    types.BoolType,
+                                "float64_attribute": types.Float64Type,
+                                "int64_attribute":   types.Int64Type,
+                                "list_attribute":    types.ListType{ElemType: types.StringType},
+                                "map_attribute":     types.MapType{ElemType: types.StringType},
+                                "number_attribute":  types.NumberType,
+                                "set_attribute":     types.ListType{ElemType: types.StringType},
+                                "string_attribute":  types.StringType,
+                            },
+                        },
+
+                        "set_attribute": schema.SetAttribute{
+                            Optional:    true,
+                            ElementType: types.StringType,
+                        },
+                        "string_attribute": schema.StringAttribute{
+                            Optional: true,
+                        },
+                    },
+                },
+            },
+
+            "single_nested_attribute": schema.SingleNestedAttribute{
+                Optional: true,
+                Attributes: map[string]schema.Attribute{
+                    "bool_attribute": schema.BoolAttribute{
+                        Optional: true,
+                    },
+                    "float64_attribute": schema.Float64Attribute{
+                        Optional: true,
+                    },
+                },
+            },
+        },
+    }
+}
+```

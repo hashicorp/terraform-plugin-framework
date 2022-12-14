@@ -115,7 +115,7 @@ Call one of the following to create a `types.String`:
 
 ### Int64
 
-Int64 are 64-bit integer values, such as `1234`. For 64-bit floating point numbers, use [`Float64Type` and `Float64`](#float64type-and-float64). For generic number handling, use [`NumberType` and `Number`](#numbertype-and-number).
+Int64 are 64-bit integer values, such as `1234`. For 64-bit floating point numbers, use [`Float64`](#float64). For generic number handling, use [`Number`](#number).
 
 Given an example Terraform configuration that sets an integer value to the `example_attribute` attribute:
 
@@ -147,7 +147,7 @@ Call one of the following to create a `types.Int64`:
 
 ### Float64
 
-Float64 are 64-bit floating point values, such as `1234.5`. For 64-bit integer numbers, use [`Int64Type` and `Int64`](#int64type-and-int64). For generic number handling, use [`NumberType` and `Number`](#numbertype-and-number).
+Float64 are 64-bit floating point values, such as `1234.5`. For 64-bit integer numbers, use [`Int64`](#int64). For generic number handling, use [`Number`](#number).
 
 Given an example Terraform configuration that sets a floating point value to the `example_attribute` attribute:
 
@@ -179,7 +179,7 @@ Call one of the following to create a `types.Float64`:
 
 ### Number
 
-Numbers are numeric values, both whole values like `12` or fractional values like `3.14`. Use this type for exceptionally large numbers. For 64-bit integer numbers, use [`Int64Type` and `Int64`](#int64type-and-int64). For 64-bit floating point numbers, use [`Float64Type` and `Float64`](#float64type-and-float64).
+Numbers are numeric values, both whole values like `12` or fractional values like `3.14`. Use this type for exceptionally large numbers. For 64-bit integer numbers, use [`Int64`](#int64). For 64-bit floating point numbers, use [`Float64`](#float64).
 
 Given an example Terraform configuration that sets a number value to the `example_attribute` attribute:
 
@@ -245,7 +245,7 @@ Call one of the following to create a `types.Bool`:
 
 Lists are ordered collections of a single element type.
 
--> Use [ListNestedAttributes](/plugin/framework/schemas#ListNestedAttributes) for lists of objects that need additional schema information. Use [SetType and Set](#settype-and-set) for unordered collections.
+-> Use [List Nested Attributes](/plugin/framework/schemas#ListNestedAttributes) for lists of objects that need additional schema information. Use [Set](#set) for unordered collections.
 
 Given an example Terraform configuration that sets a list of string values to the `example_attribute` attribute:
 
@@ -283,7 +283,7 @@ Call one of the following to create a `types.List`:
 
 Maps are mappings of string keys to values of a single element type.
 
--> Use [MapNestedAttributes](/plugin/framework/schemas#MapNestedAttributes) for maps of objects that need additional schema information. Use [ObjectType and Object](#objecttype-and-object) for structures of string attribute names to any value.
+-> Use [Map Nested Attributes](/plugin/framework/schemas#MapNestedAttributes) for maps of objects that need additional schema information. Use [Object](#object) for structures of string attribute names to any value.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -325,7 +325,7 @@ Call one of the following to create a `types.Map`:
 
 Objects are mappings of string attribute names to values of any type. Objects must always declare all attribute values, even when those attributes are null or unknown, unless the entire object is null or unknown.
 
--> Use [SingleNestedAttributes](/plugin/framework/schemas#SingleNestedAttributes) for objects that need additional schema information. Use [MapType and Map](#maptype-and-map) for mappings of string keys to a single element type.
+-> Use [Single Nested Attributes](/plugin/framework/schemas#SingleNestedAttributes) for objects that need additional schema information. Use [Map](#map) for mappings of string keys to a single element type.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -371,7 +371,7 @@ Call one of the following to create a `types.Object`:
 
 Set are unordered, unique collections of a single element type.
 
--> Use [SetNestedAttributes](/plugin/framework/schemas#SetNestedAttributes) for sets of objects that need additional schema information. Use [ListType and List](#listtype-and-list) for ordered collections.
+-> Use [Set Nested Attributes](/plugin/framework/schemas#SetNestedAttributes) for sets of objects that need additional schema information. Use [List](#list) for ordered collections.
 
 Given an example Terraform configuration that sets a set of string values to the `example_attribute` attribute:
 

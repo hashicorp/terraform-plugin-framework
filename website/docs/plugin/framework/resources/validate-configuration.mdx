@@ -13,6 +13,8 @@ This page describes implementation details for validating entire resource config
 - [Single attribute validation](/plugin/framework/validation#attribute-validation) is a schema-based mechanism for implementing attribute-specific validation logic.
 - [Type validation](/plugin/framework/validation#type-validation) is a schema-based mechanism for implementing reusable validation logic for any attribute using the type.
 
+-> Configuration validation in Terraform occurs without provider configuration ("offline"), so therefore the resource `Configure` method will not have been called. To implement validation with a configured API client, use [plan modification](/plugin/framework/resources/plan-modification#resource-plan-modification) instead, which occurs during Terraform's planning phase.
+
 ## ConfigValidators Method
 
 The [`resource.ResourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This enables consistent validation logic across multiple resources. Each validator intended for this interface must implement the [`resource.ConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ConfigValidator).

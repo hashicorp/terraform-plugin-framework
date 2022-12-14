@@ -13,6 +13,8 @@ This page describes implementation details for validating entire data source con
 - [Single attribute validation](/plugin/framework/validation#attribute-validation) is a schema-based mechanism for implementing attribute-specific validation logic.
 - [Type validation](/plugin/framework/validation#type-validation) is a schema-based mechanism for implementing reusable validation logic for any attribute using the type.
 
+-> Configuration validation in Terraform occurs without provider configuration ("offline"), so therefore the data source `Configure` method will not have been called. To implement validation with a configured API client, use logic within the `Read` method, which occurs during Terraform's planning phase.
+
 ## ConfigValidators Method
 
 The [`datasource.DataSourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This enables consistent validation logic across multiple data sources. Each validator intended for this interface must implement the [`datasource.ConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ConfigValidator).

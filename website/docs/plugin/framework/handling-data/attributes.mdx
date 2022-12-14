@@ -63,23 +63,23 @@ guaranteed to have known values (or be null).
 Provider configuration values can be unknown, and providers should handle that
 situation, even if that means just returning an error.
 
-## Framework Types and Value Types
+## Framework Attribute Types
 
-A collection of attribute types (`attr.Type`) and attribute value types (`attr.Value`) is available in the [`types` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types). These types bridge the implementation details between Terraform's type system and Go code in providers.
+The framework provides a standard set of schema attribute types that are based on the framework type system available in the [`types` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types). These types bridge the implementation details between Terraform's type system and Go code in providers. The framework attribute types also support provider-defined types via a `CustomType` field. Refer to [Custom Types](/plugin/framework/handling-data/custom-types) for more information about implementing provider-defined types.
 
-| Terraform Type | Framework Schema Type | Framework Value Type | Known Value Go Type | Use Case |
-|----------------|-----------------------|----------------------|---------------------|----------|
-| `bool` | `types.BoolType` | `types.Bool` | `bool` | Boolean true or false |
-| `number` | `types.Float64Type` | `types.Float64` | `float64` | 64-bit floating point number |
-| `number` | `types.Int64Type` | `types.Int64` | `int64` | 64-bit integer |
-| `list` | `types.ListType` | `types.List` | `[]attr.Value` | Ordered collection of single element type |
-| `map` | `types.MapType` | `types.Map` | `map[string]attr.Value` | Mapping of string keys to single element type |
-| `number` | `types.NumberType` | `types.Number` | `*big.Float` | Large floating point or number |
-| `object` | `types.ObjectType` | `types.Object` | `map[string]attr.Value` | Structure mapping string attibute keys to any value type |
-| `set` | `types.SetType` | `types.Set` | `[]attr.Value` | Unordered, unique collection of single element type |
-| `string` | `types.StringType` | `types.String` | `string` | Collection of UTF-8 encoded characters |
+| Terraform Type | Framework Attribute Type | Framework Value Type | Known Value Go Type | Use Case |
+|----------------|--------------------------|----------------------|---------------------|----------|
+| `bool` | `schema.BoolAttribute` | `types.Bool` | `bool` | Boolean true or false |
+| `number` | `schema.Float64Attribute` | `types.Float64` | `float64` | 64-bit floating point number |
+| `number` | `schema.Int64Attribute` | `types.Int64` | `int64` | 64-bit integer |
+| `list` | `schema.ListAttribute` | `types.List` | `[]attr.Value` | Ordered collection of single element type |
+| `map` | `schema.MapAttribute` | `types.Map` | `map[string]attr.Value` | Mapping of string keys to single element type |
+| `number` | `schema.NumberAttribute` | `types.Number` | `*big.Float` | Large floating point or number |
+| `object` | `schema.ObjectAttribute` | `types.Object` | `map[string]attr.Value` | Structure mapping string attibute keys to any value type |
+| `set` | `schema.SetAttribute` | `types.Set` | `[]attr.Value` | Unordered, unique collection of single element type |
+| `string` | `schema.StringAttribute` | `types.String` | `string` | Collection of UTF-8 encoded characters |
 
-### StringType and String
+### String
 
 Strings are a UTF-8 encoded collection of bytes.
 
@@ -89,16 +89,15 @@ Given an example Terraform configuration that sets a string value to the `exampl
 example_attribute = "terraform"
 ```
 
-The associated schema type is [`types.StringType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringType):
+The associated schema type is `schema.StringAttribute`:
 
 ```go
-"example_attribute": {
-  Type: types.StringType,
+"example_attribute": schema.StringAttribute{
   // ... other fields ...
 }
 ```
 
-The associated value type is [`types.String`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#String) in configuration, plan, and state data.
+The associated framework type is [`types.StringType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringType) and value type is [`types.String`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#String) in configuration, plan, and state data.
 
 Access `types.String` information via the following methods:
 
@@ -114,9 +113,9 @@ Call one of the following to create a `types.String`:
 * [`types.StringUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringUnknown): An unknown string value.
 * [`types.StringValue(string)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringValue): A known value.
 
-### Int64Type and Int64
+### Int64
 
-Int64 are 64-bit integer values, such as `1234`. For 64-bit floating point numbers, use [`Float64Type` and `Float64`](#float64type-and-float64). For generic number handling, use [`NumberType` and `Number`](#numbertype-and-number).
+Int64 are 64-bit integer values, such as `1234`. For 64-bit floating point numbers, use [`Float64`](#float64). For generic number handling, use [`Number`](#number).
 
 Given an example Terraform configuration that sets an integer value to the `example_attribute` attribute:
 
@@ -124,16 +123,15 @@ Given an example Terraform configuration that sets an integer value to the `exam
 example_attribute = 1234
 ```
 
-The associated schema type is [`types.Int64Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Type):
+The associated schema type is `schema.Int64Attribute`:
 
 ```go
-"example_attribute": {
-  Type: types.Int64Type,
+"example_attribute": schema.Int64Attribute{
   // ... other fields ...
 }
 ```
 
-The associated value type is [`types.Int64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64) in configuration, plan, and state data.
+The associated framework type is [`types.Int64Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Type) and value type is [`types.Int64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64) in configuration, plan, and state data.
 
 Access `types.Int64` information via the following methods:
 
@@ -147,9 +145,9 @@ Call one of the following to create a `types.Int64`:
 * [`types.Int64Unknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Unknown): An unknown integer value.
 * [`types.Int64Value(int64)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Value): A known value.
 
-### Float64Type and Float64
+### Float64
 
-Float64 are 64-bit floating point values, such as `1234.5`. For 64-bit integer numbers, use [`Int64Type` and `Int64`](#int64type-and-int64). For generic number handling, use [`NumberType` and `Number`](#numbertype-and-number).
+Float64 are 64-bit floating point values, such as `1234.5`. For 64-bit integer numbers, use [`Int64`](#int64). For generic number handling, use [`Number`](#number).
 
 Given an example Terraform configuration that sets a floating point value to the `example_attribute` attribute:
 
@@ -157,16 +155,15 @@ Given an example Terraform configuration that sets a floating point value to the
 example_attribute = 1234.5
 ```
 
-The associated schema type is [`types.Float64Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64Type):
+The associated schema type is `schema.Float64Attribute`:
 
 ```go
-"example_attribute": {
-  Type: types.Float64Type,
+"example_attribute": schema.Float64Attribute{
   // ... other fields ...
 }
 ```
 
-The associated value type is [`types.Float64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64) in configuration, plan, and state data.
+The associated framework type is [`types.Float64Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64Type) and value type is [`types.Float64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64) in configuration, plan, and state data.
 
 Access `types.Float64` information via the following methods:
 
@@ -180,9 +177,9 @@ Call one of the following to create a `types.Float64`:
 * [`types.Float64Unknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64Unknown): An unknown number value.
 * [`types.Float64Value(float64)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Float64Value): A known value.
 
-### NumberType and Number
+### Number
 
-Numbers are numeric values, both whole values like `12` or fractional values like `3.14`. Use this type for exceptionally large numbers. For 64-bit integer numbers, use [`Int64Type` and `Int64`](#int64type-and-int64). For 64-bit floating point numbers, use [`Float64Type` and `Float64`](#float64type-and-float64).
+Numbers are numeric values, both whole values like `12` or fractional values like `3.14`. Use this type for exceptionally large numbers. For 64-bit integer numbers, use [`Int64`](#int64). For 64-bit floating point numbers, use [`Float64`](#float64).
 
 Given an example Terraform configuration that sets a number value to the `example_attribute` attribute:
 
@@ -190,16 +187,15 @@ Given an example Terraform configuration that sets a number value to the `exampl
 example_attribute = 123
 ```
 
-The associated schema type is [`types.NumberType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#NumberType):
+The associated schema type is `schema.NumberAttribute`:
 
 ```go
-"example_attribute": {
-  Type: types.NumberType,
+"example_attribute": schema.NumberAttribute{
   // ... other fields ...
 }
 ```
 
-The associated value type is [`types.Number`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Number) in configuration, plan, and state data.
+The associated framework type is [`types.NumberType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#NumberType) and value type is [`types.Number`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Number) in configuration, plan, and state data.
 
 Access `types.Number` information via the following methods:
 
@@ -213,7 +209,7 @@ Call one of the following to create a `types.Number`:
 * [`types.NumberUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#NumberUnknown): An unknown number value.
 * [`types.NumberValue(*big.Float)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#NumberValue): A known value.
 
-### BoolType and Bool
+### Bool
 
 Bools are boolean values that can either be true or false.
 
@@ -223,16 +219,15 @@ Given an example Terraform configuration that sets a boolean value to the `examp
 example_attribute = true
 ```
 
-The associated schema type is [`types.BoolType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolType):
+The associated schema type is `schema.BoolAttribute`:
 
 ```go
-"example_attribute": {
-  Type: types.BoolType,
+"example_attribute": schema.BoolAttribute{
   // ... other fields ...
 }
 ```
 
-The associated value type is [`types.Bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Bool) in configuration, plan, and state data.
+The associated framework type is [`types.BoolType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolType) and value type is [`types.Bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Bool) in configuration, plan, and state data.
 
 Access `types.Bool` information via the following methods:
 
@@ -246,11 +241,11 @@ Call one of the following to create a `types.Bool`:
 * [`types.BoolUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolUnknown): An unknown boolean value.
 * [`types.BoolValue(bool)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolValue): A known value.
 
-### ListType and List
+### List
 
 Lists are ordered collections of a single element type.
 
--> Use [ListNestedAttributes](/plugin/framework/schemas#ListNestedAttributes) for lists of objects that need additional schema information. Use [SetType and Set](#settype-and-set) for unordered collections.
+-> Use [List Nested Attributes](/plugin/framework/schemas#ListNestedAttributes) for lists of objects that need additional schema information. Use [Set](#set) for unordered collections.
 
 Given an example Terraform configuration that sets a list of string values to the `example_attribute` attribute:
 
@@ -258,18 +253,16 @@ Given an example Terraform configuration that sets a list of string values to th
 example_attribute = ["red", "blue", "green"]
 ```
 
-The associated schema type is [`types.ListType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListType):
+The associated schema type is `schema.ListAttribute`:
 
 ```go
-"example_attribute": {
-  Type: types.ListType{
-    ElemType: types.StringType,
-  },
+"example_attribute": schema.ListAttribute{
+  ElementType: types.StringType,
   // ... other fields ...
 }
 ```
 
-The associated value type is [`types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List) in configuration, plan, and state data.
+The associated framework type is [`types.ListType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListType) and value type is [`types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List) in configuration, plan, and state data.
 
 Access `types.List` information via the following methods:
 
@@ -286,11 +279,11 @@ Call one of the following to create a `types.List`:
 * [`types.ListValueFrom(context.Context, attr.Type, any) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
 * [`types.ListValueMust(map[string]attr.Type, map[string]attr.Value) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
-### MapType and Map
+### Map
 
 Maps are mappings of string keys to values of a single element type.
 
--> Use [MapNestedAttributes](/plugin/framework/schemas#MapNestedAttributes) for maps of objects that need additional schema information. Use [ObjectType and Object](#objecttype-and-object) for structures of string attribute names to any value.
+-> Use [Map Nested Attributes](/plugin/framework/schemas#MapNestedAttributes) for maps of objects that need additional schema information. Use [Object](#object) for structures of string attribute names to any value.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -302,18 +295,16 @@ example_attribute = {
 }
 ```
 
-The associated schema type is [`types.MapType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapType):
+The associated schema type is `schema.MapAttribute`:
 
 ```go
-"example_attribute": {
-  Type: types.MapType{
-    ElemType: types.StringType,
-  },
+"example_attribute": schema.MapAttribute{
+  ElementType: types.StringType,
   // ... other fields ...
 }
 ```
 
-The associated value type is [`types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map) in configuration, plan, and state data.
+The associated framework type is [`types.MapType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapType) and value type is [`types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map) in configuration, plan, and state data.
 
 Access `types.Map` information via the following methods:
 
@@ -330,11 +321,11 @@ Call one of the following to create a `types.Map`:
 * [`types.MapValueFrom(context.Context, attr.Type, any) (types.Map, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
 * [`types.MapValueMust(map[string]attr.Type, map[string]attr.Value) types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
-### ObjectType and Object
+### Object
 
 Objects are mappings of string attribute names to values of any type. Objects must always declare all attribute values, even when those attributes are null or unknown, unless the entire object is null or unknown.
 
--> Use [SingleNestedAttributes](/plugin/framework/schemas#SingleNestedAttributes) for objects that need additional schema information. Use [MapType and Map](#maptype-and-map) for mappings of string keys to a single element type.
+-> Use [Single Nested Attributes](/plugin/framework/schemas#SingleNestedAttributes) for objects that need additional schema information. Use [Map](#map) for mappings of string keys to a single element type.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -346,22 +337,20 @@ example_attribute = {
 }
 ```
 
-The associated schema type is [`types.ObjectType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectType):
+The associated schema type is `schema.ObjectAttribute`:
 
 ```go
-"example_attribute": {
-  Type: types.ObjectType{
-    AttrTypes: map[string]attr.Type{
-      "pi":    types.Float64Type,
-      "demo":  types.BoolType,
-      "color": types.StringType,
-    },
+"example_attribute": schema.ObjectAttribute{
+  AttributeTypes: map[string]attr.Type{
+    "pi":    types.Float64Type,
+    "demo":  types.BoolType,
+    "color": types.StringType,
   },
   // ... other fields ...
 }
 ```
 
-The associated value type is [`types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object) in configuration, plan, and state data.
+The associated framework type is [`types.ObjectType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectType) and value type is [`types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object) in configuration, plan, and state data.
 
 Access `types.Object` information via the following methods:
 
@@ -378,11 +367,11 @@ Call one of the following to create a `types.Object`:
 * [`types.ObjectValueFrom(context.Context, attr.Type, any) (types.Object, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom): A known value with the given attribute type mapping and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
 * [`types.ObjectValueMust(map[string]attr.Type, map[string]attr.Value) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueMust): A known value with the given attribute type mapping and attribute value mapping. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
-### SetType and Set
+### Set
 
 Set are unordered, unique collections of a single element type.
 
--> Use [SetNestedAttributes](/plugin/framework/schemas#SetNestedAttributes) for sets of objects that need additional schema information. Use [ListType and List](#listtype-and-list) for ordered collections.
+-> Use [Set Nested Attributes](/plugin/framework/schemas#SetNestedAttributes) for sets of objects that need additional schema information. Use [List](#list) for ordered collections.
 
 Given an example Terraform configuration that sets a set of string values to the `example_attribute` attribute:
 
@@ -390,18 +379,16 @@ Given an example Terraform configuration that sets a set of string values to the
 example_attribute = ["red", "blue", "green"]
 ```
 
-The associated schema type is [`types.SetType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetType):
+The associated schema type is `schema.SetAttribute`:
 
 ```go
-"example_attribute": {
-  Type: types.SetType{
-    ElemType: types.StringType,
-  },
+"example_attribute": schema.SetAttribute{
+  ElementType: types.StringType,
   // ... other fields ...
 }
 ```
 
-The associated value type is [`types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set) in configuration, plan, and state data.
+The associated framework type is [`types.SetType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetType) and value type is [`types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set) in configuration, plan, and state data.
 
 Access `types.Set` information via the following methods:
 

@@ -7,27 +7,27 @@ description: >-
 
 # Plan Modification
 
-After [validation](/plugin/framework/validation) and before applying configuration changes, Terraform generates a plan that describes the expected values and behaviors of those changes. Providers can then tailor the plan to match the expected end state. For example, they may replace unknown values with expected known values or mark a resource that must be replaced. Users can perform this plan modification for an attribute or an entire resource.
+After [validation](/plugin/framework/validation) and before applying configuration changes, Terraform generates a plan that describes the expected values and behaviors of those changes. Resources can then tailor the plan to match the expected end state, prevent errant in-place updates, or return any [diagnostics](/plugin/framework/diagnostics).
+
+Terraform and the framework support multiple types of plan modification on resources:
+
+- Adjusting unknown attribute values, such as providing a known remote default value when a configuration is not present.
+- Marking resources that should be replaced, such as when an in-place update is not supported for a change.
+- Returning warning or error diagnostics on planned resource creation, update, or deletion.
+
+Plan modification can be added on resource schema attributes or an entire resource. Use resource-based plan modification if access to the [configured resource](/plugin/framework/resources/configure) is necessary.
 
 ## Plan Modification Process
-
-Terraform and the framework support three types of plan modification on resources:
-
-- Adjusting attribute values, such as providing a known remote default value when a configuration is not present.
-- Marking resources that should be replaced, such as when an in-place update is not supported for a change.
-- Returning warning or error diagnostics on planned resource destruction with Terraform 1.3 and later.
 
 When the provider receives a request to generate the plan for a resource change via the framework, the following occurs:
 
 1. If the plan differs from the current resource state, the framework marks computed attributes that are null in the configuration as unknown in the plan. This is intended to prevent unexpected Terraform errors. Providers can later enter any values that may be known.
-1. Apply attribute plan modifiers.
-1. Apply resource plan modifiers.
+1. Run attribute plan modifiers.
+1. Run resource plan modifiers.
 
 When the `Resource` interface `Update` method runs to apply a change, all attribute state values must match their associated planned values or Terraform will generate a `Provider produced inconsistent result` error. You can mark values as [unknown](/plugin/framework/types#unknown) in the plan if the full expected value is not known.
 
 Refer to the [Resource Instance Change Lifecycle document](https://github.com/hashicorp/terraform/blob/main/docs/resource-instance-change-lifecycle.md) for more details about the concepts and processes relevant to the plan and apply workflows.
-
-~> **NOTE:** Providers and data sources do not use the same planning mechanism as resources within Terraform. Neither support the concept of plan modification. Data sources should set any planned values in the `Read` method.
 
 ## Attribute Plan Modification
 
@@ -79,11 +79,11 @@ func (m stringDefaultModifier) MarkdownDescription(ctx context.Context) string {
     return fmt.Sprintf("If value is not configured, defaults to `%s`", m.Default)
 }
 
-// Modify runs the logic of the plan modifier.
+// PlanModifyString runs the logic of the plan modifier.
 // Access to the configuration, plan, and state is available in `req`, while
 // `resp` contains fields for updating the planned value, triggering resource
 // replacement, and returning diagnostics.
-func (m stringDefaultModifier) ModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+func (m stringDefaultModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
     // If the value is unknown or known, do not set default value.
     if !req.PlanValue.IsNull() {
         return

@@ -405,358 +405,175 @@ Call one of the following to create a `types.Set`:
 * [`types.SetValueFrom(context.Context, attr.Type, any) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/accessing-values#conversion-rules).
 * [`types.SetValueMust(map[string]attr.Type, map[string]attr.Value) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
+### Nested Attributes
+
+-> Only supported when using protocol version 6.
+
+[Nested attributes](/plugin/framework/handling-data/attributes#nested-attributes) enable provider developers to define objects of attributes which fully support attribute behaviors and practitioners to configure these directly using [expressions](/language/expressions).
+
+#### SingleNestedAttribute
+
+With single nested attributes, the attribute behaves like an object. The practitioner can only specify one definition of the nested attributes.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = {
+    hello = "world"
+    demo = true
+  }
+}
+```
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "nested_attribute": schema.SingleNestedAttribute{
+                /* ... */
+                Attributes: map[string]schema.Attribute{
+                    "hello": schema.StringAttribute{
+                        /* ... */
+                    },
+                    "demo": schema.BoolAttribute{
+                        /* ... */
+                    },
+                },
+            },
+        },
+    }
+}
+```
+
+#### ListNestedAttribute
+
+With list nested attributes, the attribute behaves like a list of objects. The practitioner can
+specify any number of groups of these attributes.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = [
+    {
+      hello = "world"
+      demo = true
+    },
+    {
+      hello = "moon"
+      demo = false
+    },
+  ]
+}
+```
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "nested_attribute": schema.ListNestedAttribute{
+                /* ... */
+                NestedObject: schema.NestedAttributeObject{
+                    Attributes: map[string]schema.Attribute{
+                        "hello": schema.StringAttribute{
+                            /* ... */
+                        },
+                        "demo": schema.BoolAttribute{
+                            /* ... */
+                        },
+                    },
+                },
+            },
+        },
+    }
+}
+```
+
+#### MapNestedAttribute
+
+With map nested attributes, the attribute behaves like a map of objects. The practitioner can
+specify any number of groups of these attributes, with string keys associated
+with each group.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = {
+    "red" = {
+      hello = "world"
+      demo = true
+    },
+    "blue" = {
+      hello = "moon"
+      demo = false
+    },
+  }
+}
+```
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "nested_attribute": schema.MapNestedAttribute{
+                /* ... */
+                NestedObject: schema.NestedAttributeObject{
+                    Attributes: map[string]schema.Attribute{
+                        "hello": schema.StringAttribute{
+                            /* ... */
+                        },
+                        "demo": schema.BoolAttribute{
+                            /* ... */
+                        },
+                    },
+                },
+            },
+        },
+    }
+}
+```
+
+#### SetNestedAttribute
+
+With set nested attributes, the attributes behave like a set of objects. The practitioner can
+specify any number of groups of these attributes.
+
+```tf
+resource "example_foo" "bar" {
+  nested_attribute = [
+    {
+      hello = "world"
+      demo = true
+    },
+    {
+      hello = "moon"
+      demo = false
+    },
+  ]
+}
+```
+
+```go
+func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "nested_attribute": schema.SetNestedAttribute{
+                Optional: true,
+                NestedObject: schema.NestedAttributeObject{
+                    Attributes: map[string]schema.Attribute{
+                        "hello": schema.StringAttribute{
+                            /* ... */
+                        },
+                        "demo": schema.BoolAttribute{
+                            /* ... */
+                        },
+                    },
+                },
+            },
+        },
+    }
+}
+```
+
 ## Create Provider-Defined Types and Values
 
 You may want to build your own attribute value and type implementations to allow your provider to combine validation, description, and plan customization behaviors into a reusable bundle. This helps avoid duplication or reimplementation and ensures consistency.
 
-~> **Important:** Specifying plan customization for attribute types is not yet
-supported, limiting their utility. Support is expected in the near future.
+Refer to [Custom Types](plugin/framework/handling-data/custom-types) for further details on creating provider-defined types and values.
 
-### `attr.Type` Interface
-
-Use the [`attr.Type`
-interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Type)
-to implement an attribute type. It tells Terraform about its constraints and tells the framework how to create new attribute values from the information Terraform supplies. `attr.Type` has the following methods.
-
-| Method               | Description                                                                                                                                                                                                                                                                                                                |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TerraformType`      | Returns the [`tftypes.Type` value](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#Type) that describes its type constraints. This is how Terraform will know what type of values it can accept.                                                                                                       |
-| `ValueFromTerraform` | Returns an attribute value from the [`tftypes.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#Value) that Terraform supplies, or to return an error if it cannot. This error should not be used for validation purposes, and is expected to indicate programmer error, not practitioner error. |
-| `Equal`              | Returns true if the attribute type is considered equal to the passed attribute type.                                                                                                                                                                                                                                       |
-
-### `AttributePathStepper` Interface
-
-All attribute types must implement the [`tftypes.AttributePathStepper`
-interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#AttributePathStepper),
-so the framework can access element or attribute types using attribute paths.
-
-### `xattr.TypeWithValidation` Interface
-
-If validation for type values is desired, use the [`xattr.TypeWithValidation` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidation) to include validation logic for type values. The framework will call this functionality when validating all values based on the schema.
-
-| Method     | Description                                                   |
-| ---------- | ------------------------------------------------------------- |
-| `Validate` | Returns any warning or error diagnostics for the given value. |
-
-### Type-Specific Interfaces
-
-| Case                        | Interface                                                                                                                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Elements of the same type   | [`TypeWithElementType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithElementType)       | Attribute types that contain elements of the same type, like maps and lists, are required to implement `attr.TypeWithElementType`, which adds `WithElementType` and `ElementType` methods to the `attr.Type` interface. `WithElementType` must return a copy of the attribute type, but with its element type set to the passed type. `ElementType` must return the attribute type's element type.                         |
-| Elements of different types | [`TypeWithElementTypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithElementType)      | Attribute types that contain elements of differing types, like tuples, are required to implement the `attr.TypeWithElementTypes`, which adds `WithElementTypes` and `ElementTypes` methods to the `attr.Type` interface. `WithElementTypes` must return a copy of the attribute type, but with its element types set to the passed element types. `ElementTypes` must return the attribute type's element types.           |
-| Contain attributes          | [`TypeWithAttributeTypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithAttributeTypes) | Attribute types that contain attributes, like objects, are required to implement the `attr.TypeWithAttributeTypes` interface, which adds `WithAttributeTypes` and `AttributeTypes` methods to the `attr.Type` interface. `WithAttributeTypes` must return a copy of the attribute type, but with its attribute types set to the passed attribute types. `AttributeTypes` must return the attribute type's attribute types. |
-
-### `attr.Value` Interface
-
-Use the [`attr.Value`
-interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value)
-to implement an attribute value. It tells the framework how to express that
-attribute value in a way that Terraform will understand. `attr.Value` has the
-following methods.
-
-| Method             | Description                                                                                                                                                                                                                     |
-|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `ToTerraformValue` | Returns a Go type that is valid input for [`tftypes.NewValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#NewValue) for the `tftypes.Type` specified by the `attr.Type` that creates the `attr.Value`. |
-| `Equal`            | Returns true if the passed attribute value should be considered to the attribute value the method is being called on. The passed attribute value is not guaranteed to be of the same Go type.                                   |
-
-## Terraform Configuration and Schema
-
-### Simple Attributes
-
-Simple attributes include attributes for boolean, float64, int64, number and string.
-
-#### Terraform Configuration
-
-Use the following syntax in Terraform configuration for simple attributes:
-
-```hcl
-resource "example_resource" "example" {
-  bool_attribute = true
-
-  float64_attribute = 1234.5
-
-  int64_attribute = 9223372036854775807
-
-  number_attribute = 1.79769313486231570814527423731704356798070e+1000
-
-  string_attribute = "string"
-```
-
-#### Schema
-
-Define simple attributes in the schema as follows:
-
-```go
-func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{
-            "bool_attribute": schema.BoolAttribute{
-                Optional: true,
-            },
-
-            "float64_attribute": schema.Float64Attribute{
-                Optional: true,
-            },
-
-            "int64_attribute": schema.Int64Attribute{
-                Optional: true,
-            },
-
-            "number_attribute": schema.NumberAttribute{
-                Optional: true,
-            },
-
-            "string_attribute": schema.StringAttribute{
-                Optional: true,
-            },
-        },
-    }
-}
-```
-
-### Collection Attributes
-
-Collection attributes include attributes for lists, maps and sets.
-
-#### Terraform Configuration
-
-Use the following syntax in Terraform configuration for collection attributes:
-
-```hcl
-resource "example_resource" "example" {
-  list_attribute = ["list-element", "list-element"]
-
-  map_attribute = { "map-key-1" : "map-value-1" }
-
-  set_attribute = ["set-element-1", "set-element-2"]
-}
-```
-
-#### Schema
-
-Define collection attributes in the schema as follows:
-
-```go
-func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{
-            "list_attribute": schema.ListAttribute{
-                Optional:    true,
-                ElementType: types.StringType,
-            },
-
-            "map_attribute": schema.MapAttribute{
-                Optional:    true,
-                ElementType: types.StringType,
-            },
-
-            "set_attribute": schema.SetAttribute{
-                Optional:    true,
-                ElementType: types.StringType,
-            },
-        },
-    }
-}
-```
-
-### Object Attribute
-
-Use an object attribute when the attribute is an atomic unit and all fields defined within it need to be specified.
-
-Nested attributes (i.e., ListNestedAttribute, MapNestedAttribute, SetNestedAttribute and SingleNestedAttribute) should be used when any of the inner fields should have their own flags or metadata (e.g., Required, Optional, Sensitive etc).
-
-#### Terraform Configuration
-
-Use the following syntax in Terraform configuration for object attributes:
-
-```hcl
-resource "example_resource" "example" {
-  object_attribute = {
-    bool_attribute    = true
-    float64_attribute = 1234.5
-    int64_attribute   = 9223372036854775807
-    list_attribute    = ["obj-list-element", "obj-list-element"]
-    map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
-    number_attribute  = 1.79769313486231570814527423731704356798070e+1000
-    set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
-    string_attribute  = "obj-string"
-  }
-}
-```
-
-#### Schema
-
-Define object attributes in the schema as follows:
-
-```go
-func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{
-            "object_attribute": schema.ObjectAttribute{
-                Optional: true,
-                AttributeTypes: map[string]attr.Type{
-                    "bool_attribute":    types.BoolType,
-                    "float64_attribute": types.Float64Type,
-                    "int64_attribute":   types.Int64Type,
-                    "list_attribute":    types.ListType{ElemType: types.StringType},
-                    "map_attribute":     types.MapType{ElemType: types.StringType},
-                    "number_attribute":  types.NumberType,
-                    "set_attribute":     types.ListType{ElemType: types.StringType},
-                    "string_attribute":  types.StringType,
-                },
-            },
-        },
-    }
-}
-```
-
-### Nested Attributes
-
-#### Terraform Configuration
-
-Use the following syntax in Terraform configuration for nested attributes:
-
-```hcl
-resource "example_resource" "example" {
-  list_nested_attribute = [
-    {
-      int64_attribute = 9223372036854775807
-      list_attribute  = ["list-element", "list-element"]
-    },
-    {
-      int64_attribute = 9223372036854775807
-      list_attribute  = ["list-element", "list-element"]
-    }
-  ]
-
-  map_nested_attribute = {
-    "one" = {
-      map_attribute    = { "map-key-1" : "map-value-1" }
-      number_attribute = 1.79769313486231570814527423731704356798070e+1000
-    },
-    "two" = {
-      map_attribute    = { "map-key-1" : "map-value-1" }
-      number_attribute = 1.79769313486231570814527423731704356798070e+1000
-    }
-  }
-
-  set_nested_attribute = [
-    {
-      object_attribute = {
-        bool_attribute    = true
-        float64_attribute = 1234.5
-        int64_attribute   = 9223372036854775807
-        list_attribute    = ["obj-list-element", "obj-list-element"]
-        map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
-        number_attribute  = 1.79769313486231570814527423731704356798070e+1000
-        set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
-        string_attribute  = "obj-string"
-      }
-      set_attribute    = ["set-element-1", "set-element-2"]
-      string_attribute = "string"
-    },
-    {
-      object_attribute = {
-        bool_attribute    = false
-        float64_attribute = 1234.5
-        int64_attribute   = 9223372036854775807
-        list_attribute    = ["obj-list-element", "obj-list-element"]
-        map_attribute     = { "obj-map-key-1" : "obj-map-value-1" }
-        number_attribute  = 1.79769313486231570814527423731704356798070e+1000
-        set_attribute     = ["obj-set-element-1", "obj-set-element-2"]
-        string_attribute  = "obj-string"
-      }
-      set_attribute    = ["set-element-1", "set-element-2"]
-      string_attribute = "string"
-    }
-  ]
-
-  single_nested_attribute = {
-    bool_attribute    = true
-    float64_attribute = 1234.5
-  }
-}
-```
-
-#### Schema
-
-Define nested attributes in the schema as follows:
-
-```go
-func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{
-            "list_nested_attribute": schema.ListNestedAttribute{
-                Optional: true,
-                NestedObject: schema.NestedAttributeObject{
-                    Attributes: map[string]schema.Attribute{
-                        "int64_attribute": schema.Int64Attribute{
-                            Optional: true,
-                        },
-                        "list_attribute": schema.ListAttribute{
-                            Optional:    true,
-                            ElementType: types.StringType,
-                        },
-                    },
-                },
-            },
-
-            "map_nested_attribute": schema.MapNestedAttribute{
-                Optional: true,
-                NestedObject: schema.NestedAttributeObject{
-                    Attributes: map[string]schema.Attribute{
-                        "map_attribute": schema.MapAttribute{
-                            Optional:    true,
-                            ElementType: types.StringType,
-                        },
-                        "number_attribute": schema.NumberAttribute{
-                            Optional: true,
-                        },
-                    },
-                },
-            },
-
-            "set_nested_attribute": schema.SetNestedAttribute{
-                Optional: true,
-                NestedObject: schema.NestedAttributeObject{
-                    Attributes: map[string]schema.Attribute{
-                        "object_attribute": schema.ObjectAttribute{
-                            Optional: true,
-                            AttributeTypes: map[string]attr.Type{
-                                "bool_attribute":    types.BoolType,
-                                "float64_attribute": types.Float64Type,
-                                "int64_attribute":   types.Int64Type,
-                                "list_attribute":    types.ListType{ElemType: types.StringType},
-                                "map_attribute":     types.MapType{ElemType: types.StringType},
-                                "number_attribute":  types.NumberType,
-                                "set_attribute":     types.ListType{ElemType: types.StringType},
-                                "string_attribute":  types.StringType,
-                            },
-                        },
-
-                        "set_attribute": schema.SetAttribute{
-                            Optional:    true,
-                            ElementType: types.StringType,
-                        },
-                        "string_attribute": schema.StringAttribute{
-                            Optional: true,
-                        },
-                    },
-                },
-            },
-
-            "single_nested_attribute": schema.SingleNestedAttribute{
-                Optional: true,
-                Attributes: map[string]schema.Attribute{
-                    "bool_attribute": schema.BoolAttribute{
-                        Optional: true,
-                    },
-                    "float64_attribute": schema.Float64Attribute{
-                        Optional: true,
-                    },
-                },
-            },
-        },
-    }
-}
-```

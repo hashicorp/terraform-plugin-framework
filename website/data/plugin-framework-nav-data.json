@@ -152,6 +152,10 @@
       {
         "title": "Conversion Rules",
         "path": "handling-data/conversion-rules"
+      },
+      {
+        "title": "Custom Types",
+        "path": "handling-data/custom-types"
       }
     ]
   },

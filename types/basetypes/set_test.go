@@ -866,11 +866,11 @@ func TestSetValueElements(t *testing.T) {
 		},
 		"null": {
 			input:    NewSetNull(StringType{}),
-			expected: nil,
+			expected: []attr.Value{},
 		},
 		"unknown": {
 			input:    NewSetUnknown(StringType{}),
-			expected: nil,
+			expected: []attr.Value{},
 		},
 	}
 
@@ -886,6 +886,17 @@ func TestSetValueElements(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
+	}
+}
+
+func TestSetValueElements_immutable(t *testing.T) {
+	t.Parallel()
+
+	value := NewSetValueMust(StringType{}, []attr.Value{NewStringValue("original")})
+	value.Elements()[0] = NewStringValue("modified")
+
+	if !value.Equal(NewSetValueMust(StringType{}, []attr.Value{NewStringValue("original")})) {
+		t.Fatal("unexpected Elements mutation")
 	}
 }
 

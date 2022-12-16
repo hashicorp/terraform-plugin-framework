@@ -571,11 +571,11 @@ func TestMapValueElements(t *testing.T) {
 		},
 		"null": {
 			input:    NewMapNull(StringType{}),
-			expected: nil,
+			expected: map[string]attr.Value{},
 		},
 		"unknown": {
 			input:    NewMapUnknown(StringType{}),
-			expected: nil,
+			expected: map[string]attr.Value{},
 		},
 	}
 
@@ -591,6 +591,17 @@ func TestMapValueElements(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
+	}
+}
+
+func TestMapValueElements_immutable(t *testing.T) {
+	t.Parallel()
+
+	value := NewMapValueMust(StringType{}, map[string]attr.Value{"test": NewStringValue("original")})
+	value.Elements()["test"] = NewStringValue("modified")
+
+	if !value.Equal(NewMapValueMust(StringType{}, map[string]attr.Value{"test": NewStringValue("original")})) {
+		t.Fatal("unexpected Elements mutation")
 	}
 }
 

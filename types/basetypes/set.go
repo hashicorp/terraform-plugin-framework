@@ -341,10 +341,13 @@ type SetValue struct {
 	state attr.ValueState
 }
 
-// Elements returns the collection of elements for the Set. Returns nil if the
-// Set is null or unknown.
+// Elements returns a copy of the collection of elements for the Set.
 func (s SetValue) Elements() []attr.Value {
-	return s.elements
+	// Ensure callers cannot mutate the internal elements
+	result := make([]attr.Value, 0, len(s.elements))
+	result = append(result, s.elements...)
+
+	return result
 }
 
 // ElementsAs populates `target` with the elements of the SetValue, throwing an

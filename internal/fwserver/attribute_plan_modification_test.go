@@ -7855,20 +7855,6 @@ func TestNestedAttributeObjectPlanModify(t *testing.T) {
 						},
 					},
 				},
-				// PlanModifiers: []planmodifier.Object{
-				// 	testplanmodifier.Object{
-				// 		PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
-				// 			resp.PlanValue = types.ObjectValueMust(
-				// 				map[string]attr.Type{
-				// 					"testattr": types.StringType,
-				// 				},
-				// 				map[string]attr.Value{
-				// 					"testattr": types.StringValue("objecttestvalue"),
-				// 				},
-				// 			)
-				// 		},
-				// 	},
-				// },
 			},
 			request: planmodifier.ObjectRequest{
 				Config: tfsdk.Config{

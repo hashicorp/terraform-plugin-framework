@@ -122,7 +122,7 @@ schema.Schema{
                         "example_block_attribute_two": schema.StringAttribute{
                             /* ... */
                         },
-                Validators: validator.List{
+                Validators: []validator.List{
                     listvalidator.SizeAtMost(1),
                 },
 ```

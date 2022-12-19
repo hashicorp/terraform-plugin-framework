@@ -1,0 +1,15 @@
+```release-note:bug
+types/basetypes: Prevented value mutation via the `ListValue`, `MapValue`, and `SetValue` type `Elements()` method return
+```
+
+```release-note:bug
+types/basetypes: Prevented type mutation via the `ObjectType` type `AttributeTypes()` method return
+```
+
+```release-note:bug
+types/basetypes: Prevented value mutation via the `ObjectValue` type `AttributeTypes()` and `Attributes()` method returns
+```
+
+```release-note:bug
+resource/schema/planmodifier: Prevented `assignment to entry in nil map` panic for `Object` type plan modifiers
+```

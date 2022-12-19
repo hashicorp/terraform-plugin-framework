@@ -314,10 +314,16 @@ type MapValue struct {
 	state attr.ValueState
 }
 
-// Elements returns the mapping of elements for the Map. Returns nil if the
-// Map is null or unknown.
+// Elements returns a copy of the mapping of elements for the Map.
 func (m MapValue) Elements() map[string]attr.Value {
-	return m.elements
+	// Ensure callers cannot mutate the internal elements
+	result := make(map[string]attr.Value, len(m.elements))
+
+	for key, value := range m.elements {
+		result[key] = value
+	}
+
+	return result
 }
 
 // ElementsAs populates `target` with the elements of the MapValue, throwing an

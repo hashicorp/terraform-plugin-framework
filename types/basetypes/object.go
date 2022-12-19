@@ -50,9 +50,16 @@ func (o ObjectType) WithAttributeTypes(typs map[string]attr.Type) attr.TypeWithA
 	}
 }
 
-// AttributeTypes returns the type's attribute types.
+// AttributeTypes returns a copy of the type's attribute types.
 func (o ObjectType) AttributeTypes() map[string]attr.Type {
-	return o.AttrTypes
+	// Ensure callers cannot mutate the value
+	result := make(map[string]attr.Type, len(o.AttrTypes))
+
+	for key, value := range o.AttrTypes {
+		result[key] = value
+	}
+
+	return result
 }
 
 // TerraformType returns the tftypes.Type that should be used to
@@ -356,15 +363,28 @@ func (o ObjectValue) As(ctx context.Context, target interface{}, opts ObjectAsOp
 	}, path.Empty())
 }
 
-// Attributes returns the mapping of known attribute values for the Object.
-// Returns nil if the Object is null or unknown.
+// Attributes returns a copy of the mapping of known attribute values for the Object.
 func (o ObjectValue) Attributes() map[string]attr.Value {
-	return o.attributes
+	// Ensure callers cannot mutate the internal attributes
+	result := make(map[string]attr.Value, len(o.attributes))
+
+	for name, value := range o.attributes {
+		result[name] = value
+	}
+
+	return result
 }
 
-// AttributeTypes returns the mapping of attribute types for the Object.
+// AttributeTypes returns a copy of the mapping of attribute types for the Object.
 func (o ObjectValue) AttributeTypes(_ context.Context) map[string]attr.Type {
-	return o.attributeTypes
+	// Ensure callers cannot mutate the internal attribute types
+	result := make(map[string]attr.Type, len(o.attributeTypes))
+
+	for name, typ := range o.attributeTypes {
+		result[name] = typ
+	}
+
+	return result
 }
 
 // Type returns an ObjectType with the same attribute types as `o`.

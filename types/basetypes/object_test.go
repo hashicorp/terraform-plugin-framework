@@ -12,6 +12,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func TestObjectTypeAttributeTypes_immutable(t *testing.T) {
+	t.Parallel()
+
+	typ := ObjectType{AttrTypes: map[string]attr.Type{"test": StringType{}}}
+	typ.AttributeTypes()["test"] = BoolType{}
+
+	if !typ.Equal(ObjectType{AttrTypes: map[string]attr.Type{"test": StringType{}}}) {
+		t.Fatal("unexpected AttributeTypes mutation")
+	}
+}
+
 func TestObjectTypeTerraformType_simple(t *testing.T) {
 	t.Parallel()
 	result := ObjectType{
@@ -932,11 +943,11 @@ func TestObjectValueAttributes(t *testing.T) {
 		},
 		"null": {
 			input:    NewObjectNull(map[string]attr.Type{"test_attr": StringType{}}),
-			expected: nil,
+			expected: map[string]attr.Value{},
 		},
 		"unknown": {
 			input:    NewObjectUnknown(map[string]attr.Type{"test_attr": StringType{}}),
-			expected: nil,
+			expected: map[string]attr.Value{},
 		},
 	}
 
@@ -952,6 +963,24 @@ func TestObjectValueAttributes(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
+	}
+}
+
+func TestObjectValueAttributes_immutable(t *testing.T) {
+	t.Parallel()
+
+	value := NewObjectValueMust(
+		map[string]attr.Type{"test": StringType{}},
+		map[string]attr.Value{"test": NewStringValue("original")},
+	)
+	expected := NewObjectValueMust(
+		map[string]attr.Type{"test": StringType{}},
+		map[string]attr.Value{"test": NewStringValue("original")},
+	)
+	value.Attributes()["test"] = NewStringValue("modified")
+
+	if !value.Equal(expected) {
+		t.Fatal("unexpected Attributes mutation")
 	}
 }
 
@@ -991,6 +1020,24 @@ func TestObjectValueAttributeTypes(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
+	}
+}
+
+func TestObjectValueAttributeTypes_immutable(t *testing.T) {
+	t.Parallel()
+
+	value := NewObjectValueMust(
+		map[string]attr.Type{"test": StringType{}},
+		map[string]attr.Value{"test": NewStringValue("original")},
+	)
+	expected := NewObjectValueMust(
+		map[string]attr.Type{"test": StringType{}},
+		map[string]attr.Value{"test": NewStringValue("original")},
+	)
+	value.AttributeTypes(context.Background())["test"] = BoolType{}
+
+	if !value.Equal(expected) {
+		t.Fatal("unexpected AttributeTypes mutation")
 	}
 }
 

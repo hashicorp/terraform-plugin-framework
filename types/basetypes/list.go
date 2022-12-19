@@ -309,10 +309,13 @@ type ListValue struct {
 	state attr.ValueState
 }
 
-// Elements returns the collection of elements for the List. Returns nil if the
-// List is null or unknown.
+// Elements returns a copy of the collection of elements for the List.
 func (l ListValue) Elements() []attr.Value {
-	return l.elements
+	// Ensure callers cannot mutate the internal elements
+	result := make([]attr.Value, 0, len(l.elements))
+	result = append(result, l.elements...)
+
+	return result
 }
 
 // ElementsAs populates `target` with the elements of the ListValue, throwing an

@@ -1,3 +1,12 @@
+# 1.0.1 (December 19, 2022)
+
+BUG FIXES:
+
+* resource/schema/planmodifier: Prevented `assignment to entry in nil map` panic for `Object` type plan modifiers ([#591](https://github.com/hashicorp/terraform-plugin-framework/issues/591))
+* types/basetypes: Prevented type mutation via the `ObjectType` type `AttributeTypes()` method return ([#591](https://github.com/hashicorp/terraform-plugin-framework/issues/591))
+* types/basetypes: Prevented value mutation via the `ListValue`, `MapValue`, and `SetValue` type `Elements()` method return ([#591](https://github.com/hashicorp/terraform-plugin-framework/issues/591))
+* types/basetypes: Prevented value mutation via the `ObjectValue` type `AttributeTypes()` and `Attributes()` method returns ([#591](https://github.com/hashicorp/terraform-plugin-framework/issues/591))
+
 # 1.0.0 (December 13, 2022)
 
 NOTES:

@@ -89,7 +89,7 @@ func (m stringDefaultModifier) PlanModifyString(ctx context.Context, req planmod
         return
     }
 
-    resp.AttributePlan = types.StringValue(m.Default)
+    resp.PlanValue = types.StringValue(m.Default)
 }
 ```
 

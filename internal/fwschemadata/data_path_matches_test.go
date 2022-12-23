@@ -69,8 +69,8 @@ func TestDataPathMatches(t *testing.T) {
 			expected:   nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
+					"Invalid Path Expression for Schema",
+					"The Terraform Provider unexpectedly provided a path expression that does not match the current schema. "+
 						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
 						"Please report this to the provider developers.\n\n"+
 						"Path Expression: not-test",
@@ -162,8 +162,8 @@ func TestDataPathMatches(t *testing.T) {
 			expected:   nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
+					"Invalid Path Expression for Schema",
+					"The Terraform Provider unexpectedly provided a path expression that does not match the current schema. "+
 						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
 						"Please report this to the provider developers.\n\n"+
 						"Path Expression: test_parent.not_test_child",
@@ -325,8 +325,8 @@ func TestDataPathMatches(t *testing.T) {
 			expected:   nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
+					"Invalid Path Expression for Schema",
+					"The Terraform Provider unexpectedly provided a path expression that does not match the current schema. "+
 						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
 						"Please report this to the provider developers.\n\n"+
 						"Path Expression: test[*]",
@@ -688,15 +688,6 @@ func TestDataPathMatches(t *testing.T) {
 			),
 			expression: path.MatchRoot("test").AtListIndex(4),
 			expected:   nil,
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
-						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
-						"Please report this to the provider developers.\n\n"+
-						"Path Expression: test[4]",
-				),
-			},
 		},
 		"AttributeNameExact-ElementKeyIntExact-parent-null": {
 			schema: testschema.Schema{
@@ -834,8 +825,8 @@ func TestDataPathMatches(t *testing.T) {
 			expected:   nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
+					"Invalid Path Expression for Schema",
+					"The Terraform Provider unexpectedly provided a path expression that does not match the current schema. "+
 						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
 						"Please report this to the provider developers.\n\n"+
 						"Path Expression: test[\"*\"]",
@@ -975,15 +966,6 @@ func TestDataPathMatches(t *testing.T) {
 			),
 			expression: path.MatchRoot("test").AtMapKey("test-key4"),
 			expected:   nil,
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
-						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
-						"Please report this to the provider developers.\n\n"+
-						"Path Expression: test[\"test-key4\"]",
-				),
-			},
 		},
 		"AttributeNameExact-ElementKeyStringExact-parent-null": {
 			schema: testschema.Schema{
@@ -1122,8 +1104,8 @@ func TestDataPathMatches(t *testing.T) {
 			expected:   nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
+					"Invalid Path Expression for Schema",
+					"The Terraform Provider unexpectedly provided a path expression that does not match the current schema. "+
 						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
 						"Please report this to the provider developers.\n\n"+
 						"Path Expression: test[Value(*)]",
@@ -1263,15 +1245,6 @@ func TestDataPathMatches(t *testing.T) {
 			),
 			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value4")),
 			expected:   nil,
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
-						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
-						"Please report this to the provider developers.\n\n"+
-						"Path Expression: test[Value(\"test-value4\")]",
-				),
-			},
 		},
 		"AttributeNameExact-ElementKeyValueExact-parent-null": {
 			schema: testschema.Schema{
@@ -1359,8 +1332,8 @@ func TestDataPathMatches(t *testing.T) {
 			expected:   nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
+					"Invalid Path Expression for Schema",
+					"The Terraform Provider unexpectedly provided a path expression that does not match the current schema. "+
 						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
 						"Please report this to the provider developers.\n\n"+
 						"Path Expression: test.<",
@@ -1389,8 +1362,8 @@ func TestDataPathMatches(t *testing.T) {
 			expected:   nil,
 			expectedDiags: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Invalid Path Expression for Schema Data",
-					"The Terraform Provider unexpectedly matched no paths with the given path expression and current schema data. "+
+					"Invalid Path Expression for Schema",
+					"The Terraform Provider unexpectedly provided a path expression that does not match the current schema. "+
 						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
 						"Please report this to the provider developers.\n\n"+
 						"Path Expression: test.<.<",

@@ -138,11 +138,19 @@ func (o ObjectType) Equal(candidate attr.Type) bool {
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
 // object.
 func (o ObjectType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	if _, ok := step.(tftypes.AttributeName); !ok {
+	attrName, ok := step.(tftypes.AttributeName)
+
+	if !ok {
 		return nil, fmt.Errorf("cannot apply step %T to ObjectType", step)
 	}
 
-	return o.AttrTypes[string(step.(tftypes.AttributeName))], nil
+	attrType, ok := o.AttrTypes[string(attrName)]
+
+	if !ok {
+		return nil, fmt.Errorf("undefined attribute name %s in ObjectType", attrName)
+	}
+
+	return attrType, nil
 }
 
 // String returns a human-friendly description of the ObjectType.

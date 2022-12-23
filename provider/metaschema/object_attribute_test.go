@@ -33,7 +33,7 @@ func TestObjectAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 			attribute:     metaschema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			step:          tftypes.AttributeName("other"),
 			expected:      nil,
-			expectedError: nil, // types.ObjectType implementation returns no error
+			expectedError: fmt.Errorf("undefined attribute name other in ObjectType"),
 		},
 		"ElementKeyInt": {
 			attribute:     metaschema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},

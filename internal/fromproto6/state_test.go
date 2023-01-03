@@ -85,7 +85,7 @@ func TestState(t *testing.T) {
 					"An unexpected error was encountered when converting the state from the protocol type. "+
 						"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 						"Please report this to the provider developer:\n\n"+
-						"AttributeName(\"test_attribute\"): couldn't decode bool: msgpack: invalid code=aa decoding bool",
+						"Unable to unmarshal DynamicValue: AttributeName(\"test_attribute\"): couldn't decode bool: msgpack: invalid code=aa decoding bool",
 				),
 			},
 		},

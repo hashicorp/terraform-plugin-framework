@@ -1,7 +1,11 @@
 package fwschema
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -79,4 +83,27 @@ func BlocksEqual(a, b Block) bool {
 	}
 
 	return true
+}
+
+// BlockPathExpressions recursively returns a slice of the current path
+// expression and all underlying path expressions which represent a Block.
+func BlockPathExpressions(ctx context.Context, block Block, pathExpression path.Expression) path.Expressions {
+	result := path.Expressions{pathExpression}
+
+	for name, nestedBlock := range block.GetNestedObject().GetBlocks() {
+		nestingMode := block.GetNestingMode()
+
+		switch nestingMode {
+		case BlockNestingModeList:
+			result = append(result, BlockPathExpressions(ctx, nestedBlock, pathExpression.AtAnyListIndex().AtName(name))...)
+		case BlockNestingModeSet:
+			result = append(result, BlockPathExpressions(ctx, nestedBlock, pathExpression.AtAnySetValue().AtName(name))...)
+		case BlockNestingModeSingle:
+			result = append(result, BlockPathExpressions(ctx, nestedBlock, pathExpression.AtName(name))...)
+		default:
+			panic(fmt.Sprintf("unhandled BlockNestingMode: %T", nestingMode))
+		}
+	}
+
+	return result
 }

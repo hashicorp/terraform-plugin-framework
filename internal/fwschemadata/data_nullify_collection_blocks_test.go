@@ -17,12 +17,12 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		data          fwschemadata.Data
-		expected      fwschemadata.Data
+		data          *fwschemadata.Data
+		expected      *fwschemadata.Data
 		expectedDiags diag.Diagnostics
 	}{
 		"list-attribute-unmodified": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
@@ -52,7 +52,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
@@ -84,7 +84,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 			},
 		},
 		"set-attribute-unmodified": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
@@ -114,7 +114,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
@@ -146,7 +146,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 			},
 		},
 		"list-block-null": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -189,7 +189,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -234,7 +234,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 			},
 		},
 		"list-block-unknown": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -277,7 +277,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -322,7 +322,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 			},
 		},
 		"list-block-elements": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -374,7 +374,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -428,7 +428,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 			},
 		},
 		"list-block-zero-elements": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -471,7 +471,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -516,7 +516,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 			},
 		},
 		"set-block-null": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -559,7 +559,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -604,7 +604,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 			},
 		},
 		"set-block-unknown": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -647,7 +647,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -692,7 +692,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 			},
 		},
 		"set-block-elements": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -744,7 +744,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -798,7 +798,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 			},
 		},
 		"set-block-zero-elements": {
-			data: fwschemadata.Data{
+			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -841,7 +841,7 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 					},
 				),
 			},
-			expected: fwschemadata.Data{
+			expected: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
 				Schema: testschema.Schema{
 					Blocks: map[string]fwschema.Block{
@@ -893,13 +893,13 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := testCase.data.NullifyCollectionBlocks(context.Background())
+			diags := testCase.data.NullifyCollectionBlocks(context.Background())
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+			if diff := cmp.Diff(testCase.data, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

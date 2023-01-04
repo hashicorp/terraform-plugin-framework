@@ -11,19 +11,13 @@ import (
 
 // NullifyCollectionBlocks returns a copy of the Data where list and set block
 // empty values are converted to null values.
-func (d Data) NullifyCollectionBlocks(ctx context.Context) (Data, diag.Diagnostics) {
+func (d *Data) NullifyCollectionBlocks(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	result := Data{
-		Description:    d.Description,
-		Schema:         d.Schema,
-		TerraformValue: d.TerraformValue.Copy(),
-	}
-
-	blockPathExpressions := fwschema.SchemaBlockPathExpressions(ctx, result.Schema)
+	blockPathExpressions := fwschema.SchemaBlockPathExpressions(ctx, d.Schema)
 
 	// Errors are handled as richer diag.Diagnostics instead.
-	result.TerraformValue, _ = tftypes.Transform(result.TerraformValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (tftypes.Value, error) {
+	d.TerraformValue, _ = tftypes.Transform(d.TerraformValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (tftypes.Value, error) {
 		// Do not transform if value is already null or is not fully known.
 		if tfTypeValue.IsNull() || !tfTypeValue.IsFullyKnown() {
 			return tfTypeValue, nil
@@ -55,8 +49,8 @@ func (d Data) NullifyCollectionBlocks(ctx context.Context) (Data, diag.Diagnosti
 			if err != nil {
 				diags.AddAttributeError(
 					fwPath,
-					result.Description.Title()+" Data Transformation Error",
-					"An unexpected error occurred while transforming "+result.Description.String()+" data. "+
+					d.Description.Title()+" Data Transformation Error",
+					"An unexpected error occurred while transforming "+d.Description.String()+" data. "+
 						"This is always an issue with terraform-plugin-framework and should be reported to the provider developers.\n\n"+
 						"Path: "+fwPath.String()+"\n"+
 						"Error: (tftypes.Value).As() error: "+err.Error(),
@@ -77,5 +71,5 @@ func (d Data) NullifyCollectionBlocks(ctx context.Context) (Data, diag.Diagnosti
 		return tftypes.NewValue(tfTypeValue.Type(), nil), nil
 	})
 
-	return result, diags
+	return diags
 }

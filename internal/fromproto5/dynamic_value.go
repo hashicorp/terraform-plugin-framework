@@ -22,13 +22,13 @@ import (
 func DynamicValue(ctx context.Context, proto5 *tfprotov5.DynamicValue, schema fwschema.Schema, description fwschemadata.DataDescription) (fwschemadata.Data, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	data := fwschemadata.Data{
+	data := &fwschemadata.Data{
 		Description: description,
 		Schema:      schema,
 	}
 
 	if proto5 == nil {
-		return data, diags
+		return *data, diags
 	}
 
 	proto5Value, err := proto5.Unmarshal(schema.Type().TerraformType(ctx))
@@ -42,14 +42,12 @@ func DynamicValue(ctx context.Context, proto5 *tfprotov5.DynamicValue, schema fw
 				"Unable to unmarshal DynamicValue: "+err.Error(),
 		)
 
-		return data, diags
+		return *data, diags
 	}
 
 	data.TerraformValue = proto5Value
 
-	data, nullifyDiags := data.NullifyCollectionBlocks(ctx)
+	diags.Append(data.NullifyCollectionBlocks(ctx)...)
 
-	diags.Append(nullifyDiags...)
-
-	return data, diags
+	return *data, diags
 }

@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// NullifyCollectionBlocks returns a copy of the Data where list and set block
-// empty values are converted to null values.
+// NullifyCollectionBlocks converts list and set block empty values to null
+// values.
 func (d *Data) NullifyCollectionBlocks(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 

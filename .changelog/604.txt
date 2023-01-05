@@ -5,3 +5,15 @@ all: For data handling consistency with attributes, unconfigured list and set bl
 ```release-note:enhancement
 path: Added `Expressions` type `Matches` method for checking if any expression in the collection matches a given path
 ```
+
+```release-note:bug
+datasource/schema: Prevented `ListNestedBlock` and `SetNestedBlock` type `DeprecationMessage` field from causing `Block Deprecated` warnings with unconfigured blocks
+```
+
+```release-note:bug
+provider/schema: Prevented `ListNestedBlock` and `SetNestedBlock` type `DeprecationMessage` field from causing `Block Deprecated` warnings with unconfigured blocks
+```
+
+```release-note:bug
+resource/schema: Prevented `ListNestedBlock` and `SetNestedBlock` type `DeprecationMessage` field from causing `Block Deprecated` warnings with unconfigured blocks
+```

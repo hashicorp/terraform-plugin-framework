@@ -149,6 +149,18 @@ func SchemaAttributeAtTerraformPath(ctx context.Context, s Schema, p *tftypes.At
 	}
 }
 
+// SchemaBlockPathExpressions returns a slice of all path expressions which
+// represent a Block according to the Schema.
+func SchemaBlockPathExpressions(ctx context.Context, s Schema) path.Expressions {
+	result := path.Expressions{}
+
+	for name, block := range s.GetBlocks() {
+		result = append(result, BlockPathExpressions(ctx, block, path.MatchRoot(name))...)
+	}
+
+	return result
+}
+
 // SchemaTypeAtPath is a helper function to perform base type handling using
 // the TypeAtTerraformPath method.
 func SchemaTypeAtPath(ctx context.Context, s Schema, p path.Path) (attr.Type, diag.Diagnostics) {

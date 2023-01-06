@@ -37,6 +37,18 @@ func (e Expressions) Contains(checkExpression Expression) bool {
 	return false
 }
 
+// Matches returns true if one of the expressions in the collection matches the
+// given path.
+func (e Expressions) Matches(checkPath Path) bool {
+	for _, expression := range e {
+		if expression.Matches(checkPath) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // String returns the human-readable representation of the expression
 // collection. It is intended for logging and error messages and is not
 // protected by compatibility guarantees.

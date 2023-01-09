@@ -1,0 +1,3 @@
+```release-notes:bug
+types/basetypes: Fixed `Float64Type` type `Validate` method to handle valid, stringified numbers from Terraform
+```

@@ -59,6 +59,8 @@ func TestListTypeTerraformType(t *testing.T) {
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			got := test.input.TerraformType(context.Background())
 			if !got.Equal(test.expected) {
 				t.Errorf("Expected %s, got %s", test.expected, got)
@@ -178,6 +180,8 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			got, gotErr := test.receiver.ValueFromTerraform(context.Background(), test.input)
 			if gotErr != nil {
 				if test.expectedErr == "" {

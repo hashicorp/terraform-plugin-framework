@@ -13,7 +13,7 @@ linters:
     - ineffassign
     - makezero
     - nilerr
-    # - paralleltest # Reference: https://github.com/kunwardeep/paralleltest/issues/14
+    - paralleltest
     - predeclared
     - staticcheck
     - tenv

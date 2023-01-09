@@ -1386,6 +1386,8 @@ func TestSchemaValidate(t *testing.T) {
 		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			diags := testCase.schema.Validate()
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {

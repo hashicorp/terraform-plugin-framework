@@ -3,6 +3,7 @@ package basetypes
 import (
 	"context"
 	"fmt"
+	"math"
 	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -86,9 +87,22 @@ func (t Float64Type) Validate(ctx context.Context, in tftypes.Value, path path.P
 		return diags
 	}
 
-	_, accuracy := value.Float64()
+	float64Value, accuracy := value.Float64()
 
-	if accuracy != 0 {
+	// Underflow
+	// Reference: https://pkg.go.dev/math/big#Float.Float64
+	if float64Value == 0 && accuracy != big.Exact {
+		diags.AddAttributeError(
+			path,
+			"Float64 Type Validation Error",
+			fmt.Sprintf("Value %s cannot be represented as a 64-bit floating point.", value),
+		)
+		return diags
+	}
+
+	// Overflow
+	// Reference: https://pkg.go.dev/math/big#Float.Float64
+	if math.IsInf(float64Value, 0) {
 		diags.AddAttributeError(
 			path,
 			"Float64 Type Validation Error",

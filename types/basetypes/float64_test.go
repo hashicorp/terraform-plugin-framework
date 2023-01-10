@@ -2,14 +2,121 @@ package basetypes
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"math/big"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+// testMustParseFloat parses a string into a *big.Float similar to cty and
+// tftypes logic or panics on any error.
+//
+// Reference: https://github.com/hashicorp/go-cty/blob/85980079f637862fa8e43ddc82dd74315e2f4c85/cty/value_init.go#L49
+// Reference: https://github.com/hashicorp/terraform-plugin-go/blob/c593d2e0da8d2258b2a22af867c39842a0cb89f7/tftypes/value_msgpack.go#L108
+func testMustParseFloat(s string) *big.Float {
+	f, _, err := big.ParseFloat(s, 10, 512, big.ToNearestEven)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return f
+}
+
+func TestFloat64TypeValidate(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       tftypes.Value
+		expected diag.Diagnostics
+	}{
+		"zero-float": {
+			in:       tftypes.NewValue(tftypes.Number, big.NewFloat(0.0)),
+			expected: nil,
+		},
+		"negative-integer": {
+			in:       tftypes.NewValue(tftypes.Number, big.NewFloat(-123)),
+			expected: nil,
+		},
+		"positive-integer": {
+			in:       tftypes.NewValue(tftypes.Number, big.NewFloat(123)),
+			expected: nil,
+		},
+		"positive-float": {
+			in:       tftypes.NewValue(tftypes.Number, big.NewFloat(123.45)),
+			expected: nil,
+		},
+		"negative-float": {
+			in:       tftypes.NewValue(tftypes.Number, big.NewFloat(123.45)),
+			expected: nil,
+		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/613
+		"zero-string-float": {
+			in:       tftypes.NewValue(tftypes.Number, testMustParseFloat("0.0")),
+			expected: nil,
+		},
+		"positive-string-float": {
+			in:       tftypes.NewValue(tftypes.Number, testMustParseFloat("123.2")),
+			expected: nil,
+		},
+		"negative-string-float": {
+			in:       tftypes.NewValue(tftypes.Number, testMustParseFloat("-123.2")),
+			expected: nil,
+		},
+		// Reference: https://pkg.go.dev/math/big#Float.Float64
+		// Reference: https://pkg.go.dev/math#pkg-constants
+		"SmallestNonzeroFloat64": {
+			in:       tftypes.NewValue(tftypes.Number, big.NewFloat(math.SmallestNonzeroFloat64)),
+			expected: nil,
+		},
+		"SmallestNonzeroFloat64-below": {
+			in: tftypes.NewValue(tftypes.Number, testMustParseFloat("4.9406564584124654417656879286822137236505980e-325")),
+			expected: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Float64 Type Validation Error",
+					fmt.Sprintf("Value %s cannot be represented as a 64-bit floating point.", testMustParseFloat("4.9406564584124654417656879286822137236505980e-325")),
+				),
+			},
+		},
+		// Reference: https://pkg.go.dev/math/big#Float.Float64
+		// Reference: https://pkg.go.dev/math#pkg-constants
+		"MaxFloat64": {
+			in:       tftypes.NewValue(tftypes.Number, big.NewFloat(math.MaxFloat64)),
+			expected: nil,
+		},
+		"MaxFloat64-above": {
+			in: tftypes.NewValue(tftypes.Number, testMustParseFloat("1.79769313486231570814527423731704356798070e+309")),
+			expected: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Float64 Type Validation Error",
+					fmt.Sprintf("Value %s cannot be represented as a 64-bit floating point.", testMustParseFloat("1.79769313486231570814527423731704356798070e+309")),
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := Float64Type{}.Validate(context.Background(), testCase.in, path.Root("test"))
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
 
 func TestFloat64TypeValueFromTerraform(t *testing.T) {
 	t.Parallel()

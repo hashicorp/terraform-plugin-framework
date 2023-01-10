@@ -681,6 +681,8 @@ func TestDiagnosticsErrorsCount(t *testing.T) {
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			got := test.diags.ErrorsCount()
 
 			if diff := cmp.Diff(test.expected, got); diff != "" {
@@ -724,6 +726,8 @@ func TestDiagnosticsWarningsCount(t *testing.T) {
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			got := test.diags.WarningsCount()
 
 			if diff := cmp.Diff(test.expected, got); diff != "" {
@@ -769,6 +773,8 @@ func TestDiagnosticsErrors(t *testing.T) {
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			got := test.diags.Errors()
 
 			if diff := cmp.Diff(test.expected, got); diff != "" {
@@ -814,6 +820,8 @@ func TestDiagnosticsWarnings(t *testing.T) {
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			got := test.diags.Warnings()
 
 			if diff := cmp.Diff(test.expected, got); diff != "" {

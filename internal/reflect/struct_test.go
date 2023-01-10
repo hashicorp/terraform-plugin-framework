@@ -496,6 +496,8 @@ func TestNewStruct_complex(t *testing.T) {
 }
 
 func TestFromStruct_primitives(t *testing.T) {
+	t.Parallel()
+
 	type disk struct {
 		Name    string `tfsdk:"name"`
 		Age     int    `tfsdk:"age"`

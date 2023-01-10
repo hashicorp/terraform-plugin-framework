@@ -10,6 +10,8 @@ import (
 )
 
 func TestNewProtocol5(t *testing.T) {
+	t.Parallel()
+
 	provider := &testprovider.Provider{}
 
 	providerServerFunc := NewProtocol5(provider)
@@ -24,6 +26,8 @@ func TestNewProtocol5(t *testing.T) {
 }
 
 func TestNewProtocol5WithError(t *testing.T) {
+	t.Parallel()
+
 	provider := &testprovider.Provider{}
 
 	providerServer, err := NewProtocol5WithError(provider)()
@@ -41,6 +45,8 @@ func TestNewProtocol5WithError(t *testing.T) {
 }
 
 func TestNewProtocol6(t *testing.T) {
+	t.Parallel()
+
 	provider := &testprovider.Provider{}
 
 	providerServerFunc := NewProtocol6(provider)
@@ -55,6 +61,8 @@ func TestNewProtocol6(t *testing.T) {
 }
 
 func TestNewProtocol6WithError(t *testing.T) {
+	t.Parallel()
+
 	provider := &testprovider.Provider{}
 
 	providerServer, err := NewProtocol6WithError(provider)()

@@ -60,6 +60,8 @@ func TestMapTypeTerraformType(t *testing.T) {
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			got := test.input.TerraformType(context.Background())
 			if !got.Equal(test.expected) {
 				t.Errorf("Expected %s, got %s", test.expected, got)

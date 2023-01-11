@@ -9,6 +9,7 @@ website/local:
 	$(MAKE) -C website website/local
 
 # Run this to generate a new local Docker image.
+# Use a local Docker image if you want to verify that images embedded in pages render correctly.
 .PHONY: website/build-local
 website/build-local:
 	$(MAKE) -C website website/build-local

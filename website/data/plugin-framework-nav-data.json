@@ -24,6 +24,10 @@
     ]
   },
   {
+    "title": "Protocol RPCs",
+    "path": "rpcs"
+  },
+  {
     "title": "Provider Servers",
     "path": "provider-servers"
   },

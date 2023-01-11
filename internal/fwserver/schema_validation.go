@@ -41,13 +41,13 @@ func SchemaValidate(ctx context.Context, s fwschema.Schema, req ValidateSchemaRe
 			AttributePathExpression: path.MatchRoot(name),
 			Config:                  req.Config,
 		}
-		attributeResp := &ValidateAttributeResponse{
-			Diagnostics: resp.Diagnostics,
-		}
+		// Instantiate a new response for each request to prevent validators
+		// from modifying or removing diagnostics.
+		attributeResp := &ValidateAttributeResponse{}
 
 		AttributeValidate(ctx, attribute, attributeReq, attributeResp)
 
-		resp.Diagnostics = attributeResp.Diagnostics
+		resp.Diagnostics.Append(attributeResp.Diagnostics...)
 	}
 
 	for name, block := range s.GetBlocks() {
@@ -56,13 +56,13 @@ func SchemaValidate(ctx context.Context, s fwschema.Schema, req ValidateSchemaRe
 			AttributePathExpression: path.MatchRoot(name),
 			Config:                  req.Config,
 		}
-		attributeResp := &ValidateAttributeResponse{
-			Diagnostics: resp.Diagnostics,
-		}
+		// Instantiate a new response for each request to prevent validators
+		// from modifying or removing diagnostics.
+		attributeResp := &ValidateAttributeResponse{}
 
 		BlockValidate(ctx, block, attributeReq, attributeResp)
 
-		resp.Diagnostics = attributeResp.Diagnostics
+		resp.Diagnostics.Append(attributeResp.Diagnostics...)
 	}
 
 	if s.GetDeprecationMessage() != "" {

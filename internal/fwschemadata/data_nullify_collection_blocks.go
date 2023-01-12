@@ -10,7 +10,7 @@ import (
 )
 
 // NullifyCollectionBlocks converts list and set block empty values to null
-// values.
+// values. The reverse conversion is ReifyNullCollectionBlocks.
 func (d *Data) NullifyCollectionBlocks(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 

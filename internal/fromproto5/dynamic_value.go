@@ -17,8 +17,6 @@ import (
 // developers from needing to understand Terraform's differences between
 // block and attribute values where blocks are technically never null, but from
 // a developer perspective this distinction introduces unnecessary complexity.
-// This null block value translation is automatically handled by Terraform from
-// provider responses.
 func DynamicValue(ctx context.Context, proto5 *tfprotov5.DynamicValue, schema fwschema.Schema, description fwschemadata.DataDescription) (fwschemadata.Data, diag.Diagnostics) {
 	var diags diag.Diagnostics
 

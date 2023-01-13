@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -39,7 +40,15 @@ func (d *Data) ReifyNullCollectionBlocks(ctx context.Context) diag.Diagnostics {
 		}
 
 		// Transform to empty value.
-		return tftypes.NewValue(tfTypeValue.Type(), []tftypes.Value{}), nil
+		switch tfTypeValue.Type().(type) {
+		case tftypes.List, tftypes.Set:
+			logging.FrameworkTrace(ctx, "Transforming null block to empty block", map[string]any{
+				logging.KeyAttributePath: tfTypePath.String()},
+			)
+			return tftypes.NewValue(tfTypeValue.Type(), []tftypes.Value{}), nil
+		default:
+			return tfTypeValue, nil
+		}
 	})
 
 	return diags

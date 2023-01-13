@@ -885,6 +885,250 @@ func TestDataReifyNullCollectionBlocks(t *testing.T) {
 				),
 			},
 		},
+		"single-block-null": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"single_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"single_block_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_block": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_block": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+							nil,
+						),
+					},
+				),
+			},
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"single_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"single_block_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_block": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_block": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+							nil,
+						),
+					},
+				),
+			},
+		},
+		"single-block-unknown": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"single_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"single_block_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_block": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_block": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+							tftypes.UnknownValue,
+						),
+					},
+				),
+			},
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"single_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"single_block_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_block": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_block": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+							tftypes.UnknownValue,
+						),
+					},
+				),
+			},
+		},
+		"single-block-known": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"single_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"single_block_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_block": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_block": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"single_block_attribute": tftypes.NewValue(tftypes.String, nil),
+							},
+						),
+					},
+				),
+			},
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"single_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"single_block_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSingle,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_block": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_block": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_block_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"single_block_attribute": tftypes.NewValue(tftypes.String, nil),
+							},
+						),
+					},
+				),
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

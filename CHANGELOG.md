@@ -1,3 +1,9 @@
+# 1.1.1 (January 13, 2022)
+
+BUG FIXES:
+
+* all: Prevented `tftypes.NewValue can't use []tftypes.Value as a tftypes.Object` panics with schemas that included `SingleNestedBlock` ([#624](https://github.com/hashicorp/terraform-plugin-framework/issues/624))
+
 # 1.1.0 (January 13, 2022)
 
 NOTES:

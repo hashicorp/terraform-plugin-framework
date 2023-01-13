@@ -43,8 +43,9 @@ func (d *Data) ReifyNullCollectionBlocks(ctx context.Context) diag.Diagnostics {
 		switch tfTypeValue.Type().(type) {
 		case tftypes.List, tftypes.Set:
 			logging.FrameworkTrace(ctx, "Transforming null block to empty block", map[string]any{
-				logging.KeyAttributePath: tfTypePath.String()},
-			)
+				logging.KeyAttributePath: fwPath.String(),
+				logging.KeyDescription:   d.Description.String(),
+			})
 			return tftypes.NewValue(tfTypeValue.Type(), []tftypes.Value{}), nil
 		default:
 			return tfTypeValue, nil

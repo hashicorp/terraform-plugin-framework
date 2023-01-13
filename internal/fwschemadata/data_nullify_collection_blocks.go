@@ -70,8 +70,9 @@ func (d *Data) NullifyCollectionBlocks(ctx context.Context) diag.Diagnostics {
 
 		// Transform to null value.
 		logging.FrameworkTrace(ctx, "Transforming empty block to null block", map[string]any{
-			logging.KeyAttributePath: tfTypePath.String()},
-		)
+			logging.KeyAttributePath: fwPath.String(),
+			logging.KeyDescription:   d.Description.String(),
+		})
 		return tftypes.NewValue(tfTypeValue.Type(), nil), nil
 	})
 

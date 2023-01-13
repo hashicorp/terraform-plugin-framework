@@ -1,0 +1,11 @@
+```release-note:bug
+datasource: Prevented `ConfigValidators` from unexpectedly modifying or removing prior validator diagnostics
+```
+
+```release-note:bug
+provider: Prevented `ConfigValidators` from unexpectedly modifying or removing prior validator diagnostics
+```
+
+```release-note:bug
+resource: Prevented `ConfigValidators` from unexpectedly modifying or removing prior validator diagnostics
+```

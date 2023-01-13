@@ -185,7 +185,7 @@ func TestServerValidateProviderConfig(t *testing.T) {
 				PreparedConfig: &testConfig,
 			},
 		},
-		"request-config-ProviderWithConfigValidators-diagnostic": {
+		"request-config-ProviderWithConfigValidators-diagnostics": {
 			server: &fwserver.Server{
 				Provider: &testprovider.ProviderWithConfigValidators{
 					Provider: &testprovider.Provider{
@@ -197,7 +197,17 @@ func TestServerValidateProviderConfig(t *testing.T) {
 						return []provider.ConfigValidator{
 							&testprovider.ProviderConfigValidator{
 								ValidateProviderMethod: func(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
-									resp.Diagnostics.AddError("error summary", "error detail")
+									resp.Diagnostics.AddError("error summary 1", "error detail 1")
+								},
+							},
+							&testprovider.ProviderConfigValidator{
+								ValidateProviderMethod: func(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
+									// Intentionally set diagnostics instead of add/append.
+									// The framework should not overwrite existing diagnostics.
+									// Reference: https://github.com/hashicorp/terraform-plugin-framework-validators/pull/94
+									resp.Diagnostics = diag.Diagnostics{
+										diag.NewErrorDiagnostic("error summary 2", "error detail 2"),
+									}
 								},
 							},
 						}
@@ -210,8 +220,12 @@ func TestServerValidateProviderConfig(t *testing.T) {
 			expectedResponse: &fwserver.ValidateProviderConfigResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
-						"error summary",
-						"error detail",
+						"error summary 1",
+						"error detail 1",
+					),
+					diag.NewErrorDiagnostic(
+						"error summary 2",
+						"error detail 2",
 					),
 				},
 				PreparedConfig: &testConfig,

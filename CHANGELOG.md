@@ -1,3 +1,26 @@
+# 1.1.0 (January 13, 2022)
+
+NOTES:
+
+* all: For data handling consistency with attributes, unconfigured list and set blocks will now be represented as a null list or set instead of a known list or set with zero elements. This prevents confusing situations with validation and plan modification, where it was previously required to check block values for the number of elements. Logic that was previously missing null value checks for blocks may require updates. ([#604](https://github.com/hashicorp/terraform-plugin-framework/issues/604))
+* tfsdk: The `Config`, `Plan`, and `State` type `PathMatches()` method logic previously returned `Invalid Path Expression for Schema Data` errors based on implementation details of the underlying data, which prevented returning zero matches in cases where the expression is valid for the schema, but there was no actual data at the path. Providers can now determine whether zero matches is consequential for their use case. ([#602](https://github.com/hashicorp/terraform-plugin-framework/issues/602))
+
+ENHANCEMENTS:
+
+* path: Added `Expressions` type `Matches` method for checking if any expression in the collection matches a given path ([#604](https://github.com/hashicorp/terraform-plugin-framework/issues/604))
+* tfsdk: Automatically prevented Terraform `nested blocks must be empty to indicate no blocks` errors for responses containing `Plan` and `State` types ([#621](https://github.com/hashicorp/terraform-plugin-framework/issues/621))
+
+BUG FIXES:
+
+* datasource/schema: Prevented `ListNestedBlock` and `SetNestedBlock` type `DeprecationMessage` field from causing `Block Deprecated` warnings with unconfigured blocks ([#604](https://github.com/hashicorp/terraform-plugin-framework/issues/604))
+* datasource: Prevented `ConfigValidators` from unexpectedly modifying or removing prior validator diagnostics ([#619](https://github.com/hashicorp/terraform-plugin-framework/issues/619))
+* provider/schema: Prevented `ListNestedBlock` and `SetNestedBlock` type `DeprecationMessage` field from causing `Block Deprecated` warnings with unconfigured blocks ([#604](https://github.com/hashicorp/terraform-plugin-framework/issues/604))
+* provider: Prevented `ConfigValidators` from unexpectedly modifying or removing prior validator diagnostics ([#619](https://github.com/hashicorp/terraform-plugin-framework/issues/619))
+* resource/schema: Prevented `ListNestedBlock` and `SetNestedBlock` type `DeprecationMessage` field from causing `Block Deprecated` warnings with unconfigured blocks ([#604](https://github.com/hashicorp/terraform-plugin-framework/issues/604))
+* resource: Prevented `ConfigValidators` from unexpectedly modifying or removing prior validator diagnostics ([#619](https://github.com/hashicorp/terraform-plugin-framework/issues/619))
+* tfsdk: Fixed false positive `Invalid Path Expression for Schema Data` error to be schema-determined instead of data-determined ([#602](https://github.com/hashicorp/terraform-plugin-framework/issues/602))
+* types/basetypes: Fixed `ObjectType` type `ApplyTerraform5AttributePathStep` method to return an error instead of `nil` for invalid attribute name steps ([#602](https://github.com/hashicorp/terraform-plugin-framework/issues/602))
+
 # 1.0.1 (December 19, 2022)
 
 BUG FIXES:

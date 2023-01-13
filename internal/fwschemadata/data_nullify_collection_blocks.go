@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -68,6 +69,10 @@ func (d *Data) NullifyCollectionBlocks(ctx context.Context) diag.Diagnostics {
 		}
 
 		// Transform to null value.
+		logging.FrameworkTrace(ctx, "Transforming empty block to null block", map[string]any{
+			logging.KeyAttributePath: fwPath.String(),
+			logging.KeyDescription:   d.Description.String(),
+		})
 		return tftypes.NewValue(tfTypeValue.Type(), nil), nil
 	})
 

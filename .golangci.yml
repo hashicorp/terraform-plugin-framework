@@ -12,6 +12,7 @@ linters:
     - gosimple
     - ineffassign
     - makezero
+    - misspell
     - nilerr
     - paralleltest
     - predeclared

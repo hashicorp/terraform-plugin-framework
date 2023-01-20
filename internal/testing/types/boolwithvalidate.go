@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
@@ -25,8 +26,10 @@ func (b BoolTypeWithValidateError) ValueFromTerraform(ctx context.Context, in tf
 		return nil, err
 	}
 
-	//nolint:forcetypeassert // This type is used for testing only
-	newBool := res.(Bool)
+	newBool, ok := res.(Bool)
+	if !ok {
+		return nil, fmt.Errorf("unexpected value type of %T", res)
+	}
 	newBool.CreatedBy = b
 	return newBool, nil
 }
@@ -41,8 +44,10 @@ func (b BoolTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, in 
 		return nil, err
 	}
 
-	//nolint:forcetypeassert // This type is used for testing only
-	newBool := res.(Bool)
+	newBool, ok := res.(Bool)
+	if !ok {
+		return nil, fmt.Errorf("unexpected value type of %T", res)
+	}
 	newBool.CreatedBy = b
 	return newBool, nil
 }

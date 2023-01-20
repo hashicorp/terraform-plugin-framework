@@ -277,7 +277,7 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 		if err != tftypes.ErrInvalidStep && err != nil {
 			logging.FrameworkError(ctx, "error walking attribute path")
 			return val, err
-		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() {
+		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() { //nolint:forcetypeassert // Not sure the best comment for here? Should we handle this?
 			logging.FrameworkTrace(ctx, "attribute not null in config, not marking unknown")
 			return val, nil
 		}

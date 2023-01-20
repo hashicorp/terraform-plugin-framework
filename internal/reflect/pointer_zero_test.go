@@ -11,7 +11,13 @@ func TestPointerSafeZeroValue_zeroPointers(t *testing.T) {
 
 	var s string
 	got := pointerSafeZeroValue(context.Background(), reflect.ValueOf(s))
-	if got.Interface().(string) != "" {
+
+	gotStr, ok := got.Interface().(string)
+	if !ok {
+		t.Fatalf("expected type of string, got %T", got.Interface())
+	}
+
+	if gotStr != "" {
 		t.Errorf("expected \"\", got %v", got.Interface())
 	}
 }
@@ -21,7 +27,13 @@ func TestPointerSafeZeroValue_onePointer(t *testing.T) {
 
 	var s *string
 	got := pointerSafeZeroValue(context.Background(), reflect.ValueOf(s))
-	if got.Interface() != nil && *(got.Interface().(*string)) != "" {
+
+	gotStr, ok := got.Interface().(*string)
+	if !ok {
+		t.Fatalf("expected type of *string, got %T", got.Interface())
+	}
+
+	if got.Interface() != nil && *(gotStr) != "" {
 		t.Errorf("expected \"\", got %v", got.Interface())
 	}
 }
@@ -31,7 +43,13 @@ func TestPointerSafeZeroValue_twoPointers(t *testing.T) {
 
 	var s **string
 	got := pointerSafeZeroValue(context.Background(), reflect.ValueOf(s))
-	if got.Interface() != nil && **(got.Interface().(**string)) != "" {
+
+	gotStr, ok := got.Interface().(**string)
+	if !ok {
+		t.Fatalf("expected type of **string, got %T", got.Interface())
+	}
+
+	if got.Interface() != nil && **(gotStr) != "" {
 		t.Errorf("expected \"\", got %v", got.Interface())
 	}
 }
@@ -41,7 +59,13 @@ func TestPointerSafeZeroValue_threePointers(t *testing.T) {
 
 	var s ***string
 	got := pointerSafeZeroValue(context.Background(), reflect.ValueOf(s))
-	if got.Interface() != nil && ***(got.Interface().(***string)) != "" {
+
+	gotStr, ok := got.Interface().(***string)
+	if !ok {
+		t.Fatalf("expected type of ***string, got %T", got.Interface())
+	}
+
+	if got.Interface() != nil && ***(gotStr) != "" {
 		t.Errorf("expected \"\", got %v", got.Interface())
 	}
 }
@@ -51,7 +75,13 @@ func TestPointerSafeZeroValue_tenPointers(t *testing.T) {
 
 	var s **********string
 	got := pointerSafeZeroValue(context.Background(), reflect.ValueOf(s))
-	if got.Interface() != nil && **********(got.Interface().(**********string)) != "" {
+
+	gotStr, ok := got.Interface().(**********string)
+	if !ok {
+		t.Fatalf("expected type of **********string, got %T", got.Interface())
+	}
+
+	if got.Interface() != nil && **********(gotStr) != "" {
 		t.Errorf("expected \"\", got %v", got.Interface())
 	}
 }

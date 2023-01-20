@@ -24,6 +24,8 @@ func (b BoolTypeWithValidateError) ValueFromTerraform(ctx context.Context, in tf
 	if err != nil {
 		return nil, err
 	}
+
+	//nolint:forcetypeassert // This type is used for testing only
 	newBool := res.(Bool)
 	newBool.CreatedBy = b
 	return newBool, nil
@@ -38,6 +40,8 @@ func (b BoolTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, in 
 	if err != nil {
 		return nil, err
 	}
+
+	//nolint:forcetypeassert // This type is used for testing only
 	newBool := res.(Bool)
 	newBool.CreatedBy = b
 	return newBool, nil

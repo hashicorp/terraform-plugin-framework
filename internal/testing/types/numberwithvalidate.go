@@ -36,6 +36,8 @@ func (n NumberTypeWithValidateError) ValueFromTerraform(ctx context.Context, in 
 	if err != nil {
 		return nil, err
 	}
+
+	//nolint:forcetypeassert // This type is used for testing only
 	newNumber := res.(Number)
 	newNumber.CreatedBy = n
 	return newNumber, nil
@@ -46,6 +48,8 @@ func (n NumberTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, i
 	if err != nil {
 		return nil, err
 	}
+
+	//nolint:forcetypeassert // This type is used for testing only
 	newNumber := res.(Number)
 	newNumber.CreatedBy = n
 	return newNumber, nil

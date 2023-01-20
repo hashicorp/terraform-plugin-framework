@@ -32,6 +32,8 @@ func (s StringTypeWithValidateError) ValueFromTerraform(ctx context.Context, in 
 	if err != nil {
 		return nil, err
 	}
+
+	//nolint:forcetypeassert // This type is used for testing only
 	newString := res.(String)
 	newString.CreatedBy = s
 	return newString, nil
@@ -58,6 +60,8 @@ func (s StringTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, i
 	if err != nil {
 		return nil, err
 	}
+
+	//nolint:forcetypeassert // This type is used for testing only
 	newString := res.(String)
 	newString.CreatedBy = s
 	return newString, nil

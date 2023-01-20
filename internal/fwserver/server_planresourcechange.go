@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -155,7 +156,48 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.
 	if !resp.PlannedState.Raw.IsNull() && !resp.PlannedState.Raw.Equal(req.PriorState.Raw) {
-		logging.FrameworkTrace(ctx, "Marking Computed null Config values as unknown in Plan")
+		// Loop through top level attributes/blocks to individually emit logs
+		// for value changes. This is helpful for troubleshooting unexpected
+		// plan outputs and only needs to be done for resource update plans.
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/627
+		if !req.PriorState.Raw.IsNull() {
+			var allPaths, changedPaths path.Paths
+
+			for attrName := range resp.PlannedState.Schema.GetAttributes() {
+				allPaths.Append(path.Root(attrName))
+			}
+
+			for blockName := range resp.PlannedState.Schema.GetBlocks() {
+				allPaths.Append(path.Root(blockName))
+			}
+
+			for _, p := range allPaths {
+				var plannedState, priorState attr.Value
+
+				// This logging is best effort and any errors should not be
+				// returned to practitioners.
+				_ = resp.PlannedState.GetAttribute(ctx, p, &plannedState)
+				_ = req.PriorState.GetAttribute(ctx, p, &priorState)
+
+				if plannedState.Equal(priorState) {
+					continue
+				}
+
+				changedPaths.Append(p)
+			}
+
+			// Colocate these log entries to not intermix with GetAttribute logging
+			for _, p := range changedPaths {
+				logging.FrameworkDebug(ctx,
+					"Detected value change between proposed new state and prior state",
+					map[string]any{
+						logging.KeyAttributePath: p.String(),
+					},
+				)
+			}
+		}
+
+		logging.FrameworkDebug(ctx, "Marking Computed attributes with null configuration values as unknown (known after apply) in the plan to prevent potential Terraform errors")
 
 		modifiedPlan, err := tftypes.Transform(resp.PlannedState.Raw, MarkComputedNilsAsUnknown(ctx, req.Config.Raw, req.ResourceSchema))
 

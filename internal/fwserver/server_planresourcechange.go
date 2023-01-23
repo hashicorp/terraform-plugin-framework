@@ -272,13 +272,25 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			return val, nil
 		}
 
-		configVal, _, err := tftypes.WalkAttributePath(config, path)
+		configValIface, _, err := tftypes.WalkAttributePath(config, path)
 
-		if err != tftypes.ErrInvalidStep && err != nil {
-			logging.FrameworkError(ctx, "error walking attribute path")
-			return val, err
-		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() { //nolint:forcetypeassert // Not sure the best comment for here? Should we handle this?
-			logging.FrameworkTrace(ctx, "attribute not null in config, not marking unknown")
+		if err != nil && err != tftypes.ErrInvalidStep {
+			logging.FrameworkError(ctx,
+				"Error walking attributes/block path during unknown marking",
+				map[string]any{
+					logging.KeyError: err.Error(),
+				},
+			)
+			return val, fmt.Errorf("error walking attribute/block path during unknown marking: %w", err)
+		}
+
+		configVal, ok := configValIface.(tftypes.Value)
+		if !ok {
+			return val, fmt.Errorf("unexpected type during unknown marking: %T", configValIface)
+		}
+
+		if !configVal.IsNull() {
+			logging.FrameworkTrace(ctx, "Attribute/block not null in configuration, not marking unknown")
 			return val, nil
 		}
 

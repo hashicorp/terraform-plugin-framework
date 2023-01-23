@@ -353,6 +353,7 @@ func TestValueAs(t *testing.T) {
 			// cmp.Comparer is used to generate a type-specific comparison for big.Float as cmp.Diff
 			// cannot be used owing to the unexported (*big.Float).prec field.
 			opt := cmp.Comparer(func(expected **big.Float, target **big.Float) bool {
+				//nolint:forcetypeassert // Type assertion is guaranteed by the above `cmp.Comparer` function
 				if diff := (*tc.expected.(**big.Float)).Cmp(*tc.target.(**big.Float)); diff != 0 {
 					return false
 				}

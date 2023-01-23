@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
@@ -32,7 +33,11 @@ func (s StringTypeWithValidateError) ValueFromTerraform(ctx context.Context, in 
 	if err != nil {
 		return nil, err
 	}
-	newString := res.(String)
+
+	newString, ok := res.(String)
+	if !ok {
+		return nil, fmt.Errorf("unexpected value type of %T", res)
+	}
 	newString.CreatedBy = s
 	return newString, nil
 }
@@ -58,7 +63,11 @@ func (s StringTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, i
 	if err != nil {
 		return nil, err
 	}
-	newString := res.(String)
+
+	newString, ok := res.(String)
+	if !ok {
+		return nil, fmt.Errorf("unexpected value type of %T", res)
+	}
 	newString.CreatedBy = s
 	return newString, nil
 }

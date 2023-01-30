@@ -15,17 +15,13 @@
       },
       {
         "title": "Tutorials",
-        "href": "https://learn.hashicorp.com/collections/terraform/providers-plugin-framework?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS"
+        "href": "https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS"
       },
       {
         "title": "Clone Template Repository",
         "href": "https://github.com/hashicorp/terraform-provider-scaffolding-framework"
       }
     ]
-  },
-  {
-    "title": "Protocol RPCs",
-    "path": "rpcs"
   },
   {
     "title": "Provider Servers",
@@ -290,6 +286,19 @@
             "path": "migrating/attributes-blocks/blocks-computed"
           }
         ]
+      }
+    ]
+  },
+  {
+    "title": "Internals",
+    "routes": [
+      {
+        "title": "Overview",
+        "path": "internals"
+      },
+      {
+        "title": "RPCs and Framework Functionality",
+        "path": "internals/rpcs"
       }
     ]
   }

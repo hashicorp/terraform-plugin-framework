@@ -12,6 +12,8 @@ description: >-
 
 Implement the [`provider.ConfigureResponse.ResourceData` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigureResponse.ResourceData) in the [`Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure). This value can be set to any type, whether an existing client or vendor SDK type, a provider-defined custom type, or the provider implementation itself. It is recommended to use pointer types so that resources can determine if this value was configured before attempting to use it.
 
+During execution of the [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/plan) commands, Terraform calls the provider [`ConfigureProvider`](/plugin/framework/internals/rpcs#configureprovider-rpc) RPC, in which the framework calls the [`provider.Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure).
+
 In this example, the Go standard library [`net/http.Client`](https://pkg.go.dev/net/http#Client) is configured in the provider, and made available for resources:
 
 ```go
@@ -50,6 +52,8 @@ func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.Confi
 ## Define Resource Configure Method
 
 Implement the [`resource.ResourceWithConfigure` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigure) which receives the provider configured data from the [`Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure) and saves it into the [`resource.Resource` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) implementation.
+
+The [`resource.ResourceWithConfigure` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigure.Configure) is called during execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands when the [`ValidateResourceConfig`](/plugin/framework/internals/rpcs#validateresourceconfig-rpc) RPC is sent. Additionally, the [`resource.ResourceWithConfigure` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigure.Configure) is called during execution of the [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/plan) commands when the [`ReadResource`](/plugin/framework/internals/rpcs#readresource-rpc) RPC is sent.
 
 In this example, the provider configured the Go standard library [`net/http.Client`](https://pkg.go.dev/net/http#Client) which the resource uses during `Read`:
 

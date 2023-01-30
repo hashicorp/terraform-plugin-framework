@@ -4,26 +4,18 @@ description: >-
   Relationship between RPCs and framework functionality.
 ---
 
-# RPCs
-
-Terraform core issues RPCs when Terraform commands are executed resulting in the subsequent execution of methods defined within providers.
-
-The [sequence of RPCs](/plugin/terraform-plugin-protocol#rpcs-and-terraform-commands) that are issued are determined by the Terraform command that is executed.
-
-The RPCs described are for a provider that is using version 6 of the Terraform plugin protocol. Refer to [Protocol RPCs](/plugin/terraform-plugin-protocol#protocol-rpcs) for the equivalent RPCS for protocol version 5. The same provider methods are called irrespective of the protocol version that is being used.
-
-## RPCs and Framework Functionality
+# RPCs and Framework Functionality
 
 The correlation between the Terraform command, the RPCs that are issued and the Terraform plugin framework methods that are called is as follows:
 
-### _terraform validate_
+## _terraform validate_
 
 | Protocol RPCs                                                                                                                                                                 | Framework Functionality                                                                                                                                            |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [GetProviderSchema](#getproviderschema-rpc)                                                                                                                                   | `provider.Provider`, `resource.Resource`, and `datasource.DataSource` interface `Schema` method                                                                    |
 | [ValidateProviderConfig](#validateproviderconfig-rpc) / [ValidateResourceConfig](#validateresourceconfig-rpc) / [ValidateDataResourceConfig](#validatedataresourceconfig-rpc) | `provider.Provider`, `resource.Resource`, and `datasource.DataSource` interface `Schema` method validators, `ConfigValidators` method, and `ValidateConfig` method |
 
-### _terraform plan_
+## _terraform plan_
 
 | Protocol RPCs                                                                                                                                                                 | Framework Functionality                                                                                                                                            |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -33,7 +25,7 @@ The correlation between the Terraform command, the RPCs that are issued and the 
 | [ReadResource](#readresource-rpc) / [ReadDataSource](#readdatasource-rpc)                                                                                                     | `resource.Resource` and `datasource.DataSource` interface `Read` method                                                                                            |
 | [PlanResourceChange](#planresourcechange-rpc)                                                                                                                                 | `resource.Resource` interface `Schema` method plan modifiers and `ModifyPlan` method                                                                               |
 
-### _terraform apply_
+## _terraform apply_
 
 | Protocol RPCs                                                                                                                                                                 | Framework Functionality                                                                                                                                            |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -44,9 +36,10 @@ The correlation between the Terraform command, the RPCs that are issued and the 
 | [PlanResourceChange](#planresourcechange-rpc)                                                                                                                                 | `resource.Resource` interface `Schema` method plan modifiers and `ModifyPlan` method                                                                               |
 | [ApplyResourceChange](#applyresourcechange-rpc)                                                                                                                               | `resource.Resource` interface `Create`, `Update`, or `Delete` method                                                                                               |
 
+
 ## GetProviderSchema RPC
 
-### Overview
+### Summary
 
 ![diagram: GetProviderSchema RPC Overview](/img/get-provider-schema-overview.png)
 
@@ -64,7 +57,7 @@ In summary, the schemas for the provider and each of the resources and data sour
 
 ## ValidateConfig RPCs
 
-### Overview
+### Summary
 
 ![diagram: ValidateConfig RPCs Overview](/img/validate-config-overview.png)
 
@@ -105,7 +98,7 @@ In summary:
 
 ## ConfigureProvider RPC
 
-### Overview
+### Summary
 
 ![diagram: ConfigureProvider RPC Overview](/img/configure-provider-overview.png)
 
@@ -125,7 +118,7 @@ In summary, the `provider.Provider` interface defines a `Configure` function whi
 
 ## Read RPCs
 
-### Overview
+### Summary
 
 ![diagram: Read RPC Overview](/img/read-overview.png)
 
@@ -153,7 +146,7 @@ In summary, the `resource.Resource` interface defines a `Read` function which is
 
 ## PlanResourceChange RPC
 
-### Overview
+### Summary
 
 ![diagram: PlanResourceChange RPC Overview](/img/plan-resource-change-overview.png)
 
@@ -181,7 +174,7 @@ In summary, `resource.Configure` is called on the resource if it implements the 
 
 ## ApplyResourceChange RPC
 
-### Overview
+### Summary
 
 ![diagram: ApplyResourceChange RPC Overview](/img/apply-resource-change-overview.png)
 

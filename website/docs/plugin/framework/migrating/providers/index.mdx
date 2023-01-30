@@ -63,6 +63,28 @@ configuration. Use muxing when you want to release a version of your provider wi
 sources migrated to the Framework. You may want to do this if your provider manages a large number of resources and
 data sources.
 
+
+~> **Important**: If you are using muxing and your SDK provider schema is using
+[`Default`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/helper/schema#Schema.Default) or
+[`DefaultFunc`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/helper/schema#Schema.DefaultFunc)
+you **must** remove the usage of `Default` and `DefaultFunc` and transfer the logic into the provider
+[ConfigureFunc](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#Provider.ConfigureFunc]) or
+[ConfigureContextFunc](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#Provider.ConfigureContextFunc]).
+Failure to do this will like result in the following error:
+
+```
+Error: Plugin error
+
+  with provider["registry.terraform.io/example/examplecloud"],
+  on <empty> line 0:
+  (source code not available)
+
+The plugin returned an unexpected error from
+plugin.(*GRPCProvider).ValidateProviderConfig: rpc error: code = Unknown desc
+= got different PrepareProviderConfig PreparedConfig response from multiple
+servers, not sure which to use
+```
+
 The following example shows how to set up muxing for a provider that uses protocol version 5 to maintain compatibility
 with Terraform >= 0.12.0. The example also shows how to use the `debug` flag to optionally run the provider in debug
 mode.

@@ -47,8 +47,12 @@ func TestPointer_nilPointer(t *testing.T) {
 	if got.Interface() == nil {
 		t.Error("Expected \"hello\", got nil")
 	}
-	if *(got.Interface().(*string)) != "hello" {
-		t.Errorf("Expected \"hello\", got %+v", *(got.Interface().(*string)))
+	gotStr, ok := got.Interface().(*string)
+	if !ok {
+		t.Fatalf("Expected type of *string, got %T", got.Interface())
+	}
+	if *(gotStr) != "hello" {
+		t.Errorf("Expected \"hello\", got %+v", *(gotStr))
 	}
 }
 
@@ -63,8 +67,12 @@ func TestPointer_simple(t *testing.T) {
 	if got.Interface() == nil {
 		t.Error("Expected \"hello\", got nil")
 	}
-	if *(got.Interface().(*string)) != "hello" {
-		t.Errorf("Expected \"hello\", got %+v", *(got.Interface().(*string)))
+	gotStr, ok := got.Interface().(*string)
+	if !ok {
+		t.Fatalf("Expected type of *string, got %T", got.Interface())
+	}
+	if *(gotStr) != "hello" {
+		t.Errorf("Expected \"hello\", got %+v", *(gotStr))
 	}
 }
 
@@ -79,8 +87,12 @@ func TestPointer_pointerPointer(t *testing.T) {
 	if got.Interface() == nil {
 		t.Error("Expected \"hello\", got nil")
 	}
-	if **(got.Interface().(**string)) != "hello" {
-		t.Errorf("Expected \"hello\", got %+v", **(got.Interface().(**string)))
+	gotStr, ok := got.Interface().(**string)
+	if !ok {
+		t.Fatalf("Expected type of **string, got %T", got.Interface())
+	}
+	if **(gotStr) != "hello" {
+		t.Errorf("Expected \"hello\", got %+v", **(gotStr))
 	}
 }
 

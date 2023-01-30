@@ -40,7 +40,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		return
 	}
 
-	if _, ok := req.Resource.(resource.ResourceWithConfigure); ok {
+	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 
 		configureReq := resource.ConfigureRequest{
@@ -49,7 +49,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		configureResp := resource.ConfigureResponse{}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource Configure")
-		req.Resource.(resource.ResourceWithConfigure).Configure(ctx, configureReq, &configureResp)
+		resourceWithConfigure.Configure(ctx, configureReq, &configureResp)
 		logging.FrameworkDebug(ctx, "Called provider defined Resource Configure")
 
 		resp.Diagnostics.Append(configureResp.Diagnostics...)

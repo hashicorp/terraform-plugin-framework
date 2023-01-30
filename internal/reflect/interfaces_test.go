@@ -269,7 +269,10 @@ func TestNewUnknownable(t *testing.T) {
 				return
 			}
 
-			got := res.Interface().(*unknownableString)
+			got, ok := res.Interface().(*unknownableString)
+			if !ok {
+				t.Fatalf("Expected type of *unknownableString, got %T", res.Interface())
+			}
 
 			if got.Unknown != tc.expected {
 				t.Errorf("Expected %v, got %v", tc.expected, got.Unknown)
@@ -367,7 +370,10 @@ func TestNewNullable(t *testing.T) {
 				return
 			}
 
-			got := res.Interface().(*nullableString)
+			got, ok := res.Interface().(*nullableString)
+			if !ok {
+				t.Fatalf("Expected type of *nullableString, got %T", res.Interface())
+			}
 
 			if got.Null != tc.expected {
 				t.Errorf("Expected %v, got %v", tc.expected, got.Null)
@@ -457,7 +463,10 @@ func TestNewAttributeValue(t *testing.T) {
 				return
 			}
 
-			got := res.Interface().(types.String)
+			got, ok := res.Interface().(types.String)
+			if !ok {
+				t.Fatalf("Expected type of types.String, got %T", res.Interface())
+			}
 
 			if diff := cmp.Diff(got, tc.expected); diff != "" {
 				t.Errorf("unexpected result (+wanted, -got): %s", diff)
@@ -554,7 +563,10 @@ func TestNewValueConverter(t *testing.T) {
 				return
 			}
 
-			got := res.Interface().(*valueConverter)
+			got, ok := res.Interface().(*valueConverter)
+			if !ok {
+				t.Fatalf("Expected type of *valueConverter, got %T", res.Interface())
+			}
 
 			if diff := cmp.Diff(got, tc.expected); diff != "" {
 				t.Errorf("unexpected result (+wanted, -got): %s", diff)

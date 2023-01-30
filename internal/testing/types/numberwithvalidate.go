@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
@@ -36,7 +37,11 @@ func (n NumberTypeWithValidateError) ValueFromTerraform(ctx context.Context, in 
 	if err != nil {
 		return nil, err
 	}
-	newNumber := res.(Number)
+
+	newNumber, ok := res.(Number)
+	if !ok {
+		return nil, fmt.Errorf("unexpected value type of %T", res)
+	}
 	newNumber.CreatedBy = n
 	return newNumber, nil
 }
@@ -46,7 +51,11 @@ func (n NumberTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, i
 	if err != nil {
 		return nil, err
 	}
-	newNumber := res.(Number)
+
+	newNumber, ok := res.(Number)
+	if !ok {
+		return nil, fmt.Errorf("unexpected value type of %T", res)
+	}
 	newNumber.CreatedBy = n
 	return newNumber, nil
 }

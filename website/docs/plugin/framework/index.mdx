@@ -6,13 +6,13 @@ description: |-
 
 # Terraform Plugin Framework
 
-The plugin framework is a new way to develop Terraform Plugins on [protocol version 6](/plugin/how-terraform-works#protocol-version-6) or [protocol version 5](/plugin/how-terraform-works#protocol-version-5). It offers improvements and new features from [Terraform Plugin SDKv2](/plugin/sdkv2).
+The plugin framework is HashiCorp’s recommended way develop Terraform Plugins on [protocol version 6](/plugin/terraform-plugin-protocol#protocol-version-6) or [protocol version 5](/plugin/terraform-plugin-protocol#protocol-version-5). 
 
-~> **Important**: [Which SDK Should I Use?](/plugin/which-sdk) explains the differences between [Teraform Plugin SDKv2](/plugin/sdkv2) and Terraform Plugin Framework to help you decide which option is right for your provider.
+We recommend using the framework to develop new providers because it offers significant advantages as compared to  [Terraform Plugin SDKv2](/plugin/sdkv2). We also recommend migrating existing providers to the framework when possible. Refer to [Plugin Framework Benefits](/plugin/framework-benefits) for higher level details about how the framework makes provider development easier and [Plugin Framework Features](/plugin/framework/migrating/benefits) for a detailed functionality comparison between the SDKv2 and the framework.
 
 ## Get Started
 
-- Try the [Terraform Plugin Framework collection](https://learn.hashicorp.com/collections/terraform/providers-plugin-framework) on HashiCorp Learn.
+- Try the [Terraform Plugin Framework tutorials](https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework).
 - Clone the [terraform-provider-scaffolding-framework](https://github.com/hashicorp/terraform-provider-scaffolding-framework) template repository on GitHub.
 
 ## Key Concepts

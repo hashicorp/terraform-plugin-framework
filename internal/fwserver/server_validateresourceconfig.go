@@ -28,7 +28,7 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 		return
 	}
 
-	if _, ok := req.Resource.(resource.ResourceWithConfigure); ok {
+	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 
 		configureReq := resource.ConfigureRequest{
@@ -37,7 +37,7 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 		configureResp := resource.ConfigureResponse{}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource Configure")
-		req.Resource.(resource.ResourceWithConfigure).Configure(ctx, configureReq, &configureResp)
+		resourceWithConfigure.Configure(ctx, configureReq, &configureResp)
 		logging.FrameworkDebug(ctx, "Called provider defined Resource Configure")
 
 		resp.Diagnostics.Append(configureResp.Diagnostics...)
@@ -55,9 +55,9 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigValidators")
 
 		for _, configValidator := range resourceWithConfigValidators.ConfigValidators(ctx) {
-			vdscResp := &resource.ValidateConfigResponse{
-				Diagnostics: resp.Diagnostics,
-			}
+			// Instantiate a new response for each request to prevent validators
+			// from modifying or removing diagnostics.
+			vdscResp := &resource.ValidateConfigResponse{}
 
 			logging.FrameworkDebug(
 				ctx,
@@ -75,32 +75,32 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 				},
 			)
 
-			resp.Diagnostics = vdscResp.Diagnostics
+			resp.Diagnostics.Append(vdscResp.Diagnostics...)
 		}
 	}
 
 	if resourceWithValidateConfig, ok := req.Resource.(resource.ResourceWithValidateConfig); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithValidateConfig")
 
-		vdscResp := &resource.ValidateConfigResponse{
-			Diagnostics: resp.Diagnostics,
-		}
+		// Instantiate a new response for each request to prevent validators
+		// from modifying or removing diagnostics.
+		vdscResp := &resource.ValidateConfigResponse{}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource ValidateConfig")
 		resourceWithValidateConfig.ValidateConfig(ctx, vdscReq, vdscResp)
 		logging.FrameworkDebug(ctx, "Called provider defined Resource ValidateConfig")
 
-		resp.Diagnostics = vdscResp.Diagnostics
+		resp.Diagnostics.Append(vdscResp.Diagnostics...)
 	}
 
 	validateSchemaReq := ValidateSchemaRequest{
 		Config: *req.Config,
 	}
-	validateSchemaResp := ValidateSchemaResponse{
-		Diagnostics: resp.Diagnostics,
-	}
+	// Instantiate a new response for each request to prevent validators
+	// from modifying or removing diagnostics.
+	validateSchemaResp := ValidateSchemaResponse{}
 
 	SchemaValidate(ctx, req.Config.Schema, validateSchemaReq, &validateSchemaResp)
 
-	resp.Diagnostics = validateSchemaResp.Diagnostics
+	resp.Diagnostics.Append(validateSchemaResp.Diagnostics...)
 }

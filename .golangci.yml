@@ -8,10 +8,12 @@ linters:
     - durationcheck
     - errcheck
     - exportloopref
+    - forcetypeassert
     - gofmt
     - gosimple
     - ineffassign
     - makezero
+    - misspell
     - nilerr
     - paralleltest
     - predeclared

@@ -73,7 +73,7 @@ Refer to [Provider Servers](/plugin/framework/provider-servers) for more details
 
 The provider wraps resources and data sources which are typically used for interacting with cloud providers, SaaS providers, or other APIs.
 
-In this example the provider wraps a resource and a data source which simply interact with Terraform state. Refer to the [tutorial](/tutorials/providers-plugin-framework/providers-plugin-framework-provider-configure) for an example of provider configuration that configures an API client.
+In this example the provider wraps a resource and a data source which simply interact with Terraform state. Refer to the [tutorial](https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework/providers-plugin-framework-provider-configure) for an example of provider configuration that configures an API client.
 
 `New()` returns a function which returns a type that satisfies the `provider.Provider` interface. The `New()` function is called by the [provider server](#provider-server) to obtain the provider.
 
@@ -367,7 +367,7 @@ resource "example_resource" "example" {
 
 The `configurable_attribute` is defined within the [schema](#resource) as a string type attribute.
 
-Examples of the various types of attributes and their representation within Terraform configuration and schema definitions is detailed in [Core Configuration Concepts](/plugin/framework/getting-started/core-configuration-concepts).
+Examples of the various types of attributes and their representation within Terraform configuration and schema definitions are detailed in [Terraform Concepts](/plugin/framework/handling-data/terraform-concepts).
 
 ### Data Source Configuration
 
@@ -379,4 +379,4 @@ data "example_datasource" "example" {
 
 The `configurable_attribute` is defined within the [schema](#data-source) as a string type attribute.
 
-Examples of the various types of attributes and their representation within Terraform configuration and schema definitions is detailed in [Core Configuration Concepts](/plugin/framework/getting-started/core-configuration-concepts).
+Examples of the various types of attributes and their representation within Terraform configuration and schema definitions are detailed in [Terraform Concepts](/plugin/framework/handling-data/terraform-concepts).

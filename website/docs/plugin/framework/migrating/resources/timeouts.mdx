@@ -66,7 +66,7 @@ You can use this module to mutate the `schema.Schema` as follows:
 
 ```go
 func (t *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    resp.Schema = schema.Schema{
+    return schema.Schema{
         Attributes: map[string]schema.Attribute{
             /* ... */
             "timeouts": timeouts.Attributes(ctx, timeouts.Opts{
@@ -88,18 +88,18 @@ func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest
 	resp.Diagnostics.Append(diags...)
 ```
 
-The `exampleResourceData` model needs to be modified to include a field for timeouts, which is `types.Object`.
+Modify the `exampleResourceData` model to include a field for timeouts using a [`timeouts.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts#Value) type.
 
 ```go
 type exampleResourceData struct {
     /* ... */
-    Timeouts    types.Object `tfsdk:"timeouts"`
+    Timeouts    timeouts.Value `tfsdk:"timeouts"`
 ```
 
 ## Accessing Timeouts in CRUD Functions
 
 Once the model has been populated with the config, state or plan the duration of the timeout can be accessed by calling
-the appropriate helper (e.g., `timeouts.Create`) function and then used to configure timeout behaviour, for instance:
+the appropriate helper function (e.g., [`timeouts.Create`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts#Value.Create)) and then used to configure timeout behaviour, for instance:
 
 ```go
 func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -111,9 +111,10 @@ func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest
         return
     }
 
-    defaultCreateTimeout := 20 * time.Minute
-
-    createTimeout := timeouts.Create(ctx, data.Timeouts, defaultCreateTimeout)
+    createTimeout, err := data.Timeouts.Create(ctx, 20*time.Minute)
+    if err != nil {
+        // handle error
+    }
 
     ctx, cancel := context.WithTimeout(ctx, createTimeout)
     defer cancel()

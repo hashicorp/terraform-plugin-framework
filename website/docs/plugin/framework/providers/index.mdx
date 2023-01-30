@@ -95,7 +95,7 @@ func (p *ExampleCloudProvider) Metadata(ctx context.Context, req provider.Metada
 
 The [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema) defines a [schema](/plugin/framework/schemas) describing what data is available in the provider's configuration. This configuration block is used to offer practitioners the opportunity to supply values to the provider and configure its behavior, rather than needing to include those values in every resource and data source. It is usually used to gather credentials, endpoints, and the other data used to authenticate with the API, but it is not limited to those uses.
 
-During the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/plan) commands, Terraform calls the provider [`GetProviderSchema`](/plugin/framework/internals/rpcs#getproviderschema-rpc) RPC, in which the framework calls the [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema).
+During the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`GetProviderSchema`](/plugin/framework/internals/rpcs#getproviderschema-rpc) RPC, in which the framework calls the [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema).
 
 In this example, a sample configuration and schema definition are provided:
 

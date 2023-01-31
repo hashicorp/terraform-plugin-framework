@@ -69,7 +69,7 @@ func (d *ThingDataSource) Schema(ctx context.Context, req datasource.SchemaReque
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
             /* ... */
-			"timeouts": timeouts.Attributes(ctx),
+            "timeouts": timeouts.Attributes(ctx),
         },
 ```
 

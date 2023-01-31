@@ -19,6 +19,8 @@ This page describes implementation details for validating entire resource config
 
 The [`resource.ResourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This enables consistent validation logic across multiple resources. Each validator intended for this interface must implement the [`resource.ConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ConfigValidator).
 
+During execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`ValidateResourceConfig`](/plugin/framework/internals/rpcs#validateresourceconfig-rpc) RPC, in which the framework calls the `ConfigValidators` method on resources that implement the [`resource.ResourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigValidators).
+
 The [`terraform-plugin-framework-validators` Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) has a collection of common use case resource configuration validators in the [`resourcevalidator` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator). These use [path expressions](/plugin/framework/path-expressions) for matching attributes.
 
 This example will raise an error if a practitioner attempts to configure both `attribute_one` and `attribute_two`:
@@ -40,6 +42,8 @@ func (r ThingResource) ConfigValidators(ctx context.Context) []resource.ConfigVa
 ## ValidateConfig Method
 
 The [`resource.ResourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithValidateConfig) is more imperative in design and is useful for validating unique functionality across multiple attributes that typically applies to a single resource.
+
+During execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`ValidateResourceConfig`](/plugin/framework/internals/rpcs#validateresourceconfig-rpc) RPC, in which the framework calls the `ValidateConfig` method on providers that implement the [`resource.ResourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithValidateConfig).
 
 This example will raise a warning if a practitioner attempts to configure `attribute_one`, but not `attribute_two`:
 

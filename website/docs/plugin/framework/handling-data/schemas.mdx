@@ -18,6 +18,8 @@ Each concept has its own `schema` package and `Schema` type, which defines funct
 - [Resources](/plugin/framework/resources): [`resource/schema.Schema`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#Schema)
 - [Data Sources](/plugin/framework/data-sources): [`datasource/schema.Schema`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#Schema)
 
+During execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`GetProviderSchema`](/plugin/framework/internals/rpcs#getproviderschema-rpc) RPC, in which the framework calls the [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema), and the [`resource.Resource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Schema) and [`datasource.DataSource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Schema) on each of the resources and data sources, respectively.
+
 ## Version
 
 -> Version is only valid for resources.
@@ -149,3 +151,5 @@ Use a practitioner actionable recommendation in `DeprecationMessage`, such as `"
 ### Validators
 
 Each attribute can implement [value validation](/plugin/framework/validation), either by specifying the [`Attribute` type `Validators` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute.Validators) and/or by declaring a custom type in the `Type` field that [implements its own validators](/plugin/framework/validation#type-validation). Common use case validators can be found in the [terraform-plugin-framework-validators Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators).
+
+During execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`ValidateProviderConfig`](/plugin/framework/internals/rpcs#validateproviderconfig-rpc), [`ValidateResourceConfig`](/plugin/framework/internals/rpcs#validateresourceconfig-rpc) and [`ValidateDataResourceConfig`](/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPCs, during which [value validation](/plugin/framework/validation) takes place.

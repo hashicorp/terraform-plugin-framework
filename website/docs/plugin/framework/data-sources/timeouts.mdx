@@ -44,9 +44,7 @@ func (d *ThingDataSource) Schema(ctx context.Context, req datasource.SchemaReque
         /* ... */
 
         Blocks: map[string]schema.Block{
-            "timeouts": timeouts.Block(ctx, timeouts.Opts{
-                Read: true,
-            }),
+            "timeouts": timeouts.Block(ctx),
         },
 ```
 
@@ -71,9 +69,7 @@ func (d *ThingDataSource) Schema(ctx context.Context, req datasource.SchemaReque
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
             /* ... */
-            "timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-                Read: true,
-            }),
+            "timeouts": timeouts.Attributes(ctx),
         },
 ```
 
@@ -89,17 +85,17 @@ func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	resp.Diagnostics.Append(diags...)
 ```
 
-Modify the `exampleDataSourceData` model to include a field for timeouts using a `types.Object` type.
+Modify the `exampleDataSourceData` model to include a field for timeouts using a [`timeouts.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts#Value) type.
 
 ```go
 type exampleDataSourceData struct {
     /* ... */
-    Timeouts    types.Object `tfsdk:"timeouts"`
+	Timeouts    timeouts.Value `tfsdk:"timeouts"`
 ```
 
 ## Accessing Timeout in Read Method
 
-Call the [`timeouts.Read()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-timeouts/timeouts#Read).
+Call the [`timeouts.Read()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts#Value.Read).
 
 ```go
 func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -111,9 +107,13 @@ func (e *exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest
         return
     }
 
-    defaultReadTimeout := 20 * time.Minute
+    readTimeout, diags := data.Timeouts.Read(ctx, 20*time.Minute)
 
-    readTimeout := timeouts.Read(ctx, data.Timeouts, defaultReadTimeout)
+    resp.Diagnostics.Append(diags...)
+
+    if resp.Diagnostics.HasError() {
+        return
+    }
 
     ctx, cancel := context.WithTimeout(ctx, readTimeout)
     defer cancel()

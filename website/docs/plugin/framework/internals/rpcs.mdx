@@ -42,12 +42,14 @@ The correlation between the Terraform command, the RPCs that are issued and the 
 ### Summary
 
 ![diagram: GetProviderSchema RPC Overview](/img/get-provider-schema-overview.png)
+<!-- Refer to README in /img directory for information on generating get-provider-schema-overview.png -->
 
 When _terraform validate | plan | apply_ are executed Terraform core issues the `GetProviderSchema` RPC. The RPC flows through the Terraform plugin framework and ultimately calls the `Schema` function on the provider and on each of the resources and data sources that the provider defines.
 
 ### Detail
 
 ![diagram: GetProviderSchema RPC Detail](/img/get-provider-schema-detail.png)
+<!-- Refer to README in /img directory for information on generating get-provider-schema-detail.png -->
 
 Within the Terraform plugin framework, `terraform-plugin-go` is used to expose gRPC endpoints defined by the Terraform plugin protocol. These endpoints implement the `tfplugin6.ProviderServer` interface for version 6 of the Terraform plugin protocol. The `terraform-plugin-go` module also defines a `tfprotov6.ProviderServer` interface which is implemented by the `terraform-plugin-framework` module, and includes the `GetProviderSchema` function.
 
@@ -60,6 +62,7 @@ In summary, the schemas for the provider and each of the resources and data sour
 ### Summary
 
 ![diagram: ValidateConfig RPCs Overview](/img/validate-config-overview.png)
+<!-- Refer to README in /img directory for information on generating validate-config-overview.png -->
 
 When _terraform validate | plan | apply_ are executed if the Terraform configuration contains configuration for the provider then Terraform core issues the `ValidateProviderConfig` RPC. Additionally, the `ValidateResourceConfig` and `ValidateDataResourceConfig` RPCs are issued for each of the resources and data sources that appear in the Terraform configuration. There is a 1:1 match between the schema returned from the `GetProviderSchema` RPC and the `Validate<Provider|Resource|DataResource>Config` RPCs.
 
@@ -72,14 +75,17 @@ The `ValidateResourceConfig` and `ValidateDataResourceConfig` RPCs additionally 
 #### ValidateProviderConfig RPC
 
 ![diagram: ValidateProviderConfig RPC Detail](/img/validate-provider-config-detail.png)
+<!-- Refer to README in /img directory for information on generating validate-provider-config-detail.png -->
 
 #### ValidateResourceConfig RPC
 
 ![diagram: ValidateResourceConfig RPC Detail](/img/validate-resource-config-detail.png)
+<!-- Refer to README in /img directory for information on generating validate-resource-config-detail.png -->
 
 #### ValidateDataResourceConfig RPC
 
 ![diagram: ValidateDataResourceConfig RPC Detail](/img/validate-data-resource-config-detail.png)
+<!-- Refer to README in /img directory for information on generating validate-data-resource-config-detail.png -->
 
 Within the Terraform plugin framework, `terraform-plugin-go` is used to expose gRPC endpoints defined by the Terraform plugin protocol. These endpoints implement the `tfplugin6.ProviderServer` interface for version 6 of the Terraform plugin protocol. The `terraform-plugin-go` module also defines `tfprotov6.<Provider|Resource|DataSource>Server` interfaces which are implemented within the `terraform-plugin-framework` module.
 
@@ -101,6 +107,7 @@ In summary:
 ### Summary
 
 ![diagram: ConfigureProvider RPC Overview](/img/configure-provider-overview.png)
+<!-- Refer to README in /img directory for information on generating configure-provider-overview.png -->
 
 When _terraform plan | apply_ are executed Terraform core issues the `ConfigureProvider` RPC.
 
@@ -109,6 +116,7 @@ The `ConfigureProvider` RPC flows through the Terraform plugin framework and ult
 ### Detail
 
 ![diagram: ConfigureProvider RPC Detail](/img/configure-provider-detail.png)
+<!-- Refer to README in /img directory for information on generating configure-provider-detail.png -->
 
 Within the Terraform plugin framework, `terraform-plugin-go` is used to expose gRPC endpoints defined by the Terraform plugin protocol. These endpoints implement the `tfplugin6.ProviderServer` interface for version 6 of the Terraform plugin protocol. The `terraform-plugin-go` module also defines the `tfprotov6.ProviderServer` interface which is implemented within the `terraform-plugin-framework` module.
 
@@ -121,6 +129,7 @@ In summary, the `provider.Provider` interface defines a `Configure` function whi
 ### Summary
 
 ![diagram: Read RPC Overview](/img/read-overview.png)
+<!-- Refer to README in /img directory for information on generating read-overview.png -->
 
 When _terraform plan | apply_ are executed Terraform core issues the `ReadResource` and `ReadDataSource` RPCs. Note that the `ReadResource` RPC is only issued when a resource already exists in state.
 
@@ -131,10 +140,12 @@ The `ReadResource` and `ReadDataSource` RPCs flow through the Terraform plugin f
 #### ReadResource RPC
 
 ![diagram: ReadResource RPC Detail](/img/read-resource-detail.png)
+<!-- Refer to README in /img directory for information on generating read-resource-detail.png -->
 
 #### ReadDataSource RPC
 
 ![diagram: ReadDataSource RPC Detail](/img/read-data-source-detail.png)
+<!-- Refer to README in /img directory for information on generating read-data-source-detail.png -->
 
 Within the Terraform plugin framework, `terraform-plugin-go` is used to expose gRPC endpoints defined by the Terraform plugin protocol. These endpoints implement the `tfplugin6.ProviderServer` interface for version 6 of the Terraform plugin protocol. The `terraform-plugin-go` module also defines the `tfprotov6.ProviderServer` interface which encompasses the `tfprotov6.ResourceServer` and `tfprotov6.DataSourceServer` interfaces. The `tfprotov6.ProviderServer` interface is implemented within the `terraform-plugin-framework` module.
 
@@ -149,6 +160,7 @@ In summary, the `resource.Resource` interface defines a `Read` function which is
 ### Summary
 
 ![diagram: PlanResourceChange RPC Overview](/img/plan-resource-change-overview.png)
+<!-- Refer to README in /img directory for information on generating plan-resource-change-overview.png -->
 
 When _terraform plan | apply_ are executed Terraform core issues the `PlanResourceChange` RPC. Note that the `PlanResourceChange` RPC is only issued when a resource exists in configuration and/or a resource already exists in state.
 
@@ -159,6 +171,7 @@ The `PlanResourceChange` RPC also calls `resource.Configure` if the `resource.Re
 ### Detail
 
 ![diagram: PlanResourceChange RPC Detail](/img/plan-resource-change-detail.png)
+<!-- Refer to README in /img directory for information on generating plan-resource-change-detail.png -->
 
 Within the Terraform plugin framework, `terraform-plugin-go` is used to expose gRPC endpoints defined by the Terraform plugin protocol. These endpoints implement the `tfplugin6.ProviderServer` interface for version 6 of the Terraform plugin protocol. The `terraform-plugin-go` module also defines the  `tfprotov6.ResourceServer` interface which is encompassed by the `tfplugin6.ProviderServer` interface.
 
@@ -177,6 +190,7 @@ In summary, `resource.Configure` is called on the resource if it implements the 
 ### Summary
 
 ![diagram: ApplyResourceChange RPC Overview](/img/apply-resource-change-overview.png)
+<!-- Refer to README in /img directory for information on generating apply-resource-change-overview.png -->
 
 When terraform apply is executed Terraform core issues the `ApplyResourceChange` RPC. Note that the `ApplyResourceChange RPC` is only issued when a resource exists in configuration and/or a resource already exists in state.
 
@@ -187,6 +201,7 @@ The `ApplyResourceChange` RPC also calls `resource.Configure` method if the `res
 ### Detail
 
 ![diagram: ApplyResourceChange RPC Detail](/img/apply-resource-change-detail.png)
+<!-- Refer to README in /img directory for information on generating apply-resource-change-detail.png -->
 
 Within the Terraform plugin framework, `terraform-plugin-go` is used to expose gRPC endpoints defined by the Terraform plugin protocol. These endpoints implement the `tfplugin6.ProviderServer` interface for version 6 of the Terraform plugin protocol. The `terraform-plugin-go` module also defines the `tfprotov6.ResourceServer` interface which is encompassed by the `tfplugin6.ProviderServer` interface.
 

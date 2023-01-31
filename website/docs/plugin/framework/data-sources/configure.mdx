@@ -55,6 +55,8 @@ Implement the [`datasource.DataSourceWithConfigure` interface](https://pkg.go.de
 
 The [`datasource.DataSourceWithConfigure` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithConfigure.Configure) is called during execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands when the [`ValidateDataResourceConfig`](/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPC is sent. Additionally, the [`datasource.DataSourceWithConfigure` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithConfigure.Configure) is called during execution of the [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands when the [`ReadDataSource`](/plugin/framework/internals/rpcs#readdatasource-rpc) RPC is sent.
 
+-> Note that Terraform calling the [`ValidateDataResourceConfig`](/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPC would not call the [`ConfigureProvider`](/plugin/framework/internals/rpcs#configureprovider-rpc) RPC first, so implementations need to account for that situation.  Configuration validation in Terraform occurs without provider configuration ("offline").
+
 In this example, the provider configured the Go standard library [`net/http.Client`](https://pkg.go.dev/net/http#Client) which the data source uses during `Read`:
 
 ```go

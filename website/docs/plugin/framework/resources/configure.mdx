@@ -55,6 +55,8 @@ Implement the [`resource.ResourceWithConfigure` interface](https://pkg.go.dev/gi
 
 The [`resource.ResourceWithConfigure` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigure.Configure) is called during execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands when the [`ValidateResourceConfig`](/plugin/framework/internals/rpcs#validateresourceconfig-rpc) RPC is sent. Additionally, the [`resource.ResourceWithConfigure` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithConfigure.Configure) is called during execution of the [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands when the [`ReadResource`](/plugin/framework/internals/rpcs#readresource-rpc) RPC is sent.
 
+-> Note that Terraform calling the [`ValidateResourceConfig`](/plugin/framework/internals/rpcs#validateresourceconfig-rpc) RPC would not call the [`ConfigureProvider`](/plugin/framework/internals/rpcs#configureprovider-rpc) RPC first, so implementations need to account for that situation. Configuration validation in Terraform occurs without provider configuration ("offline").
+
 In this example, the provider configured the Go standard library [`net/http.Client`](https://pkg.go.dev/net/http#Client) which the resource uses during `Read`:
 
 ```go

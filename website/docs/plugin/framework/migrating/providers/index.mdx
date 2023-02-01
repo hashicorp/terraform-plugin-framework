@@ -170,21 +170,25 @@ Refer to the [Resources](/plugin/framework/migrating/resources) and
 provider.
 
 ```go
-type ExampleCloudProvider struct {
+type exampleCloudProvider struct {
 }
 
 func New() provider.Provider {
-    return &ExampleCloudProvider{}
+    return &exampleCloudProvider{}
 }
 
-func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *exampleCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "examplecloud"
+}
+
+func (p *exampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
     resp.Schema = schema.Schema{}
 }
 
-func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *exampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 }
 
-func (p *ExampleCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *exampleCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
     return []func() resource.Resource {
         func() resource.Resource {
             return resourceExample{},
@@ -192,7 +196,7 @@ func (p *ExampleCloudProvider) Resources(ctx context.Context) []func() resource.
     }
 }
 
-func (p *ExampleCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *exampleCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource {
         func() datasource.DataSource {
             return dataSourceExample{},

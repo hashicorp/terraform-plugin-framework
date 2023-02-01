@@ -191,7 +191,7 @@ func (p *exampleCloudProvider) Configure(ctx context.Context, req provider.Confi
 func (p *exampleCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
     return []func() resource.Resource {
         func() resource.Resource {
-            return resourceExample{},
+            return resourceExample{}
         },
     }
 }
@@ -199,7 +199,7 @@ func (p *exampleCloudProvider) Resources(ctx context.Context) []func() resource.
 func (p *exampleCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource {
         func() datasource.DataSource {
-            return dataSourceExample{},
+            return dataSourceExample{}
         },
     }
 }
@@ -275,7 +275,7 @@ func (p *exampleProvider) Resources(_ context.Context) []func() resource.Resourc
 func (p *exampleProvider) DataSources(_ context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource{
         func() datasource.DataSource {
-            return &exampleDataSource{},
+            return &exampleDataSource{}
         },
         /* ... */
     }

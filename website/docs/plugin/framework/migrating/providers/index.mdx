@@ -192,7 +192,7 @@ func (p *ExampleCloudProvider) Resources(ctx context.Context) []func() resource.
     }
 }
 
-func (p *ExampleCloudProvider) GetDataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *ExampleCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource {
         func() datasource.DataSource {
             return dataSourceExample{},

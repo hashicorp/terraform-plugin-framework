@@ -36,7 +36,7 @@ attribute's `schema.Attribute` implementation.
 
 ```go
 func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    return schema.Schema{
+    resp.Schema = schema.Schema{
         /* ... */
         Attributes: map[string]schema.Attribute{
             "attribute_example": schema.StringAttribute{

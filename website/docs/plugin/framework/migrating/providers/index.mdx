@@ -291,7 +291,11 @@ func (p *exampleProvider) Schema(_ context.Context, _ provider.SchemaRequest, re
     }
 }
 
-func (p *exampleProvider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
+func (p *exampleProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "example"
+}
+
+func (p *exampleProvider) Configure(_ context.Context, _ provider.ConfigureRequest, resp *provider.ConfigureResponse) {
     /* ... */
 }
 ```

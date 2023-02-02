@@ -15,6 +15,8 @@ This page describes single attribute and type validation concepts that can be us
 
 -> **Note:** When implementing validation logic, configuration values may be [unknown](/plugin/framework/types#unknown) based on the source of the value. Implementations must account for this case, typically by returning early without returning new diagnostics.
 
+During execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan), [`terraform apply`](/cli/commands/apply) and [`terraform destroy`](/cli/commands/destroy) commands, Terraform calls the provider [`ValidateProviderConfig`](/plugin/framework/internals/rpcs#validateproviderconfig-rpc), [`ValidateResourceConfig`](/plugin/framework/internals/rpcs#validateresourceconfig-rpc) and [`ValidateDataResourceConfig`](/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPCs.
+
 ## Default Terraform CLI Validation
 
 The [Terraform configuration language](/language) is declarative and an implementation of [HashiCorp Configuration Language](https://github.com/hashicorp/hcl) (HCL). The Terraform CLI is responsible for reading and parsing configurations for validity, based on Terraform's concepts such as `resource` blocks and associated syntax. The Terraform CLI automatically handles basic validation of value type and behavior information based on the provider, resource, or data source schema. For example, the Terraform CLI returns an error when a string value is given where a list value is expected and also when a required attribute is missing from a configuration.

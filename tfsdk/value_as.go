@@ -15,6 +15,7 @@ import (
 // This is achieved using reflection rules provided by the internal/reflect package.
 func ValueAs(ctx context.Context, val attr.Value, target interface{}) diag.Diagnostics {
 	if reflect.IsGenericAttrValue(ctx, target) {
+		//nolint:forcetypeassert // Type assertion is guaranteed by the above `reflect.IsGenericAttrValue` function
 		*(target.(*attr.Value)) = val
 		return nil
 	}

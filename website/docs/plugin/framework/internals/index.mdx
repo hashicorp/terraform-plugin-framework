@@ -1,0 +1,15 @@
+---
+page_title: 'Plugin Development - Framework: Internals'
+description: >-
+  Framewwork internals.
+---
+
+# Internals
+
+The following information describes some internals of the Terraform Plugin Framework in order to provide a more in-depth view of specific aspects of Framework behaviour.
+
+## RPCs
+
+Terraform core issues RPCs when Terraform commands are executed resulting in the subsequent execution of methods defined within providers.
+
+Refer to [RPCs](/plugin/framework/internals/rpcs) for details of the [sequence of RPCs](/plugin/terraform-plugin-protocol#rpcs-and-terraform-commands) that are issued when Terraform commands are executed and Framework functionality that is called as a consequence.

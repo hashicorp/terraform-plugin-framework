@@ -101,6 +101,8 @@ The [`datasource.DataSource` interface `Schema` method](https://pkg.go.dev/githu
 
 The [`datasource.DataSource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Read) defines how the data source updates Terraform's state to reflect the retrieved data. There is no plan or prior state to work with in `Read` requests, only configuration.
 
+During the [`terraform apply`](/cli/commands/apply), [`terraform plan`](/cli/commands/plan), and [`terraform refresh`](/cli/commands/refresh) commands, Terraform calls the provider [`ReadDataSource`](/plugin/framework/internals/rpcs#readdatasource-rpc) RPC, in which the framework calls the [`datasource.DataSource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Read).
+
 Implement the `Read` method by:
 
 1. [Accessing configuration data](/plugin/framework/accessing-values) from the [`datasource.ReadRequest.Config` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadRequest.Config).

@@ -19,6 +19,8 @@ This page describes implementation details for validating entire data source con
 
 The [`datasource.DataSourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This enables consistent validation logic across multiple data sources. Each validator intended for this interface must implement the [`datasource.ConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ConfigValidator).
 
+During execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`ValidateDataResourceConfig`](/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPC, in which the framework calls the `ConfigValidators` method on data sources that implement the [`datasource.DataSourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithConfigValidators).
+
 The [`terraform-plugin-framework-validators` Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) has a collection of common use case data source configuration validators in the [`datasourcevalidator` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator). These use [path expressions](/plugin/framework/path-expressions) for matching attributes.
 
 This example will raise an error if a practitioner attempts to configure both `attribute_one` and `attribute_two`:
@@ -40,6 +42,8 @@ func (d ThingDataSource) ConfigValidators(ctx context.Context) []datasource.Conf
 ## ValidateConfig Method
 
 The [`datasource.DataSourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithValidateConfig) is more imperative in design and is useful for validating unique functionality across multiple attributes that typically applies to a single data source.
+
+During execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`ValidateDataResourceConfig`](/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPC, in which the framework calls the `ValidateConfig` method on providers that implement the [`datasource.DatasourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSourceWithValidateConfig).
 
 This example will raise a warning if a practitioner attempts to configure `attribute_one`, but not `attribute_two`:
 

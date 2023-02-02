@@ -60,7 +60,7 @@ func (r ThingResource) Create(ctx context.Context,
 ```
 
 The configuration, plan, and state data is represented as an object, and
-accessed like an object. Refer to the [conversion rules](#conversion-rules) for an
+accessed like an object. Refer to the [conversion rules](/plugin/framework/handling-data/conversion-rules#converting-from-framework-types-to-go-types) for an
 explanation on how objects can be converted into Go types.
 
 To descend into deeper nested data structures, the `types.List`, `types.Map`, and `types.Set` types each have an `ElementsAs()` method. The `types.Object` type has an `As()` method.

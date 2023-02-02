@@ -45,7 +45,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		return
 	}
 
-	if _, ok := req.Resource.(resource.ResourceWithConfigure); ok {
+	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 
 		configureReq := resource.ConfigureRequest{
@@ -54,7 +54,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		configureResp := resource.ConfigureResponse{}
 
 		logging.FrameworkDebug(ctx, "Calling provider defined Resource Configure")
-		req.Resource.(resource.ResourceWithConfigure).Configure(ctx, configureReq, &configureResp)
+		resourceWithConfigure.Configure(ctx, configureReq, &configureResp)
 		logging.FrameworkDebug(ctx, "Called provider defined Resource Configure")
 
 		resp.Diagnostics.Append(configureResp.Diagnostics...)
@@ -314,13 +314,25 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			return val, nil
 		}
 
-		configVal, _, err := tftypes.WalkAttributePath(config, path)
+		configValIface, _, err := tftypes.WalkAttributePath(config, path)
 
-		if err != tftypes.ErrInvalidStep && err != nil {
-			logging.FrameworkError(ctx, "error walking attribute path")
-			return val, err
-		} else if err != tftypes.ErrInvalidStep && !configVal.(tftypes.Value).IsNull() {
-			logging.FrameworkTrace(ctx, "attribute not null in config, not marking unknown")
+		if err != nil && err != tftypes.ErrInvalidStep {
+			logging.FrameworkError(ctx,
+				"Error walking attributes/block path during unknown marking",
+				map[string]any{
+					logging.KeyError: err.Error(),
+				},
+			)
+			return val, fmt.Errorf("error walking attribute/block path during unknown marking: %w", err)
+		}
+
+		configVal, ok := configValIface.(tftypes.Value)
+		if !ok {
+			return val, fmt.Errorf("unexpected type during unknown marking: %T", configValIface)
+		}
+
+		if !configVal.IsNull() {
+			logging.FrameworkTrace(ctx, "Attribute/block not null in configuration, not marking unknown")
 			return val, nil
 		}
 

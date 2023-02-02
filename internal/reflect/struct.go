@@ -177,7 +177,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 
 		attrType, ok := attrTypes[name]
 		if !ok || attrType == nil {
-			err := fmt.Errorf("couldn't find type information for attribute in supplied attr.Type %T", typ)
+			err := fmt.Errorf("couldn't find type information for attribute at %s in supplied attr.Type %T", path, typ)
 			diags.AddAttributeError(
 				path,
 				"Value Conversion Error",

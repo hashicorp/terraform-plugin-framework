@@ -140,7 +140,15 @@ func (t Float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 
 	f, accuracy := bigF.Float64()
 
-	if accuracy != 0 {
+	// Underflow
+	// Reference: https://pkg.go.dev/math/big#Float.Float64
+	if f == 0 && accuracy != big.Exact {
+		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
+	}
+
+	// Overflow
+	// Reference: https://pkg.go.dev/math/big#Float.Float64
+	if math.IsInf(f, 0) {
 		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
 	}
 

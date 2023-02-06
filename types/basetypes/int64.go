@@ -125,8 +125,8 @@ func (i Int64Value) String() string {
 	return fmt.Sprintf("%d", i.value)
 }
 
-// ValueInt64 returns the known float64 value. If Int64 is null or unknown, returns
-// 0.0.
+// ValueInt64 returns the known int64 value. If Int64 is null or unknown, returns
+// 0.
 func (i Int64Value) ValueInt64() int64 {
 	return i.value
 }

@@ -6,7 +6,7 @@ description: >-
 
 # Update Resources
 
-In-place update is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`]((/plugin/framework/internals/rpcs#applyresourcechange-rpc)) RPC, in which the framework calls the [`resource.Resource` interface `Update` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Update). The request contains Terraform prior state, configuration, and plan data. The response contains updated state data. The data is defined by the [schema](/plugin/framework/schemas) of the resource.
+In-place update is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Update` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Update). The request contains Terraform prior state, configuration, and plan data. The response contains updated state data. The data is defined by the [schema](/plugin/framework/schemas) of the resource.
 
 To ensure that Terraform plans replacement of a resource, rather than perform an in-place update, use the [`resource.RequiresReplace()` attribute plan modifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#RequiresReplace) in the schema or implement [resource plan modification](/plugin/framework/resources/plan-modification).
 

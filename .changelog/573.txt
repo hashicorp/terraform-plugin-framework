@@ -1,3 +1,0 @@
-```release-note:breaking-change
-resource: The `StateUpgrader` type `PriorSchema` field type has been migrated from `tfsdk.Schema` to `resource/schema.Schema`, similar to other resource schema handling
-```

@@ -1,3 +1,0 @@
-```release-note:breaking-change
-tfsdk: The `Schema` type `AttributeAtPath` method now returns a `fwschema.Attribute` interface instead of a `tfsdk.Attribute` type. Consumers will need to update from direct field usage to similarly named interface method calls.
-```

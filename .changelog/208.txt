@@ -1,3 +1,0 @@
-```release-note:bug
-types: Prevent panics when `ValueFromTerraform` received `nil` values
-```

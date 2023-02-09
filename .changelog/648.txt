@@ -1,3 +1,0 @@
-```release-notes:bug
-types/basetypes: Fixed `Float64Type` type `ValueFromTerraform` method to handle valid, stringified numbers from Terraform
-```

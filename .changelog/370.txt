@@ -1,3 +1,0 @@
-```release-notes:enhancement
-internal/fwserver: Added `Attribute` validation for missing required configurations and invalid read-only configurations
-```

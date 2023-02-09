@@ -1,3 +1,0 @@
-```release-note:breaking-change
-tfsdk: The `RequiresReplace()`, `RequiresReplaceIf()`, and `UseStateForUnknown()` plan modifier functions, which only apply to managed resources, have been moved to the `resource` package.
-```

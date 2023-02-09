@@ -1,3 +1,0 @@
-```release-note:note
-The Terraform Plugin Framework is now in beta. Feedback towards a general availability release in the future with compatibility promises is appreciated.
-```

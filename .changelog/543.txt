@@ -1,7 +1,0 @@
-```release-note:breaking-change
-tfsdk: The `Attribute` type `FrameworkType()` method has been removed. Use the `GetType()` method instead which returns the same information.
-```
-
-```release-note:breaking-change
-tfsdk: The `Attribute` type `GetType()` method now returns type information whether the attribute implements the `Type` field or `Attributes` field.
-```

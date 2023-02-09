@@ -1,0 +1,10 @@
+kind: NOTES
+body: New `DEBUG` level `Detected value change between proposed new state and prior
+  state` log messages with the offending attribute path are now emitted when proposed
+  new state value differences would cause the framework to automatically mark all
+  unconfigured `Computed` attributes as unknown during planning. These can be used
+  to troubleshoot potential resource implementation issues, or framework and Terraform
+  plan logic bugs.
+time: 2023-02-09T17:28:18.492474-05:00
+custom:
+  Issue: "630"

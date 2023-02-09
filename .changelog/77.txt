@@ -1,3 +1,0 @@
-```release-note:breaking-change
-The `schema.Attribute` and `schema.Schema` types have been moved to `tfsdk.Attribute` and `tfsdk.Schema`. No changes beyond import names are required.
-```

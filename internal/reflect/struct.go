@@ -71,27 +71,19 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
-	targetFields, err := getStructTags(ctx, target, path)
-	if err != nil {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        object,
-			TargetType: target.Type(),
-			Err:        fmt.Errorf("error retrieving field names from struct tags: %w", err),
-		}))
-		return target, diags
-	}
+	targetFields := typeFields(target.Type())
 
 	// we require an exact, 1:1 match of these fields to avoid typos
 	// leading to surprises, so let's ensure they have the exact same
 	// fields defined
 	var objectMissing, targetMissing []string
-	for field := range targetFields {
+	for field := range targetFields.nameIndex {
 		if _, ok := objectFields[field]; !ok {
 			objectMissing = append(objectMissing, field)
 		}
 	}
 	for field := range objectFields {
-		if _, ok := targetFields[field]; !ok {
+		if _, ok := targetFields.nameIndex[field]; !ok {
 			targetMissing = append(targetMissing, field)
 		}
 	}
@@ -116,8 +108,8 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	// now that we know they match perfectly, fill the struct with the
 	// values in the object
 	result := reflect.New(target.Type()).Elem()
-	for field, structFieldPos := range targetFields {
-		attrType, ok := attrTypes[field]
+	for _, field := range targetFields.list {
+		attrType, ok := attrTypes[field.name]
 		if !ok {
 			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
 				Val:        object,
@@ -126,8 +118,9 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			}))
 			return target, diags
 		}
-		structField := result.Field(structFieldPos)
-		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.AtName(field))
+
+		structField := fieldByIndex(result, field.index)
+		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field.name], structField, opts, path.AtName(field.name))
 		diags.Append(fieldValDiags...)
 
 		if diags.HasError() {
@@ -152,30 +145,21 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
-	targetFields, err := getStructTags(ctx, val, path)
-	if err != nil {
-		err = fmt.Errorf("error retrieving field names from struct tags: %w", err)
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert from struct value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return nil, diags
-	}
+	valFields := typeFields(val.Type())
 
 	attrTypes := typ.AttributeTypes()
-	for name, fieldNo := range targetFields {
-		path := path.AtName(name)
-		fieldValue := val.Field(fieldNo)
+	for _, field := range valFields.list {
+		path := path.AtName(field.name)
+		fieldValue := fieldByIndex(val, field.index)
 
-		attrVal, attrValDiags := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)
+		attrVal, attrValDiags := FromValue(ctx, attrTypes[field.name], fieldValue.Interface(), path)
 		diags.Append(attrValDiags...)
 
 		if diags.HasError() {
 			return nil, diags
 		}
 
-		attrType, ok := attrTypes[name]
+		attrType, ok := attrTypes[field.name]
 		if !ok || attrType == nil {
 			err := fmt.Errorf("couldn't find type information for attribute at %s in supplied attr.Type %T", path, typ)
 			diags.AddAttributeError(
@@ -186,7 +170,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 			return nil, diags
 		}
 
-		objTypes[name] = attrType.TerraformType(ctx)
+		objTypes[field.name] = attrType.TerraformType(ctx)
 
 		tfObjVal, err := attrVal.ToTerraformValue(ctx)
 		if err != nil {
@@ -201,7 +185,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 			}
 		}
 
-		objValues[name] = tfObjVal
+		objValues[field.name] = tfObjVal
 	}
 
 	tfVal := tftypes.NewValue(tftypes.Object{

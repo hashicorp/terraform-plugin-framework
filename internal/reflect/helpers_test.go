@@ -1,12 +1,9 @@
 package reflect
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"testing"
-
-	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 func TestTrueReflectValue(t *testing.T) {
@@ -103,15 +100,12 @@ func TestGetStructTags_success(t *testing.T) {
 		ExportedAndExcluded string `tfsdk:"-"`
 	}
 
-	res, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.Empty())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
+	fields := typeFields(reflect.ValueOf(testStruct{}).Type())
+	if len(fields.nameIndex) != 1 {
+		t.Errorf("Unexpected result: %v", fields)
 	}
-	if len(res) != 1 {
-		t.Errorf("Unexpected result: %v", res)
-	}
-	if res["exported_and_tagged"] != 0 {
-		t.Errorf("Unexpected result: %v", res)
+	if fields.nameIndex["exported_and_tagged"] != 0 {
+		t.Errorf("Unexpected result: %v", fields)
 	}
 }
 
@@ -120,13 +114,12 @@ func TestGetStructTags_untagged(t *testing.T) {
 	type testStruct struct {
 		ExportedAndUntagged string
 	}
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.Empty())
-	if err == nil {
-		t.Error("Expected error, got nil")
+	fields := typeFields(reflect.ValueOf(testStruct{}).Type())
+	if len(fields.nameIndex) != 1 {
+		t.Errorf("Unexpected result: %v", fields)
 	}
-	expected := `: need a struct tag for "tfsdk" on ExportedAndUntagged`
-	if err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
+	if fields.nameIndex["ExportedAndUntagged"] != 0 {
+		t.Errorf("Unexpected result: %v", fields)
 	}
 }
 
@@ -135,13 +128,12 @@ func TestGetStructTags_invalidTag(t *testing.T) {
 	type testStruct struct {
 		InvalidTag string `tfsdk:"invalidTag"`
 	}
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.Empty())
-	if err == nil {
-		t.Errorf("Expected error, got nil")
+	fields := typeFields(reflect.ValueOf(testStruct{}).Type())
+	if len(fields.nameIndex) != 1 {
+		t.Errorf("Unexpected result: %v", fields)
 	}
-	expected := `invalidTag: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`
-	if err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
+	if fields.nameIndex["InvalidTag"] != 0 {
+		t.Errorf("Unexpected result: %v", fields)
 	}
 }
 
@@ -151,13 +143,26 @@ func TestGetStructTags_duplicateTag(t *testing.T) {
 		Field1 string `tfsdk:"my_field"`
 		Field2 string `tfsdk:"my_field"`
 	}
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.Empty())
-	if err == nil {
-		t.Errorf("Expected error, got nil")
+	fields := typeFields(reflect.ValueOf(testStruct{}).Type())
+	if len(fields.nameIndex) != 0 {
+		t.Errorf("Unexpected result: %v", fields)
 	}
-	expected := `my_field: can't use field name for both Field1 and Field2`
-	if err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
+}
+
+func TestGetStructTags_embeddedStruct(t *testing.T) {
+	t.Parallel()
+	type embeddedStruct struct {
+		Field1 string `tfsdk:"my_field"`
+	}
+	type testStruct struct {
+		embeddedStruct
+	}
+	fields := typeFields(reflect.ValueOf(testStruct{}).Type())
+	if len(fields.nameIndex) != 1 {
+		t.Errorf("Unexpected result: %v", fields)
+	}
+	if fields.list[0].index[0] != 0 || fields.list[0].index[1] != 0 {
+		t.Errorf("Unexpected result: %v", fields)
 	}
 }
 
@@ -165,17 +170,16 @@ func TestGetStructTags_notAStruct(t *testing.T) {
 	t.Parallel()
 	var testStruct string
 
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct), path.Empty())
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
-	expected := `: can't get struct tags of string, is not a struct`
-	if err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
-	}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("The code did not panic")
+		}
+	}()
+
+	typeFields(reflect.ValueOf(testStruct).Type())
 }
 
-func TestIsValidFieldName(t *testing.T) {
+func TestIsValidTag(t *testing.T) {
 	t.Parallel()
 	tests := map[string]bool{
 		"":    false,
@@ -192,7 +196,7 @@ func TestIsValidFieldName(t *testing.T) {
 		t.Run(fmt.Sprintf("input=%q", in), func(t *testing.T) {
 			t.Parallel()
 
-			result := isValidFieldName(in)
+			result := isValidTag(in)
 			if result != expected {
 				t.Errorf("Expected %v, got %v", expected, result)
 			}

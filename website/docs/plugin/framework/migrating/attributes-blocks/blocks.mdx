@@ -14,6 +14,17 @@ This page explains how to migrate nested blocks that are not computed (i.e., do 
 [Blocks with Computed Fields](/plugin/framework/migrating/attributes-blocks/blocks-computed) for more details
 about migrating nested blocks that contain fields that are computed.
 
+Refer to [Attribute Fields](/plugin/framework/migrating/attributes-blocks/fields) for details regarding the relationship
+between [SDK Schema Fields](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/helper/schema#Schema) and
+the Framework.
+
+~> **Important:** `ListNestedBlock`, `SetNestedBlock` and `SingleNestedBlock` within the Framework do not have a field
+for `Required` at the level of the block. However, the behaviour of `Required` can be replicated by using
+[listvalidator.IsRequired](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/listvalidator#IsRequired),
+[setvalidator.IsRequired](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/setvalidator#IsRequired) and
+[objectvalidator.IsRequired](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator#IsRequired),
+respectively.
+
 ## Nested Block Example
 
 The following example shows a nested block in Terraform resource configuration. The `subject` nested

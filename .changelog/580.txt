@@ -1,3 +1,0 @@
-```release-note:breaking-change
-provider: The `Provider` interface now requires the `Metadata` method. It can be left empty or set the `MetadataResponse` type `TypeName` field to populate `datasource.MetadataRequest` and `resource.MetadataRequest` type `ProviderTypeName` fields.
-```

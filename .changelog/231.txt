@@ -1,3 +1,0 @@
-```release-note:breaking-change
-The `ToTerraformValue` method of the `attr.Value` interface now returns a `tftypes.Value`, instead of an `interface{}`. Existing types need to be updated to call `tftypes.ValidateValue` and `tftypes.NewValue`, passing the value they were returning before, instead of returning the value directly.
-```

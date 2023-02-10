@@ -1,7 +1,0 @@
-```release-note:note
-datasource: The `DataSource` type `GetSchema` method has been deprecated. Use the `Schema` method instead.
-```
-
-```release-note:feature
-datasource/schema: New package which contains schema interfaces and types relevant to data sources
-```

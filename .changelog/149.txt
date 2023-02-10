@@ -1,7 +1,0 @@
-```release-note:breaking-change
-tfsdk: `Resource` implementations must now include the `ImportState(context.Context, ImportResourceStateRequest, *ImportResourceStateResponse)` method. If import is not supported, call the `ResourceImportStateNotImplemented()` function or return an error.
-```
-
-```release-note:feature
-tfsdk: Support resource import
-```

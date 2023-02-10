@@ -1,3 +1,0 @@
-```release-note:feature
-Added support for provider, resource, and data source types.
-```

@@ -1,3 +1,0 @@
-```release-note:enhancement
-Logging can now be used by calling `tflog.Trace`, `tflog.Debug`, `tflog.Info`, `tflog.Warn`, or `tflog.Error`. See [the tflog docs](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog) for more information.
-```

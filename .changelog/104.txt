@@ -1,3 +1,0 @@
-```release-note:breaking-change
-With the release of Go 1.17, Go 1.17 is now the lowest supported version of Go to use with terraform-plugin-framework.
-```

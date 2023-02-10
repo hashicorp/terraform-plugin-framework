@@ -1,3 +1,0 @@
-```release-note:bug
-internal/fwserver: Ensured `UpgradeResourceState` calls from Terraform 0.12 properly ignored attributes not defined in the schema
-```

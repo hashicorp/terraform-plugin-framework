@@ -1,3 +1,0 @@
-```release-note:feature
-tfsdk: Added optional `ResourceWithUpgradeState` interface, which allows for provider defined logic when the `UpgradeResourceState` RPC is called
-```

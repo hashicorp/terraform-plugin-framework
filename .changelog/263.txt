@@ -1,3 +1,0 @@
-```release-note:bug
-tfsdk: Support protocol version 5 and verify valid resource type in `UpgradeResourceState` RPC
-```

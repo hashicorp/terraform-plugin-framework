@@ -1,7 +1,0 @@
-```release-note:note
-New `DEBUG` level `Detected value change between proposed new state and prior state` log messages with the offending attribute path are now emitted when proposed new state value differences would cause the framework to automatically mark all unconfigured `Computed` attributes as unknown during planning. These can be used to troubleshoot potential resource implementation issues, or framework and Terraform plan logic bugs.
-```
-
-```release-note:enhancement
-internal/fwserver: Added `DEBUG` logging to aid troubleshooting unexpected plans with unknown values
-```

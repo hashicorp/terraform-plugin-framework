@@ -1,3 +1,0 @@
-```release-note:bug
-tfsdk: `(Plan).SetAttribute()` and `(State).SetAttribute()` will now create missing attribute paths instead of silently failing to update.
-```

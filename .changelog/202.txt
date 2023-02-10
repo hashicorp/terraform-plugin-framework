@@ -1,3 +1,0 @@
-```release-note:bug
-types: Ensure `Float64` `Type()` method returns `Float64Type`
-```

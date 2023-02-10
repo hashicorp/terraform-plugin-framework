@@ -1,3 +1,0 @@
-```release-note:bug
-types: Prevented panics with missing type information during `Float64`, `Int64`, and `Set` validation logic
-```

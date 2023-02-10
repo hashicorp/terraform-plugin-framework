@@ -1,3 +1,0 @@
-```release-note:feature
-Added the ability to serve providers.
-```

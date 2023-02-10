@@ -1,3 +1,0 @@
-```release-note:bug
-types: Ensured `List`, `Map`, and `Set` types with `xattr.TypeWithValidate` elements run validation on those elements
-```

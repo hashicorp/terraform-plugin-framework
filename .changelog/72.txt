@@ -1,3 +1,0 @@
-```release-note:enhancement
-Added `tfsdk.NewProtocol6Server` to return a `tfprotov6.ProviderServer` implementation for testing and muxing purposes.
-```

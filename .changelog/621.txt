@@ -1,3 +1,0 @@
-```release-note:enhancement
-tfsdk: Automatically prevented Terraform `nested blocks must be empty to indicate no blocks` errors for responses containing `Plan` and `State` types
-```

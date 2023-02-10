@@ -1,3 +1,0 @@
-```release-note:feature
-resource: Enabled provider developers to read/write private state data.
-```

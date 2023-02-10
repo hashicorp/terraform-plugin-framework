@@ -1,3 +1,0 @@
-```release-note:bug
-internal/fwserver: Delayed deprecated attribute/block warnings for unknown values, which may be null
-```

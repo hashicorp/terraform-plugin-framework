@@ -1,3 +1,0 @@
-```release-note:enhancement
-diag: `ErrorsCount`, `WarningsCount`, `Errors` and `Warnings` functions have been added to `diag.Diagnostics`
-```

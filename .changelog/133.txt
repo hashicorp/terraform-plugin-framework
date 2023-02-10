@@ -1,3 +1,0 @@
-```release-note:bug
-tfsdk: Diagnostics returned from `(Plan).SetAttribute()` and `(State).SetAttribute()` reflection will now properly include attribute path
-```

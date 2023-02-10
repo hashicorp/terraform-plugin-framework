@@ -1,3 +1,0 @@
-```release-note:bug
-tfsdk: Removed `Schema` restriction that it must contain at least one attribute or block
-```

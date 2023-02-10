@@ -1,3 +1,0 @@
-```release-note:breaking-change
-diag: Removed `Diagnostics` type `ToTfprotov6Diagnostics()` method. This was not intended for usage by provider developers.
-```

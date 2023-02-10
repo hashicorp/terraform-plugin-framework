@@ -1,3 +1,0 @@
-```release-note:feature
-schema/validator: New package which contains type-specific schema validator interfaces
-```

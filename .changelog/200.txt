@@ -1,3 +1,0 @@
-```release-note:bug
-types: Prevent panic with uninitialized `Number` `Value`
-```

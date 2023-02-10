@@ -1,3 +1,0 @@
-```release-note:bug
-all: Prevented `tftypes.NewValue can't use []tftypes.Value as a tftypes.Object` panics with schemas that included `SingleNestedBlock`
-```

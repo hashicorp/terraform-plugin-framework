@@ -1,3 +1,0 @@
-```release-note:breaking-change
-provider: The `ProviderWithMetaSchema` type `GetMetaSchema` method has been replaced with the `MetaSchema` method
-```

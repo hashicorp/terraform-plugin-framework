@@ -17,7 +17,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -576,6 +579,72 @@ func TestBlockModifyPlan(t *testing.T) {
 					},
 				),
 				Private: testProviderData,
+			},
+		},
+		"block-list-usestateforunknown": {
+			block: testschema.BlockWithListPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"nested_computed": testschema.Attribute{
+						Type:     types.StringType,
+						Computed: true,
+					},
+				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.ListNull(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.ListUnknown(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					},
+				),
+				AttributeState: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue1"),
+							},
+						),
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue1"),
+							},
+						),
+					},
+				),
 			},
 		},
 		"block-set-null-plan": {
@@ -1215,6 +1284,72 @@ func TestBlockModifyPlan(t *testing.T) {
 				),
 			},
 		},
+		"block-set-usestateforunknown": {
+			block: testschema.BlockWithSetPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"nested_computed": testschema.Attribute{
+						Type:     types.StringType,
+						Computed: true,
+					},
+				},
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.SetNull(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.SetUnknown(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					},
+				),
+				AttributeState: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue1"),
+							},
+						),
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue1"),
+							},
+						),
+					},
+				),
+			},
+		},
 		"block-single-null-plan": {
 			block: testschema.BlockWithObjectPlanModifiers{
 				Attributes: map[string]fwschema.Attribute{
@@ -1428,6 +1563,50 @@ func TestBlockModifyPlan(t *testing.T) {
 					map[string]attr.Value{
 						"nested_computed": types.StringValue("statevalue"),
 						"nested_required": types.StringValue("testvalue"),
+					},
+				),
+			},
+		},
+		"block-single-usestateforunknown": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"nested_computed": testschema.Attribute{
+						Type:     types.StringType,
+						Computed: true,
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.ObjectNull(
+					map[string]attr.Type{
+						"nested_computed": types.StringType,
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.ObjectUnknown(
+					map[string]attr.Type{
+						"nested_computed": types.StringType,
+					},
+				),
+				AttributeState: types.ObjectValueMust(
+					map[string]attr.Type{
+						"nested_computed": types.StringType,
+					},
+					map[string]attr.Value{
+						"nested_computed": types.StringValue("statevalue1"),
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectValueMust(
+					map[string]attr.Type{
+						"nested_computed": types.StringType,
+					},
+					map[string]attr.Value{
+						"nested_computed": types.StringValue("statevalue1"),
 					},
 				),
 			},

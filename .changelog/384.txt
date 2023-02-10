@@ -1,3 +1,0 @@
-```release-note:enhancement
-types: Method `IsNull()` for `Number` type will now return true if the struct is zero-value initialized.
-```

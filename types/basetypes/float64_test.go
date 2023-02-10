@@ -147,6 +147,39 @@ func TestFloat64TypeValueFromTerraform(t *testing.T) {
 			input:       tftypes.NewValue(tftypes.String, "oops"),
 			expectedErr: "can't unmarshal tftypes.String into *big.Float, expected *big.Float",
 		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/647
+		"zero-string-float": {
+			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("0.0")),
+			expectation: NewFloat64Value(0.0),
+		},
+		"positive-string-float": {
+			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("123.2")),
+			expectation: NewFloat64Value(123.2),
+		},
+		"negative-string-float": {
+			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("-123.2")),
+			expectation: NewFloat64Value(-123.2),
+		},
+		// Reference: https://pkg.go.dev/math/big#Float.Float64
+		// Reference: https://pkg.go.dev/math#pkg-constants
+		"SmallestNonzeroFloat64": {
+			input:       tftypes.NewValue(tftypes.Number, big.NewFloat(math.SmallestNonzeroFloat64)),
+			expectation: NewFloat64Value(math.SmallestNonzeroFloat64),
+		},
+		"SmallestNonzeroFloat64-below": {
+			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("4.9406564584124654417656879286822137236505980e-325")),
+			expectedErr: fmt.Sprintf("Value %s cannot be represented as a 64-bit floating point.", testMustParseFloat("4.9406564584124654417656879286822137236505980e-325")),
+		},
+		// Reference: https://pkg.go.dev/math/big#Float.Float64
+		// Reference: https://pkg.go.dev/math#pkg-constants
+		"MaxFloat64": {
+			input:       tftypes.NewValue(tftypes.Number, big.NewFloat(math.MaxFloat64)),
+			expectation: NewFloat64Value(math.MaxFloat64),
+		},
+		"MaxFloat64-above": {
+			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("1.79769313486231570814527423731704356798070e+309")),
+			expectedErr: fmt.Sprintf("Value %s cannot be represented as a 64-bit floating point.", testMustParseFloat("1.79769313486231570814527423731704356798070e+309")),
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test

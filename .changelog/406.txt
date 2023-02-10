@@ -1,3 +1,0 @@
-```release-note:enhancement
-tfsdk: Added framework-specific error diagnostics when `Resource` implementations errantly return no errors and empty state after `Create` and `Update` methods
-```

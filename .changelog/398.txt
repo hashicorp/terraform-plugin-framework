@@ -1,3 +1,0 @@
-```release-note:enhancement
-providerserver: Added sdk.proto logger request duration and response diagnostics logging
-```

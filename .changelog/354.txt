@@ -1,3 +1,0 @@
-```release-note:bug
-types: Prevented panic being thrown when `.ToTerraformValue` is called on an `attr.Value` type where `ElemType / AttrsType` were not set.
-```

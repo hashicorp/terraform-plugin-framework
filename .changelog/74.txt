@@ -1,3 +1,0 @@
-```release-note:enhancement
-Responses now default to returning the current state, meaning state will only change when provider developers actively change it. Previously, an empty state value would be returned, which caused problems.
-```

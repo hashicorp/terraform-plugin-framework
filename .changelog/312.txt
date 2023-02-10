@@ -1,3 +1,0 @@
-```release-note:breaking-change
-tfsdk: The `ResourceImportStateNotImplemented()` function has been removed. Remove the `Resource` type `ImportState` method instead for resources that should not support import.
-```

@@ -1,7 +1,0 @@
-```release-note:breaking-change
-Most uses of `[]*tfprotov6.Diagnostic` have been replaced with a new `diag.Diagnostics` type. Please update your type signatures, and use one of the `diags.New*` helper functions instead of constructing `*tfprotov6.Diagnostic`s by hand.
-```
-
-```release-note:feature
-Introduced first-class diagnostics (`diag` package).
-```

@@ -1,3 +1,0 @@
-```release-note:enhancement
-tfsdk: Added `DEBUG` level logging for all framework handoffs to provider defined logic
-```

@@ -1,3 +1,0 @@
-```release-note:enhancement
-tfsdk: Added `Debug` field to `ServeOpts` for running providers via debugger and testing processes
-```

@@ -1,3 +1,0 @@
-```release-note:feature
-Added state, config, and plan types, and support for getting values from them.
-```

@@ -1,7 +1,0 @@
-```release-note:breaking-change
-Fixed RequiresReplace and RequiresReplaceIf to be more judicious about when they require a resource to be destroyed and recreated. They will no longer require resources to be recreated when _any_ attribute changes, instead limiting it only to the attribute they're declared on. They will also not require resources to be recreated when they're being created or deleted. Finally, they won't require a resource to be recreated if the user has no value in the config for the attribute and the attribute is computed; this is to prevent the resource from being destroyed and recreated when the provider changes the value without any user prompting. Providers that wish to destroy and recreate the resource when an optional and computed attribute is removed from the user's config should do so in their own plan modifier.
-```
-
-```release-note:breaking-change
-RequiresReplaceIf no longer overrides previous plan modifiers' value for RequiresReplace if the function returns false.
-```

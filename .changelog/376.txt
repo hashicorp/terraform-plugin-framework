@@ -1,7 +1,0 @@
-```release-note:breaking-change
-attr: The `Value` interface now includes the `String()` method
-```
-
-```release-note:enhancement
-types: Added `String()` method to all types
-```

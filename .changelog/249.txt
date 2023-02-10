@@ -1,3 +1,0 @@
-```release-note:breaking-change
-tfsdk: The `ListNestedAttributesOptions`, `MapNestedAttributeOptions`, and `SetNestedAttributeOptions` type `MaxItems` and `MinItems` fields have been removed since the protocol and framework never supported this type of nested attribute validation. Use attribute validators instead.
-```

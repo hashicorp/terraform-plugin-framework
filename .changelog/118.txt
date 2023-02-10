@@ -1,3 +1,0 @@
-```release-note:bug
-tfsdk: Don't attempt validation on the nested attributes of a null or unknown `SingleNestedAttribute`
-```

@@ -1,7 +1,0 @@
-```release-note:breaking-change
-diag: The `AttributeErrorDiagnostic` and `AttributeWarningDiagnostic` types have been removed. Any usage can be replaced with `DiagnosticWithPath`.
-```
-
-```release-note:enhancement
-diag: Added `WithPath()` function to wrap or overwrite diagnostic path information.
-```

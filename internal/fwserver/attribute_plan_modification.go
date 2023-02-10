@@ -135,7 +135,9 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req ModifyAt
 			return
 		}
 
-		planList, diags := coerceListValue(ctx, req.AttributePath, req.AttributePlan)
+		// Use response as the planned value may have been modified with list
+		// plan modifiers.
+		planList, diags := coerceListValue(ctx, req.AttributePath, resp.AttributePlan)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -220,7 +222,9 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req ModifyAt
 			return
 		}
 
-		planSet, diags := coerceSetValue(ctx, req.AttributePath, req.AttributePlan)
+		// Use response as the planned value may have been modified with set
+		// plan modifiers.
+		planSet, diags := coerceSetValue(ctx, req.AttributePath, resp.AttributePlan)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -305,7 +309,9 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req ModifyAt
 			return
 		}
 
-		planMap, diags := coerceMapValue(ctx, req.AttributePath, req.AttributePlan)
+		// Use response as the planned value may have been modified with map
+		// plan modifiers.
+		planMap, diags := coerceMapValue(ctx, req.AttributePath, resp.AttributePlan)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -390,7 +396,9 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req ModifyAt
 			return
 		}
 
-		planObject, diags := coerceObjectValue(ctx, req.AttributePath, req.AttributePlan)
+		// Use response as the planned value may have been modified with object
+		// plan modifiers.
+		planObject, diags := coerceObjectValue(ctx, req.AttributePath, resp.AttributePlan)
 
 		resp.Diagnostics.Append(diags...)
 

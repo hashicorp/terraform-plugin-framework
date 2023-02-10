@@ -1,3 +1,0 @@
-```release-note:feature
-types: Support for `Float64`, `Float64Type`, `Int64`, and `Int64Type`
-```

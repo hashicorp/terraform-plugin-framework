@@ -1,7 +1,0 @@
-```release-note:breaking-change
-attr: The `Type` interface now requires the `ValueType` method, which is used for enhancing error diagnostics from the framework
-```
-
-```release-note:enhancement
-internal/reflect: Added `attr.Value` type suggestions to error diagnostics
-```

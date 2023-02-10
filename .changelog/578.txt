@@ -1,3 +1,0 @@
-```release-note:note
-The Terraform Plugin Framework is now generally available with semantic versioning compatibility promises.
-```

@@ -1,3 +1,0 @@
-```release-note:bug
-types: Prevented potential loss of number precision with `Int64` between 54 and 64 bits
-```

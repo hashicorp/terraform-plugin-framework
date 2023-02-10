@@ -36,6 +36,15 @@ resource "timeouts_example" "example" {
 }
 ```
 
+Import the [timeouts module](https://github.com/hashicorp/terraform-plugin-framework-timeouts).
+
+```go
+import (
+    /* ... */
+    "github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
+)
+````
+
 You can use this module to mutate the `schema.Schema` as follows:
 
 ```go

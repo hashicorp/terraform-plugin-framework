@@ -7,17 +7,17 @@ description: >-
 
 # Paths
 
-An exact location within a [schema](/plugin/framework/handling-data/schemas) or schema-based data such as [`tfsdk.Config`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config), [`tfsdk.Plan`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Plan), or [`tfsdk.State`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State), is referred to as a path.
+An exact location within a [schema](/terraform/plugin/framework/handling-data/schemas) or schema-based data such as [`tfsdk.Config`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Config), [`tfsdk.Plan`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Plan), or [`tfsdk.State`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State), is referred to as a path.
 
 ## Usage
 
 Example uses in the framework include:
 
-- [Diagnostics](/plugin/framework/diagnostics) intended for a specific attribute, which allows Terraform to show the configuration file and line information.
-- [Accessing configuration, plan, or state data](/plugin/framework/accessing-values) for a specific attribute.
-- [Writing plan or state data](/plugin/framework/writing-state) for a specific attribute.
+- [Diagnostics](/terraform/plugin/framework/diagnostics) intended for a specific attribute, which allows Terraform to show the configuration file and line information.
+- [Accessing configuration, plan, or state data](/terraform/plugin/framework/accessing-values) for a specific attribute.
+- [Writing plan or state data](/terraform/plugin/framework/writing-state) for a specific attribute.
 
-More advanced use cases, such as [path based attribute validators](/plugin/framework/validation#path-based-attribute-validators), typically implement [path expressions](/plugin/framework/path-expressions) which enables additional logic beyond exact paths.
+More advanced use cases, such as [path based attribute validators](/terraform/plugin/framework/validation#path-based-attribute-validators), typically implement [path expressions](/terraform/plugin/framework/path-expressions) which enables additional logic beyond exact paths.
 
 ## Concepts
 
@@ -27,7 +27,7 @@ Given the tree structure of Terraform schemas, descriptions of paths and their s
 
 Every path must align with the schema definition or an error diagnostic will be raised when working with paths within the framework. Provider-defined functionality that is schema-based, such as attribute validation and attribute plan modification, are provided an accurate current path since that functionality would not be able to determine its own path.
 
-[Path expressions](/plugin/framework/path-expressions) are an abstraction on top of paths, which enable additional use cases with provider-defined functionality, such as relative path, parent step, and wildcard step support.
+[Path expressions](/terraform/plugin/framework/path-expressions) are an abstraction on top of paths, which enable additional use cases with provider-defined functionality, such as relative path, parent step, and wildcard step support.
 
 ## Building Paths
 
@@ -258,7 +258,7 @@ path.Root("root_map_attribute").AtMapKey("example-key").AtName("nested_string_at
 
 #### Building Set Nested Attributes Paths
 
-An attribute that implements `schema.SetNestedAttribute` conceptually is a set containing objects with attribute names. Attempting to build set nested attribute paths is extremely tedius as set element selection is based on the entire value of the element, including any null or unknown values. Avoid manual set-based path building. Instead, use functionality which supports [path expressions](/plugin/framework/path-expressions) as that supports wildcard path matching ([`path.Expression` type `AtAnySetValue()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.AtAnySetValue)) or relative paths.
+An attribute that implements `schema.SetNestedAttribute` conceptually is a set containing objects with attribute names. Attempting to build set nested attribute paths is extremely tedius as set element selection is based on the entire value of the element, including any null or unknown values. Avoid manual set-based path building. Instead, use functionality which supports [path expressions](/terraform/plugin/framework/path-expressions) as that supports wildcard path matching ([`path.Expression` type `AtAnySetValue()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.AtAnySetValue)) or relative paths.
 
 Given the following schema example:
 
@@ -423,7 +423,7 @@ path.Root("root_list_block").AtListIndex(0).AtName("nested_list_block").AtListIn
 
 #### Building Set Block Paths
 
-A block defined with `schema.SetNestedBlock` conceptually is a set containing objects with attribute or block names. Attempting to build set block paths is extremely tedius as set element selection is based on the entire value of the element, including any null or unknown values. Avoid manual set-based path building. Instead, use functionality which supports [path expressions](/plugin/framework/path-expressions) as that supports wildcard path matching ([`path.Expression` type `AtAnySetValue()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.AtAnySetValue)) or relative paths.
+A block defined with `schema.SetNestedBlock` conceptually is a set containing objects with attribute or block names. Attempting to build set block paths is extremely tedius as set element selection is based on the entire value of the element, including any null or unknown values. Avoid manual set-based path building. Instead, use functionality which supports [path expressions](/terraform/plugin/framework/path-expressions) as that supports wildcard path matching ([`path.Expression` type `AtAnySetValue()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression.AtAnySetValue)) or relative paths.
 
 Given following schema example:
 

@@ -5,23 +5,23 @@ description: How to validate configuration values using the provider development
 
 # Validation
 
-The framework can return [diagnostics](/plugin/framework/diagnostics) feedback for values in provider, resource, and data source configurations. This allows you to write validations that give users feedback about required syntax, types, and acceptable values.
+The framework can return [diagnostics](/terraform/plugin/framework/diagnostics) feedback for values in provider, resource, and data source configurations. This allows you to write validations that give users feedback about required syntax, types, and acceptable values.
 
 This page describes single attribute and type validation concepts that can be used in any data source, provider, or resource schema. Further documentation is available for other configuration validation concepts:
 
-- [Data source validation](/plugin/framework/data-sources/validate-configuration) for multiple attributes declaratively or imperatively.
-- [Provider validation](/plugin/framework/providers/validate-configuration) for multiple attributes declaratively or imperatively.
-- [Resource validation](/plugin/framework/resources/validate-configuration) for multiple attributes declaratively or imperatively.
+- [Data source validation](/terraform/plugin/framework/data-sources/validate-configuration) for multiple attributes declaratively or imperatively.
+- [Provider validation](/terraform/plugin/framework/providers/validate-configuration) for multiple attributes declaratively or imperatively.
+- [Resource validation](/terraform/plugin/framework/resources/validate-configuration) for multiple attributes declaratively or imperatively.
 
--> **Note:** When implementing validation logic, configuration values may be [unknown](/plugin/framework/types#unknown) based on the source of the value. Implementations must account for this case, typically by returning early without returning new diagnostics.
+-> **Note:** When implementing validation logic, configuration values may be [unknown](/terraform/plugin/framework/types#unknown) based on the source of the value. Implementations must account for this case, typically by returning early without returning new diagnostics.
 
-During execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan), [`terraform apply`](/cli/commands/apply) and [`terraform destroy`](/cli/commands/destroy) commands, Terraform calls the provider [`ValidateProviderConfig`](/plugin/framework/internals/rpcs#validateproviderconfig-rpc), [`ValidateResourceConfig`](/plugin/framework/internals/rpcs#validateresourceconfig-rpc) and [`ValidateDataResourceConfig`](/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPCs.
+During execution of the [`terraform validate`](/terraform/cli/commands/validate), [`terraform plan`](/terraform/cli/commands/plan), [`terraform apply`](/terraform/cli/commands/apply) and [`terraform destroy`](/terraform/cli/commands/destroy) commands, Terraform calls the provider [`ValidateProviderConfig`](/terraform/plugin/framework/internals/rpcs#validateproviderconfig-rpc), [`ValidateResourceConfig`](/terraform/plugin/framework/internals/rpcs#validateresourceconfig-rpc) and [`ValidateDataResourceConfig`](/terraform/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPCs.
 
 ## Default Terraform CLI Validation
 
-The [Terraform configuration language](/language) is declarative and an implementation of [HashiCorp Configuration Language](https://github.com/hashicorp/hcl) (HCL). The Terraform CLI is responsible for reading and parsing configurations for validity, based on Terraform's concepts such as `resource` blocks and associated syntax. The Terraform CLI automatically handles basic validation of value type and behavior information based on the provider, resource, or data source schema. For example, the Terraform CLI returns an error when a string value is given where a list value is expected and also when a required attribute is missing from a configuration.
+The [Terraform configuration language](/terraform/language) is declarative and an implementation of [HashiCorp Configuration Language](https://github.com/hashicorp/hcl) (HCL). The Terraform CLI is responsible for reading and parsing configurations for validity, based on Terraform's concepts such as `resource` blocks and associated syntax. The Terraform CLI automatically handles basic validation of value type and behavior information based on the provider, resource, or data source schema. For example, the Terraform CLI returns an error when a string value is given where a list value is expected and also when a required attribute is missing from a configuration.
 
-Terraform CLI syntax and basic schema checks occur during the [`terraform apply`](/cli/commands/apply), [`terraform destroy`](/cli/commands/destroy), [`terraform plan`](/cli/commands/plan), and [`terraform validate`](/cli/commands/validate) commands. Any additional validation you define with the framework occurs directly after these checks are complete.
+Terraform CLI syntax and basic schema checks occur during the [`terraform apply`](/terraform/cli/commands/apply), [`terraform destroy`](/terraform/cli/commands/destroy), [`terraform plan`](/terraform/cli/commands/plan), and [`terraform validate`](/terraform/cli/commands/validate) commands. Any additional validation you define with the framework occurs directly after these checks are complete.
 
 ## Attribute Validation
 
@@ -106,7 +106,7 @@ func stringLengthBetween(minLength int, maxLength int) stringLengthBetweenValida
 
 #### Path Based Attribute Validators
 
-Attribute validators that need to accept [paths](/plugin/framework/paths) to reference other attribute data should instead prefer [path expressions](/plugin/framework/path-expressions). This allows consumers to use either absolute paths starting at the root of a [schema](/plugin/framework/schemas), or relative paths based on the current attribute path where the validator is called.
+Attribute validators that need to accept [paths](/terraform/plugin/framework/paths) to reference other attribute data should instead prefer [path expressions](/terraform/plugin/framework/path-expressions). This allows consumers to use either absolute paths starting at the root of a [schema](/terraform/plugin/framework/schemas), or relative paths based on the current attribute path where the validator is called.
 
 Path expressions may represent one or more actual paths in the data. To find those paths, the process is called path matching. Depending on the actual data, a path match may return a parent path for null or unknown values, since any underlying paths of those null or unknown values would also represent the same value. This framework behavior is used to prevent false positives of returning no paths for null or unknown values.
 

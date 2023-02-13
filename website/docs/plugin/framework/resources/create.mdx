@@ -6,23 +6,23 @@ description: >-
 
 # Create Resources
 
-Creation is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Create` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Create). The request contains Terraform configuration and plan data. The response expects the applied Terraform state data, including any computed values. The data is defined by the [schema](/plugin/framework/data-handling/schemas) of the resource.
+Creation is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/terraform/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/terraform/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Create` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Create). The request contains Terraform configuration and plan data. The response expects the applied Terraform state data, including any computed values. The data is defined by the [schema](/terraform/plugin/framework/data-handling/schemas) of the resource.
 
 Other resource lifecycle implementations include:
 
-- [Read](/plugin/framework/resources/read) resources by receiving Terraform prior state data, performing read logic, and saving refreshed Terraform state data.
-- [Update](/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
-- [Delete](/plugin/framework/resources/delete) resources by receiving Terraform prior state data and performing deletion logic.
+- [Read](/terraform/plugin/framework/resources/read) resources by receiving Terraform prior state data, performing read logic, and saving refreshed Terraform state data.
+- [Update](/terraform/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
+- [Delete](/terraform/plugin/framework/resources/delete) resources by receiving Terraform prior state data and performing deletion logic.
 
 ## Define Create Method
 
 Implement the `Create` method by:
 
-1. [Accessing the data](/plugin/framework/accessing-values) from the [`resource.CreateRequest` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateRequest). Most use cases should access the plan data in the [`resource.CreateRequest.Plan` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateRequest.Plan).
+1. [Accessing the data](/terraform/plugin/framework/accessing-values) from the [`resource.CreateRequest` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateRequest). Most use cases should access the plan data in the [`resource.CreateRequest.Plan` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateRequest.Plan).
 1. Performing logic or external calls to create and/or run the resource.
-1. [Writing state data](/plugin/framework/writing-state) into the [`resource.CreateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateResponse.State).
+1. [Writing state data](/terraform/plugin/framework/writing-state) into the [`resource.CreateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateResponse.State).
 
-If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.CreateResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateResponse.Diagnostics).
+If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`resource.CreateResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#CreateResponse.Diagnostics).
 
 In this example, the resource is setup to accept a configuration value that is sent in a service API creation call:
 
@@ -168,5 +168,5 @@ Note these caveats when implementing the `Create` method:
 
 Note these recommendations when implementing the `Create` method:
 
-* Get request data from the Terraform plan data over configuration data as the schema or resource may include [plan modification](/plugin/framework/resources/plan-modification) logic which sets plan values.
+* Get request data from the Terraform plan data over configuration data as the schema or resource may include [plan modification](/terraform/plugin/framework/resources/plan-modification) logic which sets plan values.
 * Return errors that signify there is an existing resource. Terraform practitioners expect to be notified if an existing resource needs to be imported into Terraform rather than created. This prevents situations where multiple Terraform configurations unexpectedly manage the same underlying resource.

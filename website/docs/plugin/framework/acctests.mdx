@@ -63,7 +63,7 @@ testing_new_config.go:111: no "id" found in attributes
 testing_new.go:53: no "id" found in attributes
 ```
 
-To avoid this, add a root level `id` attribute to resource and data source schemas. Ensure the attribute value is appropriately [written to state](/plugin/framework/writing-state). Conventionally, `id` is a computed attribute that contains the identifier for the resource.
+To avoid this, add a root level `id` attribute to resource and data source schemas. Ensure the attribute value is appropriately [written to state](/terraform/plugin/framework/writing-state). Conventionally, `id` is a computed attribute that contains the identifier for the resource.
 
 For example, in the `Schema` method implementation of a [`datasource.DataSource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource) or [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource):
 

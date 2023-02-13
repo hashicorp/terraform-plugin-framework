@@ -8,13 +8,13 @@ description: >-
 
 # Providers
 
-Providers are Terraform plugins that define [resources](/plugin/framework/resources) and [data sources](/plugin/framework/data-sources) for practitioners to use. Providers are wrapped by a [provider server](/plugin/framework/provider-servers) for interacting with Terraform.
+Providers are Terraform plugins that define [resources](/terraform/plugin/framework/resources) and [data sources](/terraform/plugin/framework/data-sources) for practitioners to use. Providers are wrapped by a [provider server](/terraform/plugin/framework/provider-servers) for interacting with Terraform.
 
 This page describes the basic implementation details required for defining a provider. Further documentation is available for deeper provider concepts:
 
-- [Configure data sources](/plugin/framework/data-sources/configure) with provider-level data types or clients.
-- [Configure resources](/plugin/framework/resources/configure) with provider-level data types or clients.
-- [Validate](/plugin/framework/providers/validate-configuration) practitioner configuration against acceptable values.
+- [Configure data sources](/terraform/plugin/framework/data-sources/configure) with provider-level data types or clients.
+- [Configure resources](/terraform/plugin/framework/resources/configure) with provider-level data types or clients.
+- [Validate](/terraform/plugin/framework/providers/validate-configuration) practitioner configuration against acceptable values.
 
 ## Define Provider Type
 
@@ -67,7 +67,7 @@ func (p *ExampleCloudProvider) Resources(ctx context.Context) []func() resource.
 }
 ```
 
-Conventionally, many providers also create a helper function named `New` which can simplify [provider server](/plugin/framework/provider-servers) implementations.
+Conventionally, many providers also create a helper function named `New` which can simplify [provider server](/terraform/plugin/framework/provider-servers) implementations.
 
 ```go
 func New(version string) func() provider.Provider {
@@ -93,9 +93,9 @@ func (p *ExampleCloudProvider) Metadata(ctx context.Context, req provider.Metada
 
 ### Schema Method
 
-The [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema) defines a [schema](/plugin/framework/schemas) describing what data is available in the provider's configuration. This configuration block is used to offer practitioners the opportunity to supply values to the provider and configure its behavior, rather than needing to include those values in every resource and data source. It is usually used to gather credentials, endpoints, and the other data used to authenticate with the API, but it is not limited to those uses.
+The [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema) defines a [schema](/terraform/plugin/framework/schemas) describing what data is available in the provider's configuration. This configuration block is used to offer practitioners the opportunity to supply values to the provider and configure its behavior, rather than needing to include those values in every resource and data source. It is usually used to gather credentials, endpoints, and the other data used to authenticate with the API, but it is not limited to those uses.
 
-During the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`GetProviderSchema`](/plugin/framework/internals/rpcs#getproviderschema-rpc) RPC, in which the framework calls the [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema).
+During the [`terraform validate`](/terraform/cli/commands/validate), [`terraform plan`](/terraform/cli/commands/plan) and [`terraform apply`](/terraform/cli/commands/apply) commands, Terraform calls the provider [`GetProviderSchema`](/terraform/plugin/framework/internals/rpcs#getproviderschema-rpc) RPC, in which the framework calls the [`provider.Provider` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Schema).
 
 In this example, a sample configuration and schema definition are provided:
 
@@ -127,11 +127,11 @@ If the provider does not accept practitioner Terraform configuration, leave the 
 
 The [`provider.Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure) handles the configuration of any provider-level data or clients. These configuration values may be from the practitioner Terraform configuration, environment variables, or other means such as reading vendor-specific configuration files.
 
-During the [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`ConfigureProvider`](/plugin/framework/internals/rpcs#configureprovider-rpc) RPC, in which the framework calls the [`provider.Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure).
+During the [`terraform plan`](/terraform/cli/commands/plan) and [`terraform apply`](/terraform/cli/commands/apply) commands, Terraform calls the provider [`ConfigureProvider`](/terraform/plugin/framework/internals/rpcs#configureprovider-rpc) RPC, in which the framework calls the [`provider.Provider` interface `Configure` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Configure).
 
-This is the only chance the provider has to configure provider-level data or clients, so they need to be persisted if other data source or resource logic will need to reference them. Refer to the [Configure Data Sources](/plugin/framework/data-sources/configure) and [Configure Resources](/plugin/framework/resources/configure) pages for additional implementation details.
+This is the only chance the provider has to configure provider-level data or clients, so they need to be persisted if other data source or resource logic will need to reference them. Refer to the [Configure Data Sources](/terraform/plugin/framework/data-sources/configure) and [Configure Resources](/terraform/plugin/framework/resources/configure) pages for additional implementation details.
 
-If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`provider.ConfigureResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigureResponse.Diagnostics).
+If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`provider.ConfigureResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigureResponse.Diagnostics).
 
 In this example, the provider API token and endpoint are configured via environment variable or Terraform configuration:
 
@@ -204,7 +204,7 @@ func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.Confi
 #### Unknown Values
 
 Not all values are guaranteed to be
-[known](/plugin/framework/types#unknown) when `Configure` is called.
+[known](/terraform/plugin/framework/types#unknown) when `Configure` is called.
 For example, if a practitioner interpolates a resource's unknown value into the block,
 that value may show up as unknown depending on how the graph executes:
 
@@ -222,17 +222,17 @@ In the example above, `random_string.example.result` is a read-only field on
 applied. So the `Configure` method for the provider may report that the value
 is unknown. You can choose how your provider handles this. If
 some resources or data sources can be used without knowing that value, it may
-be worthwhile to [emit a warning](/plugin/framework/diagnostics) and
+be worthwhile to [emit a warning](/terraform/plugin/framework/diagnostics) and
 check whether the value is set in resources and data sources before attempting
 to use it. If resources and data sources can't provide any functionality
 without knowing that value, it's often better to [return an
-error](/plugin/framework/diagnostics), which will halt the apply.
+error](/terraform/plugin/framework/diagnostics), which will halt the apply.
 
 ### Resources
 
-The [`provider.Provider` interface `Resources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Resources) returns a slice of [resources](/plugin/framework/resources). Each element in the slice is a function to create a new `resource.Resource` so data is not inadvertently shared across multiple, disjointed resource instance operations unless explicitly coded. Information such as the resource type name is managed by the `resource.Resource` implementation.
+The [`provider.Provider` interface `Resources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Resources) returns a slice of [resources](/terraform/plugin/framework/resources). Each element in the slice is a function to create a new `resource.Resource` so data is not inadvertently shared across multiple, disjointed resource instance operations unless explicitly coded. Information such as the resource type name is managed by the `resource.Resource` implementation.
 
-The [`provider.Provider` interface `Resources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Resources) is called during execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands when the [`ValidateResourceConfig`](/plugin/framework/internals/rpcs#validateconfig-rpcs), [`ReadResource`](/plugin/framework/internals/rpcs#read-rpcs), [`PlanResourceChange`](/plugin/framework/internals/rpcs#planresourcechange-rpc) and  [`ApplyResourceChange`](/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPCs are sent.
+The [`provider.Provider` interface `Resources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Resources) is called during execution of the [`terraform validate`](/terraform/cli/commands/validate), [`terraform plan`](/terraform/cli/commands/plan) and [`terraform apply`](/terraform/cli/commands/apply) commands when the [`ValidateResourceConfig`](/terraform/plugin/framework/internals/rpcs#validateconfig-rpcs), [`ReadResource`](/terraform/plugin/framework/internals/rpcs#read-rpcs), [`PlanResourceChange`](/terraform/plugin/framework/internals/rpcs#planresourcechange-rpc) and  [`ApplyResourceChange`](/terraform/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPCs are sent.
 
 In this example, the provider implements a single resource:
 
@@ -288,9 +288,9 @@ type WidgetResource struct {}
 
 ### DataSources
 
-The [`provider.Provider` interface `DataSources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.DataSources) returns a slice of [data sources](/plugin/framework/data-sources). Each element in the slice is a function to create a new `datasource.DataSource` so data is not inadvertently shared across multiple, disjointed datasource instance operations unless explicitly coded. Information such as the datasource type name is managed by the `datasource.DataSource` implementation.
+The [`provider.Provider` interface `DataSources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.DataSources) returns a slice of [data sources](/terraform/plugin/framework/data-sources). Each element in the slice is a function to create a new `datasource.DataSource` so data is not inadvertently shared across multiple, disjointed datasource instance operations unless explicitly coded. Information such as the datasource type name is managed by the `datasource.DataSource` implementation.
 
-The [`provider.Provider` interface `DataSources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.DataSources) is called during execution of the [`terraform validate`](/cli/commands/validate), [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands when the [`ValidateDataResourceConfig`](/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) and [`ReadDataSource`](/plugin/framework/internals/rpcs#readdatasource-rpc) RPCs are sent.
+The [`provider.Provider` interface `DataSources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.DataSources) is called during execution of the [`terraform validate`](/terraform/cli/commands/validate), [`terraform plan`](/terraform/cli/commands/plan) and [`terraform apply`](/terraform/cli/commands/apply) commands when the [`ValidateDataResourceConfig`](/terraform/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) and [`ReadDataSource`](/terraform/plugin/framework/internals/rpcs#readdatasource-rpc) RPCs are sent.
 
 In this example, the provider implements a single data source:
 

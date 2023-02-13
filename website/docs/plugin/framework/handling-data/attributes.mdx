@@ -65,7 +65,7 @@ situation, even if that means just returning an error.
 
 ## Framework Attribute Types
 
-The framework provides a standard set of schema attribute types that are based on the framework type system available in the [`types` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types). These types bridge the implementation details between Terraform's type system and Go code in providers. The framework attribute types also support provider-defined types via a `CustomType` field. Refer to [Custom Types](/plugin/framework/handling-data/custom-types) for more information about implementing provider-defined types.
+The framework provides a standard set of schema attribute types that are based on the framework type system available in the [`types` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types). These types bridge the implementation details between Terraform's type system and Go code in providers. The framework attribute types also support provider-defined types via a `CustomType` field. Refer to [Custom Types](/terraform/plugin/framework/handling-data/custom-types) for more information about implementing provider-defined types.
 
 | Terraform Type | Framework Attribute Type | Framework Value Type | Known Value Go Type | Use Case |
 |----------------|--------------------------|----------------------|---------------------|----------|
@@ -245,7 +245,7 @@ Call one of the following to create a `types.Bool`:
 
 Lists are ordered collections of a single element type.
 
--> Use [List Nested Attributes](/plugin/framework/schemas#ListNestedAttributes) for lists of objects that need additional schema information. Use [Set](#set) for unordered collections.
+-> Use [List Nested Attributes](/terraform/plugin/framework/schemas#ListNestedAttributes) for lists of objects that need additional schema information. Use [Set](#set) for unordered collections.
 
 Given an example Terraform configuration that sets a list of string values to the `example_attribute` attribute:
 
@@ -269,21 +269,21 @@ Access `types.List` information via the following methods:
 * [`(types.List).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.IsNull): Returns true if the list is null.
 * [`(types.List).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.IsUnknown): Returns true if the list is unknown. Returns false if the number of elements is known, any of which may be unknown.
 * [`(types.List).Elements() []attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.Elements): Returns the known `[]attr.Value` value, or `nil` if null or unknown.
-* [`(types.List).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.ElementsAs): Converts the known values into the given Go type, if possible, using the [conversion rules](/plugin/framework/handling-data/conversion-rules#list).
+* [`(types.List).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List.ElementsAs): Converts the known values into the given Go type, if possible, using the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules#list).
 
 Call one of the following to create a `types.List`:
 
 * [`types.ListNull(attr.Type) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListNull): A null list value with the given element type.
 * [`types.ListUnknown(attr.Type) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListUnknown): An unknown list value with the given element type.
 * [`types.ListValue(attr.Type, []attr.Value) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValue): A known value with the given element type and values.
-* [`types.ListValueFrom(context.Context, attr.Type, any) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/handling-data/conversion-rules#list-1).
+* [`types.ListValueFrom(context.Context, attr.Type, any) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules#list-1).
 * [`types.ListValueMust(map[string]attr.Type, map[string]attr.Value) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ### Map
 
 Maps are mappings of string keys to values of a single element type.
 
--> Use [Map Nested Attributes](/plugin/framework/schemas#MapNestedAttributes) for maps of objects that need additional schema information. Use [Object](#object) for structures of string attribute names to any value.
+-> Use [Map Nested Attributes](/terraform/plugin/framework/schemas#MapNestedAttributes) for maps of objects that need additional schema information. Use [Object](#object) for structures of string attribute names to any value.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -311,21 +311,21 @@ Access `types.Map` information via the following methods:
 * [`(types.Map).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.IsNull): Returns true if the map is null.
 * [`(types.Map).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.IsUnknown): Returns true if the map is unknown. Returns false if the number of elements is known, any of which may be unknown.
 * [`(types.Map).Elements() map[string]attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.Elements): Returns the known `map[string]attr.Value` value, or `nil` if null or unknown.
-* [`(types.Map).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.ElementsAs): Converts the known values into the given Go type, if possible, using the [conversion rules](/plugin/framework/handling-data/conversion-rules#map).
+* [`(types.Map).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map.ElementsAs): Converts the known values into the given Go type, if possible, using the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules#map).
 
 Call one of the following to create a `types.Map`:
 
 * [`types.MapNull(attr.Type)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapNull): A null map value with the given element type.
 * [`types.MapUnknown(attr.Type)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapUnknown): An unknown map value with the given element type.
 * [`types.MapValue(attr.Type, map[string]attr.Value) (types.Map, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValue): A known value with the given element type and values.
-* [`types.MapValueFrom(context.Context, attr.Type, any) (types.Map, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/handling-data/conversion-rules#map-1).
+* [`types.MapValueFrom(context.Context, attr.Type, any) (types.Map, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules#map-1).
 * [`types.MapValueMust(map[string]attr.Type, map[string]attr.Value) types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ### Object
 
 Objects are mappings of string attribute names to values of any type. Objects must always declare all attribute values, even when those attributes are null or unknown, unless the entire object is null or unknown.
 
--> Use [Single Nested Attributes](/plugin/framework/schemas#SingleNestedAttributes) for objects that need additional schema information. Use [Map](#map) for mappings of string keys to a single element type.
+-> Use [Single Nested Attributes](/terraform/plugin/framework/schemas#SingleNestedAttributes) for objects that need additional schema information. Use [Map](#map) for mappings of string keys to a single element type.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -357,21 +357,21 @@ Access `types.Object` information via the following methods:
 * [`(types.Object).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.IsNull): Returns true if the object is null.
 * [`(types.Object).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.IsUnknown): Returns true if the object is unknown. Returns false if the number of elements is known, any of which may be unknown.
 * [`(types.Object).Attributes() map[string]attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.Attributes): Returns the known `map[string]attr.Value` value, or `nil` if null or unknown.
-* [`(types.Object).As(context.Context, any, ObjectAsOptions) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.As): Converts the known values into the given Go type, if possible, using the [conversion rules](/plugin/framework/handling-data/conversion-rules#object).
+* [`(types.Object).As(context.Context, any, ObjectAsOptions) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object.As): Converts the known values into the given Go type, if possible, using the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules#object).
 
 Call one of the following to create a `types.Object`:
 
 * [`types.ObjectNull(map[string]attr.Type) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectNull): A null object value with the given attribute type mapping.
 * [`types.ObjectUnknown(map[string]attr.Type) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectUnknown): An unknown object value with the given attribute type mapping.
 * [`types.ObjectValue(map[string]attr.Type, map[string]attr.Value) (types.Object, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValue): A known value with the given attribute type mapping and attribute value mapping.
-* [`types.ObjectValueFrom(context.Context, attr.Type, any) (types.Object, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom): A known value with the given attribute type mapping and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/handling-data/conversion-rules#object-1).
+* [`types.ObjectValueFrom(context.Context, attr.Type, any) (types.Object, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom): A known value with the given attribute type mapping and values. Can convert from standard Go types, using the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules#object-1).
 * [`types.ObjectValueMust(map[string]attr.Type, map[string]attr.Value) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueMust): A known value with the given attribute type mapping and attribute value mapping. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ### Set
 
 Set are unordered, unique collections of a single element type.
 
--> Use [Set Nested Attributes](/plugin/framework/schemas#SetNestedAttributes) for sets of objects that need additional schema information. Use [List](#list) for ordered collections.
+-> Use [Set Nested Attributes](/terraform/plugin/framework/schemas#SetNestedAttributes) for sets of objects that need additional schema information. Use [List](#list) for ordered collections.
 
 Given an example Terraform configuration that sets a set of string values to the `example_attribute` attribute:
 
@@ -395,21 +395,21 @@ Access `types.Set` information via the following methods:
 * [`(types.Set).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set.IsNull): Returns true if the list is null.
 * [`(types.Set).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set.IsUnknown): Returns true if the list is unknown. Returns false if the number of elements is known, any of which may be unknown.
 * [`(types.Set).Elements() []attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set.Elements): Returns the known `[]attr.Value` value, or `nil` if null or unknown.
-* [`(types.Set).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set.ElementsAs): Converts the known values into the given Go type, if possible, using the [conversion rules](/plugin/framework/handling-data/conversion-rules).
+* [`(types.Set).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set.ElementsAs): Converts the known values into the given Go type, if possible, using the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules).
 
 Call one of the following to create a `types.Set`:
 
 * [`types.SetNull(attr.Type) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetNull): A null list value with the given element type.
 * [`types.SetUnknown(attr.Type) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetUnknown): An unknown list value with the given element type.
 * [`types.SetValue(attr.Type, []attr.Value) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValue): A known value with the given element type and values.
-* [`types.SetValueFrom(context.Context, attr.Type, any) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/plugin/framework/handling-data/conversion-rules).
+* [`types.SetValueFrom(context.Context, attr.Type, any) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom): A known value with the given element type and values. Can convert from standard Go types, using the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules).
 * [`types.SetValueMust(map[string]attr.Type, map[string]attr.Value) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 ### Nested Attributes
 
 -> Only supported when using protocol version 6.
 
-[Nested attributes](/plugin/framework/handling-data/attributes#nested-attributes) enable provider developers to define objects of attributes which fully support attribute behaviors and practitioners to configure these directly using [expressions](/language/expressions).
+[Nested attributes](/terraform/plugin/framework/handling-data/attributes#nested-attributes) enable provider developers to define objects of attributes which fully support attribute behaviors and practitioners to configure these directly using [expressions](/terraform/language/expressions).
 
 #### SingleNestedAttribute
 
@@ -575,5 +575,5 @@ func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 You may want to build your own attribute value and type implementations to allow your provider to combine validation, description, and plan customization behaviors into a reusable bundle. This helps avoid duplication or reimplementation and ensures consistency.
 
-Refer to [Custom Types](plugin/framework/handling-data/custom-types) for further details on creating provider-defined types and values.
+Refer to [Custom Types](/terraform/plugin/framework/handling-data/custom-types) for further details on creating provider-defined types and values.
 

@@ -13,7 +13,7 @@ This page explains how to migrate a provider server, definition, and schema from
 
 ## Serving the Provider
 
-You must update your provider's `main.go` file to serve Framework providers. Refer to [Provider Servers](/plugin/framework/provider-servers) in the Framework documentation for details.
+You must update your provider's `main.go` file to serve Framework providers. Refer to [Provider Servers](/terraform/plugin/framework/provider-servers) in the Framework documentation for details.
 
 ### SDKv2
 
@@ -35,7 +35,7 @@ func main() {
 ### Framework
 
 In the Framework, you serve your provider by calling `providerserver.Serve` in your provider package's `main` function.
-Refer to [Provider Servers](/plugin/framework/provider-servers) in the Framework documentation for details.
+Refer to [Provider Servers](/terraform/plugin/framework/provider-servers) in the Framework documentation for details.
 
 The following code shows an equivalent implementation for serving a provider in the Framework.
 
@@ -58,7 +58,7 @@ func main() {
 ### Muxing
 
 Muxing lets you use two versions of the same provider concurrently, with each serving different resources or data
-sources. Refer to the [Combining and Translating documentation](/plugin/mux) for full details about muxing
+sources. Refer to the [Combining and Translating documentation](/terraform/plugin/mux) for full details about muxing
 configuration. Use muxing when you want to release a version of your provider with only some of the resources and data
 sources migrated to the Framework. You may want to do this if your provider manages a large number of resources and
 data sources.
@@ -128,11 +128,11 @@ func main() {
 ## Provider Definition
 
 Providers built with SDKv2 use a `schema.Provider` struct to define their behavior, while Framework providers use a
-type that implements the `provider.Provider` interface, which you must define.  Refer to [Providers](/plugin/framework/providers) in the Framework documentation for details.
+type that implements the `provider.Provider` interface, which you must define.  Refer to [Providers](/terraform/plugin/framework/providers) in the Framework documentation for details.
 
 ### SDKv2
 
-The [`ProviderFunc`](/plugin/framework/migrating/providers#serving-the-provider) field on
+The [`ProviderFunc`](/terraform/plugin/framework/migrating/providers#serving-the-provider) field on
 `plugin.ServeOpts` requires a pointer to `schema.Provider`. This is typically satisfied by calling a function that
 returns a pointer to `schema.Provider`.
 
@@ -165,8 +165,8 @@ satisfying the `provider.Provider` interface.
 The following code shows a typical implementation. In this implementation, the `Resources` method returns a slice
 of functions that return types that implement the `resource.Resource` interface. The `DataSources` method returns a
 slice of functions that return types that implement the `datasource.DataSource` interface.
-Refer to the [Resources](/plugin/framework/migrating/resources) and
-[Data Sources](/plugin/framework/migrating/data-sources) pages in this guide to implement these functions for your
+Refer to the [Resources](/terraform/plugin/framework/migrating/resources) and
+[Data Sources](/terraform/plugin/framework/migrating/data-sources) pages in this guide to implement these functions for your
 provider.
 
 ```go
@@ -318,7 +318,7 @@ func New() *schema.Provider {
 In the Framework, the `Schema` method returns the provider schema. The `Schema` method is part of the
 `provider.Provider` interface that your provider must implement. `Schema` returns a struct containing fields for
 `Attributes` and `Blocks`. These `Attributes` and `Blocks` contain `map[string]schema.Attribute` and
-`map[string]schema.Block`, respectively. Refer to [Providers - Schema](/plugin/framework/providers#schema) in the
+`map[string]schema.Block`, respectively. Refer to [Providers - Schema](/terraform/plugin/framework/providers#schema) in the
 Framework documentation for details.
 
 The following code shows the `Schema` method, which returns the provider schema.
@@ -331,8 +331,8 @@ func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRe
 }
 ```
 
-Refer to the [Attributes](/plugin/framework/migrating/attributes-blocks/attribute-schema) and
-[Blocks](/plugin/framework/migrating/attributes-blocks/blocks) pages in this migration guide to learn how to migrate
+Refer to the [Attributes](/terraform/plugin/framework/migrating/attributes-blocks/attribute-schema) and
+[Blocks](/terraform/plugin/framework/migrating/attributes-blocks/blocks) pages in this migration guide to learn how to migrate
 those fields to the Framework.
 
 ### Migration Notes
@@ -346,7 +346,7 @@ Framework `schema.Schema` is a struct that includes attributes and blocks.
 
 This example shows how to use a nested block and a nested attribute for the SDKv2 and Framework examples,
 respectively. Refer to the
-[Blocks with Computed Fields](/plugin/framework/migrating/attributes-blocks/blocks-computed) page in this guide for more
+[Blocks with Computed Fields](/terraform/plugin/framework/migrating/attributes-blocks/blocks-computed) page in this guide for more
 details.
 
 #### SDKv2

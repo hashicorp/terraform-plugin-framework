@@ -1,19 +1,22 @@
 package schema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// Ensure the implementation satisifies the desired interfaces.
+// Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                   = Float64Attribute{}
+	_ fwxschema.AttributeWithFloat64DefaultValue  = Float64Attribute{}
 	_ fwxschema.AttributeWithFloat64PlanModifiers = Float64Attribute{}
 	_ fwxschema.AttributeWithFloat64Validators    = Float64Attribute{}
 )
@@ -138,12 +141,23 @@ type Float64Attribute struct {
 	//
 	// Any errors will prevent further execution of this sequence or modifiers.
 	PlanModifiers []planmodifier.Float64
+
+	// Default defines a default value for the attribute. The default value
+	// handling occurs during the `PlanResourceChange` RPC and modifies the
+	// Terraform-provided proposed new state before the framework performs
+	// its check between the proposed new state and prior state.
+	Default defaults.Float64
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
 // possible to step further into a Float64Attribute.
 func (a Float64Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
+}
+
+// DefaultValue returns the Default field value.
+func (a Float64Attribute) DefaultValue() defaults.Float64 {
+	return a.Default
 }
 
 // Equal returns true if the given Attribute is a Float64Attribute

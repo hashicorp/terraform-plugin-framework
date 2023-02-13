@@ -1,19 +1,23 @@
 package schema_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestListAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -74,6 +78,67 @@ func TestListAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListAttributeDefault(t *testing.T) {
+	t.Parallel()
+
+	opt := cmp.Comparer(func(x, y defaults.List) bool {
+		ctx := context.Background()
+		req := defaults.ListRequest{}
+
+		xResp := defaults.ListResponse{}
+		x.DefaultList(ctx, req, &xResp)
+
+		yResp := defaults.ListResponse{}
+		y.DefaultList(ctx, req, &yResp)
+
+		return xResp.PlanValue.Equal(yResp.PlanValue)
+	})
+
+	testCases := map[string]struct {
+		attribute schema.ListAttribute
+		expected  defaults.List
+	}{
+		"no-default": {
+			attribute: schema.ListAttribute{},
+			expected:  nil,
+		},
+		"default": {
+			attribute: schema.ListAttribute{
+				Default: listdefault.StaticValue(
+					types.ListValueMust(
+						types.StringType,
+						[]attr.Value{
+							types.StringValue("test-value¬"),
+						},
+					),
+				),
+			},
+			expected: listdefault.StaticValue(
+				types.ListValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("test-value¬"),
+					},
+				),
+			),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.DefaultValue()
+
+			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

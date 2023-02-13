@@ -1,20 +1,25 @@
 package schema_test
 
 import (
+	"context"
 	"fmt"
+	"math/big"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/numberdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestNumberAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -75,6 +80,61 @@ func TestNumberAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestNumberAttributeDefault(t *testing.T) {
+	t.Parallel()
+
+	opt := cmp.Comparer(func(x, y defaults.Number) bool {
+		ctx := context.Background()
+		req := defaults.NumberRequest{}
+
+		xResp := defaults.NumberResponse{}
+		x.DefaultNumber(ctx, req, &xResp)
+
+		yResp := defaults.NumberResponse{}
+		y.DefaultNumber(ctx, req, &yResp)
+
+		return xResp.PlanValue.Equal(yResp.PlanValue)
+	})
+
+	testCases := map[string]struct {
+		attribute schema.NumberAttribute
+		expected  defaults.Number
+	}{
+		"no-default": {
+			attribute: schema.NumberAttribute{},
+			expected:  nil,
+		},
+		"default": {
+			attribute: schema.NumberAttribute{
+				Default: numberdefault.StaticValue(
+					types.NumberValue(
+						big.NewFloat(1.2345),
+					),
+				),
+			},
+			expected: numberdefault.StaticValue(
+				types.NumberValue(
+					big.NewFloat(1.2345),
+				),
+			),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.DefaultValue()
+
+			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

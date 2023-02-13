@@ -1,19 +1,22 @@
 package schema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// Ensure the implementation satisifies the desired interfaces.
+// Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                  = NumberAttribute{}
+	_ fwxschema.AttributeWithNumberDefaultValue  = NumberAttribute{}
 	_ fwxschema.AttributeWithNumberPlanModifiers = NumberAttribute{}
 	_ fwxschema.AttributeWithNumberValidators    = NumberAttribute{}
 )
@@ -139,12 +142,23 @@ type NumberAttribute struct {
 	//
 	// Any errors will prevent further execution of this sequence or modifiers.
 	PlanModifiers []planmodifier.Number
+
+	// Default defines a default value for the attribute. The default value
+	// handling occurs during the `PlanResourceChange` RPC and modifies the
+	// Terraform-provided proposed new state before the framework performs
+	// its check between the proposed new state and prior state.
+	Default defaults.Number
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
 // possible to step further into a NumberAttribute.
 func (a NumberAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
+}
+
+// DefaultValue returns the Default field value.
+func (a NumberAttribute) DefaultValue() defaults.Number {
+	return a.Default
 }
 
 // Equal returns true if the given Attribute is a NumberAttribute

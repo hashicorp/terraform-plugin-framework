@@ -8,7 +8,7 @@ description: >-
 
 The Terraform language uses a block as a container for other attributes and blocks. Terraform implements many top level blocks, such as `provider` and `resource`, while providers can implement nested blocks in their schema to enable practitioners to configure data.
 
--> Use [nested attributes](/plugin/framework/handling-data/attributes#nested-attributes) for new schema implementations. Block support is mainly for migrating prior SDK-based providers.
+-> Use [nested attributes](/terraform/plugin/framework/handling-data/attributes#nested-attributes) for new schema implementations. Block support is mainly for migrating prior SDK-based providers.
 
 In this example, the Terraform-defined `resource` block contains a provider-defined `ami` attribute and `network_interface` block.
 
@@ -28,7 +28,7 @@ The configuration syntax for a provider-defined block is a type (block name) and
 - Set: Unordered collection of objects
 - Single: One object
 
-For list and set blocks, configurations can implement [`dynamic` block expressions](/language/expressions/dynamic-blocks) to reduce hardcoded block values.
+For list and set blocks, configurations can implement [`dynamic` block expressions](/terraform/language/expressions/dynamic-blocks) to reduce hardcoded block values.
 
 ## Terraform Configuration
 

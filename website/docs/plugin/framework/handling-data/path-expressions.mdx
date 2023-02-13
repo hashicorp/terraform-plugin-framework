@@ -8,19 +8,19 @@ description: >-
 
 # Path Expressions
 
-Path expressions are logic built on top of [paths](/plugin/framework/paths), which may represent one or more actual paths within a schema or schema-based data. Expressions enable providers to work outside the restrictions of absolute paths and steps.
+Path expressions are logic built on top of [paths](/terraform/plugin/framework/paths), which may represent one or more actual paths within a schema or schema-based data. Expressions enable providers to work outside the restrictions of absolute paths and steps.
 
 ## Usage
 
 Example uses include:
 
-- [Path based attribute validators](/plugin/framework/validation#path-based-attribute-validators), such as those in the [`terraform-plugin-framework-validators` module `schemavalidator` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schemavalidator).
+- [Path based attribute validators](/terraform/plugin/framework/validation#path-based-attribute-validators), such as those in the [`terraform-plugin-framework-validators` module `schemavalidator` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/schemavalidator).
 
-Use cases which require exact locations, such as [diagnostics](/plugin/framework/diagnostics), implement [paths](/plugin/framework/paths).
+Use cases which require exact locations, such as [diagnostics](/terraform/plugin/framework/diagnostics), implement [paths](/terraform/plugin/framework/paths).
 
 ## Concepts
 
-Path expressions are an abstraction above [paths](/plugin/framework/paths). This page assumes knowledge of path concepts and implementations.
+Path expressions are an abstraction above [paths](/terraform/plugin/framework/paths). This page assumes knowledge of path concepts and implementations.
 
 At its core, expressions implement the following on top of paths:
 
@@ -164,7 +164,7 @@ schema.Schema{
 
 ### Building Expression Steps
 
-Expressions follow similar schema type rules as paths, in particular [Building Attribute Paths](/plugin/framework/paths#building-attribute-paths), [Building Nested Attribute Paths](/plugin/framework/paths#building-nested-attribute-paths), and [Building Block Paths](/plugin/framework/paths#building-block-paths).
+Expressions follow similar schema type rules as paths, in particular [Building Attribute Paths](/terraform/plugin/framework/paths#building-attribute-paths), [Building Nested Attribute Paths](/terraform/plugin/framework/paths#building-nested-attribute-paths), and [Building Block Paths](/terraform/plugin/framework/paths#building-block-paths).
 
 The following list shows the [`path.Expression` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Expression) methods that behave similar to [`path.Path` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Path) methods.
 

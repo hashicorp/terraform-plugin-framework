@@ -6,24 +6,24 @@ description: >-
 
 # Delete Resources
 
-Deletion is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Delete` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Delete). The request contains Terraform prior state data. The response is only for returning diagnostics. The data is defined by the [schema](/plugin/framework/schemas) of the resource.
+Deletion is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/terraform/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/terraform/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Delete` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Delete). The request contains Terraform prior state data. The response is only for returning diagnostics. The data is defined by the [schema](/terraform/plugin/framework/schemas) of the resource.
 
-Terraform 1.3 and later enables deletion planning, which resources can implement to return warning and error diagnostics. For additional information, refer to the [resource plan modification documentation](/plugin/framework/resources/plan-modification#resource-destroy-plan-diagnostics).
+Terraform 1.3 and later enables deletion planning, which resources can implement to return warning and error diagnostics. For additional information, refer to the [resource plan modification documentation](/terraform/plugin/framework/resources/plan-modification#resource-destroy-plan-diagnostics).
 
 Other resource lifecycle implementations include:
 
-- [Create](/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
-- [Read](/plugin/framework/resources/read) resources by receiving Terraform prior state data, performing read logic, and saving refreshed Terraform state data.
-- [Update](/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
+- [Create](/terraform/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
+- [Read](/terraform/plugin/framework/resources/read) resources by receiving Terraform prior state data, performing read logic, and saving refreshed Terraform state data.
+- [Update](/terraform/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
 
 ## Define Delete Method
 
 Implement the `Delete` method by:
 
-1. [Accessing prior state data](/plugin/framework/accessing-values) from the [`resource.DeleteRequest.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteRequest.State).
+1. [Accessing prior state data](/terraform/plugin/framework/accessing-values) from the [`resource.DeleteRequest.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteRequest.State).
 1. Performing logic or external calls to destroy the resource.
 
-If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.DeleteResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteResponse.Diagnostics).
+If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`resource.DeleteResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteResponse.Diagnostics).
 
 In this example, the `Delete` function makes a HTTP call and returns successfully if the status code was 200 OK or 404 Not Found:
 

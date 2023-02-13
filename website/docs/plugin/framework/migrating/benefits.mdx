@@ -8,7 +8,7 @@ description: >-
 
 We recommend using the plugin framework to develop your provider because it offers significant benefits in comparison to SDKv2. We designed the framework with feedback from thousands of existing providers, so the framework significantly improves upon the functionality available in SDKv2.
 
-This page is a continuation of the [Framework Benefits](/plugin/framework-benefits) page, which describes the higher level coding improvements over SDKv2. The following features are only available in the framework.
+This page is a continuation of the [Framework Benefits](/terraform/plugin/framework-benefits) page, which describes the higher level coding improvements over SDKv2. The following features are only available in the framework.
 
 ## Expanded Access to Configuration, Plan, and State Data
 
@@ -282,7 +282,7 @@ If you need to declare additional schema behaviors for the object values, you ca
 
 ### Protocol Version 6 Nested Attributes
 
-Protocol [version 6](/plugin/terraform-plugin-protocol) is the latest version of the protocol between Terraform and providers. Only the framework supports version 6.
+Protocol [version 6](/terraform/plugin/terraform-plugin-protocol) is the latest version of the protocol between Terraform and providers. Only the framework supports version 6.
 
 Version 6 lets you declare schemas with nested attributes in addition to blocks. Nested attributes support schema behaviors and practitioners using your provider can configure them with expressions instead of with dynamic blocks. Nested attributes support includes four nesting modes:
 
@@ -518,4 +518,4 @@ func (r ThingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 
 Each provider can maintain resource private state data in Terraform state. Terraform never accesses resource private state or includes the information in plans, but providers can use this private data for advanced use cases. For example, a provider could use resource private state to store API ETag values that are not beneficial for practitioners. SDKv2 does not support this functionality.
 
-Refer to the [Manage Private State documentation](/plugin/framework/resources/private-state) for more information.
+Refer to the [Manage Private State documentation](/terraform/plugin/framework/resources/private-state) for more information.

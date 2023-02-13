@@ -7,13 +7,13 @@ description: >-
 
 # Data Sources
 
-[Data sources](/language/data-sources) are an abstraction that allow Terraform to reference external data. Unlike [managed resources](/language/resources), Terraform does not manage the lifecycle of the resource or data. Data sources are intended to have no side-effects.
+[Data sources](/terraform/language/data-sources) are an abstraction that allow Terraform to reference external data. Unlike [managed resources](/terraform/language/resources), Terraform does not manage the lifecycle of the resource or data. Data sources are intended to have no side-effects.
 
 This page describes the basic implementation details required for supporting a data source within the provider. Further documentation is available for deeper data source concepts:
 
-- [Configure](/plugin/framework/data-sources/configure) data sources with provider-level data types or clients.
-- [Validate](/plugin/framework/data-sources/validate-configuration) practitioner configuration against acceptable values.
-- [Timeouts](/plugin/framework/data-sources/timeouts) in practitioner configuration for use in a data source read function.
+- [Configure](/terraform/plugin/framework/data-sources/configure) data sources with provider-level data types or clients.
+- [Validate](/terraform/plugin/framework/data-sources/validate-configuration) practitioner configuration against acceptable values.
+- [Timeouts](/terraform/plugin/framework/data-sources/timeouts) in practitioner configuration for use in a data source read function.
 
 ## Define Data Source Type
 
@@ -95,25 +95,25 @@ func (d *ThingDataSource) Metadata(ctx context.Context, req datasource.MetadataR
 
 ### Schema Method
 
-The [`datasource.DataSource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Schema) defines a [schema](/plugin/framework/schemas) describing what data is available in the data source's configuration and state.
+The [`datasource.DataSource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Schema) defines a [schema](/terraform/plugin/framework/schemas) describing what data is available in the data source's configuration and state.
 
 ### Read Method
 
 The [`datasource.DataSource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Read) defines how the data source updates Terraform's state to reflect the retrieved data. There is no plan or prior state to work with in `Read` requests, only configuration.
 
-During the [`terraform apply`](/cli/commands/apply), [`terraform plan`](/cli/commands/plan), and [`terraform refresh`](/cli/commands/refresh) commands, Terraform calls the provider [`ReadDataSource`](/plugin/framework/internals/rpcs#readdatasource-rpc) RPC, in which the framework calls the [`datasource.DataSource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Read).
+During the [`terraform apply`](/terraform/cli/commands/apply), [`terraform plan`](/terraform/cli/commands/plan), and [`terraform refresh`](/terraform/cli/commands/refresh) commands, Terraform calls the provider [`ReadDataSource`](/terraform/plugin/framework/internals/rpcs#readdatasource-rpc) RPC, in which the framework calls the [`datasource.DataSource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#DataSource.Read).
 
 Implement the `Read` method by:
 
-1. [Accessing configuration data](/plugin/framework/accessing-values) from the [`datasource.ReadRequest.Config` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadRequest.Config).
+1. [Accessing configuration data](/terraform/plugin/framework/accessing-values) from the [`datasource.ReadRequest.Config` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadRequest.Config).
 1. Retriving any additional data, such as remote system information.
-1. [Writing state data](/plugin/framework/writing-state) into the [`datasource.ReadResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadResponse.State).
+1. [Writing state data](/terraform/plugin/framework/writing-state) into the [`datasource.ReadResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadResponse.State).
 
-If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`datasource.ReadResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadResponse.Diagnostics).
+If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`datasource.ReadResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadResponse.Diagnostics).
 
 ## Add Data Source to Provider
 
-Data sources become available to practitioners when they are included in the [provider](/plugin/framework/providers) implementation via the [`provider.ProviderWithDataSources` interface `DataSources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithDataSources.DataSources).
+Data sources become available to practitioners when they are included in the [provider](/terraform/plugin/framework/providers) implementation via the [`provider.ProviderWithDataSources` interface `DataSources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithDataSources.DataSources).
 
 In this example, the `ThingDataSource` type, which implements the `datasource.DataSource` interface, is added to the provider implementation:
 

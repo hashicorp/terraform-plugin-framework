@@ -13,7 +13,7 @@ description: |-
 implementations when the provider doesn't care about the distinction between an
 empty value, unknown, and null. But if Terraform has a null or unknown value
 and the provider asks the framework to store it in a type that can't hold it,
-[`Get`](plugin/framework/handling-data/accessing-values#get-the-entire-configuration-plan-or-state)
+[`Get`](/terraform/plugin/framework/handling-data/accessing-values#get-the-entire-configuration-plan-or-state)
 will return an error. Make sure the types you are using can hold the
 values they might contain!
 
@@ -88,7 +88,7 @@ otherwise, the conversion rules for that type will apply.
 
 ### Detected Interfaces
 
-[`Get`](/plugin/framework/handling-data/accessing-values#get-the-entire-configuration-plan-or-state)
+[`Get`](/terraform/plugin/framework/handling-data/accessing-values#get-the-entire-configuration-plan-or-state)
 detects and utilizes the following interfaces, if the target implements
 them.
 
@@ -137,8 +137,8 @@ and retrieved will be of a type that can be passed to
 ## Converting from Go Types to Framework Types
 
 The following is a list of schema types and the Go types they know how to
-accept in [`Set`](/plugin/framework/handling-data/writing-state#replace-the-entire-state)
-and [`SetAttribute`](/plugin/framework/handling-data/writing-state#set-a-single-attribute-or-block-value).
+accept in [`Set`](/terraform/plugin/framework/handling-data/writing-state#replace-the-entire-state)
+and [`SetAttribute`](/terraform/plugin/framework/handling-data/writing-state#set-a-single-attribute-or-block-value).
 
 ### String
 

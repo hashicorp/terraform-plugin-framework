@@ -11,7 +11,7 @@ fields  with `Computed: true`, which means that the provider code can define the
 output of terraform apply (e.g., the ID of an EC2 instance).
 
 This page explains how to migrate computed-only blocks from SDKv2 to the Framework. Refer to
-[Blocks](/plugin/framework/migrating/attributes-blocks/blocks) if you are looking for information about migrating blocks
+[Blocks](/terraform/plugin/framework/migrating/attributes-blocks/blocks) if you are looking for information about migrating blocks
 that are practitioner configurable.
 
 ## SDKv2
@@ -67,7 +67,7 @@ map[string]schema.Attribute{
 ## Migration Notes
 
 - When using protocol version 5 specify `ElementType` as `types.ObjectType` when migrating blocks that are computed from SDKv2 to Framework.
-- When using protocol version 6, use [nested attributes](/plugin/framework/schemas#attributes-1) when migrating blocks that are computed from SDKv2 to Framework.
+- When using protocol version 6, use [nested attributes](/terraform/plugin/framework/schemas#attributes-1) when migrating blocks that are computed from SDKv2 to Framework.
 
 ## Example
 

@@ -94,7 +94,7 @@ schema, as returned by the `Schema` method. The `Blocks` field maps the name of 
 
 ```go
 func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    return schema.Schema{
+    resp.Schema = schema.Schema{
         /* ... */
         Blocks: map[string]schema.Block{
             "example": schema.ListNestedBlock{

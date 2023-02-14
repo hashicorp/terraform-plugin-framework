@@ -84,7 +84,7 @@ This code implements the `example_attribute` attribute for the `exampleDataSourc
 
 ```go
 func (d *exampleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-    return schema.Schema{
+    resp.Schema = schema.Schema{
         /* ... */
         Attributes: map[string]schema.Attribute{
             "example_attribute": schema.StringAttribute{

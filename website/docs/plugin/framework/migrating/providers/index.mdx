@@ -170,32 +170,36 @@ Refer to the [Resources](/terraform/plugin/framework/migrating/resources) and
 provider.
 
 ```go
-type ExampleCloudProvider struct {
+type exampleCloudProvider struct {
 }
 
 func New() provider.Provider {
-    return &ExampleCloudProvider{}
+    return &exampleCloudProvider{}
 }
 
-func (p *ExampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *exampleCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "examplecloud"
+}
+
+func (p *exampleCloudProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
     resp.Schema = schema.Schema{}
 }
 
-func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *exampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 }
 
-func (p *ExampleCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *exampleCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
     return []func() resource.Resource {
         func() resource.Resource {
-            return resourceExample{},
+            return resourceExample{}
         },
     }
 }
 
-func (p *ExampleCloudProvider) GetDataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *exampleCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource {
         func() datasource.DataSource {
-            return dataSourceExample{},
+            return dataSourceExample{}
         },
     }
 }
@@ -271,7 +275,7 @@ func (p *exampleProvider) Resources(_ context.Context) []func() resource.Resourc
 func (p *exampleProvider) DataSources(_ context.Context) []func() datasource.DataSource {
     return []func() datasource.DataSource{
         func() datasource.DataSource {
-            return &exampleDataSource{},
+            return &exampleDataSource{}
         },
         /* ... */
     }
@@ -287,7 +291,11 @@ func (p *exampleProvider) Schema(_ context.Context, _ provider.SchemaRequest, re
     }
 }
 
-func (p *exampleProvider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
+func (p *exampleProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "example"
+}
+
+func (p *exampleProvider) Configure(_ context.Context, _ provider.ConfigureRequest, resp *provider.ConfigureResponse) {
     /* ... */
 }
 ```

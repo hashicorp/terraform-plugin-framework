@@ -215,9 +215,9 @@ Provider code:
 ```go
 type fileResourceType struct{}
 
-// GetSchema returns the schema for this resource.
-func (f fileResourceType) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
-	return schema.Schema{
+// Schema returns the schema for this resource.
+func (f *fileResourceType) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"favorite_number": {
 				Type:     types.NumberType,
@@ -235,7 +235,7 @@ func (f fileResourceType) GetSchema(_ context.Context) (schema.Schema, []*tfprot
 				},
 			},
 		},
-	}, nil
+	}
 }
 ```
 
@@ -439,9 +439,9 @@ Provider code:
 ```go
 type fileResourceType struct{}
 
-// GetSchema returns the schema for this resource.
-func (f fileResourceType) GetSchema(_ context.Context) (schema.Schema, []*tfprotov6.Diagnostic) {
-	return schema.Schema{
+// Schema returns the schema for this resource.
+func (f *fileResourceType) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"favorite_number": {
 				Type:     types.NumberType,
@@ -463,7 +463,7 @@ func (f fileResourceType) GetSchema(_ context.Context) (schema.Schema, []*tfprot
 				},
 			},
 		},
-	}, nil
+	}
 }
 ```
 

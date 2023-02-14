@@ -1,14 +1,13 @@
-package fwxschema
+package fwschema
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 )
 
 // AttributeWithBoolDefaultValue is an optional interface on Attribute which
 // enables Bool default value support.
 type AttributeWithBoolDefaultValue interface {
-	fwschema.Attribute
+	Attribute
 
 	DefaultValue() defaults.Bool
 }
@@ -16,7 +15,7 @@ type AttributeWithBoolDefaultValue interface {
 // AttributeWithFloat64DefaultValue is an optional interface on Attribute which
 // enables Float64 default value support.
 type AttributeWithFloat64DefaultValue interface {
-	fwschema.Attribute
+	Attribute
 
 	DefaultValue() defaults.Float64
 }
@@ -24,7 +23,7 @@ type AttributeWithFloat64DefaultValue interface {
 // AttributeWithInt64DefaultValue is an optional interface on Attribute which
 // enables Int64 default value support.
 type AttributeWithInt64DefaultValue interface {
-	fwschema.Attribute
+	Attribute
 
 	DefaultValue() defaults.Int64
 }
@@ -32,7 +31,7 @@ type AttributeWithInt64DefaultValue interface {
 // AttributeWithListDefaultValue is an optional interface on Attribute which
 // enables List default value support.
 type AttributeWithListDefaultValue interface {
-	fwschema.Attribute
+	Attribute
 
 	DefaultValue() defaults.List
 }
@@ -40,7 +39,7 @@ type AttributeWithListDefaultValue interface {
 // AttributeWithMapDefaultValue is an optional interface on Attribute which
 // enables Map default value support.
 type AttributeWithMapDefaultValue interface {
-	fwschema.Attribute
+	Attribute
 
 	DefaultValue() defaults.Map
 }
@@ -48,7 +47,7 @@ type AttributeWithMapDefaultValue interface {
 // AttributeWithNumberDefaultValue is an optional interface on Attribute which
 // enables Number default value support.
 type AttributeWithNumberDefaultValue interface {
-	fwschema.Attribute
+	Attribute
 
 	DefaultValue() defaults.Number
 }
@@ -56,7 +55,7 @@ type AttributeWithNumberDefaultValue interface {
 // AttributeWithObjectDefaultValue is an optional interface on Attribute which
 // enables Object default value support.
 type AttributeWithObjectDefaultValue interface {
-	fwschema.Attribute
+	Attribute
 
 	DefaultValue() defaults.Object
 }
@@ -64,7 +63,7 @@ type AttributeWithObjectDefaultValue interface {
 // AttributeWithSetDefaultValue is an optional interface on Attribute which
 // enables Set default value support.
 type AttributeWithSetDefaultValue interface {
-	fwschema.Attribute
+	Attribute
 
 	DefaultValue() defaults.Set
 }
@@ -72,7 +71,7 @@ type AttributeWithSetDefaultValue interface {
 // AttributeWithStringDefaultValue is an optional interface on Attribute which
 // enables String default value support.
 type AttributeWithStringDefaultValue interface {
-	fwschema.Attribute
+	Attribute
 
 	DefaultValue() defaults.String
 }

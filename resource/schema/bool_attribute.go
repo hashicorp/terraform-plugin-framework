@@ -16,7 +16,7 @@ import (
 // Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                = BoolAttribute{}
-	_ fwxschema.AttributeWithBoolDefaultValue  = BoolAttribute{}
+	_ fwschema.AttributeWithBoolDefaultValue   = BoolAttribute{}
 	_ fwxschema.AttributeWithBoolPlanModifiers = BoolAttribute{}
 	_ fwxschema.AttributeWithBoolValidators    = BoolAttribute{}
 )

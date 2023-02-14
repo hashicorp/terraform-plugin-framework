@@ -16,7 +16,7 @@ import (
 // Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                  = StringAttribute{}
-	_ fwxschema.AttributeWithStringDefaultValue  = StringAttribute{}
+	_ fwschema.AttributeWithStringDefaultValue   = StringAttribute{}
 	_ fwxschema.AttributeWithStringPlanModifiers = StringAttribute{}
 	_ fwxschema.AttributeWithStringValidators    = StringAttribute{}
 )

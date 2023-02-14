@@ -16,7 +16,7 @@ import (
 // Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                               = SetAttribute{}
-	_ fwxschema.AttributeWithSetDefaultValue  = SetAttribute{}
+	_ fwschema.AttributeWithSetDefaultValue   = SetAttribute{}
 	_ fwxschema.AttributeWithSetPlanModifiers = SetAttribute{}
 	_ fwxschema.AttributeWithSetValidators    = SetAttribute{}
 )

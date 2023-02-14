@@ -16,7 +16,7 @@ import (
 // Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                = ListAttribute{}
-	_ fwxschema.AttributeWithListDefaultValue  = ListAttribute{}
+	_ fwschema.AttributeWithListDefaultValue   = ListAttribute{}
 	_ fwxschema.AttributeWithListPlanModifiers = ListAttribute{}
 	_ fwxschema.AttributeWithListValidators    = ListAttribute{}
 )

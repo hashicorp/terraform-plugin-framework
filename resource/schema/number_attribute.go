@@ -16,7 +16,7 @@ import (
 // Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                  = NumberAttribute{}
-	_ fwxschema.AttributeWithNumberDefaultValue  = NumberAttribute{}
+	_ fwschema.AttributeWithNumberDefaultValue   = NumberAttribute{}
 	_ fwxschema.AttributeWithNumberPlanModifiers = NumberAttribute{}
 	_ fwxschema.AttributeWithNumberValidators    = NumberAttribute{}
 )

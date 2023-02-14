@@ -16,7 +16,7 @@ import (
 // Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                 = Int64Attribute{}
-	_ fwxschema.AttributeWithInt64DefaultValue  = Int64Attribute{}
+	_ fwschema.AttributeWithInt64DefaultValue   = Int64Attribute{}
 	_ fwxschema.AttributeWithInt64PlanModifiers = Int64Attribute{}
 	_ fwxschema.AttributeWithInt64Validators    = Int64Attribute{}
 )

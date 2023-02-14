@@ -16,7 +16,7 @@ import (
 // Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                   = Float64Attribute{}
-	_ fwxschema.AttributeWithFloat64DefaultValue  = Float64Attribute{}
+	_ fwschema.AttributeWithFloat64DefaultValue   = Float64Attribute{}
 	_ fwxschema.AttributeWithFloat64PlanModifiers = Float64Attribute{}
 	_ fwxschema.AttributeWithFloat64Validators    = Float64Attribute{}
 )

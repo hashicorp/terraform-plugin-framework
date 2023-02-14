@@ -16,7 +16,7 @@ import (
 // Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                               = MapAttribute{}
-	_ fwxschema.AttributeWithMapDefaultValue  = MapAttribute{}
+	_ fwschema.AttributeWithMapDefaultValue   = MapAttribute{}
 	_ fwxschema.AttributeWithMapPlanModifiers = MapAttribute{}
 	_ fwxschema.AttributeWithMapValidators    = MapAttribute{}
 )

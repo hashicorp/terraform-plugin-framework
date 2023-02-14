@@ -16,7 +16,7 @@ import (
 // Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                  = ObjectAttribute{}
-	_ fwxschema.AttributeWithObjectDefaultValue  = ObjectAttribute{}
+	_ fwschema.AttributeWithObjectDefaultValue   = ObjectAttribute{}
 	_ fwxschema.AttributeWithObjectPlanModifiers = ObjectAttribute{}
 	_ fwxschema.AttributeWithObjectValidators    = ObjectAttribute{}
 )

@@ -6,7 +6,7 @@ description: >-
 
 # Resource Import
 
-Practitioners can use the  [`terraform import` command](/cli/commands/import) to let Terraform begin managing existing infrastructure resources. Resources can implement the `ImportState` method, which must either specify enough Terraform state for the `Read` method to refresh [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) or return an error.
+Practitioners can use the  [`terraform import` command](/terraform/cli/commands/import) to let Terraform begin managing existing infrastructure resources. Resources can implement the `ImportState` method, which must either specify enough Terraform state for the `Read` method to refresh [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) or return an error.
 
 ## Define Resource ImportState Method
 
@@ -15,9 +15,9 @@ The [`resource.ResourceWithImportState` interface](https://pkg.go.dev/github.com
 Implement the `ImportState` method by:
 
 1. Accessing the import identifier from the [`resource.ImportStateRequest.ID` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateRequest)
-1. [Writing state data](/plugin/framework/writing-state) into the [`resource.ImportStateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.State).
+1. [Writing state data](/terraform/plugin/framework/writing-state) into the [`resource.ImportStateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.State).
 
-In this example, the resource state has the `id` attribute set to the value passed into the [`terraform import` command](/cli/commands/import) using the [`resource.ImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStatePassthroughID):
+In this example, the resource state has the `id` attribute set to the value passed into the [`terraform import` command](/terraform/cli/commands/import) using the [`resource.ImportStatePassthroughID` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStatePassthroughID):
 
 ```go
 func (r *ThingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -33,7 +33,7 @@ Implement the `ImportState` method by:
 
 1. Accessing the import identifier from the [`resource.ImportStateRequest.ID` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateRequest)
 1. Performing the custom logic.
-1. [Writing state data](/plugin/framework/writing-state) into the [`resource.ImportStateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.State).
+1. [Writing state data](/terraform/plugin/framework/writing-state) into the [`resource.ImportStateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.State).
 
 The `terraform import` command will need to accept the multiple attribute values as a single import identifier string. A typical convention is to use a separator character, such as a comma (`,`), between the values. The `ImportState` method will then need to parse the import identifier string into the multiple separate values and save them appropriately into the Terraform state.
 

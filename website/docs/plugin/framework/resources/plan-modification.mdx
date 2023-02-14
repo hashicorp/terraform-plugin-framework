@@ -7,7 +7,7 @@ description: >-
 
 # Plan Modification
 
-After [validation](/plugin/framework/validation) and before applying configuration changes, Terraform generates a plan that describes the expected values and behaviors of those changes. Resources can then tailor the plan to match the expected end state, prevent errant in-place updates, or return any [diagnostics](/plugin/framework/diagnostics).
+After [validation](/terraform/plugin/framework/validation) and before applying configuration changes, Terraform generates a plan that describes the expected values and behaviors of those changes. Resources can then tailor the plan to match the expected end state, prevent errant in-place updates, or return any [diagnostics](/terraform/plugin/framework/diagnostics).
 
 Terraform and the framework support multiple types of plan modification on resources:
 
@@ -15,7 +15,7 @@ Terraform and the framework support multiple types of plan modification on resou
 - Marking resources that should be replaced, such as when an in-place update is not supported for a change.
 - Returning warning or error diagnostics on planned resource creation, update, or deletion.
 
-Plan modification can be added on resource schema attributes or an entire resource. Use resource-based plan modification if access to the [configured resource](/plugin/framework/resources/configure) is necessary.
+Plan modification can be added on resource schema attributes or an entire resource. Use resource-based plan modification if access to the [configured resource](/terraform/plugin/framework/resources/configure) is necessary.
 
 ## Plan Modification Process
 
@@ -25,11 +25,11 @@ When the provider receives a request to generate the plan for a resource change 
 1. Run attribute plan modifiers.
 1. Run resource plan modifiers.
 
-When the `Resource` interface `Update` method runs to apply a change, all attribute state values must match their associated planned values or Terraform will generate a `Provider produced inconsistent result` error. You can mark values as [unknown](/plugin/framework/types#unknown) in the plan if the full expected value is not known.
+When the `Resource` interface `Update` method runs to apply a change, all attribute state values must match their associated planned values or Terraform will generate a `Provider produced inconsistent result` error. You can mark values as [unknown](/terraform/plugin/framework/types#unknown) in the plan if the full expected value is not known.
 
 Refer to the [Resource Instance Change Lifecycle document](https://github.com/hashicorp/terraform/blob/main/docs/resource-instance-change-lifecycle.md) for more details about the concepts and processes relevant to the plan and apply workflows.
 
-During the [`terraform plan`](/cli/commands/plan) and [`terraform apply`](/cli/commands/apply) commands, Terraform calls the provider [`PlanResourceChange`](/plugin/framework/internals/rpcs#planresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Schema) attribute plan modifiers and the `ModifyPlan` method on resources that implement the [`resource.ResourceWithModifyPlan` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan).
+During the [`terraform plan`](/terraform/cli/commands/plan) and [`terraform apply`](/terraform/cli/commands/apply) commands, Terraform calls the provider [`PlanResourceChange`](/terraform/plugin/framework/internals/rpcs#planresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Schema) attribute plan modifiers and the `ModifyPlan` method on resources that implement the [`resource.ResourceWithModifyPlan` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan).
 
 ## Attribute Plan Modification
 

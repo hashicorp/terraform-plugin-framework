@@ -6,29 +6,29 @@ description: |-
 
 # Terraform Plugin Framework
 
-The plugin framework is HashiCorp’s recommended way develop Terraform Plugins on [protocol version 6](/plugin/terraform-plugin-protocol#protocol-version-6) or [protocol version 5](/plugin/terraform-plugin-protocol#protocol-version-5). 
+The plugin framework is HashiCorp’s recommended way develop Terraform Plugins on [protocol version 6](/terraform/plugin/terraform-plugin-protocol#protocol-version-6) or [protocol version 5](/terraform/plugin/terraform-plugin-protocol#protocol-version-5). 
 
-We recommend using the framework to develop new providers because it offers significant advantages as compared to  [Terraform Plugin SDKv2](/plugin/sdkv2). We also recommend migrating existing providers to the framework when possible. Refer to [Plugin Framework Benefits](/plugin/framework-benefits) for higher level details about how the framework makes provider development easier and [Plugin Framework Features](/plugin/framework/migrating/benefits) for a detailed functionality comparison between the SDKv2 and the framework.
+We recommend using the framework to develop new providers because it offers significant advantages as compared to  [Terraform Plugin SDKv2](/terraform/plugin/sdkv2). We also recommend migrating existing providers to the framework when possible. Refer to [Plugin Framework Benefits](/terraform/plugin/framework-benefits) for higher level details about how the framework makes provider development easier and [Plugin Framework Features](/terraform/plugin/framework/migrating/benefits) for a detailed functionality comparison between the SDKv2 and the framework.
 
 ## Get Started
 
-- Try the [Terraform Plugin Framework tutorials](https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework).
+- Try the [Terraform Plugin Framework tutorials](/terraform/tutorials/providers-plugin-framework).
 - Clone the [terraform-provider-scaffolding-framework](https://github.com/hashicorp/terraform-provider-scaffolding-framework) template repository on GitHub.
 
 ## Key Concepts
 
-- [Provider Servers](/plugin/framework/provider-servers) encapsulate all Terraform plugin details and handle all calls for provider, resource, and data source operations by implementing the [Terraform Plugin Protocol](/plugin/how-terraform-works#terraform-plugin-protocol). They are implemented as binaries that the Terraform CLI downloads, starts, and stops.
-- [Providers](/plugin/framework/providers) are the top level abstraction that define the available resources and data sources for practitioners to use and may accept its own configuration, such as authentication information.
-- [Schemas](/plugin/framework/handling-data/schemas) define available fields for provider, resource, or provisioner configuration block, and give Terraform metadata about those fields.
-- [Resources](/plugin/framework/resources) are an abstraction that allow Terraform to manage infrastructure objects, such as a compute instance, an access policy, or disk. Providers act as a translation layer between Terraform and an API, offering one or more resources for practitioners to define in a configuration.
-- [Data Sources](/plugin/framework/data-sources) are an abstraction that allow Terraform to reference external data. Providers have data sources that tell Terraform how to request external data and how to convert the response into a format that practitioners can interpolate.
+- [Provider Servers](/terraform/plugin/framework/provider-servers) encapsulate all Terraform plugin details and handle all calls for provider, resource, and data source operations by implementing the [Terraform Plugin Protocol](/terraform/plugin/how-terraform-works#terraform-plugin-protocol). They are implemented as binaries that the Terraform CLI downloads, starts, and stops.
+- [Providers](/terraform/plugin/framework/providers) are the top level abstraction that define the available resources and data sources for practitioners to use and may accept its own configuration, such as authentication information.
+- [Schemas](/terraform/plugin/framework/handling-data/schemas) define available fields for provider, resource, or provisioner configuration block, and give Terraform metadata about those fields.
+- [Resources](/terraform/plugin/framework/resources) are an abstraction that allow Terraform to manage infrastructure objects, such as a compute instance, an access policy, or disk. Providers act as a translation layer between Terraform and an API, offering one or more resources for practitioners to define in a configuration.
+- [Data Sources](/terraform/plugin/framework/data-sources) are an abstraction that allow Terraform to reference external data. Providers have data sources that tell Terraform how to request external data and how to convert the response into a format that practitioners can interpolate.
 
 ## Test and Publish
 
-- Learn to write [acceptance tests](/plugin/framework/acctests) for your provider.
-- Learn to [publish your provider](/registry/providers/publishing) to the Terraform Registry.
+- Learn to write [acceptance tests](/terraform/plugin/framework/acctests) for your provider.
+- Learn to [publish your provider](/terraform/registry/providers/publishing) to the Terraform Registry.
 
 ## Combine or Translate
 
-- [Combine your provider with other SDKv2 providers](/plugin/mux/combining-protocol-version-5-providers) using [protocol version 5](/plugin/how-terraform-works#protocol-version-5).
-- [Combine your provider with other framework providers](/plugin/mux/combining-protocol-version-6-providers) using [protocol version 6](/plugin/how-terraform-works#protocol-version-6).
+- [Combine your provider with other SDKv2 providers](/terraform/plugin/mux/combining-protocol-version-5-providers) using [protocol version 5](/terraform/plugin/how-terraform-works#protocol-version-5).
+- [Combine your provider with other framework providers](/terraform/plugin/mux/combining-protocol-version-6-providers) using [protocol version 6](/terraform/plugin/how-terraform-works#protocol-version-6).

@@ -8,11 +8,11 @@ description: >-
 
 Data sources let Terraform reference external data. Unlike resources, Terraform does not create, update, or delete
 data sources, and makes no attempt to modify the underlying API. Data Sources are a read-only resource type, so they
-only implement a subset of the operations that resources do. Refer to [Data Sources](/plugin/framework/data-sources)
+only implement a subset of the operations that resources do. Refer to [Data Sources](/terraform/plugin/framework/data-sources)
 in the Framework documentation for details.
 
 This page explains how to migrate a data source from SDKv2 to the plugin Framework. We also recommend reviewing these additional guides for data sources throughout the migration:
-- [Timeouts](/plugin/framework/migrating/data-sources/timeouts): The data source uses timeouts during a read operation.
+- [Timeouts](/terraform/plugin/framework/migrating/data-sources/timeouts): The data source uses timeouts during a read operation.
 
 ## SDKv2
 
@@ -94,7 +94,7 @@ func (d *dataSourceExample) Read(ctx context.Context, req datasource.ReadRequest
 Remember the following details when completing the migration from SDKv2 to the Framework.
 
 - As data sources are read-only, you only implement read functionality for your provider's data sources. Refer to the
-[`Read` function](/plugin/framework/resources#read) for resources in the Framework documentation for more details.
+[`Read` function](/terraform/plugin/framework/resources#read) for resources in the Framework documentation for more details.
 
 ## Example
 

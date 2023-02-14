@@ -9,7 +9,7 @@ description: >-
 You can write custom validations that give users feedback about required syntax, types, and acceptable values in your
 provider. The Framework has a collection of
 [predefined validators](https://github.com/hashicorp/terraform-plugin-framework-validators). Refer to
-[Predefined Validators](/plugin/framework/migrating/attributes-blocks/validators-predefined) to learn how to use them.
+[Predefined Validators](/terraform/plugin/framework/migrating/attributes-blocks/validators-predefined) to learn how to use them.
 
 This page explains how to migrate attribute validation functions from SDKv2 to attribute validators in the Framework.
 
@@ -56,7 +56,7 @@ Remember the following details when migrating from SDKv2 to the Framework.
 
 - In SDKv2, `ValidateDiagFunc` is a field on `schema.Schema` that you can use to define custom validation functions. In
 the Framework, `Validators` is a field on each `schema.Attribute` implementation that can be used for custom validations.
-- Use [predefined validators](/plugin/framework/migrating/attributes-blocks/validators-predefined) when there is a validator that meets
+- Use [predefined validators](/terraform/plugin/framework/migrating/attributes-blocks/validators-predefined) when there is a validator that meets
 your requirements.
 
 ## Example

@@ -8,17 +8,17 @@ description: >-
 
 Providers, resources, and data sources all use schema to define their attributes and behavior. Schemas specify the
 constraints of Terraform configuration blocks and how the provider, resource, or data source behaves. Refer to
-[Schemas](/plugin/framework/handling-data/schemas) in the Framework documentation for details.
+[Schemas](/terraform/plugin/framework/handling-data/schemas) in the Framework documentation for details.
 
 This page explains the differences between the schema used by SDKv2 and the Framework. We also recommend reviewing these additional schema guides throughout the migration:
 /attributes-blocks/
-- [Attributes](/plugin/framework/migrating/attributes-blocks/attribute-schema) where the schema defines practitioner or provider data associated with a value and type.
-- [Attribute types](/plugin/framework/migrating/attributes-blocks/types) where the schema defines the expected data structure and syntax.
-- [Attribute fields](/plugin/framework/migrating/attributes-blocks/fields) where the behaviors of an attribute are defined, such as `Required`, `Optional`, `Computed`, and `Sensitive`.
-- [Attribute defaults](/plugin/framework/migrating/attributes-blocks/default-values) where the schema defines a value for an attribute which should be automatically included in a Terraform plan if it is not configured by the practitioner.
-- [Attributes without in-place updates](/plugin/framework/migrating/attributes-blocks/force-new) where the schema defines an attribute that requires resource replacement if the value is updated.
-- [Attribute predefined validations](/plugin/framework/migrating/attributes-blocks/validators-predefined) and [custom validations](/plugin/framework/migrating/attributes-blocks/validators-custom) where the schema defines the syntax, constraints, or encoding expectations of a value.
-- [Blocks](/plugin/framework/migrating/attributes-blocks/attribute-schema) and [computed blocks](/plugin/framework/migrating/attributes-blocks/blocks-computed) where the schema defines structural configuration sections of data, typically with nested attributes or further blocks.
+- [Attributes](/terraform/plugin/framework/migrating/attributes-blocks/attribute-schema) where the schema defines practitioner or provider data associated with a value and type.
+- [Attribute types](/terraform/plugin/framework/migrating/attributes-blocks/types) where the schema defines the expected data structure and syntax.
+- [Attribute fields](/terraform/plugin/framework/migrating/attributes-blocks/fields) where the behaviors of an attribute are defined, such as `Required`, `Optional`, `Computed`, and `Sensitive`.
+- [Attribute defaults](/terraform/plugin/framework/migrating/attributes-blocks/default-values) where the schema defines a value for an attribute which should be automatically included in a Terraform plan if it is not configured by the practitioner.
+- [Attributes without in-place updates](/terraform/plugin/framework/migrating/attributes-blocks/force-new) where the schema defines an attribute that requires resource replacement if the value is updated.
+- [Attribute predefined validations](/terraform/plugin/framework/migrating/attributes-blocks/validators-predefined) and [custom validations](/terraform/plugin/framework/migrating/attributes-blocks/validators-custom) where the schema defines the syntax, constraints, or encoding expectations of a value.
+- [Blocks](/terraform/plugin/framework/migrating/attributes-blocks/attribute-schema) and [computed blocks](/terraform/plugin/framework/migrating/attributes-blocks/blocks-computed) where the schema defines structural configuration sections of data, typically with nested attributes or further blocks.
 
 
 ## Schema Structs
@@ -133,8 +133,8 @@ provider and each resource and data type have a `Schema` method that returns the
 - In SDKv2, schema structs have a `Set` field which can be populated with a `SchemaSetFunc` which is used for hashing.
 In the Framework, this is not required and does not need to be migrated.
 - The `schema.Schema` struct includes fields that you use to define
-[attributes](/plugin/framework/migrating/attributes-and-blocks/attribute-schema) and
-[blocks](/plugin/framework/migrating/attributes-and-blocks/blocks) for your provider and each resource
+[attributes](/terraform/plugin/framework/migrating/attributes-and-blocks/attribute-schema) and
+[blocks](/terraform/plugin/framework/migrating/attributes-and-blocks/blocks) for your provider and each resource
 and data source.
 - When you populate the `Version` field in `schema.Schema` for a resource in the Framework, copy the `Version`
 field in `schema.Schema` from the SDKv2 version of that resource.

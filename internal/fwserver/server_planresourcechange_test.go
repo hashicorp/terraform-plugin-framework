@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -350,6 +351,13 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
+	testSchemaTypeDefault := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_optional_default": tftypes.Bool,
+			"test_computed_default": tftypes.Bool,
+		},
+	}
+
 	testSchemaBlockType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"test_required": tftypes.String,
@@ -375,6 +383,19 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			"test_required": schema.StringAttribute{
 				Required: true,
+			},
+		},
+	}
+
+	testSchemaDefault := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_optional_default": schema.BoolAttribute{
+				Optional: true,
+				Default:  booldefault.StaticValue(true),
+			},
+			"test_computed_default": schema.BoolAttribute{
+				Computed: true,
+				Default:  booldefault.StaticValue(true),
 			},
 		},
 	}
@@ -407,6 +428,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 	testEmptyState := &tfsdk.State{
 		Raw:    tftypes.NewValue(testSchemaType, nil),
 		Schema: testSchema,
+	}
+
+	testEmptyStateDefault := &tfsdk.State{
+		Raw:    tftypes.NewValue(testSchemaTypeDefault, nil),
+		Schema: testSchemaDefault,
 	}
 
 	type testSchemaData struct {
@@ -574,6 +600,40 @@ func TestServerPlanResourceChange(t *testing.T) {
 		request          *fwserver.PlanResourceChangeRequest
 		expectedResponse *fwserver.PlanResourceChangeResponse
 	}{
+		"resource-set-default": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_default": tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_default": tftypes.NewValue(tftypes.Bool, nil),
+					}),
+					Schema: testSchemaDefault,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_default": tftypes.NewValue(tftypes.Bool, false),
+						"test_computed_default": tftypes.NewValue(tftypes.Bool, false),
+					}),
+					Schema: testSchemaDefault,
+				},
+				PriorState:     testEmptyStateDefault,
+				ResourceSchema: testSchemaDefault,
+				Resource:       &testprovider.Resource{},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_default": tftypes.NewValue(tftypes.Bool, true),
+						"test_computed_default": tftypes.NewValue(tftypes.Bool, true),
+					}),
+					Schema: testSchemaDefault,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
 		"resource-configure-data": {
 			server: &fwserver.Server{
 				Provider:              &testprovider.Provider{},

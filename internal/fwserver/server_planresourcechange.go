@@ -105,6 +105,8 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 	resp.PlannedState = planToState(*req.ProposedNewState)
 
+	resp.PlannedState.TransformDefaults(ctx, req.Config.Raw)
+
 	// Execute any AttributePlanModifiers.
 	//
 	// This pass is before any Computed-only attributes are marked as unknown
@@ -355,9 +357,15 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
+
 		if !attribute.IsComputed() {
 			logging.FrameworkTrace(ctx, "attribute is not computed in schema, not marking unknown")
 
+			return val, nil
+		}
+
+		switch attribute.(type) {
+		case fwschema.AttributeWithBoolDefaultValue:
 			return val, nil
 		}
 

@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // State represents a Terraform state.
@@ -99,6 +100,22 @@ func (s *State) SetAttribute(ctx context.Context, path path.Path, val interface{
 // automatically called on the DeleteResourceResponse.State.
 func (s *State) RemoveResource(ctx context.Context) {
 	s.Raw = tftypes.NewValue(s.Schema.Type().TerraformType(ctx), nil)
+}
+
+// TransformDefaults traverses the schema, identifies any attributes which are null, and
+// if the attribute has a default value specified by the `Default` field on the attribute
+// then the default value is assigned.
+func (s *State) TransformDefaults(ctx context.Context, configRaw tftypes.Value) diag.Diagnostics {
+	data := s.data()
+	diags := data.TransformDefaults(ctx, configRaw)
+
+	if diags.HasError() {
+		return diags
+	}
+
+	s.Raw = data.TerraformValue
+
+	return diags
 }
 
 func (s State) data() fwschemadata.Data {

@@ -3,6 +3,7 @@ package fwserver_test
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -20,7 +21,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/numberdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -353,8 +358,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 
 	testSchemaTypeDefault := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
-			"test_optional_default": tftypes.Bool,
-			"test_computed_default": tftypes.Bool,
+			"test_optional_bool":    tftypes.Bool,
+			"test_computed_bool":    tftypes.Bool,
+			"test_optional_float64": tftypes.Number,
+			"test_computed_float64": tftypes.Number,
+			"test_optional_int64":   tftypes.Number,
+			"test_computed_int64":   tftypes.Number,
+			"test_optional_number":  tftypes.Number,
+			"test_computed_number":  tftypes.Number,
+			"test_optional_string":  tftypes.String,
+			"test_computed_string":  tftypes.String,
 		},
 	}
 
@@ -389,13 +402,45 @@ func TestServerPlanResourceChange(t *testing.T) {
 
 	testSchemaDefault := schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"test_optional_default": schema.BoolAttribute{
+			"test_optional_bool": schema.BoolAttribute{
 				Optional: true,
 				Default:  booldefault.StaticValue(true),
 			},
-			"test_computed_default": schema.BoolAttribute{
+			"test_computed_bool": schema.BoolAttribute{
 				Computed: true,
 				Default:  booldefault.StaticValue(true),
+			},
+			"test_optional_float64": schema.Float64Attribute{
+				Optional: true,
+				Default:  float64default.StaticValue(1.2345),
+			},
+			"test_computed_float64": schema.Float64Attribute{
+				Computed: true,
+				Default:  float64default.StaticValue(1.2345),
+			},
+			"test_optional_int64": schema.Int64Attribute{
+				Optional: true,
+				Default:  int64default.StaticValue(12345),
+			},
+			"test_computed_int64": schema.Int64Attribute{
+				Computed: true,
+				Default:  int64default.StaticValue(12345),
+			},
+			"test_optional_number": schema.NumberAttribute{
+				Optional: true,
+				Default:  numberdefault.StaticValue(types.NumberValue(big.NewFloat(1.2345))),
+			},
+			"test_computed_number": schema.NumberAttribute{
+				Computed: true,
+				Default:  numberdefault.StaticValue(types.NumberValue(big.NewFloat(1.2345))),
+			},
+			"test_optional_string": schema.StringAttribute{
+				Optional: true,
+				Default:  stringdefault.StaticValue("one"),
+			},
+			"test_computed_string": schema.StringAttribute{
+				Computed: true,
+				Default:  stringdefault.StaticValue("one"),
 			},
 		},
 	}
@@ -600,40 +645,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 		request          *fwserver.PlanResourceChangeRequest
 		expectedResponse *fwserver.PlanResourceChangeResponse
 	}{
-		"resource-set-default": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.PlanResourceChangeRequest{
-				Config: &tfsdk.Config{
-					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_optional_default": tftypes.NewValue(tftypes.Bool, nil),
-						"test_computed_default": tftypes.NewValue(tftypes.Bool, nil),
-					}),
-					Schema: testSchemaDefault,
-				},
-				ProposedNewState: &tfsdk.Plan{
-					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_optional_default": tftypes.NewValue(tftypes.Bool, false),
-						"test_computed_default": tftypes.NewValue(tftypes.Bool, false),
-					}),
-					Schema: testSchemaDefault,
-				},
-				PriorState:     testEmptyStateDefault,
-				ResourceSchema: testSchemaDefault,
-				Resource:       &testprovider.Resource{},
-			},
-			expectedResponse: &fwserver.PlanResourceChangeResponse{
-				PlannedState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_optional_default": tftypes.NewValue(tftypes.Bool, true),
-						"test_computed_default": tftypes.NewValue(tftypes.Bool, true),
-					}),
-					Schema: testSchemaDefault,
-				},
-				PlannedPrivate: testEmptyPrivate,
-			},
-		},
 		"resource-configure-data": {
 			server: &fwserver.Server{
 				Provider:              &testprovider.Provider{},
@@ -725,6 +736,64 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 					}),
 					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"create-set-default-values": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_bool":    tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, nil),
+						"test_optional_float64": tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_float64": tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_int64":   tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_int64":   tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_number":  tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_number":  tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaDefault,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_bool":    tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, nil),
+						"test_optional_float64": tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_float64": tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_int64":   tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_int64":   tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_number":  tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_number":  tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaDefault,
+				},
+				PriorState:     testEmptyStateDefault,
+				ResourceSchema: testSchemaDefault,
+				Resource:       &testprovider.Resource{},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_optional_float64": tftypes.NewValue(tftypes.Number, 1.2345),
+						"test_computed_float64": tftypes.NewValue(tftypes.Number, 1.2345),
+						"test_optional_int64":   tftypes.NewValue(tftypes.Number, 12345),
+						"test_computed_int64":   tftypes.NewValue(tftypes.Number, 12345),
+						"test_optional_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
+						"test_computed_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
+						"test_optional_string":  tftypes.NewValue(tftypes.String, "one"),
+						"test_computed_string":  tftypes.NewValue(tftypes.String, "one"),
+					}),
+					Schema: testSchemaDefault,
 				},
 				PlannedPrivate: testEmptyPrivate,
 			},
@@ -1731,6 +1800,78 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"update-set-default-values": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_bool":    tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, nil),
+						"test_optional_float64": tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_float64": tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_int64":   tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_int64":   tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_number":  tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_number":  tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaDefault,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_bool":    tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, nil),
+						"test_optional_float64": tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_float64": tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_int64":   tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_int64":   tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_number":  tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_number":  tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaDefault,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_bool":    tftypes.NewValue(tftypes.Bool, false),
+						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, false),
+						"test_optional_float64": tftypes.NewValue(tftypes.Number, 5.4321),
+						"test_computed_float64": tftypes.NewValue(tftypes.Number, 5.4321),
+						"test_optional_int64":   tftypes.NewValue(tftypes.Number, 54321),
+						"test_computed_int64":   tftypes.NewValue(tftypes.Number, 54321),
+						"test_optional_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(5.4321)),
+						"test_computed_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(5.4321)),
+						"test_optional_string":  tftypes.NewValue(tftypes.String, "two"),
+						"test_computed_string":  tftypes.NewValue(tftypes.String, "two"),
+					}),
+					Schema: testSchemaDefault,
+				},
+				ResourceSchema: testSchemaDefault,
+				Resource:       &testprovider.Resource{},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+						"test_optional_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_optional_float64": tftypes.NewValue(tftypes.Number, 1.2345),
+						"test_computed_float64": tftypes.NewValue(tftypes.Number, 1.2345),
+						"test_optional_int64":   tftypes.NewValue(tftypes.Number, 12345),
+						"test_computed_int64":   tftypes.NewValue(tftypes.Number, 12345),
+						"test_optional_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
+						"test_computed_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
+						"test_optional_string":  tftypes.NewValue(tftypes.String, "one"),
+						"test_computed_string":  tftypes.NewValue(tftypes.String, "one"),
+					}),
+					Schema: testSchemaDefault,
 				},
 				PlannedPrivate: testEmptyPrivate,
 			},

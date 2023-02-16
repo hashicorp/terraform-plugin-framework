@@ -364,9 +364,27 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			return val, nil
 		}
 
-		switch attribute.(type) {
+		switch a := attribute.(type) {
 		case fwschema.AttributeWithBoolDefaultValue:
-			return val, nil
+			if a.DefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithFloat64DefaultValue:
+			if a.DefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithInt64DefaultValue:
+			if a.DefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithNumberDefaultValue:
+			if a.DefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithStringDefaultValue:
+			if a.DefaultValue() != nil {
+				return val, nil
+			}
 		}
 
 		logging.FrameworkDebug(ctx, "marking computed attribute that is null in the config as unknown")

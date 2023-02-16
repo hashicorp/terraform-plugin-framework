@@ -48,7 +48,8 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			return tfTypeValue, nil
 		}
 
-		attrAtPath, attrAtPathDiags := d.Schema.AttributeAtPath(context.Background(), fwPath)
+		// TODO: Handle blocks
+		attrAtPath, attrAtPathDiags := d.Schema.AttributeAtPath(ctx, fwPath)
 
 		diags.Append(attrAtPathDiags...)
 
@@ -57,13 +58,42 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			return tfTypeValue, nil
 		}
 
-		switch attrAtPath.(type) {
+		switch a := attrAtPath.(type) {
 		case fwschema.AttributeWithBoolDefaultValue:
-			attribWithBoolDefaultValue := attrAtPath.(fwschema.AttributeWithBoolDefaultValue)
-			resp := defaults.BoolResponse{}
-			attribWithBoolDefaultValue.DefaultValue().DefaultBool(ctx, defaults.BoolRequest{}, &resp)
-
-			return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueBool()), nil
+			defaultValue := a.DefaultValue()
+			if defaultValue != nil {
+				resp := defaults.BoolResponse{}
+				defaultValue.DefaultBool(ctx, defaults.BoolRequest{}, &resp)
+				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueBool()), nil
+			}
+		case fwschema.AttributeWithFloat64DefaultValue:
+			defaultValue := a.DefaultValue()
+			if defaultValue != nil {
+				resp := defaults.Float64Response{}
+				defaultValue.DefaultFloat64(ctx, defaults.Float64Request{}, &resp)
+				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueFloat64()), nil
+			}
+		case fwschema.AttributeWithInt64DefaultValue:
+			defaultValue := a.DefaultValue()
+			if defaultValue != nil {
+				resp := defaults.Int64Response{}
+				defaultValue.DefaultInt64(ctx, defaults.Int64Request{}, &resp)
+				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueInt64()), nil
+			}
+		case fwschema.AttributeWithNumberDefaultValue:
+			defaultValue := a.DefaultValue()
+			if defaultValue != nil {
+				resp := defaults.NumberResponse{}
+				defaultValue.DefaultNumber(ctx, defaults.NumberRequest{}, &resp)
+				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueBigFloat()), nil
+			}
+		case fwschema.AttributeWithStringDefaultValue:
+			defaultValue := a.DefaultValue()
+			if defaultValue != nil {
+				resp := defaults.StringResponse{}
+				defaultValue.DefaultString(ctx, defaults.StringRequest{}, &resp)
+				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueString()), nil
+			}
 		}
 
 		return tfTypeValue, nil

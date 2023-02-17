@@ -379,7 +379,23 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			if a.DefaultValue() != nil {
 				return val, nil
 			}
+		case fwschema.AttributeWithListDefaultValue:
+			if a.DefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithMapDefaultValue:
+			if a.DefaultValue() != nil {
+				return val, nil
+			}
 		case fwschema.AttributeWithNumberDefaultValue:
+			if a.DefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithObjectDefaultValue:
+			if a.DefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithSetDefaultValue:
 			if a.DefaultValue() != nil {
 				return val, nil
 			}

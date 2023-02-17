@@ -2,12 +2,15 @@ package fwschemadata
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 )
 
@@ -48,14 +51,22 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			return tfTypeValue, nil
 		}
 
-		// TODO: Handle blocks
-		attrAtPath, attrAtPathDiags := d.Schema.AttributeAtPath(ctx, fwPath)
+		attrAtPath, err := d.Schema.AttributeAtTerraformPath(ctx, tfTypePath)
 
-		diags.Append(attrAtPathDiags...)
+		if err != nil {
+			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
+				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
+				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown")
+				return tfTypeValue, nil
+			}
 
-		// Do not transform if schema attribute path cannot be retrieved.
-		if attrAtPathDiags.HasError() {
-			return tfTypeValue, nil
+			if errors.Is(err, fwschema.ErrPathIsBlock) {
+				// ignore blocks, they do not have a computed field
+				logging.FrameworkTrace(ctx, "attribute is a block, not marking unknown")
+				return tfTypeValue, nil
+			}
+
+			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
 
 		switch a := attrAtPath.(type) {
@@ -64,35 +75,63 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.BoolResponse{}
 				defaultValue.DefaultBool(ctx, defaults.BoolRequest{}, &resp)
-				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueBool()), nil
+				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithFloat64DefaultValue:
 			defaultValue := a.DefaultValue()
 			if defaultValue != nil {
 				resp := defaults.Float64Response{}
 				defaultValue.DefaultFloat64(ctx, defaults.Float64Request{}, &resp)
-				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueFloat64()), nil
+				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithInt64DefaultValue:
 			defaultValue := a.DefaultValue()
 			if defaultValue != nil {
 				resp := defaults.Int64Response{}
 				defaultValue.DefaultInt64(ctx, defaults.Int64Request{}, &resp)
-				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueInt64()), nil
+				return resp.PlanValue.ToTerraformValue(ctx)
+			}
+		case fwschema.AttributeWithListDefaultValue:
+			defaultValue := a.DefaultValue()
+			if defaultValue != nil {
+				resp := defaults.ListResponse{}
+				defaultValue.DefaultList(ctx, defaults.ListRequest{}, &resp)
+				return resp.PlanValue.ToTerraformValue(ctx)
+			}
+		case fwschema.AttributeWithMapDefaultValue:
+			defaultValue := a.DefaultValue()
+			if defaultValue != nil {
+				resp := defaults.MapResponse{}
+				defaultValue.DefaultMap(ctx, defaults.MapRequest{}, &resp)
+				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithNumberDefaultValue:
 			defaultValue := a.DefaultValue()
 			if defaultValue != nil {
 				resp := defaults.NumberResponse{}
 				defaultValue.DefaultNumber(ctx, defaults.NumberRequest{}, &resp)
-				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueBigFloat()), nil
+				return resp.PlanValue.ToTerraformValue(ctx)
+			}
+		case fwschema.AttributeWithObjectDefaultValue:
+			defaultValue := a.DefaultValue()
+			if defaultValue != nil {
+				resp := defaults.ObjectResponse{}
+				defaultValue.DefaultObject(ctx, defaults.ObjectRequest{}, &resp)
+				return resp.PlanValue.ToTerraformValue(ctx)
+			}
+		case fwschema.AttributeWithSetDefaultValue:
+			defaultValue := a.DefaultValue()
+			if defaultValue != nil {
+				resp := defaults.SetResponse{}
+				defaultValue.DefaultSet(ctx, defaults.SetRequest{}, &resp)
+				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithStringDefaultValue:
 			defaultValue := a.DefaultValue()
 			if defaultValue != nil {
 				resp := defaults.StringResponse{}
 				defaultValue.DefaultString(ctx, defaults.StringRequest{}, &resp)
-				return tftypes.NewValue(tfTypeValue.Type(), resp.PlanValue.ValueString()), nil
+				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		}
 

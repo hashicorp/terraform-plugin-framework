@@ -105,7 +105,9 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 	resp.PlannedState = planToState(*req.ProposedNewState)
 
-	resp.PlannedState.TransformDefaults(ctx, req.Config.Raw)
+	if !resp.PlannedState.Raw.IsNull() {
+		resp.PlannedState.TransformDefaults(ctx, req.Config.Raw)
+	}
 
 	// Execute any AttributePlanModifiers.
 	//

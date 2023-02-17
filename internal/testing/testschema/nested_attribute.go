@@ -1,10 +1,13 @@
 package testschema
 
 import (
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ fwschema.NestedAttribute = NestedAttribute{}
@@ -24,7 +27,48 @@ type NestedAttribute struct {
 
 // ApplyTerraform5AttributePathStep satisfies the fwschema.Attribute interface.
 func (a NestedAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (any, error) {
-	return a.GetType().ApplyTerraform5AttributePathStep(step)
+	switch a.GetNestingMode() {
+	case fwschema.NestingModeList:
+		_, ok := step.(tftypes.ElementKeyInt)
+
+		if !ok {
+			return nil, fmt.Errorf("cannot apply step %T to ListNestedAttribute", step)
+		}
+
+		return a.NestedObject, nil
+	case fwschema.NestingModeMap:
+		_, ok := step.(tftypes.ElementKeyString)
+
+		if !ok {
+			return nil, fmt.Errorf("cannot apply step %T to ListNestedAttribute", step)
+		}
+
+		return a.NestedObject, nil
+	case fwschema.NestingModeSet:
+		_, ok := step.(tftypes.ElementKeyValue)
+
+		if !ok {
+			return nil, fmt.Errorf("cannot apply step %T to ListNestedAttribute", step)
+		}
+
+		return a.NestedObject, nil
+	case fwschema.NestingModeSingle:
+		name, ok := step.(tftypes.AttributeName)
+
+		if !ok {
+			return nil, fmt.Errorf("cannot apply step %T to SingleNestedAttribute", step)
+		}
+
+		attribute, ok := a.GetNestedObject().GetAttributes()[string(name)]
+
+		if !ok {
+			return nil, fmt.Errorf("no attribute %q on SingleNestedAttribute", name)
+		}
+
+		return attribute, nil
+	default:
+		panic(fmt.Sprintf("nesting mode not supported: %T", a.GetNestingMode()))
+	}
 }
 
 // Equal satisfies the fwschema.Attribute interface.

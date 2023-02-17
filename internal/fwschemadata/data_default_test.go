@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -2375,6 +2376,319 @@ func TestDataDefault(t *testing.T) {
 					},
 					map[string]tftypes.Value{
 						"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+					},
+				),
+			},
+		},
+		"list-nested-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": testschema.NestedAttributeWithListDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: listdefault.StaticValue(
+								types.ListValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_nested": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_nested": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": testschema.NestedAttributeWithListDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: listdefault.StaticValue(
+								types.ListValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "two"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"list-nested-attribute-string-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_nested": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_nested": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, nil),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "two"),
+									},
+								),
+							},
+						),
 					},
 				),
 			},

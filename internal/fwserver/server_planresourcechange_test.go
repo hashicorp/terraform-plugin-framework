@@ -362,24 +362,28 @@ func TestServerPlanResourceChange(t *testing.T) {
 
 	testSchemaTypeDefault := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
-			"test_optional_bool":    tftypes.Bool,
-			"test_computed_bool":    tftypes.Bool,
-			"test_optional_float64": tftypes.Number,
-			"test_computed_float64": tftypes.Number,
-			"test_optional_int64":   tftypes.Number,
-			"test_computed_int64":   tftypes.Number,
-			"test_optional_list":    tftypes.List{ElementType: tftypes.String},
-			"test_computed_list":    tftypes.List{ElementType: tftypes.String},
-			"test_optional_map":     tftypes.Map{ElementType: tftypes.String},
-			"test_computed_map":     tftypes.Map{ElementType: tftypes.String},
-			"test_optional_number":  tftypes.Number,
-			"test_computed_number":  tftypes.Number,
-			"test_optional_object":  tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
-			"test_computed_object":  tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
-			"test_optional_set":     tftypes.Set{ElementType: tftypes.String},
-			"test_computed_set":     tftypes.Set{ElementType: tftypes.String},
-			"test_optional_string":  tftypes.String,
-			"test_computed_string":  tftypes.String,
+			"test_optional_bool":                  tftypes.Bool,
+			"test_computed_bool":                  tftypes.Bool,
+			"test_optional_float64":               tftypes.Number,
+			"test_computed_float64":               tftypes.Number,
+			"test_optional_int64":                 tftypes.Number,
+			"test_computed_int64":                 tftypes.Number,
+			"test_optional_list":                  tftypes.List{ElementType: tftypes.String},
+			"test_computed_list":                  tftypes.List{ElementType: tftypes.String},
+			"test_optional_map":                   tftypes.Map{ElementType: tftypes.String},
+			"test_computed_map":                   tftypes.Map{ElementType: tftypes.String},
+			"test_optional_number":                tftypes.Number,
+			"test_computed_number":                tftypes.Number,
+			"test_optional_object":                tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
+			"test_computed_object":                tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
+			"test_optional_set":                   tftypes.Set{ElementType: tftypes.String},
+			"test_computed_set":                   tftypes.Set{ElementType: tftypes.String},
+			"test_optional_string":                tftypes.String,
+			"test_computed_string":                tftypes.String,
+			"test_optional_nested_list":           tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
+			"test_computed_nested_list":           tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
+			"test_optional_nested_list_attribute": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
+			"test_computed_nested_list_attribute": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
 		},
 	}
 
@@ -493,6 +497,82 @@ func TestServerPlanResourceChange(t *testing.T) {
 			"test_computed_string": schema.StringAttribute{
 				Computed: true,
 				Default:  stringdefault.StaticValue("one"),
+			},
+			"test_optional_nested_list": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"string_attribute": schema.StringAttribute{
+							Optional: true,
+						},
+					},
+				},
+				Default: listdefault.StaticValue(
+					types.ListValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"string_attribute": types.StringType,
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"string_attribute": types.StringType,
+								},
+								map[string]attr.Value{
+									"string_attribute": types.StringValue("default"),
+								}),
+						},
+					),
+				),
+			},
+			"test_computed_nested_list": schema.ListAttribute{
+				Computed: true,
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"string_attribute": types.StringType,
+					},
+				},
+				Default: listdefault.StaticValue(
+					types.ListValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"string_attribute": types.StringType,
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"string_attribute": types.StringType,
+								},
+								map[string]attr.Value{
+									"string_attribute": types.StringValue("default"),
+								}),
+						},
+					),
+				),
+			},
+			"test_optional_nested_list_attribute": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"string_attribute": schema.StringAttribute{
+							Optional: true,
+							Default:  stringdefault.StaticValue("default-attribute"),
+						},
+					},
+				},
+			},
+			"test_computed_nested_list_attribute": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"string_attribute": schema.StringAttribute{
+							Optional: true,
+							Default:  stringdefault.StaticValue("default-attribute"),
+						},
+					},
+				},
 			},
 		},
 	}
@@ -817,6 +897,68 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 						"test_optional_string":  tftypes.NewValue(tftypes.String, nil),
 						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_optional_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							nil,
+						),
+						"test_computed_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							nil,
+						),
+						"test_optional_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
 					}),
 					Schema: testSchemaDefault,
 				},
@@ -840,6 +982,68 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 						"test_optional_string":  tftypes.NewValue(tftypes.String, nil),
 						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_optional_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							nil,
+						),
+						"test_computed_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							nil,
+						),
+						"test_optional_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
 					}),
 					Schema: testSchemaDefault,
 				},
@@ -868,6 +1072,90 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
 						"test_optional_string":  tftypes.NewValue(tftypes.String, "one"),
 						"test_computed_string":  tftypes.NewValue(tftypes.String, "one"),
+						"test_optional_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "default"),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "default"),
+									},
+								),
+							},
+						),
+						"test_optional_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
+									},
+								),
+							},
+						),
 					}),
 					Schema: testSchemaDefault,
 				},
@@ -1905,6 +2193,68 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 						"test_optional_string":  tftypes.NewValue(tftypes.String, nil),
 						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_optional_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							nil,
+						),
+						"test_computed_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							nil,
+						),
+						"test_optional_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
 					}),
 					Schema: testSchemaDefault,
 				},
@@ -1928,6 +2278,68 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 						"test_optional_string":  tftypes.NewValue(tftypes.String, nil),
 						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_optional_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							nil,
+						),
+						"test_computed_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							nil,
+						),
+						"test_optional_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
 					}),
 					Schema: testSchemaDefault,
 				},
@@ -1951,6 +2363,90 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
 						"test_optional_string":  tftypes.NewValue(tftypes.String, "two"),
 						"test_computed_string":  tftypes.NewValue(tftypes.String, "two"),
+						"test_optional_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
+									},
+								),
+							},
+						),
+						"test_optional_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
+									},
+								),
+							},
+						),
 					}),
 					Schema: testSchemaDefault,
 				},
@@ -1978,6 +2474,90 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
 						"test_optional_string":  tftypes.NewValue(tftypes.String, "one"),
 						"test_computed_string":  tftypes.NewValue(tftypes.String, "one"),
+						"test_optional_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "default"),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "default"),
+									},
+								),
+							},
+						),
+						"test_optional_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
+									},
+								),
+							},
+						),
+						"test_computed_nested_list_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
+									},
+								),
+							},
+						),
 					}),
 					Schema: testSchemaDefault,
 				},

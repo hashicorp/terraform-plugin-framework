@@ -9,14 +9,14 @@ description: >-
 Resources are an abstraction that allow Terraform to manage infrastructure objects by defining create, read, update,
 and delete functionality that maps onto API operations. Resource schemas define what fields a resource has, give
 Terraform metadata about those fields, and define how the resource behaves. Refer to
-[Resources](/plugin/framework/resources) in the Framework documentation for details.
+[Resources](/terraform/plugin/framework/resources) in the Framework documentation for details.
 
 This page explains how to migrate a resource's schema from SDKv2 to the plugin Framework. We also recommend reviewing these additional guides for resources throughout the migration:
-- [Create, Read, Update, and Delete functions](/plugin/framework/migrating/resources/crud): The resource defines the logic to manage resources with Terraform.
-- [Import](/plugin/framework/migrating/resources/import): The resource defines the logic to add a resource to Terraform's state.
-- [Plan modification](/plugin/framework/migrating/resources/plan-modification): The resource customizes the Terraform plan for known values or behaviors outside the practitioner's configuration.
-- [State upgrade](/plugin/framework/migrating/resources/state-upgrade): The resource updates Terraform state information in advanced use cases.
-- [Timeouts](/plugin/framework/migrating/resources/timeouts): The resource uses timeouts during create, read, update or delete operations.
+- [Create, Read, Update, and Delete functions](/terraform/plugin/framework/migrating/resources/crud): The resource defines the logic to manage resources with Terraform.
+- [Import](/terraform/plugin/framework/migrating/resources/import): The resource defines the logic to add a resource to Terraform's state.
+- [Plan modification](/terraform/plugin/framework/migrating/resources/plan-modification): The resource customizes the Terraform plan for known values or behaviors outside the practitioner's configuration.
+- [State upgrade](/terraform/plugin/framework/migrating/resources/state-upgrade): The resource updates Terraform state information in advanced use cases.
+- [Timeouts](/terraform/plugin/framework/migrating/resources/timeouts): The resource uses timeouts during create, read, update or delete operations.
 
 ## SDKv2
 In SDKv2, resources are defined by the `ResourcesMap` field in the `schema.Provider` struct, which maps resource names
@@ -127,7 +127,7 @@ func (r *resourceExample) Delete(ctx context.Context, req resource.DeleteRequest
 }
 ```
 
-Refer to the [Resources - CRUD functions](/plugin/framework/migrating/resources/crud) page in this guide to learn how to
+Refer to the [Resources - CRUD functions](/terraform/plugin/framework/migrating/resources/crud) page in this guide to learn how to
 implement the `resource.Resource` interface.
 
 ## Migration Notes

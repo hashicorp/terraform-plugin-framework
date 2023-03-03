@@ -6,25 +6,25 @@ description: >-
 
 # Update Resources
 
-In-place update is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Update` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Update). The request contains Terraform prior state, configuration, and plan data. The response contains updated state data. The data is defined by the [schema](/plugin/framework/schemas) of the resource.
+In-place update is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/terraform/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/terraform/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Update` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Update). The request contains Terraform prior state, configuration, and plan data. The response contains updated state data. The data is defined by the [schema](/terraform/plugin/framework/schemas) of the resource.
 
-To ensure that Terraform plans replacement of a resource, rather than perform an in-place update, use the [`resource.RequiresReplace()` attribute plan modifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#RequiresReplace) in the schema or implement [resource plan modification](/plugin/framework/resources/plan-modification).
+To ensure that Terraform plans replacement of a resource, rather than perform an in-place update, use the [`resource.RequiresReplace()` attribute plan modifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#RequiresReplace) in the schema or implement [resource plan modification](/terraform/plugin/framework/resources/plan-modification).
 
 Other resource lifecycle implementations include:
 
-- [Create](/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
-- [Read](/plugin/framework/resources/read) resources by receiving Terraform prior state data, performing read logic, and saving refreshed Terraform state data.
-- [Delete](/plugin/framework/resources/delete) resources by receiving Terraform prior state data and performing deletion logic.
+- [Create](/terraform/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
+- [Read](/terraform/plugin/framework/resources/read) resources by receiving Terraform prior state data, performing read logic, and saving refreshed Terraform state data.
+- [Delete](/terraform/plugin/framework/resources/delete) resources by receiving Terraform prior state data and performing deletion logic.
 
 ## Define Update Method
 
 Implement the `Update` method by:
 
-1. [Accessing the data](/plugin/framework/accessing-values) from the [`resource.UpdateRequest` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest). Most use cases should access the plan data in the [`resource.UpdateRequest.Plan` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest.Plan).
+1. [Accessing the data](/terraform/plugin/framework/accessing-values) from the [`resource.UpdateRequest` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest). Most use cases should access the plan data in the [`resource.UpdateRequest.Plan` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest.Plan).
 1. Performing logic or external calls to modify the resource.
-1. [Writing state data](/plugin/framework/writing-state) into the [`resource.UpdateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateResponse.State).
+1. [Writing state data](/terraform/plugin/framework/writing-state) into the [`resource.UpdateResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateResponse.State).
 
-If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.UpdateResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateResponse.Diagnostics).
+If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`resource.UpdateResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateResponse.Diagnostics).
 
 In this example, the `Update` function makes a HTTP call and returns successfully if the status code was 200 OK:
 
@@ -148,7 +148,7 @@ Note these caveats when implementing the `Update` method:
 
 Note these recommendations when implementing the `Update` method:
 
-* Get request data from the Terraform plan data over configuration data as the schema or resource may include [plan modification](/plugin/framework/resources/plan-modification) logic which sets plan values.
+* Get request data from the Terraform plan data over configuration data as the schema or resource may include [plan modification](/terraform/plugin/framework/resources/plan-modification) logic which sets plan values.
 * Only successfully modified parts of the resource should be return updated data in the state response.
 * Use the [`resource.UseStateForUnknown()` attribute plan modifier](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UseStateForUnknown) for `Computed` attributes that are known to not change during resource updates. This will enhance the Terraform plan to not show `=> (known after apply)` differences.
 

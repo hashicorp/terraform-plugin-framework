@@ -14,7 +14,7 @@ Attributes and blocks within Terraform configuration have different syntax, eith
 
 Providers, resources and data sources have their own type-specific schema, which use type-specific attributes and blocks.
 
-The following examples use a resource but the same schema attribute and block types are also defined with the schema for providers and data sources. The examples focus on type-related information, the `Optional` field is included just to provide working examples but refer to [Schema](/plugin/framework/handling-data/schemas) for information about the other fields that can be defined within attributes and blocks.
+The following examples use a resource but the same schema attribute and block types are also defined with the schema for providers and data sources. The examples focus on type-related information, the `Optional` field is included just to provide working examples but refer to [Schema](/terraform/plugin/framework/handling-data/schemas) for information about the other fields that can be defined within attributes and blocks.
 
 ## Attributes
 
@@ -36,13 +36,13 @@ Attributes are used to set values.
 | SetNestedAttribute    | Set containing nested objects where the object attributes can be fully defined  |
 | SingleNestedAttribute | Single object where the object attributes can be fully defined                  |
 
-Refer to [Attributes - Terraform Configuration and Schema](/plugin/framework/handling-data/attributes#terraform-configuration-and-schema) for examples of Terraform configuration and schema that illustrate the usage of the various types of schema attributes.
+Refer to [Attributes - Terraform Configuration and Schema](/terraform/plugin/framework/handling-data/attributes#terraform-configuration-and-schema) for examples of Terraform configuration and schema that illustrate the usage of the various types of schema attributes.
 
 ## Blocks
 
 The Terraform language uses a block as a container for other attributes and blocks. Terraform implements many top level blocks, such as `provider` and `resource`, while providers can implement nested blocks in their schema to enable practitioners to configure data.
 
--> Use [nested attributes](/plugin/framework/handling-data/attributes#nested-attributes) for new schema implementations. Block support is mainly for migrating prior SDK-based providers.
+-> Use [nested attributes](/terraform/plugin/framework/handling-data/attributes#nested-attributes) for new schema implementations. Block support is mainly for migrating prior SDK-based providers.
 
 The available nesting modes are:
 
@@ -50,4 +50,4 @@ The available nesting modes are:
 - Set: Unordered collection of objects
 - Single: One object
 
-Refer to [Blocks - Terraform Configuration](/plugin/framework/handling-data/blocks#terraform-configuration) for examples of Terraform configuration and schema that illustrate the usage of nested blocks.
+Refer to [Blocks - Terraform Configuration](/terraform/plugin/framework/handling-data/blocks#terraform-configuration) for examples of Terraform configuration and schema that illustrate the usage of nested blocks.

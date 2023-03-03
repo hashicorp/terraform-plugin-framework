@@ -7,7 +7,7 @@ description: >-
 
 # Resources
 
-[Resources](/language/resources) are an abstraction that allow Terraform to manage infrastructure objects, such as a compute instance, an access policy, or disk. Terraform assumes that every resource:
+[Resources](/terraform/language/resources) are an abstraction that allow Terraform to manage infrastructure objects, such as a compute instance, an access policy, or disk. Terraform assumes that every resource:
 
 - operates as a pure key/value store, with values getting returned exactly as they were written.
 - needs only one API call to update or return its state.
@@ -15,20 +15,20 @@ description: >-
 
 This page describes the initial implementation details required for supporting a resource within the provider. Resource lifecycle management functionality is also required:
 
-- [Create](/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
-- [Read](/plugin/framework/resources/read) resources by receiving Terraform prior state data, performing read logic, and saving refreshed Terraform state data.
-- [Update](/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
-- [Delete](/plugin/framework/resources/delete) resources by receiving Terraform prior state data and performing deletion logic.
+- [Create](/terraform/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
+- [Read](/terraform/plugin/framework/resources/read) resources by receiving Terraform prior state data, performing read logic, and saving refreshed Terraform state data.
+- [Update](/terraform/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
+- [Delete](/terraform/plugin/framework/resources/delete) resources by receiving Terraform prior state data and performing deletion logic.
 
 Further documentation is available for deeper resource concepts:
 
-- [Configure](/plugin/framework/resources/configure) resources with provider-level data types or clients.
-- [Import state](/plugin/framework/resources/import) so practitioners can bring existing resources under Terraform lifecycle management.
-- [Manage private state](/plugin/framework/resources/private-state) to store additional data in resource state that is not shown in plans.
-- [Modify plans](/plugin/framework/resources/plan-modification) to enrich the output for expected resource behaviors during changes, such as including default values for missing configurations or marking a resource for replacement if an in-place update cannot occur.
-- [Upgrade state](/plugin/framework/resources/state-upgrade) to transparently update state data outside plans.
-- [Validate](/plugin/framework/resources/validate-configuration) practitioner configuration against acceptable values.
-- [Timeouts](/plugin/framework/resources/timeouts) in practitioner configuration for use in resource create, read, update and delete functions.
+- [Configure](/terraform/plugin/framework/resources/configure) resources with provider-level data types or clients.
+- [Import state](/terraform/plugin/framework/resources/import) so practitioners can bring existing resources under Terraform lifecycle management.
+- [Manage private state](/terraform/plugin/framework/resources/private-state) to store additional data in resource state that is not shown in plans.
+- [Modify plans](/terraform/plugin/framework/resources/plan-modification) to enrich the output for expected resource behaviors during changes, such as including default values for missing configurations or marking a resource for replacement if an in-place update cannot occur.
+- [Upgrade state](/terraform/plugin/framework/resources/state-upgrade) to transparently update state data outside plans.
+- [Validate](/terraform/plugin/framework/resources/validate-configuration) practitioner configuration against acceptable values.
+- [Timeouts](/terraform/plugin/framework/resources/timeouts) in practitioner configuration for use in resource create, read, update and delete functions.
 
 ## Define Resource Type
 
@@ -65,11 +65,11 @@ func (d *ThingDataSource) Metadata(ctx context.Context, req resource.MetadataReq
 
 ### Schema Method
 
-The [`resource.Resource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Schema) defines a [schema](/plugin/framework/schemas) describing what data is available in the resource's configuration, plan, and state.
+The [`resource.Resource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Schema) defines a [schema](/terraform/plugin/framework/schemas) describing what data is available in the resource's configuration, plan, and state.
 
 ## Add Resource to Provider
 
-Resources become available to practitioners when they are included in the [provider](/plugin/framework/providers) implementation via the [`provider.Provider` interface `Resources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Resources).
+Resources become available to practitioners when they are included in the [provider](/terraform/plugin/framework/providers) implementation via the [`provider.Provider` interface `Resources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Resources).
 
 In this example, the `ThingResource` type, which implements the `resource.Resource` interface, is added to the provider implementation:
 

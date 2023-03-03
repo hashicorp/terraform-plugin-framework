@@ -8,7 +8,7 @@ description: >-
 # Writing State
 
 One of the primary jobs of a Terraform provider is to manage the provider's
-resources and data sources in the [Terraform state](/language/state). Writing values to state
+resources and data sources in the [Terraform state](/terraform/language/state). Writing values to state
 is something that provider developers will do frequently.
 
 The state that a provider developer wants to update is usually stored in a
@@ -59,7 +59,7 @@ func (r ThingResource) Create(ctx context.Context,
 ```
 
 The state information is represented as an object, and gets persisted like an
-object. Refer to the [conversion rules](/plugin/framework/handling-data/conversion-rules#converting-from-go-types-to-framework-types) for an explanation on how
+object. Refer to the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules#converting-from-go-types-to-framework-types) for an explanation on how
 objects get persisted and what Go types are valid for persisting as an object.
 
 ## Set a Single Attribute or Block Value
@@ -82,5 +82,5 @@ func (r ThingResource) Read(ctx context.Context,
 }
 ```
 
-Refer to the [conversion rules](/plugin/framework/handling-data/conversion-rules#converting-from-go-types-to-framework-types)
+Refer to the [conversion rules](/terraform/plugin/framework/handling-data/conversion-rules#converting-from-go-types-to-framework-types)
 for more information about supported Go types.

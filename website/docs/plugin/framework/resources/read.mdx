@@ -6,23 +6,23 @@ description: >-
 
 # Read Resources
 
-Read (refresh) is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply`](/cli/commands/apply), [`terraform plan`](/cli/commands/plan), and [`terraform refresh`](/cli/commands/refresh) commands, Terraform calls the provider [`ReadResource`](/plugin/framework/internals/rpcs#readresource-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Read). The `Read` method is also executed after [resource import](/plugin/framework/resources/import). The request contains Terraform prior state data. The response contains the refreshed state data. The data is defined by the [schema](/plugin/framework/schemas) of the resource.
+Read (refresh) is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply`](/terraform/cli/commands/apply), [`terraform plan`](/terraform/cli/commands/plan), and [`terraform refresh`](/terraform/cli/commands/refresh) commands, Terraform calls the provider [`ReadResource`](/terraform/plugin/framework/internals/rpcs#readresource-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Read). The `Read` method is also executed after [resource import](/terraform/plugin/framework/resources/import). The request contains Terraform prior state data. The response contains the refreshed state data. The data is defined by the [schema](/terraform/plugin/framework/schemas) of the resource.
 
 Other resource lifecycle implementations include:
 
-- [Create](/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
-- [Update](/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
-- [Delete](/plugin/framework/resources/delete) resources by receiving Terraform prior state data and performing deletion logic.
+- [Create](/terraform/plugin/framework/resources/create) resources by receiving Terraform configuration and plan data, performing creation logic, and saving Terraform state data.
+- [Update](/terraform/plugin/framework/resources/update) resources in-place by receiving Terraform prior state, configuration, and plan data, performing update logic, and saving updated Terraform state data.
+- [Delete](/terraform/plugin/framework/resources/delete) resources by receiving Terraform prior state data and performing deletion logic.
 
 ## Define Read Method
 
 Implement the `Read` method by:
 
-1. [Accessing prior state data](/plugin/framework/accessing-values) from the [`resource.ReadRequest.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest.State).
+1. [Accessing prior state data](/terraform/plugin/framework/accessing-values) from the [`resource.ReadRequest.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest.State).
 1. Retriving updated resource state, such as remote system information.
-1. [Writing state data](/plugin/framework/writing-state) into the [`resource.ReadResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.State).
+1. [Writing state data](/terraform/plugin/framework/writing-state) into the [`resource.ReadResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.State).
 
-If the logic needs to return [warning or error diagnostics](/plugin/framework/diagnostics), they can added into the [`resource.DeleteResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteResponse.Diagnostics).
+If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`resource.DeleteResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteResponse.Diagnostics).
 
 In this example, the `Read` function makes a HTTP call and refreshes the state data if the status code was 200 OK or removes the resource if 404 Not Found:
 

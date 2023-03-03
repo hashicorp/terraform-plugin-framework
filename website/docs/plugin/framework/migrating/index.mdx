@@ -6,11 +6,11 @@ description: >-
 
 # Overview
 
-This guide helps you migrate a Terraform provider from SDKv2 to the plugin Framework. We recommend migrating because the Framework has abstractions that make it easier to use, and it represents the future of Terraform plugin development. Refer to [Plugin Framework Benefits](/plugin/framework-benefits) for higher level details about how the framework makes provider development easier and [Feature Comparison](/plugin/framework/migrating/benefits) for a detailed functionality comparison between the SDKv2 and the framework.
+This guide helps you migrate a Terraform provider from SDKv2 to the plugin Framework. We recommend migrating because the Framework has abstractions that make it easier to use, and it represents the future of Terraform plugin development. Refer to [Plugin Framework Benefits](/terraform/plugin/framework-benefits) for higher level details about how the framework makes provider development easier and [Feature Comparison](/terraform/plugin/framework/migrating/benefits) for a detailed functionality comparison between the SDKv2 and the framework.
 
 This guide provides information and examples for most common use cases, but it does not discuss every nuance of migration. You can ask additional migration questions in the [HashiCorp Discuss forum](https://discuss.hashicorp.com/c/terraform-providers/tf-plugin-sdk/43). To request additions or updates to this guide, submit issues or pull requests to the [`terraform-plugin-framework` repository](https://github.com/hashicorp/terraform-plugin-framework).
 
-In addition to this migration guide, we recommend referring to the main [Framework documentation](/plugin/framework) as you migrate your provider.
+In addition to this migration guide, we recommend referring to the main [Framework documentation](/terraform/plugin/framework) as you migrate your provider.
 
 ## Requirements
 
@@ -24,24 +24,24 @@ Before you migrate your provider to the Framework, ensure it meets the following
 
 Consider muxing when you need to migrate a provider that contains many resources or data sources. Muxing lets you use two versions of the same provider concurrently, with each serving different resources or data sources. This lets you migrate individual resources or data sources to the Framework one at a time.
 
-Refer to the [Provider muxing documentation](/plugin/framework/migrating/providers#muxing) for details about muxing configuration.
+Refer to the [Provider muxing documentation](/terraform/plugin/framework/migrating/providers#muxing) for details about muxing configuration.
 
 ## Testing Migration
 
-As you complete the migration, we recommend that you follow Test Driven Development by writing tests to ensure that the migration does not affect provider behavior. Refer to [Testing Migration](/plugin/framework/migrating/testing#testing-migration) for details and an example.
+As you complete the migration, we recommend that you follow Test Driven Development by writing tests to ensure that the migration does not affect provider behavior. Refer to [Testing Migration](/terraform/plugin/framework/migrating/testing#testing-migration) for details and an example.
 
 
 ## Migration steps
 
 Take the following steps when you migrate a provider from SDKv2 to the Framework:
 
-- Ensure all [tests](/plugin/framework/migrating/testing#testing-migration) pass.
-- [Serve the provider](/plugin/framework/migrating/providers#serving-the-provider) via the Framework.
-  - Implement [muxing](/plugin/framework/migrating/providers#muxing) if you plan to migrate the provider over several point releases.
-- Update the [provider definition](/plugin/framework/migrating/providers#provider-definition) to use the Framework.
-- Update the [provider schema](/plugin/framework/migrating/providers#provider-schema).
+- Ensure all [tests](/terraform/plugin/framework/migrating/testing#testing-migration) pass.
+- [Serve the provider](/terraform/plugin/framework/migrating/providers#serving-the-provider) via the Framework.
+  - Implement [muxing](/terraform/plugin/framework/migrating/providers#muxing) if you plan to migrate the provider over several point releases.
+- Update the [provider definition](/terraform/plugin/framework/migrating/providers#provider-definition) to use the Framework.
+- Update the [provider schema](/terraform/plugin/framework/migrating/providers#provider-schema).
 - Update each of the provider's resources and data sources.
-  - Update related [tests](/plugin/framework/migrating/testing) to use the Framework, and ensure that the tests fail.
-  - Migrate the [resource](/plugin/framework/migrating/resources) or [data source](/plugin/framework/migrating/data-sources).
+  - Update related [tests](/terraform/plugin/framework/migrating/testing) to use the Framework, and ensure that the tests fail.
+  - Migrate the [resource](/terraform/plugin/framework/migrating/resources) or [data source](/terraform/plugin/framework/migrating/data-sources).
   - Verify that related tests now pass.
 - If you used muxing, remove the muxing configuration.

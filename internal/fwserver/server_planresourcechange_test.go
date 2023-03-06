@@ -399,9 +399,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
-	testSchemaTypeComputed := tftypes.Object{
+	testSchemaTypeComputedRequired := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"test_computed": tftypes.String,
+			"test_required": tftypes.String,
 		},
 	}
 
@@ -664,6 +665,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 					},
 				},
 			},
+			"test_required": schema.StringAttribute{
+				Required: true,
+			},
 		},
 	}
 
@@ -680,6 +684,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 						},
 					},
 				},
+			},
+			"test_required": schema.StringAttribute{
+				Required: true,
 			},
 		},
 	}
@@ -1740,14 +1747,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			request: &fwserver.PlanResourceChangeRequest{
 				Config: &tfsdk.Config{
-					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+					Raw: tftypes.NewValue(testSchemaTypeComputedRequired, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
 				ProposedNewState: &tfsdk.Plan{
-					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+					Raw: tftypes.NewValue(testSchemaTypeComputedRequired, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
@@ -1770,8 +1779,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+					Raw: tftypes.NewValue(testSchemaTypeComputedRequired, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
@@ -2102,15 +2112,17 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			request: &fwserver.PlanResourceChangeRequest{
 				Config: &tfsdk.Config{
-					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+					Raw: tftypes.NewValue(testSchemaTypeComputedRequired, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 					}),
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
 				ProposedNewState: testEmptyPlan,
 				PriorState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+					Raw: tftypes.NewValue(testSchemaTypeComputedRequired, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-state-value"),
 					}),
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
@@ -3356,20 +3368,23 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			request: &fwserver.PlanResourceChangeRequest{
 				Config: &tfsdk.Config{
-					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+					Raw: tftypes.NewValue(testSchemaTypeComputedRequired, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, "test-new-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
 				ProposedNewState: &tfsdk.Plan{
-					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+					Raw: tftypes.NewValue(testSchemaTypeComputedRequired, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, "test-new-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},
 				PriorState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+					Raw: tftypes.NewValue(testSchemaTypeComputedRequired, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, "test-old-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
 					}),
 					Schema: testSchema,
 				},
@@ -3384,8 +3399,9 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaTypeComputed, map[string]tftypes.Value{
+					Raw: tftypes.NewValue(testSchemaTypeComputedRequired, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, "test-new-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchemaAttributePlanModifierPrivatePlanResponse,
 				},

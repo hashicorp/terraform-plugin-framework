@@ -102,22 +102,6 @@ func (s *State) RemoveResource(ctx context.Context) {
 	s.Raw = tftypes.NewValue(s.Schema.Type().TerraformType(ctx), nil)
 }
 
-// TransformDefaults traverses the schema, identifies any attributes which are null, and
-// if the attribute has a default value specified by the `Default` field on the attribute
-// then the default value is assigned.
-func (s *State) TransformDefaults(ctx context.Context, configRaw tftypes.Value) diag.Diagnostics {
-	data := s.data()
-	diags := data.TransformDefaults(ctx, configRaw)
-
-	if diags.HasError() {
-		return diags
-	}
-
-	s.Raw = data.TerraformValue
-
-	return diags
-}
-
 func (s State) data() fwschemadata.Data {
 	return fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionState,

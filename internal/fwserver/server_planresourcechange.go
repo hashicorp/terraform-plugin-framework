@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -105,8 +106,27 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 	resp.PlannedState = planToState(*req.ProposedNewState)
 
+	// Set Defaults.
+	//
+	// If the planned state is not null (i.e., not a destroy operation) we traverse the schema,
+	// identifying any attributes which are null, and if the attribute has a default value
+	// specified by the `Default` field on the attribute then the default value is assigned.
 	if !resp.PlannedState.Raw.IsNull() {
-		resp.PlannedState.TransformDefaults(ctx, req.Config.Raw)
+		data := fwschemadata.Data{
+			Description:    fwschemadata.DataDescriptionState,
+			Schema:         resp.PlannedState.Schema,
+			TerraformValue: resp.PlannedState.Raw,
+		}
+
+		diags := data.TransformDefaults(ctx, req.Config.Raw)
+
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		resp.PlannedState.Raw = data.TerraformValue
 	}
 
 	// Execute any AttributePlanModifiers.

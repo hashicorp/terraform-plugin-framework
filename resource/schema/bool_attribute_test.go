@@ -85,6 +85,53 @@ func TestBoolAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 }
 
+func TestBoolAttributeBoolDefaultValue(t *testing.T) {
+	t.Parallel()
+
+	opt := cmp.Comparer(func(x, y defaults.Bool) bool {
+		ctx := context.Background()
+		req := defaults.BoolRequest{}
+
+		xResp := defaults.BoolResponse{}
+		x.DefaultBool(ctx, req, &xResp)
+
+		yResp := defaults.BoolResponse{}
+		y.DefaultBool(ctx, req, &yResp)
+
+		return xResp.PlanValue.Equal(yResp.PlanValue)
+	})
+
+	testCases := map[string]struct {
+		attribute schema.BoolAttribute
+		expected  defaults.Bool
+	}{
+		"no-default": {
+			attribute: schema.BoolAttribute{},
+			expected:  nil,
+		},
+		"default": {
+			attribute: schema.BoolAttribute{
+				Default: booldefault.StaticValue(true),
+			},
+			expected: booldefault.StaticValue(true),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.BoolDefaultValue()
+
+			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestBoolAttributeBoolPlanModifiers(t *testing.T) {
 	t.Parallel()
 
@@ -147,53 +194,6 @@ func TestBoolAttributeBoolValidators(t *testing.T) {
 			got := testCase.attribute.BoolValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestBoolAttributeDefault(t *testing.T) {
-	t.Parallel()
-
-	opt := cmp.Comparer(func(x, y defaults.Bool) bool {
-		ctx := context.Background()
-		req := defaults.BoolRequest{}
-
-		xResp := defaults.BoolResponse{}
-		x.DefaultBool(ctx, req, &xResp)
-
-		yResp := defaults.BoolResponse{}
-		y.DefaultBool(ctx, req, &yResp)
-
-		return xResp.PlanValue.Equal(yResp.PlanValue)
-	})
-
-	testCases := map[string]struct {
-		attribute schema.BoolAttribute
-		expected  defaults.Bool
-	}{
-		"no-default": {
-			attribute: schema.BoolAttribute{},
-			expected:  nil,
-		},
-		"default": {
-			attribute: schema.BoolAttribute{
-				Default: booldefault.StaticValue(true),
-			},
-			expected: booldefault.StaticValue(true),
-		},
-	}
-
-	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.BoolDefaultValue()
-
-			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

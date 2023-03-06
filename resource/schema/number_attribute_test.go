@@ -86,61 +86,6 @@ func TestNumberAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 }
 
-func TestNumberAttributeDefault(t *testing.T) {
-	t.Parallel()
-
-	opt := cmp.Comparer(func(x, y defaults.Number) bool {
-		ctx := context.Background()
-		req := defaults.NumberRequest{}
-
-		xResp := defaults.NumberResponse{}
-		x.DefaultNumber(ctx, req, &xResp)
-
-		yResp := defaults.NumberResponse{}
-		y.DefaultNumber(ctx, req, &yResp)
-
-		return xResp.PlanValue.Equal(yResp.PlanValue)
-	})
-
-	testCases := map[string]struct {
-		attribute schema.NumberAttribute
-		expected  defaults.Number
-	}{
-		"no-default": {
-			attribute: schema.NumberAttribute{},
-			expected:  nil,
-		},
-		"default": {
-			attribute: schema.NumberAttribute{
-				Default: numberdefault.StaticValue(
-					types.NumberValue(
-						big.NewFloat(1.2345),
-					),
-				),
-			},
-			expected: numberdefault.StaticValue(
-				types.NumberValue(
-					big.NewFloat(1.2345),
-				),
-			),
-		},
-	}
-
-	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.NumberDefaultValue()
-
-			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
 func TestNumberAttributeGetDeprecationMessage(t *testing.T) {
 	t.Parallel()
 
@@ -442,6 +387,61 @@ func TestNumberAttributeIsSensitive(t *testing.T) {
 			got := testCase.attribute.IsSensitive()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestNumberAttributeNumberDefaultValue(t *testing.T) {
+	t.Parallel()
+
+	opt := cmp.Comparer(func(x, y defaults.Number) bool {
+		ctx := context.Background()
+		req := defaults.NumberRequest{}
+
+		xResp := defaults.NumberResponse{}
+		x.DefaultNumber(ctx, req, &xResp)
+
+		yResp := defaults.NumberResponse{}
+		y.DefaultNumber(ctx, req, &yResp)
+
+		return xResp.PlanValue.Equal(yResp.PlanValue)
+	})
+
+	testCases := map[string]struct {
+		attribute schema.NumberAttribute
+		expected  defaults.Number
+	}{
+		"no-default": {
+			attribute: schema.NumberAttribute{},
+			expected:  nil,
+		},
+		"default": {
+			attribute: schema.NumberAttribute{
+				Default: numberdefault.StaticValue(
+					types.NumberValue(
+						big.NewFloat(1.2345),
+					),
+				),
+			},
+			expected: numberdefault.StaticValue(
+				types.NumberValue(
+					big.NewFloat(1.2345),
+				),
+			),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.NumberDefaultValue()
+
+			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

@@ -154,6 +154,11 @@ func (a BoolAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePa
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
+// BoolDefaultValue returns the Default field value.
+func (a BoolAttribute) BoolDefaultValue() defaults.Bool {
+	return a.Default
+}
+
 // BoolPlanModifiers returns the PlanModifiers field value.
 func (a BoolAttribute) BoolPlanModifiers() []planmodifier.Bool {
 	return a.PlanModifiers
@@ -162,11 +167,6 @@ func (a BoolAttribute) BoolPlanModifiers() []planmodifier.Bool {
 // BoolValidators returns the Validators field value.
 func (a BoolAttribute) BoolValidators() []validator.Bool {
 	return a.Validators
-}
-
-// BoolDefaultValue returns the Default field value.
-func (a BoolAttribute) BoolDefaultValue() defaults.Bool {
-	return a.Default
 }
 
 // Equal returns true if the given Attribute is a BoolAttribute

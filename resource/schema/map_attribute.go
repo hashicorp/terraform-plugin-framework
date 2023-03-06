@@ -168,11 +168,6 @@ func (a MapAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePat
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// MapDefaultValue returns the Default field value.
-func (a MapAttribute) MapDefaultValue() defaults.Map {
-	return a.Default
-}
-
 // Equal returns true if the given Attribute is a MapAttribute
 // and all fields are equal.
 func (a MapAttribute) Equal(o fwschema.Attribute) bool {
@@ -227,6 +222,11 @@ func (a MapAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a MapAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// MapDefaultValue returns the Default field value.
+func (a MapAttribute) MapDefaultValue() defaults.Map {
+	return a.Default
 }
 
 // MapPlanModifiers returns the PlanModifiers field value.

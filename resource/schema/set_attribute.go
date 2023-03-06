@@ -163,11 +163,6 @@ func (a SetAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePat
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// SetDefaultValue returns the Default field value.
-func (a SetAttribute) SetDefaultValue() defaults.Set {
-	return a.Default
-}
-
 // Equal returns true if the given Attribute is a SetAttribute
 // and all fields are equal.
 func (a SetAttribute) Equal(o fwschema.Attribute) bool {
@@ -222,6 +217,11 @@ func (a SetAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a SetAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// SetDefaultValue returns the Default field value.
+func (a SetAttribute) SetDefaultValue() defaults.Set {
+	return a.Default
 }
 
 // SetPlanModifiers returns the PlanModifiers field value.

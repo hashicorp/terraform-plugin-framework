@@ -167,11 +167,6 @@ func (a ObjectAttribute) ApplyTerraform5AttributePathStep(step tftypes.Attribute
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// ObjectDefaultValue returns the Default field value.
-func (a ObjectAttribute) ObjectDefaultValue() defaults.Object {
-	return a.Default
-}
-
 // Equal returns true if the given Attribute is a ObjectAttribute
 // and all fields are equal.
 func (a ObjectAttribute) Equal(o fwschema.Attribute) bool {
@@ -226,6 +221,11 @@ func (a ObjectAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a ObjectAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// ObjectDefaultValue returns the Default field value.
+func (a ObjectAttribute) ObjectDefaultValue() defaults.Object {
+	return a.Default
 }
 
 // ObjectPlanModifiers returns the PlanModifiers field value.

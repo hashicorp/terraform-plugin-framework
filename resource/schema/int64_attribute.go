@@ -157,11 +157,6 @@ func (a Int64Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributeP
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// Int64DefaultValue returns the Default field value.
-func (a Int64Attribute) Int64DefaultValue() defaults.Int64 {
-	return a.Default
-}
-
 // Equal returns true if the given Attribute is a Int64Attribute
 // and all fields are equal.
 func (a Int64Attribute) Equal(o fwschema.Attribute) bool {
@@ -194,6 +189,11 @@ func (a Int64Attribute) GetType() attr.Type {
 	}
 
 	return types.Int64Type
+}
+
+// Int64DefaultValue returns the Default field value.
+func (a Int64Attribute) Int64DefaultValue() defaults.Int64 {
+	return a.Default
 }
 
 // Int64PlanModifiers returns the PlanModifiers field value.

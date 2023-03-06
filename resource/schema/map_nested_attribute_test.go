@@ -1,19 +1,23 @@
 package schema_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestMapNestedAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -536,6 +540,67 @@ func TestMapNestedAttributeIsSensitive(t *testing.T) {
 			got := testCase.attribute.IsSensitive()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestMapNestedAttributeMapNestedDefaultValue(t *testing.T) {
+	t.Parallel()
+
+	opt := cmp.Comparer(func(x, y defaults.Map) bool {
+		ctx := context.Background()
+		req := defaults.MapRequest{}
+
+		xResp := defaults.MapResponse{}
+		x.DefaultMap(ctx, req, &xResp)
+
+		yResp := defaults.MapResponse{}
+		y.DefaultMap(ctx, req, &yResp)
+
+		return xResp.PlanValue.Equal(yResp.PlanValue)
+	})
+
+	testCases := map[string]struct {
+		attribute schema.MapNestedAttribute
+		expected  defaults.Map
+	}{
+		"no-default": {
+			attribute: schema.MapNestedAttribute{},
+			expected:  nil,
+		},
+		"default": {
+			attribute: schema.MapNestedAttribute{
+				Default: mapdefault.StaticValue(
+					types.MapValueMust(
+						types.StringType,
+						map[string]attr.Value{
+							"one": types.StringValue("test-value¬"),
+						},
+					),
+				),
+			},
+			expected: mapdefault.StaticValue(
+				types.MapValueMust(
+					types.StringType,
+					map[string]attr.Value{
+						"one": types.StringValue("test-value¬"),
+					},
+				),
+			),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.MapDefaultValue()
+
+			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

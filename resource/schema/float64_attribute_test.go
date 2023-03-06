@@ -84,7 +84,7 @@ func TestFloat64AttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 }
 
-func TestFloat64AttributeDefault(t *testing.T) {
+func TestFloat64AttributeFloat64DefaultValue(t *testing.T) {
 	t.Parallel()
 
 	opt := cmp.Comparer(func(x, y defaults.Float64) bool {

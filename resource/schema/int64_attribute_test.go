@@ -84,53 +84,6 @@ func TestInt64AttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 }
 
-func TestInt64AttributeDefault(t *testing.T) {
-	t.Parallel()
-
-	opt := cmp.Comparer(func(x, y defaults.Int64) bool {
-		ctx := context.Background()
-		req := defaults.Int64Request{}
-
-		xResp := defaults.Int64Response{}
-		x.DefaultInt64(ctx, req, &xResp)
-
-		yResp := defaults.Int64Response{}
-		y.DefaultInt64(ctx, req, &yResp)
-
-		return xResp.PlanValue.Equal(yResp.PlanValue)
-	})
-
-	testCases := map[string]struct {
-		attribute schema.Int64Attribute
-		expected  defaults.Int64
-	}{
-		"no-default": {
-			attribute: schema.Int64Attribute{},
-			expected:  nil,
-		},
-		"default": {
-			attribute: schema.Int64Attribute{
-				Default: int64default.StaticValue(12345),
-			},
-			expected: int64default.StaticValue(12345),
-		},
-	}
-
-	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.Int64DefaultValue()
-
-			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
 func TestInt64AttributeGetDeprecationMessage(t *testing.T) {
 	t.Parallel()
 
@@ -296,6 +249,53 @@ func TestInt64AttributeGetType(t *testing.T) {
 			got := testCase.attribute.GetType()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestInt64AttributeInt64DefaultValue(t *testing.T) {
+	t.Parallel()
+
+	opt := cmp.Comparer(func(x, y defaults.Int64) bool {
+		ctx := context.Background()
+		req := defaults.Int64Request{}
+
+		xResp := defaults.Int64Response{}
+		x.DefaultInt64(ctx, req, &xResp)
+
+		yResp := defaults.Int64Response{}
+		y.DefaultInt64(ctx, req, &yResp)
+
+		return xResp.PlanValue.Equal(yResp.PlanValue)
+	})
+
+	testCases := map[string]struct {
+		attribute schema.Int64Attribute
+		expected  defaults.Int64
+	}{
+		"no-default": {
+			attribute: schema.Int64Attribute{},
+			expected:  nil,
+		},
+		"default": {
+			attribute: schema.Int64Attribute{
+				Default: int64default.StaticValue(12345),
+			},
+			expected: int64default.StaticValue(12345),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.Int64DefaultValue()
+
+			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

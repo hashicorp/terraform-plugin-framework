@@ -165,11 +165,6 @@ func (a ListAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePa
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// ListDefaultValue returns the Default field value.
-func (a ListAttribute) ListDefaultValue() defaults.List {
-	return a.Default
-}
-
 // Equal returns true if the given Attribute is a ListAttribute
 // and all fields are equal.
 func (a ListAttribute) Equal(o fwschema.Attribute) bool {
@@ -224,6 +219,11 @@ func (a ListAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a ListAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// ListDefaultValue returns the Default field value.
+func (a ListAttribute) ListDefaultValue() defaults.List {
+	return a.Default
 }
 
 // ListPlanModifiers returns the PlanModifiers field value.

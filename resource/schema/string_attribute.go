@@ -154,11 +154,6 @@ func (a StringAttribute) ApplyTerraform5AttributePathStep(step tftypes.Attribute
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// StringDefaultValue returns the Default field value.
-func (a StringAttribute) StringDefaultValue() defaults.String {
-	return a.Default
-}
-
 // Equal returns true if the given Attribute is a StringAttribute
 // and all fields are equal.
 func (a StringAttribute) Equal(o fwschema.Attribute) bool {
@@ -211,6 +206,11 @@ func (a StringAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a StringAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// StringDefaultValue returns the Default field value.
+func (a StringAttribute) StringDefaultValue() defaults.String {
+	return a.Default
 }
 
 // StringPlanModifiers returns the PlanModifiers field value.

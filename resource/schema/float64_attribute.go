@@ -157,11 +157,6 @@ func (a Float64Attribute) ApplyTerraform5AttributePathStep(step tftypes.Attribut
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// Float64DefaultValue returns the Default field value.
-func (a Float64Attribute) Float64DefaultValue() defaults.Float64 {
-	return a.Default
-}
-
 // Equal returns true if the given Attribute is a Float64Attribute
 // and all fields are equal.
 func (a Float64Attribute) Equal(o fwschema.Attribute) bool {
@@ -170,6 +165,11 @@ func (a Float64Attribute) Equal(o fwschema.Attribute) bool {
 	}
 
 	return fwschema.AttributesEqual(a, o)
+}
+
+// Float64DefaultValue returns the Default field value.
+func (a Float64Attribute) Float64DefaultValue() defaults.Float64 {
+	return a.Default
 }
 
 // Float64PlanModifiers returns the PlanModifiers field value.

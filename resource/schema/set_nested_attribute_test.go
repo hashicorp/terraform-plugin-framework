@@ -1,19 +1,23 @@
 package schema_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestSetNestedAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -536,6 +540,67 @@ func TestSetNestedAttributeIsSensitive(t *testing.T) {
 			got := testCase.attribute.IsSensitive()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSetNestedAttributeSetDefaultValue(t *testing.T) {
+	t.Parallel()
+
+	opt := cmp.Comparer(func(x, y defaults.Set) bool {
+		ctx := context.Background()
+		req := defaults.SetRequest{}
+
+		xResp := defaults.SetResponse{}
+		x.DefaultSet(ctx, req, &xResp)
+
+		yResp := defaults.SetResponse{}
+		y.DefaultSet(ctx, req, &yResp)
+
+		return xResp.PlanValue.Equal(yResp.PlanValue)
+	})
+
+	testCases := map[string]struct {
+		attribute schema.SetNestedAttribute
+		expected  defaults.Set
+	}{
+		"no-default": {
+			attribute: schema.SetNestedAttribute{},
+			expected:  nil,
+		},
+		"default": {
+			attribute: schema.SetNestedAttribute{
+				Default: setdefault.StaticValue(
+					types.SetValueMust(
+						types.StringType,
+						[]attr.Value{
+							types.StringValue("test-value¬"),
+						},
+					),
+				),
+			},
+			expected: setdefault.StaticValue(
+				types.SetValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("test-value¬"),
+					},
+				),
+			),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.SetDefaultValue()
+
+			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

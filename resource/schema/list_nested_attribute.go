@@ -182,10 +182,6 @@ func (a ListNestedAttribute) ApplyTerraform5AttributePathStep(step tftypes.Attri
 	return a.NestedObject, nil
 }
 
-func (a ListNestedAttribute) ListDefaultValue() defaults.List {
-	return a.Default
-}
-
 // Equal returns true if the given Attribute is a ListNestedAttribute
 // and all fields are equal.
 func (a ListNestedAttribute) Equal(o fwschema.Attribute) bool {
@@ -250,6 +246,11 @@ func (a ListNestedAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a ListNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// ListDefaultValue returns the Default field value.
+func (a ListNestedAttribute) ListDefaultValue() defaults.List {
+	return a.Default
 }
 
 // ListPlanModifiers returns the PlanModifiers field value.

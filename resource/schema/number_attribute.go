@@ -158,11 +158,6 @@ func (a NumberAttribute) ApplyTerraform5AttributePathStep(step tftypes.Attribute
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// NumberDefaultValue returns the Default field value.
-func (a NumberAttribute) NumberDefaultValue() defaults.Number {
-	return a.Default
-}
-
 // Equal returns true if the given Attribute is a NumberAttribute
 // and all fields are equal.
 func (a NumberAttribute) Equal(o fwschema.Attribute) bool {
@@ -215,6 +210,11 @@ func (a NumberAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a NumberAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// NumberDefaultValue returns the Default field value.
+func (a NumberAttribute) NumberDefaultValue() defaults.Number {
+	return a.Default
 }
 
 // NumberPlanModifiers returns the PlanModifiers field value.

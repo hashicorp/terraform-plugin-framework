@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -153,6 +154,14 @@ type SetNestedAttribute struct {
 	//
 	// Any errors will prevent further execution of this sequence or modifiers.
 	PlanModifiers []planmodifier.Set
+
+	// Default defines a proposed new state (plan) value for the attribute
+	// if the configuration value is null. Default prevents the framework
+	// from automatically marking the value as unknown during planning when
+	// other proposed new state changes are detected. If the attribute is
+	// computed and the value could be altered by other changes then a default
+	// should be avoided and a plan modifier should be used instead.
+	Default defaults.Set
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -231,6 +240,11 @@ func (a SetNestedAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a SetNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// SetDefaultValue returns the Default field value.
+func (a SetNestedAttribute) SetDefaultValue() defaults.Set {
+	return a.Default
 }
 
 // SetPlanModifiers returns the PlanModifiers field value.

@@ -84,67 +84,6 @@ func TestSetAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 }
 
-func TestSetAttributeDefault(t *testing.T) {
-	t.Parallel()
-
-	opt := cmp.Comparer(func(x, y defaults.Set) bool {
-		ctx := context.Background()
-		req := defaults.SetRequest{}
-
-		xResp := defaults.SetResponse{}
-		x.DefaultSet(ctx, req, &xResp)
-
-		yResp := defaults.SetResponse{}
-		y.DefaultSet(ctx, req, &yResp)
-
-		return xResp.PlanValue.Equal(yResp.PlanValue)
-	})
-
-	testCases := map[string]struct {
-		attribute schema.SetAttribute
-		expected  defaults.Set
-	}{
-		"no-default": {
-			attribute: schema.SetAttribute{},
-			expected:  nil,
-		},
-		"default": {
-			attribute: schema.SetAttribute{
-				Default: setdefault.StaticValue(
-					types.SetValueMust(
-						types.StringType,
-						[]attr.Value{
-							types.StringValue("test-value¬"),
-						},
-					),
-				),
-			},
-			expected: setdefault.StaticValue(
-				types.SetValueMust(
-					types.StringType,
-					[]attr.Value{
-						types.StringValue("test-value¬"),
-					},
-				),
-			),
-		},
-	}
-
-	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.SetDefaultValue()
-
-			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
 func TestSetAttributeGetDeprecationMessage(t *testing.T) {
 	t.Parallel()
 
@@ -451,6 +390,67 @@ func TestSetAttributeIsSensitive(t *testing.T) {
 			got := testCase.attribute.IsSensitive()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSetAttributeSetDefaultValue(t *testing.T) {
+	t.Parallel()
+
+	opt := cmp.Comparer(func(x, y defaults.Set) bool {
+		ctx := context.Background()
+		req := defaults.SetRequest{}
+
+		xResp := defaults.SetResponse{}
+		x.DefaultSet(ctx, req, &xResp)
+
+		yResp := defaults.SetResponse{}
+		y.DefaultSet(ctx, req, &yResp)
+
+		return xResp.PlanValue.Equal(yResp.PlanValue)
+	})
+
+	testCases := map[string]struct {
+		attribute schema.SetAttribute
+		expected  defaults.Set
+	}{
+		"no-default": {
+			attribute: schema.SetAttribute{},
+			expected:  nil,
+		},
+		"default": {
+			attribute: schema.SetAttribute{
+				Default: setdefault.StaticValue(
+					types.SetValueMust(
+						types.StringType,
+						[]attr.Value{
+							types.StringValue("test-value¬"),
+						},
+					),
+				),
+			},
+			expected: setdefault.StaticValue(
+				types.SetValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("test-value¬"),
+					},
+				),
+			),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.SetDefaultValue()
+
+			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

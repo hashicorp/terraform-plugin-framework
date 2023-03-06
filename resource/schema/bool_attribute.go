@@ -162,8 +162,8 @@ func (a BoolAttribute) BoolValidators() []validator.Bool {
 	return a.Validators
 }
 
-// DefaultValue returns the Default field value.
-func (a BoolAttribute) DefaultValue() defaults.Bool {
+// BoolDefaultValue returns the Default field value.
+func (a BoolAttribute) BoolDefaultValue() defaults.Bool {
 	return a.Default
 }
 

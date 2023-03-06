@@ -27,8 +27,8 @@ func (a AttributeWithFloat64DefaultValue) ApplyTerraform5AttributePathStep(step 
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue satisfies the fwxschema.AttributeWithFloat64DefaultValue interface.
-func (a AttributeWithFloat64DefaultValue) DefaultValue() defaults.Float64 {
+// Float64DefaultValue satisfies the fwxschema.AttributeWithFloat64DefaultValue interface.
+func (a AttributeWithFloat64DefaultValue) Float64DefaultValue() defaults.Float64 {
 	return a.Default
 }
 

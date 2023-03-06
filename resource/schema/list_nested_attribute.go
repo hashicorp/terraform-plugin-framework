@@ -180,7 +180,7 @@ func (a ListNestedAttribute) ApplyTerraform5AttributePathStep(step tftypes.Attri
 	return a.NestedObject, nil
 }
 
-func (a ListNestedAttribute) DefaultValue() defaults.List {
+func (a ListNestedAttribute) ListDefaultValue() defaults.List {
 	return a.Default
 }
 

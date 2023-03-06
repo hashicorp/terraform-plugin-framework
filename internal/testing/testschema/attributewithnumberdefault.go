@@ -27,8 +27,8 @@ func (a AttributeWithNumberDefaultValue) ApplyTerraform5AttributePathStep(step t
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue satisfies the fwxschema.AttributeWithNumberDefaultValue interface.
-func (a AttributeWithNumberDefaultValue) DefaultValue() defaults.Number {
+// NumberDefaultValue satisfies the fwxschema.AttributeWithNumberDefaultValue interface.
+func (a AttributeWithNumberDefaultValue) NumberDefaultValue() defaults.Number {
 	return a.Default
 }
 

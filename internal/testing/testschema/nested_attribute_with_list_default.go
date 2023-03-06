@@ -32,8 +32,8 @@ func (a NestedAttributeWithListDefaultValue) ApplyTerraform5AttributePathStep(st
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue satisfies the fwschema.AttributeWithListDefaultValue interface.
-func (a NestedAttributeWithListDefaultValue) DefaultValue() defaults.List {
+// ListDefaultValue satisfies the fwschema.AttributeWithListDefaultValue interface.
+func (a NestedAttributeWithListDefaultValue) ListDefaultValue() defaults.List {
 	return a.Default
 }
 

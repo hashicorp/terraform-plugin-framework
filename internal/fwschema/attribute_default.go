@@ -9,7 +9,7 @@ import (
 type AttributeWithBoolDefaultValue interface {
 	Attribute
 
-	DefaultValue() defaults.Bool
+	BoolDefaultValue() defaults.Bool
 }
 
 // AttributeWithFloat64DefaultValue is an optional interface on Attribute which
@@ -17,7 +17,7 @@ type AttributeWithBoolDefaultValue interface {
 type AttributeWithFloat64DefaultValue interface {
 	Attribute
 
-	DefaultValue() defaults.Float64
+	Float64DefaultValue() defaults.Float64
 }
 
 // AttributeWithInt64DefaultValue is an optional interface on Attribute which
@@ -25,7 +25,7 @@ type AttributeWithFloat64DefaultValue interface {
 type AttributeWithInt64DefaultValue interface {
 	Attribute
 
-	DefaultValue() defaults.Int64
+	Int64DefaultValue() defaults.Int64
 }
 
 // AttributeWithListDefaultValue is an optional interface on Attribute which
@@ -33,7 +33,7 @@ type AttributeWithInt64DefaultValue interface {
 type AttributeWithListDefaultValue interface {
 	Attribute
 
-	DefaultValue() defaults.List
+	ListDefaultValue() defaults.List
 }
 
 // AttributeWithMapDefaultValue is an optional interface on Attribute which
@@ -41,7 +41,7 @@ type AttributeWithListDefaultValue interface {
 type AttributeWithMapDefaultValue interface {
 	Attribute
 
-	DefaultValue() defaults.Map
+	MapDefaultValue() defaults.Map
 }
 
 // AttributeWithNumberDefaultValue is an optional interface on Attribute which
@@ -49,7 +49,7 @@ type AttributeWithMapDefaultValue interface {
 type AttributeWithNumberDefaultValue interface {
 	Attribute
 
-	DefaultValue() defaults.Number
+	NumberDefaultValue() defaults.Number
 }
 
 // AttributeWithObjectDefaultValue is an optional interface on Attribute which
@@ -57,7 +57,7 @@ type AttributeWithNumberDefaultValue interface {
 type AttributeWithObjectDefaultValue interface {
 	Attribute
 
-	DefaultValue() defaults.Object
+	ObjectDefaultValue() defaults.Object
 }
 
 // AttributeWithSetDefaultValue is an optional interface on Attribute which
@@ -65,7 +65,7 @@ type AttributeWithObjectDefaultValue interface {
 type AttributeWithSetDefaultValue interface {
 	Attribute
 
-	DefaultValue() defaults.Set
+	SetDefaultValue() defaults.Set
 }
 
 // AttributeWithStringDefaultValue is an optional interface on Attribute which
@@ -73,5 +73,5 @@ type AttributeWithSetDefaultValue interface {
 type AttributeWithStringDefaultValue interface {
 	Attribute
 
-	DefaultValue() defaults.String
+	StringDefaultValue() defaults.String
 }

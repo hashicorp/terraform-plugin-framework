@@ -28,8 +28,8 @@ func (a AttributeWithListDefaultValue) ApplyTerraform5AttributePathStep(step tft
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue satisfies the fwschema.AttributeWithInt64DefaultValue interface.
-func (a AttributeWithListDefaultValue) DefaultValue() defaults.List {
+// ListDefaultValue satisfies the fwschema.AttributeWithInt64DefaultValue interface.
+func (a AttributeWithListDefaultValue) ListDefaultValue() defaults.List {
 	return a.Default
 }
 

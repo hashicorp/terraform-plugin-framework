@@ -166,8 +166,8 @@ func (a MapAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePat
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue returns the Default field value.
-func (a MapAttribute) DefaultValue() defaults.Map {
+// MapDefaultValue returns the Default field value.
+func (a MapAttribute) MapDefaultValue() defaults.Map {
 	return a.Default
 }
 

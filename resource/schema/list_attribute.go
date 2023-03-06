@@ -163,8 +163,8 @@ func (a ListAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePa
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue returns the Default field value.
-func (a ListAttribute) DefaultValue() defaults.List {
+// ListDefaultValue returns the Default field value.
+func (a ListAttribute) ListDefaultValue() defaults.List {
 	return a.Default
 }
 

@@ -28,8 +28,8 @@ func (a AttributeWithObjectDefaultValue) ApplyTerraform5AttributePathStep(step t
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue satisfies the fwschema.AttributeWithObjectDefaultValue interface.
-func (a AttributeWithObjectDefaultValue) DefaultValue() defaults.Object {
+// ObjectDefaultValue satisfies the fwschema.AttributeWithObjectDefaultValue interface.
+func (a AttributeWithObjectDefaultValue) ObjectDefaultValue() defaults.Object {
 	return a.Default
 }
 

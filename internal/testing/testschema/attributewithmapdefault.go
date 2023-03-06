@@ -28,8 +28,8 @@ func (a AttributeWithMapDefaultValue) ApplyTerraform5AttributePathStep(step tfty
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue satisfies the fwschema.AttributeWithInt64DefaultValue interface.
-func (a AttributeWithMapDefaultValue) DefaultValue() defaults.Map {
+// MapDefaultValue satisfies the fwschema.AttributeWithInt64DefaultValue interface.
+func (a AttributeWithMapDefaultValue) MapDefaultValue() defaults.Map {
 	return a.Default
 }
 

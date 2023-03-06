@@ -27,8 +27,8 @@ func (a AttributeWithBoolDefaultValue) ApplyTerraform5AttributePathStep(step tft
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue satisfies the fwxschema.AttributeWithBoolDefaultValue interface.
-func (a AttributeWithBoolDefaultValue) DefaultValue() defaults.Bool {
+// BoolDefaultValue satisfies the fwxschema.AttributeWithBoolDefaultValue interface.
+func (a AttributeWithBoolDefaultValue) BoolDefaultValue() defaults.Bool {
 	return a.Default
 }
 

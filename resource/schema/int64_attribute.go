@@ -155,8 +155,8 @@ func (a Int64Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributeP
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue returns the Default field value.
-func (a Int64Attribute) DefaultValue() defaults.Int64 {
+// Int64DefaultValue returns the Default field value.
+func (a Int64Attribute) Int64DefaultValue() defaults.Int64 {
 	return a.Default
 }
 

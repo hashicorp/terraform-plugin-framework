@@ -27,8 +27,8 @@ func (a AttributeWithStringDefaultValue) ApplyTerraform5AttributePathStep(step t
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue satisfies the fwxschema.AttributeWithStringDefaultValue interface.
-func (a AttributeWithStringDefaultValue) DefaultValue() defaults.String {
+// StringDefaultValue satisfies the fwxschema.AttributeWithStringDefaultValue interface.
+func (a AttributeWithStringDefaultValue) StringDefaultValue() defaults.String {
 	return a.Default
 }
 

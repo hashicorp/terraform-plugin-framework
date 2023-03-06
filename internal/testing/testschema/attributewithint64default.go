@@ -27,8 +27,8 @@ func (a AttributeWithInt64DefaultValue) ApplyTerraform5AttributePathStep(step tf
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue satisfies the fwxschema.AttributeWithInt64DefaultValue interface.
-func (a AttributeWithInt64DefaultValue) DefaultValue() defaults.Int64 {
+// Int64DefaultValue satisfies the fwxschema.AttributeWithInt64DefaultValue interface.
+func (a AttributeWithInt64DefaultValue) Int64DefaultValue() defaults.Int64 {
 	return a.Default
 }
 

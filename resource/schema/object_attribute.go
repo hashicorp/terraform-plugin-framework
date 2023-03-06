@@ -165,8 +165,8 @@ func (a ObjectAttribute) ApplyTerraform5AttributePathStep(step tftypes.Attribute
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue returns the Default field value.
-func (a ObjectAttribute) DefaultValue() defaults.Object {
+// ObjectDefaultValue returns the Default field value.
+func (a ObjectAttribute) ObjectDefaultValue() defaults.Object {
 	return a.Default
 }
 

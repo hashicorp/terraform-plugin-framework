@@ -156,8 +156,8 @@ func (a NumberAttribute) ApplyTerraform5AttributePathStep(step tftypes.Attribute
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// DefaultValue returns the Default field value.
-func (a NumberAttribute) DefaultValue() defaults.Number {
+// NumberDefaultValue returns the Default field value.
+func (a NumberAttribute) NumberDefaultValue() defaults.Number {
 	return a.Default
 }
 

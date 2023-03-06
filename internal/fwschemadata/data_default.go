@@ -71,63 +71,63 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 
 		switch a := attrAtPath.(type) {
 		case fwschema.AttributeWithBoolDefaultValue:
-			defaultValue := a.DefaultValue()
+			defaultValue := a.BoolDefaultValue()
 			if defaultValue != nil {
 				resp := defaults.BoolResponse{}
 				defaultValue.DefaultBool(ctx, defaults.BoolRequest{}, &resp)
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithFloat64DefaultValue:
-			defaultValue := a.DefaultValue()
+			defaultValue := a.Float64DefaultValue()
 			if defaultValue != nil {
 				resp := defaults.Float64Response{}
 				defaultValue.DefaultFloat64(ctx, defaults.Float64Request{}, &resp)
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithInt64DefaultValue:
-			defaultValue := a.DefaultValue()
+			defaultValue := a.Int64DefaultValue()
 			if defaultValue != nil {
 				resp := defaults.Int64Response{}
 				defaultValue.DefaultInt64(ctx, defaults.Int64Request{}, &resp)
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithListDefaultValue:
-			defaultValue := a.DefaultValue()
+			defaultValue := a.ListDefaultValue()
 			if defaultValue != nil {
 				resp := defaults.ListResponse{}
 				defaultValue.DefaultList(ctx, defaults.ListRequest{}, &resp)
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithMapDefaultValue:
-			defaultValue := a.DefaultValue()
+			defaultValue := a.MapDefaultValue()
 			if defaultValue != nil {
 				resp := defaults.MapResponse{}
 				defaultValue.DefaultMap(ctx, defaults.MapRequest{}, &resp)
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithNumberDefaultValue:
-			defaultValue := a.DefaultValue()
+			defaultValue := a.NumberDefaultValue()
 			if defaultValue != nil {
 				resp := defaults.NumberResponse{}
 				defaultValue.DefaultNumber(ctx, defaults.NumberRequest{}, &resp)
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithObjectDefaultValue:
-			defaultValue := a.DefaultValue()
+			defaultValue := a.ObjectDefaultValue()
 			if defaultValue != nil {
 				resp := defaults.ObjectResponse{}
 				defaultValue.DefaultObject(ctx, defaults.ObjectRequest{}, &resp)
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithSetDefaultValue:
-			defaultValue := a.DefaultValue()
+			defaultValue := a.SetDefaultValue()
 			if defaultValue != nil {
 				resp := defaults.SetResponse{}
 				defaultValue.DefaultSet(ctx, defaults.SetRequest{}, &resp)
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithStringDefaultValue:
-			defaultValue := a.DefaultValue()
+			defaultValue := a.StringDefaultValue()
 			if defaultValue != nil {
 				resp := defaults.StringResponse{}
 				defaultValue.DefaultString(ctx, defaults.StringRequest{}, &resp)

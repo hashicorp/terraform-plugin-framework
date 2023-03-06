@@ -368,39 +368,39 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 
 		switch a := attribute.(type) {
 		case fwschema.AttributeWithBoolDefaultValue:
-			if a.DefaultValue() != nil {
+			if a.BoolDefaultValue() != nil {
 				return val, nil
 			}
 		case fwschema.AttributeWithFloat64DefaultValue:
-			if a.DefaultValue() != nil {
+			if a.Float64DefaultValue() != nil {
 				return val, nil
 			}
 		case fwschema.AttributeWithInt64DefaultValue:
-			if a.DefaultValue() != nil {
+			if a.Int64DefaultValue() != nil {
 				return val, nil
 			}
 		case fwschema.AttributeWithListDefaultValue:
-			if a.DefaultValue() != nil {
+			if a.ListDefaultValue() != nil {
 				return val, nil
 			}
 		case fwschema.AttributeWithMapDefaultValue:
-			if a.DefaultValue() != nil {
+			if a.MapDefaultValue() != nil {
 				return val, nil
 			}
 		case fwschema.AttributeWithNumberDefaultValue:
-			if a.DefaultValue() != nil {
+			if a.NumberDefaultValue() != nil {
 				return val, nil
 			}
 		case fwschema.AttributeWithObjectDefaultValue:
-			if a.DefaultValue() != nil {
+			if a.ObjectDefaultValue() != nil {
 				return val, nil
 			}
 		case fwschema.AttributeWithSetDefaultValue:
-			if a.DefaultValue() != nil {
+			if a.SetDefaultValue() != nil {
 				return val, nil
 			}
 		case fwschema.AttributeWithStringDefaultValue:
-			if a.DefaultValue() != nil {
+			if a.StringDefaultValue() != nil {
 				return val, nil
 			}
 		}

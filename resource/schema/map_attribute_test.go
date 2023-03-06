@@ -136,7 +136,7 @@ func TestMapAttributeDefault(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.attribute.DefaultValue()
+			got := testCase.attribute.MapDefaultValue()
 
 			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

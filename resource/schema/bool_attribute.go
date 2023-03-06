@@ -139,10 +139,12 @@ type BoolAttribute struct {
 	// Any errors will prevent further execution of this sequence or modifiers.
 	PlanModifiers []planmodifier.Bool
 
-	// Default defines a default value for the attribute. The default value
-	// handling occurs during the `PlanResourceChange` RPC and modifies the
-	// Terraform-provided proposed new state before the framework performs
-	// its check between the proposed new state and prior state.
+	// Default defines a proposed new state (plan) value for the attribute
+	// if the configuration value is null. Default prevents the framework
+	// from automatically marking the value as unknown during planning when
+	// other proposed new state changes are detected. If the attribute is
+	// computed and the value could be altered by other changes then a default
+	// should be avoided and a plan modifier should be used instead.
 	Default defaults.Bool
 }
 

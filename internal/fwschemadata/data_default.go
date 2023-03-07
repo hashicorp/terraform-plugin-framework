@@ -56,13 +56,13 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 		if err != nil {
 			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
 				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
-				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown")
+				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not setting default")
 				return tfTypeValue, nil
 			}
 
 			if errors.Is(err, fwschema.ErrPathIsBlock) {
 				// ignore blocks, they do not have a computed field
-				logging.FrameworkTrace(ctx, "attribute is a block, not marking unknown")
+				logging.FrameworkTrace(ctx, "attribute is a block, not setting default")
 				return tfTypeValue, nil
 			}
 

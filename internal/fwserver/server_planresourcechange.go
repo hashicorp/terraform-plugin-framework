@@ -109,8 +109,9 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// Set Defaults.
 	//
 	// If the planned state is not null (i.e., not a destroy operation) we traverse the schema,
-	// identifying any attributes which are null, and if the attribute has a default value
-	// specified by the `Default` field on the attribute then the default value is assigned.
+	// identifying any attributes which are null within the configuration, and if the attribute
+	// has a default value specified by the `Default` field on the attribute then the default
+	// value is assigned.
 	if !resp.PlannedState.Raw.IsNull() {
 		data := fwschemadata.Data{
 			Description:    fwschemadata.DataDescriptionState,

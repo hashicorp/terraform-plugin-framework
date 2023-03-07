@@ -10,13 +10,13 @@ import (
 )
 
 var (
-	_ fwschema.NestedAttribute               = NestedAttributeWithListDefaultValue{}
-	_ fwschema.AttributeWithListDefaultValue = NestedAttributeWithListDefaultValue{}
+	_ fwschema.NestedAttribute              = NestedAttributeWithSetDefaultValue{}
+	_ fwschema.AttributeWithSetDefaultValue = NestedAttributeWithSetDefaultValue{}
 )
 
-type NestedAttributeWithListDefaultValue struct {
+type NestedAttributeWithSetDefaultValue struct {
 	Computed            bool
-	Default             defaults.List
+	Default             defaults.Set
 	DeprecationMessage  string
 	Description         string
 	MarkdownDescription string
@@ -28,13 +28,13 @@ type NestedAttributeWithListDefaultValue struct {
 }
 
 // ApplyTerraform5AttributePathStep satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (any, error) {
+func (a NestedAttributeWithSetDefaultValue) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (any, error) {
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
 // Equal satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) Equal(o fwschema.Attribute) bool {
-	_, ok := o.(NestedAttributeWithListDefaultValue)
+func (a NestedAttributeWithSetDefaultValue) Equal(o fwschema.Attribute) bool {
+	_, ok := o.(NestedAttributeWithSetDefaultValue)
 
 	if !ok {
 		return false
@@ -44,62 +44,62 @@ func (a NestedAttributeWithListDefaultValue) Equal(o fwschema.Attribute) bool {
 }
 
 // GetDeprecationMessage satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) GetDeprecationMessage() string {
+func (a NestedAttributeWithSetDefaultValue) GetDeprecationMessage() string {
 	return a.DeprecationMessage
 }
 
 // GetDescription satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) GetDescription() string {
+func (a NestedAttributeWithSetDefaultValue) GetDescription() string {
 	return a.Description
 }
 
 // GetMarkdownDescription satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) GetMarkdownDescription() string {
+func (a NestedAttributeWithSetDefaultValue) GetMarkdownDescription() string {
 	return a.MarkdownDescription
 }
 
 // GetNestedObject satisfies the fwschema.NestedAttribute interface.
-func (a NestedAttributeWithListDefaultValue) GetNestedObject() fwschema.NestedAttributeObject {
+func (a NestedAttributeWithSetDefaultValue) GetNestedObject() fwschema.NestedAttributeObject {
 	return a.NestedObject
 }
 
 // GetNestingMode satisfies the fwschema.NestedAttribute interface.
-func (a NestedAttributeWithListDefaultValue) GetNestingMode() fwschema.NestingMode {
-	return fwschema.NestingModeList
+func (a NestedAttributeWithSetDefaultValue) GetNestingMode() fwschema.NestingMode {
+	return fwschema.NestingModeSet
 }
 
 // GetType satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) GetType() attr.Type {
+func (a NestedAttributeWithSetDefaultValue) GetType() attr.Type {
 	if a.Type != nil {
 		return a.Type
 	}
 
-	return types.ListType{
+	return types.SetType{
 		ElemType: a.GetNestedObject().Type(),
 	}
 }
 
 // IsComputed satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) IsComputed() bool {
+func (a NestedAttributeWithSetDefaultValue) IsComputed() bool {
 	return a.Computed
 }
 
 // IsOptional satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) IsOptional() bool {
+func (a NestedAttributeWithSetDefaultValue) IsOptional() bool {
 	return a.Optional
 }
 
 // IsRequired satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) IsRequired() bool {
+func (a NestedAttributeWithSetDefaultValue) IsRequired() bool {
 	return a.Required
 }
 
 // IsSensitive satisfies the fwschema.Attribute interface.
-func (a NestedAttributeWithListDefaultValue) IsSensitive() bool {
+func (a NestedAttributeWithSetDefaultValue) IsSensitive() bool {
 	return a.Sensitive
 }
 
-// ListDefaultValue satisfies the fwschema.AttributeWithListDefaultValue interface.
-func (a NestedAttributeWithListDefaultValue) ListDefaultValue() defaults.List {
+// MapDefaultValue satisfies the fwschema.AttributeWithMapDefaultValue interface.
+func (a NestedAttributeWithSetDefaultValue) SetDefaultValue() defaults.Set {
 	return a.Default
 }

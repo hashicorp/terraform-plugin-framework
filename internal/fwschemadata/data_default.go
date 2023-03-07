@@ -15,7 +15,7 @@ import (
 )
 
 // TransformDefaults walks the schema and applies schema defined default values
-// when the rawConfig Data type contains a null value at the same path.
+// when configRaw contains a null value at the same path.
 func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) diag.Diagnostics {
 	var diags diag.Diagnostics
 

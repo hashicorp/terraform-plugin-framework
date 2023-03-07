@@ -2380,6 +2380,319 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		"list-nested-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": testschema.NestedAttributeWithListDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: listdefault.StaticValue(
+								types.ListValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_nested": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_nested": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": testschema.NestedAttributeWithListDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: listdefault.StaticValue(
+								types.ListValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"list-nested-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_nested": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_nested": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
 		"list-nested-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
@@ -2549,6 +2862,429 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		"list-nested-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": testschema.NestedAttributeWithListDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_nested": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_nested": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": testschema.NestedAttributeWithListDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"list-nested-attribute-string-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_nested": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_nested": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"list-nested-attribute-string-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_nested": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_nested": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, nil),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
 		"list-nested-attribute-string-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,
@@ -2687,6 +3423,3374 @@ func TestDataDefault(t *testing.T) {
 										"string_attribute": tftypes.NewValue(tftypes.String, "two"),
 									},
 								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"list-nested-attribute-string-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  nil,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_nested": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_nested": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, nil),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": schema.ListNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  nil,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"map-nested-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: mapdefault.StaticValue(
+								types.MapValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									map[string]attr.Value{
+										"test-key": types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_nested": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_nested": tftypes.NewValue(
+						tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test-key": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: mapdefault.StaticValue(
+								types.MapValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									map[string]attr.Value{
+										"test-key": types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"map-nested-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_nested": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_nested": tftypes.NewValue(
+						tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"map-nested-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: mapdefault.StaticValue(
+								types.MapValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									map[string]attr.Value{
+										"test-key": types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_nested": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_nested": tftypes.NewValue(
+						tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: mapdefault.StaticValue(
+								types.MapValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									map[string]attr.Value{
+										"test-key": types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "two"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"map-nested-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_nested": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_nested": tftypes.NewValue(
+						tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"map-nested-attribute-string-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_nested": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_nested": tftypes.NewValue(
+						tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test-key": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"map-nested-attribute-string-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_nested": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_nested": tftypes.NewValue(
+						tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test-key": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, nil),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"map-nested-attribute-string-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_nested": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_nested": tftypes.NewValue(
+						tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test-key": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, nil),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "two"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"map-nested-attribute-string-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  nil,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_nested": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_nested": tftypes.NewValue(
+						tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test-key": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, nil),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": schema.MapNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  nil,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"set-nested-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: setdefault.StaticValue(
+								types.SetValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_nested": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_nested": tftypes.NewValue(
+						tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: setdefault.StaticValue(
+								types.SetValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"set-nested-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_nested": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_nested": tftypes.NewValue(
+						tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"set-nested-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: setdefault.StaticValue(
+								types.SetValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_nested": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_nested": tftypes.NewValue(
+						tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: setdefault.StaticValue(
+								types.SetValueMust(
+									types.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"string_attribute": types.StringType,
+										},
+									},
+									[]attr.Value{
+										types.ObjectValueMust(
+											map[string]attr.Type{
+												"string_attribute": types.StringType,
+											}, map[string]attr.Value{
+												"string_attribute": types.StringValue("two"),
+											}),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "two"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"set-nested-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_nested": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_nested": tftypes.NewValue(
+						tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Optional: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"set-nested-attribute-string-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_nested": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_nested": tftypes.NewValue(
+						tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"set-nested-attribute-string-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_nested": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_nested": tftypes.NewValue(
+						tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, nil),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"set-nested-attribute-string-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_nested": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_nested": tftypes.NewValue(
+						tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, nil),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  stringdefault.StaticValue("two"),
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "two"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"set-nested-attribute-string-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  nil,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_nested": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_nested": tftypes.NewValue(
+						tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"string_attribute": tftypes.NewValue(tftypes.String, nil),
+								},
+							),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": schema.SetNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.AttributeWithStringDefaultValue{
+										Optional: true,
+										Default:  nil,
+									},
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+		"single-nested-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+							Default: objectdefault.StaticValue(
+								types.ObjectValueMust(
+									map[string]attr.Type{
+										"string_attribute": types.StringType,
+									},
+									map[string]attr.Value{
+										"string_attribute": types.StringValue("two"),
+									}),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"single_nested": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"single_nested": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+						map[string]tftypes.Value{
+							"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+							Default: objectdefault.StaticValue(
+								types.ObjectValueMust(
+									map[string]attr.Type{
+										"string_attribute": types.StringType,
+									},
+									map[string]attr.Value{
+										"string_attribute": types.StringValue("two"),
+									}),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"single-nested-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"single_nested": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"single_nested": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"single-nested-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+							Default: objectdefault.StaticValue(
+								types.ObjectValueMust(
+									map[string]attr.Type{
+										"string_attribute": types.StringType,
+									},
+									map[string]attr.Value{
+										"string_attribute": types.StringValue("two"),
+									}),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"single_nested": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"single_nested": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+							Default: objectdefault.StaticValue(
+								types.ObjectValueMust(
+									map[string]attr.Type{
+										"string_attribute": types.StringType,
+									},
+									map[string]attr.Value{
+										"string_attribute": types.StringValue("two"),
+									}),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "two"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"single-nested-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+							Default: nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"single_nested": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"single_nested": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+							Default: nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"single-nested-attribute-string-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": testschema.AttributeWithStringDefaultValue{
+									Optional: true,
+									Default:  stringdefault.StaticValue("two"),
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"single_nested": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"single_nested": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+						map[string]tftypes.Value{
+							"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": testschema.AttributeWithStringDefaultValue{
+									Optional: true,
+									Default:  stringdefault.StaticValue("two"),
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"single-nested-attribute-string-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"single_nested": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"single_nested": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+						map[string]tftypes.Value{
+							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"single-nested-attribute-string-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": testschema.AttributeWithStringDefaultValue{
+									Optional: true,
+									Default:  stringdefault.StaticValue("two"),
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"single_nested": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"single_nested": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+						map[string]tftypes.Value{
+							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": testschema.AttributeWithStringDefaultValue{
+									Optional: true,
+									Default:  stringdefault.StaticValue("two"),
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "two"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"single-nested-attribute-string-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": testschema.AttributeWithStringDefaultValue{
+									Optional: true,
+									Default:  nil,
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"single_nested": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"single_nested": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+						map[string]tftypes.Value{
+							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+						},
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": testschema.AttributeWithStringDefaultValue{
+									Optional: true,
+									Default:  nil,
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
 							},
 						),
 					},

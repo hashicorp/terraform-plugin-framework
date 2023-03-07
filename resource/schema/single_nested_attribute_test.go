@@ -546,7 +546,7 @@ func TestSingleNestedAttributeObjectDefaultValue(t *testing.T) {
 							"one": types.StringType,
 						},
 						map[string]attr.Value{
-							"one": types.StringValue("test-value¬"),
+							"one": types.StringValue("test-value"),
 						},
 					),
 				),
@@ -557,7 +557,7 @@ func TestSingleNestedAttributeObjectDefaultValue(t *testing.T) {
 						"one": types.StringType,
 					},
 					map[string]attr.Value{
-						"one": types.StringValue("test-value¬"),
+						"one": types.StringValue("test-value"),
 					},
 				),
 			),

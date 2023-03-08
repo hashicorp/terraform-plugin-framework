@@ -42,7 +42,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  booldefault.StaticValue(true),
 						},
 					},
@@ -72,7 +72,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  booldefault.StaticValue(true),
 						},
 					},
@@ -95,7 +95,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.BoolType,
 						},
 					},
@@ -125,7 +125,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.BoolType,
 						},
 					},
@@ -148,7 +148,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  booldefault.StaticValue(true),
 						},
 					},
@@ -178,7 +178,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  booldefault.StaticValue(true),
 						},
 					},
@@ -201,7 +201,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -231,7 +231,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -254,7 +254,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  float64default.StaticValue(5.4321),
 						},
 					},
@@ -284,7 +284,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  float64default.StaticValue(5.4321),
 						},
 					},
@@ -307,7 +307,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.Float64Type,
 						},
 					},
@@ -337,7 +337,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.Float64Type,
 						},
 					},
@@ -360,7 +360,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  float64default.StaticValue(5.4321),
 						},
 					},
@@ -390,7 +390,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  float64default.StaticValue(5.4321),
 						},
 					},
@@ -413,7 +413,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -443,7 +443,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -466,7 +466,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  int64default.StaticValue(54321),
 						},
 					},
@@ -496,7 +496,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  int64default.StaticValue(54321),
 						},
 					},
@@ -519,7 +519,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.Int64Type,
 						},
 					},
@@ -549,7 +549,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.Int64Type,
 						},
 					},
@@ -572,7 +572,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  int64default.StaticValue(54321),
 						},
 					},
@@ -602,7 +602,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  int64default.StaticValue(54321),
 						},
 					},
@@ -625,7 +625,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -655,7 +655,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -766,7 +766,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.ListType{ElemType: types.StringType},
 						},
 					},
@@ -808,7 +808,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.ListType{ElemType: types.StringType},
 						},
 					},
@@ -1085,7 +1085,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.MapType{ElemType: types.StringType},
 						},
 					},
@@ -1127,7 +1127,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.MapType{ElemType: types.StringType},
 						},
 					},
@@ -1316,7 +1316,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  numberdefault.StaticValue(basetypes.NewNumberValue(big.NewFloat(5.4321))),
 						},
 					},
@@ -1346,7 +1346,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  numberdefault.StaticValue(basetypes.NewNumberValue(big.NewFloat(5.4321))),
 						},
 					},
@@ -1369,7 +1369,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.NumberType,
 						},
 					},
@@ -1399,7 +1399,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.NumberType,
 						},
 					},
@@ -1422,7 +1422,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  numberdefault.StaticValue(basetypes.NewNumberValue(big.NewFloat(5.4321))),
 						},
 					},
@@ -1452,7 +1452,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  numberdefault.StaticValue(basetypes.NewNumberValue(big.NewFloat(5.4321))),
 						},
 					},
@@ -1475,7 +1475,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -1505,7 +1505,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -1616,7 +1616,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"a": types.StringType,
@@ -1662,7 +1662,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type: types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"a": types.StringType,
@@ -1943,7 +1943,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.SetType{ElemType: types.StringType},
 						},
 					},
@@ -1985,7 +1985,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.SetType{ElemType: types.StringType},
 						},
 					},
@@ -2174,7 +2174,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  stringdefault.StaticValue("two"),
 						},
 					},
@@ -2204,7 +2204,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  stringdefault.StaticValue("two"),
 						},
 					},
@@ -2227,7 +2227,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.StringType,
 						},
 					},
@@ -2257,7 +2257,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.Attribute{
-							Optional: true,
+							Computed: true,
 							Type:     types.StringType,
 						},
 					},
@@ -2280,7 +2280,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  stringdefault.StaticValue("two"),
 						},
 					},
@@ -2310,7 +2310,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  stringdefault.StaticValue("two"),
 						},
 					},
@@ -2333,7 +2333,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -2363,7 +2363,7 @@ func TestDataDefault(t *testing.T) {
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
-							Optional: true,
+							Computed: true,
 							Default:  nil,
 						},
 					},
@@ -2386,11 +2386,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -2493,11 +2493,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -2566,11 +2566,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -2644,11 +2644,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -2699,11 +2699,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -2795,11 +2795,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -2868,11 +2868,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -2948,11 +2948,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -3008,7 +3008,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -3097,7 +3097,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -3152,7 +3152,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -3240,7 +3240,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -3294,7 +3294,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -3383,7 +3383,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -3438,7 +3438,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  nil,
 									},
 								},
@@ -3527,7 +3527,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  nil,
 									},
 								},
@@ -3579,11 +3579,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -3686,11 +3686,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -3759,11 +3759,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -3837,11 +3837,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -3892,11 +3892,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -3988,11 +3988,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -4061,11 +4061,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -4141,11 +4141,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -4201,7 +4201,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -4290,7 +4290,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -4345,7 +4345,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -4433,7 +4433,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -4487,7 +4487,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -4576,7 +4576,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -4631,7 +4631,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  nil,
 									},
 								},
@@ -4720,7 +4720,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  nil,
 									},
 								},
@@ -4772,11 +4772,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -4879,11 +4879,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -4952,11 +4952,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -5030,11 +5030,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -5085,11 +5085,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -5181,11 +5181,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -5254,11 +5254,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -5334,11 +5334,11 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
-							Optional: true,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.Attribute{
-										Optional: true,
+										Computed: true,
 										Type:     types.StringType,
 									},
 								},
@@ -5394,7 +5394,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -5483,7 +5483,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -5538,7 +5538,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -5626,7 +5626,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -5680,7 +5680,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -5769,7 +5769,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  stringdefault.StaticValue("two"),
 									},
 								},
@@ -5824,7 +5824,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  nil,
 									},
 								},
@@ -5913,7 +5913,7 @@ func TestDataDefault(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
-										Optional: true,
+										Computed: true,
 										Default:  nil,
 									},
 								},
@@ -5965,10 +5965,10 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
-							Optional: true,
+							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 							Default: objectdefault.StaticValue(
@@ -6035,10 +6035,10 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
-							Optional: true,
+							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 							Default: objectdefault.StaticValue(
@@ -6084,10 +6084,10 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
-							Optional: true,
+							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 						},
@@ -6143,10 +6143,10 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
-							Optional: true,
+							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 						},
@@ -6183,10 +6183,10 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
-							Optional: true,
+							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 							Default: objectdefault.StaticValue(
@@ -6251,10 +6251,10 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
-							Optional: true,
+							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 							Default: objectdefault.StaticValue(
@@ -6300,10 +6300,10 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
-							Optional: true,
+							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 							Default: nil,
@@ -6360,10 +6360,10 @@ func TestDataDefault(t *testing.T) {
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
-							Optional: true,
+							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 							Default: nil,
@@ -6403,7 +6403,7 @@ func TestDataDefault(t *testing.T) {
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
-									Optional: true,
+									Computed: true,
 									Default:  stringdefault.StaticValue("two"),
 								},
 							},
@@ -6464,7 +6464,7 @@ func TestDataDefault(t *testing.T) {
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
-									Optional: true,
+									Computed: true,
 									Default:  stringdefault.StaticValue("two"),
 								},
 							},
@@ -6504,7 +6504,7 @@ func TestDataDefault(t *testing.T) {
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 						},
@@ -6564,7 +6564,7 @@ func TestDataDefault(t *testing.T) {
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Optional: true,
+									Computed: true,
 								},
 							},
 						},
@@ -6603,7 +6603,7 @@ func TestDataDefault(t *testing.T) {
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
-									Optional: true,
+									Computed: true,
 									Default:  stringdefault.StaticValue("two"),
 								},
 							},
@@ -6664,7 +6664,7 @@ func TestDataDefault(t *testing.T) {
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
-									Optional: true,
+									Computed: true,
 									Default:  stringdefault.StaticValue("two"),
 								},
 							},
@@ -6704,7 +6704,7 @@ func TestDataDefault(t *testing.T) {
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
-									Optional: true,
+									Computed: true,
 									Default:  nil,
 								},
 							},
@@ -6765,7 +6765,7 @@ func TestDataDefault(t *testing.T) {
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
-									Optional: true,
+									Computed: true,
 									Default:  nil,
 								},
 							},

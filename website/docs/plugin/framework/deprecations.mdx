@@ -67,197 +67,278 @@ The recommended process is as follows:
 1. Add a [`DeprecationMessage`](/terraform/plugin/framework/handling-data/schemas#deprecationmessage-1) to the schema definition of the existing (now the "old") attribute, noting to use the new attribute in the message.
 1. Add `**Deprecated**` to the documentation of the existing (now the "old") attribute, noting to use the new attribute.
 1. Add a note to the documentation that either the existing (now the "old") attribute or new attribute must be configured.
-1. Add the type-specific [validator](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) `{type}validator.ConflictsWith` to the schema definitions of both the old and new attributes so they will present an error to the operator if both are configured at the same time. For example, an attribute of type string would use the [`stringvalidator.ConflictsWith`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator#ConflictsWith) validator.
-{/* TODO: is this needed? */}
-{/* 1. Add conditional logic in the `Create`, `Read`, and `Update` functions of the data source or resource to handle both attributes. Generally, this involves using [`ResourceData.GetOk()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/helper/schema#ResourceData.GetOk) (commonly `d.GetOk()` in HashiCorp maintained providers).
-1. Add conditional logic in the `Create` and `Update` function that returns an error if both the old and new attributes are not defined. */}
-1. Follow the rest of the procedures in the [Provider Attribute Removal section](#provider-attribute-removal). When the old attribute is removed, update the schema definition and documentation of the new attribute back to `Required`.
+1. Add the type-specific [validator](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) `{type}validator.ExactlyOneOf` to the schema definition of the new attribute, with a path expression matching the old attribute. This will ensure at least one of the attributes is configured, but present an error to the operator if both are configured at the same time. For example, an attribute of type string would use the [`stringvalidator.ExactlyOneOf`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator#ExactlyOneOf) validator.
+1. Add conditional logic in the `Create` and `Update` functions of the data source or resource to handle both attributes. Generally, this involves using [`{type}.IsNull()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes).
+1. Follow the rest of the procedures in the [Provider Attribute Removal section](#provider-attribute-removal). When the old attribute is removed, update the schema definition and documentation of the new attribute back to `Required`, and remove the `{type}validator.ExactlyOneOf` validator.
 
-{/* TODO: rewrite this example */}
-{/* #### Example Renaming of a Required Attribute
+#### Example Renaming of a Required Attribute
 
 Given this sample resource:
 
 ```go
-func resourceExampleWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+package provider
 
-        Create: resourceExampleWidgetCreate,
-        Read:   resourceExampleWidgetRead,
-        Update: resourceExampleWidgetUpdate,
+import (
+	"context"
 
-        Schema: map[string]*schema.Schema{
-            // ... other attributes ...
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-            "existing_attribute": {
-                Type:     schema.TypeString,
-                Required: true,
-            },
-        },
-    }
+var _ resource.Resource = (*exampleWidgetResource)(nil)
+
+type exampleWidgetResource struct{}
+
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleWidgetCreate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
-
-    existingAttribute := d.Get("existing_attribute").(string)
-    // add attribute to provider create API call
-
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_widget"
 }
 
-func resourceExampleWidgetRead(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-    d.Set("existing_attribute", /* ... )
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
 
-    // ... other logic ...
-    return nil
+			"existing_attribute": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
 }
 
-func resourceExampleWidgetUpdate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+type exampleWidgetResourceData struct {
+	// ... other attributes ...
 
-    existingAttribute := d.Get("existing_attribute").(string)
-    // add attribute to provider update API call
+	ExistingAttribute types.String `tfsdk:"existing_attribute"`
+}
 
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// add attribute to provider create API call
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	// ... other logic ...
+}
+
+func (e *exampleWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// add attribute to provider update API call
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// ... other logic ...
 }
 ```
 
 In order to support renaming `existing_attribute` to `new_attribute`, this sample can be written as the following to support both attributes simultaneously until the `existing_attribute` is removed:
 
 ```go
-func resourceExampleWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+package provider
 
-        Create: resourceExampleWidgetCreate,
-        Read:   resourceExampleWidgetRead,
-        Update: resourceExampleWidgetUpdate,
+import (
+	"context"
 
-        Schema: map[string]*schema.Schema{
-            // ... other attributes ...
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-            "existing_attribute": {
-                Type:          schema.TypeString,
-                Optional:      true,
-                ConflictsWith: []string{"new_attribute"},
-                Deprecated:    "use new_attribute instead",
-            },
-            "new_attribute": {
-                Type:          schema.TypeString,
-                Optional:      true,
-                ConflictsWith: []string{"existing_attribute"},
-            },
-        },
-    }
+var _ resource.Resource = (*exampleWidgetResource)(nil)
+
+type exampleWidgetResource struct{}
+
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleWidgetCreate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
-
-    existingAttribute, existingAttributeOk := d.GetOk("existing_attribute")
-    newAttribute, newAttributeOk := d.GetOk("new_attribute")
-    if !existingAttributeOk && !newAttributeOk {
-        return errors.New("one of existing_attribute or new_attribute must be configured")
-    }
-    if existingAttributeOk {
-        // add existingAttribute to provider create API call
-    } else {
-        // add newAttribute to provider create API call
-    }
-
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_widget"
 }
 
-func resourceExampleWidgetRead(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-    if _, ok := d.GetOk("existing_attribute"); ok {
-        d.Set("existing_attribute", /* ... )
-    } else {
-        d.Set("new_attribute", /* ... )
-    }
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
 
-    // ... other logic ...
-    return nil
+			"existing_attribute": schema.StringAttribute{
+				Optional:           true,
+				DeprecationMessage: "use new_attribute instead",
+			},
+			"new_attribute": schema.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.Expressions{
+						path.MatchRoot("existing_attribute"),
+					}...),
+				},
+			},
+		},
+	}
 }
 
-func resourceExampleWidgetUpdate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+type exampleWidgetResourceData struct {
+	// ... other attributes ...
 
-    existingAttribute, existingAttributeOk := d.GetOk("existing_attribute")
-    newAttribute, newAttributeOk := d.GetOk("new_attribute")
-    if !existingAttributeOk && !newAttributeOk {
-        return errors.New("one of existing_attribute or new_attribute must be configured")
-    }
-    if existingAttributeOk {
-        // add existingAttribute to provider update API call
-    } else {
-        // add newAttribute to provider update API call
-    }
+	ExistingAttribute types.String `tfsdk:"existing_attribute"`
+	NewAttribute      types.String `tfsdk:"new_attribute"`
+}
 
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !data.NewAttribute.IsNull() {
+		// add NewAttribute to provider create API call
+	} else {
+		// add ExistingAttribute to provider create API call
+	}
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	// ... other logic ...
+}
+
+func (e *exampleWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !data.NewAttribute.IsNull() {
+		// add NewAttribute to provider create API call
+	} else {
+		// add ExistingAttribute to provider create API call
+	}
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// ... other logic ...
 }
 ```
 
 When the `existing_attribute` is ready for removal, then this can be written as:
 
 ```go
-func resourceExampleWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+package provider
 
-        Create: resourceExampleWidgetCreate,
-        Read:   resourceExampleWidgetRead,
-        Update: resourceExampleWidgetUpdate,
+import (
+	"context"
 
-        Schema: map[string]*schema.Schema{
-            // ... other attributes ...
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-            "new_attribute": {
-                Type:     schema.TypeString,
-                Required: true,
-            },
-        },
-    }
+var _ resource.Resource = (*exampleWidgetResource)(nil)
+
+type exampleWidgetResource struct{}
+
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleWidgetCreate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
-
-    newAttribute := d.Get("new_attribute").(string)
-    // add attribute to provider create API call
-
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_widget"
 }
 
-func resourceExampleWidgetRead(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-    d.Set("new_attribute", /* ... )
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
 
-    // ... other logic ...
-    return nil
+			"new_attribute": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
 }
 
-func resourceExampleWidgetUpdate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+type exampleWidgetResourceData struct {
+	// ... other attributes ...
 
-    newAttribute := d.Get("new_attribute").(string)
-    // add attribute to provider update API call
-
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+	NewAttribute types.String `tfsdk:"new_attribute"`
 }
-``` */}
+
+func (e *exampleWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// add NewAttribute to provider create API call
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	// ... other logic ...
+}
+
+func (e *exampleWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// add NewAttribute to provider create API call
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// ... other logic ...
+}
+```
 
 ### Renaming an Optional Attribute
 
@@ -278,190 +359,279 @@ The recommended process is as follows:
 1. Duplicate the documentation of the existing attribute, renaming one of them with the new attribute name.
 1. Add a [`DeprecationMessage`](/terraform/plugin/framework/handling-data/schemas#deprecationmessage-1) to the schema definition of the existing (now the "old") attribute, noting to use the new attribute in the message.
 1. Add `**Deprecated**` to the documentation of the existing (now the "old") attribute, noting to use the new attribute.
-1. Add the type-specific [validator](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) `{type}validator.ConflictsWith` to the schema definitions of both the old and new attributes so they will present an error to the operator if both are configured at the same time. For example, an attribute of type string would use the [`stringvalidator.ConflictsWith`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator#ConflictsWith) validator.
-{/* TODO: is this needed? */}
-{/* 1. Add conditional logic in the `Create`, `Read`, and `Update` functions of the data source or resource to handle both attributes. Generally, this involves using [`ResourceData.GetOk()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/helper/schema#ResourceData.GetOk) (commonly `d.GetOk()` in HashiCorp maintained providers). */}
-1. Follow the rest of the procedures in the [Provider Attribute Removal section](#provider-attribute-removal).
+1. Add the type-specific [validator](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) `{type}validator.ExactlyOneOf` to the schema definition of the new attribute, with a path expression matching the old attribute. This will ensure at least one of the attributes is configured, but present an error to the operator if both are configured at the same time. For example, an attribute of type string would use the [`stringvalidator.ExactlyOneOf`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator#ExactlyOneOf) validator.
+1. Add conditional logic in the `Create` and `Update` functions of the data source or resource to handle both attributes. Generally, this involves using [`{type}.IsNull()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes).
+1. Follow the rest of the procedures in the [Provider Attribute Removal section](#provider-attribute-removal). When the old attribute is removed, remove the `{type}validator.ExactlyOneOf` validator.
 
-{/* TODO: rewrite this example */}
-{/* #### Example Renaming of an Optional Attribute
+#### Example Renaming of an Optional Attribute
 
 Given this sample resource:
 
 ```go
-func resourceExampleWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+package provider
 
-        Create: resourceExampleWidgetCreate,
-        Read:   resourceExampleWidgetRead,
-        Update: resourceExampleWidgetUpdate,
+import (
+	"context"
 
-        Schema: map[string]*schema.Schema{
-            // ... other attributes ...
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-            "existing_attribute": {
-                Type:     schema.TypeString,
-                Optional: true,
-            },
-        },
-    }
+var _ resource.Resource = (*exampleWidgetResource)(nil)
+
+type exampleWidgetResource struct{}
+
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleWidgetCreate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
-
-    if v, ok := d.GetOk("existing_attribute"); ok {
-        // add attribute to provider create API call
-    }
-
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_widget"
 }
 
-func resourceExampleWidgetRead(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-    d.Set("existing_attribute", /* ... )
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
 
-    // ... other logic ...
-    return nil
+			"existing_attribute": schema.StringAttribute{
+				Optional: true,
+			},
+		},
+	}
 }
 
-func resourceExampleWidgetUpdate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+type exampleWidgetResourceData struct {
+	// ... other attributes ...
 
-    if v, ok := d.GetOk("existing_attribute"); ok {
-        // add attribute to provider update API call
-    }
+	ExistingAttribute types.String `tfsdk:"existing_attribute"`
+}
 
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// add attribute to provider create API call
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	// ... other logic ...
+}
+
+func (e *exampleWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// add attribute to provider update API call
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// ... other logic ...
 }
 ```
 
 In order to support renaming `existing_attribute` to `new_attribute`, this sample can be written as the following to support both attributes simultaneously until the `existing_attribute` is removed:
 
 ```go
-func resourceExampleWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+package provider
 
-        Create: resourceExampleWidgetCreate,
-        Read:   resourceExampleWidgetRead,
-        Update: resourceExampleWidgetUpdate,
+import (
+	"context"
 
-        Schema: map[string]*schema.Schema{
-            // ... other attributes ...
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-            "existing_attribute": {
-                Type:          schema.TypeString,
-                Optional:      true,
-                ConflictsWith: []string{"new_attribute"},
-                Deprecated:    "use new_attribute instead",
-            },
-            "new_attribute": {
-                Type:          schema.TypeString,
-                Optional:      true,
-                ConflictsWith: []string{"existing_attribute"},
-            },
-        },
-    }
+var _ resource.Resource = (*exampleWidgetResource)(nil)
+
+type exampleWidgetResource struct{}
+
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleWidgetCreate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
-
-    if v, ok := d.GetOk("existing_attribute"); ok {
-        // add attribute to provider create API call
-    } else if v, ok := d.GetOk("new_attribute"); ok {
-        // add attribute to provider create API call
-    }
-
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_widget"
 }
 
-func resourceExampleWidgetRead(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-    if v, ok := d.GetOk("existing_attribute"); ok {
-        d.Set("existing_attribute", /* ... )
-    } else {
-        d.Set("new_attribute", /* ... )
-    }
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
 
-    // ... other logic ...
-    return nil
+			"existing_attribute": schema.StringAttribute{
+				Optional:           true,
+				DeprecationMessage: "use new_attribute instead",
+			},
+
+			"new_attribute": schema.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.Expressions{
+						path.MatchRoot("existing_attribute"),
+					}...),
+				},
+			},
+		},
+	}
 }
 
-func resourceExampleWidgetUpdate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+type exampleWidgetResourceData struct {
+	// ... other attributes ...
 
-    if v, ok := d.GetOk("existing_attribute"); ok {
-        // add attribute to provider update API call
-    } else if v, ok := d.GetOk("new_attribute"); ok {
-        // add attribute to provider update API call
-    }
+	ExistingAttribute types.String `tfsdk:"existing_attribute"`
+	NewAttribute      types.String `tfsdk:"new_attribute"`
+}
 
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !data.NewAttribute.IsNull() {
+		// add NewAttribute to provider create API call
+	} else {
+		// add ExistingAttribute to provider create API call
+	}
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	// ... other logic ...
+}
+
+func (e *exampleWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !data.NewAttribute.IsNull() {
+		// add NewAttribute to provider create API call
+	} else {
+		// add ExistingAttribute to provider create API call
+	}
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// ... other logic ...
 }
 ```
 
 When the `existing_attribute` is ready for removal, then this can be written as:
 
 ```go
-func resourceExampleWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+package provider
 
-        Create: resourceExampleWidgetCreate,
-        Read:   resourceExampleWidgetRead,
-        Update: resourceExampleWidgetUpdate,
+import (
+	"context"
 
-        Schema: map[string]*schema.Schema{
-            // ... other attributes ...
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-            "new_attribute": {
-                Type:     schema.TypeString,
-                Optional: true,
-            },
-        },
-    }
+var _ resource.Resource = (*exampleWidgetResource)(nil)
+
+type exampleWidgetResource struct{}
+
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleWidgetCreate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
-
-    if v, ok := d.GetOk("new_attribute"); ok {
-        // add attribute to provider create API call
-    }
-
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+func (e *exampleWidgetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_widget"
 }
 
-func resourceExampleWidgetRead(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-    d.Set("new_attribute", /* ... )
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
 
-    // ... other logic ...
-    return nil
+			"new_attribute": schema.StringAttribute{
+				Optional: true,
+			},
+		},
+	}
 }
 
-func resourceExampleWidgetUpdate(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+type exampleWidgetResourceData struct {
+	// ... other attributes ...
 
-    if v, ok := d.GetOk("new_attribute"); ok {
-        // add attribute to provider update API call
-    }
-
-    // ... other logic ...
-    return resourceExampleWidgetRead(d, meta)
+	NewAttribute types.String `tfsdk:"new_attribute"`
 }
-``` */}
+
+func (e *exampleWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// add NewAttribute to provider create API call
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	// ... other logic ...
+}
+
+func (e *exampleWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// add NewAttribute to provider create API call
+
+	// ... other logic ...
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// ... other logic ...
+}
+```
 
 ### Renaming a Computed Attribute
 
@@ -473,107 +643,295 @@ The recommended process is as follows:
 1. Duplicate the documentation of the existing attribute, renaming one of them with the new attribute name.
 1. Add a [`DeprecationMessage`](/terraform/plugin/framework/handling-data/schemas#deprecationmessage-1) to the schema definition of the existing (now the "old") attribute, noting to use the new attribute in the message.
 1. Add `**Deprecated**` to the documentation of the existing (now the "old") attribute, noting to use the new attribute.
-1. Set both attributes in the Terraform state in the `Read` functions of the data source or resource.
+1. Set both attributes in the Terraform state in the `Create`, `Update`, and `Read` functions of the resource (`Read` only for data source).
 1. Follow the rest of the procedures in the [Provider Attribute Removal section](#provider-attribute-removal).
 
-{/* TODO: rewrite this example */}
-{/* #### Example Renaming of a Computed Attribute
+#### Example Renaming of a Computed Attribute
 
 Given this sample resource:
 
 ```go
-func resourceExampleWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+package provider
 
-        Read: resourceExampleWidgetRead,
+import (
+	"context"
 
-        Schema: map[string]*schema.Schema{
-            // ... other attributes ...
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-            "existing_attribute": {
-                Type:     schema.TypeString,
-                Computed: true,
-            },
-        },
-    }
+var _ resource.Resource = (*exampleWidgetResource)(nil)
+
+type exampleWidgetResource struct{}
+
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleWidgetRead(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+func (e *exampleWidgetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_widget"
+}
 
-    d.Set("existing_attribute", /* ... )
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-    // ... other logic ...
-    return nil
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
+
+			"existing_attribute": schema.StringAttribute{
+				Computed: true,
+			},
+		},
+	}
+}
+
+type exampleWidgetResourceData struct {
+	// ... other attributes ...
+
+	ExistingAttribute types.String `tfsdk:"existing_attribute"`
+}
+
+func (e *exampleWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ... other logic ...
+	data.ExistingAttribute = // set to computed value
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ... other logic ...
+	data.ExistingAttribute = // set to computed value
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ... other logic ...
+	data.ExistingAttribute = // set to computed value
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// ... other logic ...
 }
 ```
 
 In order to support renaming `existing_attribute` to `new_attribute`, this sample can be written as the following to support both attributes simultaneously until the `existing_attribute` is removed:
 
 ```go
-func resourceExampleWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+package provider
 
-        Read: resourceExampleWidgetRead,
+import (
+	"context"
 
-        Schema: map[string]*schema.Schema{
-            // ... other attributes ...
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-            "existing_attribute": {
-                Type:       schema.TypeString,
-                Computed:   true,
-                Deprecated: "use new_attribute instead",
-            },
-            "new_attribute": {
-                Type:     schema.TypeString,
-                Computed: true,
-            },
-        },
-    }
+var _ resource.Resource = (*exampleWidgetResource)(nil)
+
+type exampleWidgetResource struct{}
+
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleWidgetRead(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
+func (e *exampleWidgetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_widget"
+}
 
-    d.Set("existing_attribute", /* ... )
-    d.Set("new_attribute", /* ... )
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-    // ... other logic ...
-    return nil
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
+
+			"existing_attribute": schema.StringAttribute{
+				Computed:           true,
+				DeprecationMessage: "use new_attribute instead",
+			},
+
+			"new_attribute": schema.StringAttribute{
+				Computed: true,
+			},
+		},
+	}
+}
+
+type exampleWidgetResourceData struct {
+	// ... other attributes ...
+
+	ExistingAttribute types.String `tfsdk:"existing_attribute"`
+	NewAttribute      types.String `tfsdk:"new_attribute"`
+}
+
+func (e *exampleWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ... other logic ...
+	data.ExistingAttribute =  // set to computed value
+	data.NewAttribute =  // set to computed value
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ... other logic ...
+	data.ExistingAttribute =  // set to computed value
+	data.NewAttribute =  // set to computed value
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ... other logic ...
+	data.ExistingAttribute =  // set to computed value
+	data.NewAttribute =  // set to computed value
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// ... other logic ...
 }
 ```
 
 When the `existing_attribute` is ready for removal, then this can be written as:
 
 ```go
-func resourceExampleWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+package provider
 
-        Read: resourceExampleWidgetRead,
+import (
+	"context"
 
-        Schema: map[string]*schema.Schema{
-            // ... other attributes ...
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-            "new_attribute": {
-                Type:     schema.TypeString,
-                Computed: true,
-            },
-        },
-    }
+var _ resource.Resource = (*exampleWidgetResource)(nil)
+
+type exampleWidgetResource struct{}
+
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleWidgetRead(d *schema.ResourceData, meta any) error {
-    // ... other logic ...
-
-    d.Set("new_attribute", /* ... )
-
-    // ... other logic ...
-    return nil
+func (e *exampleWidgetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_widget"
 }
-``` */}
+
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
+
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
+
+			"new_attribute": schema.StringAttribute{
+				Computed: true,
+			},
+		},
+	}
+}
+
+type exampleWidgetResourceData struct {
+	// ... other attributes ...
+
+	NewAttribute types.String `tfsdk:"new_attribute"`
+}
+
+func (e *exampleWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ... other logic ...
+	data.NewAttribute = // set to computed value
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ... other logic ...
+	data.NewAttribute = // set to computed value
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data exampleWidgetResourceData
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// ... other logic ...
+	data.NewAttribute = // set to computed value
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (e *exampleWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// ... other logic ...
+}
+```
 
 ## Provider Data Source or Resource Removal
 

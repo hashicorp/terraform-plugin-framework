@@ -76,6 +76,10 @@
         "path": "resources/plan-modification"
       },
       {
+        "title": "Default",
+        "path": "resources/default"
+      },
+      {
         "title": "Import State",
         "path": "resources/import"
       },

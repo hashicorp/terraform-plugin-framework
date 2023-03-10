@@ -1,0 +1,43 @@
+---
+page_title: 'Plugin Development - Framework: Default'
+description: >-
+  How to set default values using the provider development framework.
+---
+
+# Default
+
+After [validation](/terraform/plugin/framework/validation) and before applying configuration changes, Terraform generates a plan that describes the expected values and behaviors of those changes. Resources can then tailor the plan to set default values on computed resource attributes that are null in the configuration.
+
+A Default can _only_ be added to a resource schema attribute.
+
+## When is a Default set?
+
+A Default is set during the [planning process](/terraform/plugin/framework/resources/plan-modification#plan-modification-process), immediately prior to the framework marking computed attributes that are null in the configuration as unknown in the plan.
+
+## Attribute Default
+
+You can supply the attribute type `Default` field with a default for that attribute. For example:
+
+```go
+// Typically within the schema.Schema returned by Schema() for a resource.
+schema.StringAttribute{
+    // ... other Attribute configuration ...
+
+    Default: stringdefault.StaticValue("str"),
+}
+
+schema.SetAttribute{
+    // ... other Attribute configuration ...
+
+    Default: setdefault.StaticValue(
+        types.SetValueMust(
+            types.StringType,
+            []attr.Value{
+                types.StringValue("str"),
+            },
+        ),
+    ),
+},
+```
+
+If defined, a default is applied to the current attribute providing that the attribute is null in the configuration. If any nested attributes define a default, then those are applied afterwards. Any default that returns an error will prevent Terraform from applying further defaults of that attribute as well as any nested attribute defaults.

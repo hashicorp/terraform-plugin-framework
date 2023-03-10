@@ -19,6 +19,10 @@ Plan modification can be added on resource schema attributes or an entire resour
 
 ## Plan Modification Process
 
+<Note>
+    Any Defaults that have been set are processed before any plan modifiers.
+</Note>
+
 When the provider receives a request to generate the plan for a resource change via the framework, the following occurs:
 
 1. If the plan differs from the current resource state, the framework marks computed attributes that are null in the configuration as unknown in the plan. This is intended to prevent unexpected Terraform errors. Providers can later enter any values that may be known.
@@ -62,45 +66,43 @@ The framework implements some common use case modifiers in the typed packages un
 To create an attribute plan modifier, you must implement the one of the [`planmodifier` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier) interfaces. For example:
 
 ```go
-// stringDefaultModifier is a plan modifier that sets a default value for a
-// types.StringType attribute when it is not configured. The attribute must be
-// marked as Optional and Computed. When setting the state during the resource
-// Create, Read, or Update methods, this default value must also be included or
-// the Terraform CLI will generate an error.
-type stringDefaultModifier struct {
-    Default string
+// timeNowDefaultModifier is a plan modifier that sets the value for a
+// types.StringType attribute to the current time when it is not configured.
+// The attribute must be marked as Optional and Computed. When setting the
+// state during the resource Create, Read, or Update methods, this value
+// must also be included or the Terraform CLI will generate an error.
+type timeNowDefaultModifier struct {
 }
 
-// Description returns a plain text description of the validator's behavior, suitable for a practitioner to understand its impact.
-func (m stringDefaultModifier) Description(ctx context.Context) string {
-    return fmt.Sprintf("If value is not configured, defaults to %s", m.Default)
+// Description returns a plain text description of the plan modifier's behavior, suitable for a practitioner to understand its impact.
+func (m timeNowDefaultModifier) Description(ctx context.Context) string {
+    return fmt.Sprintf("If value is not configured, defaults to a string representation of the current time")
 }
 
-// MarkdownDescription returns a markdown formatted description of the validator's behavior, suitable for a practitioner to understand its impact.
-func (m stringDefaultModifier) MarkdownDescription(ctx context.Context) string {
-    return fmt.Sprintf("If value is not configured, defaults to `%s`", m.Default)
+// MarkdownDescription returns a markdown formatted description of the plan modifier's behavior, suitable for a practitioner to understand its impact.
+func (m timeNowDefaultModifier) MarkdownDescription(ctx context.Context) string {
+    return fmt.Sprintf("If value is not configured, defaults to a string representation of the current time")
 }
 
 // PlanModifyString runs the logic of the plan modifier.
 // Access to the configuration, plan, and state is available in `req`, while
 // `resp` contains fields for updating the planned value, triggering resource
 // replacement, and returning diagnostics.
-func (m stringDefaultModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+func (m timeNowDefaultModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
     // If the value is unknown or known, do not set default value.
     if !req.PlanValue.IsNull() {
         return
     }
 
-    resp.PlanValue = types.StringValue(m.Default)
+    resp.PlanValue = types.StringValue(time.Now().String())
 }
 ```
 
 Optionally, you may also want to create a helper function to instantiate the plan modifier. For example:
 
 ```go
-func stringDefault(defaultValue string) planmodifier.String {
-    return stringDefaultModifier{
-        Default: defaultValue,
+func timeNowDefault() planmodifier.String {
+    return timeNowDefaultModifier{
     }
 }
 ```

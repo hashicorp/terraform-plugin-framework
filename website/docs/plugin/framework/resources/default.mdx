@@ -41,3 +41,46 @@ schema.SetAttribute{
 ```
 
 If defined, a default is applied to the current attribute providing that the attribute is null in the configuration. If any nested attributes define a default, then those are applied afterwards. Any default that returns an error will prevent Terraform from applying further defaults of that attribute as well as any nested attribute defaults.
+
+### Common Use Case Attribute Defaults
+
+The framework implements static value defaults in the typed packages under `resource/schema/`, such as `resource/schema/booldefault`:
+
+### Creating Defaults
+
+To create an attribute default, you must implement the one of the [`schema` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults) interfaces. For example:
+
+```go
+// timeNowDefault is a default that sets the value for a types.StringType
+// attribute to the current time when it is not configured. The attribute
+// must be marked as Optional and Computed. When setting the state during
+// the resource Create, Read, or Update methods, this value must also be
+// included or the Terraform CLI will generate an error.
+type timeNowDefaultValue struct {
+}
+
+// Description returns a plain text description of the default's behavior, suitable for a practitioner to understand its impact.
+func (m timeNowDefaultValue) Description(ctx context.Context) string {
+    return fmt.Sprintf("If value is not configured, defaults to a string representation of the current time")
+}
+
+// MarkdownDescription returns a markdown formatted description of the default's behavior, suitable for a practitioner to understand its impact.
+func (m timeNowDefaultValue) MarkdownDescription(ctx context.Context) string {
+    return fmt.Sprintf("If value is not configured, defaults to a string representation of the current time")
+}
+
+// DefaultString runs the logic of the default. Access to the path is available in `req`, while
+// `resp` contains fields for updating the planned value, and returning diagnostics.
+func (m timeNowDefaultValue) DefaultString(_ context.Context, req defaults.StringRequest, resp *defaults.StringResponse)
+    resp.PlanValue = types.StringValue(time.Now().String())
+}
+```
+
+Optionally, you may also want to create a helper function to instantiate the default. For example:
+
+```go
+func timeNowDefault() defaults.String {
+    return timeNowDefaultValue{
+    }
+}
+```

@@ -176,6 +176,10 @@
     "path": "debugging"
   },
   {
+    "title": "Deprecations, Removals, and Renames",
+    "path": "deprecations"
+  },
+  {
     "title": "Migrating from SDK",
     "routes": [
       {

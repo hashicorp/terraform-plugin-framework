@@ -22,9 +22,9 @@ Before you migrate your provider to the Framework, ensure it meets the following
 
 ## Muxing
 
-Consider muxing when you need to migrate a provider that contains many resources or data sources. Muxing lets you use two versions of the same provider concurrently, with each serving different resources or data sources. This lets you migrate individual resources or data sources to the Framework one at a time.
+Consider muxing when you need to migrate a provider that contains many resources or data sources. Muxing enables multiple underlying provider implementations to exist within the same logical provider server. This lets you migrate individual resources or data sources to the Framework one at a time.
 
-Refer to the [Provider muxing documentation](/terraform/plugin/framework/migrating/providers#muxing) for details about muxing configuration.
+Refer to the [muxing](/terraform/plugin/framework/migrating/mux) page of the migration guide for additional details.
 
 ## Testing Migration
 
@@ -37,11 +37,11 @@ Take the following steps when you migrate a provider from SDKv2 to the Framework
 
 - Ensure all [tests](/terraform/plugin/framework/migrating/testing#testing-migration) pass.
 - [Serve the provider](/terraform/plugin/framework/migrating/providers#serving-the-provider) via the Framework.
-  - Implement [muxing](/terraform/plugin/framework/migrating/providers#muxing) if you plan to migrate the provider over several point releases.
+  - Implement [muxing](/terraform/plugin/framework/migrating/mux), if you plan to migrate the provider iteratively.
 - Update the [provider definition](/terraform/plugin/framework/migrating/providers#provider-definition) to use the Framework.
 - Update the [provider schema](/terraform/plugin/framework/migrating/providers#provider-schema).
 - Update each of the provider's resources and data sources.
   - Update related [tests](/terraform/plugin/framework/migrating/testing) to use the Framework, and ensure that the tests fail.
   - Migrate the [resource](/terraform/plugin/framework/migrating/resources) or [data source](/terraform/plugin/framework/migrating/data-sources).
   - Verify that related tests now pass.
-- If you used muxing, remove the muxing configuration.
+- If you used [muxing](/terraform/plugin/framework/migrating/mux), remove the muxing configuration.

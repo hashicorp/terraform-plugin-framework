@@ -9,6 +9,12 @@ description: >-
 During migration, you should [write tests](#testing-migration) to verify that the behaviour of your provider has not
 been altered by the migration itself. You will also need to [update](#provider-factories) your tests too.
 
+<Tip>
+
+  If [muxing](/terraform/plugin/framework/migrating/mux), only migrated resources and data sources require immediate updates of testing code.
+
+</Tip>
+
 ## Testing Migration
 
 During migration, we recommend writing tests to verify that switching from SDKv2 to the Framework has not affected your

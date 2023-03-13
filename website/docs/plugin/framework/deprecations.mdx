@@ -1088,118 +1088,195 @@ The recommended process is as follows:
 1. Add a [`DeprecationMessage`](/terraform/plugin/framework/handling-data/schemas#deprecationmessage) to the schema definition of the existing (now the "old") resource, noting to use the new resource in the message.
 1. Add `~> This resource is deprecated and will be removed in the next major version` to the documentation of the existing (now the "old") resource, noting to use the new resource.
 1. Add the new resource to the provider [`Resources`](/terraform/plugin/framework/providers#resources) function
-1. Follow the rest of the procedures in the [Provider Attribute Removal section](#provider-attribute-removal).
+1. Follow the rest of the procedures in the [Provider Data Source or Resource Removal section](#provider-data-source-or-resource-removal).
 
-{/* TODO: rewrite this example */}
-{/* ### Example Resource Renaming
+### Example Resource Renaming
 
 Given this sample provider and resource:
 
 ```go
-func Provider() terraform.ResourceProvider {
-    return &schema.Provider{
-        // ... other configuration ...
+// ... provider implementation ...
 
-        ResourcesMap: map[string]*schema.Resource{
-            // ... other resources ...
-
-            "example_existing_widget": resourceExampleExistingWidget(),
-        },
-    }
-}
-
-func resourceExampleExistingWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
-    }
+func (p *exampleProvider) Resources(ctx context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		//... other resources ...
+		NewExistingWidgetResource,
+	}
 }
 ```
 
-In order to support renaming `example_existing_widget` to `example_new_widget`, this sample can be written as the following to support both attributes simultaneously until the `existing_attribute` is removed:
+```go
+func NewExistingWidgetResource() resource.Resource {
+	return &exampleExistingWidgetResource{}
+}
+
+func (e *exampleExistingWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
+
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
+		},
+	}
+}
+
+// ... resource implementation ...
+```
+
+In order to support renaming `example_existing_widget` to `example_new_widget`, this sample can be written as the following to support both resources simultaneously until the `example_existing_widget` resource is removed:
 
 ```go
-func Provider() terraform.ResourceProvider {
-    return &schema.Provider{
-        // ... other configuration ...
+// ... provider implementation ...
 
-        ResourcesMap: map[string]*schema.Resource{
-            // ... other resources ...
+func (p *exampleProvider) Resources(ctx context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		//... other resources ...
+		NewExistingWidgetResource,
+		NewWidgetResource,
+	}
+}
+```
 
-            "example_existing_widget": resourceExampleExistingWidget(),
-            "example_new_widget":      resourceExampleNewWidget(),
-        },
-    }
+```go
+func NewExistingWidgetResource() resource.Resource {
+	return &exampleExistingWidgetResource{}
 }
 
-func resourceExampleExistingWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+func (e *exampleExistingWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-        DeprecationMessage: "use example_new_widget resource instead"
-    }
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
+		},
+		DeprecationMessage: "use example_new_widget resource instead",
+	}
 }
 
-func resourceExampleNewWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
-    }
+// ... resource implementation ...
+```
+
+```go
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
+
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
+
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
+		},
+	}
+}
+
+// ... resource implementation ...
 ```
 
 To soft remove `example_existing_widget` with a friendly error message:
 
+
 ```go
-func Provider() terraform.ResourceProvider {
-    return &schema.Provider{
-        // ... other configuration ...
+// ... provider implementation ...
 
-        ResourcesMap: map[string]*schema.Resource{
-            // ... other resources ...
+func (p *exampleProvider) Resources(ctx context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		//... other resources ...
+		NewExistingWidgetResource,
+		NewWidgetResource,
+	}
+}
+```
 
-            "example_existing_widget": resourceExampleExistingWidget(),
-            "example_new_widget":      resourceExampleNewWidget(),
-        },
-    }
+```go
+func NewExistingWidgetResource() resource.Resource {
+	return &exampleExistingWidgetResource{}
 }
 
-func resourceExampleExistingWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
+func (e *exampleExistingWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
 
-        Create: func(d *schema.ResourceData, meta any) error {
-            return errors.New("use example_new_widget resource instead")
-        },
-        Read: func(d *schema.ResourceData, meta any) error {
-            return errors.New("use example_new_widget resource instead")
-        },
-    }
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
+		},
+		DeprecationMessage: "use example_new_widget resource instead",
+	}
 }
 
-func resourceExampleNewWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
-    }
+func (e *exampleExistingWidgetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	resp.Diagnostics.Append(
+		diag.NewErrorDiagnostic("example_existing_widget resource deprecated", "use example_new_widget resource instead"),
+	)
 }
+
+func (e *exampleExistingWidgetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	resp.Diagnostics.Append(
+		diag.NewErrorDiagnostic("example_existing_widget resource deprecated", "use example_new_widget resource instead"),
+	)
+}
+
+func (e *exampleExistingWidgetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	resp.Diagnostics.Append(
+		diag.NewErrorDiagnostic("example_existing_widget resource deprecated", "use example_new_widget resource instead"),
+	)
+}
+
+func (e *exampleExistingWidgetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	resp.Diagnostics.Append(
+		diag.NewErrorDiagnostic("example_existing_widget resource deprecated", "use example_new_widget resource instead"),
+	)
+}
+
+// ... resource implementation ...
+```
+
+```go
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
+}
+
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
+
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
+		},
+	}
+}
+
+// ... resource implementation ...
 ```
 
 To remove `example_existing_widget`:
 
 ```go
-func Provider() terraform.ResourceProvider {
-    return &schema.Provider{
-        // ... other configuration ...
+// ... provider implementation ...
 
-        ResourcesMap: map[string]*schema.Resource{
-            // ... other resources ...
+func (p *exampleProvider) Resources(ctx context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		//... other resources ...
+		NewWidgetResource,
+	}
+}
+```
 
-            "example_new_widget": resourceExampleNewWidget(),
-        },
-    }
+```go
+func NewWidgetResource() resource.Resource {
+	return &exampleWidgetResource{}
 }
 
-func resourceExampleNewWidget() *schema.Resource {
-    return &schema.Resource{
-        // ... other configuration ...
-    }
+func (e *exampleWidgetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// ... other configuration ...
+
+		Attributes: map[string]schema.Attribute{
+			// ... other attributes ...
+		},
+	}
 }
-``` */}
+
+// ... resource implementation ...
+```

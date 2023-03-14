@@ -21,3 +21,8 @@ func Float64Unknown() basetypes.Float64Value {
 func Float64Value(value float64) basetypes.Float64Value {
 	return basetypes.NewFloat64Value(value)
 }
+
+// Float64PointerValue creates a Float64 with a null value if nil or a known value.
+func Float64PointerValue(value *float64) basetypes.Float64Value {
+	return basetypes.NewFloat64PointerValue(value)
+}

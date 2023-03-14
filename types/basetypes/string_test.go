@@ -338,3 +338,71 @@ func TestStringValueValueString(t *testing.T) {
 		})
 	}
 }
+
+func TestStringValueValueStringPointer(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    StringValue
+		expected *string
+	}{
+		"known": {
+			input:    NewStringValue("test"),
+			expected: pointer("test"),
+		},
+		"null": {
+			input:    NewStringNull(),
+			expected: nil,
+		},
+		"unknown": {
+			input:    NewStringUnknown(),
+			expected: pointer(""),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ValueStringPointer()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestNewStringPointerValue(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		value    *string
+		expected StringValue
+	}{
+		"nil": {
+			value:    nil,
+			expected: NewStringNull(),
+		},
+		"value": {
+			value:    pointer("test"),
+			expected: NewStringValue("test"),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewStringPointerValue(testCase.value)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

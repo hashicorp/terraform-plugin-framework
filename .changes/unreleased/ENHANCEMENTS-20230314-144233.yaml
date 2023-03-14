@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'types/basetypes: Add `Int64Value` type `NewInt64PointerValue()` creation function
+  and  `ValueInt64Pointer()` method'
+time: 2023-03-14T14:42:33.20202-04:00
+custom:
+  Issue: "1"

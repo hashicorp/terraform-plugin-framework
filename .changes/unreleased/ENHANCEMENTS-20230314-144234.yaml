@@ -3,4 +3,4 @@ body: 'types/basetypes: Add `StringValue` type `NewStringPointerValue()` creatio
   and  `ValueStringPointer()` method'
 time: 2023-03-14T14:42:34.20202-04:00
 custom:
-  Issue: "1"
+  Issue: "689"

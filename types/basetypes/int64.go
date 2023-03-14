@@ -142,7 +142,7 @@ func (i Int64Value) ValueInt64() int64 {
 }
 
 // ValueInt64Pointer returns a pointer to the known int64 value, nil for a
-// null value, or a pointer to 0.0 for an unknown value.
+// null value, or a pointer to 0 for an unknown value.
 func (i Int64Value) ValueInt64Pointer() *int64 {
 	if i.IsNull() {
 		return nil

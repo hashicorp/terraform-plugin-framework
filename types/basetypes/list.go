@@ -380,8 +380,9 @@ func (l ListValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 	}
 }
 
-// Equal returns true if the List is considered semantically equal
-// (same type and same value) to the attr.Value passed as an argument.
+// Equal returns true if the given attr.Value is also a ListValue, has the
+// same element type, same value state, and contains exactly the element values
+// as defined by the Equal method of the element type.
 func (l ListValue) Equal(o attr.Value) bool {
 	other, ok := o.(ListValue)
 

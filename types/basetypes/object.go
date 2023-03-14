@@ -437,8 +437,9 @@ func (o ObjectValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	}
 }
 
-// Equal returns true if the Object is considered semantically equal
-// (same type and same value) to the attr.Value passed as an argument.
+// Equal returns true if the given attr.Value is also an ObjectValue, has the
+// same value state, and contains exactly the same attribute types/values as
+// defined by the Equal method of those underlying types/values.
 func (o ObjectValue) Equal(c attr.Value) bool {
 	other, ok := c.(ObjectValue)
 

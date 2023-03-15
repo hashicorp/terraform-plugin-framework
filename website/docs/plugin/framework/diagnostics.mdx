@@ -247,7 +247,7 @@ func (s exampleType) Validate(ctx context.Context, in tftypes.Value, path path.P
 
 ### Consistent Diagnostic Creation
 
-Create a helper function in your provider code to generate consistent diagnostics for types of errors/warnings. It is also possible to use [custom diagnostics types](#custom-diagnostics-types) to accomplish this same goal.
+Create a helper function in your provider code using the diagnostic creation functions available in the [`diag` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag) to generate consistent diagnostics for types of errors/warnings. It is also possible to use [custom diagnostics types](#custom-diagnostics-types) to accomplish this same goal.
 
 The [`diag` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag) provides these functions to create various diagnostics:
 

@@ -412,8 +412,9 @@ func (s SetValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	}
 }
 
-// Equal returns true if the Set is considered semantically equal
-// (same type and same value) to the attr.Value passed as an argument.
+// Equal returns true if the given attr.Value is also a SetValue, has the
+// same element type, same value state, and contains exactly the element values
+// as defined by the Equal method of the element type.
 func (s SetValue) Equal(o attr.Value) bool {
 	other, ok := o.(SetValue)
 

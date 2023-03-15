@@ -54,6 +54,16 @@ func NewFloat64Value(value float64) Float64Value {
 	}
 }
 
+// NewFloat64PointerValue creates a Float64 with a null value if nil or a known
+// value. Access the value via the Float64 type ValueFloat64Pointer method.
+func NewFloat64PointerValue(value *float64) Float64Value {
+	if value == nil {
+		return NewFloat64Null()
+	}
+
+	return NewFloat64Value(*value)
+}
+
 // Float64Value represents a 64-bit floating point value, exposed as a float64.
 type Float64Value struct {
 	// state represents whether the value is null, unknown, or known. The
@@ -135,6 +145,16 @@ func (f Float64Value) String() string {
 // 0.0.
 func (f Float64Value) ValueFloat64() float64 {
 	return f.value
+}
+
+// ValueFloat64Pointer returns a pointer to the known float64 value, nil for a
+// null value, or a pointer to 0.0 for an unknown value.
+func (f Float64Value) ValueFloat64Pointer() *float64 {
+	if f.IsNull() {
+		return nil
+	}
+
+	return &f.value
 }
 
 // ToFloat64Value returns Float64.

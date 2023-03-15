@@ -344,3 +344,71 @@ func TestInt64ValueValueInt64(t *testing.T) {
 		})
 	}
 }
+
+func TestInt64ValueValueInt64Pointer(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Int64Value
+		expected *int64
+	}{
+		"known": {
+			input:    NewInt64Value(24),
+			expected: pointer(int64(24)),
+		},
+		"null": {
+			input:    NewInt64Null(),
+			expected: nil,
+		},
+		"unknown": {
+			input:    NewInt64Unknown(),
+			expected: pointer(int64(0)),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ValueInt64Pointer()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestNewInt64PointerValue(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		value    *int64
+		expected Int64Value
+	}{
+		"nil": {
+			value:    nil,
+			expected: NewInt64Null(),
+		},
+		"value": {
+			value:    pointer(int64(123)),
+			expected: NewInt64Value(123),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewInt64PointerValue(testCase.value)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

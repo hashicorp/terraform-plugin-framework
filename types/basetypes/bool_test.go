@@ -382,3 +382,75 @@ func TestBoolValueValueBool(t *testing.T) {
 		})
 	}
 }
+
+func TestBoolValueValueBoolPointer(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    BoolValue
+		expected *bool
+	}{
+		"known-false": {
+			input:    NewBoolValue(false),
+			expected: pointer(false),
+		},
+		"known-true": {
+			input:    NewBoolValue(true),
+			expected: pointer(true),
+		},
+		"null": {
+			input:    NewBoolNull(),
+			expected: nil,
+		},
+		"unknown": {
+			input:    NewBoolUnknown(),
+			expected: pointer(false),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ValueBoolPointer()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestNewBoolPointerValue(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		value    *bool
+		expected BoolValue
+	}{
+		"nil": {
+			value:    nil,
+			expected: NewBoolNull(),
+		},
+		"value": {
+			value:    pointer(true),
+			expected: NewBoolValue(true),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewBoolPointerValue(testCase.value)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

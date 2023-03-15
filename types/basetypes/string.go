@@ -57,6 +57,16 @@ func NewStringValue(value string) StringValue {
 	}
 }
 
+// NewStringPointerValue creates a String with a null value if nil or a known
+// value. Access the value via the String type ValueStringPointer method.
+func NewStringPointerValue(value *string) StringValue {
+	if value == nil {
+		return NewStringNull()
+	}
+
+	return NewStringValue(*value)
+}
+
 // StringValue represents a UTF-8 string value.
 type StringValue struct {
 	// state represents whether the value is null, unknown, or known. The
@@ -140,6 +150,16 @@ func (s StringValue) String() string {
 // "".
 func (s StringValue) ValueString() string {
 	return s.value
+}
+
+// ValueStringPointer returns a pointer to the known string value, nil for a
+// null value, or a pointer to "" for an unknown value.
+func (s StringValue) ValueStringPointer() *string {
+	if s.IsNull() {
+		return nil
+	}
+
+	return &s.value
 }
 
 // ToStringValue returns String.

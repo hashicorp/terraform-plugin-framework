@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'types/basetypes: Add `StringValue` type `NewStringPointerValue()` creation function
+  and  `ValueStringPointer()` method'
+time: 2023-03-14T14:42:34.20202-04:00
+custom:
+  Issue: "689"

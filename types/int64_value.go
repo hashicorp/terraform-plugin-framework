@@ -21,3 +21,8 @@ func Int64Unknown() basetypes.Int64Value {
 func Int64Value(value int64) basetypes.Int64Value {
 	return basetypes.NewInt64Value(value)
 }
+
+// Int64PointerValue creates a Int64 with a null value if nil or a known value.
+func Int64PointerValue(value *int64) basetypes.Int64Value {
+	return basetypes.NewInt64PointerValue(value)
+}

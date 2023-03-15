@@ -516,3 +516,71 @@ func TestFloat64ValueValueFloat64(t *testing.T) {
 		})
 	}
 }
+
+func TestFloat64ValueValueFloat64Pointer(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Float64Value
+		expected *float64
+	}{
+		"known": {
+			input:    NewFloat64Value(2.4),
+			expected: pointer(2.4),
+		},
+		"null": {
+			input:    NewFloat64Null(),
+			expected: nil,
+		},
+		"unknown": {
+			input:    NewFloat64Unknown(),
+			expected: pointer(0.0),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ValueFloat64Pointer()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestNewFloat64PointerValue(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		value    *float64
+		expected Float64Value
+	}{
+		"nil": {
+			value:    nil,
+			expected: NewFloat64Null(),
+		},
+		"value": {
+			value:    pointer(1.2),
+			expected: NewFloat64Value(1.2),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewFloat64PointerValue(testCase.value)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

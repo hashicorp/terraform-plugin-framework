@@ -303,12 +303,10 @@ func validateDefaultsOnlyOnComputedAttributes(path path.Path, attr fwschema.Attr
 		case fwschema.AttributeWithFloat64DefaultValue:
 			if d.Float64DefaultValue() != nil {
 				diags.Append(nonComputedAttributeWithDefaultDiag(path))
-
 			}
 		case fwschema.AttributeWithInt64DefaultValue:
 			if d.Int64DefaultValue() != nil {
 				diags.Append(nonComputedAttributeWithDefaultDiag(path))
-
 			}
 		case fwschema.AttributeWithListDefaultValue:
 			if d.ListDefaultValue() != nil {

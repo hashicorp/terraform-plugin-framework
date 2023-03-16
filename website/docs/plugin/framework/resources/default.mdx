@@ -44,11 +44,22 @@ If defined, a default is applied to the current attribute providing that the att
 
 ### Common Use Case Attribute Defaults
 
-The framework implements static value defaults in the typed packages under `resource/schema/`, such as `resource/schema/booldefault`:
+The framework implements static value defaults in the typed packages under `resource/schema/`:
 
-### Creating Defaults
+| Schema Type | Built-In Default Functions |
+| [`schema.BoolAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#BoolAttribute) |  [`resource/schema/booldefault` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault) |
+| [`schema.Float64Attribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#Float64Attribute) |  [`resource/schema/float64default` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default) |
+| [`schema.Int64Attribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#Int64Attribute) |  [`resource/schema/int64default` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default) |
+| [`schema.ListAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ListAttribute) / | [`schema.ListNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ListNestedAttribute) |  [`resource/schema/listdefault` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault) |
+| [`schema.MapAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#MapAttribute) / | [`schema.MapNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#MapNestedAttribute) |  [`resource/schema/mapdefault` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/mapdefault) |
+| [`schema.NumberAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#NumberAttribute) |  [`resource/schema/numberdefault` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/numberdefault) |
+| [`schema.ObjectAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ObjectAttribute) / | [`schema.SingleNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SingleNestedAttribute) |  [`resource/schema/objectdefault` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault) |
+| [`schema.SetAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SetAttribute) / | [`schema.SetNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SetNestedAttribute) |  [`resource/schema/setdefault` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault) |
+| [`schema.StringAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#StringAttribute) |  [`resource/schema/stringdefault` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault) |
 
-To create an attribute default, you must implement the one of the [`schema` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults) interfaces. For example:
+### Custom Default Implementations
+
+To create an attribute default, you must implement the one of the [`resource/schema/defaults` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults) interfaces. For example:
 
 ```go
 // timeNowDefault is a default that sets the value for a types.StringType

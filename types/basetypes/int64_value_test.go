@@ -11,69 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestInt64TypeValueFromTerraform(t *testing.T) {
-	t.Parallel()
-
-	type testCase struct {
-		input       tftypes.Value
-		expectation attr.Value
-		expectedErr string
-	}
-	tests := map[string]testCase{
-		"value": {
-			input:       tftypes.NewValue(tftypes.Number, 123),
-			expectation: NewInt64Value(123),
-		},
-		"unknown": {
-			input:       tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-			expectation: NewInt64Unknown(),
-		},
-		"null": {
-			input:       tftypes.NewValue(tftypes.Number, nil),
-			expectation: NewInt64Null(),
-		},
-		"wrongType": {
-			input:       tftypes.NewValue(tftypes.String, "oops"),
-			expectedErr: "can't unmarshal tftypes.String into *big.Float, expected *big.Float",
-		},
-	}
-	for name, test := range tests {
-		name, test := name, test
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			ctx := context.Background()
-
-			got, err := Int64Type{}.ValueFromTerraform(ctx, test.input)
-			if err != nil {
-				if test.expectedErr == "" {
-					t.Errorf("Unexpected error: %s", err)
-					return
-				}
-				if test.expectedErr != err.Error() {
-					t.Errorf("Expected error to be %q, got %q", test.expectedErr, err.Error())
-					return
-				}
-				// we have an error, and it matches our
-				// expectations, we're good
-				return
-			}
-			if err == nil && test.expectedErr != "" {
-				t.Errorf("Expected error to be %q, didn't get an error", test.expectedErr)
-				return
-			}
-			if !got.Equal(test.expectation) {
-				t.Errorf("Expected %+v, got %+v", test.expectation, got)
-			}
-			if test.expectation.IsNull() != test.input.IsNull() {
-				t.Errorf("Expected null-ness match: expected %t, got %t", test.expectation.IsNull(), test.input.IsNull())
-			}
-			if test.expectation.IsUnknown() != !test.input.IsKnown() {
-				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expectation.IsUnknown(), !test.input.IsKnown())
-			}
-		})
-	}
-}
-
 func TestInt64ValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 
@@ -337,6 +274,74 @@ func TestInt64ValueValueInt64(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.input.ValueInt64()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestInt64ValueValueInt64Pointer(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    Int64Value
+		expected *int64
+	}{
+		"known": {
+			input:    NewInt64Value(24),
+			expected: pointer(int64(24)),
+		},
+		"null": {
+			input:    NewInt64Null(),
+			expected: nil,
+		},
+		"unknown": {
+			input:    NewInt64Unknown(),
+			expected: pointer(int64(0)),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ValueInt64Pointer()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestNewInt64PointerValue(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		value    *int64
+		expected Int64Value
+	}{
+		"nil": {
+			value:    nil,
+			expected: NewInt64Null(),
+		},
+		"value": {
+			value:    pointer(int64(123)),
+			expected: NewInt64Value(123),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewInt64PointerValue(testCase.value)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

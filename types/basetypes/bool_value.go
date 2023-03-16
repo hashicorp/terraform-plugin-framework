@@ -48,6 +48,16 @@ func NewBoolValue(value bool) BoolValue {
 	}
 }
 
+// NewBoolPointerValue creates a Bool with a null value if nil or a known
+// value. Access the value via the Bool type ValueBoolPointer method.
+func NewBoolPointerValue(value *bool) BoolValue {
+	if value == nil {
+		return NewBoolNull()
+	}
+
+	return NewBoolValue(*value)
+}
+
 // BoolValue represents a boolean value.
 type BoolValue struct {
 	// state represents whether the value is null, unknown, or known. The
@@ -129,6 +139,16 @@ func (b BoolValue) String() string {
 // false.
 func (b BoolValue) ValueBool() bool {
 	return b.value
+}
+
+// ValueBoolPointer returns a pointer to the known bool value, nil for a null
+// value, or a pointer to false for an unknown value.
+func (b BoolValue) ValueBoolPointer() *bool {
+	if b.IsNull() {
+		return nil
+	}
+
+	return &b.value
 }
 
 // ToBoolValue returns Bool.

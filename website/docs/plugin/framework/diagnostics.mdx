@@ -48,7 +48,7 @@ working with diagnostics, using functionality from the available
 
 ### Severity
 
-`Severity` specifies whether the diagnostic is an error or a warning.
+`Severity` specifies whether the diagnostic is an error or a warning. Terraform, nor the framework, supports other severity levels. Use [logging](/terraform/plugin/log/writing) for debugging or informational purposes.
 
 - An **error** will be displayed to the practitioner and halt Terraform's
   execution, not continuing to apply changes to later resources in the graph.
@@ -245,12 +245,55 @@ func (s exampleType) Validate(ctx context.Context, in tftypes.Value, path path.P
     // ... further logic ...
 ```
 
-#### Custom Diagnostics Types
+### Consistent Diagnostic Creation
 
-Advanced provider developers may need to further differentiate or store
-additional data in error and warning types. The
-[`diag.Diagnostic` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostic)
-is an interface type that can be implemented with these methods:
+Create a helper function in your provider code using the diagnostic creation functions available in the [`diag` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag) to generate consistent diagnostics for types of errors/warnings. It is also possible to use [custom diagnostics types](#custom-diagnostics-types) to accomplish this same goal.
+
+The [`diag` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag) provides these functions to create various diagnostics:
+
+| Function | Description |
+|---|---|
+| [`diag.NewAttributeErrorDiagnostic()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#NewAttributeErrorDiagnostic) | Create a new error diagnostic with a [path](/terraform/plugin/framework/handling-data/paths). |.
+| [`diag.NewAttributeWarningDiagnostic()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#NewAttributeWarningDiagnostic) | Create a new warning diagnostic with a [path](/terraform/plugin/framework/handling-data/paths). |.
+| [`diag.NewErrorDiagnostic()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#NewErrorDiagnostic) | Create a new error diagnostic without a [path](/terraform/plugin/framework/handling-data/paths). |.
+| [`diag.NewWarningDiagnostic()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#NewWarningDiagnostic) | Create a new warning diagnostic without a [path](/terraform/plugin/framework/handling-data/paths). |.
+
+In this example, the provider code is setup to always convert `error` returns from the API SDK to a consistent error diagnostic.
+
+```go
+func APIErrorDiagnostic(err error) diag.Diagnostic {
+  return diag.NewErrorDiagnostic(
+    "Unexpected API Error",
+    "While calling the API, an unexpected error was returned in the response. "+
+      "Please contact support if you are unsure how to resolve the error.\n\n"+
+      "Error: "+err.Error(),
+  )
+}
+```
+
+This enables calling code in the provider, such as:
+
+```go
+func (r ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp resource.ReadResponse) {
+  // ... other logic ...
+
+  apiResp, err := examplesdk.Read(/* ... */) // example API SDK call that may return an error
+
+  if err != nil {
+    resp.Diagnostics.Append(APIErrorDiagnostic(err))
+
+    return
+  }
+
+  // ... further logic ...
+}
+```
+
+## Custom Diagnostics Types
+
+Advanced provider developers may want to store additional data in diagnostics for other logic or create custom diagnostics that include specialized logic.
+
+The [`diag.Diagnostic` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostic) that can be implemented with these methods:
 
 ```go
 type Diagnostic interface {
@@ -261,13 +304,59 @@ type Diagnostic interface {
 }
 ```
 
-To also include attribute path information, the
-[`diag.DiagnosticWithPath` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#DiagnosticWithPath)
-can be implemented with the additional `Path()` method:
+To also include attribute path information, the [`diag.DiagnosticWithPath` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#DiagnosticWithPath) can be implemented with the additional `Path()` method:
 
 ```go
 type DiagnosticWithPath interface {
     Diagnostic
     Path() path.Path
+}
+```
+
+In this example, a custom diagnostic type stores an underlying `error` that caused the diagnostic:
+
+```go
+// UnderlyingErrorDiagnostic is an error diagnostic
+// which also stores the underlying error.
+type UnderlyingErrorDiagnostic struct {
+  Detail          string
+  Summary         string
+  UnderlyingError error
+}
+
+func (d UnderlyingErrorDiagnostic) Detail() string {
+  return d.Detail
+}
+
+func (d UnderlyingErrorDiagnostic) Equal(o SpecialDiagnostic) bool {
+  if d.Detail() != o.Detail() {
+    return false
+  }
+
+  if d.Summary() != o.Summary() {
+    return false
+  }
+
+  if d.UnderlyingError == nil {
+    return o.UnderlyingError == nil
+  }
+
+  if o.UnderlyingError == nil {
+    return false
+  }
+
+  if d.UnderlyingError.Error() != o.UnderlyingError.Error() {
+    return false
+  }
+
+  return true
+}
+
+func (d UnderlyingErrorDiagnostic) Severity() diag.Severity {
+  return diag.SeverityError
+}
+
+func (d UnderlyingErrorDiagnostic) Summary() string {
+  return d.Summary
 }
 ```

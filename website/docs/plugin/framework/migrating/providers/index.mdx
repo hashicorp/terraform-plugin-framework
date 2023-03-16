@@ -15,6 +15,12 @@ This page explains how to migrate a provider server, definition, and schema from
 
 You must update your provider's `main.go` file to serve Framework providers. Refer to [Provider Servers](/terraform/plugin/framework/provider-servers) in the Framework documentation for details.
 
+<Tip>
+
+To iteratively migrate individual resources and data sources, refer to [muxing](/terraform/plugin/framework/migrating/muxing) for the `main.go` implementation instead. The latter [provider definition](#provider-definition) and [provider schema](#provider-schema) sections are still applicable when muxing.
+
+</Tip>
+
 ### SDKv2
 
 In SDKv2, the provider package's `main` function serves the provider by calling `plugin.Serve`.
@@ -49,76 +55,6 @@ func main() {
         },
     )
 
-    if err != nil {
-        log.Fatal(err)
-    }
-}
-```
-
-### Muxing
-
-Muxing lets you use two versions of the same provider concurrently, with each serving different resources or data
-sources. Refer to the [Combining and Translating documentation](/terraform/plugin/mux) for full details about muxing
-configuration. Use muxing when you want to release a version of your provider with only some of the resources and data
-sources migrated to the Framework. You may want to do this if your provider manages a large number of resources and
-data sources.
-
-
-~> **Important**: If you are using muxing and your SDK provider schema is using
-[`Default`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/helper/schema#Schema.Default) or
-[`DefaultFunc`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/helper/schema#Schema.DefaultFunc)
-you **must** remove the usage of `Default` and `DefaultFunc` and transfer the logic into the provider
-[ConfigureFunc](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#Provider.ConfigureFunc) or
-[ConfigureContextFunc](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#Provider.ConfigureContextFunc).
-Failure to do this will like result in the following error:
-
-```
-Error: Plugin error
-
-  with provider["registry.terraform.io/example/examplecloud"],
-  on <empty> line 0:
-  (source code not available)
-
-The plugin returned an unexpected error from
-plugin.(*GRPCProvider).ValidateProviderConfig: rpc error: code = Unknown desc
-= got different PrepareProviderConfig PreparedConfig response from multiple
-servers, not sure which to use
-```
-
-The following example shows how to set up muxing for a provider that uses protocol version 5 to maintain compatibility
-with Terraform >= 0.12.0. The example also shows how to use the `debug` flag to optionally run the provider in debug
-mode.
-
-```go
-func main() {
-    ctx := context.Background()
-
-    var debug bool
-
-    flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
-    flag.Parse()
-
-    providers := []func() tfprotov5.ProviderServer{
-        providerserver.NewProtocol5(provider.New()),
-        provider.Provider().GRPCProvider,
-    }
-
-    muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    var serveOpts []tf5server.ServeOpt
-
-    if debug {
-        serveOpts = append(serveOpts, tf5server.WithManagedDebug())
-    }
-
-    err = tf5server.Serve(
-        "registry.terraform.io/<namespace>/<provider_name>",
-        muxServer.ProviderServer,
-        serveOpts...,
-    )
     if err != nil {
         log.Fatal(err)
     }

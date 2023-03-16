@@ -191,6 +191,10 @@
         "path": "migrating/benefits"
       },
       {
+        "title": "Muxing",
+        "path": "migrating/mux"
+      },
+      {
         "title": "Testing",
         "path": "migrating/testing"
       },

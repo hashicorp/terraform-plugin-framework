@@ -21,3 +21,8 @@ func BoolUnknown() basetypes.BoolValue {
 func BoolValue(value bool) basetypes.BoolValue {
 	return basetypes.NewBoolValue(value)
 }
+
+// BoolPointerValue creates a Bool with a null value if nil or a known value.
+func BoolPointerValue(value *bool) basetypes.BoolValue {
+	return basetypes.NewBoolPointerValue(value)
+}

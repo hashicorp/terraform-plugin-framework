@@ -75,6 +75,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.BoolResponse{}
 				defaultValue.DefaultBool(ctx, defaults.BoolRequest{}, &resp)
+				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithFloat64DefaultValue:
@@ -82,6 +83,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.Float64Response{}
 				defaultValue.DefaultFloat64(ctx, defaults.Float64Request{}, &resp)
+				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithInt64DefaultValue:
@@ -89,6 +91,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.Int64Response{}
 				defaultValue.DefaultInt64(ctx, defaults.Int64Request{}, &resp)
+				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithListDefaultValue:
@@ -96,6 +99,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.ListResponse{}
 				defaultValue.DefaultList(ctx, defaults.ListRequest{}, &resp)
+				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithMapDefaultValue:
@@ -103,6 +107,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.MapResponse{}
 				defaultValue.DefaultMap(ctx, defaults.MapRequest{}, &resp)
+				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithNumberDefaultValue:
@@ -110,6 +115,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.NumberResponse{}
 				defaultValue.DefaultNumber(ctx, defaults.NumberRequest{}, &resp)
+				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithObjectDefaultValue:
@@ -117,6 +123,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.ObjectResponse{}
 				defaultValue.DefaultObject(ctx, defaults.ObjectRequest{}, &resp)
+				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithSetDefaultValue:
@@ -124,6 +131,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.SetResponse{}
 				defaultValue.DefaultSet(ctx, defaults.SetRequest{}, &resp)
+				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		case fwschema.AttributeWithStringDefaultValue:
@@ -131,6 +139,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if defaultValue != nil {
 				resp := defaults.StringResponse{}
 				defaultValue.DefaultString(ctx, defaults.StringRequest{}, &resp)
+				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
 				return resp.PlanValue.ToTerraformValue(ctx)
 			}
 		}

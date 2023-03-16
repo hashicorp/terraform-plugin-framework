@@ -16,11 +16,11 @@ func TestStaticValueDefaultNumber(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		defaultVal types.Number
+		defaultVal *big.Float
 		expected   *defaults.NumberResponse
 	}{
 		"number": {
-			defaultVal: types.NumberValue(big.NewFloat(1.2345)),
+			defaultVal: big.NewFloat(1.2345),
 			expected: &defaults.NumberResponse{
 				PlanValue: types.NumberValue(big.NewFloat(1.2345)),
 			},
@@ -35,7 +35,7 @@ func TestStaticValueDefaultNumber(t *testing.T) {
 
 			resp := &defaults.NumberResponse{}
 
-			numberdefault.StaticValue(testCase.defaultVal).DefaultNumber(context.Background(), defaults.NumberRequest{}, resp)
+			numberdefault.StaticBigFloat(testCase.defaultVal).DefaultNumber(context.Background(), defaults.NumberRequest{}, resp)
 
 			if diff := cmp.Diff(testCase.expected, resp); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

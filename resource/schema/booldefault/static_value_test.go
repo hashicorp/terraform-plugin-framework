@@ -34,7 +34,7 @@ func TestStaticValueDefaultBool(t *testing.T) {
 
 			resp := &defaults.BoolResponse{}
 
-			booldefault.StaticValue(testCase.defaultVal).DefaultBool(context.Background(), defaults.BoolRequest{}, resp)
+			booldefault.StaticBool(testCase.defaultVal).DefaultBool(context.Background(), defaults.BoolRequest{}, resp)
 
 			if diff := cmp.Diff(testCase.expected, resp); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

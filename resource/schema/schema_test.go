@@ -1421,7 +1421,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"bool_attribute": schema.BoolAttribute{
-						Default: booldefault.StaticValue(true),
+						Default: booldefault.StaticBool(true),
 					},
 				},
 			},
@@ -1429,7 +1429,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("bool_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "bool_attribute" must be computed when using default`,
+					`Attribute "bool_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1438,7 +1438,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				Attributes: map[string]schema.Attribute{
 					"bool_attribute": schema.BoolAttribute{
 						Computed: true,
-						Default:  booldefault.StaticValue(true),
+						Default:  booldefault.StaticBool(true),
 					},
 				},
 			},
@@ -1447,7 +1447,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"float64_attribute": schema.Float64Attribute{
-						Default: float64default.StaticValue(1.2345),
+						Default: float64default.StaticFloat64(1.2345),
 					},
 				},
 			},
@@ -1455,7 +1455,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("float64_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "float64_attribute" must be computed when using default`,
+					`Attribute "float64_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1464,7 +1464,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				Attributes: map[string]schema.Attribute{
 					"float64_attribute": schema.Float64Attribute{
 						Computed: true,
-						Default:  float64default.StaticValue(1.2345),
+						Default:  float64default.StaticFloat64(1.2345),
 					},
 				},
 			},
@@ -1473,7 +1473,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"int64_attribute": schema.Int64Attribute{
-						Default: int64default.StaticValue(12345),
+						Default: int64default.StaticInt64(12345),
 					},
 				},
 			},
@@ -1481,7 +1481,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("int64_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "int64_attribute" must be computed when using default`,
+					`Attribute "int64_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1490,7 +1490,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				Attributes: map[string]schema.Attribute{
 					"int64_attribute": schema.Int64Attribute{
 						Computed: true,
-						Default:  int64default.StaticValue(12345),
+						Default:  int64default.StaticInt64(12345),
 					},
 				},
 			},
@@ -1514,7 +1514,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("list_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "list_attribute" must be computed when using default`,
+					`Attribute "list_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1554,7 +1554,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("map_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "map_attribute" must be computed when using default`,
+					`Attribute "map_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1579,7 +1579,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"number_attribute": schema.NumberAttribute{
-						Default: numberdefault.StaticValue(types.NumberValue(big.NewFloat(1.2345))),
+						Default: numberdefault.StaticBigFloat(big.NewFloat(1.2345)),
 					},
 				},
 			},
@@ -1587,7 +1587,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("number_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "number_attribute" must be computed when using default`,
+					`Attribute "number_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1596,7 +1596,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				Attributes: map[string]schema.Attribute{
 					"number_attribute": schema.NumberAttribute{
 						Computed: true,
-						Default:  numberdefault.StaticValue(types.NumberValue(big.NewFloat(1.2345))),
+						Default:  numberdefault.StaticBigFloat(big.NewFloat(1.2345)),
 					},
 				},
 			},
@@ -1622,7 +1622,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("object_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "object_attribute" must be computed when using default`,
+					`Attribute "object_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1664,7 +1664,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("set_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "set_attribute" must be computed when using default`,
+					`Attribute "set_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1689,7 +1689,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{
-						Default: stringdefault.StaticValue("str"),
+						Default: stringdefault.StaticString("str"),
 					},
 				},
 			},
@@ -1697,7 +1697,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "string_attribute" must be computed when using default`,
+					`Attribute "string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1706,7 +1706,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{
 						Computed: true,
-						Default:  stringdefault.StaticValue("str"),
+						Default:  stringdefault.StaticString("str"),
 					},
 				},
 			},
@@ -1730,7 +1730,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("list_nested_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "list_nested_attribute" must be computed when using default`,
+					`Attribute "list_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1758,7 +1758,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -1769,7 +1769,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("list_nested_attribute").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "list_nested_attribute.string_attribute" must be computed when using default`,
+					`Attribute "list_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1780,7 +1780,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -1799,12 +1799,12 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("list_nested_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "list_nested_attribute" must be computed when using default`,
+					`Attribute "list_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("list_nested_attribute").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "list_nested_attribute.string_attribute" must be computed when using default`,
+					`Attribute "list_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1816,7 +1816,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
 									Computed: true,
-									Default:  stringdefault.StaticValue("str"),
+									Default:  stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -1843,7 +1843,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("map_nested_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "map_nested_attribute" must be computed when using default`,
+					`Attribute "map_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1871,7 +1871,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -1882,7 +1882,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("map_nested_attribute").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "map_nested_attribute.string_attribute" must be computed when using default`,
+					`Attribute "map_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1893,7 +1893,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -1912,12 +1912,12 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("map_nested_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "map_nested_attribute" must be computed when using default`,
+					`Attribute "map_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("map_nested_attribute").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "map_nested_attribute.string_attribute" must be computed when using default`,
+					`Attribute "map_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1929,7 +1929,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
 									Computed: true,
-									Default:  stringdefault.StaticValue("str"),
+									Default:  stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -1956,7 +1956,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("set_nested_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "set_nested_attribute" must be computed when using default`,
+					`Attribute "set_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -1984,7 +1984,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -1995,7 +1995,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("set_nested_attribute").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "set_nested_attribute.string_attribute" must be computed when using default`,
+					`Attribute "set_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2006,7 +2006,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -2025,12 +2025,12 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("set_nested_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "set_nested_attribute" must be computed when using default`,
+					`Attribute "set_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("set_nested_attribute").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "set_nested_attribute.string_attribute" must be computed when using default`,
+					`Attribute "set_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2042,7 +2042,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
 									Computed: true,
-									Default:  stringdefault.StaticValue("str"),
+									Default:  stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -2071,7 +2071,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("single_nested_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "single_nested_attribute" must be computed when using default`,
+					`Attribute "single_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2100,7 +2100,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 					"single_nested_attribute": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
-								Default: stringdefault.StaticValue("str"),
+								Default: stringdefault.StaticString("str"),
 							},
 						},
 					},
@@ -2110,7 +2110,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("single_nested_attribute").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "single_nested_attribute.string_attribute" must be computed when using default`,
+					`Attribute "single_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2120,7 +2120,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 					"single_nested_attribute": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
-								Default: stringdefault.StaticValue("str"),
+								Default: stringdefault.StaticString("str"),
 							},
 						},
 						Default: objectdefault.StaticValue(
@@ -2140,12 +2140,12 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("single_nested_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "single_nested_attribute" must be computed when using default`,
+					`Attribute "single_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("single_nested_attribute").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "single_nested_attribute.string_attribute" must be computed when using default`,
+					`Attribute "single_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2156,7 +2156,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
 								Computed: true,
-								Default:  stringdefault.StaticValue("str"),
+								Default:  stringdefault.StaticString("str"),
 							},
 						},
 					},
@@ -2170,7 +2170,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedBlockObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -2181,7 +2181,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("list_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "list_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "list_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2193,7 +2193,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
 									Computed: true,
-									Default:  stringdefault.StaticValue("str"),
+									Default:  stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -2211,7 +2211,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 									NestedObject: schema.NestedBlockObject{
 										Attributes: map[string]schema.Attribute{
 											"string_attribute": schema.StringAttribute{
-												Default: stringdefault.StaticValue("str"),
+												Default: stringdefault.StaticString("str"),
 											},
 										},
 									},
@@ -2225,7 +2225,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("list_nested_block").AtName("list_nested_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "list_nested_block.list_nested_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "list_nested_block.list_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2240,7 +2240,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 										Attributes: map[string]schema.Attribute{
 											"string_attribute": schema.StringAttribute{
 												Computed: true,
-												Default:  stringdefault.StaticValue("str"),
+												Default:  stringdefault.StaticString("str"),
 											},
 										},
 									},
@@ -2258,7 +2258,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedBlockObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 							Blocks: map[string]schema.Block{
@@ -2266,7 +2266,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 									NestedObject: schema.NestedBlockObject{
 										Attributes: map[string]schema.Attribute{
 											"string_attribute": schema.StringAttribute{
-												Default: stringdefault.StaticValue("str"),
+												Default: stringdefault.StaticString("str"),
 											},
 										},
 									},
@@ -2280,12 +2280,12 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("list_nested_block").AtName("list_nested_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "list_nested_block.list_nested_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "list_nested_block.list_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("list_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "list_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "list_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2297,7 +2297,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
 									Computed: true,
-									Default:  stringdefault.StaticValue("str"),
+									Default:  stringdefault.StaticString("str"),
 								},
 							},
 							Blocks: map[string]schema.Block{
@@ -2306,7 +2306,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 										Attributes: map[string]schema.Attribute{
 											"string_attribute": schema.StringAttribute{
 												Computed: true,
-												Default:  stringdefault.StaticValue("str"),
+												Default:  stringdefault.StaticString("str"),
 											},
 										},
 									},
@@ -2324,7 +2324,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedBlockObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -2335,7 +2335,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("set_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "set_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "set_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2347,7 +2347,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
 									Computed: true,
-									Default:  stringdefault.StaticValue("str"),
+									Default:  stringdefault.StaticString("str"),
 								},
 							},
 						},
@@ -2365,7 +2365,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 									NestedObject: schema.NestedBlockObject{
 										Attributes: map[string]schema.Attribute{
 											"string_attribute": schema.StringAttribute{
-												Default: stringdefault.StaticValue("str"),
+												Default: stringdefault.StaticString("str"),
 											},
 										},
 									},
@@ -2379,7 +2379,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("set_nested_block").AtName("set_nested_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "set_nested_block.set_nested_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "set_nested_block.set_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2394,7 +2394,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 										Attributes: map[string]schema.Attribute{
 											"string_attribute": schema.StringAttribute{
 												Computed: true,
-												Default:  stringdefault.StaticValue("str"),
+												Default:  stringdefault.StaticString("str"),
 											},
 										},
 									},
@@ -2412,7 +2412,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						NestedObject: schema.NestedBlockObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticValue("str"),
+									Default: stringdefault.StaticString("str"),
 								},
 							},
 							Blocks: map[string]schema.Block{
@@ -2420,7 +2420,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 									NestedObject: schema.NestedBlockObject{
 										Attributes: map[string]schema.Attribute{
 											"string_attribute": schema.StringAttribute{
-												Default: stringdefault.StaticValue("str"),
+												Default: stringdefault.StaticString("str"),
 											},
 										},
 									},
@@ -2434,12 +2434,12 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("set_nested_block").AtName("set_nested_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "set_nested_block.set_nested_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "set_nested_block.set_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("set_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "set_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "set_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2451,7 +2451,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
 									Computed: true,
-									Default:  stringdefault.StaticValue("str"),
+									Default:  stringdefault.StaticString("str"),
 								},
 							},
 							Blocks: map[string]schema.Block{
@@ -2460,7 +2460,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 										Attributes: map[string]schema.Attribute{
 											"string_attribute": schema.StringAttribute{
 												Computed: true,
-												Default:  stringdefault.StaticValue("str"),
+												Default:  stringdefault.StaticString("str"),
 											},
 										},
 									},
@@ -2477,7 +2477,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 					"single_nested_block": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
-								Default: stringdefault.StaticValue("str"),
+								Default: stringdefault.StaticString("str"),
 							},
 						},
 					},
@@ -2487,7 +2487,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("single_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "single_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "single_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2498,7 +2498,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
 								Computed: true,
-								Default:  stringdefault.StaticValue("str"),
+								Default:  stringdefault.StaticString("str"),
 							},
 						},
 					},
@@ -2513,7 +2513,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 							"single_nested_nested_block": schema.SingleNestedBlock{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Default: stringdefault.StaticValue("str"),
+										Default: stringdefault.StaticString("str"),
 									},
 								},
 							},
@@ -2525,7 +2525,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("single_nested_block").AtName("single_nested_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "single_nested_block.single_nested_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "single_nested_block.single_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2538,7 +2538,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
 										Computed: true,
-										Default:  stringdefault.StaticValue("str"),
+										Default:  stringdefault.StaticString("str"),
 									},
 								},
 							},
@@ -2553,14 +2553,14 @@ func TestSchemaValidateDefault(t *testing.T) {
 					"single_nested_block": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
-								Default: stringdefault.StaticValue("str"),
+								Default: stringdefault.StaticString("str"),
 							},
 						},
 						Blocks: map[string]schema.Block{
 							"single_nested_nested_block": schema.SingleNestedBlock{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Default: stringdefault.StaticValue("str"),
+										Default: stringdefault.StaticString("str"),
 									},
 								},
 							},
@@ -2572,12 +2572,12 @@ func TestSchemaValidateDefault(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("single_nested_block").AtName("single_nested_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "single_nested_block.single_nested_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "single_nested_block.single_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("single_nested_block").AtName("string_attribute"),
 					"Schema Using Attribute Default For Non-Computed Attribute",
-					`attribute "single_nested_block.string_attribute" must be computed when using default`,
+					`Attribute "single_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
 				),
 			},
 		},
@@ -2588,7 +2588,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
 								Computed: true,
-								Default:  stringdefault.StaticValue("str"),
+								Default:  stringdefault.StaticString("str"),
 							},
 						},
 						Blocks: map[string]schema.Block{
@@ -2596,7 +2596,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
 										Computed: true,
-										Default:  stringdefault.StaticValue("str"),
+										Default:  stringdefault.StaticString("str"),
 									},
 								},
 							},

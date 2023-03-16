@@ -419,16 +419,12 @@ func TestNumberAttributeNumberDefaultValue(t *testing.T) {
 		},
 		"default": {
 			attribute: schema.NumberAttribute{
-				Default: numberdefault.StaticValue(
-					types.NumberValue(
-						big.NewFloat(1.2345),
-					),
-				),
-			},
-			expected: numberdefault.StaticValue(
-				types.NumberValue(
+				Default: numberdefault.StaticBigFloat(
 					big.NewFloat(1.2345),
 				),
+			},
+			expected: numberdefault.StaticBigFloat(
+				big.NewFloat(1.2345),
 			),
 		},
 	}

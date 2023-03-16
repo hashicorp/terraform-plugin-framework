@@ -281,9 +281,9 @@ func TestInt64AttributeInt64DefaultValue(t *testing.T) {
 		},
 		"default": {
 			attribute: schema.Int64Attribute{
-				Default: int64default.StaticValue(12345),
+				Default: int64default.StaticInt64(12345),
 			},
-			expected: int64default.StaticValue(12345),
+			expected: int64default.StaticInt64(12345),
 		},
 	}
 

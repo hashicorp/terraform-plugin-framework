@@ -111,9 +111,9 @@ func TestBoolAttributeBoolDefaultValue(t *testing.T) {
 		},
 		"default": {
 			attribute: schema.BoolAttribute{
-				Default: booldefault.StaticValue(true),
+				Default: booldefault.StaticBool(true),
 			},
-			expected: booldefault.StaticValue(true),
+			expected: booldefault.StaticBool(true),
 		},
 	}
 

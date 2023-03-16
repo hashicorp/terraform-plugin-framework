@@ -34,7 +34,7 @@ func TestStaticValueDefaultInt64(t *testing.T) {
 
 			resp := &defaults.Int64Response{}
 
-			int64default.StaticValue(testCase.defaultVal).DefaultInt64(context.Background(), defaults.Int64Request{}, resp)
+			int64default.StaticInt64(testCase.defaultVal).DefaultInt64(context.Background(), defaults.Int64Request{}, resp)
 
 			if diff := cmp.Diff(testCase.expected, resp); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

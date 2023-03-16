@@ -8,32 +8,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// StaticValue returns a static string value default handler.
+// StaticString returns a static string value default handler.
 //
-// Use StaticValue if a static default value for a string should be set.
-func StaticValue(defaultVal string) defaults.String {
-	return staticValueDefault{
+// Use StaticString if a static default value for a string should be set.
+func StaticString(defaultVal string) defaults.String {
+	return staticStringDefault{
 		defaultVal: defaultVal,
 	}
 }
 
-// staticValueDefault is static value default handler that
+// staticStringDefault is static value default handler that
 // sets a value on a string attribute.
-type staticValueDefault struct {
+type staticStringDefault struct {
 	defaultVal string
 }
 
 // Description returns a human-readable description of the default value handler.
-func (d staticValueDefault) Description(_ context.Context) string {
+func (d staticStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("value defaults to %s", d.defaultVal)
 }
 
 // MarkdownDescription returns a markdown description of the default value handler.
-func (d staticValueDefault) MarkdownDescription(_ context.Context) string {
+func (d staticStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("value defaults to `%s`", d.defaultVal)
 }
 
 // DefaultString implements the static default value logic.
-func (d staticValueDefault) DefaultString(_ context.Context, req defaults.StringRequest, resp *defaults.StringResponse) {
+func (d staticStringDefault) DefaultString(_ context.Context, req defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.defaultVal)
 }

@@ -390,6 +390,7 @@ func nonComputedAttributeWithDefaultDiag(path path.Path) diag.Diagnostic {
 	return diag.NewAttributeErrorDiagnostic(
 		path,
 		"Schema Using Attribute Default For Non-Computed Attribute",
-		fmt.Sprintf("attribute %q must be computed when using default", path.String()),
+		fmt.Sprintf("Attribute %q must be computed when using default. ", path.String())+
+			"This is an issue with the provider and should be reported to the provider developers.",
 	)
 }

@@ -34,7 +34,7 @@ func TestStaticValueDefaultString(t *testing.T) {
 
 			resp := &defaults.StringResponse{}
 
-			stringdefault.StaticValue(testCase.defaultVal).DefaultString(context.Background(), defaults.StringRequest{}, resp)
+			stringdefault.StaticString(testCase.defaultVal).DefaultString(context.Background(), defaults.StringRequest{}, resp)
 
 			if diff := cmp.Diff(testCase.expected, resp); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

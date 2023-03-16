@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func TestDataDefault(t *testing.T) {
@@ -38,12 +37,12 @@ func TestDataDefault(t *testing.T) {
 	}{
 		"bool-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
 							Computed: true,
-							Default:  booldefault.StaticValue(true),
+							Default:  booldefault.StaticBool(true),
 						},
 					},
 				},
@@ -54,7 +53,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"bool_attribute": tftypes.NewValue(tftypes.Bool, false), // value in state
+						"bool_attribute": tftypes.NewValue(tftypes.Bool, false),
 					},
 				),
 			},
@@ -68,12 +67,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
 							Computed: true,
-							Default:  booldefault.StaticValue(true),
+							Default:  booldefault.StaticBool(true),
 						},
 					},
 				},
@@ -91,7 +90,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"bool-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.Attribute{
@@ -107,7 +106,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"bool_attribute": tftypes.NewValue(tftypes.Bool, false), // value in state
+						"bool_attribute": tftypes.NewValue(tftypes.Bool, false),
 					},
 				),
 			},
@@ -121,7 +120,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.Attribute{
@@ -144,12 +143,12 @@ func TestDataDefault(t *testing.T) {
 		},
 		"bool-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
 							Computed: true,
-							Default:  booldefault.StaticValue(true),
+							Default:  booldefault.StaticBool(true),
 						},
 					},
 				},
@@ -160,7 +159,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"bool_attribute": tftypes.NewValue(tftypes.Bool, false), // value in state
+						"bool_attribute": tftypes.NewValue(tftypes.Bool, false),
 					},
 				),
 			},
@@ -174,12 +173,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
 							Computed: true,
-							Default:  booldefault.StaticValue(true),
+							Default:  booldefault.StaticBool(true),
 						},
 					},
 				},
@@ -197,7 +196,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"bool-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
@@ -213,7 +212,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"bool_attribute": tftypes.NewValue(tftypes.Bool, false), // value in state
+						"bool_attribute": tftypes.NewValue(tftypes.Bool, false),
 					},
 				),
 			},
@@ -227,7 +226,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
@@ -250,12 +249,12 @@ func TestDataDefault(t *testing.T) {
 		},
 		"float64-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
 							Computed: true,
-							Default:  float64default.StaticValue(5.4321),
+							Default:  float64default.StaticFloat64(5.4321),
 						},
 					},
 				},
@@ -266,7 +265,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"float64_attribute": tftypes.NewValue(tftypes.Number, 1.2345), // value in state
+						"float64_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
 					},
 				),
 			},
@@ -280,12 +279,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
 							Computed: true,
-							Default:  float64default.StaticValue(5.4321),
+							Default:  float64default.StaticFloat64(5.4321),
 						},
 					},
 				},
@@ -303,7 +302,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"float64-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.Attribute{
@@ -319,7 +318,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"float64_attribute": tftypes.NewValue(tftypes.Number, 1.2345), // value in state
+						"float64_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
 					},
 				),
 			},
@@ -333,7 +332,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.Attribute{
@@ -356,12 +355,12 @@ func TestDataDefault(t *testing.T) {
 		},
 		"float64-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
 							Computed: true,
-							Default:  float64default.StaticValue(5.4321),
+							Default:  float64default.StaticFloat64(5.4321),
 						},
 					},
 				},
@@ -372,7 +371,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"float64_attribute": tftypes.NewValue(tftypes.Number, 1.2345), // value in state
+						"float64_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
 					},
 				),
 			},
@@ -386,12 +385,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
 							Computed: true,
-							Default:  float64default.StaticValue(5.4321),
+							Default:  float64default.StaticFloat64(5.4321),
 						},
 					},
 				},
@@ -409,7 +408,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"float64-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
@@ -425,7 +424,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"float64_attribute": tftypes.NewValue(tftypes.Number, 1.2345), // value in state
+						"float64_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
 					},
 				),
 			},
@@ -439,7 +438,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
@@ -462,12 +461,12 @@ func TestDataDefault(t *testing.T) {
 		},
 		"int64-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
 							Computed: true,
-							Default:  int64default.StaticValue(54321),
+							Default:  int64default.StaticInt64(54321),
 						},
 					},
 				},
@@ -478,7 +477,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"int64_attribute": tftypes.NewValue(tftypes.Number, 12345), // value in state
+						"int64_attribute": tftypes.NewValue(tftypes.Number, 12345),
 					},
 				),
 			},
@@ -492,12 +491,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
 							Computed: true,
-							Default:  int64default.StaticValue(54321),
+							Default:  int64default.StaticInt64(54321),
 						},
 					},
 				},
@@ -515,7 +514,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"int64-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.Attribute{
@@ -531,7 +530,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"int64_attribute": tftypes.NewValue(tftypes.Number, 12345), // value in state
+						"int64_attribute": tftypes.NewValue(tftypes.Number, 12345),
 					},
 				),
 			},
@@ -545,7 +544,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.Attribute{
@@ -568,12 +567,12 @@ func TestDataDefault(t *testing.T) {
 		},
 		"int64-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
 							Computed: true,
-							Default:  int64default.StaticValue(54321),
+							Default:  int64default.StaticInt64(54321),
 						},
 					},
 				},
@@ -584,7 +583,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"int64_attribute": tftypes.NewValue(tftypes.Number, 12345), // value in state
+						"int64_attribute": tftypes.NewValue(tftypes.Number, 12345),
 					},
 				),
 			},
@@ -598,12 +597,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
 							Computed: true,
-							Default:  int64default.StaticValue(54321),
+							Default:  int64default.StaticInt64(54321),
 						},
 					},
 				},
@@ -621,7 +620,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"int64-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
@@ -637,7 +636,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"int64_attribute": tftypes.NewValue(tftypes.Number, 12345), // value in state
+						"int64_attribute": tftypes.NewValue(tftypes.Number, 12345),
 					},
 				),
 			},
@@ -651,7 +650,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
@@ -674,7 +673,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.AttributeWithListDefaultValue{
@@ -725,7 +724,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.AttributeWithListDefaultValue{
@@ -762,7 +761,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.Attribute{
@@ -804,7 +803,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.Attribute{
@@ -833,7 +832,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.AttributeWithListDefaultValue{
@@ -883,7 +882,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.AttributeWithListDefaultValue{
@@ -920,7 +919,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.AttributeWithListDefaultValue{
@@ -963,7 +962,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"list_attribute": testschema.AttributeWithListDefaultValue{
@@ -993,7 +992,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.AttributeWithMapDefaultValue{
@@ -1044,7 +1043,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.AttributeWithMapDefaultValue{
@@ -1081,7 +1080,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.Attribute{
@@ -1123,7 +1122,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.Attribute{
@@ -1152,7 +1151,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.AttributeWithMapDefaultValue{
@@ -1202,7 +1201,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.AttributeWithMapDefaultValue{
@@ -1239,7 +1238,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.AttributeWithMapDefaultValue{
@@ -1282,7 +1281,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"map_attribute": testschema.AttributeWithMapDefaultValue{
@@ -1312,12 +1311,12 @@ func TestDataDefault(t *testing.T) {
 		},
 		"number-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
 							Computed: true,
-							Default:  numberdefault.StaticValue(basetypes.NewNumberValue(big.NewFloat(5.4321))),
+							Default:  numberdefault.StaticBigFloat(big.NewFloat(5.4321)),
 						},
 					},
 				},
@@ -1328,7 +1327,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"number_attribute": tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)), // value in state
+						"number_attribute": tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
 					},
 				),
 			},
@@ -1342,12 +1341,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
 							Computed: true,
-							Default:  numberdefault.StaticValue(basetypes.NewNumberValue(big.NewFloat(5.4321))),
+							Default:  numberdefault.StaticBigFloat(big.NewFloat(5.4321)),
 						},
 					},
 				},
@@ -1365,7 +1364,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"number-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.Attribute{
@@ -1381,7 +1380,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"number_attribute": tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)), // value in state
+						"number_attribute": tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
 					},
 				),
 			},
@@ -1395,7 +1394,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.Attribute{
@@ -1418,12 +1417,12 @@ func TestDataDefault(t *testing.T) {
 		},
 		"number-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
 							Computed: true,
-							Default:  numberdefault.StaticValue(basetypes.NewNumberValue(big.NewFloat(5.4321))),
+							Default:  numberdefault.StaticBigFloat(big.NewFloat(5.4321)),
 						},
 					},
 				},
@@ -1434,7 +1433,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"number_attribute": tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)), // value in state
+						"number_attribute": tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
 					},
 				),
 			},
@@ -1448,12 +1447,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
 							Computed: true,
-							Default:  numberdefault.StaticValue(basetypes.NewNumberValue(big.NewFloat(5.4321))),
+							Default:  numberdefault.StaticBigFloat(big.NewFloat(5.4321)),
 						},
 					},
 				},
@@ -1471,7 +1470,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"number-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
@@ -1487,7 +1486,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"number_attribute": tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)), // value in state
+						"number_attribute": tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
 					},
 				),
 			},
@@ -1501,7 +1500,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"number_attribute": testschema.AttributeWithNumberDefaultValue{
@@ -1524,7 +1523,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"object-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.AttributeWithObjectDefaultValue{
@@ -1575,7 +1574,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.AttributeWithObjectDefaultValue{
@@ -1612,7 +1611,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"object-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.Attribute{
@@ -1658,7 +1657,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.Attribute{
@@ -1691,7 +1690,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"object-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.AttributeWithObjectDefaultValue{
@@ -1741,7 +1740,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.AttributeWithObjectDefaultValue{
@@ -1778,7 +1777,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"object-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.AttributeWithObjectDefaultValue{
@@ -1821,7 +1820,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"object_attribute": testschema.AttributeWithObjectDefaultValue{
@@ -1851,7 +1850,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.AttributeWithSetDefaultValue{
@@ -1902,7 +1901,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.AttributeWithSetDefaultValue{
@@ -1939,7 +1938,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.Attribute{
@@ -1981,7 +1980,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.Attribute{
@@ -2010,7 +2009,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.AttributeWithSetDefaultValue{
@@ -2060,7 +2059,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.AttributeWithSetDefaultValue{
@@ -2097,7 +2096,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.AttributeWithSetDefaultValue{
@@ -2140,7 +2139,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"set_attribute": testschema.AttributeWithSetDefaultValue{
@@ -2170,12 +2169,12 @@ func TestDataDefault(t *testing.T) {
 		},
 		"string-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
 							Computed: true,
-							Default:  stringdefault.StaticValue("two"),
+							Default:  stringdefault.StaticString("two"),
 						},
 					},
 				},
@@ -2186,7 +2185,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"string_attribute": tftypes.NewValue(tftypes.String, "one"), // value in state
+						"string_attribute": tftypes.NewValue(tftypes.String, "one"),
 					},
 				),
 			},
@@ -2200,12 +2199,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
 							Computed: true,
-							Default:  stringdefault.StaticValue("two"),
+							Default:  stringdefault.StaticString("two"),
 						},
 					},
 				},
@@ -2223,7 +2222,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"string-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.Attribute{
@@ -2239,7 +2238,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"string_attribute": tftypes.NewValue(tftypes.String, "one"), // value in state
+						"string_attribute": tftypes.NewValue(tftypes.String, "one"),
 					},
 				),
 			},
@@ -2253,7 +2252,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.Attribute{
@@ -2276,12 +2275,12 @@ func TestDataDefault(t *testing.T) {
 		},
 		"string-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
 							Computed: true,
-							Default:  stringdefault.StaticValue("two"),
+							Default:  stringdefault.StaticString("two"),
 						},
 					},
 				},
@@ -2292,7 +2291,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"string_attribute": tftypes.NewValue(tftypes.String, "one"), // value in state
+						"string_attribute": tftypes.NewValue(tftypes.String, "one"),
 					},
 				),
 			},
@@ -2306,12 +2305,12 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
 							Computed: true,
-							Default:  stringdefault.StaticValue("two"),
+							Default:  stringdefault.StaticString("two"),
 						},
 					},
 				},
@@ -2329,7 +2328,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"string-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
@@ -2345,7 +2344,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"string_attribute": tftypes.NewValue(tftypes.String, "one"), // value in state
+						"string_attribute": tftypes.NewValue(tftypes.String, "one"),
 					},
 				),
 			},
@@ -2359,7 +2358,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"string_attribute": testschema.AttributeWithStringDefaultValue{
@@ -2382,7 +2381,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-nested-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
@@ -2489,7 +2488,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
@@ -2562,7 +2561,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-nested-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -2640,7 +2639,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -2695,7 +2694,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-nested-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
@@ -2791,7 +2790,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
@@ -2864,7 +2863,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-nested-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
@@ -2944,7 +2943,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": testschema.NestedAttributeWithListDefaultValue{
@@ -3001,7 +3000,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-nested-attribute-string-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -3009,7 +3008,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -3090,7 +3089,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -3098,7 +3097,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -3145,7 +3144,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-nested-attribute-string-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -3233,7 +3232,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -3287,7 +3286,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-nested-attribute-string-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -3295,7 +3294,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -3376,7 +3375,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -3384,7 +3383,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -3431,7 +3430,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"list-nested-attribute-string-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -3520,7 +3519,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"list_nested": schema.ListNestedAttribute{
@@ -3575,7 +3574,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-nested-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
@@ -3682,7 +3681,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
@@ -3755,7 +3754,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-nested-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -3833,7 +3832,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -3888,7 +3887,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-nested-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
@@ -3984,7 +3983,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
@@ -4057,7 +4056,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-nested-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
@@ -4137,7 +4136,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
@@ -4194,7 +4193,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-nested-attribute-string-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -4202,7 +4201,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -4283,7 +4282,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -4291,7 +4290,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -4338,7 +4337,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-nested-attribute-string-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -4426,7 +4425,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -4480,7 +4479,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-nested-attribute-string-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -4488,7 +4487,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -4569,7 +4568,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -4577,7 +4576,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -4624,7 +4623,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"map-nested-attribute-string-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -4713,7 +4712,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"map_nested": schema.MapNestedAttribute{
@@ -4768,7 +4767,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-nested-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
@@ -4875,7 +4874,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
@@ -4948,7 +4947,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-nested-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5026,7 +5025,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5081,7 +5080,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-nested-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
@@ -5177,7 +5176,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
@@ -5250,7 +5249,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-nested-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
@@ -5330,7 +5329,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
@@ -5387,7 +5386,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-nested-attribute-string-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5395,7 +5394,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -5476,7 +5475,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5484,7 +5483,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -5531,7 +5530,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-nested-attribute-string-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5619,7 +5618,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5673,7 +5672,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-nested-attribute-string-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5681,7 +5680,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -5762,7 +5761,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5770,7 +5769,7 @@ func TestDataDefault(t *testing.T) {
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": testschema.AttributeWithStringDefaultValue{
 										Computed: true,
-										Default:  stringdefault.StaticValue("two"),
+										Default:  stringdefault.StaticString("two"),
 									},
 								},
 							},
@@ -5817,7 +5816,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"set-nested-attribute-string-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5906,7 +5905,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"set_nested": schema.SetNestedAttribute{
@@ -5961,7 +5960,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"single-nested-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
@@ -6031,7 +6030,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
@@ -6080,7 +6079,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"single-nested-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
@@ -6139,7 +6138,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
@@ -6179,7 +6178,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"single-nested-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
@@ -6247,7 +6246,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
@@ -6296,7 +6295,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"single-nested-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
@@ -6356,7 +6355,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
@@ -6397,14 +6396,14 @@ func TestDataDefault(t *testing.T) {
 		},
 		"single-nested-attribute-string-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
 									Computed: true,
-									Default:  stringdefault.StaticValue("two"),
+									Default:  stringdefault.StaticString("two"),
 								},
 							},
 						},
@@ -6458,14 +6457,14 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
 									Computed: true,
-									Default:  stringdefault.StaticValue("two"),
+									Default:  stringdefault.StaticString("two"),
 								},
 							},
 						},
@@ -6498,7 +6497,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"single-nested-attribute-string-attribute-null-unmodified-no-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
@@ -6558,7 +6557,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
@@ -6597,14 +6596,14 @@ func TestDataDefault(t *testing.T) {
 		},
 		"single-nested-attribute-string-attribute-null-modified-default": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
 									Computed: true,
-									Default:  stringdefault.StaticValue("two"),
+									Default:  stringdefault.StaticString("two"),
 								},
 							},
 						},
@@ -6658,14 +6657,14 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": testschema.AttributeWithStringDefaultValue{
 									Computed: true,
-									Default:  stringdefault.StaticValue("two"),
+									Default:  stringdefault.StaticString("two"),
 								},
 							},
 						},
@@ -6698,7 +6697,7 @@ func TestDataDefault(t *testing.T) {
 		},
 		"single-nested-attribute-string-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{
@@ -6759,7 +6758,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			),
 			expected: &fwschemadata.Data{
-				Description: fwschemadata.DataDescriptionConfiguration,
+				Description: fwschemadata.DataDescriptionState,
 				Schema: schema.Schema{
 					Attributes: map[string]schema.Attribute{
 						"single_nested": schema.SingleNestedAttribute{

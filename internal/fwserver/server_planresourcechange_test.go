@@ -416,15 +416,15 @@ func TestServerPlanResourceChange(t *testing.T) {
 		Attributes: map[string]schema.Attribute{
 			"test_computed_bool": schema.BoolAttribute{
 				Computed: true,
-				Default:  booldefault.StaticValue(true),
+				Default:  booldefault.StaticBool(true),
 			},
 			"test_computed_float64": schema.Float64Attribute{
 				Computed: true,
-				Default:  float64default.StaticValue(1.2345),
+				Default:  float64default.StaticFloat64(1.2345),
 			},
 			"test_computed_int64": schema.Int64Attribute{
 				Computed: true,
-				Default:  int64default.StaticValue(12345),
+				Default:  int64default.StaticInt64(12345),
 			},
 			"test_computed_list": schema.ListAttribute{
 				Computed:    true,
@@ -438,7 +438,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			"test_computed_number": schema.NumberAttribute{
 				Computed: true,
-				Default:  numberdefault.StaticValue(types.NumberValue(big.NewFloat(1.2345))),
+				Default:  numberdefault.StaticBigFloat(big.NewFloat(1.2345)),
 			},
 			"test_computed_object": schema.ObjectAttribute{
 				Computed:       true,
@@ -452,7 +452,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			"test_computed_string": schema.StringAttribute{
 				Computed: true,
-				Default:  stringdefault.StaticValue("one"),
+				Default:  stringdefault.StaticString("one"),
 			},
 			"test_computed_nested_list": schema.ListAttribute{
 				Computed: true,
@@ -486,7 +486,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
 							Optional: true,
-							Default:  stringdefault.StaticValue("default-attribute"),
+							Default:  stringdefault.StaticString("default-attribute"),
 						},
 					},
 				},
@@ -523,7 +523,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
 							Optional: true,
-							Default:  stringdefault.StaticValue("default-attribute"),
+							Default:  stringdefault.StaticString("default-attribute"),
 						},
 					},
 				},
@@ -560,7 +560,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
 							Optional: true,
-							Default:  stringdefault.StaticValue("default-attribute"),
+							Default:  stringdefault.StaticString("default-attribute"),
 						},
 					},
 				},
@@ -587,7 +587,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{
 						Optional: true,
-						Default:  stringdefault.StaticValue("default-attribute"),
+						Default:  stringdefault.StaticString("default-attribute"),
 					},
 				},
 			},

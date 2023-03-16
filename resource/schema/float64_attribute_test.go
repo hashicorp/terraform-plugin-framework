@@ -110,9 +110,9 @@ func TestFloat64AttributeFloat64DefaultValue(t *testing.T) {
 		},
 		"default": {
 			attribute: schema.Float64Attribute{
-				Default: float64default.StaticValue(1.2345),
+				Default: float64default.StaticFloat64(1.2345),
 			},
-			expected: float64default.StaticValue(1.2345),
+			expected: float64default.StaticFloat64(1.2345),
 		},
 	}
 

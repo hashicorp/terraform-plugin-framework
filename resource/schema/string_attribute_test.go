@@ -418,9 +418,9 @@ func TestStringAttributeStringDefaultValue(t *testing.T) {
 		},
 		"default": {
 			attribute: schema.StringAttribute{
-				Default: stringdefault.StaticValue("test-value"),
+				Default: stringdefault.StaticString("test-value"),
 			},
-			expected: stringdefault.StaticValue("test-value"),
+			expected: stringdefault.StaticString("test-value"),
 		},
 	}
 

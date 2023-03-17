@@ -2,7 +2,6 @@ package tfsdk
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -12,14 +11,15 @@ import (
 )
 
 // State represents a Terraform state.
-type State struct {
+type State[T any] struct {
 	Raw    tftypes.Value
 	Schema fwschema.Schema
 }
 
 // Get populates the struct passed as `target` with the entire state.
-func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
-	return s.data().Get(ctx, target)
+func (s State[T]) Get(ctx context.Context) (T, diag.Diagnostics) {
+	var target T
+	return target, s.data().Get(ctx, &target)
 }
 
 // GetAttribute retrieves the attribute or block found at `path` and populates
@@ -29,7 +29,7 @@ func (s State) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 //
 // Attributes or elements under null or unknown collections return null
 // values, however this behavior is not protected by compatibility promises.
-func (s State) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
+func (s State[T]) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
 	return s.data().GetAtPath(ctx, path, target)
 }
 
@@ -38,24 +38,14 @@ func (s State) GetAttribute(ctx context.Context, path path.Path, target interfac
 // If a parent path is null or unknown, which would prevent a full expression
 // from matching, the parent path is returned rather than no match to prevent
 // false positives.
-func (s State) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
+func (s State[T]) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
 	return s.data().PathMatches(ctx, pathExpr)
 }
 
 // Set populates the entire state using the supplied Go value. The value `val`
 // should be a struct whose values have one of the attr.Value types. Each field
 // must be tagged with the corresponding schema field.
-func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
-	if val == nil {
-		err := fmt.Errorf("cannot set nil as entire state; to remove a resource from state, call State.RemoveResource, instead")
-		return diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"State Read Error",
-				"An unexpected error was encountered trying to write the state. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			),
-		}
-	}
-
+func (s *State[T]) Set(ctx context.Context, val T) diag.Diagnostics {
 	data := s.data()
 	diags := data.Set(ctx, val)
 
@@ -80,7 +70,7 @@ func (s *State) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 // use (*string)(nil) or types.StringNull().
 //
 // Lists can only have the next element added according to the current length.
-func (s *State) SetAttribute(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {
+func (s *State[T]) SetAttribute(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {
 	data := s.data()
 	diags := data.SetAtPath(ctx, path, val)
 
@@ -97,11 +87,11 @@ func (s *State) SetAttribute(ctx context.Context, path path.Path, val interface{
 //
 // If a Resource type Delete method is completed without error, this is
 // automatically called on the DeleteResourceResponse.State.
-func (s *State) RemoveResource(ctx context.Context) {
+func (s *State[T]) RemoveResource(ctx context.Context) {
 	s.Raw = tftypes.NewValue(s.Schema.Type().TerraformType(ctx), nil)
 }
 
-func (s State) data() fwschemadata.Data {
+func (s State[T]) data() fwschemadata.Data {
 	return fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionState,
 		Schema:         s.Schema,

@@ -11,14 +11,15 @@ import (
 )
 
 // Plan represents a Terraform plan.
-type Plan struct {
+type Plan[T any] struct {
 	Raw    tftypes.Value
 	Schema fwschema.Schema
 }
 
 // Get populates the struct passed as `target` with the entire plan.
-func (p Plan) Get(ctx context.Context, target interface{}) diag.Diagnostics {
-	return p.data().Get(ctx, target)
+func (p Plan[T]) Get(ctx context.Context) (T, diag.Diagnostics) {
+	var target T
+	return target, p.data().Get(ctx, &target)
 }
 
 // GetAttribute retrieves the attribute or block found at `path` and populates
@@ -28,7 +29,7 @@ func (p Plan) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 //
 // Attributes or elements under null or unknown collections return null
 // values, however this behavior is not protected by compatibility promises.
-func (p Plan) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
+func (p Plan[T]) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
 	return p.data().GetAtPath(ctx, path, target)
 }
 
@@ -37,14 +38,14 @@ func (p Plan) GetAttribute(ctx context.Context, path path.Path, target interface
 // If a parent path is null or unknown, which would prevent a full expression
 // from matching, the parent path is returned rather than no match to prevent
 // false positives.
-func (p Plan) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
+func (p Plan[T]) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
 	return p.data().PathMatches(ctx, pathExpr)
 }
 
 // Set populates the entire plan using the supplied Go value. The value `val`
 // should be a struct whose values have one of the attr.Value types. Each field
 // must be tagged with the corresponding schema field.
-func (p *Plan) Set(ctx context.Context, val interface{}) diag.Diagnostics {
+func (p *Plan[T]) Set(ctx context.Context, val T) diag.Diagnostics {
 	data := p.data()
 	diags := data.Set(ctx, val)
 
@@ -69,7 +70,7 @@ func (p *Plan) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 // use (*string)(nil) or types.StringNull().
 //
 // Lists can only have the next element added according to the current length.
-func (p *Plan) SetAttribute(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {
+func (p *Plan[T]) SetAttribute(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {
 	data := p.data()
 	diags := data.SetAtPath(ctx, path, val)
 
@@ -82,7 +83,7 @@ func (p *Plan) SetAttribute(ctx context.Context, path path.Path, val interface{}
 	return diags
 }
 
-func (p Plan) data() *fwschemadata.Data {
+func (p Plan[T]) data() *fwschemadata.Data {
 	return &fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionPlan,
 		Schema:         p.Schema,

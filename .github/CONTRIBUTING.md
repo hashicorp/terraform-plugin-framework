@@ -4,23 +4,23 @@
 or submit the issue describing the problem you're aiming to solve.
 
 Any bug fix and feature has to be considered in the context
-of many (100+) providers and the wider Terraform ecosystem.
+of many thousands providers and the wider Terraform ecosystem.
 This is great as your contribution can have a big positive impact,
 but we have to assess potential negative impact too (e.g. breaking
 existing providers which may not use a new feature).
 
 ## Table of Contents
 
- - [I just have a question](#i-just-have-a-question)
- - [I want to report a vulnerability](#i-want-to-report-a-vulnerability)
- - [New Issue](#new-issue)
- - [New Pull Request](#new-pull-request)
+- [I have a question](#i-have-a-question)
+- [I want to report a vulnerability](#i-want-to-report-a-vulnerability)
+- [New Issue](#new-issue)
+- [New Pull Request](#new-pull-request)
 
-## I just have a question
+## I have a question
 
-> **Note:** We use GitHub for tracking bugs and feature requests related to Plugin SDK.
+> **Note:** We use GitHub for tracking bugs and feature requests related to this project.
 
-For questions, please see relevant channels at https://www.terraform.io/community.html
+For questions, please use [HashiCorp Discuss](https://discuss.hashicorp.com/c/terraform-providers/tf-plugin-sdk/43).
 
 ## I want to report a vulnerability
 
@@ -29,68 +29,34 @@ described at https://www.hashicorp.com/security#vulnerability-reporting
 
 ## New Issue
 
-We welcome issues of all kinds including feature requests, bug reports or documentation contributions. Below are guidelines for well-formed issues of each type.
+We welcome issues of all kinds including feature requests, bug reports, or documentation contributions. Below are guidelines for well-formed issues of each type.
 
 ### Bug Reports
 
- - **Test against latest release**: Make sure you test against the latest avaiable version of both Terraform and terraform-plugin-framework. It is possible we already fixed the bug you're experiencing.
-
- - **Search for duplicates**: It's helpful to keep bug reports consolidated to one thread, so do a quick search on existing bug reports to check if anybody else has reported the same thing. You can scope searches by the label `bug` to help narrow things down.
-
- - **Include steps to reproduce**: Provide steps to reproduce the issue, along with code examples (both HCL and Go, where applicable) and/or real code, so we can try to reproduce it. Without this, it makes it much harder (sometimes impossible) to fix the issue.
- 
- - **Consider adding an integration test case**: A demo provider, [terraform-provider-corner](https://github.com/hashicorp/terraform-provider-corner), is available as an easy test bed for reproducing bugs in provider code. Consider opening a PR to terraform-provider-corner demonstrating the bug. Please see [Integration tests](#integration-tests) below for how to do this.
+- **Test against latest release**: Make sure you test against the latest avaiable version of both Terraform and terraform-plugin-framework. It is possible we already fixed the bug you're experiencing.
+- **Search for duplicates**: It is helpful to keep bug reports consolidated to one thread, so do a quick search on existing bug reports to check if anybody else has reported the same issue. You can scope searches by the label `bug` to help narrow things down.
+- **Include steps to reproduce**: Provide steps to reproduce the issue, along with code examples (both HCL and Go, where applicable) and/or real code, so we can try to reproduce it. Without this, it makes it much harder (sometimes impossible) to fix the issue.
+- **Consider adding an integration test case**: A demo provider, [terraform-provider-corner](https://github.com/hashicorp/terraform-provider-corner), is available as an easy test bed for reproducing bugs in provider code. Consider opening a PR to terraform-provider-corner demonstrating the bug. Please see [Integration tests](#integration-tests) below for how to do this.
 
 ### Feature Requests
 
- - **Search for possible duplicate requests**: It's helpful to keep requests consolidated to one thread, so do a quick search on existing requests to check if anybody else has reported the same thing. You can scope searches by the label `enhancement` to help narrow things down.
-
- - **Include a use case description**: In addition to describing the behavior of the feature you'd like to see added, it's helpful to also lay out the reason why the feature would be important and how it would benefit the wider Terraform ecosystem. Use case in context of 1 provider is good, wider context of more providers is better.
+- **Search for possible duplicate requests**: It is helpful to keep requests consolidated to one thread, so do a quick search on existing requests to check if anybody else has reported the same issue. You can scope searches by the label `enhancement` to help narrow things down.
+- **Include a use case description**: In addition to describing the behavior of the feature you'd like to see added, it's helpful to also lay out the reason why the feature would be important and how it would benefit the wider Terraform ecosystem. Use case in context of 1 provider is good, wider context of more providers is better.
 
 ### Documentation Contributions
 
- - [ ] **Search for possible duplicate suggestions**: It's helpful to keep
-   suggestions consolidated to one thread, so do a quick search on existing
-   issues to check if anybody else has suggested the same thing. You can scope
-   searches by the label `documentation` to help narrow things down.
-
- - [ ] **Describe the questions you're hoping the documentation will answer**:
-   It's very helpful when writing documentation to have specific questions like
-   "how do I implement a default value?" in mind. This helps us ensure the
-   documentation is targeted, specific, and framed in a useful way.
-
- - [ ] **Contribute**: This repository contains the markdown files that generate versioned documentation for [terraform.io/plugin/framework](https://www.terraform.io/plugin/framework). Please open a pull request with documentation changes. Refer to the [website README](../website/README.md) for more information.
+- **Search for possible duplicate suggestions**: It is helpful to keep suggestions consolidated to one thread, so do a quick search on existing issues to check if anybody else has suggested the same change. You can scope searches by the label `documentation` to help narrow things down.
+- **Describe the questions you're hoping the documentation will answer**: It is very helpful when writing documentation to have specific questions like "how do I implement a default value?" in mind. This helps us ensure the documentation is targeted, specific, and framed in a useful way.
+- **Contribute**: This repository contains the markdown files that generate versioned documentation for [developer.hashicorp.com/terraform/plugin/framework](https://developer.hashicorp.com/terraform/plugin/framework). Please open a pull request with documentation changes. Refer to the [website README](../website/README.md) for more information.
 
 ## New Pull Request
 
 Thank you for contributing!
 
-We are happy to review pull requests without associated issues,
-but we highly recommend starting by describing and discussing
-your problem or feature and attaching use cases to an issue first
-before raising a pull request.
-
-- **Early validation of idea and implementation plan**: terraform-plugin-framework is complicated enough that there are often several ways to implement something, each of which has different implications and tradeoffs. Working through a plan of attack with the team before you dive into implementation will help ensure that you're working in the right direction.
-
+- **Early validation of idea and implementation plan**: Most code changes in this project, unless trivial typo fixes or cosmetic, should be discussed and approved by maintainers in an issue before an implementation is created. This project is complicated enough that there are often several ways to implement something, each of which has different implications and tradeoffs. Working through an implementation plan with the maintainers before you dive into implementation will help ensure that your efforts may be approved and merged.
 - **Unit and Integration Tests**: It may go without saying, but every new patch should be covered by tests wherever possible (see [Testing](#testing) below).
-
 - **Go Modules**: We use [Go Modules](https://github.com/golang/go/wiki/Modules) to manage and version all our dependencies. Please make sure that you reflect dependency changes in your pull requests appropriately (e.g. `go get`, `go mod tidy` or other commands). Refer to the [dependency updates](#dependency-updates) section for more information about how this project maintains existing dependencies.
-
 - **Changelog**: Refer to the [changelog](#changelog) section for more information about how to create changelog entries.
-
-### Cosmetic changes, code formatting, and typos
-
-In general we do not accept PRs containing only the following changes:
-
- - Correcting spelling or typos
- - Code formatting, including whitespace
- - Other cosmetic changes that do not affect functionality
- 
-While we appreciate the effort that goes into preparing PRs, there is always a tradeoff between benefit and cost. The costs involved in accepting such contributions include the time taken for thorough review, the noise created in the git history, and the increased number of GitHub notifications that maintainers must attend to.
-
-#### Exceptions
-
-We belive that one should "leave the campsite cleaner than you found it", so you are welcome to clean up cosmetic issues in the neighbourhood when submitting a patch that makes functional changes or fixes.
 
 ### Dependency Updates
 
@@ -98,29 +64,20 @@ Dependency management is performed by [dependabot](https://docs.github.com/en/co
 
 ### Changelog
 
-HashiCorp’s open-source projects have always maintained user-friendly, readable CHANGELOGs that allow practitioners and developers to tell at a glance whether a release should have any effect on them, and to gauge the risk of an upgrade. We use the [go-changelog](https://github.com/hashicorp/go-changelog) to generate and update the changelog from files created in the `.changelog/` directory.
+HashiCorp’s open-source projects have always maintained user-friendly, readable `CHANGELOG`s that allow practitioners and developers to tell at a glance whether a release should have any effect on them, and to gauge the risk of an upgrade. This provider uses the [Changie](https://changie.dev/) automation tool for changelog automation.
 
-#### Changelog Format
+#### Creating Changelog Entries
 
-The changelog format requires an entry in the following format, where HEADER corresponds to the changelog category, and the entry is the changelog entry itself. The entry should be included in a file in the `.changelog` directory with the naming convention `{PR-NUMBER}.txt`. For example, to create a changelog entry for pull request 1234, there should be a file named `.changelog/1234.txt`.
+Creating a new entry for the `CHANGELOG`:
 
-``````markdown
-```release-note:{HEADER}
-{ENTRY}
-```
-``````
+- [Install Changie](https://changie.dev/guide/installation/), if not already done
+- Run `changie new` from the root directory of this project
+- Choose the appropriate `kind` of change
+- When prompted, type the associated GitHub issue or pull request number
+- Fill out the entry body using a `package: details` format
+- Repeat this process for any additional entries
 
-If a pull request should contain multiple changelog entries, then multiple blocks can be added to the same changelog file. For example:
-
-``````markdown
-```release-note:note
-tfsdk: The `Old()` function has been deprecated. Any code using `Old()` should be updated to use the new `New()` function instead.
-```
-
-```release-note:enhancement
-tfsdk: Added `New()` function, which does new and exciting things
-```
-``````
+The `.yaml` files created in the `.changes/unreleased` folder should be pushed the repository along with any code changes.
 
 #### Pull Request Types to CHANGELOG
 
@@ -138,55 +95,11 @@ The CHANGELOG is intended to show developer-impacting changes to the codebase fo
 
 ##### Changes that should have a CHANGELOG entry
 
-###### Major Features
-
-A major feature entry should use the `release-note:feature` header.
-
-``````markdown
-```release-note:feature
-Added `great` package, which solves all the problems
-```
-``````
-
-###### Bug Fixes
-
-A new bug entry should use the `release-note:bug` header and have a prefix indicating the sub-package it corresponds to, a colon, then followed by a brief summary. Use a `all` prefix should the fix apply to all sub-packages.
-
-``````markdown
-```release-note:bug
-tfsdk: Prevented potential panic in `Example()` function
-```
-``````
-
-###### Enhancements
-
-A new enhancement entry should use the `release-note:enhancement` header and have a prefix indicating the sub-package it corresponds to, a colon, then followed by a brief summary. Use a `all` prefix for enchancements that apply to all sub-packages.
-
-``````markdown
-```release-note:enhancement
-attr: Added `Great` interface for doing great things
-```
-``````
-
-###### Deprecations
-
-A deprecation entry should use the `release-note:note` header and have a prefix indicating the sub-package it corresponds to, a colon, then followed by a brief summary. Use a `all` prefix for changes that apply to all sub-packages.
-
-``````markdown
-```release-note:note
-diag: The `Old()` function is being deprecated in favor of the `New()` function
-```
-``````
-
-###### Breaking Changes and Removals
-
-A breaking-change entry should use the `release-note:breaking-change` header and have a prefix indicating the sub-package it corresponds to, a colon, then followed by a brief summary. Use a `all` prefix for changes that apply to all sub-packages.
-
-``````markdown
-```release-note:breaking-change
-tfsdk: The `Example` type `Old` field has been removed since it is not necessary
-```
-``````
+- Major features
+- Enhancements
+- Bug fixes
+- Deprecation notes
+- Breaking changes
 
 ## Linting
 
@@ -315,30 +228,4 @@ This section is dedicated to the maintainers of this project.
 
 ### Releases
 
-Before running a release, the changelog must be constructed from unreleased entries in the `.changelog` directory.
-
-Install the latest version of the [`changelog-build`](https://pkg.go.dev/github.com/hashicorp/go-changelog/cmd/changelog-build) command, if it not already available:
-
-```shell
-go install github.com/hashicorp/go-changelog/cmd/changelog-build
-```
-
-Run the [`changelog-build`](https://pkg.go.dev/github.com/hashicorp/go-changelog/cmd/changelog-build) command from the root directory of the repository:
-
-```shell
-changelog-build -changelog-template .changelog.tmpl -entries-dir .changelog -last-release $(git describe --tags --abbrev=0) -note-template .changelog-note.tmpl -this-release HEAD
-```
-
-This will generate a section of Markdown text for the next release. Open the `CHANGELOG.md` file, add a `# X.Y.Z` header as the first line, then add the output from the `changelog-build` command.
-
-Commit, push, create a release Git tag, and push the tag:
-
-```shell
-git add CHANGELOG.md
-git commit -m "Update CHANGELOG for v1.2.3"
-git push
-git tag v1.2.3
-git push --tags
-```
-
-GitHub Actions will pick up the new release tag and kick off the release workflow.
+Run the [`release` GitHub Actions workflow](https://github.com/hashicorp/terraform-plugin-framework/actions/workflows/release.yml).

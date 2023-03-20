@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestStaticValueDefaultBool(t *testing.T) {
+func TestStaticBoolDefaultBool(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {

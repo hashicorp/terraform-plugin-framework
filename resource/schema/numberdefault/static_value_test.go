@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestStaticValueDefaultNumber(t *testing.T) {
+func TestStaticBigFloatDefaultNumber(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestStaticValueDefaultInt64(t *testing.T) {
+func TestStaticInt64DefaultInt64(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {

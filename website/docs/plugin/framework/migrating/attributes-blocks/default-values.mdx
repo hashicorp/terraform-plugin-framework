@@ -7,9 +7,7 @@ description: >-
 
 # Default Values
 
-Default values support is only available in the Framework for resources. Default values for data sources and
-providers should be handled within the [data source configure method](/terraform/plugin/framework/data-sources/configure#define-data-source-configure-method)
-or the [provider configure method](/terraform/plugin/framework/providers#configure-method), respectively.
+Default values support is only available in the Framework for resources. Handle default values for data source attributes within the [data source `Read` method](terraform/plugin/framework/data-sources#read-method) and default values for provider attributes within the [provider `Configure` method](/terraform/plugin/framework/providers#configure-method).
 
 Default values set a value for an attribute when the Terraform configuration does not provide one. In SDKv2 and the
 Framework default values are set via the `Default` field on an attribute's schema.

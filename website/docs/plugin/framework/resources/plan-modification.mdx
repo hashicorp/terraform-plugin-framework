@@ -21,7 +21,7 @@ Plan modification can be added on resource schema attributes or an entire resour
 
 When the provider receives a request to generate the plan for a resource change via the framework, the following occurs:
 
-1. Any Defaults that have been set are processed before any plan modifiers.
+1. Set any attributes with a null configuration value to the [default value](/terraform/plugin/framework/resources/default).
 1. If the plan differs from the current resource state, the framework marks computed attributes that are null in the configuration as unknown in the plan. This is intended to prevent unexpected Terraform errors. Providers can later enter any values that may be known.
 1. Run attribute plan modifiers.
 1. Run resource plan modifiers.

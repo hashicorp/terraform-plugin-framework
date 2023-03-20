@@ -84,7 +84,7 @@ func (d timeDefaultValue) MarkdownDescription(ctx context.Context) string {
 // DefaultString runs the logic of the default. Access to the path is available in `req`, while
 // `resp` contains fields for updating the planned value, and returning diagnostics.
 func (d timeDefaultValue) DefaultString(_ context.Context, req defaults.StringRequest, resp *defaults.StringResponse) {
-resp.PlanValue = types.StringValue(d.time.String())
+	resp.PlanValue = types.StringValue(d.time.Format(time.RFC3339))
 }
 ```
 

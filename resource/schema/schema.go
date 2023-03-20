@@ -164,6 +164,10 @@ func (s Schema) Validate() diag.Diagnostics {
 		d := validateAttributeFieldName(path.Root(k), k, v)
 
 		diags.Append(d...)
+
+		d = validateDefaultsOnlyOnComputedAttributes(path.Root(k), v)
+
+		diags.Append(d...)
 	}
 
 	blocks := s.GetBlocks()
@@ -178,6 +182,10 @@ func (s Schema) Validate() diag.Diagnostics {
 		}
 
 		d := validateBlockFieldName(path.Root(k), k, v)
+
+		diags.Append(d...)
+
+		d = validateDefaultsOnlyOnComputedAttributesInBlocks(path.Root(k), v)
 
 		diags.Append(d...)
 	}
@@ -279,4 +287,110 @@ func schemaBlocks(blocks map[string]Block) map[string]fwschema.Block {
 	}
 
 	return result
+}
+
+// validateDefaultsOnlyOnComputedAttributes is used to check that {TYPE}DefaultValue is only
+// present when the attribute is computed.
+func validateDefaultsOnlyOnComputedAttributes(path path.Path, attr fwschema.Attribute) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if !attr.IsComputed() {
+		switch d := attr.(type) {
+		case fwschema.AttributeWithBoolDefaultValue:
+			if d.BoolDefaultValue() != nil {
+				diags.Append(nonComputedAttributeWithDefaultDiag(path))
+			}
+		case fwschema.AttributeWithFloat64DefaultValue:
+			if d.Float64DefaultValue() != nil {
+				diags.Append(nonComputedAttributeWithDefaultDiag(path))
+			}
+		case fwschema.AttributeWithInt64DefaultValue:
+			if d.Int64DefaultValue() != nil {
+				diags.Append(nonComputedAttributeWithDefaultDiag(path))
+			}
+		case fwschema.AttributeWithListDefaultValue:
+			if d.ListDefaultValue() != nil {
+				diags.Append(nonComputedAttributeWithDefaultDiag(path))
+			}
+		case fwschema.AttributeWithMapDefaultValue:
+			if d.MapDefaultValue() != nil {
+				diags.Append(nonComputedAttributeWithDefaultDiag(path))
+			}
+		case fwschema.AttributeWithNumberDefaultValue:
+			if d.NumberDefaultValue() != nil {
+				diags.Append(nonComputedAttributeWithDefaultDiag(path))
+			}
+		case fwschema.AttributeWithObjectDefaultValue:
+			if d.ObjectDefaultValue() != nil {
+				diags.Append(nonComputedAttributeWithDefaultDiag(path))
+			}
+		case fwschema.AttributeWithSetDefaultValue:
+			if d.SetDefaultValue() != nil {
+				diags.Append(nonComputedAttributeWithDefaultDiag(path))
+			}
+		case fwschema.AttributeWithStringDefaultValue:
+			if d.StringDefaultValue() != nil {
+				diags.Append(nonComputedAttributeWithDefaultDiag(path))
+			}
+		}
+	}
+
+	if na, ok := attr.(fwschema.NestedAttribute); ok {
+		nestedObject := na.GetNestedObject()
+
+		if nestedObject == nil {
+			return diags
+		}
+
+		attributes := nestedObject.GetAttributes()
+
+		for k, v := range attributes {
+			d := validateDefaultsOnlyOnComputedAttributes(path.AtName(k), v)
+
+			diags.Append(d...)
+		}
+	}
+
+	return diags
+}
+
+// validateDefaultsOnlyOnComputedAttributesInBlocks is used to check that {TYPE}DefaultValue is only
+// present when attributes within blocks are computed.
+func validateDefaultsOnlyOnComputedAttributesInBlocks(path path.Path, b fwschema.Block) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	nestedObject := b.GetNestedObject()
+
+	if nestedObject == nil {
+		return diags
+	}
+
+	blocks := nestedObject.GetBlocks()
+
+	for k, v := range blocks {
+		d := validateDefaultsOnlyOnComputedAttributesInBlocks(path.AtName(k), v)
+
+		diags.Append(d...)
+	}
+
+	attributes := nestedObject.GetAttributes()
+
+	for k, v := range attributes {
+		d := validateDefaultsOnlyOnComputedAttributes(path.AtName(k), v)
+
+		diags.Append(d...)
+	}
+
+	return diags
+}
+
+// nonComputedAttributeWithDefaultDiag returns a diagnostic for use when a non-computed
+// attribute is using a default value.
+func nonComputedAttributeWithDefaultDiag(path path.Path) diag.Diagnostic {
+	return diag.NewAttributeErrorDiagnostic(
+		path,
+		"Schema Using Attribute Default For Non-Computed Attribute",
+		fmt.Sprintf("Attribute %q must be computed when using default. ", path.String())+
+			"This is an issue with the provider and should be reported to the provider developers.",
+	)
 }

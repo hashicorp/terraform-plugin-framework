@@ -1,20 +1,24 @@
 package schema_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestBoolAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -75,6 +79,53 @@ func TestBoolAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestBoolAttributeBoolDefaultValue(t *testing.T) {
+	t.Parallel()
+
+	opt := cmp.Comparer(func(x, y defaults.Bool) bool {
+		ctx := context.Background()
+		req := defaults.BoolRequest{}
+
+		xResp := defaults.BoolResponse{}
+		x.DefaultBool(ctx, req, &xResp)
+
+		yResp := defaults.BoolResponse{}
+		y.DefaultBool(ctx, req, &yResp)
+
+		return xResp.PlanValue.Equal(yResp.PlanValue)
+	})
+
+	testCases := map[string]struct {
+		attribute schema.BoolAttribute
+		expected  defaults.Bool
+	}{
+		"no-default": {
+			attribute: schema.BoolAttribute{},
+			expected:  nil,
+		},
+		"default": {
+			attribute: schema.BoolAttribute{
+				Default: booldefault.StaticBool(true),
+			},
+			expected: booldefault.StaticBool(true),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.BoolDefaultValue()
+
+			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

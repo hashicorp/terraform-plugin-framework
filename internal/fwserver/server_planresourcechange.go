@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -104,6 +105,30 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	}
 
 	resp.PlannedState = planToState(*req.ProposedNewState)
+
+	// Set Defaults.
+	//
+	// If the planned state is not null (i.e., not a destroy operation) we traverse the schema,
+	// identifying any attributes which are null within the configuration, and if the attribute
+	// has a default value specified by the `Default` field on the attribute then the default
+	// value is assigned.
+	if !resp.PlannedState.Raw.IsNull() {
+		data := fwschemadata.Data{
+			Description:    fwschemadata.DataDescriptionState,
+			Schema:         resp.PlannedState.Schema,
+			TerraformValue: resp.PlannedState.Raw,
+		}
+
+		diags := data.TransformDefaults(ctx, req.Config.Raw)
+
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		resp.PlannedState.Raw = data.TerraformValue
+	}
 
 	// Execute any AttributePlanModifiers.
 	//
@@ -355,10 +380,50 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 
 			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
+
 		if !attribute.IsComputed() {
 			logging.FrameworkTrace(ctx, "attribute is not computed in schema, not marking unknown")
 
 			return val, nil
+		}
+
+		switch a := attribute.(type) {
+		case fwschema.AttributeWithBoolDefaultValue:
+			if a.BoolDefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithFloat64DefaultValue:
+			if a.Float64DefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithInt64DefaultValue:
+			if a.Int64DefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithListDefaultValue:
+			if a.ListDefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithMapDefaultValue:
+			if a.MapDefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithNumberDefaultValue:
+			if a.NumberDefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithObjectDefaultValue:
+			if a.ObjectDefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithSetDefaultValue:
+			if a.SetDefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithStringDefaultValue:
+			if a.StringDefaultValue() != nil {
+				return val, nil
+			}
 		}
 
 		logging.FrameworkDebug(ctx, "marking computed attribute that is null in the config as unknown")

@@ -1,19 +1,22 @@
 package schema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// Ensure the implementation satisifies the desired interfaces.
+// Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                  = NumberAttribute{}
+	_ fwschema.AttributeWithNumberDefaultValue   = NumberAttribute{}
 	_ fwxschema.AttributeWithNumberPlanModifiers = NumberAttribute{}
 	_ fwxschema.AttributeWithNumberValidators    = NumberAttribute{}
 )
@@ -139,6 +142,14 @@ type NumberAttribute struct {
 	//
 	// Any errors will prevent further execution of this sequence or modifiers.
 	PlanModifiers []planmodifier.Number
+
+	// Default defines a proposed new state (plan) value for the attribute
+	// if the configuration value is null. Default prevents the framework
+	// from automatically marking the value as unknown during planning when
+	// other proposed new state changes are detected. If the attribute is
+	// computed and the value could be altered by other changes then a default
+	// should be avoided and a plan modifier should be used instead.
+	Default defaults.Number
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
@@ -199,6 +210,11 @@ func (a NumberAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a NumberAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// NumberDefaultValue returns the Default field value.
+func (a NumberAttribute) NumberDefaultValue() defaults.Number {
+	return a.Default
 }
 
 // NumberPlanModifiers returns the PlanModifiers field value.

@@ -1,19 +1,21 @@
 ---
 page_title: 'Attribute default values: Migrating from SDKv2 to the Framework'
 description: >-
-  Specify a default when the Terraform configuration does not supply a value for attributes.
+  Specify a default when the Terraform configuration does not supply a value for resource attributes.
   Migrate attribute defaults in SDKv2 to AttributePlanModifier in the Framework.
 ---
 
 # Default Values
 
-Default values set a value for an attribute when the Terraform configuration does not provide one. In SDKv2, default
-values are set via fields on an attribute's schema. In the Framework, you set default values via plan modification.
+Default values support is only available in the Framework for resources. Handle default values for data source attributes within the [data source `Read` method](/terraform/plugin/framework/data-sources#read-method) and default values for provider attributes within the [provider `Configure` method](/terraform/plugin/framework/providers#configure-method).
+
+Default values set a value for an attribute when the Terraform configuration does not provide one. In SDKv2 and the
+Framework default values are set via the `Default` field on an attribute's schema.
 Refer to
-[Plan Modification - Attribute Plan Modification](/terraform/plugin/framework/resources/plan-modification#attribute-plan-modification)
+[Default](/terraform/plugin/framework/resources/default)
 in the Framework documentation for details.
 
-This page explains how to migrate attribute defaults in SDKv2 to `AttributePlanModifier` in the Framework.
+This page explains how to migrate attribute defaults in SDKv2 to the Framework.
 
 ## SDKv2
 
@@ -37,7 +39,7 @@ func resourceExample() *schema.Resource {
 
 ## Framework
 
-In the Framework, you set default values with the `PlanModifiers` field on your attribute's definition.
+In the Framework, you set default values with the `Default` field on your attribute's definition.
 
 ```go
 func (r *resourceExample) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -45,9 +47,8 @@ func (r *resourceExample) Schema(ctx context.Context, req resource.SchemaRequest
         /* ... */
         Attributes: map[string]schema.Attribute{
             "attribute_example": schema.BoolAttribute{
-                PlanModifiers: []planmodifier.Bool{
-                    defaultValue(types.BoolValue(true)),
-                    /* ... */
+                Default: booldefault.StaticValue(true),
+                /* ... */
 ```
 
 ## Migration Notes
@@ -55,7 +56,7 @@ func (r *resourceExample) Schema(ctx context.Context, req resource.SchemaRequest
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
 - In SDKv2, default values are set with the `Default` or `DefaultFunc` fields on an attribute's `schema.Schema` struct.
-In the Framework, you must implement an attribute plan modifier to set default values.
+In the Framework, you must assign set the `Default` field on an attribute to set a default value.
 
 ## Example
 
@@ -86,52 +87,11 @@ func (r *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
             "example_attribute": schema.Int64Attribute{
-                PlanModifiers: []planmodifier.Int64{
-                    attribute_plan_modifier.Int64DefaultValue(types.Int64Value(2048)),
-                    /* ... */
-                },
+                Default: int64default.StaticValue(2048)
                 /* ... */
             },
             /* ... */
         },
     }, nil
-}
-```
-
-The following example implements the `Int64DefaultValue` attribute plan modifier
-that the `example_attribute` attribute uses.
-
-```go
-func Int64DefaultValue(v types.Int64) planmodifier.Int64 {
-    return &int64DefaultValuePlanModifier{v}
-}
-
-type int64DefaultValuePlanModifier struct {
-    DefaultValue types.Int64
-}
-
-var _ planmodifier.Int64 = (*int64DefaultValuePlanModifier)(nil)
-
-func (apm *int64DefaultValuePlanModifier) Description(ctx context.Context) string {
-    /* ... */
-}
-
-func (apm *int64DefaultValuePlanModifier) MarkdownDescription(ctx context.Context) string {
-    /* ... */
-}
-
-func (apm *int64DefaultValuePlanModifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, res *planmodifier.Int64Response) {
-    // If the attribute configuration is not null, we are done here
-    if !req.ConfigValue.IsNull() {
-        return
-    }
-
-    // If the attribute plan is "known" and "not null", then a previous plan modifier in the sequence
-    // has already been applied, and we don't want to interfere.
-    if !req.PlanValue.IsUnknown() && !req.PlanValue.IsNull() {
-        return
-    }
-
-    res.PlanValue = apm.DefaultValue
 }
 ```

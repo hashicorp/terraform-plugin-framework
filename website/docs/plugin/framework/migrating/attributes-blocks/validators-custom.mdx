@@ -112,17 +112,17 @@ type atLeastValidator struct {
 
 // Description describes the validation in plain text formatting.
 func (v atLeastValidator) Description(_ context.Context) string {
-    return fmt.Sprintf("value must be at least %d", validator.min)
+    return fmt.Sprintf("value must be at least %d", v.min)
 }
 
 // MarkdownDescription describes the validation in Markdown formatting.
 func (v atLeastValidator) MarkdownDescription(ctx context.Context) string {
-    return validator.Description(ctx)
+    return v.Description(ctx)
 }
 
 // Validate performs the validation.
 func (v atLeastValidator) ValidateInt64(ctx context.Context, request validator.Int64Request, response *validator.Int64Response) {
-    if req.ConfigValue.Int64Value() < validator.min {
+    if req.ConfigValue.Int64Value() < v.min {
         response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
             request.Path,
             v.Description(ctx),

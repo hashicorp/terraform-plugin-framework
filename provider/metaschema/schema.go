@@ -2,8 +2,6 @@ package metaschema
 
 import (
 	"context"
-	"fmt"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -121,42 +119,6 @@ func (s Schema) ValidateImplementation(ctx context.Context) diag.Diagnostics {
 		}
 
 		diags.Append(fwschema.ValidateAttributeImplementation(ctx, attribute, req)...)
-	}
-
-	return diags
-}
-
-// validFieldNameRegex is used to verify that name used for attributes and blocks
-// comply with the defined regular expression.
-var validFieldNameRegex = regexp.MustCompile("^[a-z0-9_]+$")
-
-// validateAttributeFieldName verifies that the name used for an attribute complies with the regular
-// expression defined in validFieldNameRegex.
-func validateAttributeFieldName(path path.Path, name string, attr fwschema.Attribute) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if !validFieldNameRegex.MatchString(name) {
-		diags.AddAttributeError(
-			path,
-			"Invalid Attribute/Block Name",
-			fmt.Sprintf("Field name %q is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.", name),
-		)
-	}
-
-	if na, ok := attr.(fwschema.NestedAttribute); ok {
-		nestedObject := na.GetNestedObject()
-
-		if nestedObject == nil {
-			return diags
-		}
-
-		attributes := nestedObject.GetAttributes()
-
-		for k, v := range attributes {
-			d := validateAttributeFieldName(path.AtName(k), k, v)
-
-			diags.Append(d...)
-		}
 	}
 
 	return diags

@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -15,10 +17,11 @@ import (
 
 // Ensure the implementation satisfies the desired interfaces.
 var (
-	_ Attribute                                 = Int64Attribute{}
-	_ fwschema.AttributeWithInt64DefaultValue   = Int64Attribute{}
-	_ fwxschema.AttributeWithInt64PlanModifiers = Int64Attribute{}
-	_ fwxschema.AttributeWithInt64Validators    = Int64Attribute{}
+	_ Attribute                                    = Int64Attribute{}
+	_ fwschema.AttributeWithValidateImplementation = Int64Attribute{}
+	_ fwschema.AttributeWithInt64DefaultValue      = Int64Attribute{}
+	_ fwxschema.AttributeWithInt64PlanModifiers    = Int64Attribute{}
+	_ fwxschema.AttributeWithInt64Validators       = Int64Attribute{}
 )
 
 // Int64Attribute represents a schema attribute that is a 64-bit integer.
@@ -224,4 +227,14 @@ func (a Int64Attribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a Int64Attribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a Int64Attribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if !a.IsComputed() && a.Int64DefaultValue() != nil {
+		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
 }

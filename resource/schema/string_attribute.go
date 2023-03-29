@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -15,10 +17,11 @@ import (
 
 // Ensure the implementation satisfies the desired interfaces.
 var (
-	_ Attribute                                  = StringAttribute{}
-	_ fwschema.AttributeWithStringDefaultValue   = StringAttribute{}
-	_ fwxschema.AttributeWithStringPlanModifiers = StringAttribute{}
-	_ fwxschema.AttributeWithStringValidators    = StringAttribute{}
+	_ Attribute                                    = StringAttribute{}
+	_ fwschema.AttributeWithValidateImplementation = StringAttribute{}
+	_ fwschema.AttributeWithStringDefaultValue     = StringAttribute{}
+	_ fwxschema.AttributeWithStringPlanModifiers   = StringAttribute{}
+	_ fwxschema.AttributeWithStringValidators      = StringAttribute{}
 )
 
 // StringAttribute represents a schema attribute that is a string. When
@@ -221,4 +224,14 @@ func (a StringAttribute) StringPlanModifiers() []planmodifier.String {
 // StringValidators returns the Validators field value.
 func (a StringAttribute) StringValidators() []validator.String {
 	return a.Validators
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a StringAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if !a.IsComputed() && a.StringDefaultValue() != nil {
+		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
 }

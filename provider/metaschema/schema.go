@@ -100,15 +100,27 @@ func (s Schema) TypeAtTerraformPath(ctx context.Context, p *tftypes.AttributePat
 }
 
 // Validate verifies that the schema is not using a reserved field name for a top-level attribute.
+//
+// Deprecated: Use the ValidateImplementation method instead.
 func (s Schema) Validate() diag.Diagnostics {
+	return s.ValidateImplementation(context.Background())
+}
+
+// ValidateImplementation contains logic for validating the provider-defined
+// implementation of the schema and underlying attributes and blocks to prevent
+// unexpected errors or panics. This logic runs during the GetProviderSchema
+// RPC, or via provider-defined unit testing, and should never include false
+// positives.
+func (s Schema) ValidateImplementation(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	attributes := s.GetAttributes()
+	for attributeName, attribute := range s.GetAttributes() {
+		req := fwschema.ValidateImplementationRequest{
+			Name: attributeName,
+			Path: path.Root(attributeName),
+		}
 
-	for k, v := range attributes {
-		d := validateAttributeFieldName(path.Root(k), k, v)
-
-		diags.Append(d...)
+		diags.Append(fwschema.ValidateAttributeImplementation(ctx, attribute, req)...)
 	}
 
 	return diags
@@ -126,7 +138,7 @@ func validateAttributeFieldName(path path.Path, name string, attr fwschema.Attri
 	if !validFieldNameRegex.MatchString(name) {
 		diags.AddAttributeError(
 			path,
-			"Invalid Schema Field Name",
+			"Invalid Attribute/Block Name",
 			fmt.Sprintf("Field name %q is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.", name),
 		)
 	}

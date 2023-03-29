@@ -10,8 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -498,6 +500,71 @@ func TestInt64AttributeIsSensitive(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsSensitive()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestInt64AttributeValidateImplementation(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.Int64Attribute
+		request   fwschema.ValidateImplementationRequest
+		expected  *fwschema.ValidateImplementationResponse
+	}{
+		"computed": {
+			attribute: schema.Int64Attribute{
+				Computed: true,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"default-without-computed": {
+			attribute: schema.Int64Attribute{
+				Default: int64default.StaticInt64(123),
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Schema Using Attribute Default For Non-Computed Attribute",
+						"Attribute \"test\" must be computed when using default. "+
+							"This is an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+			},
+		},
+		"default-with-computed": {
+			attribute: schema.Int64Attribute{
+				Computed: true,
+				Default:  int64default.StaticInt64(123),
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := &fwschema.ValidateImplementationResponse{}
+			testCase.attribute.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

@@ -153,3 +153,43 @@ Use a practitioner actionable recommendation in `DeprecationMessage`, such as `"
 Each attribute can implement [value validation](/terraform/plugin/framework/validation), either by specifying the [`Attribute` type `Validators` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#Attribute.Validators) and/or by declaring a custom type in the `Type` field that [implements its own validators](/terraform/plugin/framework/validation#type-validation). Common use case validators can be found in the [terraform-plugin-framework-validators Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators).
 
 During execution of the [`terraform validate`](/terraform/cli/commands/validate), [`terraform plan`](/terraform/cli/commands/plan) and [`terraform apply`](/terraform/cli/commands/apply) commands, Terraform calls the provider [`ValidateProviderConfig`](/terraform/plugin/framework/internals/rpcs#validateproviderconfig-rpc), [`ValidateResourceConfig`](/terraform/plugin/framework/internals/rpcs#validateresourceconfig-rpc) and [`ValidateDataResourceConfig`](/terraform/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPCs, during which [value validation](/terraform/plugin/framework/validation) takes place.
+
+## Unit Testing
+
+Schemas can be unit tested via each of the `schema.Schema` type `ValidateImplementation()` methods. This unit testing raises schema implementation issues more quickly in comparison to [acceptance tests](/terraform/plugin/framework/acctests), but does not replace the purpose of acceptance testing.
+
+In this example, a `thing_resource_test.go` file is created alongside the `thing_resource.go` implementation file:
+
+```go
+import (
+  "context"
+  "testing"
+
+  // The fwresource import alias is so there is no collistion
+  // with the more typical acceptance testing import:
+  // "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+  fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
+)
+
+func TestThingResourceSchema(t *testing.T) {
+  t.Parallel()
+
+  ctx := context.Background()
+  schemaRequest := fwresource.SchemaRequest{}
+  schemaResponse := &fwresource.SchemaResponse{}
+
+  // Instantiate the resource.Resource and call its Schema method
+  NewThingResource().Schema(ctx, schemaRequest, schemaResponse)
+
+  if schemaResponse.Diagnostics.HasError() {
+    t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+  }
+
+  // Validate the schema
+  diagnostics := schemaResponse.Schema.ValidateImplementation(ctx)
+
+  if diagnostics.HasError() {
+    t.Fatalf("Schema validation diagnostics: %+v", diagnostics)
+  }
+}
+```

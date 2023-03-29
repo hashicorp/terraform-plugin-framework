@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -156,10 +155,12 @@ func TestServerGetProviderSchema(t *testing.T) {
 					PlanDestroy: true,
 				},
 				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("$"),
-						"Invalid Schema Field Name",
-						`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute/Block Name",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"$\" at schema path \"$\" is an invalid attribute/block name. "+
+							"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
 					),
 				},
 			},
@@ -352,10 +353,12 @@ func TestServerGetProviderSchema(t *testing.T) {
 					PlanDestroy: true,
 				},
 				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("$"),
-						"Invalid Schema Field Name",
-						`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute/Block Name",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"$\" at schema path \"$\" is an invalid attribute/block name. "+
+							"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
 					),
 				},
 			},
@@ -414,10 +417,12 @@ func TestServerGetProviderSchema(t *testing.T) {
 					PlanDestroy: true,
 				},
 				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("$"),
-						"Invalid Schema Field Name",
-						`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute/Block Name",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"$\" at schema path \"$\" is an invalid attribute/block name. "+
+							"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
 					),
 				},
 			},
@@ -536,10 +541,12 @@ func TestServerGetProviderSchema(t *testing.T) {
 					PlanDestroy: true,
 				},
 				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("$"),
-						"Invalid Schema Field Name",
-						`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute/Block Name",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"$\" at schema path \"$\" is an invalid attribute/block name. "+
+							"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
 					),
 				},
 			},

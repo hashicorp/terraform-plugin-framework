@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -17,9 +18,11 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ NestedAttribute                         = MapNestedAttribute{}
-	_ fwxschema.AttributeWithMapPlanModifiers = MapNestedAttribute{}
-	_ fwxschema.AttributeWithMapValidators    = MapNestedAttribute{}
+	_ NestedAttribute                              = MapNestedAttribute{}
+	_ fwschema.AttributeWithValidateImplementation = MapNestedAttribute{}
+	_ fwschema.AttributeWithMapDefaultValue        = MapNestedAttribute{}
+	_ fwxschema.AttributeWithMapPlanModifiers      = MapNestedAttribute{}
+	_ fwxschema.AttributeWithMapValidators         = MapNestedAttribute{}
 )
 
 // MapNestedAttribute represents an attribute that is a set of objects where
@@ -260,4 +263,14 @@ func (a MapNestedAttribute) MapPlanModifiers() []planmodifier.Map {
 // MapValidators returns the Validators field value.
 func (a MapNestedAttribute) MapValidators() []validator.Map {
 	return a.Validators
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a MapNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if !a.IsComputed() && a.MapDefaultValue() != nil {
+		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
 }

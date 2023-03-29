@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -15,10 +17,11 @@ import (
 
 // Ensure the implementation satisfies the desired interfaces.
 var (
-	_ Attribute                                   = Float64Attribute{}
-	_ fwschema.AttributeWithFloat64DefaultValue   = Float64Attribute{}
-	_ fwxschema.AttributeWithFloat64PlanModifiers = Float64Attribute{}
-	_ fwxschema.AttributeWithFloat64Validators    = Float64Attribute{}
+	_ Attribute                                    = Float64Attribute{}
+	_ fwschema.AttributeWithValidateImplementation = Float64Attribute{}
+	_ fwschema.AttributeWithFloat64DefaultValue    = Float64Attribute{}
+	_ fwxschema.AttributeWithFloat64PlanModifiers  = Float64Attribute{}
+	_ fwxschema.AttributeWithFloat64Validators     = Float64Attribute{}
 )
 
 // Float64Attribute represents a schema attribute that is a 64-bit floating
@@ -224,4 +227,14 @@ func (a Float64Attribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a Float64Attribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a Float64Attribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if !a.IsComputed() && a.Float64DefaultValue() != nil {
+		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
 }

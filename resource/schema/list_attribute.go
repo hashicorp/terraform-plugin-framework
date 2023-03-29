@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -15,10 +17,11 @@ import (
 
 // Ensure the implementation satisfies the desired interfaces.
 var (
-	_ Attribute                                = ListAttribute{}
-	_ fwschema.AttributeWithListDefaultValue   = ListAttribute{}
-	_ fwxschema.AttributeWithListPlanModifiers = ListAttribute{}
-	_ fwxschema.AttributeWithListValidators    = ListAttribute{}
+	_ Attribute                                    = ListAttribute{}
+	_ fwschema.AttributeWithValidateImplementation = ListAttribute{}
+	_ fwschema.AttributeWithListDefaultValue       = ListAttribute{}
+	_ fwxschema.AttributeWithListPlanModifiers     = ListAttribute{}
+	_ fwxschema.AttributeWithListValidators        = ListAttribute{}
 )
 
 // ListAttribute represents a schema attribute that is a list with a single
@@ -234,4 +237,18 @@ func (a ListAttribute) ListPlanModifiers() []planmodifier.List {
 // ListValidators returns the Validators field value.
 func (a ListAttribute) ListValidators() []validator.List {
 	return a.Validators
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if a.CustomType == nil && a.ElementType == nil {
+		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
+	}
+
+	if !a.IsComputed() && a.ListDefaultValue() != nil {
+		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
 }

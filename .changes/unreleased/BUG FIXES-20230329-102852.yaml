@@ -1,0 +1,7 @@
+kind: BUG FIXES
+body: 'provider/schema: Raise errors with `ListAttribute`, `MapAttribute`, `ObjectAttribute`,
+  and `SetAttribute` implementations instead of panics when missing required `AttributeTypes` or
+  `ElementTypes` fields'
+time: 2023-03-29T10:28:52.525346-04:00
+custom:
+  Issue: "699"

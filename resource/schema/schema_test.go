@@ -3,7 +3,6 @@ package schema_test
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"strings"
 	"testing"
 
@@ -15,15 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/numberdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -1016,7 +1006,7 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 	}
 }
 
-func TestSchemaValidateFieldName(t *testing.T) {
+func TestSchemaValidate(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -1026,367 +1016,19 @@ func TestSchemaValidateFieldName(t *testing.T) {
 		"empty-schema": {
 			schema: schema.Schema{},
 		},
-		"attribute-using-reserved-field-name": {
+		"validate-implementation-error": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"depends_on": schema.StringAttribute{},
 				},
 			},
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("depends_on"),
-					"Schema Using Reserved Field Name",
-					`"depends_on" is a reserved field name`,
-				),
-			},
-		},
-		"block-using-reserved-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"connection": schema.ListNestedBlock{},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("connection"),
-					"Schema Using Reserved Field Name",
-					`"connection" is a reserved field name`,
-				),
-			},
-		},
-		"single-nested-attribute-using-nested-reserved-field-name": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"depends_on": schema.BoolAttribute{},
-						},
-					},
-				},
-			},
-		},
-		"single-nested-block-using-nested-reserved-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"connection": schema.BoolAttribute{},
-						},
-					},
-				},
-			},
-		},
-		"list-nested-attribute-using-nested-reserved-field-name": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"depends_on": schema.Int64Attribute{},
-							},
-						},
-					},
-				},
-			},
-		},
-		"list-nested-block-using-nested-reserved-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"list_nested_block": schema.ListNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"connection": schema.BoolAttribute{},
-							},
-						},
-					},
-				},
-			},
-		},
-		"attribute-and-blocks-using-reserved-field-names": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"depends_on": schema.StringAttribute{},
-				},
-				Blocks: map[string]schema.Block{
-					"connection": schema.ListNestedBlock{},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("depends_on"),
-					"Schema Using Reserved Field Name",
-					`"depends_on" is a reserved field name`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("connection"),
-					"Schema Using Reserved Field Name",
-					`"connection" is a reserved field name`,
-				),
-			},
-		},
-		"attribute-using-invalid-field-name": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"^": schema.StringAttribute{},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"block-using-invalid-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"^": schema.ListNestedBlock{},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"single-nested-attribute-using-nested-invalid-field-name": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"^": schema.BoolAttribute{},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_attribute").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"single-nested-block-using-nested-invalid-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"^": schema.BoolAttribute{},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_block").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"single-nested-attribute-using-invalid-field-names": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"$": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"^": schema.BoolAttribute{},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$"),
-					"Invalid Schema Field Name",
-					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"single-nested-block-using-invalid-field-names": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"$": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"^": schema.BoolAttribute{},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$"),
-					"Invalid Schema Field Name",
-					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"single-nested-block-with-nested-block-using-invalid-field-names": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"$": schema.SingleNestedBlock{
-						Blocks: map[string]schema.Block{
-							"^": schema.SingleNestedBlock{
-								Attributes: map[string]schema.Attribute{
-									"!": schema.BoolAttribute{},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$"),
-					"Invalid Schema Field Name",
-					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^").AtName("!"),
-					"Invalid Schema Field Name",
-					`Field name "!" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"list-nested-attribute-using-nested-invalid-field-name": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"^": schema.Int64Attribute{},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_attribute").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"list-nested-block-using-nested-invalid-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"list_nested_block": schema.ListNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"^": schema.Int64Attribute{},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_block").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"list-nested-attribute-using-invalid-field-names": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"$": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"^": schema.Int64Attribute{},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$"),
-					"Invalid Schema Field Name",
-					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"list-nested-block-using-invalid-field-names": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"$": schema.ListNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"^": schema.Int64Attribute{},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$"),
-					"Invalid Schema Field Name",
-					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"list-nested-block-with-nested-block-using-invalid-field-names": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"$": schema.ListNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Blocks: map[string]schema.Block{
-								"^": schema.SingleNestedBlock{
-									Attributes: map[string]schema.Attribute{
-										"!": schema.BoolAttribute{},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$"),
-					"Invalid Schema Field Name",
-					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^").AtName("!"),
-					"Invalid Schema Field Name",
-					`Field name "!" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				diag.NewErrorDiagnostic(
+					"Reserved Root Attribute/Block Name",
+					"When validating the resource or data source schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"depends_on\" is a reserved root attribute/block name. "+
+						"This is to prevent practitioners from needing special Terraform configuration syntax.",
 				),
 			},
 		},
@@ -1407,7 +1049,7 @@ func TestSchemaValidateFieldName(t *testing.T) {
 	}
 }
 
-func TestSchemaValidateDefault(t *testing.T) {
+func TestSchemaValidateImplementation(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -1417,760 +1059,246 @@ func TestSchemaValidateDefault(t *testing.T) {
 		"empty-schema": {
 			schema: schema.Schema{},
 		},
-		"non-computed-bool-attribute-using-default": {
+		"attribute-using-reserved-field-name": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
-					"bool_attribute": schema.BoolAttribute{
-						Default: booldefault.StaticBool(true),
-					},
+					"depends_on": schema.StringAttribute{},
 				},
 			},
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("bool_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "bool_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
+				diag.NewErrorDiagnostic(
+					"Reserved Root Attribute/Block Name",
+					"When validating the resource or data source schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"depends_on\" is a reserved root attribute/block name. "+
+						"This is to prevent practitioners from needing special Terraform configuration syntax.",
 				),
 			},
 		},
-		"computed-bool-attribute-using-default": {
+		"block-using-reserved-field-name": {
 			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"bool_attribute": schema.BoolAttribute{
-						Computed: true,
-						Default:  booldefault.StaticBool(true),
-					},
-				},
-			},
-		},
-		"non-computed-float64-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float64_attribute": schema.Float64Attribute{
-						Default: float64default.StaticFloat64(1.2345),
-					},
+				Blocks: map[string]schema.Block{
+					"connection": schema.ListNestedBlock{},
 				},
 			},
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("float64_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "float64_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
+				diag.NewErrorDiagnostic(
+					"Reserved Root Attribute/Block Name",
+					"When validating the resource or data source schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"connection\" is a reserved root attribute/block name. "+
+						"This is to prevent practitioners from needing special Terraform configuration syntax.",
 				),
 			},
 		},
-		"computed-float64-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float64_attribute": schema.Float64Attribute{
-						Computed: true,
-						Default:  float64default.StaticFloat64(1.2345),
-					},
-				},
-			},
-		},
-		"non-computed-int64-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int64_attribute": schema.Int64Attribute{
-						Default: int64default.StaticInt64(12345),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("int64_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "int64_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-int64-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int64_attribute": schema.Int64Attribute{
-						Computed: true,
-						Default:  int64default.StaticInt64(12345),
-					},
-				},
-			},
-		},
-		"non-computed-list-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						Default: listdefault.StaticValue(
-							types.ListValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "list_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-list-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						Computed: true,
-						Default: listdefault.StaticValue(
-							types.ListValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-		},
-		"non-computed-map-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						Default: mapdefault.StaticValue(
-							types.MapValueMust(
-								types.StringType,
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("map_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "map_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-map-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map": schema.MapAttribute{
-						Computed: true,
-						Default: mapdefault.StaticValue(
-							types.MapValueMust(
-								types.StringType,
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-		},
-		"non-computed-number-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"number_attribute": schema.NumberAttribute{
-						Default: numberdefault.StaticBigFloat(big.NewFloat(1.2345)),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("number_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "number_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-number-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"number_attribute": schema.NumberAttribute{
-						Computed: true,
-						Default:  numberdefault.StaticBigFloat(big.NewFloat(1.2345)),
-					},
-				},
-			},
-		},
-		"non-computed-object-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						Default: objectdefault.StaticValue(
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"test-key": types.StringType,
-								},
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("object_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "object_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-object-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						Computed: true,
-						Default: objectdefault.StaticValue(
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"test-key": types.StringType,
-								},
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-		},
-		"non-computed-set-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						Default: setdefault.StaticValue(
-							types.SetValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("set_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "set_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-set-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						Computed: true,
-						Default: setdefault.StaticValue(
-							types.SetValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-		},
-		"non-computed-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						Default: stringdefault.StaticString("str"),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						Computed: true,
-						Default:  stringdefault.StaticString("str"),
-					},
-				},
-			},
-		},
-		"non-computed-list-nested-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						Default: listdefault.StaticValue(
-							types.ListValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "list_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-list-nested-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						Computed: true,
-						Default: listdefault.StaticValue(
-							types.ListValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-		},
-		"non-computed-list-nested-attribute-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_attribute").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "list_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"non-computed-list-nested-attribute-using-default-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
-								},
-							},
-						},
-						Default: listdefault.StaticValue(
-							types.ListValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "list_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_attribute").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "list_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-list-nested-attribute-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-									Default:  stringdefault.StaticString("str"),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-map-nested-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						Default: mapdefault.StaticValue(
-							types.MapValueMust(
-								types.StringType,
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("map_nested_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "map_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-map-nested-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						Computed: true,
-						Default: mapdefault.StaticValue(
-							types.MapValueMust(
-								types.StringType,
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-		},
-		"non-computed-map-nested-attribute-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("map_nested_attribute").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "map_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"non-computed-map-nested-attribute-using-default-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
-								},
-							},
-						},
-						Default: mapdefault.StaticValue(
-							types.MapValueMust(
-								types.StringType,
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("map_nested_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "map_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("map_nested_attribute").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "map_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-map-nested-attribute-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-									Default:  stringdefault.StaticString("str"),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-set-nested-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						Default: setdefault.StaticValue(
-							types.SetValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("set_nested_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "set_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-set-nested-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						Computed: true,
-						Default: setdefault.StaticValue(
-							types.SetValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-		},
-		"non-computed-set-nested-attribute-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("set_nested_attribute").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "set_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"non-computed-set-nested-attribute-using-default-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
-								},
-							},
-						},
-						Default: setdefault.StaticValue(
-							types.SetValueMust(
-								types.StringType,
-								[]attr.Value{
-									types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("set_nested_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "set_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("set_nested_attribute").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "set_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-set-nested-attribute-string-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-									Default:  stringdefault.StaticString("str"),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-single-nested-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Default: objectdefault.StaticValue(
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"test-key": types.StringType,
-								},
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "single_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-single-nested-attribute-using-default": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Computed: true,
-						Default: objectdefault.StaticValue(
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"test-key": types.StringType,
-								},
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
-					},
-				},
-			},
-		},
-		"non-computed-single-nested-attribute-string-attribute-using-default": {
+		"nested-attribute-using-nested-reserved-field-name": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Default: stringdefault.StaticString("str"),
+							"depends_on": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+		},
+		"nested-block-using-nested-reserved-field-name": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"single_nested_block": schema.SingleNestedBlock{
+						Attributes: map[string]schema.Attribute{
+							"connection": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+		},
+		"attribute-and-blocks-using-reserved-field-names": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"depends_on": schema.StringAttribute{},
+				},
+				Blocks: map[string]schema.Block{
+					"connection": schema.ListNestedBlock{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Reserved Root Attribute/Block Name",
+					"When validating the resource or data source schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"depends_on\" is a reserved root attribute/block name. "+
+						"This is to prevent practitioners from needing special Terraform configuration syntax.",
+				),
+				diag.NewErrorDiagnostic(
+					"Reserved Root Attribute/Block Name",
+					"When validating the resource or data source schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"connection\" is a reserved root attribute/block name. "+
+						"This is to prevent practitioners from needing special Terraform configuration syntax.",
+				),
+			},
+		},
+		"attribute-using-invalid-field-name": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"^": schema.StringAttribute{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"^\" at schema path \"^\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+				),
+			},
+		},
+		"block-using-invalid-field-name": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"^": schema.ListNestedBlock{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"^\" at schema path \"^\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+				),
+			},
+		},
+		"nested-attribute-using-nested-invalid-field-name": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"single_nested_attribute": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"^": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"^\" at schema path \"single_nested_attribute.^\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+				),
+			},
+		},
+		"nested-block-using-nested-invalid-field-name": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"single_nested_block": schema.SingleNestedBlock{
+						Attributes: map[string]schema.Attribute{
+							"^": schema.BoolAttribute{},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"^\" at schema path \"single_nested_block.^\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+				),
+			},
+		},
+		"nested-block-with-nested-block-using-invalid-field-names": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"$": schema.SingleNestedBlock{
+						Blocks: map[string]schema.Block{
+							"^": schema.SingleNestedBlock{
+								Attributes: map[string]schema.Attribute{
+									"!": schema.BoolAttribute{},
+								},
 							},
 						},
 					},
 				},
 			},
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_attribute").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "single_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"$\" at schema path \"$\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+				),
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"^\" at schema path \"$.^\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+				),
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"!\" at schema path \"$.^.!\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
 				),
 			},
 		},
-		"non-computed-single-nested-attribute-using-default-string-attribute-using-default": {
+		"attribute-with-validate-attribute-implementation-error": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Default: stringdefault.StaticString("str"),
-							},
-						},
-						Default: objectdefault.StaticValue(
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"test-key": types.StringType,
-								},
-								map[string]attr.Value{
-									"test-key": types.StringValue("str"),
-								},
-							),
-						),
+					"test": schema.ListAttribute{
+						Computed: true,
 					},
 				},
 			},
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "single_nested_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_attribute").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "single_nested_attribute.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute Implementation",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"test\" is missing the CustomType or ElementType field on a collection Attribute. "+
+						"One of these fields is required to prevent other unexpected errors or panics.",
 				),
 			},
 		},
-		"computed-single-nested-attribute-string-attribute-using-default": {
+		"nested-attribute-with-validate-attribute-implementation-error": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Computed: true,
-								Default:  stringdefault.StaticString("str"),
+					"list_nested_attribute": schema.ListNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"test": schema.ListAttribute{
+									Computed: true,
+								},
 							},
 						},
 					},
 				},
 			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute Implementation",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"list_nested_attribute.test\" is missing the CustomType or ElementType field on a collection Attribute. "+
+						"One of these fields is required to prevent other unexpected errors or panics.",
+				),
+			},
 		},
-		"non-computed-list-nested-block-string-attribute-using-default": {
+		"nested-block-attribute-with-validate-attribute-implementation-error": {
 			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"list_nested_block": schema.ListNestedBlock{
 						NestedObject: schema.NestedBlockObject{
 							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
+								"test": schema.ListAttribute{
+									Computed: true,
 								},
 							},
 						},
@@ -2178,30 +1306,16 @@ func TestSchemaValidateDefault(t *testing.T) {
 				},
 			},
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "list_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute Implementation",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"list_nested_block.test\" is missing the CustomType or ElementType field on a collection Attribute. "+
+						"One of these fields is required to prevent other unexpected errors or panics.",
 				),
 			},
 		},
-		"computed-list-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"list_nested_block": schema.ListNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-									Default:  stringdefault.StaticString("str"),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-list-nested-nested-block-string-attribute-using-default": {
+		"nested-nested-block-attribute-with-validate-attribute-implementation-error": {
 			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"list_nested_block": schema.ListNestedBlock{
@@ -2210,63 +1324,8 @@ func TestSchemaValidateDefault(t *testing.T) {
 								"list_nested_nested_block": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
 										Attributes: map[string]schema.Attribute{
-											"string_attribute": schema.StringAttribute{
-												Default: stringdefault.StaticString("str"),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_block").AtName("list_nested_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "list_nested_block.list_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-list-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"list_nested_block": schema.ListNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Blocks: map[string]schema.Block{
-								"list_nested_nested_block": schema.ListNestedBlock{
-									NestedObject: schema.NestedBlockObject{
-										Attributes: map[string]schema.Attribute{
-											"string_attribute": schema.StringAttribute{
+											"test": schema.ListAttribute{
 												Computed: true,
-												Default:  stringdefault.StaticString("str"),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-list-nested-block-string-attribute-using-default-list-nested-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"list_nested_block": schema.ListNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
-								},
-							},
-							Blocks: map[string]schema.Block{
-								"list_nested_nested_block": schema.ListNestedBlock{
-									NestedObject: schema.NestedBlockObject{
-										Attributes: map[string]schema.Attribute{
-											"string_attribute": schema.StringAttribute{
-												Default: stringdefault.StaticString("str"),
 											},
 										},
 									},
@@ -2277,332 +1336,13 @@ func TestSchemaValidateDefault(t *testing.T) {
 				},
 			},
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_block").AtName("list_nested_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "list_nested_block.list_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute Implementation",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"list_nested_block.list_nested_nested_block.test\" is missing the CustomType or ElementType field on a collection Attribute. "+
+						"One of these fields is required to prevent other unexpected errors or panics.",
 				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "list_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-list-nested-block-string-attribute-using-default-list-nested-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"list_nested_block": schema.ListNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-									Default:  stringdefault.StaticString("str"),
-								},
-							},
-							Blocks: map[string]schema.Block{
-								"list_nested_nested_block": schema.ListNestedBlock{
-									NestedObject: schema.NestedBlockObject{
-										Attributes: map[string]schema.Attribute{
-											"string_attribute": schema.StringAttribute{
-												Computed: true,
-												Default:  stringdefault.StaticString("str"),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-set-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"set_nested_block": schema.SetNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("set_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "set_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-set-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"set_nested_block": schema.SetNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-									Default:  stringdefault.StaticString("str"),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-set-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"set_nested_block": schema.SetNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Blocks: map[string]schema.Block{
-								"set_nested_nested_block": schema.SetNestedBlock{
-									NestedObject: schema.NestedBlockObject{
-										Attributes: map[string]schema.Attribute{
-											"string_attribute": schema.StringAttribute{
-												Default: stringdefault.StaticString("str"),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("set_nested_block").AtName("set_nested_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "set_nested_block.set_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-set-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"set_nested_block": schema.SetNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Blocks: map[string]schema.Block{
-								"set_nested_nested_block": schema.SetNestedBlock{
-									NestedObject: schema.NestedBlockObject{
-										Attributes: map[string]schema.Attribute{
-											"string_attribute": schema.StringAttribute{
-												Computed: true,
-												Default:  stringdefault.StaticString("str"),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-set-nested-block-string-attribute-using-default-set-nested-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"set_nested_block": schema.SetNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Default: stringdefault.StaticString("str"),
-								},
-							},
-							Blocks: map[string]schema.Block{
-								"set_nested_nested_block": schema.SetNestedBlock{
-									NestedObject: schema.NestedBlockObject{
-										Attributes: map[string]schema.Attribute{
-											"string_attribute": schema.StringAttribute{
-												Default: stringdefault.StaticString("str"),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("set_nested_block").AtName("set_nested_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "set_nested_block.set_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("set_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "set_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-set-nested-block-string-attribute-using-default-set-nested-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"set_nested_block": schema.SetNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-									Default:  stringdefault.StaticString("str"),
-								},
-							},
-							Blocks: map[string]schema.Block{
-								"set_nested_nested_block": schema.SetNestedBlock{
-									NestedObject: schema.NestedBlockObject{
-										Attributes: map[string]schema.Attribute{
-											"string_attribute": schema.StringAttribute{
-												Computed: true,
-												Default:  stringdefault.StaticString("str"),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-single-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Default: stringdefault.StaticString("str"),
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "single_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-single-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Computed: true,
-								Default:  stringdefault.StaticString("str"),
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-single-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Blocks: map[string]schema.Block{
-							"single_nested_nested_block": schema.SingleNestedBlock{
-								Attributes: map[string]schema.Attribute{
-									"string_attribute": schema.StringAttribute{
-										Default: stringdefault.StaticString("str"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_block").AtName("single_nested_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "single_nested_block.single_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-single-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Blocks: map[string]schema.Block{
-							"single_nested_nested_block": schema.SingleNestedBlock{
-								Attributes: map[string]schema.Attribute{
-									"string_attribute": schema.StringAttribute{
-										Computed: true,
-										Default:  stringdefault.StaticString("str"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"non-computed-single-nested-block-string-attribute-using-default-single-nested-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Default: stringdefault.StaticString("str"),
-							},
-						},
-						Blocks: map[string]schema.Block{
-							"single_nested_nested_block": schema.SingleNestedBlock{
-								Attributes: map[string]schema.Attribute{
-									"string_attribute": schema.StringAttribute{
-										Default: stringdefault.StaticString("str"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_block").AtName("single_nested_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "single_nested_block.single_nested_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_block").AtName("string_attribute"),
-					"Schema Using Attribute Default For Non-Computed Attribute",
-					`Attribute "single_nested_block.string_attribute" must be computed when using default. This is an issue with the provider and should be reported to the provider developers.`,
-				),
-			},
-		},
-		"computed-single-nested-block-string-attribute-using-default-single-nested-nested-nested-block-string-attribute-using-default": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Computed: true,
-								Default:  stringdefault.StaticString("str"),
-							},
-						},
-						Blocks: map[string]schema.Block{
-							"single_nested_nested_block": schema.SingleNestedBlock{
-								Attributes: map[string]schema.Attribute{
-									"string_attribute": schema.StringAttribute{
-										Computed: true,
-										Default:  stringdefault.StaticString("str"),
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 		},
 	}
@@ -2613,7 +1353,7 @@ func TestSchemaValidateDefault(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := testCase.schema.Validate()
+			diags := testCase.schema.ValidateImplementation(context.Background())
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
 				t.Errorf("Unexpected diagnostics (+wanted, -got): %s", diff)

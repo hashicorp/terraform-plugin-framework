@@ -382,7 +382,7 @@ func BlockPlanModifyList(ctx context.Context, block fwxschema.BlockWithListPlanM
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.List",
 			map[string]interface{}{
@@ -392,7 +392,7 @@ func BlockPlanModifyList(ctx context.Context, block fwxschema.BlockWithListPlanM
 
 		planModifier.PlanModifyList(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.List",
 			map[string]interface{}{
@@ -517,7 +517,7 @@ func BlockPlanModifyObject(ctx context.Context, block fwxschema.BlockWithObjectP
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.Object",
 			map[string]interface{}{
@@ -527,7 +527,7 @@ func BlockPlanModifyObject(ctx context.Context, block fwxschema.BlockWithObjectP
 
 		planModifier.PlanModifyObject(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.Object",
 			map[string]interface{}{
@@ -652,7 +652,7 @@ func BlockPlanModifySet(ctx context.Context, block fwxschema.BlockWithSetPlanMod
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.Set",
 			map[string]interface{}{
@@ -662,7 +662,7 @@ func BlockPlanModifySet(ctx context.Context, block fwxschema.BlockWithSetPlanMod
 
 		planModifier.PlanModifySet(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.Set",
 			map[string]interface{}{
@@ -696,7 +696,7 @@ func NestedBlockObjectPlanModify(ctx context.Context, o fwschema.NestedBlockObje
 				Private:   resp.Private,
 			}
 
-			logging.FrameworkDebug(
+			logging.FrameworkTrace(
 				ctx,
 				"Calling provider defined planmodifier.Object",
 				map[string]interface{}{

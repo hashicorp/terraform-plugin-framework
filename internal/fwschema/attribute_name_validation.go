@@ -30,10 +30,8 @@ var ReservedResourceAttributeNames = []string{
 	"count",
 	// Reference: https://developer.hashicorp.com/terraform/language/meta-arguments/depends_on
 	"depends_on",
-	// TODO: Validate for_each
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/704
 	// Reference: https://developer.hashicorp.com/terraform/language/meta-arguments/for_each
-	// "for_each",
+	"for_each",
 	// Reference: https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle
 	"lifecycle",
 	// Reference: https://developer.hashicorp.com/terraform/language/meta-arguments/resource-provider

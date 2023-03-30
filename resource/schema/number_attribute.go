@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -15,10 +17,11 @@ import (
 
 // Ensure the implementation satisfies the desired interfaces.
 var (
-	_ Attribute                                  = NumberAttribute{}
-	_ fwschema.AttributeWithNumberDefaultValue   = NumberAttribute{}
-	_ fwxschema.AttributeWithNumberPlanModifiers = NumberAttribute{}
-	_ fwxschema.AttributeWithNumberValidators    = NumberAttribute{}
+	_ Attribute                                    = NumberAttribute{}
+	_ fwschema.AttributeWithValidateImplementation = NumberAttribute{}
+	_ fwschema.AttributeWithNumberDefaultValue     = NumberAttribute{}
+	_ fwxschema.AttributeWithNumberPlanModifiers   = NumberAttribute{}
+	_ fwxschema.AttributeWithNumberValidators      = NumberAttribute{}
 )
 
 // NumberAttribute represents a schema attribute that is a generic number with
@@ -225,4 +228,14 @@ func (a NumberAttribute) NumberPlanModifiers() []planmodifier.Number {
 // NumberValidators returns the Validators field value.
 func (a NumberAttribute) NumberValidators() []validator.Number {
 	return a.Validators
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a NumberAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if !a.IsComputed() && a.NumberDefaultValue() != nil {
+		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
 }

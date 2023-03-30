@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -15,10 +17,11 @@ import (
 
 // Ensure the implementation satisfies the desired interfaces.
 var (
-	_ Attribute                               = SetAttribute{}
-	_ fwschema.AttributeWithSetDefaultValue   = SetAttribute{}
-	_ fwxschema.AttributeWithSetPlanModifiers = SetAttribute{}
-	_ fwxschema.AttributeWithSetValidators    = SetAttribute{}
+	_ Attribute                                    = SetAttribute{}
+	_ fwschema.AttributeWithValidateImplementation = SetAttribute{}
+	_ fwschema.AttributeWithSetDefaultValue        = SetAttribute{}
+	_ fwxschema.AttributeWithSetPlanModifiers      = SetAttribute{}
+	_ fwxschema.AttributeWithSetValidators         = SetAttribute{}
 )
 
 // SetAttribute represents a schema attribute that is a set with a single
@@ -232,4 +235,18 @@ func (a SetAttribute) SetPlanModifiers() []planmodifier.Set {
 // SetValidators returns the Validators field value.
 func (a SetAttribute) SetValidators() []validator.Set {
 	return a.Validators
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a SetAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if a.CustomType == nil && a.ElementType == nil {
+		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
+	}
+
+	if !a.IsComputed() && a.SetDefaultValue() != nil {
+		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
 }

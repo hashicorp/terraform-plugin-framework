@@ -818,103 +818,19 @@ func TestSchemaValidate(t *testing.T) {
 		"empty-schema": {
 			schema: metaschema.Schema{},
 		},
-		"attribute-using-invalid-field-name": {
+		"validate-implementation-error": {
 			schema: metaschema.Schema{
 				Attributes: map[string]metaschema.Attribute{
 					"^": metaschema.StringAttribute{},
 				},
 			},
 			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"single-nested-attribute-using-nested-invalid-field-name": {
-			schema: metaschema.Schema{
-				Attributes: map[string]metaschema.Attribute{
-					"single_nested_attribute": metaschema.SingleNestedAttribute{
-						Attributes: map[string]metaschema.Attribute{
-							"^": metaschema.BoolAttribute{},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("single_nested_attribute").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"single-nested-attribute-using-invalid-field-names": {
-			schema: metaschema.Schema{
-				Attributes: map[string]metaschema.Attribute{
-					"$": metaschema.SingleNestedAttribute{
-						Attributes: map[string]metaschema.Attribute{
-							"^": metaschema.BoolAttribute{},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$"),
-					"Invalid Schema Field Name",
-					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"list-nested-attribute-using-nested-invalid-field-name": {
-			schema: metaschema.Schema{
-				Attributes: map[string]metaschema.Attribute{
-					"list_nested_attribute": metaschema.ListNestedAttribute{
-						NestedObject: metaschema.NestedAttributeObject{
-							Attributes: map[string]metaschema.Attribute{
-								"^": metaschema.Int64Attribute{},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("list_nested_attribute").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-			},
-		},
-		"list-nested-attribute-using-invalid-field-names": {
-			schema: metaschema.Schema{
-				Attributes: map[string]metaschema.Attribute{
-					"$": metaschema.ListNestedAttribute{
-						NestedObject: metaschema.NestedAttributeObject{
-							Attributes: map[string]metaschema.Attribute{
-								"^": metaschema.Int64Attribute{},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$"),
-					"Invalid Schema Field Name",
-					`Field name "$" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
-				),
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("$").AtName("^"),
-					"Invalid Schema Field Name",
-					`Field name "^" is invalid, the only allowed characters are a-z, 0-9 and _. This is always a problem with the provider and should be reported to the provider developer.`,
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"^\" at schema path \"^\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
 				),
 			},
 		},
@@ -927,6 +843,111 @@ func TestSchemaValidate(t *testing.T) {
 			t.Parallel()
 
 			diags := testCase.schema.Validate()
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diagnostics (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestSchemaValidateImplementation(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		schema        metaschema.Schema
+		expectedDiags diag.Diagnostics
+	}{
+		"empty-schema": {
+			schema: metaschema.Schema{},
+		},
+		"attribute-using-invalid-field-name": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"^": metaschema.StringAttribute{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"^\" at schema path \"^\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+				),
+			},
+		},
+		"nested-attribute-using-nested-invalid-field-name": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"single_nested_attribute": metaschema.SingleNestedAttribute{
+						Attributes: map[string]metaschema.Attribute{
+							"^": metaschema.BoolAttribute{},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute/Block Name",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"^\" at schema path \"single_nested_attribute.^\" is an invalid attribute/block name. "+
+						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+				),
+			},
+		},
+		"attribute-with-validate-attribute-implementation-error": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"test": metaschema.ListAttribute{
+						Optional: true,
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute Implementation",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"test\" is missing the CustomType or ElementType field on a collection Attribute. "+
+						"One of these fields is required to prevent other unexpected errors or panics.",
+				),
+			},
+		},
+		"nested-attribute-with-validate-attribute-implementation-error": {
+			schema: metaschema.Schema{
+				Attributes: map[string]metaschema.Attribute{
+					"list_nested_attribute": metaschema.ListNestedAttribute{
+						NestedObject: metaschema.NestedAttributeObject{
+							Attributes: map[string]metaschema.Attribute{
+								"test": metaschema.ListAttribute{
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Attribute Implementation",
+					"When validating the schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"list_nested_attribute.test\" is missing the CustomType or ElementType field on a collection Attribute. "+
+						"One of these fields is required to prevent other unexpected errors or panics.",
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			diags := testCase.schema.ValidateImplementation(context.Background())
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
 				t.Errorf("Unexpected diagnostics (+wanted, -got): %s", diff)

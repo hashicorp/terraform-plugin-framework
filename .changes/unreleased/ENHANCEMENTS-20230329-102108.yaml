@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'provider/schema: Added `Schema` type `ValidateImplementation()` method, which performs framework-defined
+  schema validation and can be used in unit testing'
+time: 2023-03-29T10:21:08.251285-04:00
+custom:
+  Issue: "699"

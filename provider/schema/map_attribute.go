@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
@@ -12,8 +14,9 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Attribute                            = MapAttribute{}
-	_ fwxschema.AttributeWithMapValidators = MapAttribute{}
+	_ Attribute                                    = MapAttribute{}
+	_ fwschema.AttributeWithValidateImplementation = MapAttribute{}
+	_ fwxschema.AttributeWithMapValidators         = MapAttribute{}
 )
 
 // MapAttribute represents a schema attribute that is a list with a single
@@ -190,4 +193,14 @@ func (a MapAttribute) IsSensitive() bool {
 // MapValidators returns the Validators field value.
 func (a MapAttribute) MapValidators() []validator.Map {
 	return a.Validators
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC
+// and should never include false positives.
+func (a MapAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if a.CustomType == nil && a.ElementType == nil {
+		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
+	}
 }

@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -17,9 +18,11 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ NestedAttribute                            = SingleNestedAttribute{}
-	_ fwxschema.AttributeWithObjectPlanModifiers = SingleNestedAttribute{}
-	_ fwxschema.AttributeWithObjectValidators    = SingleNestedAttribute{}
+	_ NestedAttribute                              = SingleNestedAttribute{}
+	_ fwschema.AttributeWithValidateImplementation = SingleNestedAttribute{}
+	_ fwschema.AttributeWithObjectDefaultValue     = SingleNestedAttribute{}
+	_ fwxschema.AttributeWithObjectPlanModifiers   = SingleNestedAttribute{}
+	_ fwxschema.AttributeWithObjectValidators      = SingleNestedAttribute{}
 )
 
 // SingleNestedAttribute represents an attribute that is a single object where
@@ -276,4 +279,14 @@ func (a SingleNestedAttribute) ObjectPlanModifiers() []planmodifier.Object {
 // ObjectValidators returns the Validators field value.
 func (a SingleNestedAttribute) ObjectValidators() []validator.Object {
 	return a.Validators
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a SingleNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if !a.IsComputed() && a.ObjectDefaultValue() != nil {
+		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
 }

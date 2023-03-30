@@ -10,8 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapdefault"
@@ -516,6 +519,130 @@ func TestMapAttributeMapValidators(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.MapValidators()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestMapAttributeValidateImplementation(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.MapAttribute
+		request   fwschema.ValidateImplementationRequest
+		expected  *fwschema.ValidateImplementationResponse
+	}{
+		"computed": {
+			attribute: schema.MapAttribute{
+				Computed:    true,
+				ElementType: types.StringType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"customtype": {
+			attribute: schema.MapAttribute{
+				Computed:   true,
+				CustomType: testtypes.MapType{},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"default-without-computed": {
+			attribute: schema.MapAttribute{
+				Default: mapdefault.StaticValue(
+					types.MapValueMust(
+						types.StringType,
+						map[string]attr.Value{
+							"testkey": types.StringValue("testvalue"),
+						},
+					),
+				),
+				ElementType: types.StringType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Schema Using Attribute Default For Non-Computed Attribute",
+						"Attribute \"test\" must be computed when using default. "+
+							"This is an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+			},
+		},
+		"default-with-computed": {
+			attribute: schema.MapAttribute{
+				Computed: true,
+				Default: mapdefault.StaticValue(
+					types.MapValueMust(
+						types.StringType,
+						map[string]attr.Value{
+							"testkey": types.StringValue("testvalue"),
+						},
+					),
+				),
+				ElementType: types.StringType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype": {
+			attribute: schema.MapAttribute{
+				Computed:    true,
+				ElementType: types.StringType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-missing": {
+			attribute: schema.MapAttribute{
+				Computed: true,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is missing the CustomType or ElementType field on a collection Attribute. "+
+							"One of these fields is required to prevent other unexpected errors or panics.",
+					),
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := &fwschema.ValidateImplementationResponse{}
+			testCase.attribute.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

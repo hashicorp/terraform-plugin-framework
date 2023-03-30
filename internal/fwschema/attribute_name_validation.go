@@ -3,10 +3,15 @@ package fwschema
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
+
+// NumericPrefixRegex is a regular expression which matches whether a string
+// begins with a numeric (0-9).
+var NumericPrefixRegex = regexp.MustCompile(`^[0-9]`)
 
 // ReservedProviderAttributeNames contains the list of root attribute names
 // which should not be included in provider-defined provider schemas since
@@ -49,11 +54,8 @@ var ReservedResourceAttributeNames = []string{
 // including them in attribute names. Introducing them could cause practitioner
 // confusion.
 //
-// TODO: Validate leading numeric characters
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/705
-//
 // [identifiers]: https://developer.hashicorp.com/terraform/language/syntax/configuration#identifiers
-var ValidAttributeNameRegex = regexp.MustCompile("^[a-z0-9_]+$")
+var ValidAttributeNameRegex = regexp.MustCompile("^[a-z_][a-z0-9_]*$")
 
 // IsReservedProviderAttributeName returns an error diagnostic if the given
 // attribute path represents a root attribute name in
@@ -132,6 +134,16 @@ func IsValidAttributeName(name string, attributePath path.Path) diag.Diagnostics
 		return diags
 	}
 
+	var message strings.Builder
+
+	message.WriteString("Names must ")
+
+	if NumericPrefixRegex.MatchString(name) {
+		message.WriteString("begin with a lowercase alphabet character (a-z) or underscore (_) and must ")
+	}
+
+	message.WriteString("only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).")
+
 	// The diagnostic path is intentionally omitted as it is invalid in this
 	// context. Diagnostic paths are intended to be mapped to actual data,
 	// while this path information must be synthesized.
@@ -140,7 +152,7 @@ func IsValidAttributeName(name string, attributePath path.Path) diag.Diagnostics
 		"When validating the schema, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 			fmt.Sprintf("%q at schema path %q is an invalid attribute/block name. ", name, attributePath)+
-			"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+			message.String(),
 	)
 
 	return diags

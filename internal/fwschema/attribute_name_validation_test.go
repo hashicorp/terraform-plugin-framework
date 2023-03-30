@@ -142,21 +142,19 @@ func TestIsReservedResourceAttributeName(t *testing.T) {
 				),
 			},
 		},
-		// TODO: Validate for_each
-		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/704
-		// "for_each": {
-		// 	name: "for_each",
-		//	attributePath: path.Root("for_each"),
-		// 	expected: diag.Diagnostics{
-		// 		diag.NewErrorDiagnostic(
-		// 			"Reserved Root Attribute/Block Name",
-		// 			"When validating the resource or data source schema, an implementation issue was found. "+
-		// 				"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-		// 				"\"for_each\" is a reserved root attribute/block name. "+
-		// 				"This is to prevent practitioners from needing special Terraform configuration syntax.",
-		// 		),
-		// 	},
-		// },
+		"for_each": {
+			name:          "for_each",
+			attributePath: path.Root("for_each"),
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Reserved Root Attribute/Block Name",
+					"When validating the resource or data source schema, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"\"for_each\" is a reserved root attribute/block name. "+
+						"This is to prevent practitioners from needing special Terraform configuration syntax.",
+				),
+			},
+		},
 		"lifecycle": {
 			name:          "lifecycle",
 			attributePath: path.Root("lifecycle"),

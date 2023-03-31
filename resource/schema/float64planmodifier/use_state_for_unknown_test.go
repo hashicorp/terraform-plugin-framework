@@ -5,6 +5,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -70,6 +74,74 @@ func TestUseStateForUnknownModifierPlanModifyFloat64(t *testing.T) {
 				ConfigValue: types.Float64Unknown(),
 			},
 			expected: &planmodifier.Float64Response{
+				PlanValue: types.Float64Unknown(),
+			},
+		},
+		"under-list": {
+			request: planmodifier.Float64Request{
+				ConfigValue: types.Float64Null(),
+				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
+				PlanValue:   types.Float64Unknown(),
+				StateValue:  types.Float64Null(),
+			},
+			expected: &planmodifier.Float64Response{
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtListIndex(0).AtName("nested_test"),
+					),
+				},
+				PlanValue: types.Float64Unknown(),
+			},
+		},
+		"under-set": {
+			request: planmodifier.Float64Request{
+				ConfigValue: types.Float64Null(),
+				Path: path.Root("test").AtSetValue(
+					types.SetValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_test": types.Float64Type,
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_test": types.Float64Type,
+								},
+								map[string]attr.Value{
+									"nested_test": types.Float64Unknown(),
+								},
+							),
+						},
+					),
+				).AtName("nested_test"),
+				PlanValue:  types.Float64Unknown(),
+				StateValue: types.Float64Null(),
+			},
+			expected: &planmodifier.Float64Response{
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtSetValue(
+							types.SetValueMust(
+								types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"nested_test": types.Float64Type,
+									},
+								},
+								[]attr.Value{
+									types.ObjectValueMust(
+										map[string]attr.Type{
+											"nested_test": types.Float64Type,
+										},
+										map[string]attr.Value{
+											"nested_test": types.Float64Unknown(),
+										},
+									),
+								},
+							),
+						).AtName("nested_test"),
+					),
+				},
 				PlanValue: types.Float64Unknown(),
 			},
 		},

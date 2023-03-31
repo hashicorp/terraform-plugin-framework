@@ -3,6 +3,8 @@ package int64planmodifier
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/internal/parentpath"
+	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
@@ -33,6 +35,19 @@ func (m useStateForUnknownModifier) MarkdownDescription(_ context.Context) strin
 
 // PlanModifyInt64 implements the plan modification logic.
 func (m useStateForUnknownModifier) PlanModifyInt64(_ context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
+	// Verify this plan modifier is not being used beneath a list or set.
+	// Lists and sets do not have a generic methodology to identify/track
+	// an element if rearranged, especially within an object with multiple
+	// computed attribute values. Only the provider can determine which
+	// underlying values in an element are significant to realign a prior
+	// state value during updates.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+	if parentpath.HasListOrSet(req.Path) {
+		resp.Diagnostics.Append(planmodifierdiag.UseStateForUnknownUnderListOrSet(req.Path))
+
+		return
+	}
+
 	// Do nothing if there is no state value.
 	if req.StateValue.IsNull() {
 		return

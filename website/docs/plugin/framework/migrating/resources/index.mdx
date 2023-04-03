@@ -208,8 +208,9 @@ func (r *exampleResource) Schema(_ context.Context, _ resource.SchemaRequest, re
                     stringplanmodifier.RequiresReplace(),
                 },
                 Validators: []validator.String{
-                    stringvalidator.OneOf([]string{'a', 'b'}...),
+                    stringvalidator.OneOf([]string{"a", "b"}...),
                 },
+            },
             /* ... */
         },
     }

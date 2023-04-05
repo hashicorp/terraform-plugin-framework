@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -479,17 +480,172 @@ func TestFromAttributeValue(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
+		typ           attr.Type
 		val           attr.Value
+		expected      attr.Value
 		expectedDiags diag.Diagnostics
 	}{
-		"null": {
-			val: types.StringNull(),
+		"BoolType-BoolValue": {
+			typ:      types.BoolType,
+			val:      types.BoolNull(),
+			expected: types.BoolNull(),
 		},
-		"unknown": {
-			val: types.StringUnknown(),
+		"BoolTypable-BoolValuable": {
+			typ: testtypes.BoolType{},
+			val: testtypes.Bool{
+				CreatedBy: testtypes.BoolType{},
+			},
+			expected: testtypes.Bool{
+				CreatedBy: testtypes.BoolType{},
+			},
 		},
-		"value": {
-			val: types.StringValue("hello, world"),
+		"Float64Type-Float64Value": {
+			typ:      types.Float64Type,
+			val:      types.Float64Null(),
+			expected: types.Float64Null(),
+		},
+		"Int64Type-Int64Value": {
+			typ:      types.Int64Type,
+			val:      types.Int64Null(),
+			expected: types.Int64Null(),
+		},
+		"ListType-ListValue-matching-elements": {
+			typ:      types.ListType{ElemType: types.StringType},
+			val:      types.ListNull(types.StringType),
+			expected: types.ListNull(types.StringType),
+		},
+		"ListType-ListValue-mismatching-elements": {
+			typ:      types.ListType{ElemType: types.StringType},
+			val:      types.ListNull(types.BoolType),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: types.ListType[basetypes.StringType]\n"+
+						"Value type: types.ListType[basetypes.BoolType]\n"+
+						"Path: test",
+				),
+			},
+		},
+		"MapType-MapValue-matching-elements": {
+			typ:      types.MapType{ElemType: types.StringType},
+			val:      types.MapNull(types.StringType),
+			expected: types.MapNull(types.StringType),
+		},
+		"MapType-MapValue-mismatching-elements": {
+			typ:      types.MapType{ElemType: types.StringType},
+			val:      types.MapNull(types.BoolType),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: types.MapType[basetypes.StringType]\n"+
+						"Value type: types.MapType[basetypes.BoolType]\n"+
+						"Path: test",
+				),
+			},
+		},
+		"NumberType-NumberValue": {
+			typ:      types.NumberType,
+			val:      types.NumberNull(),
+			expected: types.NumberNull(),
+		},
+		"NumberTypable-NumberValuable": {
+			typ: testtypes.NumberType{},
+			val: testtypes.Number{
+				CreatedBy: testtypes.NumberType{},
+			},
+			expected: testtypes.Number{
+				CreatedBy: testtypes.NumberType{},
+			},
+		},
+		"ObjectType-ObjectValue-matching-attributes": {
+			typ:      types.ObjectType{AttrTypes: map[string]attr.Type{"test_attr": types.StringType}},
+			val:      types.ObjectNull(map[string]attr.Type{"test_attr": types.StringType}),
+			expected: types.ObjectNull(map[string]attr.Type{"test_attr": types.StringType}),
+		},
+		"ObjectType-ObjectValue-mismatching-attributes": {
+			typ:      types.ObjectType{AttrTypes: map[string]attr.Type{"test_attr": types.StringType}},
+			val:      types.ObjectNull(map[string]attr.Type{"not_test_attr": types.StringType}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: types.ObjectType[\"test_attr\":basetypes.StringType]\n"+
+						"Value type: types.ObjectType[\"not_test_attr\":basetypes.StringType]\n"+
+						"Path: test",
+				),
+			},
+		},
+		"ObjectType-ObjectValue-mismatching-attribute-types": {
+			typ:      types.ObjectType{AttrTypes: map[string]attr.Type{"test_attr": types.StringType}},
+			val:      types.ObjectNull(map[string]attr.Type{"test_attr": types.BoolType}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: types.ObjectType[\"test_attr\":basetypes.StringType]\n"+
+						"Value type: types.ObjectType[\"test_attr\":basetypes.BoolType]\n"+
+						"Path: test",
+				),
+			},
+		},
+		"SetType-SetValue-matching-elements": {
+			typ:      types.SetType{ElemType: types.StringType},
+			val:      types.SetNull(types.StringType),
+			expected: types.SetNull(types.StringType),
+		},
+		"SetType-SetValue-mismatching-elements": {
+			typ:      types.SetType{ElemType: types.StringType},
+			val:      types.SetNull(types.BoolType),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: types.SetType[basetypes.StringType]\n"+
+						"Value type: types.SetType[basetypes.BoolType]\n"+
+						"Path: test",
+				),
+			},
+		},
+		"StringType-StringValue-null": {
+			typ:      types.StringType,
+			val:      types.StringNull(),
+			expected: types.StringNull(),
+		},
+		"StringType-StringValue-unknown": {
+			typ:      types.StringType,
+			val:      types.StringUnknown(),
+			expected: types.StringUnknown(),
+		},
+		"StringType-StringValue-value": {
+			typ:      types.StringType,
+			val:      types.StringValue("hello, world"),
+			expected: types.StringValue("hello, world"),
+		},
+		"StringTypable-StringValuable": {
+			typ: testtypes.StringType{},
+			val: testtypes.String{
+				CreatedBy: testtypes.StringType{},
+			},
+			expected: testtypes.String{
+				CreatedBy: testtypes.StringType{},
+			},
 		},
 	}
 
@@ -498,13 +654,13 @@ func TestFromAttributeValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := refl.FromAttributeValue(context.Background(), types.StringType, tc.val, path.Empty())
+			got, diags := refl.FromAttributeValue(context.Background(), tc.typ, tc.val, path.Root("test"))
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 
-			if diff := cmp.Diff(got, tc.val); diff != "" {
+			if diff := cmp.Diff(got, tc.expected); diff != "" {
 				t.Errorf("unexpected result (+wanted, -got): %s", diff)
 			}
 		})

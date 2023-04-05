@@ -850,3 +850,213 @@ func TestFromStruct_complex(t *testing.T) {
 		t.Errorf("Didn't get expected value. Diff (+ is expected, - is result): %s", diff)
 	}
 }
+
+func TestFromStruct_errors(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		typ           attr.TypeWithAttributeTypes
+		val           reflect.Value
+		expected      attr.Value
+		expectedDiags diag.Diagnostics
+	}{
+		"not-a-struct": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf("not-a-struct"),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test: can't get struct tags of string, is not a struct",
+				),
+			},
+		},
+		"struct-field-mismatch": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					NotTest types.String `tfsdk:"not_test"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct into an object. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Mismatch between struct and object type: Struct defines fields not found in object: not_test. Object defines fields not found in struct: test.\n"+
+						`Struct: struct { NotTest basetypes.StringValue "tfsdk:\"not_test\"" }`+"\n"+
+						`Object type: types.ObjectType["test":basetypes.StringType]`,
+				),
+			},
+		},
+		"struct-type-mismatch": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"string": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.Bool `tfsdk:"string"` // intentionally not types.String
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("string"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: basetypes.StringType\n"+
+						"Value type: basetypes.BoolType\n"+
+						"Path: test.string",
+				),
+			},
+		},
+		"list-zero-value": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"list": types.ListType{
+						ElemType: types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					List types.List `tfsdk:"list"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("list"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: types.ListType[basetypes.StringType]\n"+
+						// TODO: Prevent panics with (basetypes.ListType).ElementType() when ElemType is nil
+						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/714
+						"Value type: %!s(PANIC=String method: runtime error: invalid memory address or nil pointer dereference)\n"+
+						"Path: test.list",
+				),
+			},
+		},
+		"map-zero-value": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"map": types.MapType{
+						ElemType: types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Map types.Map `tfsdk:"map"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("map"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: types.MapType[basetypes.StringType]\n"+
+						// TODO: Prevent panics with (basetypes.MapType).ElementType() when ElemType is nil
+						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/714
+						"Value type: %!s(PANIC=String method: runtime error: invalid memory address or nil pointer dereference)\n"+
+						"Path: test.map",
+				),
+			},
+		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/566
+		"object-zero-value": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"object": types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"test": types.StringType,
+						},
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Object types.Object `tfsdk:"object"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("object"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: types.ObjectType[\"test\":basetypes.StringType]\n"+
+						"Value type: types.ObjectType[]\n"+
+						"Path: test.object",
+				),
+			},
+		},
+		"set-zero-value": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"set": types.SetType{
+						ElemType: types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Set types.Set `tfsdk:"set"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("set"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected type: types.SetType[basetypes.StringType]\n"+
+						// TODO: Prevent panics with (basetypes.SetType).ElementType() when ElemType is nil
+						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/714
+						"Value type: %!s(PANIC=String method: runtime error: invalid memory address or nil pointer dereference)\n"+
+						"Path: test.set",
+				),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := refl.FromStruct(
+				context.Background(),
+				testCase.typ,
+				testCase.val,
+				path.Root("test"),
+			)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected result: %s", diff)
+			}
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				for _, d := range diags {
+					t.Logf("%s: %s\n%s\n", d.Severity(), d.Summary(), d.Detail())
+				}
+				t.Errorf("unexpected diagnostics: %s", diff)
+			}
+		})
+	}
+}

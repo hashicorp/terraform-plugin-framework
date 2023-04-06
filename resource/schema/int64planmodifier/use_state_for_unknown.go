@@ -19,7 +19,7 @@ import (
 //
 // To prevent data issues and Terraform errors, this plan modifier cannot be
 // implemented on attribute values beneath lists or sets. An implementation
-// error diagnostic is raised the plan modifier logic detects a list or set
+// error diagnostic is raised if the plan modifier logic detects a list or set
 // in the request path.
 func UseStateForUnknown() planmodifier.Int64 {
 	return useStateForUnknownModifier{}

@@ -16,6 +16,11 @@ import (
 // and Computed attributes to an unknown value "(known after apply)" on update.
 // Using this plan modifier will instead display the prior state value in the
 // plan, unless a prior plan modifier adjusts the value.
+//
+// To prevent data issues and Terraform errors, this plan modifier cannot be
+// implemented on attribute values beneath lists or sets. An implementation
+// error diagnostic is raised the plan modifier logic detects a list or set
+// in the request path.
 func UseStateForUnknown() planmodifier.Float64 {
 	return useStateForUnknownModifier{}
 }

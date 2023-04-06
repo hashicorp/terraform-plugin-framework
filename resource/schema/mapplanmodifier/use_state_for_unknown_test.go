@@ -6,6 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -71,6 +74,74 @@ func TestUseStateForUnknownModifierPlanModifyMap(t *testing.T) {
 				ConfigValue: types.MapUnknown(types.StringType),
 			},
 			expected: &planmodifier.MapResponse{
+				PlanValue: types.MapUnknown(types.StringType),
+			},
+		},
+		"under-list": {
+			request: planmodifier.MapRequest{
+				ConfigValue: types.MapNull(types.StringType),
+				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
+				PlanValue:   types.MapUnknown(types.StringType),
+				StateValue:  types.MapNull(types.StringType),
+			},
+			expected: &planmodifier.MapResponse{
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtListIndex(0).AtName("nested_test"),
+					),
+				},
+				PlanValue: types.MapUnknown(types.StringType),
+			},
+		},
+		"under-set": {
+			request: planmodifier.MapRequest{
+				ConfigValue: types.MapNull(types.StringType),
+				Path: path.Root("test").AtSetValue(
+					types.SetValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_test": types.MapType{ElemType: types.StringType},
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_test": types.MapType{ElemType: types.StringType},
+								},
+								map[string]attr.Value{
+									"nested_test": types.MapUnknown(types.StringType),
+								},
+							),
+						},
+					),
+				).AtName("nested_test"),
+				PlanValue:  types.MapUnknown(types.StringType),
+				StateValue: types.MapNull(types.StringType),
+			},
+			expected: &planmodifier.MapResponse{
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtSetValue(
+							types.SetValueMust(
+								types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"nested_test": types.MapType{ElemType: types.StringType},
+									},
+								},
+								[]attr.Value{
+									types.ObjectValueMust(
+										map[string]attr.Type{
+											"nested_test": types.MapType{ElemType: types.StringType},
+										},
+										map[string]attr.Value{
+											"nested_test": types.MapUnknown(types.StringType),
+										},
+									),
+								},
+							),
+						).AtName("nested_test"),
+					),
+				},
 				PlanValue: types.MapUnknown(types.StringType),
 			},
 		},

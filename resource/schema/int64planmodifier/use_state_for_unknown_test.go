@@ -5,6 +5,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -70,6 +74,74 @@ func TestUseStateForUnknownModifierPlanModifyInt64(t *testing.T) {
 				ConfigValue: types.Int64Unknown(),
 			},
 			expected: &planmodifier.Int64Response{
+				PlanValue: types.Int64Unknown(),
+			},
+		},
+		"under-list": {
+			request: planmodifier.Int64Request{
+				ConfigValue: types.Int64Null(),
+				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
+				PlanValue:   types.Int64Unknown(),
+				StateValue:  types.Int64Null(),
+			},
+			expected: &planmodifier.Int64Response{
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtListIndex(0).AtName("nested_test"),
+					),
+				},
+				PlanValue: types.Int64Unknown(),
+			},
+		},
+		"under-set": {
+			request: planmodifier.Int64Request{
+				ConfigValue: types.Int64Null(),
+				Path: path.Root("test").AtSetValue(
+					types.SetValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_test": types.Int64Type,
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_test": types.Int64Type,
+								},
+								map[string]attr.Value{
+									"nested_test": types.Int64Unknown(),
+								},
+							),
+						},
+					),
+				).AtName("nested_test"),
+				PlanValue:  types.Int64Unknown(),
+				StateValue: types.Int64Null(),
+			},
+			expected: &planmodifier.Int64Response{
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtSetValue(
+							types.SetValueMust(
+								types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"nested_test": types.Int64Type,
+									},
+								},
+								[]attr.Value{
+									types.ObjectValueMust(
+										map[string]attr.Type{
+											"nested_test": types.Int64Type,
+										},
+										map[string]attr.Value{
+											"nested_test": types.Int64Unknown(),
+										},
+									),
+								},
+							),
+						).AtName("nested_test"),
+					),
+				},
 				PlanValue: types.Int64Unknown(),
 			},
 		},

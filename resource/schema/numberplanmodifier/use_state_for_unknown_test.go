@@ -6,6 +6,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/numberplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -71,6 +75,74 @@ func TestUseStateForUnknownModifierPlanModifyNumber(t *testing.T) {
 				ConfigValue: types.NumberUnknown(),
 			},
 			expected: &planmodifier.NumberResponse{
+				PlanValue: types.NumberUnknown(),
+			},
+		},
+		"under-list": {
+			request: planmodifier.NumberRequest{
+				ConfigValue: types.NumberNull(),
+				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
+				PlanValue:   types.NumberUnknown(),
+				StateValue:  types.NumberNull(),
+			},
+			expected: &planmodifier.NumberResponse{
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtListIndex(0).AtName("nested_test"),
+					),
+				},
+				PlanValue: types.NumberUnknown(),
+			},
+		},
+		"under-set": {
+			request: planmodifier.NumberRequest{
+				ConfigValue: types.NumberNull(),
+				Path: path.Root("test").AtSetValue(
+					types.SetValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_test": types.NumberType,
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_test": types.NumberType,
+								},
+								map[string]attr.Value{
+									"nested_test": types.NumberUnknown(),
+								},
+							),
+						},
+					),
+				).AtName("nested_test"),
+				PlanValue:  types.NumberUnknown(),
+				StateValue: types.NumberNull(),
+			},
+			expected: &planmodifier.NumberResponse{
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtSetValue(
+							types.SetValueMust(
+								types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"nested_test": types.NumberType,
+									},
+								},
+								[]attr.Value{
+									types.ObjectValueMust(
+										map[string]attr.Type{
+											"nested_test": types.NumberType,
+										},
+										map[string]attr.Value{
+											"nested_test": types.NumberUnknown(),
+										},
+									),
+								},
+							),
+						).AtName("nested_test"),
+					),
+				},
 				PlanValue: types.NumberUnknown(),
 			},
 		},

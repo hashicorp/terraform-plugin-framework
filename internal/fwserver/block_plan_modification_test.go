@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
@@ -1127,7 +1128,7 @@ func TestBlockModifyPlan(t *testing.T) {
 												"nested_required": types.StringType,
 											},
 											map[string]attr.Value{
-												"nested_computed": types.StringValue("statevalue"),
+												"nested_computed": types.StringUnknown(),
 												"nested_required": types.StringValue("configvalue"),
 											},
 										),
@@ -1137,6 +1138,284 @@ func TestBlockModifyPlan(t *testing.T) {
 						),
 					},
 				),
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtListIndex(0).AtName("id"),
+					),
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtListIndex(0).AtName("list").AtListIndex(0).AtName("nested_computed"),
+					),
+				},
+			},
+		},
+		"block-list-nested-usestateforunknown-elements-rearranged": {
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_computed": testschema.AttributeWithStringPlanModifiers{
+							Required: true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"nested_required": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+
+				NestingMode: fwschema.BlockNestingModeList,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringNull(),
+								"nested_required": types.StringValue("testvalue2"), // prior state on index 0 is testvalue1
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringNull(),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+					},
+				),
+				AttributeState: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue1"),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue2"),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+					},
+				),
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtListIndex(0).AtName("nested_computed"),
+					),
+				},
+			},
+		},
+		"block-list-nested-usestateforunknown-elements-removed": {
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_computed": testschema.AttributeWithStringPlanModifiers{
+							Required: true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"nested_required": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+
+				NestingMode: fwschema.BlockNestingModeList,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringNull(),
+								"nested_required": types.StringValue("testvalue2"), // prior state on index 0 is testvalue1
+							},
+						),
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+					},
+				),
+				AttributeState: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue1"),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue2"),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+					},
+				),
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtListIndex(0).AtName("nested_computed"),
+					),
+				},
 			},
 		},
 		"block-set-nested-usestateforunknown": {
@@ -1266,6 +1545,135 @@ func TestBlockModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+					},
+				),
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtSetValue(
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_computed": types.StringType,
+									"nested_required": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_computed": types.StringUnknown(),
+									"nested_required": types.StringValue("testvalue1"),
+								},
+							),
+						).AtName("nested_computed"),
+					),
+				},
+			},
+		},
+		"block-set-nested-usestateforunknown-elements-rearranged": {
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_computed": testschema.AttributeWithStringPlanModifiers{
+							Required: true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"nested_required": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+
+				NestingMode: fwschema.BlockNestingModeSet,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringNull(),
+								"nested_required": types.StringValue("testvalue2"), // prior state on index 0 is testvalue1
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringNull(),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+					},
+				),
+				AttributeState: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
 								"nested_computed": types.StringValue("statevalue1"),
 								"nested_required": types.StringValue("testvalue1"),
 							},
@@ -1282,6 +1690,185 @@ func TestBlockModifyPlan(t *testing.T) {
 						),
 					},
 				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+					},
+				),
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtSetValue(
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_computed": types.StringType,
+									"nested_required": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_computed": types.StringUnknown(),
+									"nested_required": types.StringValue("testvalue2"),
+								},
+							),
+						).AtName("nested_computed"),
+					),
+				},
+			},
+		},
+		"block-set-nested-usestateforunknown-elements-removed": {
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_computed": testschema.AttributeWithStringPlanModifiers{
+							Required: true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"nested_required": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+
+				NestingMode: fwschema.BlockNestingModeSet,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringNull(),
+								"nested_required": types.StringValue("testvalue2"), // prior state on index 0 is testvalue1
+							},
+						),
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+					},
+				),
+				AttributeState: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue1"),
+								"nested_required": types.StringValue("testvalue1"),
+							},
+						),
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringValue("statevalue2"),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+							"nested_required": types.StringType,
+						},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"nested_computed": types.StringType,
+								"nested_required": types.StringType,
+							},
+							map[string]attr.Value{
+								"nested_computed": types.StringUnknown(),
+								"nested_required": types.StringValue("testvalue2"),
+							},
+						),
+					},
+				),
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtSetValue(
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_computed": types.StringType,
+									"nested_required": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_computed": types.StringUnknown(),
+									"nested_required": types.StringValue("testvalue2"),
+								},
+							),
+						).AtName("nested_computed"),
+					),
+				},
 			},
 		},
 		"block-set-usestateforunknown": {

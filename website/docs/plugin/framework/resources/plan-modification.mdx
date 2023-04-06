@@ -113,6 +113,59 @@ func UseStateForUnknown() planmodifier.Bool {
 }
 ```
 
+### Caveats
+
+#### Terraform Data Consistency Rules
+
+Terraform core [implements data consistency rules](https://github.com/hashicorp/terraform/blob/main/docs/resource-instance-change-lifecycle.md) between configuration, plan, and state data. For example, if an attribute value is configured, it is never valid to change that value in the plan except being set to null on resource destroy. The framework does not raise its own targeted errors in many situations, so it is the responsibility of the developer to account for these rules when implementing plan modification logic.
+
+#### Prior State Under Lists and Sets
+
+Attribute plan modifiers under the following must take special consideration if they rely on prior state data:
+
+- List nested attributes
+- List nested blocks
+- Set nested attributes
+- Set nested blocks
+
+These data structures are implemented based on array indexing, which the framework always sends the exact representation given across the protocol. If list/set elements are rearranged or removed, Terraform nor the framework performs any re-alignment of prior state for those elements.
+
+In this example, potentially unexpected prior state may be given to attribute plan modifier request:
+
+- A list nested attribute with two elements in configuration is saved into state
+- The configuration for the first element is removed
+- The list nested attribute with now one element still receives the prior state of the first element
+
+#### Checking Resource Change Operations
+
+Plan modifiers execute on all resource change operations: creation, update, and destroy. If the plan modification logic is sensitive to these details, check the request data to determine the current operation.
+
+Implement the following to check whether the resource is being created:
+
+```go
+func (m ExampleModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+    // Check if the resource is being created.
+    if req.State.Raw.IsNull() {
+        // ...
+    }
+
+    // ...
+}
+```
+
+Implement the following to check whether the resource is being created:
+
+```go
+func (m ExampleModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+    // Check if the resource is being destroyed.
+    if req.Plan.Raw.IsNull() {
+        // ...
+    }
+
+    // ...
+}
+```
+
 ## Resource Plan Modification
 
 Resources also support plan modification across all attributes. This is helpful when working with logic that applies to the resource as a whole, or in Terraform 1.3 and later, to return diagnostics during resource destruction. Implement the [`resource.ResourceWithModifyPlan` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithModifyPlan) to support resource-level plan modification. For example:

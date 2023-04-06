@@ -3,6 +3,8 @@ package mapplanmodifier
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/internal/parentpath"
+	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
@@ -14,6 +16,11 @@ import (
 // and Computed attributes to an unknown value "(known after apply)" on update.
 // Using this plan modifier will instead display the prior state value in the
 // plan, unless a prior plan modifier adjusts the value.
+//
+// To prevent data issues and Terraform errors, this plan modifier cannot be
+// implemented on attribute values beneath lists or sets. An implementation
+// error diagnostic is raised if the plan modifier logic detects a list or set
+// in the request path.
 func UseStateForUnknown() planmodifier.Map {
 	return useStateForUnknownModifier{}
 }
@@ -33,6 +40,19 @@ func (m useStateForUnknownModifier) MarkdownDescription(_ context.Context) strin
 
 // PlanModifyMap implements the plan modification logic.
 func (m useStateForUnknownModifier) PlanModifyMap(_ context.Context, req planmodifier.MapRequest, resp *planmodifier.MapResponse) {
+	// Verify this plan modifier is not being used beneath a list or set.
+	// Lists and sets do not have a generic methodology to identify/track
+	// an element if rearranged, especially within an object with multiple
+	// computed attribute values. Only the provider can determine which
+	// underlying values in an element are significant to realign a prior
+	// state value during updates.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+	if parentpath.HasListOrSet(req.Path) {
+		resp.Diagnostics.Append(planmodifierdiag.UseStateForUnknownUnderListOrSet(req.Path))
+
+		return
+	}
+
 	// Do nothing if there is no state value.
 	if req.StateValue.IsNull() {
 		return

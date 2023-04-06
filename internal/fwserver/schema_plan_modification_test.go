@@ -7,8 +7,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
@@ -1400,7 +1402,7 @@ func TestSchemaModifyPlan(t *testing.T) {
 											},
 										},
 										map[string]tftypes.Value{
-											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+											"nested_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 											"nested_required": tftypes.NewValue(tftypes.String, "testvalue1"),
 										},
 									),
@@ -1412,7 +1414,7 @@ func TestSchemaModifyPlan(t *testing.T) {
 											},
 										},
 										map[string]tftypes.Value{
-											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue2"),
+											"nested_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 											"nested_required": tftypes.NewValue(tftypes.String, "testvalue2"),
 										},
 									),
@@ -1442,6 +1444,22 @@ func TestSchemaModifyPlan(t *testing.T) {
 							},
 						},
 					},
+				},
+				Diagnostics: diag.Diagnostics{
+					planmodifierdiag.UseStateForUnknownUnderListOrSet(
+						path.Root("test").AtSetValue(
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_computed": types.StringType,
+									"nested_required": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_computed": types.StringUnknown(),
+									"nested_required": types.StringValue("testvalue1"),
+								},
+							),
+						).AtName("nested_computed"),
+					),
 				},
 			},
 		},

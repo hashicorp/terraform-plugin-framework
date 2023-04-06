@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'resource/schema: Prevent `UseStateForUnknown` plan modifier data misalignment
+  and Terraform errors by raising implementation error when defined a list or set'
+time: 2023-04-06T11:27:57.549597-04:00
+custom:
+  Issue: "711"

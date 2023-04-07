@@ -22,9 +22,7 @@ func TestUseStateForUnknownUnderListOrSet(t *testing.T) {
 				path.Root("test"),
 				"Invalid Attribute Schema",
 				"Attributes under a list or set cannot use the UseStateForUnknown() plan modifier. "+
-					// TODO: Implement MatchElementStateForUnknown plan modifiers.
-					// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/717
-					// "Use the MatchElementStateForUnknown() plan modifier instead. "+
+					"Use the MatchElementStateForUnknown() plan modifier instead. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 					"Path: test\n",
 			),

@@ -53,10 +53,11 @@ If defined, plan modifiers are applied to the current attribute. If any nested a
 
 The framework implements some common use case modifiers in the typed packages under `resource/schema/`, such as `resource/schema/stringplanmodifier`:
 
+- `MatchElementStateForUnknown()`: For attributes under list or set nested attributes or blocks, copies the prior state value, if not null. This is useful for reducing `(known after apply)` plan outputs for computed attributes which are known to not change over time. Use `UseStateForUnknown()` for attributes not under list or set nested attributes or blocks.
 - `RequiresReplace()`: If the value of the attribute changes, in-place update is not possible and instead the resource should be replaced for the change to occur. Refer to the Go documentation for full details on its behavior.
 - `RequiresReplaceIf()`: Similar to `resource.RequiresReplace()`, however it also accepts provider-defined conditional logic. Refer to the Go documentation for full details on its behavior.
 - `RequiresReplaceIfConfigured()`: Similar to `resource.RequiresReplace()`, however it also will only trigger if the practitioner has configured a value. Refer to the Go documentation for full details on its behavior.
-- `UseStateForUnknown()`: Copies the prior state value, if not null. This is useful for reducing `(known after apply)` plan outputs for computed attributes which are known to not change over time.
+- `UseStateForUnknown()`: For attributes not under list or set nested attributes or blocks, copies the prior state value, if not null. This is useful for reducing `(known after apply)` plan outputs for computed attributes which are known to not change over time. Use `MatchElementStateForUnknown()` for attributes under list or set nested attributes or blocks.
 
 ### Creating Attribute Plan Modifiers
 

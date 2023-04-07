@@ -45,7 +45,7 @@ import (
 type Expression struct {
 	// root stores whether an expression was intentionally created to start
 	// from the root of the data. This is used with Merge to overwrite steps
-	// instead of appending steps.
+	// instead of appending steps and can be checked with IsRoot.
 	root bool
 
 	// steps is the transversals included with the expression. In general,
@@ -165,6 +165,11 @@ func (e Expression) Equal(o Expression) bool {
 	return true
 }
 
+// IsRoot returns true if the expression is a root expression and not relative.
+func (e Expression) IsRoot() bool {
+	return e.root
+}
+
 // Matches returns true if the given Path is valid for the Expression. Any
 // relative expression steps, such as ExpressionStepParent, are automatically
 // resolved before matching.
@@ -191,7 +196,7 @@ func (e Expression) MatchesParent(path Path) bool {
 // method explicitly if a resolved expression without any ExpressionStepParent
 // is desired.
 func (e Expression) Merge(other Expression) Expression {
-	if other.root {
+	if other.IsRoot() {
 		return other.Copy()
 	}
 

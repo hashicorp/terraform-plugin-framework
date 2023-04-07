@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'resource/schema: Added `MatchElementStateForUnknown` plan modifiers for preserving
+  prior state for attributes under list or set nested attributes or blocks'
+time: 2023-04-07T18:15:58.015879-04:00
+custom:
+  Issue: "718"

@@ -1,0 +1,8 @@
+kind: NOTES
+body: 'resource/schema: The `UseStateForUnknown` plan modifier will now raise an implementation
+  error if defined on an attribute under a list or set nested attribute to prevent errant data
+  and Terraform errors. Use the `MatchElementStateForUnknown` plan modifier instead in those
+  situations.'
+time: 2023-04-07T18:17:10.460361-04:00
+custom:
+  Issue: "718"

@@ -22,7 +22,7 @@ Implement the `Read` method by:
 1. Retriving updated resource state, such as remote system information.
 1. [Writing state data](/terraform/plugin/framework/writing-state) into the [`resource.ReadResponse.State` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.State).
 
-If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`resource.DeleteResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#DeleteResponse.Diagnostics).
+If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`resource.ReadResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadResponse.Diagnostics).
 
 In this example, the `Read` function makes a HTTP call and refreshes the state data if the status code was 200 OK or removes the resource if 404 Not Found:
 

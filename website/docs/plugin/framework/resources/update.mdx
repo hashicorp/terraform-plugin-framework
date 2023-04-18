@@ -78,8 +78,8 @@ func (r ThingResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Convert from Terraform data model into API data model
 	updateReq := ThingResourceAPIModel{
-		Id:   data.Id.StringValue(),
-		Name: data.Name.StringValue(),
+		Id:   data.Id.ValueString(),
+		Name: data.Name.ValueString(),
 	}
 
 	httpReqBody, err := json.Marshal(updateReq)

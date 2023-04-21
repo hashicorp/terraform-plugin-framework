@@ -325,7 +325,7 @@ func (p *exampleProvider) Schema(_ context.Context, _ provider.SchemaRequest, re
     resp.Schema = schema.Schema{
     	/*...*/
         Blocks: map[string]schema.Block{
-            "example_block": schema.SingleNestedBlock{
+            "example_block": schema.ListNestedBlock{
                 NestedObject: schema.NestedBlockObject{
 			Attributes: map[string]schema.Attribute{
 			    "example_attribute": schema.StringAttribute{

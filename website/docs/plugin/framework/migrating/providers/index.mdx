@@ -323,14 +323,20 @@ This code implements the `example_attribute` attribute for the `example_Block` b
 ```go
 func (p *exampleProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
     resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{
-            "example_block": schema.SingleNestedBlock{
-                Optional: true,
-                Attributes: map[string]schema.Attribute{
-                    "example_attribute": schema.StringAttribute{
-                        Optional: true,
-                        Validators: []validator.String{
-                            attribute_validator.UrlWithScheme(supportedProxySchemesStr()...),
-                            stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("another_attribute")),
-                        },
+    	/*...*/
+        Blocks: map[string]schema.Block{
+            "example_block": schema.ListNestedBlock{
+                NestedObject: schema.NestedBlockObject{
+			Attributes: map[string]schema.Attribute{
+			    "example_attribute": schema.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+				    attribute_validator.UrlWithScheme(supportedProxySchemesStr()...),
+				    stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("another_attribute")),
+				},
+			},
+		},
+		Validators: []validator.List{
+			    listvalidator.SizeAtMost(1),
+		},
 ```

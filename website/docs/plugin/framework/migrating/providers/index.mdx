@@ -334,7 +334,6 @@ func (p *exampleProvider) Schema(_ context.Context, _ provider.SchemaRequest, re
 				    attribute_validator.UrlWithScheme(supportedProxySchemesStr()...),
 				    stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("another_attribute")),
 				},
-				},
 			},
 		},
 		Validators: []validator.List{

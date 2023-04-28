@@ -18,7 +18,7 @@ func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value
 
 	if !ok {
 		return types.ListNull(nil), diag.Diagnostics{
-			attributePlanModificationWalkError(schemaPath, value),
+			schemaDataWalkError(schemaPath, value),
 		}
 	}
 
@@ -30,7 +30,7 @@ func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value)
 
 	if !ok {
 		return types.MapNull(nil), diag.Diagnostics{
-			attributePlanModificationWalkError(schemaPath, value),
+			schemaDataWalkError(schemaPath, value),
 		}
 	}
 
@@ -42,7 +42,7 @@ func coerceObjectValue(ctx context.Context, schemaPath path.Path, value attr.Val
 
 	if !ok {
 		return types.ObjectNull(nil), diag.Diagnostics{
-			attributePlanModificationWalkError(schemaPath, value),
+			schemaDataWalkError(schemaPath, value),
 		}
 	}
 
@@ -54,7 +54,7 @@ func coerceSetValue(ctx context.Context, schemaPath path.Path, value attr.Value)
 
 	if !ok {
 		return types.SetNull(nil), diag.Diagnostics{
-			attributePlanModificationWalkError(schemaPath, value),
+			schemaDataWalkError(schemaPath, value),
 		}
 	}
 
@@ -83,7 +83,7 @@ func listElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path,
 
 	if err != nil {
 		return types.ObjectNull(nil), diag.Diagnostics{
-			attributePlanModificationValueError(ctx, list, description, err),
+			schemaDataValueError(ctx, list, description, err),
 		}
 	}
 
@@ -114,7 +114,7 @@ func mapElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path, 
 
 	if err != nil {
 		return types.ObjectNull(nil), diag.Diagnostics{
-			attributePlanModificationValueError(ctx, m, description, err),
+			schemaDataValueError(ctx, m, description, err),
 		}
 	}
 
@@ -144,7 +144,7 @@ func objectAttributeValueFromTerraformValue(ctx context.Context, object types.Ob
 
 	if err != nil {
 		return nil, diag.Diagnostics{
-			attributePlanModificationValueError(ctx, object, description, err),
+			schemaDataValueError(ctx, object, description, err),
 		}
 	}
 
@@ -173,7 +173,7 @@ func setElemObjectFromTerraformValue(ctx context.Context, schemaPath path.Path, 
 
 	if err != nil {
 		return types.ObjectNull(nil), diag.Diagnostics{
-			attributePlanModificationValueError(ctx, set, description, err),
+			schemaDataValueError(ctx, set, description, err),
 		}
 	}
 

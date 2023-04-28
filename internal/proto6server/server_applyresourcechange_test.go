@@ -463,6 +463,10 @@ func TestServerApplyResourceChange(t *testing.T) {
 				},
 			},
 			request: &tfprotov6.ApplyResourceChangeRequest{
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, nil),
+				}),
 				TypeName: "test_resource",
 			},
 			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{

@@ -25,6 +25,22 @@ type ObjectValuable interface {
 	ToObjectValue(ctx context.Context) (ObjectValue, diag.Diagnostics)
 }
 
+// ObjectValuableWithSemanticEquals extends ObjectValuable with semantic
+// equality logic.
+type ObjectValuableWithSemanticEquals interface {
+	ObjectValuable
+
+	// ObjectSemanticEquals should return true if the given value is
+	// semantically equal to the current value. This logic is used to prevent
+	// Terraform data consistency errors and resource drift where a value change
+	// may have inconsequential differences, such as computed attribute values
+	// changed by a remote system.
+	//
+	// Only known values are compared with this method as changing a value's
+	// state implicitly represents a different value.
+	ObjectSemanticEquals(context.Context, ObjectValuable) (bool, diag.Diagnostics)
+}
+
 // NewObjectNull creates a Object with a null value. Determine whether the value is
 // null via the Object type IsNull method.
 func NewObjectNull(attributeTypes map[string]attr.Type) ObjectValue {

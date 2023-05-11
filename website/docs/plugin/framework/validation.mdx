@@ -192,7 +192,7 @@ func (v int64IsGreaterThanValidator) ValidateInt64(ctx context.Context, req vali
 			// implementation, in this case a types.Int64 value.
 			var matchedPathConfig types.Int64
 
-			diags = tftypes.ValueAs(ctx, matchedPathValue, &matchedPathConfig)
+			diags = tfsdk.ValueAs(ctx, matchedPathValue, &matchedPathConfig)
 
 			resp.Diagnostics.Append(diags...)
 

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 kind: ENHANCEMENTS
 body: 'resource/schema: Raise validation errors if attempting to use top-level `for_each`
   attribute name, which requires special Terraform configuration syntax to be usable by

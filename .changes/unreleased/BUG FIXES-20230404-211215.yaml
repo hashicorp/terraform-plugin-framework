@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 kind: BUG FIXES
 body: 'tfsdk: Raise framework errors instead of generic upstream errors or panics
   when encountering unexpected values with `Set()` methods'

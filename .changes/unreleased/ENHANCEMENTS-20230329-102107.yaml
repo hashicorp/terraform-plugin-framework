@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 kind: ENHANCEMENTS
 body: 'provider/metaschema: Added `Schema` type `ValidateImplementation()` method, which performs framework-defined
   schema validation and can be used in unit testing'

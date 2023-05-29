@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 kind: ENHANCEMENTS
 body: 'resource/schema: Raise validation errors if attempting to use attribute names
   with leading numerics (0-9), which are invalid in the Terraform configuration language'

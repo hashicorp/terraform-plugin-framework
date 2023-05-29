@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 kind: BUG FIXES
 body: 'provider/metaschema: Raise errors with `ListAttribute`, `MapAttribute`, `ObjectAttribute`,
   and `SetAttribute` implementations instead of panics when missing required `AttributeTypes` or

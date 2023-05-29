@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package planmodifier contains schema plan modifier interfaces and
 // request/response implementations. These plan modifier interfaces
 // are used by resource/schema and internally in the framework.

@@ -23,6 +23,21 @@ type Float64Valuable interface {
 	ToFloat64Value(ctx context.Context) (Float64Value, diag.Diagnostics)
 }
 
+// Float64ValuableWithSemanticEquals extends Float64Valuable with semantic
+// equality logic.
+type Float64ValuableWithSemanticEquals interface {
+	Float64Valuable
+
+	// Float64SemanticEquals should return true if the given value is
+	// semantically equal to the current value. This logic is used to prevent
+	// Terraform data consistency errors and resource drift where a value change
+	// may have inconsequential differences, such as rounding.
+	//
+	// Only known values are compared with this method as changing a value's
+	// state implicitly represents a different value.
+	Float64SemanticEquals(context.Context, Float64Valuable) (bool, diag.Diagnostics)
+}
+
 // Float64Null creates a Float64 with a null value. Determine whether the value is
 // null via the Float64 type IsNull method.
 func NewFloat64Null() Float64Value {

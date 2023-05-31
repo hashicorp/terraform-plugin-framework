@@ -24,6 +24,21 @@ type NumberValuable interface {
 	ToNumberValue(ctx context.Context) (NumberValue, diag.Diagnostics)
 }
 
+// NumberValuableWithSemanticEquals extends NumberValuable with semantic
+// equality logic.
+type NumberValuableWithSemanticEquals interface {
+	NumberValuable
+
+	// NumberSemanticEquals should return true if the given value is
+	// semantically equal to the current value. This logic is used to prevent
+	// Terraform data consistency errors and resource drift where a value change
+	// may have inconsequential differences, such as rounding.
+	//
+	// Only known values are compared with this method as changing a value's
+	// state implicitly represents a different value.
+	NumberSemanticEquals(context.Context, NumberValuable) (bool, diag.Diagnostics)
+}
+
 // NewNumberNull creates a Number with a null value. Determine whether the value is
 // null via the Number type IsNull method.
 func NewNumberNull() NumberValue {

@@ -129,6 +129,13 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
 				Resource: &testprovider.Resource{
@@ -393,6 +400,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.ApplyResourceChangeRequest{
+				PlannedState:   testEmptyPlan,
 				PriorState:     testEmptyState,
 				ResourceSchema: testSchema,
 				Resource: &testprovider.Resource{

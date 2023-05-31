@@ -6,278 +6,337 @@ description: >-
 
 # Custom Types
 
-You can use custom types for both attributes and blocks.
+Use existing custom types or develop custom types to consistently define behaviors for a kind of value across schemas. Custom types are supported on top of any framework-defined type.
 
-~> **Important:** Specifying plan customization for attribute types is not yet
-supported, limiting their utility. Support is expected in the near future.
+Supported behaviors for custom types include:
 
-### `attr.Type` Interface
+- Semantic Equality: Keep a prior value if a new value is inconsequentially different, such as preventing drift detection of JSON strings with differing property ordering.
+- Validation: Raise warning and/or error diagnostics based on the value, such as not following a specified format or enumeration of values.
 
-Use the [`attr.Type`
-interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Type)
-to implement an attribute type. It tells Terraform about its constraints and tells the framework how to create new attribute values from the information Terraform supplies. `attr.Type` has the following methods.
+## Example Use Cases
 
-| Method               | Description                                                                                                                                                                                                                                                                                                                |
-|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `TerraformType`      | Returns the [`tftypes.Type` value](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#Type) that describes its type constraints. This is how Terraform will know what type of values it can accept.                                                                                                       |
-| `ValueFromTerraform` | Returns an attribute value from the [`tftypes.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#Value) that Terraform supplies, or to return an error if it cannot. This error should not be used for validation purposes, and is expected to indicate programmer error, not practitioner error. |
-| `Equal`              | Returns true if the attribute type is considered equal to the passed attribute type.                                                                                                                                                                                                                                       |
+- Encoded values, such as JSON or YAML string.
+- Networking values, such as an IPv4 address string.
+- Time values, such as an RFC3339 string.
+- Provider-specific values, such as an AWS ARN or AzureRM location string.
 
-### `AttributePathStepper` Interface
+## Concepts
 
-All attribute types must implement the [`tftypes.AttributePathStepper`
-interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#AttributePathStepper),
-so the framework can access element or attribute types using attribute paths.
+Individual data value handling in the framework is performed by a pair of associated Go types:
 
-### `xattr.TypeWithValidation` Interface
+- Schema Types: Define the associated value type and logic to create a value.
+- Value Types: Define behaviors associated with the value, data storage of the value, and data storage of the value state (null, unknown, or known).
 
-If validation for type values is desired, use the [`xattr.TypeWithValidation` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidation) to include validation logic for type values. The framework will call this functionality when validating all values based on the schema.
+The framework defines a standard set these associated Go types referred to by the "base type" terminology. Extending these base types is referred to by the "custom type" terminology.
 
-| Method     | Description                                                   |
-|------------|---------------------------------------------------------------|
-| `Validate` | Returns any warning or error diagnostics for the given value. |
+## Using Custom Types
 
-### Type-Specific Interfaces
+Use a custom type by switching the schema definition and data handling from a framework-defined type to the custom type.
 
-| Case                        | Interface                                                                                                                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                |
-|-----------------------------|----------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Elements of the same type   | [`TypeWithElementType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithElementType)       | Attribute types that contain elements of the same type, like maps and lists, are required to implement `attr.TypeWithElementType`, which adds `WithElementType` and `ElementType` methods to the `attr.Type` interface. `WithElementType` must return a copy of the attribute type, but with its element type set to the passed type. `ElementType` must return the attribute type's element type.                         |
-| Elements of different types | [`TypeWithElementTypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithElementType)      | Attribute types that contain elements of differing types, like tuples, are required to implement the `attr.TypeWithElementTypes`, which adds `WithElementTypes` and `ElementTypes` methods to the `attr.Type` interface. `WithElementTypes` must return a copy of the attribute type, but with its element types set to the passed element types. `ElementTypes` must return the attribute type's element types.           |
-| Contain attributes          | [`TypeWithAttributeTypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#TypeWithAttributeTypes) | Attribute types that contain attributes, like objects, are required to implement the `attr.TypeWithAttributeTypes` interface, which adds `WithAttributeTypes` and `AttributeTypes` methods to the `attr.Type` interface. `WithAttributeTypes` must return a copy of the attribute type, but with its attribute types set to the passed attribute types. `AttributeTypes` must return the attribute type's attribute types. |
+### Schema Definition
 
-### `attr.Value` Interface
+The framework schema types accept a `CustomType` field where applicable, such as the [`resource/schema.StringAttribute` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#StringAttribute.CustomType). When the `CustomType` is omitted, the framework defaults to the associated base type.
 
-Use the [`attr.Value`
-interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value)
-to implement an attribute value. It tells the framework how to express that
-attribute value in a way that Terraform will understand. `attr.Value` has the
-following methods.
+Implement the `CustomType` field in a schema type to switch from the base type to a custom type.
 
-| Method             | Description                                                                                                                                                                                                                     |
-|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `ToTerraformValue` | Returns a Go type that is valid input for [`tftypes.NewValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes#NewValue) for the `tftypes.Type` specified by the `attr.Type` that creates the `attr.Value`. |
-| `Equal`            | Returns true if the passed attribute value should be considered to the attribute value the method is being called on. The passed attribute value is not guaranteed to be of the same Go type.                                   |
-
-## Custom Type and Value
-
-A minimal implementation of a custom type for `ListType` and `List` that leverages embedding looks as follows:
+In this example, a string attribute implements a custom type.
 
 ```go
-type CustomListType struct {
-    types.ListType
-}
-
-func (c CustomListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-    val, err := c.ListType.ValueFromTerraform(ctx, in)
-
-    return CustomListValue{
-        // unchecked type assertion
-        val.(types.List),
-    }, err
-}
-
-type CustomListValue struct {
-    types.List
-}
-
-func (c CustomListValue) DoSomething(ctx context.Context) {
-    tflog.Info(ctx, "called DoSomething on CustomListValue")
+schema.StringAttribute{
+    CustomType: CustomStringType{},
+    // ... other fields ...
 }
 ```
 
-## Terraform Configuration
+### Data Handling
 
-Using the custom type does not require any changes to the Terraform configuration.
+Each custom type will also include a value type, which must be used anywhere the value is referenced in data source, provider, or resource logic.
 
-```hcl
-resource "example_resource" "example" {
-  list_attribute = ["list-element", "list-element"]
+Switch any usage of a base value type to the custom value type. Any logic will need to be updated to match the custom value type implementation.
 
-  list_nested_attribute = [
-    {
-      int64_attribute = 9223372036854775807
-      list_attribute  = ["list-element", "list-element"]
-    },
-    {
-      int64_attribute = 9223372036854775807
-      list_attribute  = ["list-element", "list-element"]
-    }
-  ]
+In this example, a custom value type is used in a data model approach:
 
-  list_nested_block {
-    bool_attribute    = true
-    float64_attribute = 1234.5
-    int64_attribute   = 9223372036854775807
-    list_attribute    = ["list-element", "list-element"]
-    list_nested_nested_block {
-      bool_attribute = true
-    }
-    list_nested_nested_block {
-      bool_attribute = false
-    }
-  }
-  list_nested_block {
-    bool_attribute    = true
-    float64_attribute = 1234.5
-    int64_attribute   = 9223372036854775807
-    list_attribute    = ["list-element", "list-element"]
-    list_nested_nested_block {
-      bool_attribute = true
-    }
-    list_nested_nested_block {
-      bool_attribute = false
-    }
-  }
+```go
+type ThingModel struct {
+    // Instead of types.String
+    Timestamp CustomStringValue `tfsdk:"timestamp"`
+    // ... other fields ...
 }
 ```
 
-## Schema
+## Developing Custom Types
 
-Use the custom type in the schema as follows:
+Create a custom type by extending an existing framework schema type and its associated value type. Once created, define [semantic equality](#semantic-equality) and/or [validation](#validation) logic for the custom type.
+
+### Schema Type
+
+Extend a framework schema type by creating a Go type that implements one of the  `github.com/hashicorp/terraform-plugin-framework/types/basetypes` package `*Typable` interfaces.
+
+It is recommended to use Go type embedding of the base type to simplify the implementation and ensure it is up to date with the latest data handling features of the framework. With type embedding, the following [`attr.Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Type) methods should be overriden by the custom type:
+
+- `Equal(attr.Type) bool`
+- `ValueFromTerraform(context.Context, tftypes.Value) (attr.Value, error)`
+- `ValueType(context.Context) attr.Value`
+- `String() string`
+
+<Tip>
+
+The commonly used `types` package types are aliases to the `basetypes` package types mentioned in this table.
+
+</Tip>
+
+| Framework Schema Type | Custom Schema Type Interface |
+| --- | --- |
+| [`basetypes.BoolType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#BoolType) | [`basetypes.BoolTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#BoolTypable) |
+| [`basetypes.Float64Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Float64Type) | [`basetypes.Float64Typable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Float64Typable) |
+| [`basetypes.Int64Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Int64Type) | [`basetypes.Int64Typable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Int64Typable) |
+| [`basetypes.ListType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ListType) | [`basetypes.ListTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ListTypable) |
+| [`basetypes.MapType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapType) | [`basetypes.MapTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapTypable) |
+| [`basetypes.NumberType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#NumberType) | [`basetypes.NumberTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#NumberTypable) |
+| [`basetypes.ObjectType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectType) | [`basetypes.ObjectTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectTypable) |
+| [`basetypes.SetType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetType) | [`basetypes.SetTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetTypable) |
+| [`basetypes.StringType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringType) | [`basetypes.StringTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringTypable) |
+
+In this example, the `basetypes.StringTypable` interface is implemented to create a custom string type with an associated [value type](#value-type):
 
 ```go
-func (e *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{
-            "list_attribute": schema.ListAttribute{
-                Optional:    true,
-                ElementType: types.StringType,
-                CustomType: CustomListType{
-                    types.ListType{
-                        ElemType: types.StringType,
-                    },
-                },
-            },
+import (
+    "context"
+    "fmt"
 
-            "list_nested_attribute": schema.ListNestedAttribute{
-                Optional: true,
-                CustomType: CustomListType{
-                    types.ListType{
-                        ElemType: types.ObjectType{
-                            AttrTypes: map[string]attr.Type{
-                                "int64_attribute": types.Int64Type,
-                                "list_attribute": types.ListType{
-                                    ElemType: types.StringType,
-                                },
-                            },
-                        },
-                    },
-                },
-                NestedObject: schema.NestedAttributeObject{
-                    Attributes: map[string]schema.Attribute{
-                        "int64_attribute": schema.Int64Attribute{
-                            Optional: true,
-                        },
-                        "list_attribute": schema.ListAttribute{
-                            Optional:    true,
-                            ElementType: types.StringType,
-                        },
-                    },
-                },
-            },
-        },
+    "github.com/hashicorp/terraform-plugin-framework/attr"
+    "github.com/hashicorp/terraform-plugin-framework/diag"
+    "github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+    "github.com/hashicorp/terraform-plugin-go/tftypes"
+)
 
-        Blocks: map[string]schema.Block{
-            "list_nested_block": schema.ListNestedBlock{
-                CustomType: CustomListType{
-                    types.ListType{
-                        ElemType: types.ObjectType{
-                            AttrTypes: map[string]attr.Type{
-                                "bool_attribute":    types.BoolType,
-                                "float64_attribute": types.Float64Type,
-                                "int64_attribute":   types.Int64Type,
-                                "list_attribute": types.ListType{
-                                    ElemType: types.StringType,
-                                },
-                                "list_nested_nested_block": types.ListType{
-                                    ElemType: types.ObjectType{
-                                        AttrTypes: map[string]attr.Type{
-                                            "bool_attribute": types.BoolType,
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                NestedObject: schema.NestedBlockObject{
-                    Attributes: map[string]schema.Attribute{
-                        "bool_attribute": schema.BoolAttribute{
-                            Optional: true,
-                        },
-                        "float64_attribute": schema.Float64Attribute{
-                            Optional: true,
-                        },
+// Ensure the implementation satifies the expected interfaces
+var _ basetypes.StringTypable = CustomStringType{}
 
-                        "int64_attribute": schema.Int64Attribute{
-                            Optional: true,
-                        },
-                        "list_attribute": schema.ListAttribute{
-                            Optional:    true,
-                            ElementType: types.StringType,
-                        },
-                    },
-                    Blocks: map[string]schema.Block{
-                        "list_nested_nested_block": schema.ListNestedBlock{
-                            NestedObject: schema.NestedBlockObject{
-                                Attributes: map[string]schema.Attribute{
-                                    "bool_attribute": schema.BoolAttribute{
-                                        Optional: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        },
+type CustomStringType struct {
+    basetypes.StringType
+    // ... potentially other fields ...
+}
+
+func (t CustomStringType) Equal(o attr.Type) bool {
+    other, ok := o.(CustomStringType)
+
+    if !ok {
+        return false
     }
+
+    return t.StringType.Equal(other.StringType)
+}
+
+func (t CustomStringType) String() string {
+    return "CustomStringType"
+}
+
+func (t CustomStringType) ValueFromString(ctx context.Context, in basetypes.StringValue) (basetypes.StringValuable, diag.Diagnostics) {
+    // CustomStringValue defined in the value type section
+    value := CustomStringValue{
+        StringValue: in,
+    }
+
+    return value, nil
+}
+
+func (t CustomStringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+    attrValue, err := t.StringType.ValueFromTerraform(ctx, in)
+
+    if err != nil {
+        return nil, err
+    }
+
+    stringValue, ok := attrValue.(basetypes.StringValue)
+
+    if !ok {
+        return nil, fmt.Errorf("unexpected value type of %T", attrValue)
+    }
+
+    stringValuable, diags := t.ValueFromString(ctx, stringValue)
+
+    if diags.HasError() {
+        return nil, fmt.Errorf("unexpected error converting StringValue to StringValuable: %v", diags)
+    }
+
+    return stringValuable, nil
+}
+
+func (t CustomStringType) ValueType(ctx context.Context) attr.Value {
+    // CustomStringValue defined in the value type section
+    return CustomStringValue{}
 }
 ```
 
-## Model
+### Value Type
 
-The custom type value is then used within the model.
+Extend a framework value type by creating a Go type that implements one of the `github.com/hashicorp/terraform-plugin-framework/types/basetypes` package `*Valuable` interfaces.
 
-Where previously the model would have looked as follows:
+It is recommended to use Go type embedding of the base type to simplify the implementation and ensure it is up to date with the latest data handling features of the framework. With type embedding, the following [`attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value) methods should be overriden by the custom type:
+
+- `Equal(attr.Value) bool`
+- `Type(context.Context) attr.Type`
+
+<Tip>
+
+The commonly used `types` package types are aliases to the `basetypes` package types mentioned in this table.
+
+</Tip>
+
+| Framework Schema Type | Custom Schema Type Interface |
+| --- | --- |
+| [`basetypes.BoolValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#BoolValue) | [`basetypes.BoolValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#BoolValuable) |
+| [`basetypes.Float64Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Float64Value) | [`basetypes.Float64Valuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Float64Valuable) |
+| [`basetypes.Int64Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Int64Value) | [`basetypes.Int64Valuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Int64Valuable) |
+| [`basetypes.ListValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ListValue) | [`basetypes.ListValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ListValuable) |
+| [`basetypes.MapValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapValue) | [`basetypes.MapValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapValuable) |
+| [`basetypes.NumberValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#NumberValue) | [`basetypes.NumberValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#NumberValuable) |
+| [`basetypes.ObjectValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectValue) | [`basetypes.ObjectValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectValuable) |
+| [`basetypes.SetValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetValue) | [`basetypes.SetValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetValuable) |
+| [`basetypes.StringValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringValue) | [`basetypes.StringValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringValuable) |
+
+In this example, the `basetypes.StringValuable` interface is implemented to create a custom string value type with an associated [schema type](#schema-type):
 
 ```go
-type exampleResourceData struct {
-    ListAttribute         types.List `tfsdk:"list_attribute"`
-    ListNestedAttribute   types.List `tfsdk:"list_nested_attribute"`
-    ListNestedBlock       types.List `tfsdk:"list_nested_block"`
+import (
+    "context"
+    "fmt"
+
+    "github.com/hashicorp/terraform-plugin-framework/attr"
+    "github.com/hashicorp/terraform-plugin-framework/diag"
+    "github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+    "github.com/hashicorp/terraform-plugin-go/tftypes"
+)
+
+// Ensure the implementation satifies the expected interfaces
+var _ basetypes.StringValuable = CustomStringValue{}
+
+type CustomStringValue struct {
+    basetypes.StringValue
+    // ... potentially other fields ...
+}
+
+func (v CustomStringValue) Equal(o attr.Value) bool {
+    other, ok := o.(CustomStringValue)
+
+    if !ok {
+        return false
+    }
+
+    return v.StringValue.Equal(other.StringValue)
+}
+
+func (v CustomStringValue) Type(ctx context.Context) attr.Type {
+    // CustomStringType defined in the schema type section
+    return CustomStringType{}
 }
 ```
 
-The custom type value is used by updating the model to:
+From this point, the custom type can be extended with other behaviors.
+
+### Semantic Equality
+
+Semantic equality handling enables the value type to automatically keep a prior value when a new value is determined to be inconsequentially different. This handling can prevent unexpected drift detection for values and in some cases prevent Terraform data handling errors.
+
+This value type functionality is checked in the following scenarios:
+
+- When refreshing a data source, the response state value from the `Read` method logic is compared to the configuration value.
+- When refreshing a resource, the response new state value from the `Read` method logic is compared to the request prior state value.
+- When creating or updating a resource, the response new state value from the `Create` or `Update` method logic is compared to the request plan value.
+
+The framework will only call semantic equality logic if both the prior and new values are known. Null or unknown values are unnecessary to check.
+
+Implement the associated `github.com/hashicorp/terraform-plugin-framework/types/basetypes` package `*ValuableWithSemanticEquals` interface on the value type to define and enable this behavior.
+
+In this example, the custom string value type will preserve the prior value if the expected RFC3339 timestamps are considered equivalent:
 
 ```go
-type exampleResourceData struct {
-    ListAttribute         CustomListValue `tfsdk:"list_attribute"`
-    ListNestedAttribute   CustomListValue `tfsdk:"list_nested_attribute"`
-    ListNestedBlock       CustomListValue `tfsdk:"list_nested_block"`
-}
-```
+// CustomStringValue defined in the value type section
+// Ensure the implementation satifies the expected interfaces
+var _ basetypes.StringValuableWithSemanticEquals = CustomStringValue{}
 
-## Create
+func (v CustomStringValue) StringSemanticEquals(ctx context.Context, newValuable basetypes.StringValuable) (bool, diag.Diagnostics) {
+    var diags diag.Diagnostics
 
-The functions on `CustomListValue` are then available.
+    // The framework should always pass the correct value type, but always check
+    newValue, ok := newValuable.(CustomStringValue)
 
-```go
-func (e *exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-    var data exampleResourceData
+    if !ok {
+        diags.AddError(
+            "Semantic Equality Check Error",
+            "An unexpected value type was received while performing semantic equality checks. "+
+            "Please report this to the provider developers.\n\n"+
+            "Expected Value Type: "+fmt.Sprintf("%T", v)+"\n"+
+            "Got Value Type: "+fmt.Sprintf("%T", newValuable),
+        )
 
-    diags := req.Config.Get(ctx, &data)
-    resp.Diagnostics.Append(diags...)
-
-    if resp.Diagnostics.HasError() {
         return
     }
 
-    data.ListAttribute.DoSomething(ctx)
-    data.ListNestedAttribute.DoSomething(ctx)
-    data.ListNestedBlock.DoSomething(ctx)
+    // Skipping error checking if CustomStringValue already implemented RFC3339 validation
+    priorTime, _ := time.Parse(time.RFC3339, v.StringValue.ValueString())
 
-    /*...*/
+    // Skipping error checking if CustomStringValue already implemented RFC3339 validation
+    newTime, _ := time.Parse(time.RFC3339, newValue.ValueString())
+
+    // If the times are equivalent, keep the prior value
+    return priorTime.Equal(newTime)
+}
+```
+
+### Validation
+
+Validation handling enables the schema type to automatically raise warning and/or error diagnostics when a value is determined to be invalid. This handling simplifies schema definitions by removing the need for each attribute to repetitively define validators. This schema type functionality is automatically checked by the framework any time a value is created.
+
+Implement the [`xattr.TypeWithValidation`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidation) interface on the value type to define and enable this behavior.
+
+<Note>
+
+This functionality uses the lower level [`tftypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tftypes) type system compared to other framework logic.
+
+</Note>
+
+In this example, the custom string value type will ensure the string is a valid RFC3339 timestamp:
+
+```go
+// CustomStringType defined in the schema type section
+func (t CustomStringType) Validate(ctx context.Context, value tftypes.Value, valuePath path.Path) diag.Diagnostics {
+    if value.IsNull() || !value.IsKnown() {
+        return nil
+    }
+
+    var diags diags.Diagnostics
+    var valueString string
+
+    if err := value.As(&valueString); err != nil {
+        diags.AddAttributeError(
+            valuePath,
+            "Invalid Terraform Value",
+            "An unexpected error occurred while attempting to convert a Terraform value to a string. "+
+                "This generally is an issue with the provider schema implementation. "+,
+                "Please contact the provider developers.\n\n"+,
+                "Path: "+valuePath.String()+"\n"+
+                "Error: "+err.Error(),
+        ),
+
+        return diags
+    }
+
+    if _, err := time.Parse(time.RFC3339, valueString); err != nil {
+        diags.AddAttributeError(
+            valuePath,
+            "Invalid RFC 3339 String Value",
+            "An unexpected error occurred while converting a string value that was expected to be RFC 3339 format. "+
+                "The RFC 3339 string format is YYYY-MM-DDTHH:MM:SSZ, such as 2006-01-02T15:04:05Z or 2006-01-02T15:04:05+07:00.\n\n",
+                "Path: "+valuePath.String()+"\n"+
+                "Given Value: "+valueString+"\n"+
+                "Error: "+err.Error(),
+        ),
+
+        return diags
+    }
+
+    return diags
 }
 ```

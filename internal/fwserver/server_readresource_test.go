@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -45,6 +46,38 @@ func TestServerReadResource(t *testing.T) {
 				Computed: true,
 			},
 			"test_required": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
+
+	testSchemaWithSemanticEquals := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
+				Computed: true,
+			},
+			"test_required": schema.StringAttribute{
+				CustomType: testtypes.StringTypeWithSemanticEquals{
+					SemanticEquals: true,
+				},
+				Required: true,
+			},
+		},
+	}
+
+	testSchemaWithSemanticEqualsDiagnostics := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
+				Computed: true,
+			},
+			"test_required": schema.StringAttribute{
+				CustomType: testtypes.StringTypeWithSemanticEquals{
+					SemanticEquals: true,
+					SemanticEqualsDiagnostics: diag.Diagnostics{
+						diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+						diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+					},
+				},
 				Required: true,
 			},
 		},
@@ -300,6 +333,56 @@ func TestServerReadResource(t *testing.T) {
 				Private:  testEmptyPrivate,
 			},
 		},
+		"response-diagnostics-semantic-equality": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: &tfsdk.State{
+					Raw: tftypes.NewValue(testType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-currentstate-value"),
+					}),
+					Schema: testSchemaWithSemanticEqualsDiagnostics,
+				},
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						var data struct {
+							TestComputed types.String                            `tfsdk:"test_computed"`
+							TestRequired testtypes.StringValueWithSemanticEquals `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+						data.TestRequired = testtypes.StringValueWithSemanticEquals{
+							SemanticEquals: true,
+							SemanticEqualsDiagnostics: diag.Diagnostics{
+								diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+								diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+							},
+							StringValue: types.StringValue("test-semantic-equal-value"),
+						}
+
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+					diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						// The response state is intentionally not updated when there are diagnostics
+						"test_required": tftypes.NewValue(tftypes.String, "test-semantic-equal-value"),
+					}),
+					Schema: testSchemaWithSemanticEqualsDiagnostics,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
 		"response-state": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -341,6 +424,48 @@ func TestServerReadResource(t *testing.T) {
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testNewStateRemoved,
 				Private:  testEmptyPrivate,
+			},
+		},
+		"response-state-semantic-equality": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: &tfsdk.State{
+					Raw: tftypes.NewValue(testType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-currentstate-value"),
+					}),
+					Schema: testSchemaWithSemanticEquals,
+				},
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						var data struct {
+							TestComputed types.String                            `tfsdk:"test_computed"`
+							TestRequired testtypes.StringValueWithSemanticEquals `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+						// This value should be overwritten back to the config value.
+						data.TestRequired = testtypes.StringValueWithSemanticEquals{
+							SemanticEquals: true,
+							StringValue:    types.StringValue("test-semantic-equal-value"),
+						}
+
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-currentstate-value"),
+					}),
+					Schema: testSchemaWithSemanticEquals,
+				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"response-private": {

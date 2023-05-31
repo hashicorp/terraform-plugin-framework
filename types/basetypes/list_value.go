@@ -24,6 +24,22 @@ type ListValuable interface {
 	ToListValue(ctx context.Context) (ListValue, diag.Diagnostics)
 }
 
+// ListValuableWithSemanticEquals extends ListValuable with semantic equality
+// logic.
+type ListValuableWithSemanticEquals interface {
+	ListValuable
+
+	// ListSemanticEquals should return true if the given value is
+	// semantically equal to the current value. This logic is used to prevent
+	// Terraform data consistency errors and resource drift where a value change
+	// may have inconsequential differences, such as computed elements added by
+	// a remote system.
+	//
+	// Only known values are compared with this method as changing a value's
+	// state implicitly represents a different value.
+	ListSemanticEquals(context.Context, ListValuable) (bool, diag.Diagnostics)
+}
+
 // NewListNull creates a List with a null value. Determine whether the value is
 // null via the List type IsNull method.
 func NewListNull(elementType attr.Type) ListValue {

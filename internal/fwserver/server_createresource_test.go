@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -40,6 +41,38 @@ func TestServerCreateResource(t *testing.T) {
 		},
 	}
 
+	testSchemaWithSemanticEquals := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
+				Computed: true,
+			},
+			"test_required": schema.StringAttribute{
+				CustomType: testtypes.StringTypeWithSemanticEquals{
+					SemanticEquals: true,
+				},
+				Required: true,
+			},
+		},
+	}
+
+	testSchemaWithSemanticEqualsDiagnostics := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
+				Computed: true,
+			},
+			"test_required": schema.StringAttribute{
+				CustomType: testtypes.StringTypeWithSemanticEquals{
+					SemanticEquals: true,
+					SemanticEqualsDiagnostics: diag.Diagnostics{
+						diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+						diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+					},
+				},
+				Required: true,
+			},
+		},
+	}
+
 	testEmptyState := &tfsdk.State{
 		Raw:    tftypes.NewValue(testSchemaType, nil),
 		Schema: testSchema,
@@ -48,6 +81,11 @@ func TestServerCreateResource(t *testing.T) {
 	type testSchemaData struct {
 		TestComputed types.String `tfsdk:"test_computed"`
 		TestRequired types.String `tfsdk:"test_required"`
+	}
+
+	type testSchemaDataWithSemanticEquals struct {
+		TestComputed types.String                            `tfsdk:"test_computed"`
+		TestRequired testtypes.StringValueWithSemanticEquals `tfsdk:"test_required"`
 	}
 
 	testProviderMetaType := tftypes.Object{
@@ -100,6 +138,13 @@ func TestServerCreateResource(t *testing.T) {
 			},
 			request: &fwserver.CreateResourceRequest{
 				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedState: &tfsdk.Plan{
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, nil),
 						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
@@ -304,6 +349,54 @@ func TestServerCreateResource(t *testing.T) {
 				Private:  testEmptyPrivate,
 			},
 		},
+		"response-diagnostics-semantic-equality": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.CreateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchemaWithSemanticEqualsDiagnostics,
+				},
+				ResourceSchema: testSchemaWithSemanticEqualsDiagnostics,
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						var data testSchemaDataWithSemanticEquals
+
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+						data.TestRequired = testtypes.StringValueWithSemanticEquals{
+							SemanticEquals: true,
+							SemanticEqualsDiagnostics: diag.Diagnostics{
+								diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+								diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+							},
+							StringValue: types.StringValue("test-semantic-equal-value"),
+						}
+
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.CreateResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+					diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						// The response state is intentionally not updated when there are diagnostics
+						"test_required": tftypes.NewValue(tftypes.String, "test-semantic-equal-value"),
+					}),
+					Schema: testSchemaWithSemanticEqualsDiagnostics,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
 		"response-newstate": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -370,11 +463,58 @@ func TestServerCreateResource(t *testing.T) {
 				Private:  testEmptyPrivate,
 			},
 		},
+		"response-newstate-semantic-equality": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.CreateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchemaWithSemanticEquals,
+				},
+				ResourceSchema: testSchemaWithSemanticEquals,
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						var data testSchemaDataWithSemanticEquals
+
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+						// This value should be overwritten back to the plan value.
+						data.TestRequired = testtypes.StringValueWithSemanticEquals{
+							SemanticEquals: true,
+							StringValue:    types.StringValue("test-semantic-equal-value"),
+						}
+
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.CreateResourceResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchemaWithSemanticEquals,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
 		"response-private": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.CreateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchema,
+				},
 				ResourceSchema: testSchema,
 				Resource: &testprovider.Resource{
 					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

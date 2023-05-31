@@ -1765,22 +1765,3 @@ func NestedAttributeObjectPlanModify(ctx context.Context, o fwschema.NestedAttri
 
 	resp.AttributePlan = newPlanValue
 }
-
-func attributePlanModificationValueError(ctx context.Context, value attr.Value, description fwschemadata.DataDescription, err error) diag.Diagnostic {
-	return diag.NewErrorDiagnostic(
-		"Attribute Plan Modification "+description.Title()+" Value Error",
-		"An unexpected error occurred while fetching a "+value.Type(ctx).String()+" element value in the "+description.String()+". "+
-			"This is an issue with the provider and should be reported to the provider developers.\n\n"+
-			"Original Error: "+err.Error(),
-	)
-}
-
-func attributePlanModificationWalkError(schemaPath path.Path, value attr.Value) diag.Diagnostic {
-	return diag.NewAttributeErrorDiagnostic(
-		schemaPath,
-		"Attribute Plan Modification Walk Error",
-		"An unexpected error occurred while walking the schema for attribute plan modification. "+
-			"This is an issue with terraform-plugin-framework and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("unknown attribute value type (%T) at path: %s", value, schemaPath),
-	)
-}

@@ -47,7 +47,7 @@ func (r *resourceExample) Schema(ctx context.Context, req resource.SchemaRequest
         /* ... */
         Attributes: map[string]schema.Attribute{
             "attribute_example": schema.BoolAttribute{
-                Default: booldefault.StaticValue(true),
+                Default: booldefault.StaticBool(true),
                 /* ... */
 ```
 
@@ -87,7 +87,7 @@ func (r *exampleResource) Schema(ctx context.Context, req resource.SchemaRequest
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
             "example_attribute": schema.Int64Attribute{
-                Default: int64default.StaticValue(2048)
+                Default: int64default.StaticInt64(2048)
                 /* ... */
             },
             /* ... */

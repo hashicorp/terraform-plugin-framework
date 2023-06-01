@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package defaults contains schema default value interfaces and
 // request/response implementations. These default value interfaces
 // are used by resource/schema and internally in the framework.

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package parentpath contains path functionality intended for previous steps
 // of a given Path or Expression.
 //

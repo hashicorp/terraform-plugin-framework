@@ -57,7 +57,7 @@ Thank you for contributing!
 - **Unit and Integration Tests**: It may go without saying, but every new patch should be covered by tests wherever possible (see [Testing](#testing) below).
 - **Go Modules**: We use [Go Modules](https://github.com/golang/go/wiki/Modules) to manage and version all our dependencies. Please make sure that you reflect dependency changes in your pull requests appropriately (e.g. `go get`, `go mod tidy` or other commands). Refer to the [dependency updates](#dependency-updates) section for more information about how this project maintains existing dependencies.
 - **Changelog**: Refer to the [changelog](#changelog) section for more information about how to create changelog entries.
-- **License Headers**: All source code require a license header at the top of the file, refer to [License Headers](#license-headers) for information on how to autogenerate these headers.
+- **License Headers**: All source code requires a license header at the top of the file, refer to [License Headers](#license-headers) for information on how to autogenerate these headers.
 
 ### Dependency Updates
 

@@ -1,6 +1,6 @@
 # Generate copywrite headers
 generate:
-	go generate ./...
+	cd tools; go generate ./...
 
 # Run this if working on the website locally to run in watch mode.
 .PHONY: website

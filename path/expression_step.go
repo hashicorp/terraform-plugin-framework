@@ -1,6 +1,3 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package path
 
 // ExpressionStep represents an expression of an attribute path step, which may

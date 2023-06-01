@@ -1,6 +1,3 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package fwschema
 
 // BlockNestingMode is an enum type of the ways attributes and blocks can be

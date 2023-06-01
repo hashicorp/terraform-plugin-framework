@@ -1,6 +1,3 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package fwserver
 
 // ServerCapabilities is a combination of tfprotov5.ServerCapabilities and

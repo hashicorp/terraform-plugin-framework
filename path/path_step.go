@@ -1,6 +1,3 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package path
 
 // PathStep represents a transversal for an attribute path. Only exact path

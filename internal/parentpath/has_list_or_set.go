@@ -1,6 +1,3 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package parentpath
 
 import "github.com/hashicorp/terraform-plugin-framework/path"

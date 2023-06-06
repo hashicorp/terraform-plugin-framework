@@ -10,8 +10,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/numberplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -89,11 +87,6 @@ func TestUseStateForUnknownModifierPlanModifyNumber(t *testing.T) {
 				StateValue:  types.NumberNull(),
 			},
 			expected: &planmodifier.NumberResponse{
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtListIndex(0).AtName("nested_test"),
-					),
-				},
 				PlanValue: types.NumberUnknown(),
 			},
 		},
@@ -123,29 +116,6 @@ func TestUseStateForUnknownModifierPlanModifyNumber(t *testing.T) {
 				StateValue: types.NumberNull(),
 			},
 			expected: &planmodifier.NumberResponse{
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtSetValue(
-							types.SetValueMust(
-								types.ObjectType{
-									AttrTypes: map[string]attr.Type{
-										"nested_test": types.NumberType,
-									},
-								},
-								[]attr.Value{
-									types.ObjectValueMust(
-										map[string]attr.Type{
-											"nested_test": types.NumberType,
-										},
-										map[string]attr.Value{
-											"nested_test": types.NumberUnknown(),
-										},
-									),
-								},
-							),
-						).AtName("nested_test"),
-					),
-				},
 				PlanValue: types.NumberUnknown(),
 			},
 		},

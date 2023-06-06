@@ -9,8 +9,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -88,11 +86,6 @@ func TestUseStateForUnknownModifierPlanModifyObject(t *testing.T) {
 				StateValue:  types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
 			},
 			expected: &planmodifier.ObjectResponse{
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtListIndex(0).AtName("nested_test"),
-					),
-				},
 				PlanValue: types.ObjectUnknown(map[string]attr.Type{"testattr": types.StringType}),
 			},
 		},
@@ -122,29 +115,6 @@ func TestUseStateForUnknownModifierPlanModifyObject(t *testing.T) {
 				StateValue: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
 			},
 			expected: &planmodifier.ObjectResponse{
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtSetValue(
-							types.SetValueMust(
-								types.ObjectType{
-									AttrTypes: map[string]attr.Type{
-										"nested_test": types.ObjectType{AttrTypes: map[string]attr.Type{"testattr": types.StringType}},
-									},
-								},
-								[]attr.Value{
-									types.ObjectValueMust(
-										map[string]attr.Type{
-											"nested_test": types.ObjectType{AttrTypes: map[string]attr.Type{"testattr": types.StringType}},
-										},
-										map[string]attr.Value{
-											"nested_test": types.ObjectUnknown(map[string]attr.Type{"testattr": types.StringType}),
-										},
-									),
-								},
-							),
-						).AtName("nested_test"),
-					),
-				},
 				PlanValue: types.ObjectUnknown(map[string]attr.Type{"testattr": types.StringType}),
 			},
 		},

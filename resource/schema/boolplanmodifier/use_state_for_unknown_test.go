@@ -9,8 +9,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -88,11 +86,6 @@ func TestUseStateForUnknownModifierPlanModifyBool(t *testing.T) {
 				StateValue:  types.BoolNull(),
 			},
 			expected: &planmodifier.BoolResponse{
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtListIndex(0).AtName("nested_test"),
-					),
-				},
 				PlanValue: types.BoolUnknown(),
 			},
 		},
@@ -122,29 +115,6 @@ func TestUseStateForUnknownModifierPlanModifyBool(t *testing.T) {
 				StateValue: types.BoolNull(),
 			},
 			expected: &planmodifier.BoolResponse{
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtSetValue(
-							types.SetValueMust(
-								types.ObjectType{
-									AttrTypes: map[string]attr.Type{
-										"nested_test": types.BoolType,
-									},
-								},
-								[]attr.Value{
-									types.ObjectValueMust(
-										map[string]attr.Type{
-											"nested_test": types.BoolType,
-										},
-										map[string]attr.Value{
-											"nested_test": types.BoolUnknown(),
-										},
-									),
-								},
-							),
-						).AtName("nested_test"),
-					),
-				},
 				PlanValue: types.BoolUnknown(),
 			},
 		},

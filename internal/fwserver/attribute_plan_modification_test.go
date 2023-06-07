@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
-	"github.com/hashicorp/terraform-plugin-framework/internal/planmodifierdiag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
@@ -358,7 +357,9 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								// TODO: Rework list/set element alignment during plan
+								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+								"nested_computed": types.StringValue("statevalue1"),
 								"nested_required": types.StringValue("testvalue2"),
 							},
 						),
@@ -368,7 +369,9 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								// TODO: Rework list/set element alignment during plan
+								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+								"nested_computed": types.StringValue("statevalue2"),
 								"nested_required": types.StringValue("testvalue1"),
 							},
 						),
@@ -420,7 +423,9 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								// TODO: Rework list/set element alignment during plan
+								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+								"nested_computed": types.StringValue("statevalue1"),
 								"nested_required": types.StringValue("testvalue2"),
 							},
 						),
@@ -430,17 +435,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								// TODO: Rework list/set element alignment during plan
+								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+								"nested_computed": types.StringValue("statevalue2"),
 								"nested_required": types.StringValue("testvalue1"),
 							},
 						),
 					},
 				),
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtListIndex(0).AtName("nested_computed"),
-					),
-				},
 			},
 		},
 		"attribute-list-nested-nested-usestateforunknown-elements-removed": {
@@ -550,17 +552,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								// TODO: Rework list/set element alignment during plan
+								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+								"nested_computed": types.StringValue("statevalue1"),
 								"nested_required": types.StringValue("testvalue2"),
 							},
 						),
 					},
 				),
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtListIndex(0).AtName("nested_computed"),
-					),
-				},
 			},
 		},
 		"attribute-set-nested-private": {
@@ -852,7 +851,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								"nested_computed": types.StringValue("statevalue1"),
 								"nested_required": types.StringValue("testvalue1"),
 							},
 						),
@@ -862,28 +861,12 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								"nested_computed": types.StringValue("statevalue2"),
 								"nested_required": types.StringValue("testvalue2"),
 							},
 						),
 					},
 				),
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtSetValue(
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_computed": types.StringType,
-									"nested_required": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_computed": types.StringUnknown(),
-									"nested_required": types.StringValue("testvalue1"),
-								},
-							),
-						).AtName("nested_computed"),
-					),
-				},
 			},
 		},
 		"attribute-set-nested-nested-usestateforunknown-elements-rearranged": {
@@ -1013,7 +996,9 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								// TODO: Rework list/set element alignment during plan
+								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+								"nested_computed": types.StringValue("statevalue1"),
 								"nested_required": types.StringValue("testvalue2"),
 							},
 						),
@@ -1023,28 +1008,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								// TODO: Rework list/set element alignment during plan
+								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+								"nested_computed": types.StringValue("statevalue2"),
 								"nested_required": types.StringValue("testvalue1"),
 							},
 						),
 					},
 				),
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtSetValue(
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_computed": types.StringType,
-									"nested_required": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_computed": types.StringUnknown(),
-									"nested_required": types.StringValue("testvalue2"),
-								},
-							),
-						).AtName("nested_computed"),
-					),
-				},
 			},
 		},
 		"attribute-set-nested-nested-usestateforunknown-elements-removed": {
@@ -1154,28 +1125,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 								"nested_required": types.StringType,
 							},
 							map[string]attr.Value{
-								"nested_computed": types.StringUnknown(),
+								// TODO: Rework list/set element alignment during plan
+								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/709
+								"nested_computed": types.StringValue("statevalue1"),
 								"nested_required": types.StringValue("testvalue2"),
 							},
 						),
 					},
 				),
-				Diagnostics: diag.Diagnostics{
-					planmodifierdiag.UseStateForUnknownUnderListOrSet(
-						path.Root("test").AtSetValue(
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_computed": types.StringType,
-									"nested_required": types.StringType,
-								},
-								map[string]attr.Value{
-									"nested_computed": types.StringUnknown(),
-									"nested_required": types.StringValue("testvalue2"),
-								},
-							),
-						).AtName("nested_computed"),
-					),
-				},
 			},
 		},
 		"attribute-map-nested-private": {

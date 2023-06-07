@@ -1,3 +1,33 @@
+## 1.3.0 (June 07, 2023)
+
+NOTES:
+
+* datasource/schema: The `Schema` type `Validate()` method has been deprecated in preference of `ValidateImplementation()` ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* provider/metaschema: The `Schema` type `Validate()` method has been deprecated in preference of `ValidateImplementation()` ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* provider/schema: The `Schema` type `Validate()` method has been deprecated in preference of `ValidateImplementation()` ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* resource/schema: The `Schema` type `Validate()` method has been deprecated in preference of `ValidateImplementation()` ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+
+ENHANCEMENTS:
+
+* datasource/schema: Added `Schema` type `ValidateImplementation()` method, which performs framework-defined schema validation and can be used in unit testing ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* provider/metaschema: Added `Schema` type `ValidateImplementation()` method, which performs framework-defined schema validation and can be used in unit testing ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* provider/schema: Added `Schema` type `ValidateImplementation()` method, which performs framework-defined schema validation and can be used in unit testing ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* resource/schema: Added `Schema` type `ValidateImplementation()` method, which performs framework-defined schema validation and can be used in unit testing ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* datasource/schema: Raise validation errors if attempting to use top-level `for_each` attribute name, which requires special Terraform configuration syntax to be usable by the data source ([#704](https://github.com/hashicorp/terraform-plugin-framework/issues/704))
+* resource/schema: Raise validation errors if attempting to use top-level `for_each` attribute name, which requires special Terraform configuration syntax to be usable by the resource ([#704](https://github.com/hashicorp/terraform-plugin-framework/issues/704))
+* datasource/schema: Raise validation errors if attempting to use attribute names with leading numerics (0-9), which are invalid in the Terraform configuration language ([#705](https://github.com/hashicorp/terraform-plugin-framework/issues/705))
+* provider/schema: Raise validation errors if attempting to use attribute names with leading numerics (0-9), which are invalid in the Terraform configuration language ([#705](https://github.com/hashicorp/terraform-plugin-framework/issues/705))
+* resource/schema: Raise validation errors if attempting to use attribute names with leading numerics (0-9), which are invalid in the Terraform configuration language ([#705](https://github.com/hashicorp/terraform-plugin-framework/issues/705))
+* all: Improved SDK logging performance when messages would be skipped due to configured logging level ([#744](https://github.com/hashicorp/terraform-plugin-framework/issues/744))
+
+BUG FIXES:
+
+* datasource/schema: Raise errors with `ListAttribute`, `MapAttribute`, `ObjectAttribute`, and `SetAttribute` implementations instead of panics when missing required `AttributeTypes` or `ElementTypes` fields ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* provider/metaschema: Raise errors with `ListAttribute`, `MapAttribute`, `ObjectAttribute`, and `SetAttribute` implementations instead of panics when missing required `AttributeTypes` or `ElementTypes` fields ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* provider/schema: Raise errors with `ListAttribute`, `MapAttribute`, `ObjectAttribute`, and `SetAttribute` implementations instead of panics when missing required `AttributeTypes` or `ElementTypes` fields ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* resource/schema: Raise errors with `ListAttribute`, `MapAttribute`, `ObjectAttribute`, and `SetAttribute` implementations instead of panics when missing required `AttributeTypes` or `ElementTypes` fields ([#699](https://github.com/hashicorp/terraform-plugin-framework/issues/699))
+* tfsdk: Raise framework errors instead of generic upstream errors or panics when encountering unexpected values with `Set()` methods ([#715](https://github.com/hashicorp/terraform-plugin-framework/issues/715))
+
 ## 1.2.0 (March 21, 2023)
 
 NOTES:

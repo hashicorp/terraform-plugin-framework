@@ -1,6 +1,0 @@
-kind: NOTES
-body: 'datasource/schema: The `Schema` type `Validate()` method has been deprecated
-  in preference of `ValidateImplementation()`'
-time: 2023-03-29T12:43:36.636825-04:00
-custom:
-  Issue: "699"

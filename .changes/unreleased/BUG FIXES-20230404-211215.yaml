@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'tfsdk: Raise framework errors instead of generic upstream errors or panics
-  when encountering unexpected values with `Set()` methods'
-time: 2023-04-04T21:12:15.85706-04:00
-custom:
-  Issue: "715"

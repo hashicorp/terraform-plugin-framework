@@ -162,7 +162,28 @@ func TestListNestedAttributeEqual(t *testing.T) {
 			other:    testschema.AttributeWithListValidators{},
 			expected: false,
 		},
-		"different-attributes": {
+		"different-attributes-definitions": {
+			attribute: metaschema.ListNestedAttribute{
+				NestedObject: metaschema.NestedAttributeObject{
+					Attributes: map[string]metaschema.Attribute{
+						"testattr": metaschema.StringAttribute{
+							Optional: true,
+						},
+					},
+				},
+			},
+			other: metaschema.ListNestedAttribute{
+				NestedObject: metaschema.NestedAttributeObject{
+					Attributes: map[string]metaschema.Attribute{
+						"testattr": metaschema.StringAttribute{
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: false,
+		},
+		"different-attributes-types": {
 			attribute: metaschema.ListNestedAttribute{
 				NestedObject: metaschema.NestedAttributeObject{
 					Attributes: map[string]metaschema.Attribute{

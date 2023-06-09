@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'provider/metaschema: Ensure nested attribute Equal methods check nested attribute
+  definition equality'
+time: 2023-06-09T14:10:14.269839-04:00
+custom:
+  Issue: "752"

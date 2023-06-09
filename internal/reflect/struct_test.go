@@ -946,9 +946,7 @@ func TestFromStruct_errors(t *testing.T) {
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Expected type: types.ListType[basetypes.StringType]\n"+
-						// TODO: Prevent panics with (basetypes.ListType).ElementType() when ElemType is nil
-						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/714
-						"Value type: %!s(PANIC=String method: runtime error: invalid memory address or nil pointer dereference)\n"+
+						"Value type: types.ListType[!!! MISSING TYPE !!!]\n"+
 						"Path: test.list",
 				),
 			},
@@ -973,9 +971,7 @@ func TestFromStruct_errors(t *testing.T) {
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Expected type: types.MapType[basetypes.StringType]\n"+
-						// TODO: Prevent panics with (basetypes.MapType).ElementType() when ElemType is nil
-						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/714
-						"Value type: %!s(PANIC=String method: runtime error: invalid memory address or nil pointer dereference)\n"+
+						"Value type: types.MapType[!!! MISSING TYPE !!!]\n"+
 						"Path: test.map",
 				),
 			},
@@ -1028,9 +1024,7 @@ func TestFromStruct_errors(t *testing.T) {
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"Expected type: types.SetType[basetypes.StringType]\n"+
-						// TODO: Prevent panics with (basetypes.SetType).ElementType() when ElemType is nil
-						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/714
-						"Value type: %!s(PANIC=String method: runtime error: invalid memory address or nil pointer dereference)\n"+
+						"Value type: types.SetType[!!! MISSING TYPE !!!]\n"+
 						"Path: test.set",
 				),
 			},

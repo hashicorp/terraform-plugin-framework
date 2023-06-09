@@ -41,6 +41,10 @@ func (m MapType) WithElementType(typ attr.Type) attr.TypeWithElementType {
 
 // ElementType returns the type's element type.
 func (m MapType) ElementType() attr.Type {
+	if m.ElemType == nil {
+		return missingType{}
+	}
+
 	return m.ElemType
 }
 
@@ -50,7 +54,7 @@ func (m MapType) ElementType() attr.Type {
 // AttributeType to something Terraform can understand.
 func (m MapType) TerraformType(ctx context.Context) tftypes.Type {
 	return tftypes.Map{
-		ElementType: m.ElemType.TerraformType(ctx),
+		ElementType: m.ElementType().TerraformType(ctx),
 	}
 }
 
@@ -59,19 +63,19 @@ func (m MapType) TerraformType(ctx context.Context) tftypes.Type {
 // provider to consume the data with.
 func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if in.Type() == nil {
-		return NewMapNull(m.ElemType), nil
+		return NewMapNull(m.ElementType()), nil
 	}
 	if !in.Type().Is(tftypes.Map{}) {
 		return nil, fmt.Errorf("can't use %s as value of MapValue, can only use tftypes.Map values", in.String())
 	}
-	if !in.Type().Equal(tftypes.Map{ElementType: m.ElemType.TerraformType(ctx)}) {
-		return nil, fmt.Errorf("can't use %s as value of Map with ElementType %T, can only use %s values", in.String(), m.ElemType, m.ElemType.TerraformType(ctx).String())
+	if !in.Type().Equal(tftypes.Map{ElementType: m.ElementType().TerraformType(ctx)}) {
+		return nil, fmt.Errorf("can't use %s as value of Map with ElementType %T, can only use %s values", in.String(), m.ElementType(), m.ElementType().TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
-		return NewMapUnknown(m.ElemType), nil
+		return NewMapUnknown(m.ElementType()), nil
 	}
 	if in.IsNull() {
-		return NewMapNull(m.ElemType), nil
+		return NewMapNull(m.ElementType()), nil
 	}
 	val := map[string]tftypes.Value{}
 	err := in.As(&val)
@@ -80,7 +84,7 @@ func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr
 	}
 	elems := make(map[string]attr.Value, len(val))
 	for key, elem := range val {
-		av, err := m.ElemType.ValueFromTerraform(ctx, elem)
+		av, err := m.ElementType().ValueFromTerraform(ctx, elem)
 		if err != nil {
 			return nil, err
 		}
@@ -88,19 +92,23 @@ func (m MapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr
 	}
 	// ValueFromTerraform above on each element should make this safe.
 	// Otherwise, this will need to do some Diagnostics to error conversion.
-	return NewMapValueMust(m.ElemType, elems), nil
+	return NewMapValueMust(m.ElementType(), elems), nil
 }
 
 // Equal returns true if `o` is also a MapType and has the same ElemType.
 func (m MapType) Equal(o attr.Type) bool {
-	if m.ElemType == nil {
+	// Preserve prior ElemType nil check behavior
+	if m.ElementType().Equal(missingType{}) {
 		return false
 	}
+
 	other, ok := o.(MapType)
+
 	if !ok {
 		return false
 	}
-	return m.ElemType.Equal(other.ElemType)
+
+	return m.ElementType().Equal(other.ElementType())
 }
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
@@ -110,12 +118,12 @@ func (m MapType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep
 		return nil, fmt.Errorf("cannot apply step %T to MapType", step)
 	}
 
-	return m.ElemType, nil
+	return m.ElementType(), nil
 }
 
 // String returns a human-friendly description of the MapType.
 func (m MapType) String() string {
-	return "types.MapType[" + m.ElemType.String() + "]"
+	return "types.MapType[" + m.ElementType().String() + "]"
 }
 
 // Validate validates all elements of the map that are of type
@@ -152,7 +160,7 @@ func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path)
 		return diags
 	}
 
-	validatableType, isValidatable := m.ElemType.(xattr.TypeWithValidate)
+	validatableType, isValidatable := m.ElementType().(xattr.TypeWithValidate)
 	if !isValidatable {
 		return diags
 	}
@@ -170,7 +178,7 @@ func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path)
 // ValueType returns the Value type.
 func (m MapType) ValueType(_ context.Context) attr.Value {
 	return MapValue{
-		elementType: m.ElemType,
+		elementType: m.ElementType(),
 	}
 }
 

@@ -12,6 +12,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func TestListTypeElementType(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    ListType
+		expected attr.Type
+	}{
+		"ElemType-known": {
+			input:    ListType{ElemType: StringType{}},
+			expected: StringType{},
+		},
+		"ElemType-missing": {
+			input:    ListType{},
+			expected: missingType{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ElementType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestListTypeTerraformType(t *testing.T) {
 	t.Parallel()
 
@@ -54,6 +86,12 @@ func TestListTypeTerraformType(t *testing.T) {
 						ElementType: tftypes.String,
 					},
 				},
+			},
+		},
+		"ElemType-missing": {
+			input: ListType{},
+			expected: tftypes.List{
+				ElementType: tftypes.DynamicPseudoType,
 			},
 		},
 	}
@@ -177,6 +215,18 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 			input:    tftypes.NewValue(nil, nil),
 			expected: NewListNull(StringType{}),
 		},
+		"missing-element-type": {
+			receiver: ListType{},
+			input: tftypes.NewValue(
+				tftypes.List{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, "testvalue"),
+				},
+			),
+			expectedErr: `can't use tftypes.List[tftypes.String]<tftypes.String<"testvalue">> as value of List with ElementType basetypes.missingType, can only use tftypes.DynamicPseudoType values`,
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test
@@ -256,6 +306,38 @@ func TestListTypeEqual(t *testing.T) {
 			got := test.receiver.Equal(test.input)
 			if test.expected != got {
 				t.Errorf("Expected %v, got %v", test.expected, got)
+			}
+		})
+	}
+}
+
+func TestListTypeString(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    ListType
+		expected string
+	}{
+		"ElemType-known": {
+			input:    ListType{ElemType: StringType{}},
+			expected: "types.ListType[basetypes.StringType]",
+		},
+		"ElemType-missing": {
+			input:    ListType{},
+			expected: "types.ListType[!!! MISSING TYPE !!!]",
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.String()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

@@ -110,7 +110,7 @@ import (
     "github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// Ensure the implementation satifies the expected interfaces
+// Ensure the implementation satisfies the expected interfaces
 var _ basetypes.StringTypable = CustomStringType{}
 
 type CustomStringType struct {
@@ -209,7 +209,7 @@ import (
     "github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// Ensure the implementation satifies the expected interfaces
+// Ensure the implementation satisfies the expected interfaces
 var _ basetypes.StringValuable = CustomStringValue{}
 
 type CustomStringValue struct {
@@ -253,7 +253,7 @@ In this example, the custom string value type will preserve the prior value if t
 
 ```go
 // CustomStringValue defined in the value type section
-// Ensure the implementation satifies the expected interfaces
+// Ensure the implementation satisfies the expected interfaces
 var _ basetypes.StringValuableWithSemanticEquals = CustomStringValue{}
 
 func (v CustomStringValue) StringSemanticEquals(ctx context.Context, newValuable basetypes.StringValuable) (bool, diag.Diagnostics) {
@@ -289,7 +289,7 @@ func (v CustomStringValue) StringSemanticEquals(ctx context.Context, newValuable
 
 Validation handling enables the schema type to automatically raise warning and/or error diagnostics when a value is determined to be invalid. This handling simplifies schema definitions by removing the need for each attribute to repetitively define validators. This schema type functionality is automatically checked by the framework any time a value is created.
 
-Implement the [`xattr.TypeWithValidation`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidation) interface on the value type to define and enable this behavior.
+Implement the [`xattr.TypeWithValidate`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidate) interface on the value type to define and enable this behavior.
 
 <Note>
 
@@ -306,7 +306,7 @@ func (t CustomStringType) Validate(ctx context.Context, value tftypes.Value, val
         return nil
     }
 
-    var diags diags.Diagnostics
+    var diags diag.Diagnostics
     var valueString string
 
     if err := value.As(&valueString); err != nil {
@@ -314,11 +314,11 @@ func (t CustomStringType) Validate(ctx context.Context, value tftypes.Value, val
             valuePath,
             "Invalid Terraform Value",
             "An unexpected error occurred while attempting to convert a Terraform value to a string. "+
-                "This generally is an issue with the provider schema implementation. "+,
-                "Please contact the provider developers.\n\n"+,
+                "This generally is an issue with the provider schema implementation. "+
+                "Please contact the provider developers.\n\n"+
                 "Path: "+valuePath.String()+"\n"+
                 "Error: "+err.Error(),
-        ),
+        )
 
         return diags
     }
@@ -328,11 +328,11 @@ func (t CustomStringType) Validate(ctx context.Context, value tftypes.Value, val
             valuePath,
             "Invalid RFC 3339 String Value",
             "An unexpected error occurred while converting a string value that was expected to be RFC 3339 format. "+
-                "The RFC 3339 string format is YYYY-MM-DDTHH:MM:SSZ, such as 2006-01-02T15:04:05Z or 2006-01-02T15:04:05+07:00.\n\n",
+                "The RFC 3339 string format is YYYY-MM-DDTHH:MM:SSZ, such as 2006-01-02T15:04:05Z or 2006-01-02T15:04:05+07:00.\n\n"+
                 "Path: "+valuePath.String()+"\n"+
                 "Given Value: "+valueString+"\n"+
                 "Error: "+err.Error(),
-        ),
+        )
 
         return diags
     }

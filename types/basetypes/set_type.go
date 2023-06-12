@@ -37,6 +37,10 @@ type SetType struct {
 
 // ElementType returns the attr.Type elements will be created from.
 func (st SetType) ElementType() attr.Type {
+	if st.ElemType == nil {
+		return missingType{}
+	}
+
 	return st.ElemType
 }
 
@@ -53,7 +57,7 @@ func (st SetType) WithElementType(typ attr.Type) attr.TypeWithElementType {
 // can understand.
 func (st SetType) TerraformType(ctx context.Context) tftypes.Type {
 	return tftypes.Set{
-		ElementType: st.ElemType.TerraformType(ctx),
+		ElementType: st.ElementType().TerraformType(ctx),
 	}
 }
 
@@ -62,16 +66,16 @@ func (st SetType) TerraformType(ctx context.Context) tftypes.Type {
 // type for the provider to consume the data with.
 func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if in.Type() == nil {
-		return NewSetNull(st.ElemType), nil
+		return NewSetNull(st.ElementType()), nil
 	}
 	if !in.Type().Equal(st.TerraformType(ctx)) {
-		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), st.ElemType, st.ElemType.TerraformType(ctx).String())
+		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), st.ElementType(), st.ElementType().TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
-		return NewSetUnknown(st.ElemType), nil
+		return NewSetUnknown(st.ElementType()), nil
 	}
 	if in.IsNull() {
-		return NewSetNull(st.ElemType), nil
+		return NewSetNull(st.ElementType()), nil
 	}
 	val := []tftypes.Value{}
 	err := in.As(&val)
@@ -80,7 +84,7 @@ func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 	}
 	elems := make([]attr.Value, 0, len(val))
 	for _, elem := range val {
-		av, err := st.ElemType.ValueFromTerraform(ctx, elem)
+		av, err := st.ElementType().ValueFromTerraform(ctx, elem)
 		if err != nil {
 			return nil, err
 		}
@@ -88,19 +92,23 @@ func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 	}
 	// ValueFromTerraform above on each element should make this safe.
 	// Otherwise, this will need to do some Diagnostics to error conversion.
-	return NewSetValueMust(st.ElemType, elems), nil
+	return NewSetValueMust(st.ElementType(), elems), nil
 }
 
 // Equal returns true if `o` is also a SetType and has the same ElemType.
 func (st SetType) Equal(o attr.Type) bool {
-	if st.ElemType == nil {
+	// Preserve prior ElemType nil check behavior
+	if st.ElementType().Equal(missingType{}) {
 		return false
 	}
+
 	other, ok := o.(SetType)
+
 	if !ok {
 		return false
 	}
-	return st.ElemType.Equal(other.ElemType)
+
+	return st.ElementType().Equal(other.ElementType())
 }
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
@@ -110,12 +118,12 @@ func (st SetType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSte
 		return nil, fmt.Errorf("cannot apply step %T to SetType", step)
 	}
 
-	return st.ElemType, nil
+	return st.ElementType(), nil
 }
 
 // String returns a human-friendly description of the SetType.
 func (st SetType) String() string {
-	return "types.SetType[" + st.ElemType.String() + "]"
+	return "types.SetType[" + st.ElementType().String() + "]"
 }
 
 // Validate implements type validation. This type requires all elements to be
@@ -152,7 +160,7 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 		return diags
 	}
 
-	validatableType, isValidatable := st.ElemType.(xattr.TypeWithValidate)
+	validatableType, isValidatable := st.ElementType().(xattr.TypeWithValidate)
 
 	// Attempting to use map[tftypes.Value]struct{} for duplicate detection yields:
 	//   panic: runtime error: hash of unhashable type tftypes.primitive
@@ -165,7 +173,7 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 
 		// Validate the element first
 		if isValidatable {
-			elemValue, err := st.ElemType.ValueFromTerraform(ctx, elemOuter)
+			elemValue, err := st.ElementType().ValueFromTerraform(ctx, elemOuter)
 			if err != nil {
 				diags.AddAttributeError(
 					path,
@@ -201,7 +209,7 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 // ValueType returns the Value type.
 func (st SetType) ValueType(_ context.Context) attr.Value {
 	return SetValue{
-		elementType: st.ElemType,
+		elementType: st.ElementType(),
 	}
 }
 

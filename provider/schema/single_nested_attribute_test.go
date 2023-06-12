@@ -125,7 +125,24 @@ func TestSingleNestedAttributeEqual(t *testing.T) {
 			other:    testschema.AttributeWithObjectValidators{},
 			expected: false,
 		},
-		"different-attributes": {
+		"different-attributes-definitions": {
+			attribute: schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"testattr": schema.StringAttribute{
+						Optional: true,
+					},
+				},
+			},
+			other: schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"testattr": schema.StringAttribute{
+						Required: true,
+					},
+				},
+			},
+			expected: false,
+		},
+		"different-attributes-types": {
 			attribute: schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},

@@ -85,7 +85,11 @@ func BlocksEqual(a, b Block) bool {
 		return false
 	}
 
-	return true
+	if a.GetNestingMode() != b.GetNestingMode() {
+		return false
+	}
+
+	return a.GetNestedObject().Equal(b.GetNestedObject())
 }
 
 // BlockPathExpressions recursively returns a slice of the current path

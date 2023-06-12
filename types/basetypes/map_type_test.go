@@ -13,6 +13,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func TestMapTypeElementType(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    MapType
+		expected attr.Type
+	}{
+		"ElemType-known": {
+			input:    MapType{ElemType: StringType{}},
+			expected: StringType{},
+		},
+		"ElemType-missing": {
+			input:    MapType{},
+			expected: missingType{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ElementType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestMapTypeTerraformType(t *testing.T) {
 	t.Parallel()
 
@@ -55,6 +87,12 @@ func TestMapTypeTerraformType(t *testing.T) {
 						ElementType: tftypes.String,
 					},
 				},
+			},
+		},
+		"ElemType-missing": {
+			input: MapType{},
+			expected: tftypes.Map{
+				ElementType: tftypes.DynamicPseudoType,
 			},
 		},
 	}
@@ -114,6 +152,18 @@ func TestMapTypeValueFromTerraform(t *testing.T) {
 			},
 			input:    tftypes.NewValue(nil, nil),
 			expected: NewMapNull(NumberType{}),
+		},
+		"missing-element-type": {
+			receiver: MapType{},
+			input: tftypes.NewValue(
+				tftypes.Map{
+					ElementType: tftypes.String,
+				},
+				map[string]tftypes.Value{
+					"testkey": tftypes.NewValue(tftypes.String, "testvalue"),
+				},
+			),
+			expectedErr: `can't use tftypes.Map[tftypes.String]<"testkey":tftypes.String<"testvalue">> as value of Map with ElementType basetypes.missingType, can only use tftypes.DynamicPseudoType values`,
 		},
 		"unknown": {
 			receiver: MapType{
@@ -233,6 +283,38 @@ func TestMapTypeEqual(t *testing.T) {
 			got := test.receiver.Equal(test.input)
 			if test.expected != got {
 				t.Errorf("Expected %v, got %v", test.expected, got)
+			}
+		})
+	}
+}
+
+func TestMapTypeString(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    MapType
+		expected string
+	}{
+		"ElemType-known": {
+			input:    MapType{ElemType: StringType{}},
+			expected: "types.MapType[basetypes.StringType]",
+		},
+		"ElemType-missing": {
+			input:    MapType{},
+			expected: "types.MapType[!!! MISSING TYPE !!!]",
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.String()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

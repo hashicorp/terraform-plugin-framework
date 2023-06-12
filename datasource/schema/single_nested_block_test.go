@@ -181,7 +181,24 @@ func TestSingleNestedBlockEqual(t *testing.T) {
 			other:    testschema.BlockWithObjectValidators{},
 			expected: false,
 		},
-		"different-attributes": {
+		"different-attributes-definitions": {
+			block: schema.SingleNestedBlock{
+				Attributes: map[string]schema.Attribute{
+					"testattr": schema.StringAttribute{
+						Optional: true,
+					},
+				},
+			},
+			other: schema.SingleNestedBlock{
+				Attributes: map[string]schema.Attribute{
+					"testattr": schema.StringAttribute{
+						Required: true,
+					},
+				},
+			},
+			expected: false,
+		},
+		"different-attributes-types": {
 			block: schema.SingleNestedBlock{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
@@ -190,6 +207,31 @@ func TestSingleNestedBlockEqual(t *testing.T) {
 			other: schema.SingleNestedBlock{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.BoolAttribute{},
+				},
+			},
+			expected: false,
+		},
+		"different-blocks-definitions": {
+			block: schema.SingleNestedBlock{
+				Blocks: map[string]schema.Block{
+					"testblock": schema.SingleNestedBlock{
+						Attributes: map[string]schema.Attribute{
+							"testattr": schema.StringAttribute{
+								Optional: true,
+							},
+						},
+					},
+				},
+			},
+			other: schema.SingleNestedBlock{
+				Blocks: map[string]schema.Block{
+					"testblock": schema.SingleNestedBlock{
+						Attributes: map[string]schema.Attribute{
+							"testattr": schema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
 				},
 			},
 			expected: false,

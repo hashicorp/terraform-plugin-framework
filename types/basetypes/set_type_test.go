@@ -12,6 +12,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func TestSetTypeElementType(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    SetType
+		expected attr.Type
+	}{
+		"ElemType-known": {
+			input:    SetType{ElemType: StringType{}},
+			expected: StringType{},
+		},
+		"ElemType-missing": {
+			input:    SetType{},
+			expected: missingType{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.ElementType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestSetTypeTerraformType(t *testing.T) {
 	t.Parallel()
 
@@ -54,6 +86,12 @@ func TestSetTypeTerraformType(t *testing.T) {
 						ElementType: tftypes.String,
 					},
 				},
+			},
+		},
+		"ElemType-missing": {
+			input: SetType{},
+			expected: tftypes.Set{
+				ElementType: tftypes.DynamicPseudoType,
 			},
 		},
 	}
@@ -197,6 +235,18 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 			input:    tftypes.NewValue(nil, nil),
 			expected: NewSetNull(StringType{}),
 		},
+		"missing-element-type": {
+			receiver: SetType{},
+			input: tftypes.NewValue(
+				tftypes.Set{
+					ElementType: tftypes.String,
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, "testvalue"),
+				},
+			),
+			expectedErr: `can't use tftypes.Set[tftypes.String]<tftypes.String<"testvalue">> as value of Set with ElementType basetypes.missingType, can only use tftypes.DynamicPseudoType values`,
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test
@@ -276,6 +326,38 @@ func TestSetTypeEqual(t *testing.T) {
 			got := test.receiver.Equal(test.input)
 			if test.expected != got {
 				t.Errorf("Expected %v, got %v", test.expected, got)
+			}
+		})
+	}
+}
+
+func TestSetTypeString(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    SetType
+		expected string
+	}{
+		"ElemType-known": {
+			input:    SetType{ElemType: StringType{}},
+			expected: "types.SetType[basetypes.StringType]",
+		},
+		"ElemType-missing": {
+			input:    SetType{},
+			expected: "types.SetType[!!! MISSING TYPE !!!]",
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.String()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

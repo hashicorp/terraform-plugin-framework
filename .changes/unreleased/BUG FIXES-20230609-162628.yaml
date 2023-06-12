@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'types/basetypes: Prevented panics in `ListType`, `MapType`, and `SetType` methods
+  when `ElemType` field is not set'
+time: 2023-06-09T16:26:28.570821-04:00
+custom:
+  Issue: "714"

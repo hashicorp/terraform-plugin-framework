@@ -377,3 +377,39 @@ func TestObjectTypeEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestObjectTypeString(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    ObjectType
+		expected string
+	}{
+		"AttrTypes-empty": {
+			input:    ObjectType{AttrTypes: map[string]attr.Type{}},
+			expected: "types.ObjectType[]",
+		},
+		"AttrTypes-known": {
+			input:    ObjectType{AttrTypes: map[string]attr.Type{"testattr": StringType{}}},
+			expected: "types.ObjectType[\"testattr\":basetypes.StringType]",
+		},
+		"AttrTypes-missing": {
+			input:    ObjectType{},
+			expected: "types.ObjectType[]", // intentionally similar to empty
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.String()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

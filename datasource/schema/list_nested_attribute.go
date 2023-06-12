@@ -158,11 +158,13 @@ func (a ListNestedAttribute) ApplyTerraform5AttributePathStep(step tftypes.Attri
 // Equal returns true if the given Attribute is a ListNestedAttribute
 // and all fields are equal.
 func (a ListNestedAttribute) Equal(o fwschema.Attribute) bool {
-	if _, ok := o.(ListNestedAttribute); !ok {
+	other, ok := o.(ListNestedAttribute)
+
+	if !ok {
 		return false
 	}
 
-	return fwschema.AttributesEqual(a, o)
+	return fwschema.NestedAttributesEqual(a, other)
 }
 
 // GetDeprecationMessage returns the DeprecationMessage field value.

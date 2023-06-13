@@ -245,7 +245,7 @@ This value type functionality is checked in the following scenarios:
 - When refreshing a resource, the response new state value from the `Read` method logic is compared to the request prior state value.
 - When creating or updating a resource, the response new state value from the `Create` or `Update` method logic is compared to the request plan value.
 
-The framework will only call semantic equality logic if both the prior and new values are known. Null or unknown values are unnecessary to check.
+The framework will only call semantic equality logic if both the prior and new values are known. Null or unknown values are unnecessary to check. When working with collection types, the framework automatically calls semantic equality logic of element types. When working with object types, the framework automatically calls semantic equality of underlying attribute types.
 
 Implement the associated `github.com/hashicorp/terraform-plugin-framework/types/basetypes` package `*ValuableWithSemanticEquals` interface on the value type to define and enable this behavior.
 

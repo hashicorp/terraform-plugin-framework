@@ -13,6 +13,7 @@ import (
 var _ fwschema.Block = Block{}
 
 type Block struct {
+	CustomType          attr.Type
 	DeprecationMessage  string
 	Description         string
 	MarkdownDescription string
@@ -63,6 +64,10 @@ func (b Block) GetNestingMode() fwschema.BlockNestingMode {
 
 // Type satisfies the fwschema.Block interface.
 func (b Block) Type() attr.Type {
+	if b.CustomType != nil {
+		return b.CustomType
+	}
+
 	switch b.GetNestingMode() {
 	case fwschema.BlockNestingModeList:
 		return types.ListType{

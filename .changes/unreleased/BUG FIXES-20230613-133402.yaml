@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'resource/schema: Prevented `Value Conversion Error` diagnostics for attributes
+  and blocks implementing both `CustomType` and `PlanModifiers` fields'
+time: 2023-06-13T13:34:02.465635-04:00
+custom:
+  Issue: "754"

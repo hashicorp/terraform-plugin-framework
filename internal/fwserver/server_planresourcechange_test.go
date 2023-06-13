@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -646,6 +647,28 @@ func TestServerPlanResourceChange(t *testing.T) {
 		Attributes: map[string]schema.Attribute{
 			"test_computed": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					testplanmodifier.String{
+						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+							resp.PlanValue = types.StringValue("test-attributeplanmodifier-value")
+						},
+					},
+				},
+			},
+			"test_other_computed": schema.StringAttribute{
+				Computed: true,
+			},
+			"test_required": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
+
+	testSchemaAttributePlanModifierAttributePlanCustomType := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
+				Computed:   true,
+				CustomType: testtypes.StringTypeWithSemanticEquals{},
 				PlanModifiers: []planmodifier.String{
 					testplanmodifier.String{
 						PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
@@ -1416,6 +1439,70 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_required":       tftypes.NewValue(tftypes.String, "test-config-value"),
 					}),
 					Schema: testSchemaAttributePlanModifierAttributePlan,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"create-attributeplanmodifier-response-attributeplan-custom-type": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test_computed":       tftypes.String,
+							"test_other_computed": tftypes.String,
+							"test_required":       tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test_computed":       tftypes.NewValue(tftypes.String, nil),
+						"test_other_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required":       tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchemaAttributePlanModifierAttributePlanCustomType,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test_computed":       tftypes.String,
+							"test_other_computed": tftypes.String,
+							"test_required":       tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test_computed":       tftypes.NewValue(tftypes.String, nil),
+						"test_other_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required":       tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchemaAttributePlanModifierAttributePlanCustomType,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test_computed":       tftypes.String,
+							"test_other_computed": tftypes.String,
+							"test_required":       tftypes.String,
+						},
+					}, nil),
+					Schema: testSchemaAttributePlanModifierAttributePlanCustomType,
+				},
+				ResourceSchema: testSchemaAttributePlanModifierAttributePlanCustomType,
+				Resource:       &testprovider.Resource{},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test_computed":       tftypes.String,
+							"test_other_computed": tftypes.String,
+							"test_required":       tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test_computed":       tftypes.NewValue(tftypes.String, "test-attributeplanmodifier-value"),
+						"test_other_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+						"test_required":       tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchemaAttributePlanModifierAttributePlanCustomType,
 				},
 				PlannedPrivate: testEmptyPrivate,
 			},

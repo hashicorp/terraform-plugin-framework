@@ -17,6 +17,7 @@ var _ fwxschema.BlockWithSetPlanModifiers = BlockWithSetPlanModifiers{}
 type BlockWithSetPlanModifiers struct {
 	Attributes          map[string]fwschema.Attribute
 	Blocks              map[string]fwschema.Block
+	CustomType          attr.Type
 	DeprecationMessage  string
 	Description         string
 	MarkdownDescription string
@@ -74,6 +75,10 @@ func (b BlockWithSetPlanModifiers) SetPlanModifiers() []planmodifier.Set {
 
 // Type satisfies the fwschema.Block interface.
 func (b BlockWithSetPlanModifiers) Type() attr.Type {
+	if b.CustomType != nil {
+		return b.CustomType
+	}
+
 	return types.SetType{
 		ElemType: b.GetNestedObject().Type(),
 	}

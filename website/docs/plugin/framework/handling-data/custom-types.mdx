@@ -271,7 +271,7 @@ func (v CustomStringValue) StringSemanticEquals(ctx context.Context, newValuable
             "Got Value Type: "+fmt.Sprintf("%T", newValuable),
         )
 
-        return
+        return false, diags
     }
 
     // Skipping error checking if CustomStringValue already implemented RFC3339 validation
@@ -281,7 +281,7 @@ func (v CustomStringValue) StringSemanticEquals(ctx context.Context, newValuable
     newTime, _ := time.Parse(time.RFC3339, newValue.ValueString())
 
     // If the times are equivalent, keep the prior value
-    return priorTime.Equal(newTime)
+    return priorTime.Equal(newTime), diags
 }
 ```
 

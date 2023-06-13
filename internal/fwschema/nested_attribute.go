@@ -22,13 +22,13 @@ type NestedAttribute interface {
 // NestedAttribute. NestedAttribute Equal implementations should still compare
 // the concrete types in addition to using this helper.
 func NestedAttributesEqual(a, b NestedAttribute) bool {
+	if !AttributesEqual(a, b) {
+		return false
+	}
+
 	if a.GetNestingMode() != b.GetNestingMode() {
 		return false
 	}
 
-	if !a.GetNestedObject().Equal(b.GetNestedObject()) {
-		return false
-	}
-
-	return AttributesEqual(a, b)
+	return a.GetNestedObject().Equal(b.GetNestedObject())
 }

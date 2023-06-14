@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'types/basetypes: Prevented panic with `ListTypableWithSemanticEquals` and `SetTypableWithSemanticEquals`
+  when proposed new element count was greater than prior element count.'
+time: 2023-06-14T14:24:49.334761-04:00
+custom:
+  Issue: "772"

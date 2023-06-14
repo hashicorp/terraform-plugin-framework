@@ -136,7 +136,7 @@ func ValueSemanticEqualitySetElements(ctx context.Context, req ValueSemanticEqua
 		// Ensure new value always contains all of proposed new value
 		newValueElements[idx] = proposedNewValueElement
 
-		if idx > len(priorValueElements) {
+		if idx >= len(priorValueElements) {
 			continue
 		}
 

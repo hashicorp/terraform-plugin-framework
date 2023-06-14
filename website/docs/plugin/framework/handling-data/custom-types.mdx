@@ -72,13 +72,6 @@ Create a custom type by extending an existing framework schema type and its asso
 
 Extend a framework schema type by creating a Go type that implements one of the  `github.com/hashicorp/terraform-plugin-framework/types/basetypes` package `*Typable` interfaces.
 
-It is recommended to use Go type embedding of the base type to simplify the implementation and ensure it is up to date with the latest data handling features of the framework. With type embedding, the following [`attr.Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Type) methods should be overriden by the custom type:
-
-- `Equal(attr.Type) bool`
-- `ValueFromTerraform(context.Context, tftypes.Value) (attr.Value, error)`
-- `ValueType(context.Context) attr.Value`
-- `String() string`
-
 <Tip>
 
 The commonly used `types` package types are aliases to the `basetypes` package types mentioned in this table.
@@ -96,6 +89,13 @@ The commonly used `types` package types are aliases to the `basetypes` package t
 | [`basetypes.ObjectType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectType) | [`basetypes.ObjectTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectTypable) |
 | [`basetypes.SetType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetType) | [`basetypes.SetTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetTypable) |
 | [`basetypes.StringType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringType) | [`basetypes.StringTypable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringTypable) |
+
+It is recommended to use Go type embedding of the base type to simplify the implementation and ensure it is up to date with the latest data handling features of the framework. With type embedding, the following [`attr.Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Type) methods must be overridden by the custom type to prevent confusing errors:
+
+- `Equal(attr.Type) bool`
+- `ValueFromTerraform(context.Context, tftypes.Value) (attr.Value, error)`
+- `ValueType(context.Context) attr.Value`
+- `String() string`
 
 In this example, the `basetypes.StringTypable` interface is implemented to create a custom string type with an associated [value type](#value-type):
 
@@ -173,11 +173,6 @@ func (t CustomStringType) ValueType(ctx context.Context) attr.Value {
 
 Extend a framework value type by creating a Go type that implements one of the `github.com/hashicorp/terraform-plugin-framework/types/basetypes` package `*Valuable` interfaces.
 
-It is recommended to use Go type embedding of the base type to simplify the implementation and ensure it is up to date with the latest data handling features of the framework. With type embedding, the following [`attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value) methods should be overriden by the custom type:
-
-- `Equal(attr.Value) bool`
-- `Type(context.Context) attr.Type`
-
 <Tip>
 
 The commonly used `types` package types are aliases to the `basetypes` package types mentioned in this table.
@@ -195,6 +190,11 @@ The commonly used `types` package types are aliases to the `basetypes` package t
 | [`basetypes.ObjectValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectValue) | [`basetypes.ObjectValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectValuable) |
 | [`basetypes.SetValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetValue) | [`basetypes.SetValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetValuable) |
 | [`basetypes.StringValue`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringValue) | [`basetypes.StringValuable`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringValuable) |
+
+It is recommended to use Go type embedding of the base type to simplify the implementation and ensure it is up to date with the latest data handling features of the framework. With type embedding, the following [`attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr#Value) methods must be overridden by the custom type to prevent confusing errors:
+
+- `Equal(attr.Value) bool`
+- `Type(context.Context) attr.Type`
 
 In this example, the `basetypes.StringValuable` interface is implemented to create a custom string value type with an associated [schema type](#schema-type):
 

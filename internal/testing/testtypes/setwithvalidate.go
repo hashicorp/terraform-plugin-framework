@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package types
+package testtypes
 
 import (
 	"context"
@@ -14,22 +14,22 @@ import (
 )
 
 var (
-	_ xattr.TypeWithValidate = ListTypeWithValidateError{}
-	_ xattr.TypeWithValidate = ListTypeWithValidateWarning{}
+	_ xattr.TypeWithValidate = SetTypeWithValidateError{}
+	_ xattr.TypeWithValidate = SetTypeWithValidateWarning{}
 )
 
-type ListTypeWithValidateError struct {
-	types.ListType
+type SetTypeWithValidateError struct {
+	types.SetType
 }
 
-type ListTypeWithValidateWarning struct {
-	types.ListType
+type SetTypeWithValidateWarning struct {
+	types.SetType
 }
 
-func (t ListTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
+func (t SetTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	return diag.Diagnostics{TestErrorDiagnostic(path)}
 }
 
-func (t ListTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
+func (t SetTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }

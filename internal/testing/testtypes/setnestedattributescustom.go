@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package types
+package testtypes
 
 import (
 	"context"
@@ -19,26 +19,26 @@ var (
 	_ basetypes.SetValuable = &SetNestedAttributesCustomValue{}
 )
 
-type SingleNestedAttributesCustomTypeType struct {
-	types.ObjectType
+type SetNestedAttributesCustomTypeType struct {
+	types.SetType
 }
 
-func (tt SingleNestedAttributesCustomTypeType) ValueFromTerraform(ctx context.Context, value tftypes.Value) (attr.Value, error) {
-	val, err := tt.ObjectType.ValueFromTerraform(ctx, value)
+func (tt SetNestedAttributesCustomTypeType) ValueFromTerraform(ctx context.Context, value tftypes.Value) (attr.Value, error) {
+	val, err := tt.SetType.ValueFromTerraform(ctx, value)
 	if err != nil {
 		return nil, err
 	}
 
-	s, ok := val.(types.Object)
+	s, ok := val.(types.Set)
 	if !ok {
-		return nil, fmt.Errorf("cannot assert %T as types.Object", val)
+		return nil, fmt.Errorf("cannot assert %T as types.Set", val)
 	}
 
-	return SingleNestedAttributesCustomValue{
+	return SetNestedAttributesCustomValue{
 		s,
 	}, nil
 }
 
-type SingleNestedAttributesCustomValue struct {
-	types.Object
+type SetNestedAttributesCustomValue struct {
+	types.Set
 }

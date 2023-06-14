@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'provider/schema: Ensure nested attribute and block Equal methods check nested
-  attribute and block definition equality'
-time: 2023-06-09T14:10:29.902111-04:00
-custom:
-  Issue: "752"

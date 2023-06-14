@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
@@ -326,6 +327,81 @@ func TestValueSemanticEqualitySet(t *testing.T) {
 								testtypes.StringValueWithSemanticEquals{
 									StringValue:    types.StringValue("new"),
 									SemanticEquals: false,
+								},
+							},
+						),
+					},
+				),
+			},
+		},
+		"SetValue-SetValue-StringValuableWithSemanticEquals-NewValueElementsGreaterThanPriorValueElements": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: types.SetValueMust(
+					types.SetType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{
+							SemanticEquals: true,
+						},
+					},
+					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: true,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("prior"),
+									SemanticEquals: true,
+								},
+							},
+						),
+					},
+				),
+				ProposedNewValue: types.SetValueMust(
+					types.SetType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{
+							SemanticEquals: true,
+						},
+					},
+					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: true,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("new1"),
+									SemanticEquals: true,
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("new2"),
+									SemanticEquals: true,
+								},
+							},
+						),
+					},
+				),
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: types.SetValueMust(
+					types.SetType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{
+							SemanticEquals: true,
+						},
+					},
+					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: true,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("prior"),
+									SemanticEquals: true,
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("new2"),
+									SemanticEquals: true,
 								},
 							},
 						),

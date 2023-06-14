@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
@@ -326,6 +327,81 @@ func TestValueSemanticEqualityList(t *testing.T) {
 								testtypes.StringValueWithSemanticEquals{
 									StringValue:    types.StringValue("new"),
 									SemanticEquals: false,
+								},
+							},
+						),
+					},
+				),
+			},
+		},
+		"ListValue-ListValue-StringValuableWithSemanticEquals-NewValueElementsGreaterThanPriorValueElements": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: types.ListValueMust(
+					types.ListType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{
+							SemanticEquals: true,
+						},
+					},
+					[]attr.Value{
+						types.ListValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: true,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("prior"),
+									SemanticEquals: true,
+								},
+							},
+						),
+					},
+				),
+				ProposedNewValue: types.ListValueMust(
+					types.ListType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{
+							SemanticEquals: true,
+						},
+					},
+					[]attr.Value{
+						types.ListValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: true,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("new1"),
+									SemanticEquals: true,
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("new2"),
+									SemanticEquals: true,
+								},
+							},
+						),
+					},
+				),
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: types.ListValueMust(
+					types.ListType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{
+							SemanticEquals: true,
+						},
+					},
+					[]attr.Value{
+						types.ListValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: true,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("prior"),
+									SemanticEquals: true,
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("new2"),
+									SemanticEquals: true,
 								},
 							},
 						),

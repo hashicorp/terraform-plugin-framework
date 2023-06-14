@@ -375,6 +375,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			"test_computed_object":                  tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
 			"test_computed_set":                     tftypes.Set{ElementType: tftypes.String},
 			"test_computed_string":                  tftypes.String,
+			"test_computed_string_custom_type":      tftypes.String,
 			"test_computed_nested_list":             tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
 			"test_computed_nested_list_attribute":   tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
 			"test_computed_nested_map":              tftypes.Map{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
@@ -457,6 +458,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 			"test_computed_string": schema.StringAttribute{
 				Computed: true,
 				Default:  stringdefault.StaticString("one"),
+			},
+			"test_computed_string_custom_type": schema.StringAttribute{
+				Computed:   true,
+				CustomType: testtypes.StringTypeWithSemanticEquals{},
+				Default:    stringdefault.StaticString("one"),
 			},
 			"test_computed_nested_list": schema.ListAttribute{
 				Computed: true,
@@ -928,15 +934,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 			request: &fwserver.PlanResourceChangeRequest{
 				Config: &tfsdk.Config{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, nil),
-						"test_computed_float64": tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_int64":   tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_list":    tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
-						"test_computed_map":     tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
-						"test_computed_number":  tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_object":  tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
-						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+						"test_computed_number":             tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
+						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
+						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -1053,15 +1060,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				ProposedNewState: &tfsdk.Plan{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, nil),
-						"test_computed_float64": tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_int64":   tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_list":    tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
-						"test_computed_map":     tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
-						"test_computed_number":  tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_object":  tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
-						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+						"test_computed_number":             tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
+						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
+						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -1183,15 +1191,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_computed_float64": tftypes.NewValue(tftypes.Number, 1.2345),
-						"test_computed_int64":   tftypes.NewValue(tftypes.Number, 12345),
-						"test_computed_list":    tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_map":     tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
-						"test_computed_object":  tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_string":  tftypes.NewValue(tftypes.String, "one"),
+						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, true),
+						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 1.2345),
+						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 12345),
+						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
+						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
+						"test_computed_number":             tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
+						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
+						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
+						"test_computed_string":             tftypes.NewValue(tftypes.String, "one"),
+						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "one"),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -2426,15 +2435,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 			request: &fwserver.PlanResourceChangeRequest{
 				Config: &tfsdk.Config{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, nil),
-						"test_computed_float64": tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_int64":   tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_list":    tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
-						"test_computed_map":     tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
-						"test_computed_number":  tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_object":  tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
-						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+						"test_computed_number":             tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
+						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
+						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -2551,15 +2561,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				ProposedNewState: &tfsdk.Plan{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, nil),
-						"test_computed_float64": tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_int64":   tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_list":    tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
-						"test_computed_map":     tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
-						"test_computed_number":  tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_object":  tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
-						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-						"test_computed_string":  tftypes.NewValue(tftypes.String, nil),
+						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+						"test_computed_number":             tftypes.NewValue(tftypes.Number, nil),
+						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
+						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
+						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -2676,15 +2687,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 				PriorState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, false),
-						"test_computed_float64": tftypes.NewValue(tftypes.Number, 5.4321),
-						"test_computed_int64":   tftypes.NewValue(tftypes.Number, 54321),
-						"test_computed_list":    tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
-						"test_computed_map":     tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "prior-state")}),
-						"test_computed_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(5.4321)),
-						"test_computed_object":  tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "prior-state")}),
-						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
-						"test_computed_string":  tftypes.NewValue(tftypes.String, "two"),
+						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, false),
+						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 5.4321),
+						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 54321),
+						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
+						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "prior-state")}),
+						"test_computed_number":             tftypes.NewValue(tftypes.Number, big.NewFloat(5.4321)),
+						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "prior-state")}),
+						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
+						"test_computed_string":             tftypes.NewValue(tftypes.String, "two"),
+						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "two"),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -2840,15 +2852,16 @@ func TestServerPlanResourceChange(t *testing.T) {
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_computed_float64": tftypes.NewValue(tftypes.Number, 1.2345),
-						"test_computed_int64":   tftypes.NewValue(tftypes.Number, 12345),
-						"test_computed_list":    tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_map":     tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
-						"test_computed_object":  tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_set":     tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_string":  tftypes.NewValue(tftypes.String, "one"),
+						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, true),
+						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 1.2345),
+						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 12345),
+						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
+						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
+						"test_computed_number":             tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
+						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
+						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
+						"test_computed_string":             tftypes.NewValue(tftypes.String, "one"),
+						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "one"),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{

@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
-	listVal, ok := value.(basetypes.ListValuable)
+func coerceListValuable(_ context.Context, schemaPath path.Path, value attr.Value) (basetypes.ListValuable, diag.Diagnostics) {
+	listValuable, ok := value.(basetypes.ListValuable)
 
 	if !ok {
 		return types.ListNull(nil), diag.Diagnostics{
@@ -25,11 +25,26 @@ func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value
 		}
 	}
 
-	return listVal.ToListValue(ctx)
+	return listValuable, nil
 }
 
-func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {
-	mapVal, ok := value.(basetypes.MapValuable)
+func coerceListValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.List, diag.Diagnostics) {
+	listValuable, diags := coerceListValuable(ctx, schemaPath, value)
+
+	if diags.HasError() {
+		return types.ListNull(nil), diags
+	}
+
+	listValue, listValueDiags := listValuable.ToListValue(ctx)
+
+	// Ensure prior warnings are preserved.
+	diags.Append(listValueDiags...)
+
+	return listValue, diags
+}
+
+func coerceMapValuable(_ context.Context, schemaPath path.Path, value attr.Value) (basetypes.MapValuable, diag.Diagnostics) {
+	mapValuable, ok := value.(basetypes.MapValuable)
 
 	if !ok {
 		return types.MapNull(nil), diag.Diagnostics{
@@ -37,11 +52,26 @@ func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value)
 		}
 	}
 
-	return mapVal.ToMapValue(ctx)
+	return mapValuable, nil
 }
 
-func coerceObjectValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Object, diag.Diagnostics) {
-	objectVal, ok := value.(basetypes.ObjectValuable)
+func coerceMapValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Map, diag.Diagnostics) {
+	mapValuable, diags := coerceMapValuable(ctx, schemaPath, value)
+
+	if diags.HasError() {
+		return types.MapNull(nil), diags
+	}
+
+	mapValue, mapValueDiags := mapValuable.ToMapValue(ctx)
+
+	// Ensure prior warnings are preserved.
+	diags.Append(mapValueDiags...)
+
+	return mapValue, diags
+}
+
+func coerceObjectValuable(_ context.Context, schemaPath path.Path, value attr.Value) (basetypes.ObjectValuable, diag.Diagnostics) {
+	objectValuable, ok := value.(basetypes.ObjectValuable)
 
 	if !ok {
 		return types.ObjectNull(nil), diag.Diagnostics{
@@ -49,11 +79,26 @@ func coerceObjectValue(ctx context.Context, schemaPath path.Path, value attr.Val
 		}
 	}
 
-	return objectVal.ToObjectValue(ctx)
+	return objectValuable, nil
 }
 
-func coerceSetValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
-	setVal, ok := value.(basetypes.SetValuable)
+func coerceObjectValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Object, diag.Diagnostics) {
+	objectValuable, diags := coerceObjectValuable(ctx, schemaPath, value)
+
+	if diags.HasError() {
+		return types.ObjectNull(nil), diags
+	}
+
+	objectValue, objectValueDiags := objectValuable.ToObjectValue(ctx)
+
+	// Ensure prior warnings are preserved.
+	diags.Append(objectValueDiags...)
+
+	return objectValue, diags
+}
+
+func coerceSetValuable(_ context.Context, schemaPath path.Path, value attr.Value) (basetypes.SetValuable, diag.Diagnostics) {
+	setValuable, ok := value.(basetypes.SetValuable)
 
 	if !ok {
 		return types.SetNull(nil), diag.Diagnostics{
@@ -61,7 +106,22 @@ func coerceSetValue(ctx context.Context, schemaPath path.Path, value attr.Value)
 		}
 	}
 
-	return setVal.ToSetValue(ctx)
+	return setValuable, nil
+}
+
+func coerceSetValue(ctx context.Context, schemaPath path.Path, value attr.Value) (types.Set, diag.Diagnostics) {
+	setValuable, diags := coerceSetValuable(ctx, schemaPath, value)
+
+	if diags.HasError() {
+		return types.SetNull(nil), diags
+	}
+
+	setValue, setValueDiags := setValuable.ToSetValue(ctx)
+
+	// Ensure prior warnings are preserved.
+	diags.Append(setValueDiags...)
+
+	return setValue, diags
 }
 
 func listElemObject(ctx context.Context, schemaPath path.Path, list types.List, index int, description fwschemadata.DataDescription) (types.Object, diag.Diagnostics) {

@@ -13,6 +13,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
+func attributePlanModificationTypableError(schemaPath path.Path, value attr.Value) diag.Diagnostic {
+	return diag.NewAttributeErrorDiagnostic(
+		schemaPath,
+		"Unexpected Attribute Plan Modifier Type Conversion Error",
+		"An unexpected issue occurred while trying to get the correct type during attribute plan modification. "+
+			"Expected the Valuable implementation Type() method to return a Typable. "+
+			"This is likely an implementation error in terraform-plugin-framework and should be reported to the provider developers.\n\n"+
+			fmt.Sprintf("Value Type: %T\n", value)+
+			fmt.Sprintf("Path: %s", schemaPath),
+	)
+}
+
 func schemaDataValueError(ctx context.Context, value attr.Value, description fwschemadata.DataDescription, err error) diag.Diagnostic {
 	return diag.NewErrorDiagnostic(
 		description.Title()+" Value Error",

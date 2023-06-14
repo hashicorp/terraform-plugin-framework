@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	testtypes "github.com/hashicorp/terraform-plugin-framework/internal/testing/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
@@ -648,6 +649,89 @@ func TestBlockModifyPlan(t *testing.T) {
 						),
 					},
 				),
+			},
+		},
+		"block-list-usestateforunknown-custom-type": {
+			block: testschema.BlockWithListPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"nested_computed": testschema.Attribute{
+						Type:     types.StringType,
+						Computed: true,
+					},
+				},
+				CustomType: testtypes.ListTypeWithSemanticEquals{
+					ListType: types.ListType{
+						ElemType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: testtypes.ListValueWithSemanticEquals{
+					ListValue: types.ListNull(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+					),
+				},
+				AttributePath: path.Root("test"),
+				AttributePlan: testtypes.ListValueWithSemanticEquals{
+					ListValue: types.ListUnknown(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+					),
+				},
+				AttributeState: testtypes.ListValueWithSemanticEquals{
+					ListValue: types.ListValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_computed": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_computed": types.StringValue("statevalue1"),
+								},
+							),
+						},
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: testtypes.ListValueWithSemanticEquals{
+					ListValue: types.ListValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_computed": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_computed": types.StringValue("statevalue1"),
+								},
+							),
+						},
+					),
+				},
 			},
 		},
 		"block-set-null-plan": {
@@ -1885,6 +1969,89 @@ func TestBlockModifyPlan(t *testing.T) {
 				),
 			},
 		},
+		"block-set-usestateforunknown-custom-type": {
+			block: testschema.BlockWithSetPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"nested_computed": testschema.Attribute{
+						Type:     types.StringType,
+						Computed: true,
+					},
+				},
+				CustomType: testtypes.SetTypeWithSemanticEquals{
+					SetType: types.SetType{
+						ElemType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: testtypes.SetValueWithSemanticEquals{
+					SetValue: types.SetNull(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+					),
+				},
+				AttributePath: path.Root("test"),
+				AttributePlan: testtypes.SetValueWithSemanticEquals{
+					SetValue: types.SetUnknown(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+					),
+				},
+				AttributeState: testtypes.SetValueWithSemanticEquals{
+					SetValue: types.SetValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_computed": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_computed": types.StringValue("statevalue1"),
+								},
+							),
+						},
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: testtypes.SetValueWithSemanticEquals{
+					SetValue: types.SetValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_computed": types.StringType,
+							},
+						},
+						[]attr.Value{
+							types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_computed": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_computed": types.StringValue("statevalue1"),
+								},
+							),
+						},
+					),
+				},
+			},
+		},
 		"block-single-null-plan": {
 			block: testschema.BlockWithObjectPlanModifiers{
 				Attributes: map[string]fwschema.Attribute{
@@ -2144,6 +2311,65 @@ func TestBlockModifyPlan(t *testing.T) {
 						"nested_computed": types.StringValue("statevalue1"),
 					},
 				),
+			},
+		},
+		"block-single-usestateforunknown-custom-type": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"nested_computed": testschema.Attribute{
+						Type:     types.StringType,
+						Computed: true,
+					},
+				},
+				CustomType: testtypes.ObjectTypeWithSemanticEquals{
+					ObjectType: types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: testtypes.ObjectValueWithSemanticEquals{
+					ObjectValue: types.ObjectNull(
+						map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					),
+				},
+				AttributePath: path.Root("test"),
+				AttributePlan: testtypes.ObjectValueWithSemanticEquals{
+					ObjectValue: types.ObjectUnknown(
+						map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+					),
+				},
+				AttributeState: testtypes.ObjectValueWithSemanticEquals{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+						map[string]attr.Value{
+							"nested_computed": types.StringValue("statevalue1"),
+						},
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: testtypes.ObjectValueWithSemanticEquals{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"nested_computed": types.StringType,
+						},
+						map[string]attr.Value{
+							"nested_computed": types.StringValue("statevalue1"),
+						},
+					),
+				},
 			},
 		},
 		"block-requires-replacement": {
@@ -3353,6 +3579,39 @@ func TestBlockPlanModifyList(t *testing.T) {
 				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 			},
 		},
+		"response-planvalue-custom-type": {
+			block: testschema.BlockWithListPlanModifiers{
+				PlanModifiers: []planmodifier.List{
+					testplanmodifier.List{
+						PlanModifyListMethod: func(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+							resp.PlanValue = types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: testtypes.ListValueWithSemanticEquals{
+					ListValue: types.ListNull(types.StringType),
+				},
+				AttributePlan: testtypes.ListValueWithSemanticEquals{
+					ListValue: types.ListUnknown(types.StringType),
+				},
+				AttributeState: testtypes.ListValueWithSemanticEquals{
+					ListValue: types.ListNull(types.StringType),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.ListValueWithSemanticEquals{
+					ListValue: types.ListUnknown(types.StringType),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.ListValueWithSemanticEquals{
+					ListValue: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				},
+			},
+		},
 		"response-private": {
 			block: testschema.BlockWithListPlanModifiers{
 				PlanModifiers: []planmodifier.List{
@@ -4367,6 +4626,61 @@ func TestBlockPlanModifyObject(t *testing.T) {
 				),
 			},
 		},
+		"response-planvalue-custom-type": {
+			block: testschema.BlockWithObjectPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.PlanValue = types.ObjectValueMust(
+								map[string]attr.Type{
+									"testattr": types.StringType,
+								},
+								map[string]attr.Value{
+									"testattr": types.StringValue("testvalue"),
+								},
+							)
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: testtypes.ObjectValueWithSemanticEquals{
+					ObjectValue: types.ObjectNull(map[string]attr.Type{
+						"testattr": types.StringType,
+					}),
+				},
+				AttributePlan: testtypes.ObjectValueWithSemanticEquals{
+					ObjectValue: types.ObjectUnknown(map[string]attr.Type{
+						"testattr": types.StringType,
+					}),
+				},
+				AttributeState: testtypes.ObjectValueWithSemanticEquals{
+					ObjectValue: types.ObjectNull(map[string]attr.Type{
+						"testattr": types.StringType,
+					}),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.ObjectValueWithSemanticEquals{
+					ObjectValue: types.ObjectUnknown(map[string]attr.Type{
+						"testattr": types.StringType,
+					}),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.ObjectValueWithSemanticEquals{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"testattr": types.StringType,
+						},
+						map[string]attr.Value{
+							"testattr": types.StringValue("testvalue"),
+						},
+					),
+				},
+			},
+		},
 		"response-private": {
 			block: testschema.BlockWithObjectPlanModifiers{
 				PlanModifiers: []planmodifier.Object{
@@ -5116,6 +5430,39 @@ func TestBlockPlanModifySet(t *testing.T) {
 			},
 			expected: &ModifyAttributePlanResponse{
 				AttributePlan: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+			},
+		},
+		"response-planvalue-custom-type": {
+			block: testschema.BlockWithSetPlanModifiers{
+				PlanModifiers: []planmodifier.Set{
+					testplanmodifier.Set{
+						PlanModifySetMethod: func(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+							resp.PlanValue = types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")})
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: testtypes.SetValueWithSemanticEquals{
+					SetValue: types.SetNull(types.StringType),
+				},
+				AttributePlan: testtypes.SetValueWithSemanticEquals{
+					SetValue: types.SetUnknown(types.StringType),
+				},
+				AttributeState: testtypes.SetValueWithSemanticEquals{
+					SetValue: types.SetNull(types.StringType),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.SetValueWithSemanticEquals{
+					SetValue: types.SetUnknown(types.StringType),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.SetValueWithSemanticEquals{
+					SetValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
+				},
 			},
 		},
 		"response-private": {

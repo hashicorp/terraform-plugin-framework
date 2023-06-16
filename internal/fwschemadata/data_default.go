@@ -75,76 +75,229 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 		switch a := attrAtPath.(type) {
 		case fwschema.AttributeWithBoolDefaultValue:
 			defaultValue := a.BoolDefaultValue()
-			if defaultValue != nil {
-				resp := defaults.BoolResponse{}
-				defaultValue.DefaultBool(ctx, defaults.BoolRequest{}, &resp)
-				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
-				return resp.PlanValue.ToTerraformValue(ctx)
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
 			}
+
+			req := defaults.BoolRequest{
+				Path: fwPath,
+			}
+			resp := defaults.BoolResponse{}
+
+			defaultValue.DefaultBool(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
 		case fwschema.AttributeWithFloat64DefaultValue:
 			defaultValue := a.Float64DefaultValue()
-			if defaultValue != nil {
-				resp := defaults.Float64Response{}
-				defaultValue.DefaultFloat64(ctx, defaults.Float64Request{}, &resp)
-				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
-				return resp.PlanValue.ToTerraformValue(ctx)
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
 			}
+
+			req := defaults.Float64Request{
+				Path: fwPath,
+			}
+			resp := defaults.Float64Response{}
+
+			defaultValue.DefaultFloat64(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
 		case fwschema.AttributeWithInt64DefaultValue:
 			defaultValue := a.Int64DefaultValue()
-			if defaultValue != nil {
-				resp := defaults.Int64Response{}
-				defaultValue.DefaultInt64(ctx, defaults.Int64Request{}, &resp)
-				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
-				return resp.PlanValue.ToTerraformValue(ctx)
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
 			}
+
+			req := defaults.Int64Request{
+				Path: fwPath,
+			}
+			resp := defaults.Int64Response{}
+
+			defaultValue.DefaultInt64(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
+
 		case fwschema.AttributeWithListDefaultValue:
 			defaultValue := a.ListDefaultValue()
-			if defaultValue != nil {
-				resp := defaults.ListResponse{}
-				defaultValue.DefaultList(ctx, defaults.ListRequest{}, &resp)
-				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
-				return resp.PlanValue.ToTerraformValue(ctx)
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
 			}
+
+			req := defaults.ListRequest{
+				Path: fwPath,
+			}
+			resp := defaults.ListResponse{}
+
+			defaultValue.DefaultList(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			if resp.PlanValue.ElementType(ctx) == nil {
+				logging.FrameworkWarn(ctx, "attribute default declared, but returned no value")
+
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
 		case fwschema.AttributeWithMapDefaultValue:
 			defaultValue := a.MapDefaultValue()
-			if defaultValue != nil {
-				resp := defaults.MapResponse{}
-				defaultValue.DefaultMap(ctx, defaults.MapRequest{}, &resp)
-				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
-				return resp.PlanValue.ToTerraformValue(ctx)
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
 			}
+			req := defaults.MapRequest{
+				Path: fwPath,
+			}
+			resp := defaults.MapResponse{}
+
+			defaultValue.DefaultMap(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			if resp.PlanValue.ElementType(ctx) == nil {
+				logging.FrameworkWarn(ctx, "attribute default declared, but returned no value")
+
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
 		case fwschema.AttributeWithNumberDefaultValue:
 			defaultValue := a.NumberDefaultValue()
-			if defaultValue != nil {
-				resp := defaults.NumberResponse{}
-				defaultValue.DefaultNumber(ctx, defaults.NumberRequest{}, &resp)
-				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
-				return resp.PlanValue.ToTerraformValue(ctx)
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
 			}
+
+			req := defaults.NumberRequest{
+				Path: fwPath,
+			}
+			resp := defaults.NumberResponse{}
+
+			defaultValue.DefaultNumber(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
 		case fwschema.AttributeWithObjectDefaultValue:
 			defaultValue := a.ObjectDefaultValue()
-			if defaultValue != nil {
-				resp := defaults.ObjectResponse{}
-				defaultValue.DefaultObject(ctx, defaults.ObjectRequest{}, &resp)
-				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
-				return resp.PlanValue.ToTerraformValue(ctx)
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
 			}
+
+			req := defaults.ObjectRequest{
+				Path: fwPath,
+			}
+			resp := defaults.ObjectResponse{}
+
+			defaultValue.DefaultObject(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
 		case fwschema.AttributeWithSetDefaultValue:
 			defaultValue := a.SetDefaultValue()
-			if defaultValue != nil {
-				resp := defaults.SetResponse{}
-				defaultValue.DefaultSet(ctx, defaults.SetRequest{}, &resp)
-				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
-				return resp.PlanValue.ToTerraformValue(ctx)
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
 			}
+
+			req := defaults.SetRequest{
+				Path: fwPath,
+			}
+			resp := defaults.SetResponse{}
+
+			defaultValue.DefaultSet(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			if resp.PlanValue.ElementType(ctx) == nil {
+				logging.FrameworkWarn(ctx, "attribute default declared, but returned no value")
+
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
 		case fwschema.AttributeWithStringDefaultValue:
 			defaultValue := a.StringDefaultValue()
-			if defaultValue != nil {
-				resp := defaults.StringResponse{}
-				defaultValue.DefaultString(ctx, defaults.StringRequest{}, &resp)
-				logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath.String(), resp.PlanValue.String()))
-				return resp.PlanValue.ToTerraformValue(ctx)
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
 			}
+
+			req := defaults.StringRequest{
+				Path: fwPath,
+			}
+			resp := defaults.StringResponse{}
+
+			defaultValue.DefaultString(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
 		}
 
 		return tfTypeValue, nil
